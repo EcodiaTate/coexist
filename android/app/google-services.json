@@ -1,0 +1,31 @@
+{
+  "_comment": "PLACEHOLDER - Replace with real google-services.json from Firebase Console",
+  "_instructions": [
+    "1. Go to https://console.firebase.google.com",
+    "2. Create or select the Co-Exist project",
+    "3. Add an Android app with package name: org.coexistaus.app",
+    "4. Download google-services.json and replace this file",
+    "5. Enable Cloud Messaging (FCM) for push notifications"
+  ],
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "coexist-placeholder",
+    "storage_bucket": "coexist-placeholder.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
+        "android_client_info": {
+          "package_name": "org.coexistaus.app"
+        }
+      },
+      "api_key": [
+        {
+          "current_key": "PLACEHOLDER_API_KEY"
+        }
+      ]
+    }
+  ],
+  "configuration_version": "1"
+}
