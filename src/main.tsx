@@ -37,7 +37,7 @@ if (savedCache) {
   try {
     hydrate(queryClient, savedCache)
   } catch {
-    // Corrupted cache — ignore
+    // Corrupted cache - ignore
   }
 }
 
@@ -96,7 +96,7 @@ createRoot(document.getElementById('root')!).render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {
-      // Service worker registration failed — silent fallback
+      // Service worker registration failed - silent fallback
     })
   })
 }

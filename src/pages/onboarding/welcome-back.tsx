@@ -23,13 +23,13 @@ export default function WelcomeBackPage() {
 
       const [eventsRes, badgesRes] = await Promise.all([
         supabase
-          .from('events')
+          .from('events' as any)
           .select('id, title', { count: 'exact' })
           .eq('status', 'completed')
           .gte('date_start', thirtyDaysAgo.toISOString())
           .limit(3),
         supabase
-          .from('badge_awards')
+          .from('badge_awards' as any)
           .select('id', { count: 'exact' })
           .eq('user_id', user.id)
           .gte('awarded_at', thirtyDaysAgo.toISOString()),

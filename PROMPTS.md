@@ -2,83 +2,83 @@
 
 > Paste each prompt into a fresh Claude Code chat opened in the `coexist/` directory.
 > Each prompt is self-contained with all context needed.
-> Work through them in order — each batch depends on the previous ones being complete.
+> Work through them in order - each batch depends on the previous ones being complete.
 > After each chat completes its work, review the output, then move to the next prompt.
 
 ---
 
-## PROMPT 1 — Design System & Component Library
+## PROMPT 1 - Design System & Component Library
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 2 and 2.5 (Brand Identity & Design System, Component Library).
 
-You are building the complete design system and shared component library for the Co-Exist app — a youth conservation movement app (React + Vite + TypeScript + TailwindCSS v4 + Framer Motion + Lucide icons).
+You are building the complete design system and shared component library for the Co-Exist app - a youth conservation movement app (React + Vite + TypeScript + TailwindCSS v4 + Framer Motion + Lucide icons).
 
-The globals.css file at src/styles/globals.css already has the colour palette defined as @theme tokens. Use those existing tokens — do not redefine them.
+The globals.css file at src/styles/globals.css already has the colour palette defined as @theme tokens. Use those existing tokens - do not redefine them.
 
 Complete these tasks in full production quality:
 
 **Typography:**
-- Download and self-host Inter (body) and General Sans (headings) in src/assets/fonts/ — use @font-face declarations in globals.css
+- Download and self-host Inter (body) and General Sans (headings) in src/assets/fonts/ - use @font-face declarations in globals.css
 - If General Sans is not freely available, use Satoshi or DM Sans Variable as the heading font instead
 - Define the full type scale in Tailwind config: h1-h6, body, caption, overline, button text
 
 **Icon System:**
 - We're using Lucide React (already installed). Create an `<Icon>` wrapper component at src/components/icon.tsx that accepts name, size (sm/md/lg/xl mapping to 16/20/24/32), colour, and className props
-- Create custom conservation icon components in src/assets/icons/ for: tree planting, beach cleanup, habitat restoration, nature walk, wildlife survey, seed collecting, weed removal, waterway cleanup, community garden — these can be simple SVG components
+- Create custom conservation icon components in src/assets/icons/ for: tree planting, beach cleanup, habitat restoration, nature walk, wildlife survey, seed collecting, weed removal, waterway cleanup, community garden - these can be simple SVG components
 
-**Complete Component Library** — build ALL of these at src/components/:
+**Complete Component Library** - build ALL of these at src/components/:
 Every component must: accept className prop, be fully typed with explicit props interface, handle loading state (skeleton), work at all breakpoints, have aria-labels/roles, respect prefers-reduced-motion.
 
 Build each one with FULL implementation, not stubs:
-1. button.tsx — variants: primary, secondary, ghost, danger. Sizes: sm/md/lg. Props: icon, loading, disabled, fullWidth. Icons ALWAYS flex-centered with `items-center justify-center gap-2`.
-2. input.tsx — text, email, password, search, textarea variants. Floating label, error state, helper text. 16px font size (prevents iOS zoom).
-3. card.tsx — compound component pattern: Card, Card.Image, Card.Badge, Card.Content, Card.Title, Card.Meta. Variants: event, collective, stat, profile, merch, announcement. Pressable with scale(0.98) + shadow change on tap. NEVER generic — each variant is visually distinct with warm shadows, rounded-2xl, gradient overlays.
-4. badge.tsx — status badges, category tags. Variants: activity type colours, tier badges.
-5. avatar.tsx — user photo with fallback initials. Sizes: xs/sm/md/lg/xl. Online indicator dot. Tier ring colour.
-6. modal.tsx — bottom sheet style on mobile, centred modal on desktop. Backdrop blur. Framer Motion spring animation.
-7. bottom-sheet.tsx — draggable bottom sheet with spring physics. Handle bar. Snap points. Swipe to dismiss.
-8. toast.tsx — success/error/info/warning. Auto-dismiss timer. Slide from top with spring. Global toast provider + useToast hook.
-9. skeleton.tsx — shimmer animation loading placeholder. Variants for cards, text lines, avatars, stat cards, lists.
-10. empty-state.tsx — illustration slot + title + description + actionable CTA button. Never just "No items found."
-11. tab-bar.tsx — segmented control for switching views. Animated indicator that slides between tabs.
-12. chip.tsx — filter chips, selectable tags. Selected/unselected states. Dismiss button variant.
-13. progress-bar.tsx — linear and circular variants. Animated fill. Milestone markers.
-14. stat-card.tsx — large bold number + label + trend arrow. Subtle gradient bg. CountUp animation on mount.
-15. list-item.tsx — standard list row with left icon/avatar, title, subtitle, right chevron or value.
-16. divider.tsx — section dividers with optional centred label.
-17. header.tsx — page header with back button, title, optional right action buttons. Safe area aware.
-18. dropdown.tsx — mobile-friendly picker/select. Bottom sheet on mobile, popover on desktop.
-19. toggle.tsx — switch component for settings. Animated thumb slide.
-20. checkbox.tsx and radio.tsx — form controls with brand styling.
-21. date-picker.tsx — mobile-native date/time selection. Uses native input on mobile, custom picker on desktop.
-22. map-view.tsx — wrapper placeholder for Mapbox/Leaflet (just the container + loading state for now).
-23. photo-grid.tsx — masonry/grid layout for event photos. 2-col on mobile, 3-col on tablet, 4-col on desktop.
-24. count-up.tsx — animated number counter. Configurable duration, easing, decimal places. Triggers on viewport entry.
-25. pull-to-refresh.tsx — native-feel pull-to-refresh wrapper with nature-themed animation (leaf or seedling).
-26. chat-bubble.tsx — message bubble with directional tails. Sent (primary bg) vs received (neutral bg). Photo variant. Reply quote. Role badge. Timestamp.
-27. message-input.tsx — chat text input with send button, attachment button, auto-grow textarea.
-28. user-card.tsx — tappable mini-profile popup: avatar with tier ring, name, pronouns, insta handle (tappable), collective badge, location mini-map placeholder, quick stats.
-29. map-pin.tsx — custom styled Co-Exist branded map pin component. Pulse animation variant for selected state. Activity type variant with icon.
-30. confirmation-sheet.tsx — destructive action confirmation bottom sheet. Red action button + cancel. Used for all destructive actions app-wide.
+1. button.tsx - variants: primary, secondary, ghost, danger. Sizes: sm/md/lg. Props: icon, loading, disabled, fullWidth. Icons ALWAYS flex-centered with `items-center justify-center gap-2`.
+2. input.tsx - text, email, password, search, textarea variants. Floating label, error state, helper text. 16px font size (prevents iOS zoom).
+3. card.tsx - compound component pattern: Card, Card.Image, Card.Badge, Card.Content, Card.Title, Card.Meta. Variants: event, collective, stat, profile, merch, announcement. Pressable with scale(0.98) + shadow change on tap. NEVER generic - each variant is visually distinct with warm shadows, rounded-2xl, gradient overlays.
+4. badge.tsx - status badges, category tags. Variants: activity type colours, tier badges.
+5. avatar.tsx - user photo with fallback initials. Sizes: xs/sm/md/lg/xl. Online indicator dot. Tier ring colour.
+6. modal.tsx - bottom sheet style on mobile, centred modal on desktop. Backdrop blur. Framer Motion spring animation.
+7. bottom-sheet.tsx - draggable bottom sheet with spring physics. Handle bar. Snap points. Swipe to dismiss.
+8. toast.tsx - success/error/info/warning. Auto-dismiss timer. Slide from top with spring. Global toast provider + useToast hook.
+9. skeleton.tsx - shimmer animation loading placeholder. Variants for cards, text lines, avatars, stat cards, lists.
+10. empty-state.tsx - illustration slot + title + description + actionable CTA button. Never just "No items found."
+11. tab-bar.tsx - segmented control for switching views. Animated indicator that slides between tabs.
+12. chip.tsx - filter chips, selectable tags. Selected/unselected states. Dismiss button variant.
+13. progress-bar.tsx - linear and circular variants. Animated fill. Milestone markers.
+14. stat-card.tsx - large bold number + label + trend arrow. Subtle gradient bg. CountUp animation on mount.
+15. list-item.tsx - standard list row with left icon/avatar, title, subtitle, right chevron or value.
+16. divider.tsx - section dividers with optional centred label.
+17. header.tsx - page header with back button, title, optional right action buttons. Safe area aware.
+18. dropdown.tsx - mobile-friendly picker/select. Bottom sheet on mobile, popover on desktop.
+19. toggle.tsx - switch component for settings. Animated thumb slide.
+20. checkbox.tsx and radio.tsx - form controls with brand styling.
+21. date-picker.tsx - mobile-native date/time selection. Uses native input on mobile, custom picker on desktop.
+22. map-view.tsx - wrapper placeholder for Mapbox/Leaflet (just the container + loading state for now).
+23. photo-grid.tsx - masonry/grid layout for event photos. 2-col on mobile, 3-col on tablet, 4-col on desktop.
+24. count-up.tsx - animated number counter. Configurable duration, easing, decimal places. Triggers on viewport entry.
+25. pull-to-refresh.tsx - native-feel pull-to-refresh wrapper with nature-themed animation (leaf or seedling).
+26. chat-bubble.tsx - message bubble with directional tails. Sent (primary bg) vs received (neutral bg). Photo variant. Reply quote. Role badge. Timestamp.
+27. message-input.tsx - chat text input with send button, attachment button, auto-grow textarea.
+28. user-card.tsx - tappable mini-profile popup: avatar with tier ring, name, pronouns, insta handle (tappable), collective badge, location mini-map placeholder, quick stats.
+29. map-pin.tsx - custom styled Co-Exist branded map pin component. Pulse animation variant for selected state. Activity type variant with icon.
+30. confirmation-sheet.tsx - destructive action confirmation bottom sheet. Red action button + cancel. Used for all destructive actions app-wide.
 
 Also create:
-- src/components/index.ts — barrel export for all components
-- src/lib/cn.ts — move the cn() utility here if not already (clsx + tailwind-merge)
+- src/components/index.ts - barrel export for all components
+- src/lib/cn.ts - move the cn() utility here if not already (clsx + tailwind-merge)
 
-Focus on pixel-perfect, non-generic, crafted UI. Warm shadows, smooth animations, the sage green palette, rounded corners. This should look and feel premium — like a well-funded startup's app, not a template. Every card variant should be visually distinctive.
+Focus on pixel-perfect, non-generic, crafted UI. Warm shadows, smooth animations, the sage green palette, rounded corners. This should look and feel premium - like a well-funded startup's app, not a template. Every card variant should be visually distinctive.
 
 Test that the project builds without errors when done: run `npx tsc --noEmit && npx vite build`
 ```
 
 ---
 
-## PROMPT 2 — Database Schema & Supabase Config
+## PROMPT 2 - Database Schema & Supabase Config
 
 ```
 Read CLAUDE.md and TODO-MASTER.md section 3 (Database Schema & Supabase Config).
 
-You are building the COMPLETE Supabase database schema for the Co-Exist app — a youth conservation movement app. The schema must be production-ready, fully typed, and include all RLS policies, functions, triggers, and storage config.
+You are building the COMPLETE Supabase database schema for the Co-Exist app - a youth conservation movement app. The schema must be production-ready, fully typed, and include all RLS policies, functions, triggers, and storage config.
 
 Generate a single comprehensive SQL migration file at supabase/migrations/001_initial_schema.sql that I can paste into the Supabase SQL editor.
 
@@ -137,50 +137,50 @@ Use PostGIS geography(Point, 4326) for all location columns. Use JSONB for flexi
 - All timestamps as timestamptz
 - Add CASCADE where FK deletion should cascade (e.g. user deletes → their registrations delete)
 
-Also generate the TypeScript types file at src/types/database.types.ts — manually create the type definitions for all tables matching what `supabase gen types typescript` would output. Include the Database interface with public schema, all table Row/Insert/Update types, and enum types.
+Also generate the TypeScript types file at src/types/database.types.ts - manually create the type definitions for all tables matching what `supabase gen types typescript` would output. Include the Database interface with public schema, all table Row/Insert/Update types, and enum types.
 
 The SQL must be valid, executable in one go in the Supabase SQL editor, and complete. Do not leave any TODOs or placeholders.
 ```
 
 ---
 
-## PROMPT 3 — Authentication & Onboarding + Roles
+## PROMPT 3 - Authentication & Onboarding + Roles
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 4, 5, and 49.
 
 You are building the complete authentication system, onboarding flows, and role/permission system for the Co-Exist app (React + Vite + TypeScript + Supabase + TailwindCSS + Framer Motion).
 
-The component library from src/components/ is already built. The database schema is ready with profiles, collectives, collective_members tables and all enums. Import and use the existing components (Button, Input, Card, Avatar, etc.) — do NOT rebuild them.
+The component library from src/components/ is already built. The database schema is ready with profiles, collectives, collective_members tables and all enums. Import and use the existing components (Button, Input, Card, Avatar, etc.) - do NOT rebuild them.
 
 **Auth Infrastructure:**
-1. src/hooks/use-auth.ts — comprehensive auth hook:
+1. src/hooks/use-auth.ts - comprehensive auth hook:
    - Supabase auth state listener (onAuthStateChange)
    - Auto-fetch profile from profiles table on login
    - Expose: user, profile, session, role, isLeader(collectiveId), isAssistLeader(collectiveId), isCoLeader(collectiveId), isStaff, isAdmin, isSuperAdmin, isLoading, signUp, signIn, signInWithGoogle, signInWithApple, signInWithMagicLink, signOut, resetPassword, updatePassword
    - Handle suspended account state (check is_suspended on profile fetch)
    - Account merge: Supabase identity linking when same email used with different providers
 
-2. src/hooks/use-collective-role.ts — per-collective role checking from collective_members table
+2. src/hooks/use-collective-role.ts - per-collective role checking from collective_members table
 
-3. src/components/role-gate.tsx — conditionally renders children based on role:
+3. src/components/role-gate.tsx - conditionally renders children based on role:
    - Props: minRole (collective role or global role), collectiveId (optional), fallback (optional)
    - Uses useAuth + useCollectiveRole
 
-4. src/components/route-guard.tsx — route-level auth/role protection:
-   - RequireAuth — redirects to /login if not authenticated
-   - RequireRole — checks global role minimum
-   - RequireCollectiveRole — checks collective-specific role
+4. src/components/route-guard.tsx - route-level auth/role protection:
+   - RequireAuth - redirects to /login if not authenticated
+   - RequireRole - checks global role minimum
+   - RequireCollectiveRole - checks collective-specific role
 
 5. Auth state persistence for Capacitor using @capacitor/preferences
 
 **Auth Screens** (src/pages/auth/):
-6. welcome.tsx — splash/landing with Co-Exist logo (black text on white), tagline "Explore. Connect. Protect.", nature background, "Get Started" + "I have an account" buttons. Beautiful, not generic.
-7. sign-up.tsx — email, password, display name, agree to terms checkbox. Social auth buttons (Google, Apple).
-8. login.tsx — email + password, social buttons, forgot password link, magic link option.
-9. forgot-password.tsx — email input, send reset link, success confirmation.
-10. email-verification.tsx — "Check your inbox" with animated envelope, resend button.
-11. suspended-account.tsx — "Account suspended" screen showing reason, appeal contact (hello@coexistaus.org).
+6. welcome.tsx - splash/landing with Co-Exist logo (black text on white), tagline "Explore. Connect. Protect.", nature background, "Get Started" + "I have an account" buttons. Beautiful, not generic.
+7. sign-up.tsx - email, password, display name, agree to terms checkbox. Social auth buttons (Google, Apple).
+8. login.tsx - email + password, social buttons, forgot password link, magic link option.
+9. forgot-password.tsx - email input, send reset link, success confirmation.
+10. email-verification.tsx - "Check your inbox" with animated envelope, resend button.
+11. suspended-account.tsx - "Account suspended" screen showing reason, appeal contact (hello@coexistaus.org).
 
 **Onboarding Flow** (src/pages/onboarding/):
 12. Complete multi-step onboarding flow with Framer Motion AnimatePresence transitions:
@@ -205,7 +205,7 @@ The component library from src/components/ is already built. The database schema
     - Show missed events, new badges, collective activity
     - Suggest next event
 
-**App Routing** — update src/App.tsx with full route structure:
+**App Routing** - update src/App.tsx with full route structure:
 - Public routes: /login, /signup, /forgot-password, /verify-email
 - Onboarding: /onboarding (guarded: redirect if already completed)
 - Protected routes wrapped in RequireAuth
@@ -213,14 +213,14 @@ The component library from src/components/ is already built. The database schema
 - Admin routes wrapped in RequireRole(national_staff)
 - Lazy-loaded page imports
 
-All auth screens must be beautifully styled, mobile-first (44px touch targets, bottom CTAs), with smooth Framer Motion transitions. Use the existing component library. The welcome/splash screen is the first thing users see — it must be stunning.
+All auth screens must be beautifully styled, mobile-first (44px touch targets, bottom CTAs), with smooth Framer Motion transitions. Use the existing component library. The welcome/splash screen is the first thing users see - it must be stunning.
 
 Test that the project builds: `npx tsc --noEmit && npx vite build`
 ```
 
 ---
 
-## PROMPT 4 — App Shell, Navigation & Layout
+## PROMPT 4 - App Shell, Navigation & Layout
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 6 and 39.
@@ -230,16 +230,16 @@ You are building the app shell, navigation system, and responsive layout for the
 The auth system, components, and routing are already in place. Build on top of them.
 
 **Layout System:**
-1. src/hooks/use-layout.ts — detects:
+1. src/hooks/use-layout.ts - detects:
    - Platform: native (Capacitor) vs web
    - Viewport: mobile (<640px), tablet (640-1024px), desktop (>1024px)
    - Returns: isMobile, isTablet, isDesktop, isNative, isWeb, navMode ('bottom-tabs' | 'sidebar' | 'top-nav')
 
-2. src/hooks/use-platform.ts — Capacitor.isNativePlatform() wrapper + platform-specific feature flags (haptics, camera, push, biometrics, native share)
+2. src/hooks/use-platform.ts - Capacitor.isNativePlatform() wrapper + platform-specific feature flags (haptics, camera, push, biometrics, native share)
 
 **App Shell Components:**
 
-3. src/components/app-shell.tsx — the root layout wrapper:
+3. src/components/app-shell.tsx - the root layout wrapper:
    - Mobile: bottom tab bar + scrollable content area + safe area padding
    - Tablet: bottom tabs or collapsible sidebar + content
    - Desktop (web): top nav bar + sidebar + content area (max-width container)
@@ -258,26 +258,26 @@ The auth system, components, and routing are already in place. Build on top of t
    - Announcements bell icon in top-right of screen header with unread dot
    - NEVER shown on desktop web
 
-5. src/components/top-nav.tsx — desktop web only:
+5. src/components/top-nav.tsx - desktop web only:
    - Co-Exist logo left
    - Nav links centre: Home, Explore, Events, Community
    - Right: notification bell, avatar dropdown (profile, settings, admin if role, logout)
    - Sticky top
 
-6. src/components/sidebar-nav.tsx — desktop web + admin dashboard:
+6. src/components/sidebar-nav.tsx - desktop web + admin dashboard:
    - Collapsible sidebar
    - User info at top (avatar, name, collective)
    - Nav sections: main nav, leader tools (if leader), admin (if staff+)
    - Active state indicator
 
-7. src/components/web-footer.tsx — web only (NOT shown in Capacitor native):
+7. src/components/web-footer.tsx - web only (NOT shown in Capacitor native):
    - Co-Exist logo
    - Aboriginal and Torres Strait Islander acknowledgment
    - Links: About, Privacy, Terms, Contact, Instagram, Facebook
    - "Download the app" with App Store + Play Store badges
    - © Co-Exist Australia Ltd
 
-8. src/components/page.tsx — standard page wrapper:
+8. src/components/page.tsx - standard page wrapper:
    - Props: header (optional Header component), footer (optional sticky bottom CTA), scrollable content area
    - Handles padding, safe areas, scroll restoration
 
@@ -295,7 +295,7 @@ The auth system, components, and routing are already in place. Build on top of t
 - All transitions respect prefers-reduced-motion
 
 **Splash Screen:**
-10. src/pages/splash.tsx — Co-Exist logo (black text on white), brief animation (logo fade in, tagline reveal), auto-dismiss after 1.5s or when auth state resolves (whichever is later)
+10. src/pages/splash.tsx - Co-Exist logo (black text on white), brief animation (logo fade in, tagline reveal), auto-dismiss after 1.5s or when auth state resolves (whichever is later)
 
 Update src/App.tsx to wrap everything in the AppShell, with proper route structure and layout switching.
 
@@ -304,31 +304,31 @@ Test build: `npx tsc --noEmit && npx vite build`
 
 ---
 
-## PROMPT 5 — Home Feed & Explore
+## PROMPT 5 - Home Feed & Explore
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 7 and 28.
 
 Build the home/discovery feed and explore/search pages for the Co-Exist app. All components from src/components/ are available. Auth hooks, layout hooks, and Supabase client are ready. Import and use existing components.
 
-**Home Feed** (src/pages/home.tsx — replace the existing placeholder):
-1. Greeting with user's first name + time of day ("Good morning, Sarah") — with contextual variations from §53.2.1 if data available
-2. Latest announcement banner (if urgent/pinned announcements exist) — tappable → announcements feed
-3. Hero section — featured event or campaign banner (horizontal carousel if multiple)
-4. "Upcoming near you" — horizontal scroll of event cards (location-based query via PostGIS ST_DWithin, or all if no location set)
-5. "Your Collective" card — shows next event in user's collective + quick stats (members, events this month). If not in a collective, show "Find your collective" CTA
-6. "Your Impact" — compact stat bar: events attended, trees planted, hours volunteered (from get_user_impact_stats)
-7. "National Challenge" — active challenge card with progress bar (if any active challenge)
-8. "Trending Collectives" — horizontal scroll for users not yet in a collective
-9. "People you may know" — horizontal avatar scroll of suggested connections (shared collective or shared events)
-10. Category quick-filter chips — activity types for filtering nearby events
+**Home Feed** (src/pages/home.tsx - replace the existing placeholder):
+1. Greeting with user's first name + time of day ("Good morning, Sarah") - with contextual variations from §53.2.1 if data available
+2. Latest announcement banner (if urgent/pinned announcements exist) - tappable → announcements feed
+3. Hero section - featured event or campaign banner (horizontal carousel if multiple)
+4. "Upcoming near you" - horizontal scroll of event cards (location-based query via PostGIS ST_DWithin, or all if no location set)
+5. "Your Collective" card - shows next event in user's collective + quick stats (members, events this month). If not in a collective, show "Find your collective" CTA
+6. "Your Impact" - compact stat bar: events attended, trees planted, hours volunteered (from get_user_impact_stats)
+7. "National Challenge" - active challenge card with progress bar (if any active challenge)
+8. "Trending Collectives" - horizontal scroll for users not yet in a collective
+9. "People you may know" - horizontal avatar scroll of suggested connections (shared collective or shared events)
+10. Category quick-filter chips - activity types for filtering nearby events
 11. Pull-to-refresh (using PullToRefresh component)
 12. Skeleton loading state for each section
 13. Empty state for new users (guided CTAs: join collective, find event)
 14. All data fetched with TanStack Query hooks (create src/hooks/use-home-feed.ts with all the queries)
 
 **Explore / Search** (src/pages/explore.tsx):
-1. Global search bar at top — searches across events, collectives, users
+1. Global search bar at top - searches across events, collectives, users
 2. Recent searches / search suggestions
 3. Category quick-filter chips
 4. Results displayed:
@@ -344,9 +344,9 @@ Build the home/discovery feed and explore/search pages for the Co-Exist app. All
 7. Empty search state with suggestions
 
 Create all necessary TanStack Query hooks in src/hooks/:
-- use-home-feed.ts — all home feed data queries
-- use-search.ts — debounced search, recent searches (persisted to localStorage)
-- use-nearby.ts — location-based queries for events and collectives
+- use-home-feed.ts - all home feed data queries
+- use-search.ts - debounced search, recent searches (persisted to localStorage)
+- use-nearby.ts - location-based queries for events and collectives
 
 Each section on the home feed should use the styled card variants from the component library. Event cards use Card variant="event", stat sections use StatCard, etc.
 
@@ -355,20 +355,20 @@ Test build: `npx tsc --noEmit && npx vite build`
 
 ---
 
-## PROMPT 6 — Event System (Participant + Leader)
+## PROMPT 6 - Event System (Participant + Leader)
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 8, 9, and 30-31.
 
-Build the COMPLETE event system for Co-Exist — both participant-facing and leader tools. This is a core feature. Use existing components from src/components/ and hooks from src/hooks/.
+Build the COMPLETE event system for Co-Exist - both participant-facing and leader tools. This is a core feature. Use existing components from src/components/ and hooks from src/hooks/.
 
 **Event Discovery** (already partially in explore, but dedicated views):
-1. src/pages/events/index.tsx — My Events page with tabs: Upcoming | Invited | Past
+1. src/pages/events/index.tsx - My Events page with tabs: Upcoming | Invited | Past
    - Event cards showing date, title, collective, status badge (registered/waitlisted/attended/invited)
    - Quick action: cancel registration (swipe or long-press → confirmation sheet)
    - Tap → event detail
 
-2. src/pages/events/event-detail.tsx — FULL event detail page:
+2. src/pages/events/event-detail.tsx - FULL event detail page:
    - Cover image hero with parallax scroll effect
    - Event title, date/time with countdown ("Starts in 2 days"), duration
    - Activity type badge
@@ -379,14 +379,14 @@ Build the COMPLETE event system for Co-Exist — both participant-facing and lea
    - "What to bring" / "What to expect" / "What to wear" section
    - Accessibility info: wheelchair access, terrain type, difficulty rating, facilities
    - Attendee count + capacity ("23/30 spots filled") with avatar row
-   - Weather display for event location (placeholder — just the UI component with mock data)
+   - Weather display for event location (placeholder - just the UI component with mock data)
    - Carpooling section if enabled ("Lift offered" / "Lift needed")
-   - Register button — sticky bottom CTA
+   - Register button - sticky bottom CTA
    - States: can register, registered ("You're going!"), waitlisted, event full, invited (who invited), past event, cancelled
    - Share button (native share sheet), Add to calendar button
    - Post-event: impact summary section + photo gallery + survey prompt
 
-3. src/hooks/use-events.ts — all event queries:
+3. src/hooks/use-events.ts - all event queries:
    - useMyEvents(status), useEventDetail(id), useEventRegistration(eventId)
    - useRegisterForEvent(), useCancelRegistration()
    - useNearbyEvents(location, radius), useCollectiveEvents(collectiveId)
@@ -408,16 +408,16 @@ Build the COMPLETE event system for Co-Exist — both participant-facing and lea
 
 **Leader Event Tools:**
 
-9. src/pages/events/create-event.tsx — multi-step wizard:
-   - Step 1: Basics — title, activity type dropdown, description
-   - Step 2: Date & Time — start/end datetime pickers, recurring event option (weekly/fortnightly/monthly series creation)
-   - Step 3: Location — address search + draggable map pin
-   - Step 4: Details — capacity, what to bring, meeting point notes, accessibility info (wheelchair, terrain, facilities), difficulty rating, what to wear
-   - Step 5: Cover Image — upload from camera/gallery
-   - Step 6: Visibility — public or collective-only
-   - Step 7: Invite — option to auto-invite all collective members
-   - Step 8: Partner — tag external organisation (optional)
-   - Step 9: Review & Publish — preview card, publish or save draft
+9. src/pages/events/create-event.tsx - multi-step wizard:
+   - Step 1: Basics - title, activity type dropdown, description
+   - Step 2: Date & Time - start/end datetime pickers, recurring event option (weekly/fortnightly/monthly series creation)
+   - Step 3: Location - address search + draggable map pin
+   - Step 4: Details - capacity, what to bring, meeting point notes, accessibility info (wheelchair, terrain, facilities), difficulty rating, what to wear
+   - Step 5: Cover Image - upload from camera/gallery
+   - Step 6: Visibility - public or collective-only
+   - Step 7: Invite - option to auto-invite all collective members
+   - Step 8: Partner - tag external organisation (optional)
+   - Step 9: Review & Publish - preview card, publish or save draft
    - Smart pre-fills: location from collective default, capacity from past average
 
 10. Event management actions:
@@ -427,17 +427,17 @@ Build the COMPLETE event system for Co-Exist — both participant-facing and lea
     - Weather/cancellation advisory posting
     - Capacity change handling (auto-promote waitlist or warn if over-registered)
 
-11. src/pages/events/event-day.tsx — leader's event day dashboard:
+11. src/pages/events/event-day.tsx - leader's event day dashboard:
     - Attendance list with check-in status toggles
     - Display event QR code for participants to scan
     - Manual check-in (tap to mark attended)
     - Bulk "Mark all present"
     - Live attendee count
 
-12. src/pages/events/log-impact.tsx — post-event impact logging:
+12. src/pages/events/log-impact.tsx - post-event impact logging:
     - Form fields pre-populated by activity type (tree planting: trees + species + area, beach cleanup: rubbish kg + coastline m, etc.)
     - Auto-calculated total hours (duration × attendees)
-    - Species tracking — select from list or add custom
+    - Species tracking - select from list or add custom
     - Photo upload: general event photos + before/after comparison
     - GPS area polygon drawing on map (or circle selection)
     - Notes field
@@ -449,14 +449,14 @@ Build the COMPLETE event system for Co-Exist — both participant-facing and lea
 
 14. Event invites: invite all collective members, track acceptance rate
 
-Create all TanStack Query mutations and hooks. Use optimistic updates for registration/cancellation. This is the biggest feature — make it comprehensive.
+Create all TanStack Query mutations and hooks. Use optimistic updates for registration/cancellation. This is the biggest feature - make it comprehensive.
 
 Test build: `npx tsc --noEmit && npx vite build`
 ```
 
 ---
 
-## PROMPT 7 — Collectives & Group Chat
+## PROMPT 7 - Collectives & Group Chat
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 10 and 11.
@@ -498,9 +498,9 @@ Build the complete collective (local group) system and real-time group chat for 
    - Tap member → user card component
 
 **Group Chat System:**
-5. src/pages/chat/index.tsx — chat list (if multi-collective: list of collective chats with unread badges)
+5. src/pages/chat/index.tsx - chat list (if multi-collective: list of collective chats with unread badges)
 
-6. src/pages/chat/collective-chat.tsx — the actual chat:
+6. src/pages/chat/collective-chat.tsx - the actual chat:
    - Real-time messaging via Supabase Realtime (subscribe to chat_messages WHERE collective_id)
    - Messages: newest at bottom, auto-scroll on new message
    - Send text message with optimistic update
@@ -537,19 +537,19 @@ Build the complete collective (local group) system and real-time group chat for 
 10. Chat export (leader): export chat log for date range as text/CSV
 
 Create hooks:
-- src/hooks/use-chat.ts — messages query, send, edit, delete, subscribe to realtime
-- src/hooks/use-typing.ts — typing indicator via Supabase presence
-- src/hooks/use-chat-search.ts — search within chat history
-- src/hooks/use-collective.ts — collective queries, join, leave, member management
+- src/hooks/use-chat.ts - messages query, send, edit, delete, subscribe to realtime
+- src/hooks/use-typing.ts - typing indicator via Supabase presence
+- src/hooks/use-chat-search.ts - search within chat history
+- src/hooks/use-collective.ts - collective queries, join, leave, member management
 
-The chat must feel native — smooth scrolling, instant send (optimistic), real-time delivery, proper keyboard handling (input stays visible above keyboard on mobile).
+The chat must feel native - smooth scrolling, instant send (optimistic), real-time delivery, proper keyboard handling (input stays visible above keyboard on mobile).
 
 Test build: `npx tsc --noEmit && npx vite build`
 ```
 
 ---
 
-## PROMPT 8 — Profiles, Impact & Gamification
+## PROMPT 8 - Profiles, Impact & Gamification
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 12, 13, 15, and 57.
@@ -557,7 +557,7 @@ Read CLAUDE.md and TODO-MASTER.md sections 12, 13, 15, and 57.
 Build user profiles, impact tracking, gamification (points/badges/tiers/leaderboards), and shareable identity for Co-Exist. Use existing components.
 
 **Profile System:**
-1. src/pages/profile/index.tsx — My Profile:
+1. src/pages/profile/index.tsx - My Profile:
    - Avatar with tier ring colour, name, pronouns, bio
    - Instagram handle (tappable → opens IG)
    - Location with mini map + styled pin
@@ -572,7 +572,7 @@ Build user profiles, impact tracking, gamification (points/badges/tiers/leaderbo
    - Share profile link (Instagram story-friendly)
    - "Add to Apple Wallet / Google Wallet" for membership card
 
-2. src/pages/profile/view-profile.tsx — viewing another user:
+2. src/pages/profile/view-profile.tsx - viewing another user:
    - Same layout but read-only
    - "You're both in [Collective]" indicator
    - Mutual connections: shared events, shared collectives
@@ -584,9 +584,9 @@ Build user profiles, impact tracking, gamification (points/badges/tiers/leaderbo
    - Privacy settings (profile visibility: public/collective-only/private)
 
 **Impact Dashboard:**
-4. src/pages/impact/index.tsx — Personal Impact Dashboard:
+4. src/pages/impact/index.tsx - Personal Impact Dashboard:
    - Hero stat cards with CountUp animation: trees planted, hours, events, rubbish
-   - Activity chart (events per month — bar chart, use a lightweight chart lib or CSS)
+   - Activity chart (events per month - bar chart, use a lightweight chart lib or CSS)
    - Impact by category (donut chart)
    - Streak tracker (consecutive weeks/months)
    - Comparison to national average
@@ -600,7 +600,7 @@ Build user profiles, impact tracking, gamification (points/badges/tiers/leaderbo
    - Animated points award notification (number flies up)
    - Point values as defined in TODO 15.1.1
 
-6. src/pages/badges/index.tsx — Badge collection:
+6. src/pages/badges/index.tsx - Badge collection:
    - Grid of all badges (earned = coloured, locked = greyed with lock icon)
    - Badge detail modal: description, criteria, progress bar, date earned, rarity
    - Badge unlock animation (card flip + glow + particles + haptic)
@@ -639,7 +639,7 @@ Test build: `npx tsc --noEmit && npx vite build`
 
 ---
 
-## PROMPT 9 — Social Feed, Notifications & Announcements
+## PROMPT 9 - Social Feed, Notifications & Announcements
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 16, 17, and 18.
@@ -690,7 +690,7 @@ Build the social/community feed, notification system, and global announcements f
 
 **Global Announcements:**
 6. src/pages/announcements/index.tsx:
-   - Announcements feed — accessible from bell icon or dedicated section
+   - Announcements feed - accessible from bell icon or dedicated section
    - Announcement card: title, content, author (name + role), timestamp, optional image
    - Priority: normal (in feed), urgent (banner on home + push)
    - Pinned announcements at top
@@ -711,7 +711,7 @@ Build the social/community feed, notification system, and global announcements f
    - Create announcement mutation (staff+)
 
 **Content Moderation:**
-9. Content moderation queue (admin view) — unified list of all flagged/reported posts, photos, chat messages with approve/remove/warn actions
+9. Content moderation queue (admin view) - unified list of all flagged/reported posts, photos, chat messages with approve/remove/warn actions
 
 Create all hooks and ensure proper Realtime subscriptions with cleanup.
 
@@ -720,18 +720,18 @@ Test build: `npx tsc --noEmit && npx vite build`
 
 ---
 
-## PROMPT 10 — Donations, Merch Store & Payments
+## PROMPT 10 - Donations, Merch Store & Payments
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 19 and 20.
 
-Build the complete donation system and merch store for Co-Exist — both customer-facing and admin management. Uses Stripe for all payments. Use existing components.
+Build the complete donation system and merch store for Co-Exist - both customer-facing and admin management. Uses Stripe for all payments. Use existing components.
 
 **Donations:**
 1. src/pages/donate/index.tsx:
    - Purpose description section ("Every dollar goes to...")
    - Preset amount buttons ($5, $10, $25, $50) + custom amount input
-   - One-time vs recurring (monthly) toggle — recurring via Stripe Subscriptions
+   - One-time vs recurring (monthly) toggle - recurring via Stripe Subscriptions
    - Optional message with donation
    - Optional "on behalf of organisation" for corporate donations
    - Donation goal/thermometer per project (animated fill)
@@ -745,9 +745,9 @@ Build the complete donation system and merch store for Co-Exist — both custome
 3. Donation management:
    - Donation history in profile settings
    - Manage recurring donation (cancel/change amount)
-   - Tax-deductible receipt generation (if DGR status — PDF with ABN, DGR endorsement)
+   - Tax-deductible receipt generation (if DGR status - PDF with ABN, DGR endorsement)
 
-4. Donor wall — public page showing donor names/organisations (opt-in)
+4. Donor wall - public page showing donor names/organisations (opt-in)
 
 **Merch Store (Customer):**
 5. src/pages/shop/index.tsx:
@@ -764,7 +764,7 @@ Build the complete donation system and merch store for Co-Exist — both custome
    - Related products
 
 7. Cart system:
-   - src/hooks/use-cart.ts — Zustand store: add, remove, update quantity, clear
+   - src/hooks/use-cart.ts - Zustand store: add, remove, update quantity, clear
    - Cart page: items, quantities, variant display, subtotal
    - Promo code input + validation
    - Shipping rate display (flat rate or calculated)
@@ -802,10 +802,10 @@ Build the complete donation system and merch store for Co-Exist — both custome
     - Export orders CSV
 
 **Stripe Integration:**
-12. src/lib/stripe.ts — Stripe.js client setup
+12. src/lib/stripe.ts - Stripe.js client setup
 13. Supabase Edge Function stubs at supabase/functions/:
-    - create-checkout/index.ts — creates Stripe Checkout session (donations + merch)
-    - stripe-webhook/index.ts — handles payment_intent.succeeded, subscription events, refunds
+    - create-checkout/index.ts - creates Stripe Checkout session (donations + merch)
+    - stripe-webhook/index.ts - handles payment_intent.succeeded, subscription events, refunds
     - Document the webhook event handling flow
 
 Create hooks: use-donations.ts, use-merch.ts, use-cart.ts, use-orders.ts, use-admin-merch.ts
@@ -815,19 +815,19 @@ Test build: `npx tsc --noEmit && npx vite build`
 
 ---
 
-## PROMPT 11 — Admin Dashboards & Reporting
+## PROMPT 11 - Admin Dashboards & Reporting
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 14, 21, 22, 23, 24, 25, 26, and 33.
 
-Build ALL admin dashboards, reporting, and management tools. This is a big one — leader dashboard, national admin, super admin, impact reporting, surveys, partners, and exports. Use existing components.
+Build ALL admin dashboards, reporting, and management tools. This is a big one - leader dashboard, national admin, super admin, impact reporting, surveys, partners, and exports. Use existing components.
 
 **Leader Dashboard** (src/pages/leader/):
-1. leader/index.tsx — overview:
+1. leader/index.tsx - overview:
    - Stat cards: active members, upcoming events, hours this month, events this month
    - Upcoming events with RSVP counts + quick actions
    - Recent activity: new members, recent check-ins
-   - Member engagement scores (active vs at-risk — inactive 30+ days)
+   - Member engagement scores (active vs at-risk - inactive 30+ days)
    - Quick actions: create event, send announcement, view members, log impact, invite collective
    - Event calendar (month view with event dots)
    - Notification centre: pending items (impact not logged, etc.)
@@ -835,23 +835,23 @@ Build ALL admin dashboards, reporting, and management tools. This is a big one �
    - Event invite acceptance rate stats
 
 **National Admin Dashboard** (src/pages/admin/):
-2. admin/index.tsx — overview:
+2. admin/index.tsx - overview:
    - Total members, collectives, events, impact (all-time + period)
    - Trend charts: member growth, event frequency, impact over time (line/bar)
    - Configurable date ranges (week/month/quarter/year/custom)
    - Geographic heat map of activity (marker clusters)
 
-3. admin/collectives.tsx — manage all collectives: list, health scores, leader info, create/archive
-4. admin/users.tsx — user management (see Super Admin below)
-5. admin/events.tsx — all events nationally, filter by collective/region/status
-6. admin/partners.tsx — partner/sponsor CRUD, organisation directory, corporate programs
-7. admin/challenges.tsx — create/edit/end national challenges
-8. admin/surveys.tsx — survey builder, templates, aggregate results
-9. admin/audit-log.tsx — action history (who did what when)
-10. admin/system.tsx — Supabase usage dashboard, feature flags management
-11. admin/moderation.tsx — content moderation queue (flagged posts/photos/chat)
-12. admin/email.tsx — SendGrid bounce/complaint handling
-13. admin/charity.tsx — ACNC details (ABN, DGR status), charity settings
+3. admin/collectives.tsx - manage all collectives: list, health scores, leader info, create/archive
+4. admin/users.tsx - user management (see Super Admin below)
+5. admin/events.tsx - all events nationally, filter by collective/region/status
+6. admin/partners.tsx - partner/sponsor CRUD, organisation directory, corporate programs
+7. admin/challenges.tsx - create/edit/end national challenges
+8. admin/surveys.tsx - survey builder, templates, aggregate results
+9. admin/audit-log.tsx - action history (who did what when)
+10. admin/system.tsx - Supabase usage dashboard, feature flags management
+11. admin/moderation.tsx - content moderation queue (flagged posts/photos/chat)
+12. admin/email.tsx - SendGrid bounce/complaint handling
+13. admin/charity.tsx - ACNC details (ABN, DGR status), charity settings
 
 **Super Admin** (src/pages/admin/super/):
 14. Staff directory: list all staff with roles + permissions
@@ -907,7 +907,7 @@ Test build: `npx tsc --noEmit && npx vite build`
 
 ---
 
-## PROMPT 12 — Settings, Email, Push & Native Config
+## PROMPT 12 - Settings, Email, Push & Native Config
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 34, 35, 36, 44, 45, and 47.
@@ -915,7 +915,7 @@ Read CLAUDE.md and TODO-MASTER.md sections 34, 35, 36, 44, 45, and 47.
 Build settings, email system, push notifications, security, and Capacitor native configuration. Use existing components.
 
 **Settings** (src/pages/settings/):
-1. settings/index.tsx — settings menu:
+1. settings/index.tsx - settings menu:
    - Notification preferences (toggle by type: events, chat, announcements, @mentions)
    - Chat preferences (mute collectives, mute except @mentions)
    - Quiet hours / DND schedule
@@ -927,7 +927,7 @@ Build settings, email system, push notifications, security, and Capacitor native
    - Delete account (GDPR flow with confirmation + data removal)
    - About Co-Exist (mission, website link, socials)
    - Aboriginal acknowledgment
-   - Terms of Service page (with versioning — re-accept on update)
+   - Terms of Service page (with versioning - re-accept on update)
    - Privacy Policy page
    - Help / FAQ
    - Contact support (email link or in-app form)
@@ -945,10 +945,10 @@ Build settings, email system, push notifications, security, and Capacitor native
    - Notification tap → deep link routing
    - Badge count management (app icon number)
    - Silent notifications for data sync
-4. supabase/functions/send-push/index.ts — Edge Function for dispatching push via FCM/APNs
+4. supabase/functions/send-push/index.ts - Edge Function for dispatching push via FCM/APNs
 
 **Email System (SendGrid):**
-5. supabase/functions/send-email/index.ts — SendGrid wrapper Edge Function
+5. supabase/functions/send-email/index.ts - SendGrid wrapper Edge Function
 6. Email template definitions (as TypeScript objects with SendGrid dynamic template IDs):
    - Transactional: welcome, event confirmation, event reminder (24h), event cancelled, event invite, waitlist promoted, password reset, donation receipt, order confirmation, order shipped
    - Marketing: newsletter, challenge announcement, monthly impact recap, announcement digest
@@ -956,11 +956,11 @@ Build settings, email system, push notifications, security, and Capacitor native
 8. Document SendGrid setup: domain verification, API key config
 
 **Security & Privacy:**
-9. Cookie consent banner component (web only) — configurable per jurisdiction
-10. Terms of Service versioning — store version + acceptance date per user, re-accept prompt on update
+9. Cookie consent banner component (web only) - configurable per jurisdiction
+10. Terms of Service versioning - store version + acceptance date per user, re-accept prompt on update
 11. Data retention policy implementation (30-day grace after deletion, then permanent)
 12. Child safety policy display (App Store / Play Store requirement)
-13. Image content moderation stub — Edge Function skeleton for NSFW detection
+13. Image content moderation stub - Edge Function skeleton for NSFW detection
 14. GDPR: data export (user can request), data deletion, consent management
 
 **Capacitor Native Config:**
@@ -973,14 +973,14 @@ Build settings, email system, push notifications, security, and Capacitor native
 21. Permission declarations (camera, location, notifications, calendar, microphone)
 
 **CI/CD:**
-22. vercel.json — SPA routing config with rewrites
-23. .github/workflows/ci.yml — lint + type-check + build on PR
+22. vercel.json - SPA routing config with rewrites
+23. .github/workflows/ci.yml - lint + type-check + build on PR
 24. Environment config documentation (.env.local, .env.production)
 
 **Analytics & Logging:**
-25. src/lib/analytics.ts — event tracking abstraction (pluggable: PostHog, Mixpanel, or Plausible)
+25. src/lib/analytics.ts - event tracking abstraction (pluggable: PostHog, Mixpanel, or Plausible)
 26. Track key events: signup, login, event view/register/checkin, collective join, badge unlock, donation, purchase, chat message, announcement read
-27. src/lib/sentry.ts — Sentry error logging setup with React error boundary integration
+27. src/lib/sentry.ts - Sentry error logging setup with React error boundary integration
 28. Crash reporting for Capacitor
 
 Test build: `npx tsc --noEmit && npx vite build`
@@ -988,12 +988,12 @@ Test build: `npx tsc --noEmit && npx vite build`
 
 ---
 
-## PROMPT 13 — Animations, Polish & Cohesive Experience
+## PROMPT 13 - Animations, Polish & Cohesive Experience
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 37, 38, 40, 41, 42, 52, 53, 54, 55, and 56.
 
-This is the final polish pass. You are adding animations, micro-interactions, accessibility, performance optimisation, cohesive flow connectors, delight moments, contextual intelligence, transition choreography, and sound design to the EXISTING codebase. Do NOT rebuild features — enhance what's already built.
+This is the final polish pass. You are adding animations, micro-interactions, accessibility, performance optimisation, cohesive flow connectors, delight moments, contextual intelligence, transition choreography, and sound design to the EXISTING codebase. Do NOT rebuild features - enhance what's already built.
 
 **Animations & Micro-interactions** (§37):
 1. Page transitions: slide from right for push, fade for tab switches (ensure AnimatePresence is wired up properly)
@@ -1014,7 +1014,7 @@ This is the final polish pass. You are adding animations, micro-interactions, ac
 16. Chat message send: bubble slides up, typing dots animated
 17. Leaderboard rank change animation
 18. Donation thermometer liquid fill
-19. Seasonal ambient particles (falling leaves autumn, etc. — Southern Hemisphere)
+19. Seasonal ambient particles (falling leaves autumn, etc. - Southern Hemisphere)
 20. Splash → app transition: logo fade out, content fade in
 
 **Transition Choreography** (§55):
@@ -1027,7 +1027,7 @@ This is the final polish pass. You are adding animations, micro-interactions, ac
 27. State change animations: register→registered button morph, empty→content, offline→online, unread→read, points increment slot machine, like animation, tier ring colour transition
 
 **Sound Design** (§56):
-28. src/hooks/use-sound.ts — sound player hook: lazy load, <50KB each, Web Audio API, respect system mute + settings toggle
+28. src/hooks/use-sound.ts - sound player hook: lazy load, <50KB each, Web Audio API, respect system mute + settings toggle
 29. Sound files placeholder structure in src/assets/sounds/
 30. Sound + haptic pairing via Capacitor Haptics
 
@@ -1047,7 +1047,7 @@ This is the final polish pass. You are adding animations, micro-interactions, ac
 **Delight & Emotional Design** (§53):
 42. First event celebration: full-screen "Welcome to the movement!" with confetti
 43. Milestone celebrations (5th, 10th, 25th, 50th, 100th event)
-44. Context-aware greetings on home ("Big day tomorrow — ready for the cleanup?")
+44. Context-aware greetings on home ("Big day tomorrow - ready for the cleanup?")
 45. Nature-themed loading states (growing seedling, bird flying)
 46. Impact equivalency translations ("That's the weight of a small car")
 47. Social proof nudges ("12 from your collective are going")
@@ -1072,7 +1072,7 @@ This is the final polish pass. You are adding animations, micro-interactions, ac
 60. Virtual scrolling for lists >50 items
 61. Image lazy loading with blur → sharp progressive loading
 62. Realtime subscription cleanup (unsubscribe when not in view)
-63. Bundle analysis — verify <2MB initial, <5MB total
+63. Bundle analysis - verify <2MB initial, <5MB total
 64. Service worker for static asset caching
 65. Rate limiting on chat (client-side throttle)
 66. App update version check (against Supabase feature_flags or config)
@@ -1086,7 +1086,7 @@ Test build: `npx tsc --noEmit && npx vite build`
 
 ---
 
-## PROMPT 14 — Public Pages, Seeding & Documentation
+## PROMPT 14 - Public Pages, Seeding & Documentation
 
 ```
 Read CLAUDE.md and TODO-MASTER.md sections 29, 32, 43, 48, 50, and 51.
@@ -1094,14 +1094,14 @@ Read CLAUDE.md and TODO-MASTER.md sections 29, 32, 43, 48, 50, and 51.
 Final batch: public-facing pages, offline support, photo system, testing setup, data seeding, and documentation. Use existing components.
 
 **Public Pages** (§48):
-1. src/pages/public/event.tsx — public event page (no auth required): event details + "Download app" / "Open in app" CTA + Open Graph meta
-2. src/pages/public/collective.tsx — public collective overview
-3. src/pages/public/download.tsx — app download landing page: App Store + Play Store links + web app
+1. src/pages/public/event.tsx - public event page (no auth required): event details + "Download app" / "Open in app" CTA + Open Graph meta
+2. src/pages/public/collective.tsx - public collective overview
+3. src/pages/public/download.tsx - app download landing page: App Store + Play Store links + web app
 4. Open Graph meta tags for all shareable URLs (use react-helmet-async)
 5. Deep link routing: shared URL → in-app screen via Capacitor App Links
 
 **Offline & Connectivity** (§29):
-6. src/hooks/use-offline.ts — detect offline via Capacitor Network plugin
+6. src/hooks/use-offline.ts - detect offline via Capacitor Network plugin
 7. Offline banner in app header
 8. Cache critical data locally (TanStack Query persistence to IndexedDB/localStorage)
 9. Offline event check-in: queue check-ins, sync when online
@@ -1109,7 +1109,7 @@ Final batch: public-facing pages, offline support, photo system, testing setup, 
 11. Online/offline transition animations
 
 **Photo & Media System** (§32):
-12. src/hooks/use-camera.ts — Capacitor Camera plugin wrapper (capture + gallery)
+12. src/hooks/use-camera.ts - Capacitor Camera plugin wrapper (capture + gallery)
 13. Image compression before upload (client-side, target <500KB)
 14. Upload to Supabase Storage with progress indicator
 15. Photo gallery view (masonry/grid) with full-screen viewer (pinch zoom, swipe between)
@@ -1130,7 +1130,7 @@ Final batch: public-facing pages, offline support, photo system, testing setup, 
 23. Accessibility audit setup (axe-core)
 
 **Data Seeding** (§50):
-24. supabase/seed.sql — comprehensive seed data:
+24. supabase/seed.sql - comprehensive seed data:
     - Badge definitions (all badges from §15.2 with criteria JSONB)
     - Activity type display names and icons
     - Sample collectives (Byron Bay, Sydney, Melbourne, Gold Coast, etc.)
@@ -1151,7 +1151,7 @@ Final batch: public-facing pages, offline support, photo system, testing setup, 
     - Environment variables reference
     - Useful commands reference
 
-26. Create supabase/DEPLOY.md — Supabase setup:
+26. Create supabase/DEPLOY.md - Supabase setup:
     - Create project, enable PostGIS
     - Run migration SQL
     - Configure auth providers (email, Google, Apple)

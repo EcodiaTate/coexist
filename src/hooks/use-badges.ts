@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
-import type { Badge, UserBadge } from '@/types/database.types'
+import type { Badge } from '@/types/database.types'
 
 export interface BadgeWithStatus extends Badge {
   earned: boolean

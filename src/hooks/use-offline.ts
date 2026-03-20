@@ -18,7 +18,7 @@ export function useOffline(): OfflineState {
   const [isOnline, setIsOnline] = useState(true)
   const [justReconnected, setJustReconnected] = useState(false)
   const wasOffline = useRef(false)
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>()
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const handleStatusChange = useCallback((online: boolean) => {
     setIsOnline(online)
@@ -61,7 +61,7 @@ export function useOffline(): OfflineState {
             listener.remove()
           }
         } catch {
-          // Network plugin not available — fall back to browser API
+          // Network plugin not available - fall back to browser API
         }
       }
 

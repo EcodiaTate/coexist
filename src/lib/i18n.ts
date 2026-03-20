@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next'
 import en from '@/locales/en.json'
 
 /**
- * i18n scaffold — English only for now.
+ * i18n scaffold - English only for now.
  * §42 item 68.
  *
  * Usage in components:

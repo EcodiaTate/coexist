@@ -749,7 +749,7 @@ export default function SettingsPage() {
         .from('profiles')
         .update({
           notification_preferences: { ...prefs, [key]: value },
-        })
+        } as any)
         .eq('id', user?.id ?? '')
         .then(({ error }) => {
           if (error) console.error('Failed to save preferences:', error)
@@ -772,7 +772,7 @@ export default function SettingsPage() {
         deleted_at: new Date().toISOString(),
         deletion_status: 'pending_deletion',
         deletion_requested_at: new Date().toISOString(),
-      })
+      } as any)
       .eq('id', user?.id ?? '')
 
     if (error) {

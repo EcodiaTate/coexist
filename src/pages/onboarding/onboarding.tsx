@@ -71,28 +71,44 @@ export default function OnboardingPage() {
   async function completeOnboarding() {
     if (!user) return
 
-    // Save profile data
-    const updates: Record<string, unknown> = {
+    // Build profile payload - upsert guarantees the row exists even if the
+    // auth trigger hasn't fired yet, preventing the FK violation on
+    // collective_members when we insert below.
+    const profilePayload: Record<string, unknown> = {
+      id: user.id,
       onboarding_completed: true,
       updated_at: new Date().toISOString(),
     }
 
-    if (data.displayName) updates.display_name = data.displayName
-    if (data.instagramHandle) updates.instagram_handle = data.instagramHandle
-    if (data.location) updates.location = data.location
-    if (data.interests.length > 0) updates.interests = data.interests
-    if (data.avatarUrl) updates.avatar_url = data.avatarUrl
+    if (data.displayName) profilePayload.display_name = data.displayName
+    if (data.instagramHandle) profilePayload.instagram_handle = data.instagramHandle
+    if (data.location) profilePayload.location = data.location
+    if (data.interests.length > 0) profilePayload.interests = data.interests
+    if (data.avatarUrl) profilePayload.avatar_url = data.avatarUrl
 
-    await supabase.from('profiles').update(updates).eq('id', user.id)
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert(profilePayload as any, { onConflict: 'id' })
 
-    // Join collective if selected
+    if (profileError) {
+      console.error('[onboarding] Failed to save profile:', profileError)
+      return
+    }
+
+    // Join collective if selected - profile row is now guaranteed to exist
     if (data.collectiveId) {
-      await supabase.from('collective_members').upsert({
-        collective_id: data.collectiveId,
-        user_id: user.id,
-        role: 'member',
-        status: 'active',
-      })
+      const { error: memberError } = await supabase
+        .from('collective_members')
+        .upsert({
+          collective_id: data.collectiveId,
+          user_id: user.id,
+          role: 'member',
+          status: 'active',
+        })
+
+      if (memberError) {
+        console.error('[onboarding] Failed to join collective:', memberError)
+      }
     }
 
     await refreshProfile()

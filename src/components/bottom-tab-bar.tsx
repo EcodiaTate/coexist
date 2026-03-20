@@ -69,11 +69,11 @@ export function BottomTabBar({ communityBadge = 0, className }: BottomTabBarProp
   const location = useLocation()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
-  const { isLeader, profile } = useAuth()
+  const { profile } = useAuth()
   const { haptics } = usePlatform()
 
   // Check if user is a leader in any collective
-  const showFab = profile?.collective_memberships?.some(
+  const showFab = (profile as any)?.collective_memberships?.some(
     (m: { collective_id: string; role: string }) =>
       ['leader', 'co_leader'].includes(m.role),
   )

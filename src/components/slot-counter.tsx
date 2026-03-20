@@ -14,7 +14,7 @@ interface SlotCounterProps {
 }
 
 /**
- * Slot-machine style counter — old number slides up and out,
+ * Slot-machine style counter - old number slides up and out,
  * new number slides up from below.
  * §55.3.5: Points increment.
  */

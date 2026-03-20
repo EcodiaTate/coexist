@@ -1,5 +1,5 @@
 /**
- * create-checkout — Supabase Edge Function
+ * create-checkout - Supabase Edge Function
  *
  * Creates Stripe Checkout sessions for:
  *   - One-time donations
@@ -127,7 +127,7 @@ serve(async (req: Request) => {
         if (body.frequency === 'monthly') {
           // Recurring: create a dynamic price on a generic donation product
           const product = await stripe.products.create({
-            name: `Co-Exist Monthly Donation — $${body.amount}`,
+            name: `Co-Exist Monthly Donation - $${body.amount}`,
             metadata: { type: 'recurring_donation' },
           })
 
@@ -174,7 +174,7 @@ serve(async (req: Request) => {
                 currency: 'aud',
                 product_data: {
                   name: body.project_id
-                    ? 'Co-Exist Donation — Project'
+                    ? 'Co-Exist Donation - Project'
                     : 'Co-Exist Donation',
                 },
                 unit_amount: Math.round(body.amount * 100),

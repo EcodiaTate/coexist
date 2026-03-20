@@ -9,7 +9,7 @@ import { cn } from '@/lib/cn'
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 type Tier = 'seedling' | 'sapling' | 'native' | 'canopy' | 'elder'
 
-interface AvatarProps {
+export interface AvatarProps {
   src?: string | null
   name?: string | null
   size?: AvatarSize
@@ -93,10 +93,10 @@ export function Avatar({
       style={{ width: s.px, height: s.px }}
     >
       <motion.div
-        initial={shouldReduceMotion ? false : { scale: 0.9, opacity: 0 }}
+        initial={shouldReduceMotion ? undefined : { scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.2 }}
-        aria-label={ariaLabel ?? name}
+        aria-label={ariaLabel ?? name ?? undefined}
         role="img"
         className={cn(
           'w-full h-full rounded-full overflow-hidden',
@@ -107,7 +107,7 @@ export function Avatar({
         {showImage ? (
           <img
             src={src}
-            alt={name}
+            alt={name ?? undefined}
             onError={() => setImgError(true)}
             className="w-full h-full object-cover"
           />

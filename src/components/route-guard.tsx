@@ -7,7 +7,7 @@ import type { Database } from '@/types/database.types'
 type UserRole = Database['public']['Enums']['user_role']
 type CollectiveRole = Database['public']['Enums']['collective_role']
 
-const GLOBAL_RANK: Record<UserRole, number> = {
+const _GLOBAL_RANK: Record<UserRole, number> = {
   participant: 0,
   national_staff: 1,
   national_admin: 2,
@@ -15,7 +15,7 @@ const GLOBAL_RANK: Record<UserRole, number> = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  RequireAuth — redirect to /login if not authenticated              */
+/*  RequireAuth - redirect to /login if not authenticated              */
 /* ------------------------------------------------------------------ */
 
 interface RequireAuthProps {
@@ -44,8 +44,8 @@ export function RequireAuth({ children }: RequireAuthProps) {
     return <Navigate to="/accept-terms" replace />
   }
 
-  // Redirect to onboarding if not completed
-  if (profile && !profile.onboarding_completed && !location.pathname.startsWith('/onboarding')) {
+  // Redirect to onboarding if profile is missing (trigger race) or not completed
+  if ((!profile || !profile.onboarding_completed) && !location.pathname.startsWith('/onboarding')) {
     return <Navigate to="/onboarding" replace />
   }
 
@@ -53,7 +53,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  RequireRole — check global role minimum                            */
+/*  RequireRole - check global role minimum                            */
 /* ------------------------------------------------------------------ */
 
 interface RequireRoleProps {
@@ -61,8 +61,8 @@ interface RequireRoleProps {
   children: ReactNode
 }
 
-export function RequireRole({ minRole, children }: RequireRoleProps) {
-  const { user, role, isLoading } = useAuth()
+export function RequireRole({ minRole: _minRole, children }: RequireRoleProps) {
+  const { user, role: _role, isLoading } = useAuth()
   const location = useLocation()
 
   if (isLoading) {
@@ -74,7 +74,7 @@ export function RequireRole({ minRole, children }: RequireRoleProps) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // TODO: admin guard nullified for dev/testing — re-enable before production
+  // TODO: admin guard nullified for dev/testing - re-enable before production
   // if (GLOBAL_RANK[role] < GLOBAL_RANK[minRole]) {
   //   return <Navigate to="/" replace />
   // }
@@ -83,7 +83,7 @@ export function RequireRole({ minRole, children }: RequireRoleProps) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  RequireCollectiveRole — check collective-specific role              */
+/*  RequireCollectiveRole - check collective-specific role              */
 /* ------------------------------------------------------------------ */
 
 interface RequireCollectiveRoleProps {

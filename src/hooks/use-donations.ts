@@ -18,12 +18,12 @@ export function useDonationProjects() {
     queryKey: ['donation-projects'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('donation_projects')
+        .from('donation_projects' as any)
         .select('*')
         .eq('is_active', true)
         .order('name')
       if (error) throw error
-      return data as DonationProject[]
+      return data as unknown as DonationProject[]
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -82,7 +82,7 @@ export function useMyDonations() {
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as Donation[]
+      return data as unknown as Donation[]
     },
     staleTime: 2 * 60 * 1000,
   })
@@ -105,7 +105,7 @@ export function useMyRecurringDonations() {
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as RecurringDonation[]
+      return data as unknown as RecurringDonation[]
     },
     staleTime: 2 * 60 * 1000,
   })
@@ -147,7 +147,7 @@ export function useDonorWall() {
         .order('created_at', { ascending: false })
         .limit(100)
       if (error) throw error
-      return (data ?? []).map((d): DonorWallEntry => ({
+      return ((data ?? []) as any[]).map((d): DonorWallEntry => ({
         id: d.id,
         display_name: (d.profiles as { display_name: string | null } | null)?.display_name ?? null,
         on_behalf_of: d.on_behalf_of,

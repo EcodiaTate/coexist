@@ -16,11 +16,6 @@
 
 type AnalyticsProvider = 'posthog' | 'mixpanel' | 'plausible' | 'none'
 
-interface AnalyticsEvent {
-  name: string
-  properties?: Record<string, unknown>
-}
-
 interface AnalyticsAdapter {
   init: () => void
   identify: (userId: string, traits?: Record<string, unknown>) => void
@@ -30,7 +25,7 @@ interface AnalyticsAdapter {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Event names — all key events tracked in one place                  */
+/*  Event names - all key events tracked in one place                  */
 /* ------------------------------------------------------------------ */
 
 export const ANALYTICS_EVENTS = {
@@ -105,8 +100,9 @@ function createPostHogAdapter(): AnalyticsAdapter {
         return
       }
       // Dynamic import to avoid bundling if not used
+      // @ts-expect-error posthog-js is an optional dependency
       import('posthog-js').then((mod) => {
-        posthog = mod.default
+        posthog = mod.default as NonNullable<typeof posthog>
         posthog!.init(key, {
           api_host: host,
           capture_pageview: false, // we handle this manually
@@ -131,13 +127,13 @@ function createPostHogAdapter(): AnalyticsAdapter {
 function createPlausibleAdapter(): AnalyticsAdapter {
   return {
     init: () => {
-      // Plausible uses a script tag — check if it's loaded
+      // Plausible uses a script tag - check if it's loaded
       if (typeof window !== 'undefined' && !window.plausible) {
         console.warn('[analytics] Plausible script not loaded. Add <script data-domain="app.coexistaus.org" src="https://plausible.io/js/script.js"></script>')
       }
     },
     identify: () => {
-      // Plausible is privacy-first — no user identification
+      // Plausible is privacy-first - no user identification
     },
     track: (event, props) => {
       if (typeof window !== 'undefined' && window.plausible) {

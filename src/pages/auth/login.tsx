@@ -96,7 +96,7 @@ export default function LoginPage() {
         animate="animate"
         className="relative flex-1 flex flex-col"
       >
-        {/* Top section — back button + branding */}
+        {/* Top section - back button + branding */}
         <div
           className="px-5 pt-3"
           style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}

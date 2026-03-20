@@ -49,7 +49,7 @@ function ProductFormSheet({
   const handleSave = useCallback(async () => {
     const priceNum = Math.round(Number(basePriceCents) * 100)
     if (!name.trim() || !slug.trim() || priceNum <= 0) {
-      toast('Please fill in all required fields', 'error')
+      toast.error('Please fill in all required fields')
       return
     }
     try {
@@ -63,7 +63,7 @@ function ProductFormSheet({
           base_price_cents: priceNum,
           status,
         })
-        toast('Product updated', 'success')
+        toast.success('Product updated')
       } else {
         await createProduct.mutateAsync({
           name: name.trim(),
@@ -74,11 +74,11 @@ function ProductFormSheet({
           status,
           images: [],
         })
-        toast('Product created', 'success')
+        toast.success('Product created')
       }
       onClose()
     } catch {
-      toast('Failed to save product', 'error')
+      toast.error('Failed to save product')
     }
   }, [name, slug, description, category, basePriceCents, status, product, createProduct, updateProduct, toast, onClose])
 
@@ -167,10 +167,10 @@ function StockAdjustSheet({
     if (isNaN(adj) || adj === 0 || !reason.trim()) return
     try {
       await adjustStock.mutateAsync({ variantId, adjustment: adj, reason: reason.trim() })
-      toast(`Stock adjusted by ${adj > 0 ? '+' : ''}${adj}`, 'success')
+      toast.success(`Stock adjusted by ${adj > 0 ? '+' : ''}${adj}`)
       onClose()
     } catch {
-      toast('Failed to adjust stock', 'error')
+      toast.error('Failed to adjust stock')
     }
   }, [variantId, adjustment, reason, adjustStock, toast, onClose])
 
@@ -223,9 +223,9 @@ export default function ProductsTab() {
     if (!archiveTarget) return
     try {
       await updateProduct.mutateAsync({ id: archiveTarget.id, status: 'archived' })
-      toast('Product archived', 'success')
+      toast.success('Product archived')
     } catch {
-      toast('Failed to archive product', 'error')
+      toast.error('Failed to archive product')
     }
     setArchiveTarget(null)
   }, [archiveTarget, updateProduct, toast])

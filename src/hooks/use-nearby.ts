@@ -35,7 +35,7 @@ export function useNearbyEvents(
         .order('date_start', { ascending: true })
 
       if (activityTypes?.length) {
-        query = query.in('activity_type', activityTypes)
+        query = query.in('activity_type', activityTypes as any)
       }
 
       // If location available, PostGIS distance filter via RPC would be ideal.

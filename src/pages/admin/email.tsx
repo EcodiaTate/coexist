@@ -3,9 +3,7 @@ import {
   Mail,
   AlertTriangle,
   Ban,
-  CheckCircle,
   XCircle,
-  Send,
   TrendingUp,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
@@ -15,7 +13,6 @@ import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
 import { TabBar } from '@/components/tab-bar'
-import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 
 const tabs = [
@@ -31,15 +28,15 @@ function useEmailStats() {
       // Email delivery data from email_events table
       const [bouncesRes, complaintsRes, suppressedRes] = await Promise.all([
         supabase
-          .from('email_events')
+          .from('email_events' as any)
           .select('id', { count: 'exact', head: true })
           .eq('event_type', 'bounce'),
         supabase
-          .from('email_events')
+          .from('email_events' as any)
           .select('id', { count: 'exact', head: true })
           .eq('event_type', 'complaint'),
         supabase
-          .from('email_suppressions')
+          .from('email_suppressions' as any)
           .select('id', { count: 'exact', head: true }),
       ])
 
@@ -58,13 +55,13 @@ function useEmailBounces() {
     queryKey: ['admin-email-bounces'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_events')
+        .from('email_events' as any)
         .select('*')
         .eq('event_type', 'bounce')
         .order('created_at', { ascending: false })
         .limit(50)
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as any[]
     },
     staleTime: 60 * 1000,
   })
@@ -75,13 +72,13 @@ function useEmailComplaints() {
     queryKey: ['admin-email-complaints'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_events')
+        .from('email_events' as any)
         .select('*')
         .eq('event_type', 'complaint')
         .order('created_at', { ascending: false })
         .limit(50)
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as any[]
     },
     staleTime: 60 * 1000,
   })

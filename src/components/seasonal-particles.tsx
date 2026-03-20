@@ -163,7 +163,7 @@ function Firefly({ config }: { config: ParticleConfig }) {
 }
 
 /**
- * Seasonal ambient particles — Southern Hemisphere.
+ * Seasonal ambient particles - Southern Hemisphere.
  * §37 item 19.
  */
 export function SeasonalParticles({

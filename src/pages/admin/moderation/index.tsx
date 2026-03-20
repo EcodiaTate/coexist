@@ -9,7 +9,6 @@ import {
   MessageSquare,
   Image as ImageIcon,
   FileText,
-  Filter,
 } from 'lucide-react'
 import { AdminLayout } from '@/components/admin-layout'
 import { Button } from '@/components/button'

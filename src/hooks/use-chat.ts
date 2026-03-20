@@ -1,8 +1,8 @@
-import { useEffect, useCallback, useRef, useState } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
-import type { ChatMessage, Profile, Database } from '@/types/database.types'
+import type { ChatMessage, Profile } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -33,7 +33,6 @@ const PAGE_SIZE = 40
 
 export function useChatMessages(collectiveId: string | undefined) {
   const queryClient = useQueryClient()
-  const { user } = useAuth()
 
   const query = useInfiniteQuery({
     queryKey: ['chat-messages', collectiveId],
@@ -57,7 +56,7 @@ export function useChatMessages(collectiveId: string | undefined) {
 
       const { data, error } = await q
       if (error) throw error
-      return (data ?? []) as ChatMessageWithSender[]
+      return (data ?? []) as unknown as ChatMessageWithSender[]
     },
     getNextPageParam: (lastPage) => {
       if (lastPage.length < PAGE_SIZE) return undefined
@@ -101,7 +100,7 @@ export function useChatMessages(collectiveId: string | undefined) {
                 if (!old) return old
                 // Prevent duplicate: skip if message already exists in first page
                 if (old.pages[0]?.some((m) => m.id === data.id)) return old
-                const firstPage = [data as ChatMessageWithSender, ...old.pages[0]]
+                const firstPage = [data as unknown as ChatMessageWithSender, ...old.pages[0]]
                 return { ...old, pages: [firstPage, ...old.pages.slice(1)] }
               },
             )
@@ -117,7 +116,7 @@ export function useChatMessages(collectiveId: string | undefined) {
           filter: `collective_id=eq.${collectiveId}`,
         },
         (payload) => {
-          // Only merge raw column fields — preserve joined relations (profiles, reply_message)
+          // Only merge raw column fields - preserve joined relations (profiles, reply_message)
           const { profiles: _, reply_message: __, ...columnUpdates } = payload.new as Record<string, unknown>
           queryClient.setQueryData(
             ['chat-messages', collectiveId],
@@ -154,7 +153,6 @@ const RATE_LIMIT_WINDOW_MS = 10_000
 const RATE_LIMIT_MAX = 5
 
 export function useSendMessage() {
-  const queryClient = useQueryClient()
   const { user } = useAuth()
   const sendTimestamps = useRef<number[]>([])
 
@@ -233,7 +231,7 @@ export function useEditMessage() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Delete message (soft delete — moderator)                           */
+/*  Delete message (soft delete - moderator)                           */
 /* ------------------------------------------------------------------ */
 
 export function useDeleteMessage() {
@@ -425,7 +423,7 @@ export function useUploadChatImage(collectiveId: string) {
         .upload(path, file)
       if (uploadError) throw uploadError
 
-      // chat-images is a private bucket — use signed URL (valid for 7 days)
+      // chat-images is a private bucket - use signed URL (valid for 7 days)
       const { data: signedData, error: signError } = await supabase.storage
         .from('chat-images')
         .createSignedUrl(path, 60 * 60 * 24 * 7) // 7 days

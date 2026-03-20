@@ -5,7 +5,6 @@ import {
   Trash2,
   Eye,
   Users,
-  Settings,
   CheckCircle,
   XCircle,
   UserCog,
@@ -52,7 +51,7 @@ function useStaffDirectory() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, display_name, email, avatar_url, role')
+        .select('id, display_name, email, avatar_url, role' as any)
         .in('role', ['national_staff', 'national_admin', 'super_admin'])
         .order('role')
 
@@ -60,16 +59,16 @@ function useStaffDirectory() {
 
       // Get permissions for each staff member
       const enriched = await Promise.all(
-        (data ?? []).map(async (staff) => {
+        ((data ?? []) as any[]).map(async (staff: any) => {
           const { data: perms } = await supabase
-            .from('staff_roles')
+            .from('staff_roles' as any)
             .select('permissions')
             .eq('user_id', staff.id)
             .single()
 
           return {
             ...staff,
-            permissions: (perms?.permissions as Record<string, boolean>) ?? {},
+            permissions: ((perms as any)?.permissions as Record<string, boolean>) ?? {},
           }
         }),
       )
@@ -124,15 +123,15 @@ export default function SuperAdminPage() {
       // Update role
       const { error: roleError } = await supabase
         .from('profiles')
-        .update({ role: addStaffRole })
+        .update({ role: addStaffRole } as any)
         .eq('id', user.id)
       if (roleError) throw roleError
 
       // Create staff_roles entry
-      const { error: permsError } = await supabase.from('staff_roles').upsert({
+      const { error: permsError } = await supabase.from('staff_roles' as any).upsert({
         user_id: user.id,
         permissions: {},
-      }, { onConflict: 'user_id' })
+      } as any, { onConflict: 'user_id' } as any)
       if (permsError) throw permsError
     },
     onSuccess: () => {
@@ -146,7 +145,7 @@ export default function SuperAdminPage() {
   const removeStaffMutation = useMutation({
     mutationFn: async (userId: string) => {
       await supabase.from('profiles').update({ role: 'participant' }).eq('id', userId)
-      await supabase.from('staff_roles').delete().eq('user_id', userId)
+      await supabase.from('staff_roles' as any).delete().eq('user_id', userId)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-staff-directory'] })
@@ -157,8 +156,8 @@ export default function SuperAdminPage() {
   const updatePermsMutation = useMutation({
     mutationFn: async ({ userId, permissions }: { userId: string; permissions: Record<string, boolean> }) => {
       const { error } = await supabase
-        .from('staff_roles')
-        .upsert({ user_id: userId, permissions }, { onConflict: 'user_id' })
+        .from('staff_roles' as any)
+        .upsert({ user_id: userId, permissions } as any, { onConflict: 'user_id' } as any)
       if (error) throw error
     },
     onSuccess: () => {
@@ -178,12 +177,12 @@ export default function SuperAdminPage() {
         .single()
       if (!user) throw new Error('User not found')
 
-      await supabase.from('audit_logs').insert({
+      await supabase.from('audit_logs' as any).insert({
         action: 'impersonation_started',
         target_type: 'user',
         target_id: user.id,
-        details: `Viewing as ${user.display_name} (${email}) — read-only mode`,
-      })
+        details: `Viewing as ${user.display_name} (${email}) - read-only mode`,
+      } as any)
 
       return user
     },
@@ -218,7 +217,7 @@ export default function SuperAdminPage() {
             />
           ) : (
             <StaggeredList className="space-y-2">
-              {staff.map((member) => (
+              {staff.map((member: any) => (
                 <StaggeredItem
                   key={member.id}
                   className="flex items-center gap-3 p-4 rounded-xl bg-white border border-primary-100 shadow-sm"
@@ -308,7 +307,7 @@ export default function SuperAdminPage() {
               </tr>
             </thead>
             <tbody>
-              {(staff ?? []).map((member) => (
+              {(staff ?? []).map((member: any) => (
                 <tr key={member.id} className="border-b border-primary-100 hover:bg-primary-50">
                   <td className="py-2.5 px-3">
                     <div className="flex items-center gap-2">
@@ -340,7 +339,7 @@ export default function SuperAdminPage() {
               <Eye size={18} className="text-amber-600 mt-0.5 shrink-0" />
               <div>
                 <h3 className="text-sm font-semibold text-amber-900">
-                  View as User — Read Only
+                  View as User - Read Only
                 </h3>
                 <p className="text-xs text-amber-700 mt-1">
                   This feature allows you to see the app as a specific user would see it.

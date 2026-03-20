@@ -93,12 +93,12 @@ function useReportHistory() {
     queryKey: ['report-history'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('report_history')
+        .from('report_history' as any)
         .select('*')
         .order('created_at', { ascending: false })
         .limit(20)
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as any[]
     },
     staleTime: 60 * 1000,
   })
@@ -151,7 +151,7 @@ export default function ReportsPage() {
         URL.revokeObjectURL(url)
       }
       // Log report generation
-      await supabase.from('report_history').insert({
+      await supabase.from('report_history' as any).insert({
         report_type: reportType,
         date_range: datePreset,
         scope,

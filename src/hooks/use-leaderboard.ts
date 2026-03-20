@@ -175,7 +175,7 @@ export function useIndividualLeaderboard(
         return { entries, userRank }
       }
 
-      // trees or hours — need impact data
+      // trees or hours - need impact data
       const eventIds = [...new Set(regs.map((r) => r.event_id))]
       const userEventMap = new Map<string, string[]>()
       for (const reg of regs) {

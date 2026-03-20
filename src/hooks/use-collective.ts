@@ -6,8 +6,6 @@ import type {
   Collective,
   CollectiveMember,
   Profile,
-  Event,
-  EventImpact,
   TablesUpdate,
 } from '@/types/database.types'
 

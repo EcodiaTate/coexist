@@ -1,5 +1,5 @@
 -- ============================================================================
--- Co-Exist App — Complete Database Schema
+-- Co-Exist App - Complete Database Schema
 -- Migration: 001_initial_schema.sql
 -- Generated: 2026-03-20
 -- ============================================================================
@@ -90,7 +90,7 @@ CREATE TYPE announcement_target AS ENUM (
 );
 
 -- ---------------------------------------------------------------------------
--- 2. Tables (3.1.1 — 3.1.41)
+-- 2. Tables (3.1.1 - 3.1.41)
 -- ---------------------------------------------------------------------------
 
 -- 3.1.1 profiles
@@ -1917,11 +1917,11 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON global_announcements FOR EACH ROW
 
 -- ---------------------------------------------------------------------------
 -- 7. Storage Buckets Config (3.5)
--- (Cannot create via SQL — document as reference for Supabase dashboard setup)
+-- (Cannot create via SQL - document as reference for Supabase dashboard setup)
 -- ---------------------------------------------------------------------------
 
 /*
-STORAGE BUCKET CONFIGURATION — Create these in the Supabase Dashboard > Storage
+STORAGE BUCKET CONFIGURATION - Create these in the Supabase Dashboard > Storage
 
 1. avatars
    - Public: YES

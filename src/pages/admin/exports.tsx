@@ -191,7 +191,7 @@ export default function AdminExportsPage() {
       if (exportId === 'members') {
         let query = supabase
           .from('profiles')
-          .select('display_name, email, role, created_at')
+          .select('display_name, email, role, created_at' as any)
           .order('created_at', { ascending: false })
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
@@ -199,13 +199,13 @@ export default function AdminExportsPage() {
         if (error) throw error
         csv = toCsv(
           ['Name', 'Email', 'Role', 'Join Date'],
-          (data ?? []).map((r) => [r.display_name, r.email, r.role, r.created_at]),
+          ((data ?? []) as any[]).map((r: any) => [r.display_name, r.email, r.role, r.created_at]),
         )
       } else if (exportId === 'attendance') {
         let query = supabase
           .from('event_registrations')
-          .select('event_id, user_id, checked_in, checked_in_at, events(title), profiles(display_name, email)')
-          .order('checked_in_at', { ascending: false })
+          .select('event_id, user_id, checked_in, checked_in_at, events(title), profiles(display_name, email)' as any)
+          .order('checked_in_at' as any, { ascending: false })
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
@@ -219,7 +219,7 @@ export default function AdminExportsPage() {
         )
       } else if (exportId === 'impact-csv') {
         let query = supabase
-          .from('impact_logs')
+          .from('impact_logs' as any)
           .select('event_id, trees_planted, volunteer_hours, rubbish_kg, area_restored_m2, created_at, events(title)')
           .order('created_at', { ascending: false })
         if (dateStart) query = query.gte('created_at', dateStart)
@@ -236,7 +236,7 @@ export default function AdminExportsPage() {
       } else if (exportId === 'survey') {
         const { data, error } = await supabase
           .from('survey_responses')
-          .select('id, survey_id, user_id, answers, created_at, surveys(title)')
+          .select('id, survey_id, user_id, answers, created_at, surveys(title)' as any)
           .order('created_at', { ascending: false })
         if (error) throw error
         csv = toCsv(
@@ -247,7 +247,7 @@ export default function AdminExportsPage() {
         )
       } else if (exportId === 'financial') {
         let query = supabase
-          .from('donations')
+          .from('donations' as any)
           .select('id, amount_cents, currency, donor_name, donor_email, receipt_number, created_at')
           .order('created_at', { ascending: false })
         if (dateStart) query = query.gte('created_at', dateStart)
@@ -256,7 +256,7 @@ export default function AdminExportsPage() {
         if (error) throw error
         csv = toCsv(
           ['ID', 'Amount', 'Currency', 'Donor Name', 'Donor Email', 'Receipt #', 'Date'],
-          (data ?? []).map((r) => [
+          ((data ?? []) as any[]).map((r: any) => [
             r.id, ((r.amount_cents ?? 0) / 100).toFixed(2), r.currency ?? 'AUD',
             r.donor_name, r.donor_email, r.receipt_number, r.created_at,
           ]),
@@ -264,7 +264,7 @@ export default function AdminExportsPage() {
       } else if (exportId === 'orders') {
         let query = supabase
           .from('merch_orders')
-          .select('id, status, total_cents, shipping_name, shipping_address, shipping_city, shipping_state, shipping_postcode, created_at')
+          .select('id, status, total_cents, shipping_name, shipping_address, shipping_city, shipping_state, shipping_postcode, created_at' as any)
           .order('created_at', { ascending: false })
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
@@ -272,7 +272,7 @@ export default function AdminExportsPage() {
         if (error) throw error
         csv = toCsv(
           ['Order ID', 'Status', 'Total', 'Name', 'Address', 'City', 'State', 'Postcode', 'Date'],
-          (data ?? []).map((r) => [
+          ((data ?? []) as any[]).map((r: any) => [
             r.id, r.status, ((r.total_cents ?? 0) / 100).toFixed(2),
             r.shipping_name, r.shipping_address, r.shipping_city,
             r.shipping_state, r.shipping_postcode, r.created_at,
@@ -280,7 +280,7 @@ export default function AdminExportsPage() {
         )
       } else if (exportId === 'reconciliation') {
         let query = supabase
-          .from('payments')
+          .from('payments' as any)
           .select('id, stripe_payment_id, amount_cents, status, type, created_at')
           .order('created_at', { ascending: false })
         if (dateStart) query = query.gte('created_at', dateStart)
@@ -289,7 +289,7 @@ export default function AdminExportsPage() {
         if (error) throw error
         csv = toCsv(
           ['ID', 'Stripe Payment ID', 'Amount', 'Status', 'Type', 'Date'],
-          (data ?? []).map((r) => [
+          ((data ?? []) as any[]).map((r: any) => [
             r.id, r.stripe_payment_id, ((r.amount_cents ?? 0) / 100).toFixed(2),
             r.status, r.type, r.created_at,
           ]),
@@ -297,8 +297,8 @@ export default function AdminExportsPage() {
       } else if (exportId === 'gst') {
         let query = supabase
           .from('merch_orders')
-          .select('id, total_cents, gst_cents, status, created_at')
-          .eq('status', 'completed')
+          .select('id, total_cents, gst_cents, status, created_at' as any)
+          .eq('status', 'completed' as any)
           .order('created_at', { ascending: false })
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
@@ -306,7 +306,7 @@ export default function AdminExportsPage() {
         if (error) throw error
         csv = toCsv(
           ['Order ID', 'Total (ex GST)', 'GST', 'Total (inc GST)', 'Date'],
-          (data ?? []).map((r) => {
+          ((data ?? []) as any[]).map((r: any) => {
             const gst = (r.gst_cents ?? 0) / 100
             const total = (r.total_cents ?? 0) / 100
             return [r.id, (total - gst).toFixed(2), gst.toFixed(2), total.toFixed(2), r.created_at]
@@ -314,7 +314,7 @@ export default function AdminExportsPage() {
         )
       } else if (exportId === 'donation-tax') {
         let query = supabase
-          .from('donations')
+          .from('donations' as any)
           .select('donor_name, donor_email, amount_cents, receipt_number, created_at')
           .order('donor_email')
         if (dateStart) query = query.gte('created_at', dateStart)
@@ -323,7 +323,7 @@ export default function AdminExportsPage() {
         if (error) throw error
         // Group by donor
         const byDonor: Record<string, { name: string; email: string; total: number; count: number }> = {}
-        for (const d of data ?? []) {
+        for (const d of (data ?? []) as any[]) {
           const key = d.donor_email ?? 'unknown'
           if (!byDonor[key]) byDonor[key] = { name: d.donor_name ?? '', email: key, total: 0, count: 0 }
           byDonor[key].total += (d.amount_cents ?? 0)

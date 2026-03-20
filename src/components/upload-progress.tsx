@@ -9,7 +9,7 @@ interface UploadProgressProps {
   uploading?: boolean
   /** Error message to display */
   error?: string | null
-  /** Compact mode — just a thin bar */
+  /** Compact mode - just a thin bar */
   variant?: 'bar' | 'overlay'
   className?: string
 }
@@ -68,7 +68,7 @@ export function UploadProgress({
     )
   }
 
-  // Overlay variant — semi-transparent overlay on parent
+  // Overlay variant - semi-transparent overlay on parent
   return (
     <AnimatePresence>
       {isActive && (

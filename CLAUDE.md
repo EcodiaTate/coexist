@@ -1,4 +1,4 @@
-# Co-Exist App — CLAUDE.md
+# Co-Exist App - CLAUDE.md
 
 > Youth Conservation Movement | "Explore. Connect. Protect."
 > CEO/Founder: Kurt Jones | coexistaus.org
@@ -8,11 +8,11 @@
 
 ## WHAT THIS IS
 
-A mobile-first app for Co-Exist Australia — a national youth-led environmental nonprofit (ages 18-30) that runs conservation events through local groups called **Collectives**. Think: the love child of Strava's social UX + GoodGym's movement model + iNaturalist's conservation data. This is not a corporate charity platform — it's a youth movement. The tech must feel like it.
+A mobile-first app for Co-Exist Australia - a national youth-led environmental nonprofit (ages 18-30) that runs conservation events through local groups called **Collectives**. Think: the love child of Strava's social UX + GoodGym's movement model + iNaturalist's conservation data. This is not a corporate charity platform - it's a youth movement. The tech must feel like it.
 
 ---
 
-## STACK — NON-NEGOTIABLE
+## STACK - NON-NEGOTIABLE
 
 | Layer | Tech | Notes |
 |-------|------|-------|
@@ -60,7 +60,7 @@ src/
 
 ---
 
-## DESIGN SYSTEM — ABSOLUTE RULES
+## DESIGN SYSTEM - ABSOLUTE RULES
 
 ### Brand
 - **Logo**: Black text wordmark on white background with sage/nature elements. Circle variant exists.
@@ -73,7 +73,7 @@ src/
 - All colours defined in ONE theme config file (`src/styles/theme.ts` or `tailwind.config.ts`).
 - Palette uses CSS custom properties so the entire look can be swapped by changing one file.
 - Primary: sage green family. Secondary: warm earth tone. Accent: energetic CTA colour.
-- Neutrals: warm greys (not cold). Never pure black `#000` for text — use charcoal.
+- Neutrals: warm greys (not cold). Never pure black `#000` for text - use charcoal.
 - All combos must pass WCAG 2.1 AA contrast (4.5:1 body text, 3:1 large text).
 
 ### Typography
@@ -84,10 +84,10 @@ src/
 
 ### Icons
 - One library only (Lucide, Phosphor, or Heroicons). Be consistent.
-- **Icons in buttons MUST be flex-centered** — `items-center justify-center gap-2`. Never padding hacks.
+- **Icons in buttons MUST be flex-centered** - `items-center justify-center gap-2`. Never padding hacks.
 - Custom conservation icons for activity types (tree, wave, habitat, etc.).
 
-### Cards — NEVER Generic
+### Cards - NEVER Generic
 Every card must feel crafted. Specific patterns:
 - **Event cards**: hero image + gradient overlay + activity badge overlapping image + warm shadow + rounded-2xl
 - **Stat cards**: subtle gradient bg or glassmorphism, large bold numbers, trend arrows
@@ -95,19 +95,19 @@ Every card must feel crafted. Specific patterns:
 - No flat cards. No default shadows. Use the defined shadow tokens with warm tint.
 
 ### Shadows
-- Three levels: `shadow-sm`, `shadow-md`, `shadow-lg` — all with warm tint (not cold grey).
+- Three levels: `shadow-sm`, `shadow-md`, `shadow-lg` - all with warm tint (not cold grey).
 - Card press state: `scale(0.98)` + shadow reduction. Smooth 150ms transition.
 
 ---
 
-## MOBILE-FIRST — THIS IS THE LAW
+## MOBILE-FIRST - THIS IS THE LAW
 
 Every screen is designed for mobile FIRST, then adapted up for tablet and desktop.
 
 1. **Touch targets**: minimum 44x44px. No exceptions.
 2. **Thumb zone**: primary actions in bottom 60% of screen.
 3. **Bottom CTAs**: sticky action buttons anchor to bottom, not top.
-4. **No hover states as primary interaction** — everything must work on tap.
+4. **No hover states as primary interaction** - everything must work on tap.
 5. **One-handed operation**: all core flows completable with one thumb.
 6. **No footer in native app**. Bottom tab bar is the only persistent bottom element.
 7. **Web gets a footer** (About, Privacy, Terms, socials, app download links, Aboriginal acknowledgment).
@@ -116,9 +116,9 @@ Every screen is designed for mobile FIRST, then adapted up for tablet and deskto
 10. **Fast tap**: `touch-action: manipulation` everywhere. No 300ms delay.
 
 ### Responsive Breakpoints
-- Mobile: `<640px` — bottom tab nav, full-width
-- Tablet: `640-1024px` — side nav or bottom tabs, two-column where useful
-- Desktop: `>1024px` — top nav (no bottom tabs), sidebar, max-width container, multi-column
+- Mobile: `<640px` - bottom tab nav, full-width
+- Tablet: `640-1024px` - side nav or bottom tabs, two-column where useful
+- Desktop: `>1024px` - top nav (no bottom tabs), sidebar, max-width container, multi-column
 
 ### Platform Detection
 ```typescript
@@ -274,8 +274,8 @@ const { user, profile, role, isLeader, isAssistLeader, isStaff, isAdmin, isSuper
 - **List items**: staggered fade-in, 30ms between items
 - **Stat counters**: count-up on load, sequenced left to right
 - **Skeleton loading**: shimmer. Never blank screens. Never spinners for initial loads.
-- **Confetti**: on check-in, badge unlock, tier up — particles + haptic
-- **Always respect `prefers-reduced-motion`** — disable all non-essential animation
+- **Confetti**: on check-in, badge unlock, tier up - particles + haptic
+- **Always respect `prefers-reduced-motion`** - disable all non-essential animation
 
 ### Shared Element Transitions
 - Event card → Event detail: card image expands into hero
@@ -328,7 +328,7 @@ export default function EventDetailPage() {
 }
 ```
 
-### Empty State — Always Actionable
+### Empty State - Always Actionable
 ```tsx
 <EmptyState
   illustration="no-events"
@@ -351,7 +351,7 @@ On every route. Catch, show branded error screen, auto-report to Sentry.
 
 ## COHESIVE EXPERIENCE PRINCIPLES
 
-These are not optional polish — they are the architecture of the experience.
+These are not optional polish - they are the architecture of the experience.
 
 ### No Dead Ends
 - Every entity is tappable everywhere (event name in chat → event detail, user avatar → profile, badge anywhere → badge detail)
@@ -365,7 +365,7 @@ These are not optional polish — they are the architecture of the experience.
 - Destructive actions always use same confirmation bottom sheet with red button
 - Loading: skeleton → content. Never blank. Never blocking.
 - Small wins → toast. Medium wins → card. Big wins → full-screen celebration.
-- Scroll position memory — returning to a list preserves position
+- Scroll position memory - returning to a list preserves position
 
 ### Feature Pipelines (Automatic Chains)
 - **Event → Impact → Stats → Badge**: attending auto-updates stats, which auto-checks badge criteria, which auto-triggers celebration
@@ -429,7 +429,7 @@ const EventDetailPage = lazy(() => import('@/pages/events/event-detail'));
 | **Tier** | Membership level: Seedling → Sapling → Native → Canopy → Elder. |
 | **Challenge** | Time-bound national campaign with collective/individual goals. |
 | **Announcement** | Broadcast from staff to users/leaders/collectives. Connected to notifications. |
-| **Impact Logging** | The in-app form leaders/assist-leaders fill out after an event — activity-specific fields, photos, before/after evidence, species tracking, GPS polygon. This is a core flow, not an afterthought. |
+| **Impact Logging** | The in-app form leaders/assist-leaders fill out after an event - activity-specific fields, photos, before/after evidence, species tracking, GPS polygon. This is a core flow, not an afterthought. |
 
 ---
 
@@ -460,12 +460,12 @@ const EventDetailPage = lazy(() => import('@/pages/events/event-detail'));
 
 - The founder/CEO is **Kurt Jones**. The developer (me) is his best friend. We'll refer to him as Kurt.
 - Co-Exist is an **Australian registered charity**. ACNC reporting obligations. Potential DGR status for tax-deductible donations.
-- The website (coexistaus.org) is on Squarespace — the app replaces their fragmented tools.
+- The website (coexistaus.org) is on Squarespace - the app replaces their fragmented tools.
 - Current stats: **5,500 volunteers, 13 collectives, 35,500 native plants, 4,900 kg litter removed**.
 - Socials: **@coexistaus** on Instagram and Facebook. Contact: hello@coexistaus.org
 - Aboriginal and Torres Strait Islander acknowledgment in About page + web footer. Important to the org.
 - Target audience: **18-30 year olds**. Digitally native. Expect consumer-grade UX. If it feels like enterprise software, we've failed.
 - The master TODO at **`D:/.code/TODO-MASTER.md`** is the single source of truth for all tasks (1,083 items, 57 sections).
-- **Southern Hemisphere** — Summer is Dec-Feb, Winter is Jun-Aug. All seasonal UI and campaigns follow this.
-- **Impact logging is core** — leaders/assist-leaders fill out detailed in-app forms post-event with activity-specific fields, photos, species, GPS data. This is what makes the data valuable for charity reporting, grant applications, and advocacy. Treat it as a first-class feature, not admin busywork.
+- **Southern Hemisphere** - Summer is Dec-Feb, Winter is Jun-Aug. All seasonal UI and campaigns follow this.
+- **Impact logging is core** - leaders/assist-leaders fill out detailed in-app forms post-event with activity-specific fields, photos, species, GPS data. This is what makes the data valuable for charity reporting, grant applications, and advocacy. Treat it as a first-class feature, not admin busywork.
 - The app should feel like **joining a movement, not signing up for a service**. Every interaction should reinforce belonging, progress, and real-world impact.

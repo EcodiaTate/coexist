@@ -190,7 +190,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                       {profile?.display_name}
                     </p>
                     <p className="text-caption text-primary-400 truncate">
-                      @{profile?.handle}
+                      @{(profile as any)?.handle}
                     </p>
                   </div>
 

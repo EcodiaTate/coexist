@@ -26,9 +26,9 @@ export default function ReturnsTab() {
     async (returnId: string, status: 'approved' | 'denied') => {
       try {
         await updateReturn.mutateAsync({ returnId, status })
-        toast(`Return ${status}`, 'success')
+        toast.success(`Return ${status}`)
       } catch {
-        toast('Failed to update return', 'error')
+        toast.error('Failed to update return')
       }
     },
     [updateReturn, toast],

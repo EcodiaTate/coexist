@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   Users,
@@ -6,7 +6,6 @@ import {
   CalendarDays,
   TreePine,
   TrendingUp,
-  TrendingDown,
   Clock,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
@@ -320,7 +319,7 @@ export default function AdminDashboardPage() {
           </h3>
           <div className="h-64 bg-white rounded-lg flex items-center justify-center">
             <p className="text-sm text-primary-400">
-              Heat map — connect to Mapbox for live geographic data
+              Heat map - connect to Mapbox for live geographic data
             </p>
           </div>
         </div>

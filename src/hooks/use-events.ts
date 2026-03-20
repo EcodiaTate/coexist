@@ -5,7 +5,6 @@ import type {
   Event,
   EventRegistration,
   EventImpact,
-  EventInvite,
   Collective,
   Profile,
   Database,
@@ -18,14 +17,13 @@ import type {
 
 type ActivityType = Database['public']['Enums']['activity_type']
 type RegistrationStatus = Database['public']['Enums']['registration_status']
-type EventStatus = Database['public']['Enums']['event_status']
 
 export interface EventWithCollective extends Event {
   collectives: Pick<Collective, 'id' | 'name' | 'cover_image_url'> | null
 }
 
 export interface EventDetailData extends Event {
-  collectives: Pick<Collective, 'id' | 'name' | 'cover_image_url' | 'location' | 'address'> | null
+  collectives: Pick<Collective, 'id' | 'name' | 'cover_image_url' | 'slug' | 'region' | 'state'> | null
   profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url'> | null
   registration_count: number
   user_registration: EventRegistration | null
@@ -189,7 +187,7 @@ export function isPastEvent(event: Event): boolean {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Queries — My Events                                                */
+/*  Queries - My Events                                                */
 /* ------------------------------------------------------------------ */
 
 export function useMyEvents(tab: 'upcoming' | 'invited' | 'past') {
@@ -234,7 +232,7 @@ export function useMyEvents(tab: 'upcoming' | 'invited' | 'past') {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Queries — Event Detail                                             */
+/*  Queries - Event Detail                                             */
 /* ------------------------------------------------------------------ */
 
 export function useEventDetail(eventId: string | undefined) {
@@ -248,7 +246,7 @@ export function useEventDetail(eventId: string | undefined) {
       // Fetch event with collective + creator
       const { data: event, error } = await supabase
         .from('events')
-        .select('*, collectives(id, name, slug, cover_image_url, location, address), profiles!events_created_by_fkey(id, display_name, avatar_url)')
+        .select('*, collectives(id, name, slug, cover_image_url, region, state), profiles!events_created_by_fkey(id, display_name, avatar_url)')
         .eq('id', eventId)
         .single()
       if (error) throw error
@@ -306,7 +304,7 @@ export function useEventDetail(eventId: string | undefined) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Queries — Event Attendees (leader view)                            */
+/*  Queries - Event Attendees (leader view)                            */
 /* ------------------------------------------------------------------ */
 
 export function useEventAttendees(eventId: string | undefined) {
@@ -331,7 +329,7 @@ export function useEventAttendees(eventId: string | undefined) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Queries — Event Waitlist                                           */
+/*  Queries - Event Waitlist                                           */
 /* ------------------------------------------------------------------ */
 
 export function useEventWaitlist(eventId: string | undefined) {
@@ -356,7 +354,7 @@ export function useEventWaitlist(eventId: string | undefined) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Queries — Nearby & Collective Events                               */
+/*  Queries - Nearby & Collective Events                               */
 /* ------------------------------------------------------------------ */
 
 export function useNearbyEvents(limit = 20) {
@@ -399,7 +397,7 @@ export function useCollectiveEvents(collectiveId: string | undefined) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Queries — Event Impact                                             */
+/*  Queries - Event Impact                                             */
 /* ------------------------------------------------------------------ */
 
 export function useEventImpact(eventId: string | undefined) {
@@ -421,7 +419,7 @@ export function useEventImpact(eventId: string | undefined) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Mutations — Registration                                          */
+/*  Mutations - Registration                                          */
 /* ------------------------------------------------------------------ */
 
 export function useRegisterForEvent() {
@@ -502,7 +500,7 @@ export function useCancelRegistration() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Mutations — Check-in                                               */
+/*  Mutations - Check-in                                               */
 /* ------------------------------------------------------------------ */
 
 export function useCheckIn() {
@@ -551,7 +549,7 @@ export function useBulkCheckIn() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Mutations — Event CRUD                                             */
+/*  Mutations - Event CRUD                                             */
 /* ------------------------------------------------------------------ */
 
 export function useCreateEvent() {
@@ -688,7 +686,7 @@ export function useDuplicateEvent() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Mutations — Impact Logging                                         */
+/*  Mutations - Impact Logging                                         */
 /* ------------------------------------------------------------------ */
 
 export function useLogImpact() {
@@ -719,7 +717,7 @@ export function useLogImpact() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Mutations — Invite Collective                                      */
+/*  Mutations - Invite Collective                                      */
 /* ------------------------------------------------------------------ */
 
 export function useInviteCollective() {
@@ -808,7 +806,7 @@ export function useInviteCollective() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Mutations — Waitlist Management                                    */
+/*  Mutations - Waitlist Management                                    */
 /* ------------------------------------------------------------------ */
 
 export function usePromoteFromWaitlist() {

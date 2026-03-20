@@ -18,7 +18,7 @@ interface PhotoViewerProps {
   initialIndex?: number
   open: boolean
   onClose: () => void
-  /** Called when admin/leader taps remove — pass null to hide the button */
+  /** Called when admin/leader taps remove - pass null to hide the button */
   onRemove?: (photoId: string) => void
   className?: string
 }
@@ -105,7 +105,7 @@ export function PhotoViewer({
             </div>
           </div>
 
-          {/* Image area — swipe/pinch via CSS touch-action */}
+          {/* Image area - swipe/pinch via CSS touch-action */}
           <div
             className="flex-1 flex items-center justify-center px-4 min-h-0 touch-pinch-zoom"
             onClick={onClose}
@@ -115,9 +115,9 @@ export function PhotoViewer({
                 key={photo.id}
                 src={photo.src}
                 alt={photo.alt}
-                initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95 }}
+                initial={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={shouldReduceMotion ? false : { opacity: 0, scale: 0.95 }}
+                exit={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.15 }}
                 className="max-h-full max-w-full object-contain select-none"
                 onClick={(e) => e.stopPropagation()}

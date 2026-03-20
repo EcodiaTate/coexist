@@ -34,9 +34,9 @@ export default function ShippingTab() {
           ? Math.round(Number(freeThreshold) * 100)
           : null,
       })
-      toast('Shipping config updated', 'success')
+      toast.success('Shipping config updated')
     } catch {
-      toast('Failed to update shipping config', 'error')
+      toast.error('Failed to update shipping config')
     }
   }, [flatRate, freeThreshold, updateConfig, toast])
 

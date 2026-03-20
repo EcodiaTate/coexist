@@ -4,7 +4,6 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import type {
   GlobalAnnouncement,
-  AnnouncementRead,
   Profile,
   Enums,
 } from '@/types/database.types'

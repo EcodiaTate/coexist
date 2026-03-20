@@ -6,7 +6,7 @@ import { OGMeta } from '@/components/og-meta'
 import { APP_NAME, TAGLINE, WEBSITE_URL, INSTAGRAM_URL } from '@/lib/constants'
 import { WebFooter } from '@/components/web-footer'
 
-// Placeholder store URLs — replace with real ones when published
+// Placeholder store URLs - replace with real ones when published
 const APP_STORE_URL = '#'
 const PLAY_STORE_URL = '#'
 const WEB_APP_URL = '/'

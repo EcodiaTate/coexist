@@ -31,7 +31,7 @@ const variantStyles: Record<SkeletonVariant, string> = {
   card: 'h-48 rounded-2xl w-full',
   'stat-card': 'h-24 rounded-xl w-full',
   image: 'aspect-video rounded-xl w-full',
-  'list-item': '', // composite — handled separately
+  'list-item': '', // composite - handled separately
 }
 
 function ShimmerBlock({ className }: { className?: string }) {

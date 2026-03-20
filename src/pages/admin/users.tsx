@@ -6,10 +6,7 @@ import {
   Ban,
   Trash2,
   KeyRound,
-  ChevronRight,
-  MoreVertical,
   UserCog,
-  Eye,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AdminLayout } from '@/components/admin-layout'
@@ -38,7 +35,7 @@ function useAdminUsers(search: string, roleFilter: string) {
     queryFn: async () => {
       let query = supabase
         .from('profiles')
-        .select('id, display_name, email, avatar_url, role, is_suspended, created_at')
+        .select('id, display_name, email, avatar_url, role, is_suspended, created_at' as any)
         .order('created_at', { ascending: false })
         .limit(50)
 
@@ -49,12 +46,12 @@ function useAdminUsers(search: string, roleFilter: string) {
       }
 
       if (roleFilter && roleFilter !== 'all') {
-        query = query.eq('role', roleFilter)
+        query = query.eq('role', roleFilter as any)
       }
 
       const { data, error } = await query
       if (error) throw error
-      return data ?? []
+      return (data ?? []) as any[]
     },
     staleTime: 30 * 1000,
   })
@@ -104,7 +101,7 @@ export default function AdminUsersPage() {
       }
       const { error } = await supabase
         .from('profiles')
-        .update({ role })
+        .update({ role } as any)
         .eq('id', userId)
       if (error) throw error
     },

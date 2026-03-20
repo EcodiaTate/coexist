@@ -1,10 +1,10 @@
-# Co-Exist — Native Build Workflow
+# Co-Exist - Native Build Workflow
 
 ## Prerequisites
 
 - **Node.js** 20+ and npm
-- **Android Studio** (Windows/Mac/Linux) — for Android builds
-- **Xcode** 15+ (macOS only, or via MacInCloud) — for iOS builds
+- **Android Studio** (Windows/Mac/Linux) - for Android builds
+- **Xcode** 15+ (macOS only, or via MacInCloud) - for iOS builds
 
 ## Quick Commands
 
@@ -53,7 +53,7 @@ npx cap open android
 ### Signed release APK/AAB
 
 1. In Android Studio: **Build > Generate Signed Bundle / APK**
-2. Create or select a keystore (keep this safe — you need it for every update)
+2. Create or select a keystore (keep this safe - you need it for every update)
 3. Choose **Android App Bundle** for Play Store upload
 4. Build variant: **release**
 
@@ -71,7 +71,7 @@ npx cap open android
 
 ### Using MacInCloud (from Windows)
 
-1. Sign up at [MacInCloud](https://www.macincloud.com) — get a plan with Xcode
+1. Sign up at [MacInCloud](https://www.macincloud.com) - get a plan with Xcode
 2. Upload the project via SFTP/Git
 3. Open `ios/App/App.xcworkspace` in Xcode
 4. Follow the local macOS steps below
@@ -139,7 +139,7 @@ npx cap open ios
 # Start dev server
 npm run dev
 
-# In another terminal — run on device with live reload
+# In another terminal - run on device with live reload
 npx cap run android --livereload --external
 npx cap run ios --livereload --external
 ```

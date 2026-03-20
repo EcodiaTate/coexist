@@ -1,10 +1,6 @@
 import { useState } from 'react'
 import {
-  FileText,
-  Search,
-  User,
   Clock,
-  Filter,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { AdminLayout } from '@/components/admin-layout'
@@ -46,7 +42,7 @@ function useAuditLog(search: string, actionFilter: string, page: number) {
     queryKey: ['admin-audit-log', search, actionFilter, page],
     queryFn: async () => {
       let query = supabase
-        .from('audit_logs')
+        .from('audit_logs' as any)
         .select('*, profiles!audit_logs_user_id_fkey(display_name, avatar_url)', {
           count: 'exact',
         })
@@ -118,8 +114,9 @@ export default function AdminAuditLogPage() {
       ) : (
         <>
           <StaggeredList className="space-y-1">
-            {data.logs.map((log) => {
-              const profile = (log as any).profiles
+            {data.logs.map((_log) => {
+              const log = _log as any
+              const profile = log.profiles
               const colorClass =
                 actionColors[log.action] ?? actionColors.default
 

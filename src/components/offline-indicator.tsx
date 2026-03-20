@@ -7,7 +7,7 @@ interface OfflineIndicatorProps {
   dataUpdatedAt?: number
   /** Whether the query is currently fetching */
   isFetching?: boolean
-  /** Compact mode — just an icon, no text */
+  /** Compact mode - just an icon, no text */
   compact?: boolean
   className?: string
 }
@@ -15,7 +15,7 @@ interface OfflineIndicatorProps {
 /**
  * Inline offline/stale data indicator for data-dependent components.
  * Shows:
- *   - "Offline — showing cached data" when offline with data
+ *   - "Offline - showing cached data" when offline with data
  *   - "Updated X ago" when data is stale
  *   - Spinning refresh icon when fetching
  */
@@ -40,7 +40,7 @@ export function OfflineIndicator({
     return (
       <span className={cn('inline-flex items-center gap-1 text-xs text-amber-600', className)}>
         <WifiOff size={12} />
-        {!compact && <span>Offline — cached data</span>}
+        {!compact && <span>Offline - cached data</span>}
       </span>
     )
   }

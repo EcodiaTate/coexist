@@ -1,5 +1,5 @@
 -- ============================================================================
--- Co-Exist App — Seed Data
+-- Co-Exist App - Seed Data
 -- Run after migration: psql -f supabase/seed.sql
 -- ============================================================================
 
@@ -52,18 +52,18 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO collectives (id, name, slug, description, region, state, member_count, is_active, location_point) VALUES
   ('c0000000-0000-0000-0000-000000000001', 'Byron Bay Collective', 'byron-bay', 'Conservation crew protecting the beautiful Byron Bay coastline and hinterland.', 'Byron Bay', 'NSW', 420, true, ST_SetSRID(ST_MakePoint(153.6150, -28.6474), 4326)),
-  ('c0000000-0000-0000-0000-000000000002', 'Sydney Collective', 'sydney', 'Urban conservation in and around Sydney — harbour cleanups, bush regen, and more.', 'Sydney', 'NSW', 850, true, ST_SetSRID(ST_MakePoint(151.2093, -33.8688), 4326)),
+  ('c0000000-0000-0000-0000-000000000002', 'Sydney Collective', 'sydney', 'Urban conservation in and around Sydney - harbour cleanups, bush regen, and more.', 'Sydney', 'NSW', 850, true, ST_SetSRID(ST_MakePoint(151.2093, -33.8688), 4326)),
   ('c0000000-0000-0000-0000-000000000003', 'Melbourne Collective', 'melbourne', 'Melbourne''s crew for creek restoration, tree planting, and coastal cleanups.', 'Melbourne', 'VIC', 720, true, ST_SetSRID(ST_MakePoint(144.9631, -37.8136), 4326)),
   ('c0000000-0000-0000-0000-000000000004', 'Gold Coast Collective', 'gold-coast', 'Protecting the Gold Coast''s beaches, dunes, and green spaces.', 'Gold Coast', 'QLD', 380, true, ST_SetSRID(ST_MakePoint(153.4000, -28.0167), 4326)),
   ('c0000000-0000-0000-0000-000000000005', 'Sunshine Coast Collective', 'sunshine-coast', 'Hinterland revegetation and coastal care on the Sunshine Coast.', 'Sunshine Coast', 'QLD', 310, true, ST_SetSRID(ST_MakePoint(153.0667, -26.6500), 4326)),
   ('c0000000-0000-0000-0000-000000000006', 'Brisbane Collective', 'brisbane', 'River cleanups, urban greening, and habitat restoration across Brisbane.', 'Brisbane', 'QLD', 540, true, ST_SetSRID(ST_MakePoint(153.0251, -27.4698), 4326)),
   ('c0000000-0000-0000-0000-000000000007', 'Adelaide Collective', 'adelaide', 'Caring for South Australia''s unique landscapes and coastline.', 'Adelaide', 'SA', 280, true, ST_SetSRID(ST_MakePoint(138.6007, -34.9285), 4326)),
-  ('c0000000-0000-0000-0000-000000000008', 'Perth Collective', 'perth', 'Western Australia''s conservation community — bushland, wetlands, and coast.', 'Perth', 'WA', 350, true, ST_SetSRID(ST_MakePoint(115.8605, -31.9505), 4326)),
-  ('c0000000-0000-0000-0000-000000000009', 'Hobart Collective', 'hobart', 'Tasmania''s conservation crew — old growth, wildlife, and waterways.', 'Hobart', 'TAS', 190, true, ST_SetSRID(ST_MakePoint(147.3272, -42.8821), 4326)),
-  ('c0000000-0000-0000-0000-000000000010', 'Cairns Collective', 'cairns', 'Tropical conservation in Far North Queensland — reef-adjacent restoration.', 'Cairns', 'QLD', 260, true, ST_SetSRID(ST_MakePoint(145.7781, -16.9186), 4326)),
+  ('c0000000-0000-0000-0000-000000000008', 'Perth Collective', 'perth', 'Western Australia''s conservation community - bushland, wetlands, and coast.', 'Perth', 'WA', 350, true, ST_SetSRID(ST_MakePoint(115.8605, -31.9505), 4326)),
+  ('c0000000-0000-0000-0000-000000000009', 'Hobart Collective', 'hobart', 'Tasmania''s conservation crew - old growth, wildlife, and waterways.', 'Hobart', 'TAS', 190, true, ST_SetSRID(ST_MakePoint(147.3272, -42.8821), 4326)),
+  ('c0000000-0000-0000-0000-000000000010', 'Cairns Collective', 'cairns', 'Tropical conservation in Far North Queensland - reef-adjacent restoration.', 'Cairns', 'QLD', 260, true, ST_SetSRID(ST_MakePoint(145.7781, -16.9186), 4326)),
   ('c0000000-0000-0000-0000-000000000011', 'Newcastle Collective', 'newcastle', 'Hunter Valley and coastal conservation in Newcastle and surrounds.', 'Newcastle', 'NSW', 220, true, ST_SetSRID(ST_MakePoint(151.7817, -32.9283), 4326)),
   ('c0000000-0000-0000-0000-000000000012', 'Wollongong Collective', 'wollongong', 'Illawarra escarpment and coastline conservation.', 'Wollongong', 'NSW', 180, true, ST_SetSRID(ST_MakePoint(150.8931, -34.4278), 4326)),
-  ('c0000000-0000-0000-0000-000000000013', 'Canberra Collective', 'canberra', 'Bush capital conservation — woodland restoration and waterway care.', 'Canberra', 'ACT', 200, true, ST_SetSRID(ST_MakePoint(149.1300, -35.2809), 4326))
+  ('c0000000-0000-0000-0000-000000000013', 'Canberra Collective', 'canberra', 'Bush capital conservation - woodland restoration and waterway care.', 'Canberra', 'ACT', 200, true, ST_SetSRID(ST_MakePoint(149.1300, -35.2809), 4326))
 ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
@@ -95,12 +95,12 @@ VALUES (
 INSERT INTO events (id, collective_id, created_by, title, description, activity_type, date_start, date_end, capacity, address, is_public, status, location_point) VALUES
   -- Byron Bay events
   ('e0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001',
-   'Main Beach Cleanup', 'Monthly cleanup of Main Beach — bring sunscreen and a reusable water bottle!',
+   'Main Beach Cleanup', 'Monthly cleanup of Main Beach - bring sunscreen and a reusable water bottle!',
    'beach_cleanup', '2026-04-05 08:00:00+10', '2026-04-05 11:00:00+10', 40,
    'Main Beach, Byron Bay NSW 2481', true, 'published', ST_SetSRID(ST_MakePoint(153.6190, -28.6430), 4326)),
 
   ('e0000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001',
-   'Hinterland Tree Planting', 'Revegetation day in the Byron hinterland — 500 native seedlings ready to go.',
+   'Hinterland Tree Planting', 'Revegetation day in the Byron hinterland - 500 native seedlings ready to go.',
    'tree_planting', '2026-04-12 07:30:00+10', '2026-04-12 12:00:00+10', 30,
    'Broken Head Nature Reserve, Byron Bay NSW', true, 'published', ST_SetSRID(ST_MakePoint(153.6000, -28.6800), 4326)),
 
@@ -117,24 +117,24 @@ INSERT INTO events (id, collective_id, created_by, title, description, activity_
 
   -- Melbourne events
   ('e0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001',
-   'Merri Creek Planting Day', 'Autumn planting along Merri Creek — indigenous grasses and shrubs.',
+   'Merri Creek Planting Day', 'Autumn planting along Merri Creek - indigenous grasses and shrubs.',
    'tree_planting', '2026-04-13 09:00:00+10', '2026-04-13 13:00:00+10', 50,
    'Merri Creek Trail, Northcote VIC', true, 'published', ST_SetSRID(ST_MakePoint(145.0000, -37.7700), 4326)),
 
   ('e0000000-0000-0000-0000-000000000006', 'c0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001',
-   'St Kilda Beach Cleanup', 'Coastal cleanup at St Kilda Beach — buckets and gloves provided.',
+   'St Kilda Beach Cleanup', 'Coastal cleanup at St Kilda Beach - buckets and gloves provided.',
    'beach_cleanup', '2026-04-20 08:00:00+10', '2026-04-20 11:00:00+10', 45,
    'St Kilda Beach, Melbourne VIC', true, 'published', ST_SetSRID(ST_MakePoint(144.9742, -37.8679), 4326)),
 
   -- Gold Coast events
   ('e0000000-0000-0000-0000-000000000007', 'c0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000001',
-   'Currumbin Wildlife Survey', 'Citizen science — bird and wildlife survey along Currumbin Creek.',
+   'Currumbin Wildlife Survey', 'Citizen science - bird and wildlife survey along Currumbin Creek.',
    'wildlife_survey', '2026-04-07 06:30:00+10', '2026-04-07 09:30:00+10', 20,
    'Currumbin Creek, Gold Coast QLD', true, 'published', ST_SetSRID(ST_MakePoint(153.4800, -28.1300), 4326)),
 
   -- Brisbane events
   ('e0000000-0000-0000-0000-000000000008', 'c0000000-0000-0000-0000-000000000006', 'a0000000-0000-0000-0000-000000000001',
-   'Brisbane River Cleanup', 'Kayak-based river cleanup — we provide kayaks! BYO enthusiasm.',
+   'Brisbane River Cleanup', 'Kayak-based river cleanup - we provide kayaks! BYO enthusiasm.',
    'waterway_cleanup', '2026-04-14 07:00:00+10', '2026-04-14 11:00:00+10', 20,
    'Kangaroo Point, Brisbane QLD', true, 'published', ST_SetSRID(ST_MakePoint(153.0350, -27.4750), 4326)),
 
@@ -172,7 +172,7 @@ INSERT INTO merch_products (id, name, description, price, is_active, images, var
    ARRAY['/images/merch/tote-natural.jpg'],
    '[{"key":"one-size","label":"One Size"}]'::jsonb),
 
-  ('d0000000-0000-0000-0000-000000000005', 'Sticker Pack', 'Set of 5 die-cut vinyl stickers — nature-inspired Co-Exist designs.', 5.00, true,
+  ('d0000000-0000-0000-0000-000000000005', 'Sticker Pack', 'Set of 5 die-cut vinyl stickers - nature-inspired Co-Exist designs.', 5.00, true,
    ARRAY['/images/merch/stickers.jpg'],
    '[{"key":"one-size","label":"Pack of 5"}]'::jsonb)
 ON CONFLICT (id) DO NOTHING;

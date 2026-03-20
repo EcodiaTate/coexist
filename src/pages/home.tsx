@@ -185,7 +185,7 @@ export default function HomePage() {
   const trending = useTrendingCollectives()
   const suggestions = useSuggestedConnections()
 
-  // DEBUG — remove after fixing
+  // DEBUG - remove after fixing
   console.log('[home] render', {
     announcement: { loading: announcement.isLoading, error: announcement.isError },
     featured: { loading: featured.isLoading, error: featured.isError },
@@ -297,7 +297,7 @@ export default function HomePage() {
             </motion.div>
           ) : null}
 
-          {/* 3. Hero — featured event carousel */}
+          {/* 3. Hero - featured event carousel */}
           {featured.isLoading ? (
             <div className="px-4 lg:px-6">
               <Skeleton variant="image" />

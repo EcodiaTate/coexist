@@ -22,7 +22,7 @@ export default function AcceptTermsPage() {
       await acceptTos(CURRENT_TOS_VERSION)
       navigate('/', { replace: true })
     } catch {
-      // TOS acceptance failed — don't navigate, let user retry
+      // TOS acceptance failed - don't navigate, let user retry
       setIsSubmitting(false)
     }
   }

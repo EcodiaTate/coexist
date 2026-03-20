@@ -64,7 +64,7 @@ export function ChatBubble({
         className,
       )}
     >
-      {/* Avatar (received only) — tappable to view profile */}
+      {/* Avatar (received only) - tappable to view profile */}
       {!sent && (
         <button
           type="button"
@@ -96,7 +96,7 @@ export function ChatBubble({
           sent ? 'items-end' : 'items-start',
         )}
       >
-        {/* Sender name + role badge (received only) — tappable */}
+        {/* Sender name + role badge (received only) - tappable */}
         {!sent && senderName && (
           <div className="flex items-center gap-1.5 px-1">
             <button

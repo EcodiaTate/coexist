@@ -99,6 +99,7 @@ function EditCollectiveSheet({
             Name
           </label>
           <Input
+            label="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Collective name"
@@ -229,10 +230,10 @@ export default function CollectiveManagePage() {
   }, [members, searchQuery])
 
   const handleSaveCollective = async (updates: { name: string; description: string }) => {
-    if (!id) return
+    if (!collectiveId) return
     try {
       await updateCollective.mutateAsync({
-        collectiveId: id,
+        collectiveId,
         updates: { name: updates.name, description: updates.description },
       })
       setShowEdit(false)
@@ -243,10 +244,10 @@ export default function CollectiveManagePage() {
   }
 
   const handleRemoveMember = async () => {
-    if (!id || !removingMember) return
+    if (!collectiveId || !removingMember) return
     try {
       await removeMember.mutateAsync({
-        collectiveId: id,
+        collectiveId,
         userId: removingMember.user_id,
       })
       toast.success('Member removed')
@@ -257,10 +258,10 @@ export default function CollectiveManagePage() {
   }
 
   const handleAssignRole = async (role: CollectiveRole) => {
-    if (!id || !roleAssignMember) return
+    if (!collectiveId || !roleAssignMember) return
     try {
       await updateRole.mutateAsync({
-        collectiveId: id,
+        collectiveId,
         userId: roleAssignMember.user_id,
         role,
       })
@@ -389,7 +390,7 @@ export default function CollectiveManagePage() {
                   key={member.id}
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-primary-50 transition-colors"
                 >
-                  {/* Avatar — tappable to user card */}
+                  {/* Avatar - tappable to user card */}
                   <button
                     type="button"
                     onClick={() => setSelectedUser(member)}

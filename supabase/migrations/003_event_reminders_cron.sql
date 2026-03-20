@@ -24,7 +24,7 @@ CREATE INDEX IF NOT EXISTS idx_reminders_sent_at
 -- RLS: only service role can read/write (edge function uses service role key)
 ALTER TABLE public.email_reminders_sent ENABLE ROW LEVEL SECURITY;
 
--- No public access policies — only service_role bypasses RLS
+-- No public access policies - only service_role bypasses RLS
 
 -- ============================================================
 -- pg_cron: Schedule event-reminders function every 30 minutes

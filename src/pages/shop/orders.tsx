@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Package, ChevronRight } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -9,8 +9,8 @@ import { useMyOrders } from '@/hooks/use-orders'
 import { formatPrice, type OrderStatus } from '@/types/merch'
 import { cn } from '@/lib/cn'
 
-const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }
-const fadeUp = {
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
 }

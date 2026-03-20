@@ -79,11 +79,11 @@ export default function OrderDetailPage() {
     if (!orderId || !returnReason.trim()) return
     try {
       await requestReturn.mutateAsync({ orderId, reason: returnReason.trim() })
-      toast('Return request submitted', 'success')
+      toast.success('Return request submitted')
       setShowReturnSheet(false)
       setReturnReason('')
     } catch {
-      toast('Failed to submit return request', 'error')
+      toast.error('Failed to submit return request')
     }
   }, [orderId, returnReason, requestReturn, toast])
 

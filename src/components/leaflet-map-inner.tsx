@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
@@ -109,6 +109,7 @@ export default function LeafletMapInner({
       boxZoom: interactive,
       keyboard: interactive,
       attributionControl: true,
+      // @ts-expect-error tap is valid Leaflet option
       tap: interactive,
     })
 

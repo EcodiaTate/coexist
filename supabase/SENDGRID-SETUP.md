@@ -1,4 +1,4 @@
-# SendGrid Setup Guide — Co-Exist
+# SendGrid Setup Guide - Co-Exist
 
 Complete setup guide for transactional and marketing email via SendGrid.
 
@@ -52,7 +52,7 @@ Create unsubscribe groups to let users opt out of specific email categories (req
 | Marketing Emails    | Newsletters, challenge announcements, impact recaps |
 | Event Notifications | Event reminders, invitations, cancellations        |
 
-3. Note the group IDs — they can optionally be added to template sends via `asm.group_id`
+3. Note the group IDs - they can optionally be added to template sends via `asm.group_id`
 
 ---
 
@@ -133,7 +133,7 @@ supabase secrets set SENDGRID_TPL_ANNOUNCEMENT_DIGEST=d-xxxxxxxxxxxxxxxxxxxxxxxx
 
 #### T3: Event Reminder
 - **Env var:** `SENDGRID_TPL_EVENT_REMINDER`
-- **Trigger:** Scheduled cron — 24 hours and 2 hours before event start
+- **Trigger:** Scheduled cron - 24 hours and 2 hours before event start
 - **Subject line:** `Reminder: {{event_title}} is {{time_until}}`
 - **Dynamic variables:**
 
@@ -169,7 +169,7 @@ supabase secrets set SENDGRID_TPL_ANNOUNCEMENT_DIGEST=d-xxxxxxxxxxxxxxxxxxxxxxxx
 
 #### T5: Event Invitation
 - **Env var:** `SENDGRID_TPL_EVENT_INVITE`
-- **Trigger:** Collective is invited to an event — sent to each member
+- **Trigger:** Collective is invited to an event - sent to each member
 - **Subject line:** `You're invited to {{event_title}}`
 - **Dynamic variables:**
 
@@ -188,7 +188,7 @@ supabase secrets set SENDGRID_TPL_ANNOUNCEMENT_DIGEST=d-xxxxxxxxxxxxxxxxxxxxxxxx
 #### T6: Waitlist Promoted
 - **Env var:** `SENDGRID_TPL_WAITLIST_PROMOTED`
 - **Trigger:** User promoted from waitlist to registered (spot opened up)
-- **Subject line:** `A spot opened up — you're in for {{event_title}}!`
+- **Subject line:** `A spot opened up - you're in for {{event_title}}!`
 - **Dynamic variables:**
 
 | Variable         | Type   | Description                    | Example                                    |
@@ -243,7 +243,7 @@ supabase secrets set SENDGRID_TPL_ANNOUNCEMENT_DIGEST=d-xxxxxxxxxxxxxxxxxxxxxxxx
 #### T9: Order Confirmation
 - **Env var:** `SENDGRID_TPL_ORDER_CONFIRMATION`
 - **Trigger:** Successful merch checkout payment
-- **Subject line:** `Order confirmed — #{{order_id}}`
+- **Subject line:** `Order confirmed - #{{order_id}}`
 - **Dynamic variables:**
 
 | Variable           | Type   | Description                    | Example                                |
@@ -352,7 +352,7 @@ supabase secrets set SENDGRID_TPL_ANNOUNCEMENT_DIGEST=d-xxxxxxxxxxxxxxxxxxxxxxxx
 #### M1: Newsletter
 - **Env var:** `SENDGRID_TPL_NEWSLETTER`
 - **Trigger:** Manual send by admin (monthly)
-- **Subject line:** `Co-Exist Monthly Update — {{month}}`
+- **Subject line:** `Co-Exist Monthly Update - {{month}}`
 - **Dynamic variables:**
 
 | Variable      | Type   | Description            | Example                          |
@@ -382,7 +382,7 @@ supabase secrets set SENDGRID_TPL_ANNOUNCEMENT_DIGEST=d-xxxxxxxxxxxxxxxxxxxxxxxx
 
 #### M3: Monthly Impact Recap
 - **Env var:** `SENDGRID_TPL_IMPACT_RECAP`
-- **Trigger:** Scheduled cron — 1st of each month
+- **Trigger:** Scheduled cron - 1st of each month
 - **Subject line:** `Your {{month}} impact with Co-Exist`
 - **Dynamic variables:**
 
@@ -401,7 +401,7 @@ supabase secrets set SENDGRID_TPL_ANNOUNCEMENT_DIGEST=d-xxxxxxxxxxxxxxxxxxxxxxxx
 
 #### M4: Announcement Digest
 - **Env var:** `SENDGRID_TPL_ANNOUNCEMENT_DIGEST`
-- **Trigger:** Scheduled cron — weekly (if there are new announcements)
+- **Trigger:** Scheduled cron - weekly (if there are new announcements)
 - **Subject line:** `This week in Co-Exist`
 - **Dynamic variables:**
 

@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Heart } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -8,8 +8,8 @@ import { EmptyState } from '@/components/empty-state'
 import { useDonorWall } from '@/hooks/use-donations'
 import { cn } from '@/lib/cn'
 
-const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.05, delayChildren: 0.15 } } }
-const fadeUp = {
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.05, delayChildren: 0.15 } } }
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
 }

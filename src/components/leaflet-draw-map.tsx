@@ -122,12 +122,12 @@ export default function LeafletDrawMap({
       onAreaChangeRef.current?.(geoJSON)
     }
 
-    map.on(L.Draw.Event.CREATED, (e: L.DrawEvents.Created) => {
+    map.on(L.Draw.Event.CREATED, ((e: L.DrawEvents.Created) => {
       // Only keep one shape at a time
       drawnItems.clearLayers()
       drawnItems.addLayer(e.layer)
       emitArea()
-    })
+    }) as any)
 
     map.on(L.Draw.Event.EDITED, () => emitArea())
     map.on(L.Draw.Event.DELETED, () => emitArea())

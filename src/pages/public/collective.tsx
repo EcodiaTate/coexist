@@ -78,7 +78,7 @@ export default function PublicCollectivePage() {
     <div className="min-h-dvh bg-white">
       <OGMeta
         title={collective.name}
-        description={collective.description || `Join ${collective.name} — a Co-Exist conservation collective`}
+        description={collective.description || `Join ${collective.name} - a Co-Exist conservation collective`}
         url={pageUrl}
         image={collective.cover_image_url || undefined}
       />

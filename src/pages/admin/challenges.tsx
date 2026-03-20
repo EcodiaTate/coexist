@@ -3,10 +3,8 @@ import {
   Trophy,
   Plus,
   Calendar,
-  Users,
   Target,
   Trash2,
-  Edit3,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AdminLayout } from '@/components/admin-layout'
@@ -136,9 +134,7 @@ export default function AdminChallengesPage() {
       ) : (
         <StaggeredList className="space-y-3">
           {challenges.map((challenge) => {
-            const isActive = challenge.status === 'active'
-            const isPast =
-              challenge.end_date && new Date(challenge.end_date) < new Date()
+            const isActive = (challenge as any).status === 'active'
 
             return (
               <StaggeredItem
@@ -195,7 +191,7 @@ export default function AdminChallengesPage() {
                               month: 'short',
                             })}
                             {challenge.end_date &&
-                              ` — ${new Date(challenge.end_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`}
+                              ` - ${new Date(challenge.end_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`}
                           </span>
                         )}
                       </div>

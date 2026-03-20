@@ -14,7 +14,7 @@ import { useMyCollectives } from '@/hooks/use-collective'
 import { useUnreadCounts } from '@/hooks/use-chat'
 
 /* ------------------------------------------------------------------ */
-/*  Chat list page — shows all collectives the user is in              */
+/*  Chat list page - shows all collectives the user is in              */
 /* ------------------------------------------------------------------ */
 
 export default function ChatListPage() {
@@ -59,7 +59,7 @@ export default function ChatListPage() {
     const c = myCollectives[0]
     const collective = c.collectives as { id: string; name: string; slug: string; cover_image_url: string | null; region: string | null; state: string | null; member_count: number } | null
     if (collective) {
-      // Redirect handled by router — but also render for navigation back
+      // Redirect handled by router - but also render for navigation back
     }
   }
 

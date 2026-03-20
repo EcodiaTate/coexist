@@ -17,7 +17,7 @@ export function StepLocation({ location, onChange, onNext, onSkip }: StepLocatio
 
   function handleChange(value: string) {
     setQuery(value)
-    // Store as text for now — full geocoding/PostGIS integration happens
+    // Store as text for now - full geocoding/PostGIS integration happens
     // when the maps/location service is implemented
     onChange(value, null)
   }

@@ -114,7 +114,7 @@ export async function uploadWithProgress({
   const token = sessionData.session?.access_token
 
   if (!token) {
-    throw new Error('Not authenticated — cannot upload files')
+    throw new Error('Not authenticated - cannot upload files')
   }
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string

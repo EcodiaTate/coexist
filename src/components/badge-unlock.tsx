@@ -14,7 +14,7 @@ interface BadgeUnlockProps {
 }
 
 /**
- * Badge unlock celebration — card flip + glow + particles.
+ * Badge unlock celebration - card flip + glow + particles.
  * §37 item 6.
  */
 export function BadgeUnlock({

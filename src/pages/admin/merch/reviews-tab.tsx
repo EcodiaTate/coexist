@@ -18,9 +18,9 @@ export default function ReviewsTab() {
     async (reviewId: string, status: 'approved' | 'removed') => {
       try {
         await moderate.mutateAsync({ reviewId, status })
-        toast(`Review ${status}`, 'success')
+        toast.success(`Review ${status}`)
       } catch {
-        toast('Failed to moderate review', 'error')
+        toast.error('Failed to moderate review')
       }
     },
     [moderate, toast],

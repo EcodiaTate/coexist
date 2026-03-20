@@ -29,7 +29,7 @@ export function useAppUpdate(): UpdateStatus {
     async function check() {
       try {
         const { data, error } = await supabase
-          .from('feature_flags')
+          .from('feature_flags' as any)
           .select('key, value')
           .in('key', [
             'app_min_version',
@@ -41,7 +41,7 @@ export function useAppUpdate(): UpdateStatus {
         if (error || !data || cancelled) return
 
         const flags: Record<string, string> = {}
-        for (const row of data) {
+        for (const row of data as any[]) {
           flags[row.key] = row.value
         }
 
@@ -57,7 +57,7 @@ export function useAppUpdate(): UpdateStatus {
           maintenanceMessage: flags['maintenance_message'],
         })
       } catch (err) {
-        // Log but don't block — missing table or network blip shouldn't lock users out
+        // Log but don't block - missing table or network blip shouldn't lock users out
         console.warn('[app-update] check failed:', err)
       }
     }

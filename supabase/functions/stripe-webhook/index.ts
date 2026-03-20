@@ -1,5 +1,5 @@
 /**
- * stripe-webhook — Supabase Edge Function
+ * stripe-webhook - Supabase Edge Function
  *
  * Handles Stripe webhook events for the Co-Exist donation and merch systems.
  *
@@ -381,7 +381,7 @@ serve(async (req: Request) => {
           .eq('stripe_subscription_id', subscriptionId)
           .single()
 
-        // Update status — the schema CHECK allows 'active', 'cancelled', 'paused'
+        // Update status - the schema CHECK allows 'active', 'cancelled', 'paused'
         // Use 'paused' to represent past_due since that's closest
         await supabase
           .from('recurring_donations')
@@ -455,7 +455,7 @@ serve(async (req: Request) => {
 
           console.log('Merch order refunded:', order.id)
         } else {
-          // May be a donation refund — update donation status if we tracked it
+          // May be a donation refund - update donation status if we tracked it
           // Donations table doesn't have a status column, so just log
           console.log('Charge refunded (no matching order):', charge.id, paymentIntentId)
         }

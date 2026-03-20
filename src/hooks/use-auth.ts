@@ -163,7 +163,7 @@ export function useAuthProvider(): AuthContextValue {
 
     // If no profile row exists (trigger may not have fired), create one
     if (!profileData) {
-      console.warn('[auth] No profile found — creating one')
+      console.warn('[auth] No profile found - creating one')
       try {
         const { data: authUser } = await supabase.auth.getUser()
         const meta = authUser?.user?.user_metadata
@@ -189,9 +189,9 @@ export function useAuthProvider(): AuthContextValue {
     // Check suspension server-side (the RPC handles expiry clearance securely)
     if (profileData?.is_suspended) {
       try {
-        const { data: suspCheck } = await supabase.rpc('check_user_suspended', { uid: userId })
-        if (suspCheck && !suspCheck.suspended) {
-          // Server cleared the expired suspension — refresh profile data
+        const { data: suspCheck } = await supabase.rpc('check_user_suspended' as any, { uid: userId })
+        if (suspCheck && !(suspCheck as any).suspended) {
+          // Server cleared the expired suspension - refresh profile data
           profileData.is_suspended = false
           profileData.suspended_reason = null
           profileData.suspended_until = null
@@ -203,14 +203,14 @@ export function useAuthProvider(): AuthContextValue {
 
     // Check if account is pending deletion and user logged back in (recovery)
     // Use server-side RPC to handle this securely instead of direct client update
-    if (profileData?.deletion_status === 'pending_deletion') {
+    if ((profileData as any)?.deletion_status === 'pending_deletion') {
       try {
-        await supabase.rpc('recover_pending_deletion', { uid: userId })
-        profileData.deletion_status = 'active'
-        profileData.deleted_at = null
-        profileData.deletion_requested_at = null
+        await supabase.rpc('recover_pending_deletion' as any, { uid: userId })
+        ;(profileData as any).deletion_status = 'active'
+        ;(profileData as any).deleted_at = null
+        ;(profileData as any).deletion_requested_at = null
       } catch {
-        // If RPC doesn't exist yet, the account stays pending — server wins
+        // If RPC doesn't exist yet, the account stays pending - server wins
       }
     }
 
@@ -247,7 +247,7 @@ export function useAuthProvider(): AuthContextValue {
         } else {
           // Web: Supabase handles cookies/localStorage automatically.
           // getSession() can be slow if it needs to refresh tokens, so we
-          // use a timeout — but only to unblock the UI, NOT to nuke the session.
+          // use a timeout - but only to unblock the UI, NOT to nuke the session.
           let resolved = false
           const sessionPromise = supabase.auth.getSession().then((result) => {
             resolved = true
@@ -267,18 +267,18 @@ export function useAuthProvider(): AuthContextValue {
             setSession(sessionResult.data.session)
             await loadUserData(sessionResult.data.session.user.id)
           } else if (!resolved && mounted) {
-            // Timed out — let the onAuthStateChange handler pick it up
+            // Timed out - let the onAuthStateChange handler pick it up
             // when getSession eventually resolves. Do NOT sign out or
-            // clear tokens — the session may still be valid.
+            // clear tokens - the session may still be valid.
             console.warn('[auth] getSession timed out, waiting for auth event')
           }
           // If sessionResult was returned but session is null, the user
-          // genuinely has no session — no need to sign out or clear anything,
+          // genuinely has no session - no need to sign out or clear anything,
           // just let them land on the login page naturally.
         }
       } catch (err) {
         console.error('[auth] init failed:', err)
-        // Don't nuke the session on init errors — the tokens in localStorage
+        // Don't nuke the session on init errors - the tokens in localStorage
         // may still be valid and the onAuthStateChange handler can recover.
       } finally {
         initDone = true
@@ -293,7 +293,7 @@ export function useAuthProvider(): AuthContextValue {
       async (event, newSession) => {
         console.log('[auth] onAuthStateChange:', event, !!newSession)
         if (!mounted) return
-        // INITIAL_SESSION is handled by init() — skip to avoid double work
+        // INITIAL_SESSION is handled by init() - skip to avoid double work
         // and to avoid hanging on the same stale getSession() call.
         if (event === 'INITIAL_SESSION') return
 
@@ -303,7 +303,7 @@ export function useAuthProvider(): AuthContextValue {
           await persistSession(newSession)
 
           if (newSession?.user) {
-            // loadUserData can fail — that's OK, the session is still valid.
+            // loadUserData can fail - that's OK, the session is still valid.
             // User will see the app with limited profile data until next refresh.
             try {
               await loadUserData(newSession.user.id)
@@ -317,7 +317,7 @@ export function useAuthProvider(): AuthContextValue {
         } catch (err) {
           console.error('[auth] state change handler failed:', err)
         } finally {
-          // Only touch isLoading if init already ran — otherwise let init
+          // Only touch isLoading if init already ran - otherwise let init
           // handle it so the splash screen transitions cleanly.
           if (mounted && initDone) setIsLoading(false)
         }

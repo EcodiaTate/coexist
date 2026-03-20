@@ -80,7 +80,7 @@ export function AdminLayout({ title, children, actions, className }: AdminLayout
 
   return (
     <div className="flex flex-1 min-h-0">
-      {/* Admin sidebar — hidden on mobile, shown on md+ */}
+      {/* Admin sidebar - hidden on mobile, shown on md+ */}
       <aside
         className={cn(
           'hidden md:flex flex-col',

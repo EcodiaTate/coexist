@@ -121,7 +121,7 @@ export default function SignUpPage() {
         animate="animate"
         className="relative flex-1 flex flex-col"
       >
-        {/* Top — back button */}
+        {/* Top - back button */}
         <div
           className="px-5 pt-3"
           style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
@@ -271,7 +271,7 @@ export default function SignUpPage() {
             />
           </motion.div>
 
-          {/* Terms checkbox — outside card for visual hierarchy */}
+          {/* Terms checkbox - outside card for visual hierarchy */}
           <motion.div {...motionProps} className="mt-4 px-1">
             <Checkbox
               checked={agreedToTerms}

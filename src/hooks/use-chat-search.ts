@@ -19,7 +19,7 @@ export function useChatSearch(collectiveId: string | undefined) {
   const [searchQuery, setSearchQuery] = useState('')
   const [isSearching, setIsSearching] = useState(false)
 
-  const { data: results = [], isLoading, refetch } = useQuery({
+  const { data: results = [], isLoading } = useQuery({
     queryKey: ['chat-search', collectiveId, searchQuery],
     queryFn: async () => {
       if (!collectiveId || !searchQuery.trim()) return []

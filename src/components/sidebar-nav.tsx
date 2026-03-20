@@ -76,7 +76,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
   const [collapsed, setCollapsed] = useState(false)
 
   // Check if user is a leader in any collective
-  const isAnyLeader = profile?.collective_memberships?.some(
+  const isAnyLeader = (profile as any)?.collective_memberships?.some(
     (m: { role: string }) =>
       ['leader', 'co_leader', 'assist_leader'].includes(m.role),
   )
@@ -143,9 +143,9 @@ export function SidebarNav({ className }: SidebarNavProps) {
             <p className="font-heading text-sm font-semibold text-primary-800 truncate">
               {profile?.display_name}
             </p>
-            {profile?.collective_name && (
+            {(profile as any)?.collective_name && (
               <p className="text-caption text-primary-400 truncate">
-                {profile.collective_name}
+                {(profile as any).collective_name}
               </p>
             )}
           </div>

@@ -224,7 +224,7 @@ function UserCardPopup({
   const { data: members = [] } = useCollectiveMembers(undefined)
   const { data: stats } = useProfileStats(userId ?? undefined)
 
-  // We fetch profile info via the members list — simple approach
+  // We fetch profile info via the members list - simple approach
   // For a full impl, use useProfile(userId)
 
   if (!userId) return null
@@ -451,7 +451,7 @@ export default function CollectiveChatPage() {
         content: text,
         replyToId: replyTo?.id,
       })
-      toast.info('Message queued — will send when back online')
+      toast.info('Message queued - will send when back online')
       setReplyTo(null)
       return
     }
@@ -658,7 +658,7 @@ export default function CollectiveChatPage() {
                           timestamp={new Date(msg.created_at)}
                           senderName={msg.profiles?.display_name ?? undefined}
                           senderAvatar={msg.profiles?.avatar_url ?? undefined}
-                          senderId={msg.user_id}
+                          senderId={msg.user_id ?? undefined}
                           photo={msg.image_url ?? undefined}
                           roleBadge={roleBadge}
                           onAvatarTap={(userId) => navigate(`/profile/${userId}`)}

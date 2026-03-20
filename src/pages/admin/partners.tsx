@@ -3,13 +3,12 @@ import {
   Handshake,
   Plus,
   Globe,
-  Mail,
-  Edit3,
   Trash2,
   Tag,
   Building2,
   Receipt,
   Gift,
+  Trophy,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { AdminLayout } from '@/components/admin-layout'
@@ -107,7 +106,7 @@ export default function AdminPartnersPage() {
 
   const createOrgMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('organisations').insert(orgForm)
+      const { error } = await supabase.from('organisations').insert(orgForm as any)
       if (error) throw error
     },
     onSuccess: () => {
@@ -132,7 +131,7 @@ export default function AdminPartnersPage() {
         organisation_id: offerForm.organisation_id || null,
         category: offerForm.category,
         terms_and_conditions: offerForm.terms,
-      })
+      } as any)
       if (error) throw error
     },
     onSuccess: () => {
@@ -271,7 +270,7 @@ export default function AdminPartnersPage() {
             />
           ) : (
             <StaggeredList className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {offers.map((offer) => (
+              {offers.map((offer: any) => (
                 <StaggeredItem
                   key={offer.id}
                   className="p-4 rounded-xl bg-white border border-primary-100 shadow-sm"

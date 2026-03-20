@@ -13,7 +13,7 @@ import type {
 } from '@/types/merch'
 
 /* ------------------------------------------------------------------ */
-/*  Products (admin — includes archived & draft)                       */
+/*  Products (admin - includes archived & draft)                       */
 /* ------------------------------------------------------------------ */
 
 export function useAdminProducts() {
@@ -21,11 +21,11 @@ export function useAdminProducts() {
     queryKey: ['admin-products'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('products')
+        .from('products' as any)
         .select('*, variants:product_variants(*)')
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as Product[]
+      return data as unknown as Product[]
     },
     staleTime: 60 * 1000,
   })
@@ -39,7 +39,7 @@ export function useCreateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (product: Omit<Product, 'id' | 'variants' | 'avg_rating' | 'review_count' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase.from('products').insert(product).select().single()
+      const { data, error } = await supabase.from('products' as any).insert(product).select().single()
       if (error) throw error
       return data
     },
@@ -51,7 +51,7 @@ export function useUpdateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Product> & { id: string }) => {
-      const { error } = await supabase.from('products').update(updates).eq('id', id)
+      const { error } = await supabase.from('products' as any).update(updates).eq('id', id)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-products'] }),
@@ -66,7 +66,7 @@ export function useUpsertVariant() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (variant: Omit<ProductVariant, 'id'> & { id?: string }) => {
-      const { error } = await supabase.from('product_variants').upsert(variant)
+      const { error } = await supabase.from('product_variants' as any).upsert(variant)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-products'] }),
@@ -86,13 +86,13 @@ export function useAdjustStock() {
       reason: string
     }) => {
       // Record the adjustment
-      await supabase.from('stock_adjustments').insert({
+      await supabase.from('stock_adjustments' as any).insert({
         variant_id: variantId,
         adjustment,
         reason,
       })
       // Update the stock count
-      const { error } = await supabase.rpc('adjust_variant_stock', {
+      const { error } = await supabase.rpc('adjust_variant_stock' as any, {
         p_variant_id: variantId,
         p_adjustment: adjustment,
       })
@@ -111,7 +111,7 @@ export function useAdminOrders(statusFilter?: OrderStatus) {
     queryKey: ['admin-orders', statusFilter],
     queryFn: async () => {
       let query = supabase
-        .from('orders')
+        .from('orders' as any)
         .select('*, items:order_items(*), profiles(display_name, avatar_url)')
         .order('created_at', { ascending: false })
 
@@ -121,7 +121,7 @@ export function useAdminOrders(statusFilter?: OrderStatus) {
 
       const { data, error } = await query
       if (error) throw error
-      return data as (Order & { profiles: { display_name: string | null; avatar_url: string | null } | null })[]
+      return data as any as (Order & { profiles: { display_name: string | null; avatar_url: string | null } | null })[]
     },
     staleTime: 30 * 1000,
   })
@@ -141,7 +141,7 @@ export function useUpdateOrderStatus() {
     }) => {
       const updates: Record<string, unknown> = { status }
       if (trackingNumber) updates.tracking_number = trackingNumber
-      const { error } = await supabase.from('orders').update(updates).eq('id', orderId)
+      const { error } = await supabase.from('orders' as any).update(updates).eq('id', orderId)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
@@ -169,9 +169,9 @@ export function useSalesAnalytics(period: 'week' | 'month' | 'year' = 'month') {
   return useQuery({
     queryKey: ['sales-analytics', period],
     queryFn: async () => {
-      const res = await supabase.rpc('get_sales_analytics', { p_period: period })
+      const res = await supabase.rpc('get_sales_analytics' as any, { p_period: period })
       if (res.error) throw res.error
-      return res.data as SalesAnalytics
+      return res.data as unknown as SalesAnalytics
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -186,11 +186,11 @@ export function useAdminPromoCodes() {
     queryKey: ['admin-promo-codes'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('promo_codes')
+        .from('promo_codes' as any)
         .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as PromoCode[]
+      return data as unknown as PromoCode[]
     },
     staleTime: 60 * 1000,
   })
@@ -200,7 +200,7 @@ export function useUpsertPromoCode() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (promo: Partial<PromoCode> & { code: string }) => {
-      const { error } = await supabase.from('promo_codes').upsert(promo)
+      const { error } = await supabase.from('promo_codes' as any).upsert(promo)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-promo-codes'] }),
@@ -216,11 +216,11 @@ export function useAdminReturns() {
     queryKey: ['admin-returns'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('return_requests')
+        .from('return_requests' as any)
         .select('*, order:orders(id, status, total_cents), profiles(display_name, avatar_url)')
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as ReturnRequest[]
+      return data as unknown as ReturnRequest[]
     },
     staleTime: 60 * 1000,
   })
@@ -239,21 +239,21 @@ export function useUpdateReturnStatus() {
       adminNotes?: string
     }) => {
       const { error } = await supabase
-        .from('return_requests')
-        .update({ status, admin_notes: adminNotes ?? null })
+        .from('return_requests' as any)
+        .update({ status, admin_notes: adminNotes ?? null } as any)
         .eq('id', returnId)
       if (error) throw error
 
       // If approved, trigger refund
       if (status === 'approved') {
         const { data: ret } = await supabase
-          .from('return_requests')
+          .from('return_requests' as any)
           .select('order_id')
           .eq('id', returnId)
           .single()
         if (ret) {
           await supabase.functions.invoke('create-checkout', {
-            body: { type: 'refund', order_id: ret.order_id },
+            body: { type: 'refund', order_id: (ret as any).order_id },
           })
         }
       }
@@ -274,11 +274,11 @@ export function useAdminReviews() {
     queryKey: ['admin-reviews'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('product_reviews')
+        .from('product_reviews' as any)
         .select('*, profiles(display_name, avatar_url)')
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as ProductReview[]
+      return data as unknown as ProductReview[]
     },
     staleTime: 60 * 1000,
   })
@@ -295,8 +295,8 @@ export function useModerateReview() {
       status: 'approved' | 'removed'
     }) => {
       const { error } = await supabase
-        .from('product_reviews')
-        .update({ status })
+        .from('product_reviews' as any)
+        .update({ status } as any)
         .eq('id', reviewId)
       if (error) throw error
     },
@@ -313,7 +313,7 @@ export function useUpdateShippingConfig() {
   return useMutation({
     mutationFn: async (config: ShippingConfig) => {
       const { error } = await supabase
-        .from('shipping_config')
+        .from('shipping_config' as any)
         .upsert({ id: 'default', ...config })
       if (error) throw error
     },
@@ -327,7 +327,7 @@ export function useUpdateShippingConfig() {
 
 export async function exportOrdersCsv(statusFilter?: OrderStatus) {
   let query = supabase
-    .from('orders')
+    .from('orders' as any)
     .select('*, items:order_items(*), profiles(display_name)')
     .order('created_at', { ascending: false })
 
@@ -336,7 +336,7 @@ export async function exportOrdersCsv(statusFilter?: OrderStatus) {
   const { data, error } = await query
   if (error) throw error
 
-  const rows = (data as (Order & { profiles: { display_name: string | null } | null })[]).map((o) => ({
+  const rows = (data as unknown as (Order & { profiles: { display_name: string | null } | null })[]).map((o) => ({
     order_id: o.id,
     date: o.created_at,
     customer: o.profiles?.display_name ?? 'Unknown',

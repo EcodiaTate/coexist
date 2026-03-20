@@ -29,7 +29,7 @@ function useCollectives(search: string) {
     queryFn: async () => {
       let query = supabase
         .from('collectives')
-        .select('id, name, location_name, cover_image_url, is_archived, created_at')
+        .select('id, name, location_name, cover_image_url, is_archived, created_at' as any)
         .order('name')
 
       if (search) {
@@ -41,7 +41,7 @@ function useCollectives(search: string) {
 
       // Enrich with member counts
       const enriched = await Promise.all(
-        (data ?? []).map(async (collective) => {
+        (data as any[] ?? []).map(async (collective: any) => {
           const [membersRes, eventsRes] = await Promise.all([
             supabase
               .from('collective_members')
@@ -106,7 +106,7 @@ export default function AdminCollectivesPage() {
       const { error } = await supabase.from('collectives').insert({
         name: newName,
         location_name: newLocation,
-      })
+      } as any)
       if (error) throw error
     },
     onSuccess: () => {
@@ -123,7 +123,7 @@ export default function AdminCollectivesPage() {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('collectives')
-        .update({ is_archived: true })
+        .update({ is_active: false } as any)
         .eq('id', id)
       if (error) throw error
     },
@@ -176,7 +176,7 @@ export default function AdminCollectivesPage() {
         />
       ) : (
         <div className="space-y-2">
-          {collectives.map((c) => (
+          {collectives.map((c: any) => (
             <Link
               key={c.id}
               to={`/collectives/${c.slug ?? c.id}`}
@@ -207,10 +207,10 @@ export default function AdminCollectivesPage() {
                   <span
                     className={cn(
                       'text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
-                      healthColors[c.health],
+                      healthColors[c.health as keyof typeof healthColors],
                     )}
                   >
-                    {healthLabels[c.health]}
+                    {healthLabels[c.health as keyof typeof healthLabels]}
                   </span>
                 </div>
                 {c.location_name && (

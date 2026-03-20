@@ -1,5 +1,5 @@
 /**
- * data-export — Supabase Edge Function
+ * data-export - Supabase Edge Function
  *
  * GDPR data export: collects all user data across tables and returns as JSON.
  * Called from Settings > Your Data & Privacy > Request Data Export.
@@ -65,7 +65,7 @@ serve(async (req: Request) => {
       offerRedemptionsRes,
       challengeParticipationRes,
     ] = await Promise.all([
-      // GDPR: must export ALL user data — use explicit high limits to avoid default 1000 truncation
+      // GDPR: must export ALL user data - use explicit high limits to avoid default 1000 truncation
       supabase.from('profiles').select('*').eq('id', userId).single(),
       supabase.from('posts').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10000),
       supabase.from('post_comments').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(10000),

@@ -1,4 +1,4 @@
-// @ts-nocheck — Deno Edge Function
+// @ts-nocheck - Deno Edge Function
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -137,7 +137,7 @@ const EMAIL_TEMPLATES: Record<string, TemplateDefinition> = {
 /* ------------------------------------------------------------------ */
 
 interface SendEmailPayload {
-  /** Email type — must match a key in EMAIL_TEMPLATES */
+  /** Email type - must match a key in EMAIL_TEMPLATES */
   type: string
   /** Recipient email address */
   to: string
@@ -197,7 +197,7 @@ async function handleUnsubscribe(
   supabaseAdmin: ReturnType<typeof createClient>,
   email: string,
 ) {
-  // Find user by email — paginate through all users (listUsers default page is 50)
+  // Find user by email - paginate through all users (listUsers default page is 50)
   let page = 1
   const perPage = 1000
   let found = false

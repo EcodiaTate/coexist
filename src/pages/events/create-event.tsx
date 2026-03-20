@@ -94,7 +94,7 @@ interface EventFormData {
   invite_collective: boolean
   // Step 8: Partner
   partner_name: string
-  // Step 9: Review — no fields
+  // Step 9: Review - no fields
 }
 
 const INITIAL_DATA: EventFormData = {
@@ -368,9 +368,9 @@ function StepDetails({
           value={data.difficulty}
           onChange={(v) => onChange({ difficulty: v as 'easy' | 'moderate' | 'challenging' })}
           options={[
-            { value: 'easy', label: 'Easy — suitable for everyone', icon: <Mountain size={16} className="text-green-600" /> },
-            { value: 'moderate', label: 'Moderate — some fitness required', icon: <Mountain size={16} className="text-amber-600" /> },
-            { value: 'challenging', label: 'Challenging — good fitness needed', icon: <Mountain size={16} className="text-red-600" /> },
+            { value: 'easy', label: 'Easy - suitable for everyone', icon: <Mountain size={16} className="text-green-600" /> },
+            { value: 'moderate', label: 'Moderate - some fitness required', icon: <Mountain size={16} className="text-amber-600" /> },
+            { value: 'challenging', label: 'Challenging - good fitness needed', icon: <Mountain size={16} className="text-red-600" /> },
           ]}
         />
       </div>
@@ -585,7 +585,7 @@ function StepPartner({
 
       {!data.partner_name && (
         <p className="text-caption text-primary-400 italic">
-          You can skip this step — partners are optional.
+          You can skip this step - partners are optional.
         </p>
       )}
     </div>
@@ -635,7 +635,7 @@ function StepReview({
           value={
             data.date_start
               ? new Intl.DateTimeFormat('en-AU', { dateStyle: 'full', timeStyle: 'short' }).format(data.date_start)
-              : '—'
+              : '-'
           }
         />
         {data.date_end && (
@@ -644,7 +644,7 @@ function StepReview({
             value={new Intl.DateTimeFormat('en-AU', { timeStyle: 'short' }).format(data.date_end)}
           />
         )}
-        <SummaryRow label="Location" value={data.address || '—'} />
+        <SummaryRow label="Location" value={data.address || '-'} />
         <SummaryRow label="Capacity" value={data.capacity || 'Unlimited'} />
         <SummaryRow label="Visibility" value={data.is_public ? 'Public' : 'Collective Only'} />
         <SummaryRow label="Difficulty" value={data.difficulty} />
@@ -723,7 +723,7 @@ export default function CreateEventPage() {
     }
   }, [step, data])
 
-  // We need the user's collective — use the first one they're a leader of
+  // We need the user's collective - use the first one they're a leader of
   // (In production this would be selectable if they lead multiple)
   const handlePublish = useCallback(async (asDraft = false) => {
     if (!user) return
@@ -743,7 +743,7 @@ export default function CreateEventPage() {
 
     // Validate date_end > date_start if both set
     if (data.date_start && data.date_end && data.date_end <= data.date_start) {
-      return // Should show toast — for now silently prevent invalid submission
+      return // Should show toast - for now silently prevent invalid submission
     }
 
     const capacityNum = data.capacity ? parseInt(data.capacity, 10) : null
@@ -784,7 +784,7 @@ export default function CreateEventPage() {
           metadata: { event_id: event.id, event_title: data.title },
         })
       } catch {
-        // Non-critical — chat post failure shouldn't block event creation
+        // Non-critical - chat post failure shouldn't block event creation
       }
     }
 

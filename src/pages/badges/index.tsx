@@ -58,7 +58,7 @@ function BadgeCard({
           ? 'hover:bg-primary-50'
           : 'opacity-50 grayscale hover:bg-primary-50',
       )}
-      aria-label={`${badge.name}${badge.earned ? ' — earned' : ' — locked'}`}
+      aria-label={`${badge.name}${badge.earned ? ' - earned' : ' - locked'}`}
     >
       <div
         className={cn(
@@ -112,8 +112,8 @@ function BadgeDetailModal({
 
   if (!detail) return null
 
-  const earnedDate = detail.earnedAt
-    ? new Date(detail.earnedAt).toLocaleDateString('en-AU', {
+  const earnedDate = (detail as any).earnedAt
+    ? new Date((detail as any).earnedAt).toLocaleDateString('en-AU', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',

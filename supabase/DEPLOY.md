@@ -56,7 +56,7 @@ Seeds: badge definitions, 13 collectives, sample events, merch products, partner
 
 1. Create OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
 2. Set authorized redirect URI: `https://<project-ref>.supabase.co/auth/v1/callback`
-3. In Supabase: **Authentication → Providers → Google** — paste Client ID and Secret
+3. In Supabase: **Authentication → Providers → Google** - paste Client ID and Secret
 
 ### Apple Sign-In
 
@@ -64,7 +64,7 @@ Seeds: badge definitions, 13 collectives, sample events, merch products, partner
    - Create an App ID with Sign In with Apple
    - Create a Services ID
    - Create a Key for Sign In with Apple
-2. In Supabase: **Authentication → Providers → Apple** — paste Service ID and Key
+2. In Supabase: **Authentication → Providers → Apple** - paste Service ID and Key
 
 ## 6. Storage Buckets
 

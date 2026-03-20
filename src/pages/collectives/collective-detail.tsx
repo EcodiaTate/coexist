@@ -180,7 +180,7 @@ export default function CollectiveDetailPage() {
                 size="lg"
                 fullWidth
                 icon={<MessageCircle size={20} />}
-                onClick={() => navigate(`/chat/${id}`)}
+                onClick={() => navigate(`/chat/${collectiveId}`)}
               >
                 Chat
               </Button>
@@ -245,7 +245,7 @@ export default function CollectiveDetailPage() {
                 label: 'Say hello in chat',
                 description: 'Introduce yourself to the group',
                 icon: <MessageCircle size={18} />,
-                to: `/chat/${id}`,
+                to: `/chat/${collectiveId}`,
               },
               ...(upcomingEvents.length > 0
                 ? [
@@ -369,7 +369,7 @@ export default function CollectiveDetailPage() {
             </h3>
             {upcomingEvents.length > 3 && (
               <Link
-                to={`/events?collective=${id}`}
+                to={`/events?collective=${collectiveId}`}
                 className="text-xs font-semibold text-primary-400 hover:text-primary-400"
               >
                 See all

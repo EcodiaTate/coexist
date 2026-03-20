@@ -18,7 +18,7 @@ interface SearchBarProps {
   onFocus?: () => void
   onBlur?: () => void
   placeholder?: string
-  /** Show a subtle sparkle icon when empty — hints at AI/smart search */
+  /** Show a subtle sparkle icon when empty - hints at AI/smart search */
   showSparkle?: boolean
   /** Compact variant for tighter spaces (chat overlay, admin) */
   compact?: boolean
@@ -99,7 +99,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
 
     return (
       <div className={cn('relative group', className)}>
-        {/* Animated gradient glow behind — visible on focus */}
+        {/* Animated gradient glow behind - visible on focus */}
         <motion.div
           className="absolute -inset-[1px] rounded-2xl opacity-0 pointer-events-none"
           style={{
@@ -147,7 +147,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
               : { type: 'spring', stiffness: 500, damping: 30 }
           }
         >
-          {/* Search icon — morphs on focus */}
+          {/* Search icon - morphs on focus */}
           <motion.div
             className={cn(
               'flex items-center justify-center shrink-0',

@@ -15,7 +15,7 @@ export function OGMeta({
   image,
   type = 'website',
 }: OGMetaProps) {
-  const fullTitle = `${title} — Co-Exist`
+  const fullTitle = `${title} - Co-Exist`
 
   return (
     <Helmet>

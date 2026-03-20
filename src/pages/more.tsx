@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import {
   User,
   Settings,
@@ -47,12 +47,12 @@ interface MenuLink {
   description?: string
 }
 
-const stagger = {
+const stagger: Variants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.04 } },
 }
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1] } },
 }
@@ -120,7 +120,7 @@ export default function MorePage() {
   const points = pointsData?.points ?? profile?.points ?? 0
   const tier = getTierFromPoints(points) as TierName
 
-  const isAnyLeader = profile?.collective_memberships?.some(
+  const isAnyLeader = (profile as any)?.collective_memberships?.some(
     (m: { role: string }) =>
       ['leader', 'co_leader', 'assist_leader'].includes(m.role),
   )

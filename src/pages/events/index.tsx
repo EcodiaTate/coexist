@@ -115,7 +115,7 @@ function EventCard({
       <Card
         variant="event"
         onClick={() => navigate(`/events/${event.id}`)}
-        aria-label={`${event.title} — ${status?.label}`}
+        aria-label={`${event.title} - ${status?.label}`}
       >
         {event.cover_image_url && (
           <div className="relative">

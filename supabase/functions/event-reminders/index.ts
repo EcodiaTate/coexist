@@ -1,9 +1,9 @@
-// @ts-nocheck — Deno Edge Function
+// @ts-nocheck - Deno Edge Function
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 /**
- * event-reminders — Scheduled Supabase Edge Function
+ * event-reminders - Scheduled Supabase Edge Function
  *
  * Called by pg_cron every 30 minutes. Finds upcoming events and sends
  * reminder emails to registered attendees:

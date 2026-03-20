@@ -26,7 +26,7 @@ export function useSyncManager() {
 
     const pending = getPendingActionCount()
     if (pending === 0) {
-      // No pending actions — just refetch stale queries
+      // No pending actions - just refetch stale queries
       queryClient.invalidateQueries()
       toast.success('Back online')
       return
@@ -57,7 +57,7 @@ export function useSyncManager() {
         queryClient.invalidateQueries({ queryKey: ['unread-counts'] })
       })
       .catch(() => {
-        toast.error('Sync failed — will retry next time')
+        toast.error('Sync failed - will retry next time')
       })
       .finally(() => {
         syncing.current = false

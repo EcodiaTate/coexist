@@ -218,7 +218,7 @@ function AllCaughtUp() {
         All caught up!
       </h3>
       <p className="mt-2 text-sm text-primary-400 max-w-xs">
-        No new notifications. Enjoy the peace — or go plant a tree.
+        No new notifications. Enjoy the peace - or go plant a tree.
       </p>
     </motion.div>
   )

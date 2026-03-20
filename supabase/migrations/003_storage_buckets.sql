@@ -48,7 +48,7 @@ VALUES
 
 
 /* ================================================================== */
-/*  2. RLS policies — public buckets                                   */
+/*  2. RLS policies - public buckets                                   */
 /* ================================================================== */
 -- Pattern: anyone can SELECT; authenticated users can INSERT to their
 -- own folder (uid prefix); owners can UPDATE / DELETE their own files.
@@ -212,7 +212,7 @@ CREATE POLICY "announcements: public read"
 
 
 /* ================================================================== */
-/*  3. RLS policies — private (chat) buckets                           */
+/*  3. RLS policies - private (chat) buckets                           */
 /* ================================================================== */
 -- Chat media is scoped to collective members. Upload path convention:
 --   {collective_id}/{user_id}/{timestamp}.{ext}
@@ -317,7 +317,7 @@ CREATE POLICY "chat-video: owner delete"
 /* ================================================================== */
 -- Supabase image transforms are configured at the project level in the
 -- dashboard (Settings → Storage → Image Transformations → Enable).
--- They don't require SQL — transforms are applied via URL params at
+-- They don't require SQL - transforms are applied via URL params at
 -- request time:
 --
 --   /storage/v1/render/image/public/{bucket}/{path}?width=W&height=H&quality=Q

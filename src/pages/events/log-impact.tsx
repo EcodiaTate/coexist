@@ -252,7 +252,7 @@ export default function LogImpactPage() {
 
   const [submitted, setSubmitted] = useState(false)
 
-  // Form state — numbers stored as strings for input handling
+  // Form state - numbers stored as strings for input handling
   const [formValues, setFormValues] = useState<Record<string, string>>({
     trees_planted: '0',
     rubbish_kg: '0',
@@ -348,7 +348,7 @@ export default function LogImpactPage() {
         photos: photos.length > 0 ? photos : undefined,
         before_photos: beforePhotos.length > 0 ? beforePhotos : undefined,
         after_photos: afterPhotos.length > 0 ? afterPhotos : undefined,
-      },
+      } as any,
     })
 
     setSubmitted(true)
@@ -557,7 +557,7 @@ export default function LogImpactPage() {
           />
         </div>
 
-        {/* GPS area — draw polygon/circle */}
+        {/* GPS area - draw polygon/circle */}
         <div className="rounded-xl bg-white border border-primary-200 p-4">
           <div className="flex items-center gap-2 mb-2">
             <MapPin size={16} className="text-primary-400" />

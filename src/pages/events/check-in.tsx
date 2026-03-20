@@ -267,7 +267,7 @@ export default function CheckInPage() {
         setState('idle')
       }
     } catch {
-      // BarcodeScanner not available (web) — fall back to self-check-in
+      // BarcodeScanner not available (web) - fall back to self-check-in
       document.querySelector('body')?.classList.remove('scanner-active')
 
       // On web, go straight to check-in (leader shows QR, participant just taps)
@@ -402,7 +402,7 @@ export default function CheckInPage() {
                 className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg bg-amber-50 text-amber-700 text-caption"
               >
                 <WifiOff size={14} />
-                Queued offline — will sync when you reconnect
+                Queued offline - will sync when you reconnect
               </motion.div>
             )}
 

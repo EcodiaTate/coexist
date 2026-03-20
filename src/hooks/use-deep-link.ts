@@ -76,7 +76,7 @@ export function useDeepLink() {
 
         cleanup = () => listener.remove()
       } catch {
-        // @capacitor/app not available — skip deep link setup
+        // @capacitor/app not available - skip deep link setup
       }
     }
 

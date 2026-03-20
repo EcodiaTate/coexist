@@ -1,6 +1,6 @@
 # Co-Exist App
 
-> Youth Conservation Movement — "Explore. Connect. Protect."
+> Youth Conservation Movement - "Explore. Connect. Protect."
 
 A mobile-first conservation app for [Co-Exist Australia](https://www.coexistaus.org), a national youth-led environmental nonprofit (ages 18–30) that runs conservation events through local groups called **Collectives**.
 

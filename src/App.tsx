@@ -96,13 +96,13 @@ const OrderConfirmationPage = lazy(() => import('@/pages/shop/order-confirmation
 const OrdersPage = lazy(() => import('@/pages/shop/orders'))
 const OrderDetailPage = lazy(() => import('@/pages/shop/order-detail'))
 
-// Admin — Merch
+// Admin - Merch
 const AdminMerchPage = lazy(() => import('@/pages/admin/merch/index'))
 
-// Admin — Moderation
+// Admin - Moderation
 const ModerationQueuePage = lazy(() => import('@/pages/admin/moderation/index'))
 
-// Admin — Dashboards & Management
+// Admin - Dashboards & Management
 const AdminDashboardPage = lazy(() => import('@/pages/admin/index'))
 const AdminCollectivesPage = lazy(() => import('@/pages/admin/collectives'))
 const AdminUsersPage = lazy(() => import('@/pages/admin/users'))
@@ -143,7 +143,7 @@ function PageFallback() {
 /*  Bare routes (no app shell chrome)                                  */
 /* ------------------------------------------------------------------ */
 
-const bareRoutes = [
+const _bareRoutes = [
   '/welcome',
   '/signup',
   '/login',
@@ -1083,7 +1083,7 @@ function App() {
 }
 
 /** Temporary placeholder for unbuilt pages */
-function PlaceholderPage({ title }: { title: string }) {
+function _PlaceholderPage({ title }: { title: string }) {
   return (
     <div className="flex flex-col items-center justify-center flex-1 p-6">
       <h1 className="font-heading text-2xl font-bold text-black">{title}</h1>

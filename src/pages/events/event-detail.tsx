@@ -315,6 +315,7 @@ export default function EventDetailPage() {
   /* ---------------------------------------------------------------- */
 
   function renderCta() {
+    if (!event) return null
     if (event.status === 'cancelled') {
       return (
         <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm font-medium">
@@ -485,7 +486,7 @@ export default function EventDetailPage() {
           <InfoRow
             icon={<Calendar size={16} />}
             label="Date & Time"
-            value={`${formatEventDate(event.date_start)}${event.date_end ? ` — ${formatEventTime(event.date_end)}` : ''}`}
+            value={`${formatEventDate(event.date_start)}${event.date_end ? ` - ${formatEventTime(event.date_end)}` : ''}`}
           />
           {event.date_end && (
             <InfoRow

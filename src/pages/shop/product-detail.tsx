@@ -150,7 +150,7 @@ export default function ProductDetailPage() {
   const handleAddToCart = useCallback(() => {
     if (!product || !activeVariant) return
     addItem(product, activeVariant, quantity)
-    toast(`${product.name} added to cart`, 'success')
+    toast.success(`${product.name} added to cart`)
   }, [product, activeVariant, quantity, addItem, toast])
 
   if (isLoading) {
@@ -194,7 +194,7 @@ export default function ProductDetailPage() {
           disabled={!inStock}
           onClick={handleAddToCart}
         >
-          {inStock ? `Add to cart — ${formatPrice(activeVariant!.price_cents * quantity)}` : 'Sold out'}
+          {inStock ? `Add to cart - ${formatPrice(activeVariant!.price_cents * quantity)}` : 'Sold out'}
         </Button>
       }
     >

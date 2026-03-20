@@ -48,7 +48,7 @@ export default function EditProfilePage() {
   const updateProfile = useUpdateProfile()
   const { capture, pickFromGallery, loading: cameraLoading } = useCamera()
   const { upload, progress, uploading, error: uploadError } = useImageUpload({ bucket: 'avatars' })
-  const { success, error: showError } = useToast()
+  const { toast } = useToast()
 
   const [displayName, setDisplayName] = useState('')
   const [pronouns, setPronouns] = useState('')
@@ -88,9 +88,9 @@ export default function EditProfilePage() {
         .update({ avatar_url: uploaded.url })
         .eq('id', authProfile!.id)
 
-      success('Avatar updated!')
+      toast.success('Avatar updated!')
     } catch {
-      showError('Failed to upload avatar')
+      toast.error('Failed to upload avatar')
     }
   }
 
@@ -111,10 +111,10 @@ export default function EditProfilePage() {
         phone: phone || null,
         interests,
       })
-      success('Profile updated!')
+      toast.success('Profile updated!')
       navigate('/profile')
     } catch {
-      showError('Failed to update profile')
+      toast.error('Failed to update profile')
     }
   }
 
@@ -201,6 +201,7 @@ export default function EditProfilePage() {
             </div>
             {pronouns === 'Custom' && (
               <Input
+                label="Custom Pronouns"
                 value={pronouns === 'Custom' ? '' : pronouns}
                 onChange={(e) => setPronouns(e.target.value)}
                 placeholder="Enter your pronouns"

@@ -578,7 +578,7 @@ function DateRangeSelector({
         })}
       </div>
 
-      {/* Custom date inputs — collapsible */}
+      {/* Custom date inputs - collapsible */}
       <div>
         <p className="text-xs font-medium text-primary-400 mb-2">
           Or pick exact dates
@@ -1248,7 +1248,7 @@ export default function ExplorePage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                {/* Activity scroller — Stories-style icon row */}
+                {/* Activity scroller - Stories-style icon row */}
                 <div className="mb-4">
                   <ActivityScroller
                     selected={filters.activityTypes}

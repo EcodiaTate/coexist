@@ -33,7 +33,7 @@ function PromoFormSheet({
 
   const handleSave = useCallback(async () => {
     if (!code.trim() || !value) {
-      toast('Code and value are required', 'error')
+      toast.error('Code and value are required')
       return
     }
     try {
@@ -46,10 +46,10 @@ function PromoFormSheet({
         expires_at: expiresAt || null,
         is_active: isActive,
       })
-      toast(promo ? 'Promo updated' : 'Promo created', 'success')
+      toast.success(promo ? 'Promo updated' : 'Promo created')
       onClose()
     } catch {
-      toast('Failed to save promo', 'error')
+      toast.error('Failed to save promo')
     }
   }, [code, type, value, maxUses, expiresAt, isActive, promo, upsert, toast, onClose])
 

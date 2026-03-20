@@ -1,5 +1,5 @@
 -- ============================================================================
--- Co-Exist App — Security Audit Migration
+-- Co-Exist App - Security Audit Migration
 -- Migration: 004_security_audit.sql
 -- Date: 2026-03-20
 --
@@ -86,7 +86,7 @@ BEGIN
       WHEN 'chat_message' THEN
         UPDATE chat_messages SET is_deleted = true WHERE id = NEW.content_id;
       WHEN 'photo' THEN
-        -- Posts with images — soft-delete the post
+        -- Posts with images - soft-delete the post
         DELETE FROM posts WHERE id = NEW.content_id;
       ELSE
         -- Unknown type, do nothing

@@ -60,7 +60,7 @@ function useLeaderDashboard(collectiveId: string | undefined) {
           .eq('collective_id', collectiveId),
         // Upcoming events
         supabase
-          .from('events')
+          .from('events' as any)
           .select('id, title, start_date, location_name, cover_image_url')
           .eq('collective_id', collectiveId)
           .gte('start_date', now.toISOString())
@@ -74,30 +74,30 @@ function useLeaderDashboard(collectiveId: string | undefined) {
           .gte('start_date', startOfMonth),
         // Hours this month (from impact logs)
         supabase
-          .from('impact_logs')
+          .from('impact_logs' as any)
           .select('volunteer_hours')
           .eq('collective_id', collectiveId)
           .gte('created_at', startOfMonth),
-        // Recent activity — new members + check-ins
+        // Recent activity - new members + check-ins
         supabase
-          .from('collective_members')
+          .from('collective_members' as any)
           .select('id, user_id, created_at, profiles(display_name, avatar_url)')
           .eq('collective_id', collectiveId)
           .order('created_at', { ascending: false })
           .limit(5),
       ])
 
-      const totalHours = (monthHoursRes.data ?? []).reduce(
-        (sum, row) => sum + (row.volunteer_hours ?? 0),
+      const totalHours = ((monthHoursRes.data ?? []) as any[]).reduce(
+        (sum: number, row: any) => sum + (row.volunteer_hours ?? 0),
         0,
       )
 
       return {
         activeMembers: membersRes.count ?? 0,
-        upcomingEvents: upcomingEventsRes.data ?? [],
+        upcomingEvents: (upcomingEventsRes.data ?? []) as any[],
         eventsThisMonth: monthEventsRes.count ?? 0,
         hoursThisMonth: Math.round(totalHours),
-        recentMembers: recentActivityRes.data ?? [],
+        recentMembers: (recentActivityRes.data ?? []) as any[],
       }
     },
     enabled: !!collectiveId,
@@ -117,7 +117,7 @@ function useEngagementScores(collectiveId: string | undefined) {
       const { data: activeMembers } = await supabase
         .from('event_registrations')
         .select('user_id')
-        .eq('status', 'checked_in')
+        .eq('status', 'checked_in' as any)
         .gte('created_at', thirtyDaysAgo)
 
       const activeUserIds = new Set((activeMembers ?? []).map((r) => r.user_id))
@@ -145,12 +145,12 @@ function useEventInviteStats(collectiveId: string | undefined) {
       if (!collectiveId) return { acceptanceRate: 0 }
 
       const { count: totalInvites } = await supabase
-        .from('event_registrations')
+        .from('event_registrations' as any)
         .select('id', { count: 'exact', head: true })
         .eq('collective_id', collectiveId)
 
       const { count: accepted } = await supabase
-        .from('event_registrations')
+        .from('event_registrations' as any)
         .select('id', { count: 'exact', head: true })
         .eq('collective_id', collectiveId)
         .in('status', ['registered', 'checked_in'])
@@ -175,27 +175,28 @@ function usePendingItems(collectiveId: string | undefined) {
 
       // Events that have passed but have no impact log
       const { data: pastEvents } = await supabase
-        .from('events')
+        .from('events' as any)
         .select('id, title, start_date')
         .eq('collective_id', collectiveId)
         .lt('start_date', new Date().toISOString())
         .order('start_date', { ascending: false })
         .limit(10)
 
-      if (!pastEvents?.length) return []
+      const events = (pastEvents ?? []) as any[]
+      if (!events.length) return []
 
       const { data: loggedEvents } = await supabase
-        .from('impact_logs')
+        .from('impact_logs' as any)
         .select('event_id')
         .in(
           'event_id',
-          pastEvents.map((e) => e.id),
+          events.map((e: any) => e.id),
         )
 
-      const loggedIds = new Set((loggedEvents ?? []).map((l) => l.event_id))
-      return (pastEvents ?? [])
-        .filter((e) => !loggedIds.has(e.id))
-        .map((e) => ({
+      const loggedIds = new Set(((loggedEvents ?? []) as any[]).map((l: any) => l.event_id))
+      return events
+        .filter((e: any) => !loggedIds.has(e.id))
+        .map((e: any) => ({
           id: e.id,
           type: 'impact_not_logged' as const,
           message: `Impact not logged for "${e.title}"`,
@@ -221,13 +222,13 @@ function useEventCalendar(collectiveId: string | undefined, month: Date) {
       const end = new Date(month.getFullYear(), month.getMonth() + 1, 0)
 
       const { data } = await supabase
-        .from('events')
+        .from('events' as any)
         .select('id, title, start_date')
         .eq('collective_id', collectiveId)
         .gte('start_date', start.toISOString())
         .lte('start_date', end.toISOString())
 
-      return data ?? []
+      return (data ?? []) as any[]
     },
     enabled: !!collectiveId,
     staleTime: 5 * 60 * 1000,
@@ -337,7 +338,7 @@ export default function LeaderDashboardPage() {
 
   // Get user's primary collective where they are leader
   const collectiveId = useMemo(() => {
-    const membership = profile?.collective_memberships?.find(
+    const membership = (profile as any)?.collective_memberships?.find(
       (m: { role: string; collective_id: string }) =>
         ['leader', 'co_leader', 'assist_leader'].includes(m.role),
     )
@@ -452,7 +453,7 @@ export default function LeaderDashboardPage() {
           </div>
         </motion.div>
 
-        {/* Notification centre — pending items */}
+        {/* Notification centre - pending items */}
         {pendingItems.length > 0 && (
           <motion.div {...fadeUp}>
             <h2 className="font-heading text-base font-semibold text-primary-800 mb-3 flex items-center gap-2">
@@ -669,7 +670,7 @@ export default function LeaderDashboardPage() {
           </motion.div>
         )}
 
-        {/* Charity impact — link to reports */}
+        {/* Charity impact - link to reports */}
         <motion.div {...fadeUp}>
           <Link
             to="/admin/reports"

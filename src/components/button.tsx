@@ -22,7 +22,7 @@ const sizeStyles = {
 type ButtonVariant = keyof typeof variantStyles
 type ButtonSize = keyof typeof sizeStyles
 
-interface ButtonProps {
+export interface ButtonProps {
   variant?: ButtonVariant
   size?: ButtonSize
   icon?: ReactNode

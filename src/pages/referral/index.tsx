@@ -38,7 +38,7 @@ function ReferralSkeleton() {
 
 export default function ReferralPage() {
   const shouldReduceMotion = useReducedMotion()
-  const { success, error: showError } = useToast()
+  const { toast } = useToast()
   const { data: code, isLoading: codeLoading } = useReferralCode()
   const { data: stats } = useReferralStats()
   const { data: leaderboard } = useReferralLeaderboard()
@@ -54,14 +54,14 @@ export default function ReferralPage() {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(referralLink)
     setCopied(true)
-    success('Link copied!')
+    toast.success('Link copied!')
     setTimeout(() => setCopied(false), 2000)
   }
 
   const handleShare = async () => {
     const shareData = {
       title: 'Join Co-Exist',
-      text: 'Join me on Co-Exist — the conservation movement for young Australians!',
+      text: 'Join me on Co-Exist - the conservation movement for young Australians!',
       url: referralLink,
     }
     if (navigator.share) {
@@ -75,10 +75,10 @@ export default function ReferralPage() {
     if (!email || !code) return
     try {
       await sendInvite.mutateAsync({ email, code })
-      success('Invite sent!')
+      toast.success('Invite sent!')
       setEmail('')
     } catch {
-      showError('Failed to send invite')
+      toast.error('Failed to send invite')
     }
   }
 
@@ -177,6 +177,7 @@ export default function ReferralPage() {
           <div className="flex gap-2">
             <div className="flex-1">
               <Input
+                label="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="friend@example.com"
@@ -295,4 +296,3 @@ export default function ReferralPage() {
     </Page>
   )
 }
-

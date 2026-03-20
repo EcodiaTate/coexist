@@ -6,7 +6,6 @@ import type {
   Collective,
   GlobalAnnouncement,
   Challenge,
-  ChallengeParticipant,
   Profile,
 } from '@/types/database.types'
 
@@ -188,7 +187,7 @@ export function useImpactStats() {
         trees_planted: 0,
         hours_volunteered: 0,
         rubbish_kg: 0,
-      }) as ImpactStats
+      }) as unknown as ImpactStats
     },
     enabled: !!user,
     staleTime: 10 * 60 * 1000,
@@ -265,7 +264,7 @@ export function useTrendingCollectives() {
   })
 }
 
-/** Suggested connections — people from shared collectives/events */
+/** Suggested connections - people from shared collectives/events */
 export function useSuggestedConnections() {
   const { user } = useAuth()
 

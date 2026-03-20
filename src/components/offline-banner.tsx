@@ -36,7 +36,7 @@ export function OfflineBanner({ className }: OfflineBannerProps) {
             {isOffline ? (
               <>
                 <WifiOff size={14} />
-                <span>You're offline — some features may be limited</span>
+                <span>You're offline - some features may be limited</span>
               </>
             ) : (
               <>

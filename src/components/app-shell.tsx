@@ -36,7 +36,7 @@ export function AppShell({ children, bare = false }: AppShellProps) {
 
       {/* Sidebar + content row */}
       <div className={cn('flex flex-1', showBottomTabs && 'min-h-0')}>
-        {/* Sidebar — hidden on admin pages (AdminLayout has its own) */}
+        {/* Sidebar - hidden on admin pages (AdminLayout has its own) */}
         {showSidebar && !isAdminRoute && <SidebarNav />}
 
         {/* Content */}
@@ -49,7 +49,7 @@ export function AppShell({ children, bare = false }: AppShellProps) {
         </main>
       </div>
 
-      {/* Web footer — full width, below the sidebar row so sidebar unsticks at footer */}
+      {/* Web footer - full width, below the sidebar row so sidebar unsticks at footer */}
       {isWeb && !isMobile && <WebFooter />}
 
       {/* Bottom tab bar (mobile + native) */}

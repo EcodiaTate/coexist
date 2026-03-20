@@ -6,7 +6,7 @@
  * Creates 11 tiny WAV files in src/assets/sounds/.
  * Each is <50KB, synthesised from simple waveforms.
  *
- * Replace these with professionally designed sounds when available —
+ * Replace these with professionally designed sounds when available -
  * these are functional placeholders that match the described feel.
  */
 
@@ -116,7 +116,7 @@ function silence(duration, sr = 44100) {
 // --- Sound definitions (§56.2–56.11) ---
 
 const sounds = {
-  // §56.2 Check-in success — wooden chime ding
+  // §56.2 Check-in success - wooden chime ding
   'check-in': () => {
     const s = mix(
       envelope(sine(880, 0.3), 0.001, 0.05, 0.3, 0.2),
@@ -126,7 +126,7 @@ const sounds = {
     return gain(s, 0.7)
   },
 
-  // §56.3 Badge unlock — bright ascending tone
+  // §56.3 Badge unlock - bright ascending tone
   'badge-unlock': () => {
     const n1 = envelope(sine(523, 0.1), 0.001, 0.02, 0.5, 0.05)
     const n2 = envelope(sine(659, 0.1), 0.001, 0.02, 0.5, 0.05)
@@ -135,7 +135,7 @@ const sounds = {
     return gain(concat(n1, n2, n3, n4), 0.6)
   },
 
-  // §56.4 Points awarded — ascending xylophone
+  // §56.4 Points awarded - ascending xylophone
   'points': () => {
     const n1 = envelope(sine(698, 0.08), 0.001, 0.01, 0.4, 0.05)
     const n2 = envelope(sine(880, 0.08), 0.001, 0.01, 0.4, 0.05)
@@ -143,7 +143,7 @@ const sounds = {
     return gain(concat(n1, n2, n3), 0.5)
   },
 
-  // §56.5 Tier up — ascending chord, ~0.7s (under 50KB)
+  // §56.5 Tier up - ascending chord, ~0.7s (under 50KB)
   'tier-up': () => {
     const chord1 = mix(
       envelope(sine(523, 0.18), 0.005, 0.03, 0.5, 0.1),
@@ -163,7 +163,7 @@ const sounds = {
     return gain(concat(chord1, silence(0.02), chord2, silence(0.02), chord3), 0.5)
   },
 
-  // §56.6 Message sent — soft whoosh
+  // §56.6 Message sent - soft whoosh
   'send-message': () => {
     const sr = 44100
     const dur = 0.25
@@ -178,7 +178,7 @@ const sounds = {
     return gain(out, 0.4)
   },
 
-  // §56.7 Message received — gentle pop
+  // §56.7 Message received - gentle pop
   'message-received': () => {
     const sr = 44100
     const dur = 0.12
@@ -192,7 +192,7 @@ const sounds = {
     return gain(out, 0.6)
   },
 
-  // §56.8 Pull-to-refresh — soft click
+  // §56.8 Pull-to-refresh - soft click
   'pull-refresh': () => {
     const sr = 44100
     const dur = 0.06
@@ -205,14 +205,14 @@ const sounds = {
     return gain(out, 0.5)
   },
 
-  // §56.9 Error — low brief bonk
+  // §56.9 Error - low brief bonk
   'error': () => {
     const s = envelope(sine(180, 0.2), 0.001, 0.03, 0.3, 0.15)
     const s2 = envelope(sine(140, 0.2), 0.001, 0.03, 0.2, 0.15)
     return gain(mix(s, s2), 0.6)
   },
 
-  // §56.10 Navigation tap — extremely subtle tick
+  // §56.10 Navigation tap - extremely subtle tick
   'tap': () => {
     const sr = 44100
     const dur = 0.03
@@ -225,7 +225,7 @@ const sounds = {
     return gain(out, 0.25)
   },
 
-  // §56.11 Celebration — brief cheer sfx layered with chime
+  // §56.11 Celebration - brief cheer sfx layered with chime
   'celebration': () => {
     // Chime layer
     const chime = mix(

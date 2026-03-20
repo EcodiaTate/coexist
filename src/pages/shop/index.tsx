@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { ShoppingBag } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -15,8 +15,8 @@ import { useCart } from '@/hooks/use-cart'
 import { formatPrice, type Product } from '@/types/merch'
 import { cn } from '@/lib/cn'
 
-const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.05 } } }
-const fadeUp = {
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.05 } } }
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
 }

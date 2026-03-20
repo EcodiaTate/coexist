@@ -1,8 +1,8 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
-import type { Post, PostLike, PostComment, Profile, Collective, Event } from '@/types/database.types'
+import type { Post, PostComment, Collective, Event } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -31,7 +31,7 @@ export interface CommentWithAuthor extends PostComment {
 const PAGE_SIZE = 15
 
 /* ------------------------------------------------------------------ */
-/*  Feed — infinite scroll                                             */
+/*  Feed - infinite scroll                                             */
 /* ------------------------------------------------------------------ */
 
 export function useFeed(collectiveId?: string) {
@@ -311,7 +311,7 @@ export function useDeleteComment() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ commentId, postId }: { commentId: string; postId: string }) => {
+    mutationFn: async ({ commentId }: { commentId: string; postId: string }) => {
       const { error } = await supabase
         .from('post_comments')
         .update({ is_deleted: true })

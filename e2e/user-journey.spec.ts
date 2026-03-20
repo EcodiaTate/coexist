@@ -66,7 +66,7 @@ test.describe('Leader journey', () => {
     await page.getByRole('button', { name: /create|publish/i }).click()
     await expect(page.getByText(/event created|published/i)).toBeVisible()
 
-    // 2. Manage attendance — check-in a participant
+    // 2. Manage attendance - check-in a participant
     await page.getByRole('link', { name: /manage|attendance/i }).click()
     await page.getByRole('button', { name: /check in/i }).first().click()
     await expect(page.getByText(/checked in/i)).toBeVisible()

@@ -74,11 +74,11 @@ export default function OrdersTab() {
           status,
           trackingNumber: status === 'shipped' ? trackingNumber : undefined,
         })
-        toast(`Order marked as ${status}`, 'success')
+        toast.success(`Order marked as ${status}`)
         setSelectedOrder(null)
         setTrackingNumber('')
       } catch {
-        toast('Failed to update order', 'error')
+        toast.error('Failed to update order')
       }
     },
     [updateStatus, trackingNumber, toast],
@@ -88,9 +88,9 @@ export default function OrdersTab() {
     if (!refundTarget) return
     try {
       await refundOrder.mutateAsync(refundTarget.id)
-      toast('Refund initiated', 'success')
+      toast.success('Refund initiated')
     } catch {
-      toast('Failed to process refund', 'error')
+      toast.error('Failed to process refund')
     }
     setRefundTarget(null)
   }, [refundTarget, refundOrder, toast])
@@ -98,9 +98,9 @@ export default function OrdersTab() {
   const handleExport = useCallback(async () => {
     try {
       await exportOrdersCsv(statusFilter === 'all' ? undefined : statusFilter)
-      toast('CSV downloaded', 'success')
+      toast.success('CSV downloaded')
     } catch {
-      toast('Export failed', 'error')
+      toast.error('Export failed')
     }
   }, [statusFilter, toast])
 

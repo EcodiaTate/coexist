@@ -19,7 +19,7 @@ import { Button } from '@/components/button'
 let Sentry: {
   init: (opts: Record<string, unknown>) => void
   captureException: (error: unknown, context?: Record<string, unknown>) => void
-  captureMessage: (message: string, level?: string) => void
+  captureMessage: (message: string, level?: unknown) => void
   setUser: (user: { id: string; email?: string } | null) => void
   setTag: (key: string, value: string) => void
   addBreadcrumb: (breadcrumb: Record<string, unknown>) => void
@@ -28,15 +28,15 @@ let Sentry: {
 export async function initSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN
   if (!dsn) {
-    console.warn('[sentry] No DSN configured — error reporting disabled')
+    console.warn('[sentry] No DSN configured - error reporting disabled')
     return
   }
 
   try {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore — optional dependency, may not be installed
+    // @ts-ignore - optional dependency, may not be installed
     const mod = await import(/* @vite-ignore */ '@sentry/react')
-    Sentry = mod
+    Sentry = mod as any
 
     mod.init({
       dsn,
@@ -56,7 +56,7 @@ export async function initSentry() {
     mod.setTag('platform', Capacitor.getPlatform())
     mod.setTag('is_native', String(Capacitor.isNativePlatform()))
   } catch {
-    console.warn('[sentry] @sentry/react not installed — error reporting disabled')
+    console.warn('[sentry] @sentry/react not installed - error reporting disabled')
   }
 }
 

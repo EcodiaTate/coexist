@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
@@ -73,7 +73,7 @@ export interface GroupedNotifications {
 
 /**
  * Resolve deep link route from notification type + data.
- * Single source of truth — also used by use-push.ts for tap routing.
+ * Single source of truth - also used by use-push.ts for tap routing.
  */
 export function resolveNotificationRoute(
   type: string,

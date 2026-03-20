@@ -40,7 +40,7 @@ function useNationalImpact() {
         membersRes,
         collectivesRes,
       ] = await Promise.all([
-        supabase.from('impact_logs').select(
+        supabase.from('impact_logs' as any).select(
           'trees_planted, volunteer_hours, rubbish_kg, coastline_km, activity_type, state',
         ),
         supabase.from('events').select('id', { count: 'exact', head: true }),
@@ -48,23 +48,23 @@ function useNationalImpact() {
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
       ])
 
-      const logs = impactRes.data ?? []
-      const totalTrees = logs.reduce((s, r) => s + (r.trees_planted ?? 0), 0)
-      const totalHours = logs.reduce((s, r) => s + (r.volunteer_hours ?? 0), 0)
-      const totalRubbish = logs.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0)
-      const totalCoastline = logs.reduce((s, r) => s + (r.coastline_km ?? 0), 0)
+      const logs = (impactRes.data ?? []) as any[]
+      const totalTrees = logs.reduce((s: number, r: any) => s + (r.trees_planted ?? 0), 0)
+      const totalHours = logs.reduce((s: number, r: any) => s + (r.volunteer_hours ?? 0), 0)
+      const totalRubbish = logs.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0)
+      const totalCoastline = logs.reduce((s: number, r: any) => s + (r.coastline_km ?? 0), 0)
 
       // Breakdown by activity type
       const byActivity: Record<string, number> = {}
-      for (const log of logs) {
-        const type = log.activity_type ?? 'Other'
+      for (const log of logs as any[]) {
+        const type = (log as any).activity_type ?? 'Other'
         byActivity[type] = (byActivity[type] ?? 0) + 1
       }
 
       // Breakdown by state
       const byState: Record<string, number> = {}
-      for (const log of logs) {
-        const state = log.state ?? 'Unknown'
+      for (const log of logs as any[]) {
+        const state = (log as any).state ?? 'Unknown'
         byState[state] = (byState[state] ?? 0) + 1
       }
 
@@ -147,12 +147,12 @@ function useTrends() {
         const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
 
         const { data } = await supabase
-          .from('impact_logs')
+          .from('impact_logs' as any)
           .select('volunteer_hours')
           .gte('created_at', start.toISOString())
           .lte('created_at', end.toISOString())
 
-        const hours = (data ?? []).reduce((s, r) => s + (r.volunteer_hours ?? 0), 0)
+        const hours = ((data ?? []) as any[]).reduce((s: number, r: any) => s + (r.volunteer_hours ?? 0), 0)
 
         months.push({
           month: start.toLocaleDateString('en-AU', { month: 'short' }),

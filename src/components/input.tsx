@@ -11,9 +11,9 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Search, Eye, EyeOff } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
-type InputType = 'text' | 'email' | 'password' | 'search' | 'textarea' | 'date'
+type InputType = 'text' | 'email' | 'password' | 'search' | 'textarea' | 'date' | 'tel' | 'number'
 
-interface InputProps {
+export interface InputProps {
   type?: InputType
   label: string
   value?: string
@@ -32,6 +32,9 @@ interface InputProps {
   icon?: ReactNode
   className?: string
   'aria-label'?: string
+  maxLength?: number
+  max?: string
+  min?: string
 }
 
 export const Input = forwardRef<
@@ -217,7 +220,7 @@ export const Input = forwardRef<
         {/* Floating label */}
         <motion.label
           htmlFor={id}
-          {...labelMotion}
+          {...(labelMotion as any)}
           className={cn(
             'absolute left-4 top-2 pointer-events-none',
             'text-[16px] leading-normal origin-left',

@@ -152,7 +152,7 @@ export default function PublicEventPage() {
                 <p className="font-medium text-primary-800">{formatDate(event.date_start)}</p>
                 <p className="text-sm text-primary-400">
                   {formatTime(event.date_start)}
-                  {event.date_end && ` — ${formatTime(event.date_end)}`}
+                  {event.date_end && ` - ${formatTime(event.date_end)}`}
                 </p>
               </div>
             </div>

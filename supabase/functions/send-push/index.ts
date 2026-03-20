@@ -1,4 +1,4 @@
-// @ts-nocheck — Deno Edge Function
+// @ts-nocheck - Deno Edge Function
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -35,7 +35,7 @@ interface PushToken {
 const FCM_PROJECT_ID = Deno.env.get('FCM_PROJECT_ID') ?? ''
 const FCM_SERVICE_ACCOUNT_KEY = Deno.env.get('FCM_SERVICE_ACCOUNT_KEY') ?? ''
 
-// Base64url encoding (RFC 4648 §5) — required for JWT
+// Base64url encoding (RFC 4648 §5) - required for JWT
 function base64url(input: string | ArrayBuffer): string {
   let b64: string
   if (typeof input === 'string') {

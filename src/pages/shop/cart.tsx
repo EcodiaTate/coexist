@@ -38,14 +38,14 @@ export default function CartPage() {
     try {
       const result = await validatePromoCode(promoInput)
       if (result.valid && result.promo) {
-        setPromoCode(result.promo)
-        toast('Promo code applied!', 'success')
+        setPromoCode(result.promo as any)
+        toast.success('Promo code applied!')
         setPromoInput('')
       } else {
-        toast('Invalid or expired promo code', 'error')
+        toast.error('Invalid or expired promo code')
       }
     } catch {
-      toast('Error validating promo code', 'error')
+      toast.error('Error validating promo code')
     } finally {
       setPromoLoading(false)
     }
@@ -75,7 +75,7 @@ export default function CartPage() {
           icon={<ArrowRight size={18} />}
           onClick={() => navigate('/shop/checkout')}
         >
-          Checkout — {formatPrice(totalCents)}
+          Checkout - {formatPrice(totalCents)}
         </Button>
       }
     >

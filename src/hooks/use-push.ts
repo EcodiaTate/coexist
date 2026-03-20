@@ -23,15 +23,8 @@ interface PushNotificationActionPerformed {
   }
 }
 
-interface PushNotificationReceived {
-  id?: string
-  data?: Record<string, string>
-  title?: string
-  body?: string
-}
-
 /* ------------------------------------------------------------------ */
-/*  Capacitor Push Notifications — dynamic import                      */
+/*  Capacitor Push Notifications - dynamic import                      */
 /* ------------------------------------------------------------------ */
 
 let PushNotifications: {
@@ -181,7 +174,7 @@ export function usePush() {
         },
       )
 
-      // Notification tapped — deep link routing
+      // Notification tapped - deep link routing
       const actionListener = await plugin.addListener(
         'pushNotificationActionPerformed',
         (action: unknown) => {
@@ -197,7 +190,7 @@ export function usePush() {
       listenersRef.current = [regListener, errListener, receivedListener, actionListener]
 
       // Try to register (will use existing permission or silently fail)
-      // This also handles token refresh — if the token changed, the
+      // This also handles token refresh - if the token changed, the
       // 'registration' listener fires and upserts the new token.
       try {
         const perm = await plugin.requestPermissions()
@@ -205,7 +198,7 @@ export function usePush() {
           await plugin.register()
         }
       } catch {
-        // Permission not yet granted — that's fine
+        // Permission not yet granted - that's fine
       }
     }
 
@@ -252,7 +245,7 @@ export function usePush() {
     }
   }, [user, navigate])
 
-  /** Cleanup token on logout — removes all tokens for this user */
+  /** Cleanup token on logout - removes all tokens for this user */
   const unregister = useCallback(async () => {
     if (user) {
       if (tokenRef.current) {

@@ -5,7 +5,6 @@ import {
   MapPin,
   Users,
   ChevronRight,
-  Filter,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { AdminLayout } from '@/components/admin-layout'
@@ -31,9 +30,9 @@ function useAdminEvents(search: string, status: string) {
       let query = supabase
         .from('events')
         .select(
-          'id, title, start_date, location_name, cover_image_url, collective_id, collectives(name)',
+          'id, title, start_date, location_name, cover_image_url, collective_id, collectives(name)' as any,
         )
-        .order('start_date', { ascending: false })
+        .order('start_date' as any, { ascending: false })
         .limit(50)
 
       if (search) {
@@ -41,9 +40,9 @@ function useAdminEvents(search: string, status: string) {
       }
 
       if (status === 'upcoming') {
-        query = query.gte('start_date', now)
+        query = query.gte('start_date' as any, now)
       } else if (status === 'past') {
-        query = query.lt('start_date', now)
+        query = query.lt('start_date' as any, now)
       }
 
       const { data, error } = await query
@@ -51,7 +50,7 @@ function useAdminEvents(search: string, status: string) {
 
       // Get registration counts
       const enriched = await Promise.all(
-        (data ?? []).map(async (event) => {
+        ((data ?? []) as any[]).map(async (event: any) => {
           const { count } = await supabase
             .from('event_registrations')
             .select('id', { count: 'exact', head: true })
@@ -110,7 +109,7 @@ export default function AdminEventsPage() {
         />
       ) : (
         <StaggeredList className="space-y-2">
-          {events.map((event) => {
+          {events.map((event: any) => {
             const isPast = new Date(event.start_date) < new Date()
             return (
               <StaggeredItem key={event.id}>

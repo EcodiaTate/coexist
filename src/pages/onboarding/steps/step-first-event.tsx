@@ -110,7 +110,7 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
           ) : (
             <div className="text-center py-8">
               <p className="text-sm text-primary-400">No upcoming events right now.</p>
-              <p className="text-xs text-primary-400 mt-1">Don't worry — we'll notify you when one pops up!</p>
+              <p className="text-xs text-primary-400 mt-1">Don't worry - we'll notify you when one pops up!</p>
             </div>
           )}
         </div>

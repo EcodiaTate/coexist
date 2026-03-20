@@ -118,7 +118,7 @@ ALTER TABLE merch_inventory ADD CONSTRAINT merch_inventory_stock_non_negative
 -- but all future updates are enforced.
 
 -- Fix: Add unique constraint on event_impact.event_id to support upsert in frontend
--- (only one impact record per event — multiple entries would double-count stats)
+-- (only one impact record per event - multiple entries would double-count stats)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_event_impact_event_unique
   ON event_impact (event_id);
 
@@ -215,7 +215,7 @@ CREATE POLICY "profiles_update_own_safe"
   );
 
 -- ============================================================
--- Fix: CRITICAL — handle_content_report_removal() uses CASE expression
+-- Fix: CRITICAL - handle_content_report_removal() uses CASE expression
 -- with DML statements, which is invalid plpgsql. CASE is a value expression
 -- and cannot contain DELETE/UPDATE. Replace with IF/ELSIF chain.
 -- ============================================================

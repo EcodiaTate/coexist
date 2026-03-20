@@ -87,7 +87,7 @@ export default function CheckoutPage() {
         await redirectToCheckout(result.session_id)
       }
     } catch {
-      toast('Checkout failed. Please try again.', 'error')
+      toast.error('Checkout failed. Please try again.')
     }
   }, [validate, checkout, address, toast])
 

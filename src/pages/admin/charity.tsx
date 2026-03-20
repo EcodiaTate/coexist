@@ -3,8 +3,6 @@ import { motion, useReducedMotion } from 'framer-motion'
 import {
   Heart,
   Save,
-  Building2,
-  FileText,
   CheckCircle,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -14,7 +12,6 @@ import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
 import { Skeleton } from '@/components/skeleton'
 import { useToast } from '@/components/toast'
-import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 
 function useCharitySettings() {
@@ -22,13 +19,13 @@ function useCharitySettings() {
     queryKey: ['charity-settings'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('charity_settings')
+        .from('charity_settings' as any)
         .select('*')
       if (error) throw error
 
       // Convert array of key-value pairs to object
       const settings: Record<string, string> = {}
-      for (const row of data ?? []) {
+      for (const row of (data ?? []) as any[]) {
         settings[row.key] = row.value
       }
       return settings
@@ -71,7 +68,7 @@ export default function AdminCharityPage() {
       const entries = Object.entries(form)
       for (const [key, value] of entries) {
         const { error } = await supabase
-          .from('charity_settings')
+          .from('charity_settings' as any)
           .upsert({ key, value }, { onConflict: 'key' })
         if (error) throw error
       }

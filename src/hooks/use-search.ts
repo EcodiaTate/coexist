@@ -122,7 +122,7 @@ export function useSearch(filters?: SearchFilters) {
         .ilike('title', pattern)
 
       if (filters?.activityTypes?.length) {
-        eventsQuery = eventsQuery.in('activity_type', filters.activityTypes)
+        eventsQuery = eventsQuery.in('activity_type', filters.activityTypes as any)
       }
       if (filters?.dateFrom) {
         eventsQuery = eventsQuery.gte('date_start', filters.dateFrom)

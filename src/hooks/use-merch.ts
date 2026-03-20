@@ -11,7 +11,7 @@ export function useProducts(category?: string) {
     queryKey: ['products', category],
     queryFn: async () => {
       let query = supabase
-        .from('products')
+        .from('products' as any)
         .select('*, variants:product_variants(*)')
         .eq('status', 'active')
         .order('created_at', { ascending: false })
@@ -22,7 +22,7 @@ export function useProducts(category?: string) {
 
       const { data, error } = await query
       if (error) throw error
-      return data as Product[]
+      return data as unknown as Product[]
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -38,12 +38,12 @@ export function useProduct(slug: string | undefined) {
     enabled: !!slug,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('products')
+        .from('products' as any)
         .select('*, variants:product_variants(*)')
         .eq('slug', slug!)
         .single()
       if (error) throw error
-      return data as Product
+      return data as unknown as Product
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -59,7 +59,7 @@ export function useRelatedProducts(productId: string | undefined, category: stri
     enabled: !!productId,
     queryFn: async () => {
       let query = supabase
-        .from('products')
+        .from('products' as any)
         .select('*, variants:product_variants(*)')
         .eq('status', 'active')
         .neq('id', productId!)
@@ -71,7 +71,7 @@ export function useRelatedProducts(productId: string | undefined, category: stri
 
       const { data, error } = await query
       if (error) throw error
-      return data as Product[]
+      return data as unknown as Product[]
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -93,7 +93,7 @@ export function useProductReviews(productId: string | undefined) {
         .eq('status', 'approved')
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as ProductReview[]
+      return data as unknown as ProductReview[]
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -123,8 +123,8 @@ export async function validatePromoCode(code: string) {
   if (error || !data) return { valid: false, promo: null }
 
   const now = new Date()
-  if (data.expires_at && new Date(data.expires_at) < now) return { valid: false, promo: null }
-  if (data.max_uses && data.uses >= data.max_uses) return { valid: false, promo: null }
+  if (data.valid_to && new Date(data.valid_to) < now) return { valid: false, promo: null }
+  if (data.max_uses && data.uses_count >= data.max_uses) return { valid: false, promo: null }
 
   return { valid: true, promo: data }
 }
@@ -138,7 +138,7 @@ export function useShippingConfig() {
     queryKey: ['shipping-config'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('shipping_config')
+        .from('shipping_config' as any)
         .select('*')
         .limit(1)
         .single()
@@ -146,7 +146,7 @@ export function useShippingConfig() {
         // Default fallback
         return { flat_rate_cents: 995, free_shipping_threshold_cents: 10000 } as ShippingConfig
       }
-      return data as ShippingConfig
+      return data as unknown as ShippingConfig
     },
     staleTime: 10 * 60 * 1000,
   })

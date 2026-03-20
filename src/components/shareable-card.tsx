@@ -22,7 +22,7 @@ interface ShareableCardProps {
   value?: string | number
   /** Optional image URL (badge icon, event cover) */
   imageUrl?: string
-  /** User's display name — shown as attribution */
+  /** User's display name - shown as attribution */
   userName?: string
   /** Optional className for the outer wrapper */
   className?: string
@@ -116,7 +116,7 @@ export function ShareableCard({
 
     if (navigator.canShare?.({ files: [file] })) {
       await navigator.share({
-        title: `${title} — ${APP_NAME}`,
+        title: `${title} - ${APP_NAME}`,
         text: subtitle || title,
         files: [file],
       })

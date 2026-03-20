@@ -13,7 +13,7 @@ html {
 
 /* ===== Self-Hosted Fonts ===== */
 
-/* Montserrat — Global (headings + body) */
+/* Montserrat - Global (headings + body) */
 @font-face {
   font-family: 'Montserrat';
   font-style: normal;
@@ -23,7 +23,7 @@ html {
 }
 
 @theme {
-  /* Primary — Olive Green (#879e62) scale */
+  /* Primary - Olive Green (#879e62) scale */
   --color-primary-50: #f5f7f0;
   --color-primary-100: #e8eddf;
   --color-primary-200: #d1dbbf;
@@ -36,7 +36,7 @@ html {
   --color-primary-900: #333f2b;
   --color-primary-950: #1a2115;
 
-  /* Secondary — Forest Dark (#3d4d33) scale */
+  /* Secondary - Forest Dark (#3d4d33) scale */
   --color-secondary-50: #f2f4ef;
   --color-secondary-100: #e0e5d9;
   --color-secondary-200: #c2ccb4;
@@ -49,7 +49,7 @@ html {
   --color-secondary-900: #2b3524;
   --color-secondary-950: #151b12;
 
-  /* Accent — Olive Green (matches primary for unified look) */
+  /* Accent - Olive Green (matches primary for unified look) */
   --color-accent-50: #f5f7f0;
   --color-accent-100: #e8eddf;
   --color-accent-200: #d1dbbf;
@@ -62,7 +62,7 @@ html {
   --color-accent-900: #333f2b;
   --color-accent-950: #1a2115;
 
-  /* Neutrals — White-first, minimal grey */
+  /* Neutrals - White-first, minimal grey */
   --color-neutral-50: #ffffff;
   --color-neutral-100: #ffffff;
   --color-neutral-200: #e8eddf;
@@ -81,7 +81,7 @@ html {
   --color-error: #f87171;
   --color-info: #60a5fa;
 
-  /* Shadows — warm tinted */
+  /* Shadows - warm tinted */
   --shadow-sm: 0 1px 2px rgba(74, 74, 66, 0.06);
   --shadow-md: 0 4px 6px -1px rgba(74, 74, 66, 0.08), 0 2px 4px -2px rgba(74, 74, 66, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(74, 74, 66, 0.1), 0 4px 6px -4px rgba(74, 74, 66, 0.06);
@@ -174,7 +174,7 @@ textarea {
   font-size: 16px;
 }
 
-/* Text scaling support — up to 200% (§41 item 57) */
+/* Text scaling support - up to 200% (§41 item 57) */
 html {
   font-size: 100%;
 }

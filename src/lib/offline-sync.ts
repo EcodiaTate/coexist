@@ -58,7 +58,7 @@ function safeSet(key: string, value: unknown) {
   try {
     localStorage.setItem(key, JSON.stringify(value))
   } catch {
-    // Storage full — silently skip
+    // Storage full - silently skip
   }
 }
 
@@ -192,7 +192,7 @@ async function processAction(action: OfflineAction): Promise<{ ok: boolean; conf
         .single()
 
       if (existing?.status === 'attended') {
-        return { ok: true } // Already done — no conflict
+        return { ok: true } // Already done - no conflict
       }
 
       const { error } = await supabase
@@ -232,7 +232,7 @@ export async function syncAllOfflineActions(): Promise<SyncResult> {
       result.synced++
     } else if (conflict) {
       result.conflicts.push(conflict)
-      // Don't retry conflicts — server wins
+      // Don't retry conflicts - server wins
     } else if (action.retries < MAX_RETRIES) {
       remaining.push({ ...action, retries: action.retries + 1 })
       result.failed++
@@ -334,7 +334,7 @@ export function persistQueryCache(dehydratedState: unknown) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify(dehydratedState))
   } catch {
-    // Storage full or unavailable — silently skip
+    // Storage full or unavailable - silently skip
   }
 }
 

@@ -3,7 +3,7 @@ import { login, TEST_LEADER } from './helpers'
 
 test.describe('Leader: Create Event → Manage Attendance → Log Impact', () => {
   test.beforeEach(async ({ page }) => {
-    // Leader login — requires a seeded leader account
+    // Leader login - requires a seeded leader account
     await login(page, TEST_LEADER)
   })
 

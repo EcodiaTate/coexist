@@ -11,7 +11,7 @@ interface ScrollRevealProps {
 
 /**
  * Wraps children in a subtle fade+slide-up animation triggered on scroll.
- * Card reveal on scroll — §55 item 23.
+ * Card reveal on scroll - §55 item 23.
  */
 export function ScrollReveal({ children, delay = 0, className }: ScrollRevealProps) {
   const shouldReduceMotion = useReducedMotion()
@@ -34,7 +34,7 @@ export function ScrollReveal({ children, delay = 0, className }: ScrollRevealPro
 }
 
 /* ------------------------------------------------------------------ */
-/*  Staggered list wrapper — §55 item 22                              */
+/*  Staggered list wrapper - §55 item 22                              */
 /* ------------------------------------------------------------------ */
 
 interface StaggeredListProps {
@@ -54,7 +54,7 @@ const containerVariants = {
 const itemVariants = {
   hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } },
-}
+} as const satisfies import('framer-motion').Variants
 
 export function StaggeredList({
   children,
