@@ -115,9 +115,9 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
             onClick={() => navigate('/notifications')}
             className={cn(
               'relative flex items-center justify-center',
-              'w-10 h-10 rounded-full',
+              'min-w-11 min-h-11 w-11 h-11 rounded-full',
               'text-primary-400 hover:text-primary-800 hover:bg-primary-50',
-              'transition-colors duration-150',
+              'active:scale-[0.97] transition-all duration-150',
               'cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             )}
@@ -145,9 +145,10 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
               type="button"
               onClick={() => setDropdownOpen((p) => !p)}
               className={cn(
-                'flex items-center gap-2 rounded-full',
+                'flex items-center justify-center gap-2 rounded-full',
+                'min-h-11 min-w-11',
                 'cursor-pointer select-none',
-                'transition-colors duration-150',
+                'active:scale-[0.97] transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 dropdownOpen && 'ring-2 ring-primary-200',
               )}
@@ -262,12 +263,13 @@ function DropdownItem({
       onClick={onClick}
       className={cn(
         'flex items-center gap-3 w-full px-4 py-2.5',
+        'min-h-11',
         'text-sm text-left',
         'cursor-pointer select-none',
-        'transition-colors duration-150',
+        'active:scale-[0.97] transition-all duration-150',
         'focus-visible:outline-none focus-visible:bg-white',
         danger
-          ? 'text-error hover:bg-red-50'
+          ? 'text-error hover:bg-error-50'
           : 'text-primary-800 hover:bg-primary-50',
       )}
     >

@@ -96,7 +96,7 @@ export function WebFooter({ className }: WebFooterProps) {
                     <button
                       type="button"
                       onClick={link.onClick}
-                      className="text-sm hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:underline cursor-pointer"
+                      className="text-sm hover:text-white min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150 focus-visible:outline-none focus-visible:underline"
                     >
                       {link.label}
                     </button>

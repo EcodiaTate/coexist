@@ -8,7 +8,6 @@ import type {
   PromoCode,
   ReturnRequest,
   ProductReview,
-  SalesAnalytics,
   ShippingConfig,
 } from '@/types/merch'
 
@@ -21,8 +20,8 @@ export function useAdminProducts() {
     queryKey: ['admin-products'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('products' as any)
-        .select('*, variants:product_variants(*)')
+        .from('merch_products')
+        .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
       return data as unknown as Product[]
@@ -39,7 +38,7 @@ export function useCreateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (product: Omit<Product, 'id' | 'variants' | 'avg_rating' | 'review_count' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase.from('products' as any).insert(product).select().single()
+      const { data, error } = await supabase.from('merch_products').insert(product).select().single()
       if (error) throw error
       return data
     },
@@ -51,7 +50,7 @@ export function useUpdateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Product> & { id: string }) => {
-      const { error } = await supabase.from('products' as any).update(updates).eq('id', id)
+      const { error } = await supabase.from('merch_products').update(updates).eq('id', id)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-products'] }),
@@ -59,46 +58,55 @@ export function useUpdateProduct() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Variant management                                                 */
+/*  Stock management (uses merch_inventory table)                      */
 /* ------------------------------------------------------------------ */
-
-export function useUpsertVariant() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (variant: Omit<ProductVariant, 'id'> & { id?: string }) => {
-      const { error } = await supabase.from('product_variants' as any).upsert(variant)
-      if (error) throw error
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-products'] }),
-  })
-}
 
 export function useAdjustStock() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({
-      variantId,
+      productId,
+      variantKey,
       adjustment,
-      reason,
     }: {
-      variantId: string
+      productId: string
+      variantKey: string
       adjustment: number
-      reason: string
     }) => {
-      // Record the adjustment
-      await supabase.from('stock_adjustments' as any).insert({
-        variant_id: variantId,
-        adjustment,
-        reason,
-      })
-      // Update the stock count
-      const { error } = await supabase.rpc('adjust_variant_stock' as any, {
-        p_variant_id: variantId,
-        p_adjustment: adjustment,
-      })
-      if (error) throw error
+      if (adjustment > 0) {
+        const { error } = await supabase.rpc('increment_stock', {
+          p_product_id: productId,
+          p_variant_key: variantKey,
+          p_quantity: adjustment,
+        })
+        if (error) throw error
+      } else if (adjustment < 0) {
+        const { error } = await supabase.rpc('decrement_stock', {
+          p_product_id: productId,
+          p_variant_key: variantKey,
+          p_quantity: Math.abs(adjustment),
+        })
+        if (error) throw error
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-products'] }),
+  })
+}
+
+export function useProductInventory(productId: string | undefined) {
+  return useQuery({
+    queryKey: ['product-inventory', productId],
+    queryFn: async () => {
+      if (!productId) return []
+      const { data, error } = await supabase
+        .from('merch_inventory')
+        .select('*')
+        .eq('product_id', productId)
+      if (error) throw error
+      return data
+    },
+    enabled: !!productId,
+    staleTime: 30 * 1000,
   })
 }
 
@@ -111,8 +119,8 @@ export function useAdminOrders(statusFilter?: OrderStatus) {
     queryKey: ['admin-orders', statusFilter],
     queryFn: async () => {
       let query = supabase
-        .from('orders' as any)
-        .select('*, items:order_items(*), profiles(display_name, avatar_url)')
+        .from('merch_orders')
+        .select('*, profiles(display_name, avatar_url)')
         .order('created_at', { ascending: false })
 
       if (statusFilter) {
@@ -139,41 +147,45 @@ export function useUpdateOrderStatus() {
       status: OrderStatus
       trackingNumber?: string
     }) => {
-      const updates: Record<string, unknown> = { status }
+      const updates: Record<string, unknown> = {
+        status,
+        updated_at: new Date().toISOString(),
+      }
       if (trackingNumber) updates.tracking_number = trackingNumber
-      const { error } = await supabase.from('orders' as any).update(updates).eq('id', orderId)
+
+      const { error } = await supabase
+        .from('merch_orders')
+        .update(updates)
+        .eq('id', orderId)
       if (error) throw error
+
+      // If marking as shipped, send order_shipped email
+      if (status === 'shipped') {
+        const { data: order } = await supabase
+          .from('merch_orders')
+          .select('user_id')
+          .eq('id', orderId)
+          .single()
+
+        if (order?.user_id) {
+          supabase.functions.invoke('send-email', {
+            body: {
+              type: 'order_shipped',
+              userId: order.user_id,
+              data: {
+                name: '',
+                order_id: orderId.slice(0, 8),
+                tracking_number: trackingNumber ?? '',
+                tracking_url: trackingNumber
+                  ? `https://auspost.com.au/mypost/track/#/details/${trackingNumber}`
+                  : '',
+              },
+            },
+          }).catch(console.error)
+        }
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
-  })
-}
-
-export function useRefundOrder() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (orderId: string) => {
-      const res = await supabase.functions.invoke('create-checkout', {
-        body: { type: 'refund', order_id: orderId },
-      })
-      if (res.error) throw res.error
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
-  })
-}
-
-/* ------------------------------------------------------------------ */
-/*  Sales analytics                                                    */
-/* ------------------------------------------------------------------ */
-
-export function useSalesAnalytics(period: 'week' | 'month' | 'year' = 'month') {
-  return useQuery({
-    queryKey: ['sales-analytics', period],
-    queryFn: async () => {
-      const res = await supabase.rpc('get_sales_analytics' as any, { p_period: period })
-      if (res.error) throw res.error
-      return res.data as unknown as SalesAnalytics
-    },
-    staleTime: 5 * 60 * 1000,
   })
 }
 
@@ -186,7 +198,7 @@ export function useAdminPromoCodes() {
     queryKey: ['admin-promo-codes'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('promo_codes' as any)
+        .from('promo_codes')
         .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -200,7 +212,7 @@ export function useUpsertPromoCode() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (promo: Partial<PromoCode> & { code: string }) => {
-      const { error } = await supabase.from('promo_codes' as any).upsert(promo)
+      const { error } = await supabase.from('promo_codes').upsert(promo)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-promo-codes'] }),
@@ -217,7 +229,7 @@ export function useAdminReturns() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('return_requests' as any)
-        .select('*, order:orders(id, status, total_cents), profiles(display_name, avatar_url)')
+        .select('*, order:merch_orders(id, status, total), profiles(display_name, avatar_url)')
         .order('created_at', { ascending: false })
       if (error) throw error
       return data as unknown as ReturnRequest[]
@@ -240,23 +252,17 @@ export function useUpdateReturnStatus() {
     }) => {
       const { error } = await supabase
         .from('return_requests' as any)
-        .update({ status, admin_notes: adminNotes ?? null } as any)
+        .update({
+          status,
+          reviewed_at: new Date().toISOString(),
+        } as any)
         .eq('id', returnId)
       if (error) throw error
 
-      // If approved, trigger refund
-      if (status === 'approved') {
-        const { data: ret } = await supabase
-          .from('return_requests' as any)
-          .select('order_id')
-          .eq('id', returnId)
-          .single()
-        if (ret) {
-          await supabase.functions.invoke('create-checkout', {
-            body: { type: 'refund', order_id: (ret as any).order_id },
-          })
-        }
-      }
+      // Note: Refunds should be processed via the Stripe dashboard.
+      // The create-checkout function only handles checkout session creation,
+      // not refunds. Stripe refunds trigger the charge.refunded webhook
+      // which handles inventory restoration automatically.
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-returns'] })
@@ -274,7 +280,7 @@ export function useAdminReviews() {
     queryKey: ['admin-reviews'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('product_reviews' as any)
+        .from('product_reviews')
         .select('*, profiles(display_name, avatar_url)')
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -289,35 +295,27 @@ export function useModerateReview() {
   return useMutation({
     mutationFn: async ({
       reviewId,
-      status,
+      approved,
     }: {
       reviewId: string
-      status: 'approved' | 'removed'
+      approved: boolean
     }) => {
-      const { error } = await supabase
-        .from('product_reviews' as any)
-        .update({ status } as any)
-        .eq('id', reviewId)
-      if (error) throw error
+      if (approved) {
+        const { error } = await supabase
+          .from('product_reviews')
+          .update({ is_approved: true })
+          .eq('id', reviewId)
+        if (error) throw error
+      } else {
+        // Remove = delete the review
+        const { error } = await supabase
+          .from('product_reviews')
+          .delete()
+          .eq('id', reviewId)
+        if (error) throw error
+      }
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-reviews'] }),
-  })
-}
-
-/* ------------------------------------------------------------------ */
-/*  Shipping config                                                    */
-/* ------------------------------------------------------------------ */
-
-export function useUpdateShippingConfig() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (config: ShippingConfig) => {
-      const { error } = await supabase
-        .from('shipping_config' as any)
-        .upsert({ id: 'default', ...config })
-      if (error) throw error
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['shipping-config'] }),
   })
 }
 
@@ -327,8 +325,8 @@ export function useUpdateShippingConfig() {
 
 export async function exportOrdersCsv(statusFilter?: OrderStatus) {
   let query = supabase
-    .from('orders' as any)
-    .select('*, items:order_items(*), profiles(display_name)')
+    .from('merch_orders')
+    .select('*, profiles(display_name)')
     .order('created_at', { ascending: false })
 
   if (statusFilter) query = query.eq('status', statusFilter)
@@ -336,21 +334,24 @@ export async function exportOrdersCsv(statusFilter?: OrderStatus) {
   const { data, error } = await query
   if (error) throw error
 
-  const rows = (data as unknown as (Order & { profiles: { display_name: string | null } | null })[]).map((o) => ({
+  const rows = (data as any[]).map((o) => ({
     order_id: o.id,
     date: o.created_at,
     customer: o.profiles?.display_name ?? 'Unknown',
     status: o.status,
-    items: o.items.map((i) => `${i.product_name} x${i.quantity}`).join('; '),
-    subtotal: (o.subtotal_cents / 100).toFixed(2),
-    shipping: (o.shipping_cents / 100).toFixed(2),
-    discount: (o.discount_cents / 100).toFixed(2),
-    total: (o.total_cents / 100).toFixed(2),
+    items: Array.isArray(o.items)
+      ? o.items.map((i: any) => `${i.product_name ?? i.product_id} x${i.quantity}`).join('; ')
+      : '',
+    total: Number(o.total).toFixed(2),
     tracking: o.tracking_number ?? '',
-    address: `${o.shipping_address.line1}, ${o.shipping_address.city} ${o.shipping_address.state} ${o.shipping_address.postcode}`,
+    address: o.shipping_address
+      ? `${o.shipping_address.line1 ?? ''}, ${o.shipping_address.city ?? ''} ${o.shipping_address.state ?? ''} ${o.shipping_address.postcode ?? ''}`
+      : '',
   }))
 
-  const headers = Object.keys(rows[0] ?? {})
+  if (rows.length === 0) return
+
+  const headers = Object.keys(rows[0])
   const csv = [
     headers.join(','),
     ...rows.map((r) =>

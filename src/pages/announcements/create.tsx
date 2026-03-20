@@ -155,7 +155,7 @@ export default function CreateAnnouncementPage() {
       }
     >
       <motion.div
-        className="px-4 pt-4 space-y-5"
+        className="pt-4 space-y-5"
         initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}

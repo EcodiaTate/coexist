@@ -35,7 +35,7 @@ const REASON_LABELS: Record<string, string> = {
 
 function PointsSkeleton() {
   return (
-    <div className="px-4 py-6 space-y-6">
+    <div className="py-6 space-y-6">
       <Skeleton variant="stat-card" className="h-32" />
       <Skeleton variant="text" count={2} />
       <Skeleton variant="list-item" count={6} />
@@ -82,7 +82,7 @@ export default function PointsPage() {
   return (
     <Page header={<Header title="Points" back />}>
       <PullToRefresh onRefresh={handleRefresh}>
-      <div className="px-4 pb-8">
+      <div className="pb-8">
         {/* Points balance hero */}
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}

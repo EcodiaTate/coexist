@@ -111,7 +111,7 @@ function SpeciesTracker({
             <button
               type="button"
               onClick={() => updateCount(i, s.count - 1)}
-              className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-primary-400 hover:bg-primary-50 cursor-pointer text-sm font-bold"
+              className="min-w-11 min-h-11 rounded-full bg-white flex items-center justify-center text-primary-400 hover:bg-primary-50 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-all duration-150"
               aria-label={`Decrease ${s.name} count`}
             >
               −
@@ -122,7 +122,7 @@ function SpeciesTracker({
             <button
               type="button"
               onClick={() => updateCount(i, s.count + 1)}
-              className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-primary-400 hover:bg-primary-50 cursor-pointer text-sm font-bold"
+              className="min-w-11 min-h-11 rounded-full bg-white flex items-center justify-center text-primary-400 hover:bg-primary-50 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-all duration-150"
               aria-label={`Increase ${s.name} count`}
             >
               +
@@ -131,7 +131,7 @@ function SpeciesTracker({
           <button
             type="button"
             onClick={() => removeSpecies(i)}
-            className="w-7 h-7 flex items-center justify-center text-primary-400 hover:text-red-500 cursor-pointer"
+            className="min-w-11 min-h-11 flex items-center justify-center text-primary-400 hover:text-red-500 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
             aria-label={`Remove ${s.name}`}
           >
             <X size={14} />
@@ -195,14 +195,15 @@ function PhotoUploadSection({
         {label}
       </h3>
 
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      <div className="-mx-4 lg:-mx-6">
+      <div className="flex gap-2 overflow-x-auto px-4 lg:px-6 pb-1 scrollbar-none">
         {photos.map((p, i) => (
           <div key={i} className="relative shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-white">
             <img src={p} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
             <button
               type="button"
               onClick={() => onRemove(i)}
-              className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center cursor-pointer"
+              className="absolute top-1 right-1 min-w-11 min-h-11 rounded-full bg-black/50 text-white flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
               aria-label={`Remove photo ${i + 1}`}
             >
               <X size={10} />
@@ -215,10 +216,11 @@ function PhotoUploadSection({
           onClick={onAdd}
           disabled={uploading}
           className={cn(
-            'shrink-0 w-20 h-20 rounded-lg border-2 border-dashed border-primary-200',
+            'shrink-0 w-20 h-20 min-h-11 min-w-11 rounded-xl border-2 border-dashed border-primary-200',
             'flex flex-col items-center justify-center text-primary-400',
             'hover:border-primary-400 hover:text-primary-500',
-            'cursor-pointer transition-colors',
+            'cursor-pointer select-none',
+            'active:scale-[0.97] transition-all duration-150',
             'disabled:opacity-50 disabled:cursor-not-allowed',
           )}
           aria-label="Add photo"
@@ -226,6 +228,7 @@ function PhotoUploadSection({
           <Camera size={20} />
           <span className="text-[10px] mt-0.5">Add</span>
         </button>
+      </div>
       </div>
 
       <UploadProgress
@@ -359,7 +362,7 @@ export default function LogImpactPage() {
   if (isLoading) {
     return (
       <Page header={<Header title="Log Impact" back />}>
-        <div className="px-4 pt-4 space-y-4">
+        <div className="pt-4 space-y-4">
           <Skeleton variant="title" />
           <Skeleton variant="text" count={3} />
           <Skeleton variant="card" />
@@ -452,7 +455,7 @@ export default function LogImpactPage() {
         </Button>
       }
     >
-      <div className="px-4 pt-4 pb-8 space-y-6">
+      <div className="pt-4 pb-8 space-y-6">
         {/* Event header */}
         <div>
           <h2 className="font-heading text-lg font-bold text-primary-800">

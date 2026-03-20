@@ -6,14 +6,14 @@ import { cn } from '@/lib/cn'
 /* ------------------------------------------------------------------ */
 
 const activityStyles = {
-  'tree-planting': 'bg-green-100 text-green-800',
-  'beach-cleanup': 'bg-blue-100 text-blue-800',
-  habitat: 'bg-emerald-100 text-emerald-800',
-  wildlife: 'bg-amber-100 text-amber-800',
-  education: 'bg-violet-100 text-violet-800',
-  fundraising: 'bg-pink-100 text-pink-800',
-  monitoring: 'bg-cyan-100 text-cyan-800',
-  restoration: 'bg-lime-100 text-lime-800',
+  'tree-planting': 'bg-success-100 text-success-800',
+  'beach-cleanup': 'bg-sky-100 text-sky-800',
+  habitat: 'bg-primary-100 text-primary-800',
+  wildlife: 'bg-bark-100 text-bark-800',
+  education: 'bg-plum-100 text-plum-800',
+  fundraising: 'bg-coral-100 text-coral-800',
+  monitoring: 'bg-moss-100 text-moss-800',
+  restoration: 'bg-sprout-100 text-sprout-800',
 } as const
 
 /* ------------------------------------------------------------------ */
@@ -21,11 +21,11 @@ const activityStyles = {
 /* ------------------------------------------------------------------ */
 
 const tierStyles = {
-  seedling: 'bg-green-100 text-green-800',
-  sapling: 'bg-emerald-100 text-emerald-800',
-  native: 'bg-teal-100 text-teal-800',
-  canopy: 'bg-primary-100 text-primary-800',
-  elder: 'bg-amber-100 text-amber-900',
+  seedling: 'bg-success-100 text-success-800',
+  sapling: 'bg-primary-100 text-primary-800',
+  native: 'bg-moss-100 text-moss-800',
+  canopy: 'bg-secondary-100 text-secondary-800',
+  elder: 'bg-bark-100 text-bark-900',
 } as const
 
 type ActivityVariant = keyof typeof activityStyles

@@ -77,7 +77,7 @@ describe('Celebration', () => {
         open
         onClose={onClose}
         title="Test"
-        icon={<span data-testid="icon">🏆</span>}
+        icon={<span data-testid="icon">T</span>}
       />,
     )
     expect(screen.getByTestId('icon')).toBeInTheDocument()

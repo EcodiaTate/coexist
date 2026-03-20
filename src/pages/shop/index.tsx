@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
-import { ShoppingBag } from 'lucide-react'
+import { ShoppingBag, Star } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { SearchBar } from '@/components/search-bar'
@@ -59,9 +59,11 @@ function ProductCard({ product, onClick }: { product: Product; onClick: () => vo
             {formatPrice(product.base_price_cents)}
           </span>
           {product.avg_rating !== null && product.review_count > 0 && (
-            <span className="text-xs text-primary-400">
-              {'★'.repeat(Math.round(product.avg_rating))}{' '}
-              ({product.review_count})
+            <span className="flex items-center gap-0.5 text-xs text-primary-400">
+              {Array.from({ length: Math.round(product.avg_rating) }).map((_, i) => (
+                <Star key={i} size={12} className="text-amber-400" fill="currentColor" />
+              ))}
+              {' '}({product.review_count})
             </span>
           )}
         </div>
@@ -100,7 +102,7 @@ export default function ShopPage() {
             <button
               type="button"
               onClick={() => navigate('/shop/cart')}
-              className="relative flex items-center justify-center w-9 h-9 rounded-full text-primary-800 hover:bg-primary-50 cursor-pointer"
+              className="relative flex items-center justify-center min-w-11 min-h-11 rounded-full text-primary-800 hover:bg-primary-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
               aria-label={`Cart (${cartCount} items)`}
             >
               <ShoppingBag size={20} />
@@ -121,7 +123,7 @@ export default function ShopPage() {
       }
     >
       <PullToRefresh onRefresh={handleRefresh}>
-      <div className="px-4 py-4">
+      <div className="py-4">
         {/* Search */}
         <SearchBar
           value={search}

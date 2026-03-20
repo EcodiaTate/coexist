@@ -68,7 +68,7 @@ export function ChatBubble({
       {!sent && (
         <button
           type="button"
-          className="flex-shrink-0 self-end"
+          className="flex-shrink-0 self-end flex items-center justify-center min-h-11 min-w-11 rounded-full cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
           onClick={() => senderId && onAvatarTap?.(senderId)}
           aria-label={senderName ? `View ${senderName}'s profile` : 'View profile'}
         >
@@ -101,7 +101,7 @@ export function ChatBubble({
           <div className="flex items-center gap-1.5 px-1">
             <button
               type="button"
-              className="text-xs font-semibold text-primary-400 hover:text-primary-400 transition-colors"
+              className="text-xs font-semibold text-primary-400 hover:text-primary-400 min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
               onClick={() => senderId && onSenderTap?.(senderId)}
             >
               {senderName}

@@ -74,7 +74,7 @@ export default function DonateThankYouPage() {
   }, [])
 
   const handleShare = async () => {
-    const text = `I just donated $${amount} to Co-Exist Australia! 🌱 Every dollar goes to conservation. Join me: coexistaus.org/donate`
+    const text = `I just donated $${amount} to Co-Exist Australia! Every dollar goes to conservation. Join me: coexistaus.org/donate`
     if (navigator.share) {
       try {
         await navigator.share({ text, url: 'https://coexistaus.org/donate' })
@@ -90,119 +90,121 @@ export default function DonateThankYouPage() {
     <Page>
       {showConfetti && <Confetti />}
 
-      <motion.div
-        initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-        className="flex flex-col items-center justify-center flex-1 px-6 py-12 text-center"
-      >
-        {/* Heart icon */}
+      <div className="max-w-lg mx-auto w-full">
         <motion.div
-          initial={shouldReduceMotion ? false : { scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.2 }}
-          className="mb-6"
+          initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+          className="flex flex-col items-center justify-center flex-1 py-12 text-center"
         >
-          <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary-100">
-            <PartyPopper size={36} className="text-primary-400" />
-          </div>
-        </motion.div>
-
-        {/* Heading */}
-        <motion.h1
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="font-heading text-2xl font-bold text-primary-800"
-        >
-          Thank you!
-        </motion.h1>
-
-        {/* Amount */}
-        <motion.p
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-2 text-lg font-semibold text-primary-400"
-        >
-          ${amount} donated
-        </motion.p>
-
-        {/* Impact equivalency */}
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className={cn(
-            'mt-4 px-5 py-4 rounded-2xl max-w-sm',
-            'bg-gradient-to-br from-white to-white',
-            'border border-primary-100',
-          )}
-        >
-          <p className="text-sm text-primary-800 leading-relaxed">
-            <Heart size={14} className="inline-block mr-1 text-primary-400 -mt-0.5" />
-            {impactMessage}
-          </p>
-        </motion.div>
-
-        {/* Points notification */}
-        <motion.p
-          initial={shouldReduceMotion ? false : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="mt-4 text-sm text-primary-400"
-        >
-          +{Math.floor(amount)} points earned
-        </motion.p>
-
-        {/* Share */}
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-          className="mt-6 w-full max-w-xs"
-        >
-          <Button
-            variant="primary"
-            fullWidth
-            icon={<Share2 size={16} />}
-            onClick={handleShare}
+          {/* Heart icon */}
+          <motion.div
+            initial={shouldReduceMotion ? false : { scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.2 }}
+            className="mb-6"
           >
-            Share your impact
-          </Button>
-        </motion.div>
+            <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary-100">
+              <PartyPopper size={36} className="text-primary-400" />
+            </div>
+          </motion.div>
 
-        {/* What's next? */}
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.0 }}
-          className="mt-6 w-full max-w-xs"
-        >
-          <WhatsNext
-            suggestions={[
-              {
-                label: 'Find an Event',
-                description: 'Put your donation into action',
-                icon: <Calendar size={18} />,
-                to: '/explore',
-              },
-              {
-                label: 'View Donor Wall',
-                description: 'See the community of supporters',
-                icon: <Users size={18} />,
-                to: '/donate/donors',
-              },
-              {
-                label: 'View Your Impact',
-                description: 'See how your contributions add up',
-                icon: <Trophy size={18} />,
-                to: '/impact',
-              },
-            ]}
-          />
+          {/* Heading */}
+          <motion.h1
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="font-heading text-2xl font-bold text-primary-800"
+          >
+            Thank you!
+          </motion.h1>
+
+          {/* Amount */}
+          <motion.p
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="mt-2 text-lg font-semibold text-primary-400"
+          >
+            ${amount} donated
+          </motion.p>
+
+          {/* Impact equivalency */}
+          <motion.div
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className={cn(
+              'mt-4 px-5 py-4 rounded-2xl w-full',
+              'bg-gradient-to-br from-white to-white',
+              'border border-primary-100',
+            )}
+          >
+            <p className="text-sm text-primary-800 leading-relaxed">
+              <Heart size={14} className="inline-block mr-1 text-primary-400 -mt-0.5" />
+              {impactMessage}
+            </p>
+          </motion.div>
+
+          {/* Points notification */}
+          <motion.p
+            initial={shouldReduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            className="mt-4 text-sm text-primary-400"
+          >
+            +{Math.floor(amount)} points earned
+          </motion.p>
+
+          {/* Share */}
+          <motion.div
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 }}
+            className="mt-6 w-full max-w-xs"
+          >
+            <Button
+              variant="primary"
+              fullWidth
+              icon={<Share2 size={16} />}
+              onClick={handleShare}
+            >
+              Share your impact
+            </Button>
+          </motion.div>
+
+          {/* What's next? */}
+          <motion.div
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0 }}
+            className="mt-6 w-full"
+          >
+            <WhatsNext
+              suggestions={[
+                {
+                  label: 'Find an Event',
+                  description: 'Put your donation into action',
+                  icon: <Calendar size={18} />,
+                  to: '/explore',
+                },
+                {
+                  label: 'View Donor Wall',
+                  description: 'See the community of supporters',
+                  icon: <Users size={18} />,
+                  to: '/donate/donors',
+                },
+                {
+                  label: 'View Your Impact',
+                  description: 'See how your contributions add up',
+                  icon: <Trophy size={18} />,
+                  to: '/impact',
+                },
+              ]}
+            />
+          </motion.div>
         </motion.div>
-      </motion.div>
+      </div>
     </Page>
   )
 }

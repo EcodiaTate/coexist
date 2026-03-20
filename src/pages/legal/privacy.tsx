@@ -1,19 +1,18 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Page } from '@/components/page'
-import { Header } from '@/components/header'
 
 export default function PrivacyPolicyPage() {
   const shouldReduceMotion = useReducedMotion()
 
   return (
-    <Page header={<Header title="Privacy Policy" back />}>
+    <Page>
       <motion.div
-        className="px-6 py-8 space-y-6"
+        className="py-8 space-y-6"
         initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        <h1 className="font-heading text-2xl font-bold text-primary-800">
+        <h1 className="font-heading text-2xl font-bold text-primary-800 text-center">
           Privacy Policy
         </h1>
         <p className="text-sm text-primary-400 leading-relaxed">

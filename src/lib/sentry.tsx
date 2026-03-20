@@ -130,7 +130,7 @@ export class SentryErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
 
       return (
         <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-white">
-          <div className="w-16 h-16 mb-4 rounded-2xl bg-red-100 flex items-center justify-center">
+          <div className="w-16 h-16 mb-4 rounded-2xl bg-error-100 flex items-center justify-center">
             <svg
               width="28"
               height="28"
@@ -140,7 +140,7 @@ export class SentryErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-red-600"
+              className="text-error-600"
             >
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />
@@ -163,7 +163,7 @@ export class SentryErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
             </Button>
           </div>
           {import.meta.env.DEV && this.state.error && (
-            <pre className="mt-6 text-left text-xs text-red-600 bg-red-50 p-3 rounded-lg max-w-sm overflow-auto max-h-40">
+            <pre className="mt-6 text-left text-xs text-error-600 bg-error-50 p-3 rounded-lg max-w-sm overflow-auto max-h-40">
               {this.state.error.message}
               {'\n'}
               {this.state.error.stack}

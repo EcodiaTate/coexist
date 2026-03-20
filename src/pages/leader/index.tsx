@@ -275,7 +275,7 @@ function MiniCalendar({
           <button
             type="button"
             onClick={() => setCurrentMonth(new Date(year, month - 1))}
-            className="p-1 rounded hover:bg-primary-50 text-primary-400 cursor-pointer"
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-xl hover:bg-primary-50 text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
             aria-label="Previous month"
           >
             <ChevronRight size={16} className="rotate-180" />
@@ -283,7 +283,7 @@ function MiniCalendar({
           <button
             type="button"
             onClick={() => setCurrentMonth(new Date(year, month + 1))}
-            className="p-1 rounded hover:bg-primary-50 text-primary-400 cursor-pointer"
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-xl hover:bg-primary-50 text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
             aria-label="Next month"
           >
             <ChevronRight size={16} />
@@ -334,16 +334,15 @@ function MiniCalendar({
 export default function LeaderDashboardPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
-  const { profile } = useAuth()
+  const { collectiveRoles } = useAuth()
 
   // Get user's primary collective where they are leader
   const collectiveId = useMemo(() => {
-    const membership = (profile as any)?.collective_memberships?.find(
-      (m: { role: string; collective_id: string }) =>
-        ['leader', 'co_leader', 'assist_leader'].includes(m.role),
+    const membership = collectiveRoles.find(
+      (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
     )
     return membership?.collective_id
-  }, [profile])
+  }, [collectiveRoles])
 
   const { data, isLoading } = useLeaderDashboard(collectiveId)
   const { data: collectiveDetail } = useCollective(collectiveId)
@@ -355,7 +354,7 @@ export default function LeaderDashboardPage() {
   if (isLoading) {
     return (
       <Page header={<Header title="Leader Dashboard" back />}>
-        <div className="p-4 space-y-4">
+        <div className="py-4 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <Skeleton variant="stat-card" />
             <Skeleton variant="stat-card" />
@@ -390,7 +389,7 @@ export default function LeaderDashboardPage() {
   return (
     <Page header={<Header title="Leader Dashboard" back />}>
       <motion.div
-        className="p-4 space-y-6 pb-8"
+        className="py-4 space-y-6 pb-8"
         initial="initial"
         animate="animate"
         variants={{ animate: stagger }}
@@ -470,13 +469,13 @@ export default function LeaderDashboardPage() {
                   to={`/events/${item.id}/impact`}
                   className={cn(
                     'flex items-center gap-3 p-3 rounded-xl',
-                    'bg-amber-50 border border-amber-200',
-                    'hover:bg-amber-100 transition-colors duration-150',
+                    'bg-warning-50 border border-warning-200',
+                    'hover:bg-warning-100 transition-colors duration-150',
                   )}
                 >
-                  <AlertTriangle size={16} className="text-amber-600 shrink-0" />
-                  <span className="text-sm text-amber-900 flex-1">{item.message}</span>
-                  <ChevronRight size={16} className="text-amber-400 shrink-0" />
+                  <AlertTriangle size={16} className="text-warning-600 shrink-0" />
+                  <span className="text-sm text-warning-900 flex-1">{item.message}</span>
+                  <ChevronRight size={16} className="text-warning-400 shrink-0" />
                 </Link>
               ))}
             </div>
@@ -571,27 +570,27 @@ export default function LeaderDashboardPage() {
               Member Engagement
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-xl bg-green-50 border border-green-200">
+              <div className="p-4 rounded-xl bg-success-50 border border-success-200">
                 <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle2 size={16} className="text-green-600" />
-                  <span className="text-xs font-medium text-green-700">Active</span>
+                  <CheckCircle2 size={16} className="text-success-600" />
+                  <span className="text-xs font-medium text-success-700">Active</span>
                 </div>
-                <p className="font-heading text-2xl font-bold text-green-900">
+                <p className="font-heading text-2xl font-bold text-success-900">
                   {engagement.active.length}
                 </p>
-                <p className="text-xs text-green-600 mt-0.5">
+                <p className="text-xs text-success-600 mt-0.5">
                   Attended event in last 30 days
                 </p>
               </div>
-              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
+              <div className="p-4 rounded-xl bg-warning-50 border border-warning-200">
                 <div className="flex items-center gap-2 mb-1">
-                  <AlertTriangle size={16} className="text-amber-600" />
-                  <span className="text-xs font-medium text-amber-700">At Risk</span>
+                  <AlertTriangle size={16} className="text-warning-600" />
+                  <span className="text-xs font-medium text-warning-700">At Risk</span>
                 </div>
-                <p className="font-heading text-2xl font-bold text-amber-900">
+                <p className="font-heading text-2xl font-bold text-warning-900">
                   {engagement.atRisk.length}
                 </p>
-                <p className="text-xs text-amber-600 mt-0.5">
+                <p className="text-xs text-warning-600 mt-0.5">
                   Inactive 30+ days
                 </p>
               </div>

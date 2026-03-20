@@ -315,7 +315,7 @@ export default function CheckInPage() {
   if (isLoading) {
     return (
       <Page header={<Header title="Check In" back />}>
-        <div className="px-4 pt-8 space-y-4">
+        <div className="pt-8 space-y-4">
           <Skeleton variant="title" />
           <Skeleton variant="card" />
         </div>
@@ -339,8 +339,7 @@ export default function CheckInPage() {
   return (
     <Page header={<Header title="Check In" back />}>
       <AnimatePresence mode="wait">
-        {/* Success state */}
-        {state === 'success' && (
+        {state === 'success' ? (
           <motion.div
             key="success"
             initial={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.9 }}
@@ -458,10 +457,7 @@ export default function CheckInPage() {
               />
             </motion.div>
           </motion.div>
-        )}
-
-        {/* Error state */}
-        {state === 'error' && (
+        ) : state === 'error' ? (
           <motion.div
             key="error"
             initial={{ opacity: 0 }}
@@ -492,10 +488,7 @@ export default function CheckInPage() {
               </Button>
             </div>
           </motion.div>
-        )}
-
-        {/* Scanning state */}
-        {state === 'scanning' && (
+        ) : state === 'scanning' ? (
           <motion.div
             key="scanning"
             initial={{ opacity: 0 }}
@@ -528,15 +521,12 @@ export default function CheckInPage() {
               </Button>
             </div>
           </motion.div>
-        )}
-
-        {/* Idle / Manual entry state */}
-        {(state === 'idle' || state === 'manual') && (
+        ) : (state === 'idle' || state === 'manual') ? (
           <motion.div
             key="idle"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="px-4 pt-6 pb-8"
+            className="pt-6 pb-8"
           >
             <div className="text-center mb-8">
               <h2 className="font-heading text-xl font-bold text-primary-800">
@@ -642,7 +632,7 @@ export default function CheckInPage() {
               </div>
             )}
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
 
       {/* Celebration overlay */}

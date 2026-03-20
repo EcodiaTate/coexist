@@ -33,7 +33,7 @@ export function RegisterButton({
         'min-w-[180px] px-6 py-3 rounded-xl font-heading font-semibold text-sm',
         'transition-colors focus-visible:outline-none focus-visible:ring-2',
         registered
-          ? 'bg-green-50 text-green-700 border-2 border-green-200 focus-visible:ring-green-400'
+          ? 'bg-success-50 text-success-700 border-2 border-success-200 focus-visible:ring-success-400'
           : 'bg-primary-800 text-white focus-visible:ring-primary-400',
         loading && 'opacity-70 cursor-wait',
         className,

@@ -130,7 +130,7 @@ export const Input = forwardRef<
     'text-[16px] leading-normal text-primary-800',
     'outline-none transition-colors duration-150',
     'disabled:opacity-50 disabled:cursor-not-allowed',
-    isSearch && 'pl-10',
+    (isSearch || icon) && 'pl-10',
     isPassword && 'pr-12',
     error
       ? 'border-error focus:border-error focus:ring-1 focus:ring-error'
@@ -224,7 +224,7 @@ export const Input = forwardRef<
           className={cn(
             'absolute left-4 top-2 pointer-events-none',
             'text-[16px] leading-normal origin-left',
-            isSearch && 'left-10',
+            (isSearch || icon) && 'left-10',
             error ? 'text-error' : focused ? 'text-primary-400' : 'text-primary-400',
           )}
         >
@@ -239,8 +239,11 @@ export const Input = forwardRef<
             onClick={() => setShowPassword((p) => !p)}
             aria-label={showPassword ? 'Hide password' : 'Show password'}
             className={cn(
-              'absolute right-3 top-1/2 -translate-y-1/2',
-              'p-1 rounded text-primary-400 hover:text-primary-800',
+              'absolute right-1 top-1/2 -translate-y-1/2',
+              'min-w-11 min-h-11 flex items-center justify-center',
+              'rounded-xl text-primary-400 hover:text-primary-800',
+              'cursor-pointer select-none',
+              'active:scale-[0.97] transition-all duration-150',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             )}
           >

@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useState, useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
@@ -26,6 +26,18 @@ export function RequireAuth({ children }: RequireAuthProps) {
   const { user, profile, isLoading, isSuspended, needsTosAcceptance } = useAuth()
   const location = useLocation()
 
+  // Safety timeout: if we have a user but profile never arrives,
+  // don't hang on a blank screen forever.
+  const [profileTimeout, setProfileTimeout] = useState(false)
+  useEffect(() => {
+    if (profile || !user) {
+      setProfileTimeout(false)
+      return
+    }
+    const timer = setTimeout(() => setProfileTimeout(true), 12000)
+    return () => clearTimeout(timer)
+  }, [profile, user])
+
   if (isLoading) {
     return <div className="min-h-dvh bg-white" />
   }
@@ -44,7 +56,13 @@ export function RequireAuth({ children }: RequireAuthProps) {
     return <Navigate to="/accept-terms" replace />
   }
 
-  // Redirect to onboarding if profile is missing (trigger race) or not completed
+  // Profile not loaded yet — wait rather than flashing onboarding.
+  // After 12s safety timeout, fall through to onboarding redirect.
+  if (!profile && !profileTimeout) {
+    return <div className="min-h-dvh bg-white" />
+  }
+
+  // Redirect to onboarding only once we have a profile and it's not completed
   if ((!profile || !profile.onboarding_completed) && !location.pathname.startsWith('/onboarding')) {
     return <Navigate to="/onboarding" replace />
   }

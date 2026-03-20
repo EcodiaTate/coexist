@@ -52,7 +52,7 @@ const tierLabels: Record<TierName, string> = {
 
 function ProfileSkeleton() {
   return (
-    <div className="space-y-6 px-4 py-6">
+    <div className="space-y-6 py-6">
       <div className="flex flex-col items-center gap-3">
         <Skeleton variant="avatar" className="h-24 w-24" />
         <Skeleton variant="title" className="w-40" />
@@ -144,7 +144,7 @@ export default function ProfilePage() {
         />
       }
     >
-      <div className="px-4 pb-8">
+      <div className="pb-8">
         <OfflineIndicator dataUpdatedAt={profileUpdatedAt} isFetching={profileFetching} className="mb-2" />
         {/* Profile Header */}
         <motion.div

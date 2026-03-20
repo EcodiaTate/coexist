@@ -33,7 +33,7 @@ export default function ChatListPage() {
   if (isLoading) {
     return (
       <Page header={<Header title="Chat" />}>
-        <div className="p-4">
+        <div className="py-4">
           <Skeleton variant="list-item" count={5} />
         </div>
       </Page>
@@ -66,7 +66,7 @@ export default function ChatListPage() {
   return (
     <Page header={<Header title="Chat" />}>
       <PullToRefresh onRefresh={handleRefresh}>
-      <div className="p-4">
+      <div className="py-4">
         <div className="space-y-2">
           {myCollectives.map((membership, i) => {
             const collective = membership.collectives as {

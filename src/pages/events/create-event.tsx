@@ -417,8 +417,9 @@ function StepCoverImage({
           onClick={() => handleUpload('gallery')}
           disabled={cameraLoading || uploading}
           className={cn(
-            'w-full rounded-xl border-2 border-dashed border-primary-200 hover:border-primary-400',
-            'transition-colors duration-150 cursor-pointer',
+            'w-full min-h-11 rounded-xl border-2 border-dashed border-primary-200 hover:border-primary-400',
+            'cursor-pointer select-none',
+            'active:scale-[0.97] transition-all duration-150',
             'flex flex-col items-center justify-center',
             'text-primary-400 hover:text-primary-500',
             'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -497,7 +498,8 @@ function StepVisibility({
           type="button"
           onClick={() => onChange({ is_public: true })}
           className={cn(
-            'w-full flex items-start gap-3 p-4 rounded-xl border-2 transition-colors cursor-pointer text-left',
+            'w-full min-h-11 flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer select-none text-left',
+            'active:scale-[0.97] transition-all duration-150',
             data.is_public ? 'border-primary-500 bg-white' : 'border-primary-200 hover:border-primary-200',
           )}
         >
@@ -514,7 +516,8 @@ function StepVisibility({
           type="button"
           onClick={() => onChange({ is_public: false })}
           className={cn(
-            'w-full flex items-start gap-3 p-4 rounded-xl border-2 transition-colors cursor-pointer text-left',
+            'w-full min-h-11 flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer select-none text-left',
+            'active:scale-[0.97] transition-all duration-150',
             !data.is_public ? 'border-primary-500 bg-white' : 'border-primary-200 hover:border-primary-200',
           )}
         >
@@ -774,7 +777,7 @@ export default function CreateEventPage() {
       const dateStr = data.date_start
         ? new Intl.DateTimeFormat('en-AU', { dateStyle: 'medium', timeStyle: 'short' }).format(data.date_start)
         : ''
-      const chatContent = `📋 New event created!\n\n**${data.title}**\n📅 ${dateStr}${data.address ? `\n📍 ${data.address}` : ''}\n\nTap to view and register → /events/${event.id}`
+      const chatContent = `New event created!\n\n**${data.title}**\n${dateStr}${data.address ? `\n${data.address}` : ''}\n\nTap to view and register → /events/${event.id}`
       try {
         await supabase.from('chat_messages').insert({
           collective_id: collectiveId,
@@ -877,7 +880,7 @@ export default function CreateEventPage() {
       }
     >
       {/* Progress bar */}
-      <div className="px-4 pt-3 pb-1">
+      <div className="pt-3 pb-1">
         <div className="flex items-center gap-1.5">
           {STEPS.map((s, i) => (
             <div
@@ -905,7 +908,7 @@ export default function CreateEventPage() {
       </div>
 
       {/* Step content with slide animation */}
-      <div className="px-4 pt-4 pb-8 min-h-[400px]">
+      <div className="pt-4 pb-8 min-h-[400px]">
         <AnimatePresence mode="wait" custom={direction}>
           <motion.div
             key={step}

@@ -75,11 +75,129 @@ html {
   --color-neutral-900: #1a1a1a;
   --color-neutral-950: #000000;
 
-  /* Semantic */
-  --color-success: #4ade80;
-  --color-warning: #fbbf24;
-  --color-error: #f87171;
-  --color-info: #60a5fa;
+  /* Semantic – Success (Fern green) */
+  --color-success-50:  #f0f7f1;
+  --color-success-100: #dceedd;
+  --color-success-200: #b8ddb9;
+  --color-success-300: #86c589;
+  --color-success-400: #4ade80;
+  --color-success-500: #3aac5c;
+  --color-success-600: #2d8a48;
+  --color-success-700: #266e3c;
+  --color-success-800: #215832;
+  --color-success-900: #1b4829;
+  --color-success:     #4ade80;
+
+  /* Semantic – Warning (Ochre / Honey) */
+  --color-warning-50:  #fdf8eb;
+  --color-warning-100: #faedc4;
+  --color-warning-200: #f5d98a;
+  --color-warning-300: #f0c150;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #d9a21e;
+  --color-warning-600: #b58418;
+  --color-warning-700: #8c6613;
+  --color-warning-800: #6e500f;
+  --color-warning-900: #543d0c;
+  --color-warning:     #fbbf24;
+
+  /* Semantic – Error (Terracotta) */
+  --color-error-50:  #fef2f2;
+  --color-error-100: #fce1e1;
+  --color-error-200: #f9c4c4;
+  --color-error-300: #f49898;
+  --color-error-400: #f87171;
+  --color-error-500: #dc4545;
+  --color-error-600: #b83636;
+  --color-error-700: #952c2c;
+  --color-error-800: #7a2626;
+  --color-error-900: #652424;
+  --color-error:     #f87171;
+
+  /* Semantic – Info (Sage teal) */
+  --color-info-50:  #f0f5fa;
+  --color-info-100: #dce8f4;
+  --color-info-200: #b8d0e9;
+  --color-info-300: #89b2d8;
+  --color-info-400: #60a5fa;
+  --color-info-500: #4882c8;
+  --color-info-600: #3868a6;
+  --color-info-700: #2d5285;
+  --color-info-800: #254368;
+  --color-info-900: #1e3650;
+  --color-info:     #60a5fa;
+
+  /* Semantic – Plum (special statuses, orders, violet replacement) */
+  --color-plum-50:  #f6f3f8;
+  --color-plum-100: #ece5f0;
+  --color-plum-200: #d6c9e0;
+  --color-plum-300: #b8a2c9;
+  --color-plum-400: #9677ad;
+  --color-plum-500: #7d5f96;
+  --color-plum-600: #664c7b;
+  --color-plum-700: #523d63;
+  --color-plum-800: #433352;
+  --color-plum-900: #382b44;
+
+  /* Semantic – Bark (warm brown, for wildlife/nature_walk) */
+  --color-bark-50:  #faf6f1;
+  --color-bark-100: #f0e8db;
+  --color-bark-200: #e0cfb5;
+  --color-bark-300: #ccb08a;
+  --color-bark-400: #b89565;
+  --color-bark-500: #a07d4f;
+  --color-bark-600: #846540;
+  --color-bark-700: #6a5035;
+  --color-bark-800: #57422d;
+  --color-bark-900: #473627;
+
+  /* Semantic – Coral (pink replacement, fundraising) */
+  --color-coral-50:  #fdf4f3;
+  --color-coral-100: #fbe6e3;
+  --color-coral-200: #f7ccc6;
+  --color-coral-300: #f0a99f;
+  --color-coral-400: #e47e71;
+  --color-coral-500: #d2574a;
+  --color-coral-600: #b14138;
+  --color-coral-700: #8f342d;
+  --color-coral-800: #762e29;
+  --color-coral-900: #632a26;
+
+  /* Semantic – Sky (beach/water activities) */
+  --color-sky-50:  #f0f7fb;
+  --color-sky-100: #dcedf6;
+  --color-sky-200: #b6d9ed;
+  --color-sky-300: #85bfdf;
+  --color-sky-400: #5ba3cc;
+  --color-sky-500: #4388b3;
+  --color-sky-600: #366e95;
+  --color-sky-700: #2d587a;
+  --color-sky-800: #274a65;
+  --color-sky-900: #243e55;
+
+  /* Semantic – Moss (teal/cyan replacement, monitoring) */
+  --color-moss-50:  #f0f6f5;
+  --color-moss-100: #dcece9;
+  --color-moss-200: #b8d9d3;
+  --color-moss-300: #88bfb5;
+  --color-moss-400: #5ea198;
+  --color-moss-500: #47867d;
+  --color-moss-600: #396c65;
+  --color-moss-700: #305752;
+  --color-moss-800: #294744;
+  --color-moss-900: #253c39;
+
+  /* Semantic – Sprout (lime replacement, restoration) */
+  --color-sprout-50:  #f5f8ef;
+  --color-sprout-100: #e7edda;
+  --color-sprout-200: #d0ddb7;
+  --color-sprout-300: #b2c88d;
+  --color-sprout-400: #95b268;
+  --color-sprout-500: #789a4d;
+  --color-sprout-600: #5e7b3b;
+  --color-sprout-700: #4a6131;
+  --color-sprout-800: #3d4f2b;
+  --color-sprout-900: #354328;
 
   /* Shadows - warm tinted */
   --shadow-sm: 0 1px 2px rgba(74, 74, 66, 0.06);
@@ -232,4 +350,66 @@ html {
 }
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* ===== Native App Feel ===== */
+
+/* iOS-style momentum scrolling */
+[data-overscroll-contain] {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Prevent rubber-band bounce on the whole page (native apps don't bounce) */
+html, body {
+  overscroll-behavior: none;
+}
+
+/* ===== 60fps Scroll Performance ===== */
+
+/* GPU-accelerate all scrollable containers */
+[style*="overflow"], .overflow-y-auto, .overflow-x-auto, .overflow-auto,
+.overflow-y-scroll, .overflow-x-scroll, .overflow-scroll {
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Smooth scroll for all scrollable containers (not just html) */
+.overflow-y-auto, .overflow-x-auto, .overflow-auto,
+.overflow-y-scroll, .overflow-x-scroll, .overflow-scroll {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overflow-y-auto, .overflow-x-auto, .overflow-auto,
+  .overflow-y-scroll, .overflow-x-scroll, .overflow-scroll {
+    scroll-behavior: auto;
+  }
+}
+
+/* Horizontal scroll strips — snap & GPU composite */
+.snap-x {
+  -webkit-overflow-scrolling: touch;
+  will-change: scroll-position;
+  transform: translateZ(0);
+}
+
+/* Prevent text selection on interactive elements (native feel) */
+button, a, [role="button"], [role="tab"], nav {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Native-style section padding utility */
+.section-pad {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 1024px) {
+  .section-pad {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
 }

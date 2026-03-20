@@ -261,7 +261,7 @@ export default function NationalImpactPage() {
               <button
                 type="button"
                 onClick={shareLink}
-                className="p-1.5 rounded-full text-primary-400 hover:bg-primary-50 cursor-pointer"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                 aria-label="Share"
               >
                 <Share2 size={18} />
@@ -275,40 +275,40 @@ export default function NationalImpactPage() {
         {/* Big animated counters */}
         <div className="grid grid-cols-2 gap-3">
           <ImpactCounter
-            icon={<TreePine size={28} className="text-green-600" />}
+            icon={<TreePine size={28} className="text-success-600" />}
             value={data?.totalTrees ?? 0}
             label="Trees Planted"
-            color="bg-green-50 border border-green-200"
+            color="bg-success-50 border border-success-200"
             delay={0}
           />
           <ImpactCounter
-            icon={<Clock size={28} className="text-blue-600" />}
+            icon={<Clock size={28} className="text-info-600" />}
             value={data?.totalHours ?? 0}
             label="Hours Volunteered"
-            color="bg-blue-50 border border-blue-200"
+            color="bg-info-50 border border-info-200"
             delay={0.1}
           />
           <ImpactCounter
-            icon={<RubbishIcon size={28} className="text-amber-600" />}
+            icon={<RubbishIcon size={28} className="text-warning-600" />}
             value={data?.totalRubbish ?? 0}
             suffix=" kg"
             label="Rubbish Collected"
-            color="bg-amber-50 border border-amber-200"
+            color="bg-warning-50 border border-warning-200"
             delay={0.2}
           />
           <ImpactCounter
-            icon={<Waves size={28} className="text-cyan-600" />}
+            icon={<Waves size={28} className="text-moss-600" />}
             value={data?.totalCoastline ?? 0}
             suffix=" km"
             label="Coastline Cleaned"
-            color="bg-cyan-50 border border-cyan-200"
+            color="bg-moss-50 border border-moss-200"
             delay={0.3}
           />
           <ImpactCounter
-            icon={<CalendarDays size={28} className="text-purple-600" />}
+            icon={<CalendarDays size={28} className="text-plum-600" />}
             value={data?.totalEvents ?? 0}
             label="Events Held"
-            color="bg-purple-50 border border-purple-200"
+            color="bg-plum-50 border border-plum-200"
             delay={0.4}
           />
           <ImpactCounter

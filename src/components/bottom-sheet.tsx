@@ -26,7 +26,7 @@ const DISMISS_VELOCITY = 500
 const DISMISS_THRESHOLD_FRACTION = 0.25
 const MAX_HEIGHT_FRACTION = 0.9
 
-const springTransition = { type: 'spring' as const, damping: 30, stiffness: 350 }
+const springTransition = { type: 'spring' as const, stiffness: 400, damping: 34, mass: 0.8 }
 const instantTransition = { duration: 0 }
 
 export function BottomSheet({
@@ -132,7 +132,9 @@ export function BottomSheet({
         controls
           .start({
             y: maxH,
-            transition: shouldReduceMotion ? instantTransition : { duration: 0.2 },
+            transition: shouldReduceMotion
+              ? instantTransition
+              : { type: 'spring', stiffness: 300, damping: 30 },
           })
           .then(onClose)
         return
@@ -162,6 +164,23 @@ export function BottomSheet({
 
   const maxHeight = getMaxHeight()
 
+  /* ---- Backdrop animation ---- */
+  const backdropTransition = shouldReduceMotion
+    ? instantTransition
+    : { duration: 0.2, ease: 'easeOut' as const }
+
+  /* ---- Content stagger ---- */
+  const contentVariants = {
+    hidden: { opacity: 0, y: 8 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: shouldReduceMotion
+        ? instantTransition
+        : { delay: 0.1, duration: 0.2, ease: 'easeOut' as const },
+    },
+  }
+
   return createPortal(
     <AnimatePresence>
       {open && (
@@ -169,8 +188,8 @@ export function BottomSheet({
           <motion.div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: backdropTransition }}
+            exit={{ opacity: 0, transition: shouldReduceMotion ? instantTransition : { duration: 0.15, ease: 'easeIn' } }}
             style={{ opacity: backdropOpacity }}
             onClick={onClose}
             aria-hidden="true"
@@ -194,7 +213,9 @@ export function BottomSheet({
             animate={controls}
             exit={{
               y: maxHeight,
-              transition: shouldReduceMotion ? instantTransition : { duration: 0.2 },
+              transition: shouldReduceMotion
+                ? instantTransition
+                : { type: 'spring', stiffness: 300, damping: 30 },
             }}
             drag="y"
             dragConstraints={{ top: 0, bottom: maxHeight }}
@@ -210,15 +231,18 @@ export function BottomSheet({
               />
             </div>
 
-            <div
-              className="overflow-y-auto px-5 pb-6"
+            <motion.div
+              className="overflow-y-auto overscroll-contain px-5 pb-6"
               style={{
                 maxHeight: maxHeight - 28,
                 paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 1.5rem)',
               }}
+              variants={contentVariants}
+              initial="hidden"
+              animate="visible"
             >
               {children}
-            </div>
+            </motion.div>
           </motion.div>
         </div>
       )}

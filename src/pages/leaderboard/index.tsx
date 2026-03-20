@@ -41,7 +41,7 @@ const MEDAL_ICONS = [
 
 function LeaderboardSkeleton() {
   return (
-    <div className="px-4 py-4">
+    <div className="py-4">
       <Skeleton variant="list-item" count={10} />
     </div>
   )
@@ -82,7 +82,7 @@ export default function LeaderboardPage() {
   return (
     <Page header={<Header title="Leaderboard" back />}>
       <PullToRefresh onRefresh={handleRefresh}>
-      <div className="px-4 pb-8">
+      <div className="pb-8">
         {/* View Toggle */}
         <div className="mt-4 mb-3">
           <TabBar
@@ -145,8 +145,9 @@ export default function LeaderboardPage() {
                   return (
                     <button
                       key={entry.userId}
+                      type="button"
                       onClick={() => navigate(`/profile/${entry.userId}`)}
-                      className="flex flex-col items-center gap-1"
+                      className="flex flex-col items-center justify-center gap-1 min-h-11 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                     >
                       <div className="relative">
                         <Avatar
@@ -192,7 +193,7 @@ export default function LeaderboardPage() {
                     transition={{ delay: i * 0.02 }}
                     onClick={() => navigate(`/profile/${entry.userId}`)}
                     className={cn(
-                      'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-primary-50',
+                      'w-full flex items-center justify-center gap-3 rounded-xl px-3 py-2.5 min-h-11 active:scale-[0.97] transition-all duration-150 hover:bg-primary-50 cursor-pointer select-none',
                       entry.userId === user?.id && 'bg-white border border-primary-100',
                     )}
                   >

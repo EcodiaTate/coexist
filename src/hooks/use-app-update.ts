@@ -29,8 +29,8 @@ export function useAppUpdate(): UpdateStatus {
     async function check() {
       try {
         const { data, error } = await supabase
-          .from('feature_flags' as any)
-          .select('key, value')
+          .from('feature_flags')
+          .select('key, enabled, value')
           .in('key', [
             'app_min_version',
             'app_latest_version',
@@ -40,21 +40,21 @@ export function useAppUpdate(): UpdateStatus {
 
         if (error || !data || cancelled) return
 
-        const flags: Record<string, string> = {}
+        const flags: Record<string, { enabled: boolean; value: string | null }> = {}
         for (const row of data as any[]) {
-          flags[row.key] = row.value
+          flags[row.key] = { enabled: row.enabled, value: row.value }
         }
 
-        const latest = flags['app_latest_version'] ?? APP_VERSION
-        const minVersion = flags['app_min_version'] ?? '0.0.0'
-        const maintenance = flags['maintenance_mode'] === 'true'
+        const latest = flags['app_latest_version']?.value ?? APP_VERSION
+        const minVersion = flags['app_min_version']?.value ?? '0.0.0'
+        const maintenance = flags['maintenance_mode']?.enabled === true
 
         setStatus({
           updateAvailable: compareVersions(APP_VERSION, latest) < 0,
           latestVersion: latest,
           forceUpdate: compareVersions(APP_VERSION, minVersion) < 0,
           maintenanceMode: maintenance,
-          maintenanceMessage: flags['maintenance_message'],
+          maintenanceMessage: flags['maintenance_message']?.value ?? undefined,
         })
       } catch (err) {
         // Log but don't block - missing table or network blip shouldn't lock users out

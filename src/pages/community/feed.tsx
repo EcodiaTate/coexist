@@ -94,11 +94,11 @@ function LikeButton({
       type="button"
       onClick={handleClick}
       className={cn(
-        'relative flex items-center gap-1.5 px-2 py-1.5 rounded-lg',
-        'transition-colors duration-150 cursor-pointer select-none',
+        'relative flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl min-h-11',
+        'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
         isLiked
-          ? 'text-red-500'
+          ? 'text-error-500'
           : 'text-primary-400 hover:text-primary-800',
       )}
       aria-label={isLiked ? 'Unlike post' : 'Like post'}
@@ -120,7 +120,7 @@ function LikeButton({
                 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="absolute left-2 top-1.5 w-1.5 h-1.5 rounded-full bg-red-400"
+                className="absolute left-2 top-1.5 w-1.5 h-1.5 rounded-full bg-error-400"
                 aria-hidden="true"
               />
             ))}
@@ -191,9 +191,9 @@ function CommentSection({
           }
         }}
         className={cn(
-          'flex items-center gap-1.5 px-2 py-1.5 rounded-lg',
+          'flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl min-h-11',
           'text-primary-400 hover:text-primary-800',
-          'transition-colors duration-150 cursor-pointer select-none',
+          'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
         )}
         aria-label={`${commentCount} comments`}
@@ -345,7 +345,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
         <button
           type="button"
           onClick={handleAvatarTap}
-          className="shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-full"
+          className="shrink-0 flex items-center justify-center min-h-11 min-w-11 cursor-pointer select-none active:scale-[0.97] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-full"
           aria-label={`View ${post.author?.display_name ?? 'user'}'s profile`}
         >
           <Avatar
@@ -360,7 +360,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
             <button
               type="button"
               onClick={handleAvatarTap}
-              className="font-heading font-semibold text-sm text-primary-800 truncate cursor-pointer hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded"
+              className="flex items-center min-h-11 font-heading font-semibold text-sm text-primary-800 truncate cursor-pointer select-none hover:underline active:scale-[0.97] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-xl"
             >
               {post.author?.display_name ?? 'User'}
             </button>
@@ -386,9 +386,9 @@ function PostCard({ post }: { post: PostWithDetails }) {
           type="button"
           onClick={() => setShowMenu(true)}
           className={cn(
-            'flex items-center justify-center w-8 h-8 rounded-full',
+            'flex items-center justify-center w-8 h-8 min-h-11 min-w-11 rounded-full',
             'text-primary-400 hover:bg-primary-50 hover:text-primary-400',
-            'transition-colors duration-150 cursor-pointer select-none',
+            'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
           aria-label="Post options"
@@ -410,10 +410,10 @@ function PostCard({ post }: { post: PostWithDetails }) {
           type="button"
           onClick={() => navigate(`/events/${post.event!.id}`)}
           className={cn(
-            'mx-4 mb-3 flex items-center gap-2 px-3 py-2 rounded-xl',
+            'mx-4 mb-3 flex items-center justify-center gap-2 px-3 py-2 rounded-xl min-h-11',
             'bg-white border border-primary-100',
             'text-sm text-primary-400 font-medium',
-            'cursor-pointer hover:bg-primary-100 transition-colors duration-150',
+            'cursor-pointer select-none hover:bg-primary-100 active:scale-[0.97] transition-all duration-150',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
           aria-label={`View event: ${post.event.title}`}
@@ -461,9 +461,9 @@ function PostCard({ post }: { post: PostWithDetails }) {
           type="button"
           onClick={handleShare}
           className={cn(
-            'flex items-center justify-center w-8 h-8 rounded-lg',
+            'flex items-center justify-center w-8 h-8 min-h-11 min-w-11 rounded-xl',
             'text-primary-400 hover:text-primary-800',
-            'transition-colors duration-150 cursor-pointer select-none',
+            'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
           aria-label="Share post"
@@ -479,9 +479,9 @@ function PostCard({ post }: { post: PostWithDetails }) {
             type="button"
             onClick={handleReport}
             className={cn(
-              'flex items-center gap-3 w-full px-4 py-3 rounded-xl',
+              'flex items-center justify-center gap-3 w-full px-4 py-3 rounded-xl min-h-11',
               'text-sm text-primary-800 font-medium',
-              'hover:bg-primary-50 transition-colors duration-150',
+              'hover:bg-primary-50 active:scale-[0.97] transition-all duration-150',
               'cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             )}
@@ -515,9 +515,10 @@ function PostCard({ post }: { post: PostWithDetails }) {
               type="button"
               onClick={() => setReportReason(reason)}
               className={cn(
-                'w-full text-left px-3 py-2.5 rounded-xl text-sm transition-colors',
+                'w-full text-left px-3 py-2.5 rounded-xl text-sm min-h-11 flex items-center',
+                'cursor-pointer select-none active:scale-[0.97] transition-all duration-150',
                 reportReason === reason
-                  ? 'bg-red-50 text-red-700 font-medium border border-red-200'
+                  ? 'bg-error-50 text-error-700 font-medium border border-error-200'
                   : 'text-primary-800 hover:bg-primary-50 border border-transparent',
               )}
             >
@@ -530,7 +531,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
           fullWidth
           disabled={!reportReason}
           onClick={() => { confirmReport(); setShowReport(false) }}
-          className="!bg-red-600 hover:!bg-red-700"
+          className="!bg-error-600 hover:!bg-error-700"
         >
           Submit Report
         </Button>
@@ -545,7 +546,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
 
 function FeedSkeleton() {
   return (
-    <div className="space-y-4 p-4" role="status" aria-label="Loading feed">
+    <div className="space-y-4 py-4" role="status" aria-label="Loading feed">
       {[1, 2, 3].map((i) => (
         <div key={i} className="bg-white rounded-2xl shadow-md overflow-hidden animate-pulse">
           <div className="flex items-center gap-3 px-4 pt-4 pb-3">
@@ -609,10 +610,10 @@ export default function FeedPage() {
               type="button"
               onClick={() => navigate('/community/create-post')}
               className={cn(
-                'flex items-center justify-center w-9 h-9 rounded-full',
+                'flex items-center justify-center w-9 h-9 min-h-11 min-w-11 rounded-full',
                 'bg-primary-800 text-white',
                 'cursor-pointer select-none',
-                'hover:bg-primary-950 transition-colors duration-150',
+                'hover:bg-primary-950 active:scale-[0.97] transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
               )}
               aria-label="Create post"
@@ -623,7 +624,7 @@ export default function FeedPage() {
         />
       }
     >
-      <div className="px-4 pt-3 pb-2">
+      <div className="pt-3 pb-2">
         <TabBar
           tabs={feedTabs}
           activeTab={activeTab}
@@ -646,7 +647,7 @@ export default function FeedPage() {
         />
       ) : (
         <PullToRefresh onRefresh={handleRefresh}>
-          <div className="space-y-4 p-4">
+          <div className="space-y-4 py-4">
             {posts.map((post, index) => (
               <PostCard key={post.id} post={post} />
             ))}

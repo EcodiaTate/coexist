@@ -59,9 +59,11 @@ export function LikeButton({
       type="button"
       onClick={handleClick}
       className={cn(
-        'relative inline-flex items-center gap-1.5 p-2 rounded-lg',
+        'relative inline-flex items-center justify-center gap-1.5 p-2 rounded-xl',
+        'min-h-11 min-w-11',
+        'cursor-pointer select-none',
+        'active:scale-[0.97] transition-all duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-        'transition-colors',
         liked ? 'text-primary-400' : 'text-primary-400',
         className,
       )}

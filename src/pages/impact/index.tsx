@@ -74,7 +74,7 @@ const scaleIn: Variants = {
 /* ─── skeleton ─── */
 function ImpactSkeleton() {
   return (
-    <div className="space-y-8 px-5 pt-8 pb-10">
+    <div className="space-y-8 pt-8 pb-10">
       <div className="h-44 rounded-3xl bg-primary-100/60 animate-pulse" />
       <div className="grid grid-cols-3 gap-3">
         <div className="h-24 rounded-2xl bg-primary-100/40 animate-pulse" />
@@ -289,7 +289,7 @@ export default function ImpactDashboardPage() {
   }
 
   const handleShare = async () => {
-    const text = `My Co-Exist Impact: ${stats.treesPlanted} trees planted, ${stats.eventsAttended} events attended, ${stats.hoursVolunteered} hours volunteered! 🌱`
+    const text = `My Co-Exist Impact: ${stats.treesPlanted} trees planted, ${stats.eventsAttended} events attended, ${stats.hoursVolunteered} hours volunteered! Join at coexistaus.org`
     if (navigator.share) {
       await navigator.share({ title: 'My Co-Exist Impact', text })
     } else {
@@ -307,8 +307,9 @@ export default function ImpactDashboardPage() {
           back
           rightActions={
             <button
+              type="button"
               onClick={handleShare}
-              className="flex items-center justify-center w-9 h-9 rounded-full text-primary-400 hover:bg-primary-50 active:scale-95 transition-all"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               aria-label="Share impact"
             >
               <Share2 size={20} />
@@ -383,7 +384,7 @@ export default function ImpactDashboardPage() {
               variants={shouldReduceMotion ? undefined : stagger}
               initial="hidden"
               animate="show"
-              className="px-4 mt-4 grid grid-cols-3 gap-3"
+              className="mt-4 grid grid-cols-3 gap-3"
             >
               {stats.coastlineCleanedM > 0 && (
                 <MiniMetric value={stats.coastlineCleanedM} label="Coastline (m)" icon={<Waves size={18} />} />
@@ -468,7 +469,7 @@ export default function ImpactDashboardPage() {
             transition={{ delay: 0.35, type: 'spring', stiffness: 200, damping: 22 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/impact/national')}
-            className="mx-4 mt-8 w-[calc(100%-2rem)] flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary-100/60 to-primary-50/40 border border-primary-200/50 p-5 text-left transition-shadow hover:shadow-md active:shadow-sm"
+            className="mx-4 mt-8 w-[calc(100%-2rem)] flex items-center justify-center gap-4 rounded-2xl bg-gradient-to-r from-primary-100/60 to-primary-50/40 border border-primary-200/50 p-5 min-h-11 text-left active:scale-[0.97] transition-all duration-150 hover:shadow-md cursor-pointer select-none"
           >
             <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-400/10">
               <Globe size={20} className="text-primary-500" />

@@ -18,8 +18,8 @@ export function PendingSyncBadge({ className }: PendingSyncBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5',
-        'text-xs font-medium text-amber-700',
+        'inline-flex items-center gap-1 rounded-full bg-warning-100 px-2 py-0.5',
+        'text-xs font-medium text-warning-700',
         className,
       )}
     >

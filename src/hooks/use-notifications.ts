@@ -116,17 +116,17 @@ export function getNotificationDeepLink(notification: Notification): string {
 export function getNotificationMeta(type: string): { emoji: string; color: string } {
   switch (type as NotificationType) {
     case 'event_reminder':
-      return { emoji: '\u{1F4C5}', color: 'bg-blue-100' }
+      return { emoji: '\u{1F4C5}', color: 'bg-info-100' }
     case 'registration_confirmed':
-      return { emoji: '\u{2705}', color: 'bg-green-100' }
+      return { emoji: '\u{2705}', color: 'bg-success-100' }
     case 'waitlist_promotion':
       return { emoji: '\u{1F389}', color: 'bg-accent-100' }
     case 'event_cancelled':
-      return { emoji: '\u{274C}', color: 'bg-red-100' }
+      return { emoji: '\u{274C}', color: 'bg-error-100' }
     case 'event_updated':
-      return { emoji: '\u{1F504}', color: 'bg-amber-100' }
+      return { emoji: '\u{1F504}', color: 'bg-warning-100' }
     case 'points_earned':
-      return { emoji: '\u{2B50}', color: 'bg-yellow-100' }
+      return { emoji: '\u{2B50}', color: 'bg-warning-100' }
     case 'badge_unlocked':
       return { emoji: '\u{1F3C6}', color: 'bg-accent-100' }
     case 'new_event_in_collective':
@@ -138,7 +138,7 @@ export function getNotificationMeta(type: string): { emoji: string; color: strin
     case 'challenge_update':
       return { emoji: '\u{1F525}', color: 'bg-secondary-100' }
     case 'chat_mention':
-      return { emoji: '\u{1F4AC}', color: 'bg-blue-100' }
+      return { emoji: '\u{1F4AC}', color: 'bg-info-100' }
     case 'chat_messages':
       return { emoji: '\u{1F4AC}', color: 'bg-neutral-100' }
     default:

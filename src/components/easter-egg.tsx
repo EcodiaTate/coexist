@@ -88,12 +88,17 @@ export function EasterEgg({ children, taps = 5 }: EasterEggProps) {
               </>
             ) : (
               <motion.div
-                className="text-2xl"
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: [0, 1.2, 1], opacity: [0, 1, 0] }}
                 transition={{ duration: 1.5 }}
+                aria-hidden="true"
               >
-                <span role="img" aria-hidden="true">🌿</span>
+                <svg width="28" height="28" viewBox="0 0 16 16">
+                  <path
+                    d="M8 1C8 1 2 5 2 10c0 2.8 2.7 5 6 5s6-2.2 6-5c0-5-6-9-6-9z"
+                    fill="var(--color-primary-400)"
+                  />
+                </svg>
               </motion.div>
             )}
           </div>

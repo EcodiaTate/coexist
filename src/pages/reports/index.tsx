@@ -165,7 +165,7 @@ export default function ReportsPage() {
 
   return (
     <Page header={<Header title="Impact Reports" back />}>
-      <div className="p-4 space-y-4 pb-8">
+      <div className="py-4 space-y-4 pb-8">
         <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
         {activeTab === 'builder' && (
@@ -182,8 +182,8 @@ export default function ReportsPage() {
                     type="button"
                     onClick={() => setReportType(rt.value)}
                     className={cn(
-                      'w-full flex items-start gap-3 p-3 rounded-xl text-left cursor-pointer',
-                      'border transition-colors duration-150',
+                      'w-full flex items-start gap-3 p-3 rounded-xl text-left min-h-11',
+                      'border active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                       reportType === rt.value
                         ? 'bg-white border-primary-300 ring-1 ring-primary-300'
                         : 'bg-white border-primary-100 hover:bg-primary-50',

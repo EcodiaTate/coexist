@@ -21,11 +21,6 @@ interface ModalProps {
   className?: string
 }
 
-const backdropVariants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1 },
-}
-
 function useIsDesktop() {
   const [desktop, setDesktop] = useState(
     () =>
@@ -42,9 +37,6 @@ function useIsDesktop() {
 
   return desktop
 }
-
-const springTransition = { type: 'spring' as const, damping: 28, stiffness: 320 }
-const instantTransition = { duration: 0 }
 
 export function Modal({
   open,
@@ -112,26 +104,75 @@ export function Modal({
     }
   }, [open, handleKeyDown])
 
-  const transition = shouldReduceMotion ? instantTransition : springTransition
+  /* ---- Animation variants ---- */
 
-  const contentVariants = isDesktop
-    ? {
-        hidden: { opacity: 0, scale: 0.95, y: 0 },
-        visible: { opacity: 1, scale: 1, y: 0, transition },
-        exit: {
-          opacity: 0,
-          scale: 0.95,
-          transition: shouldReduceMotion ? instantTransition : { duration: 0.15 },
-        },
-      }
-    : {
-        hidden: { y: '100%' },
-        visible: { y: 0, transition },
-        exit: {
-          y: '100%',
-          transition: shouldReduceMotion ? instantTransition : { duration: 0.2 },
-        },
-      }
+  const instant = { duration: 0 }
+
+  const backdropVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: shouldReduceMotion ? instant : { duration: 0.2, ease: 'easeOut' } },
+    exit: { opacity: 0, transition: shouldReduceMotion ? instant : { duration: 0.15, ease: 'easeIn' } },
+  }
+
+  const desktopVariants = {
+    hidden: { opacity: 0, scale: 0.92, y: 8 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: shouldReduceMotion
+        ? instant
+        : { type: 'spring', stiffness: 420, damping: 30, mass: 0.8 },
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      y: 4,
+      transition: shouldReduceMotion ? instant : { duration: 0.15, ease: [0.4, 0, 1, 1] },
+    },
+  }
+
+  const mobileVariants = {
+    hidden: { y: '100%', borderRadius: '16px 16px 0 0' },
+    visible: {
+      y: 0,
+      borderRadius: '16px 16px 0 0',
+      transition: shouldReduceMotion
+        ? instant
+        : { type: 'spring', stiffness: 400, damping: 34, mass: 0.8 },
+    },
+    exit: {
+      y: '100%',
+      transition: shouldReduceMotion ? instant : { duration: 0.2, ease: [0.4, 0, 1, 1] },
+    },
+  }
+
+  const contentVariants = isDesktop ? desktopVariants : mobileVariants
+
+  /* ---- Header content stagger ---- */
+
+  const headerVariants = {
+    hidden: { opacity: 0, y: -4 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: shouldReduceMotion
+        ? instant
+        : { delay: 0.05, duration: 0.2, ease: 'easeOut' },
+    },
+    exit: { opacity: 0 },
+  }
+
+  const bodyVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: shouldReduceMotion
+        ? instant
+        : { delay: 0.08, duration: 0.2, ease: 'easeOut' },
+    },
+    exit: { opacity: 0 },
+  }
 
   return createPortal(
     <AnimatePresence>
@@ -140,7 +181,7 @@ export function Modal({
           className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center"
           initial="hidden"
           animate="visible"
-          exit="hidden"
+          exit="exit"
         >
           <motion.div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm"
@@ -157,13 +198,16 @@ export function Modal({
             className={cn(
               'relative z-10 w-full bg-white shadow-lg',
               'rounded-t-2xl sm:rounded-2xl',
-              'max-h-[85vh] overflow-y-auto',
+              'max-h-[85vh] overflow-y-auto overscroll-contain',
               sizeClasses[size],
               className,
             )}
             variants={contentVariants}
           >
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-primary-100 bg-white/90 px-5 py-4 backdrop-blur-sm rounded-t-2xl">
+            <motion.div
+              className="sticky top-0 z-10 flex items-center justify-between border-b border-primary-100 bg-white/90 px-5 py-4 backdrop-blur-sm rounded-t-2xl"
+              variants={headerVariants}
+            >
               <h2 className="font-heading text-lg font-semibold text-primary-800">
                 {title}
               </h2>
@@ -174,8 +218,10 @@ export function Modal({
               >
                 <X size={20} />
               </button>
-            </div>
-            <div className="p-5">{children}</div>
+            </motion.div>
+            <motion.div className="p-5" variants={bodyVariants}>
+              {children}
+            </motion.div>
           </motion.div>
         </motion.div>
       )}

@@ -288,7 +288,7 @@ export default function NotificationsPage() {
       }
     >
       {isLoading ? (
-        <div className="p-4">
+        <div className="py-4">
           <Skeleton variant="list-item" count={6} />
         </div>
       ) : !hasNotifications ? (

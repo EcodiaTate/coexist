@@ -46,7 +46,7 @@ describe('Button component', () => {
   })
 
   it('renders with an icon', () => {
-    render(<Button icon={<span data-testid="icon">★</span>}>Star</Button>)
+    render(<Button icon={<span data-testid="icon">S</span>}>Star</Button>)
     expect(screen.getByTestId('icon')).toBeInTheDocument()
   })
 })

@@ -32,6 +32,7 @@ const COLLECTIVE_ROLE_RANK: Record<CollectiveRole, number> = {
 /* ------------------------------------------------------------------ */
 
 const STORAGE_KEY = 'coexist-auth-session'
+const PROFILE_STORAGE_KEY = 'coexist-auth-profile'
 
 async function persistSession(session: Session | null) {
   if (!Capacitor.isNativePlatform()) return
@@ -53,6 +54,28 @@ async function restoreSession(): Promise<Session | null> {
   }
 }
 
+async function persistProfile(profile: Profile | null) {
+  try {
+    if (profile) {
+      await Preferences.set({ key: PROFILE_STORAGE_KEY, value: JSON.stringify(profile) })
+    } else {
+      await Preferences.remove({ key: PROFILE_STORAGE_KEY })
+    }
+  } catch {
+    // Non-critical — worst case user sees a brief loading state
+  }
+}
+
+async function restoreProfile(): Promise<Profile | null> {
+  try {
+    const { value } = await Preferences.get({ key: PROFILE_STORAGE_KEY })
+    if (!value) return null
+    return JSON.parse(value) as Profile
+  } catch {
+    return null
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /*  Auth context types                                                 */
 /* ------------------------------------------------------------------ */
@@ -62,6 +85,7 @@ interface AuthContextValue {
   profile: Profile | null
   session: Session | null
   role: UserRole
+  collectiveRoles: CollectiveMembership[]
   isLoading: boolean
   isSuspended: boolean
   suspendedReason: string | null
@@ -161,13 +185,24 @@ export function useAuthProvider(): AuthContextValue {
     ])
     console.log('[auth] loadUserData done', { hasProfile: !!profileData, rolesCount: roles.length })
 
-    // If no profile row exists (trigger may not have fired), create one
+    // If no profile row exists, it likely means the fetch timed out or
+    // the auth trigger hasn't fired yet. Retry once before creating.
     if (!profileData) {
-      console.warn('[auth] No profile found - creating one')
+      console.warn('[auth] No profile found - retrying fetch once')
+      const retried = await fetchProfile(userId)
+      if (retried) {
+        console.log('[auth] Profile found on retry')
+        setProfile(retried)
+        setCollectiveRoles(roles)
+        persistProfile(retried)
+        return retried
+      }
+
+      console.warn('[auth] Still no profile - creating one')
       try {
         const { data: authUser } = await supabase.auth.getUser()
         const meta = authUser?.user?.user_metadata
-        const { data: created } = await supabase
+        const { data: created, error: createErr } = await supabase
           .from('profiles')
           .upsert({
             id: userId,
@@ -176,9 +211,14 @@ export function useAuthProvider(): AuthContextValue {
           }, { onConflict: 'id' })
           .select('*')
           .single()
+        if (createErr) {
+          console.error('[auth] Profile create/upsert error:', createErr.message, createErr.code)
+        }
         if (created) {
+          console.log('[auth] Profile created successfully')
           setProfile(created)
           setCollectiveRoles(roles)
+          persistProfile(created)
           return created
         }
       } catch (err) {
@@ -216,6 +256,7 @@ export function useAuthProvider(): AuthContextValue {
 
     setProfile(profileData)
     setCollectiveRoles(roles)
+    persistProfile(profileData)
     return profileData
   }, [fetchProfile, fetchCollectiveRoles])
 
@@ -231,6 +272,10 @@ export function useAuthProvider(): AuthContextValue {
     // Track whether init() has resolved so the onAuthStateChange handler
     // knows whether to treat INITIAL_SESSION as redundant.
     let initDone = false
+    // When getSession times out, an onAuthStateChange SIGNED_IN event
+    // may already be in-flight. Don't set isLoading=false in init's
+    // finally block — let the auth handler do it after loadUserData.
+    let deferLoadingToAuthHandler = false
 
     async function init() {
       console.log('[auth] init start')
@@ -242,10 +287,23 @@ export function useAuthProvider(): AuthContextValue {
           if (data.session && mounted) {
             setUser(data.session.user)
             setSession(data.session)
+            // Seed with cached profile so route guard doesn't flash onboarding
+            const cachedProfile = await restoreProfile()
+            if (cachedProfile && mounted) {
+              setProfile(cachedProfile)
+            }
+            // Then fetch fresh profile from server (updates cache)
             await loadUserData(data.session.user.id)
           }
         } else {
           // Web: Supabase handles cookies/localStorage automatically.
+          // Immediately seed cached profile so the route guard doesn't
+          // flash onboarding while we wait for getSession().
+          const cachedProfile = await restoreProfile()
+          if (cachedProfile && mounted) {
+            setProfile(cachedProfile)
+          }
+
           // getSession() can be slow if it needs to refresh tokens, so we
           // use a timeout - but only to unblock the UI, NOT to nuke the session.
           let resolved = false
@@ -270,7 +328,15 @@ export function useAuthProvider(): AuthContextValue {
             // Timed out - let the onAuthStateChange handler pick it up
             // when getSession eventually resolves. Do NOT sign out or
             // clear tokens - the session may still be valid.
+            // Keep isLoading=true so the route guard shows the loading
+            // screen instead of flashing login/onboarding.
             console.warn('[auth] getSession timed out, waiting for auth event')
+            deferLoadingToAuthHandler = true
+            // Safety: if auth handler never fires (user genuinely not signed
+            // in, or getSession hangs), unblock after 10s total.
+            setTimeout(() => {
+              if (mounted) setIsLoading(false)
+            }, 7000) // 3s already elapsed from getSession timeout
           }
           // If sessionResult was returned but session is null, the user
           // genuinely has no session - no need to sign out or clear anything,
@@ -282,8 +348,12 @@ export function useAuthProvider(): AuthContextValue {
         // may still be valid and the onAuthStateChange handler can recover.
       } finally {
         initDone = true
-        console.log('[auth] init done, setting isLoading=false')
-        if (mounted) setIsLoading(false)
+        if (deferLoadingToAuthHandler) {
+          console.log('[auth] init done, deferring isLoading to auth handler')
+        } else {
+          console.log('[auth] init done, setting isLoading=false')
+          if (mounted) setIsLoading(false)
+        }
       }
     }
 
@@ -297,28 +367,30 @@ export function useAuthProvider(): AuthContextValue {
         // and to avoid hanging on the same stale getSession() call.
         if (event === 'INITIAL_SESSION') return
 
-        try {
-          setSession(newSession)
-          setUser(newSession?.user ?? null)
-          await persistSession(newSession)
+        setSession(newSession)
+        setUser(newSession?.user ?? null)
+        persistSession(newSession)
 
-          if (newSession?.user) {
-            // loadUserData can fail - that's OK, the session is still valid.
-            // User will see the app with limited profile data until next refresh.
+        if (newSession?.user) {
+          // Defer loadUserData to next microtask — calling it synchronously
+          // inside onAuthStateChange can deadlock because the Supabase JS
+          // client holds an internal auth lock during _recoverAndRefresh,
+          // and any fetch that needs the token will wait on the same lock.
+          const userId = newSession.user.id
+          setTimeout(async () => {
+            if (!mounted) return
             try {
-              await loadUserData(newSession.user.id)
+              await loadUserData(userId)
             } catch (profileErr) {
               console.error('[auth] loadUserData failed (session still valid):', profileErr)
+            } finally {
+              if (mounted) setIsLoading(false)
             }
-          } else {
-            setProfile(null)
-            setCollectiveRoles([])
-          }
-        } catch (err) {
-          console.error('[auth] state change handler failed:', err)
-        } finally {
-          // Only touch isLoading if init already ran - otherwise let init
-          // handle it so the splash screen transitions cleanly.
+          }, 0)
+        } else {
+          setProfile(null)
+          setCollectiveRoles([])
+          persistProfile(null)
           if (mounted && initDone) setIsLoading(false)
         }
       },
@@ -443,6 +515,7 @@ export function useAuthProvider(): AuthContextValue {
   const signOut = useCallback(async () => {
     await supabase.auth.signOut()
     await persistSession(null)
+    await persistProfile(null)
   }, [])
 
   const resetPassword = useCallback(async (email: string) => {
@@ -463,6 +536,7 @@ export function useAuthProvider(): AuthContextValue {
       profile,
       session,
       role,
+      collectiveRoles,
       isLoading,
       isSuspended,
       suspendedReason,
@@ -486,7 +560,7 @@ export function useAuthProvider(): AuthContextValue {
       acceptTos,
     }),
     [
-      user, profile, session, role, isLoading,
+      user, profile, session, role, collectiveRoles, isLoading,
       isSuspended, suspendedReason, suspendedUntil, needsTosAcceptance,
       isLeader, isAssistLeader, isCoLeader,
       isStaff, isAdmin, isSuperAdmin,

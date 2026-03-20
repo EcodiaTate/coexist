@@ -121,7 +121,7 @@ export default function EditProfilePage() {
   if (isLoading) {
     return (
       <Page header={<Header title="Edit Profile" back />}>
-        <div className="p-4 space-y-4">
+        <div className="py-4 space-y-4">
           <div className="flex justify-center">
             <Skeleton variant="avatar" className="h-24 w-24" />
           </div>
@@ -146,7 +146,7 @@ export default function EditProfilePage() {
         </Button>
       }
     >
-      <div className="px-4 pb-8">
+      <div className="pb-8">
         {/* Avatar */}
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}

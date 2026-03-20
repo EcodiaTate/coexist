@@ -79,7 +79,7 @@ export default function CartPage() {
         </Button>
       }
     >
-      <div className="px-4 py-4 space-y-4">
+      <div className="py-4 space-y-4">
         {/* Cart items */}
         <AnimatePresence mode="popLayout">
           {items.map((item) => (
@@ -117,7 +117,7 @@ export default function CartPage() {
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.variant.id, item.quantity - 1)}
-                      className="flex items-center justify-center w-7 h-7 rounded-md text-primary-400 hover:bg-primary-50 cursor-pointer"
+                      className="flex items-center justify-center min-w-11 min-h-11 rounded-xl text-primary-400 hover:bg-primary-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
                       aria-label="Decrease quantity"
                     >
                       <Minus size={14} />
@@ -128,7 +128,7 @@ export default function CartPage() {
                     <button
                       type="button"
                       onClick={() => updateQuantity(item.variant.id, item.quantity + 1)}
-                      className="flex items-center justify-center w-7 h-7 rounded-md text-primary-400 hover:bg-primary-50 cursor-pointer"
+                      className="flex items-center justify-center min-w-11 min-h-11 rounded-xl text-primary-400 hover:bg-primary-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
                       aria-label="Increase quantity"
                     >
                       <Plus size={14} />
@@ -137,7 +137,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={() => removeItem(item.variant.id)}
-                    className="flex items-center justify-center w-8 h-8 rounded-full text-primary-400 hover:text-error hover:bg-red-50 transition-colors cursor-pointer"
+                    className="flex items-center justify-center min-w-11 min-h-11 rounded-full text-primary-400 hover:text-error hover:bg-red-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
                     aria-label={`Remove ${item.product.name}`}
                   >
                     <Trash2 size={16} />
@@ -177,7 +177,7 @@ export default function CartPage() {
             <button
               type="button"
               onClick={() => setPromoCode(null)}
-              className="text-xs text-primary-400 hover:underline cursor-pointer"
+              className="text-xs text-primary-400 hover:underline min-h-11 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
             >
               Remove
             </button>

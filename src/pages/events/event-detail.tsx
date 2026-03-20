@@ -85,9 +85,9 @@ const activityToBadge: Record<string, 'tree-planting' | 'beach-cleanup' | 'habit
 /* ------------------------------------------------------------------ */
 
 const difficultyConfig = {
-  easy: { label: 'Easy', color: 'text-green-600 bg-green-100' },
-  moderate: { label: 'Moderate', color: 'text-amber-600 bg-amber-100' },
-  challenging: { label: 'Challenging', color: 'text-red-600 bg-red-100' },
+  easy: { label: 'Easy', color: 'text-success-600 bg-success-100' },
+  moderate: { label: 'Moderate', color: 'text-warning-600 bg-warning-100' },
+  challenging: { label: 'Challenging', color: 'text-error-600 bg-error-100' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -117,7 +117,7 @@ function EventDetailSkeleton() {
     <Page header={<Header title="" back />}>
       <div>
         <Skeleton variant="image" className="rounded-none" />
-        <div className="px-4 pt-4 space-y-3">
+        <div className="pt-4 space-y-3">
           <Skeleton variant="title" />
           <Skeleton variant="text" count={2} />
           <div className="flex gap-3">
@@ -155,8 +155,9 @@ function ExpandableSection({
         type="button"
         onClick={() => setOpen((p) => !p)}
         className={cn(
-          'flex items-center justify-between w-full py-3 px-4',
+          'flex items-center justify-between w-full min-h-11 py-3 px-4',
           'text-left cursor-pointer select-none',
+          'active:scale-[0.97] transition-all duration-150',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
         )}
         aria-expanded={open}
@@ -221,7 +222,7 @@ function InfoRow({
         <button
           type="button"
           onClick={action.onClick}
-          className="text-caption font-semibold text-primary-400 hover:text-primary-400 cursor-pointer shrink-0 mt-1"
+          className="min-h-11 flex items-center justify-center text-caption font-semibold text-primary-400 hover:text-primary-400 cursor-pointer select-none shrink-0 mt-1 active:scale-[0.97] transition-all duration-150"
           aria-label={action.label}
         >
           {action.label}
@@ -318,7 +319,7 @@ export default function EventDetailPage() {
     if (!event) return null
     if (event.status === 'cancelled') {
       return (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-50 text-red-700 text-sm font-medium">
+        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-error-50 text-error-700 text-sm font-medium">
           <XCircle size={18} />
           This event has been cancelled
         </div>
@@ -350,7 +351,7 @@ export default function EventDetailPage() {
     if (userStatus === 'waitlisted') {
       return (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-amber-50 text-amber-700 text-sm font-semibold">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-warning-50 text-warning-700 text-sm font-semibold">
             <AlertCircle size={18} />
             You're on the waitlist
           </div>
@@ -368,7 +369,7 @@ export default function EventDetailPage() {
     if (userStatus === 'invited') {
       return (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-blue-50 text-blue-700 text-sm font-medium">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-info-50 text-info-700 text-sm font-medium">
             <Mail size={18} />
             You've been invited
           </div>
@@ -411,7 +412,8 @@ export default function EventDetailPage() {
                 type="button"
                 onClick={handleShare}
                 className={cn(
-                  'flex items-center justify-center w-9 h-9 rounded-full cursor-pointer',
+                  'flex items-center justify-center min-h-11 min-w-11 rounded-full cursor-pointer select-none',
+                  'active:scale-[0.97] transition-all duration-150',
                   event.cover_image_url ? 'text-white/90 hover:bg-white/20' : 'text-primary-400 hover:bg-primary-50',
                 )}
                 aria-label="Share event"
@@ -464,7 +466,7 @@ export default function EventDetailPage() {
 
       {/* If no cover image, show title normally */}
       {!event.cover_image_url && (
-        <div className="px-4 pt-4">
+        <div className="pt-4">
           <div className="flex items-start gap-2">
             <Badge
               variant="activity"
@@ -480,7 +482,7 @@ export default function EventDetailPage() {
         </div>
       )}
 
-      <div className="px-4 pt-4 pb-8 space-y-5">
+      <div className="pt-4 pb-8 space-y-5">
         {/* Key info rows */}
         <div className="space-y-0.5">
           <InfoRow
@@ -555,7 +557,7 @@ export default function EventDetailPage() {
             {event.capacity && (
               <span className={cn(
                 'text-caption font-semibold',
-                capacityPercent >= 90 ? 'text-red-600' : capacityPercent >= 70 ? 'text-amber-600' : 'text-primary-400',
+                capacityPercent >= 90 ? 'text-error-600' : capacityPercent >= 70 ? 'text-warning-600' : 'text-primary-400',
               )}>
                 {Math.round(capacityPercent)}%
               </span>
@@ -566,7 +568,7 @@ export default function EventDetailPage() {
               <motion.div
                 className={cn(
                   'h-full rounded-full',
-                  capacityPercent >= 90 ? 'bg-red-500' : capacityPercent >= 70 ? 'bg-amber-500' : 'bg-primary-500',
+                  capacityPercent >= 90 ? 'bg-error-500' : capacityPercent >= 70 ? 'bg-warning-500' : 'bg-primary-500',
                 )}
                 initial={{ width: 0 }}
                 animate={{ width: `${capacityPercent}%` }}
@@ -614,7 +616,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={() => setDescriptionExpanded(true)}
-                  className="text-caption font-semibold text-primary-400 hover:text-primary-400 mt-1 cursor-pointer"
+                  className="min-h-11 flex items-center justify-center text-caption font-semibold text-primary-400 hover:text-primary-400 mt-1 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
                 >
                   Read more
                 </button>
@@ -654,7 +656,7 @@ export default function EventDetailPage() {
         </div>
 
         {/* Weather placeholder */}
-        <div className="rounded-xl bg-gradient-to-br from-blue-50 to-sky-50 p-4">
+        <div className="rounded-xl bg-gradient-to-br from-info-50 to-sky-50 p-4">
           <div className="flex items-center gap-3">
             <CloudSun size={28} className="text-sky-500" />
             <div>
@@ -861,7 +863,7 @@ export default function EventDetailPage() {
               downloadIcsFile(event)
               setShowCalendarSheet(false)
             }}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-primary-50 transition-colors cursor-pointer text-left"
+            className="flex items-center gap-3 w-full min-h-11 px-4 py-3 rounded-xl hover:bg-primary-50 cursor-pointer select-none text-left active:scale-[0.97] transition-all duration-150"
           >
             <CalendarPlus size={20} className="text-primary-400 shrink-0" />
             <div>
@@ -875,7 +877,7 @@ export default function EventDetailPage() {
               window.open(getGoogleCalendarUrl(event), '_blank')
               setShowCalendarSheet(false)
             }}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-primary-50 transition-colors cursor-pointer text-left"
+            className="flex items-center gap-3 w-full min-h-11 px-4 py-3 rounded-xl hover:bg-primary-50 cursor-pointer select-none text-left active:scale-[0.97] transition-all duration-150"
           >
             <Calendar size={20} className="text-primary-400 shrink-0" />
             <div>

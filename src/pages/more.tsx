@@ -71,7 +71,6 @@ function MenuSection({
   return (
     <motion.section
       variants={shouldReduceMotion ? undefined : fadeUp}
-      className="px-5"
     >
       <h3 className="text-[11px] font-semibold uppercase tracking-wider text-primary-400/70 mb-1.5 px-1">
         {title}
@@ -114,15 +113,14 @@ function MenuSection({
 export default function MorePage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
-  const { profile, isStaff } = useAuth()
+  const { profile, collectiveRoles, isStaff } = useAuth()
   const { data: pointsData } = usePointsBalance()
 
   const points = pointsData?.points ?? profile?.points ?? 0
   const tier = getTierFromPoints(points) as TierName
 
-  const isAnyLeader = (profile as any)?.collective_memberships?.some(
-    (m: { role: string }) =>
-      ['leader', 'co_leader', 'assist_leader'].includes(m.role),
+  const isAnyLeader = collectiveRoles.some(
+    (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
   )
 
   const mainLinks: MenuLink[] = [
@@ -185,7 +183,6 @@ export default function MorePage() {
         {/* Profile card */}
         <motion.div
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="px-5"
         >
           <button
             type="button"

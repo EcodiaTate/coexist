@@ -30,7 +30,7 @@ export default function DonorWallPage() {
 
   return (
     <Page header={<Header title="Donor Wall" back />}>
-      <div className="px-4 py-5">
+      <div className="max-w-2xl mx-auto w-full py-5">
         {/* Intro */}
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
@@ -69,7 +69,7 @@ export default function DonorWallPage() {
             variants={shouldReduceMotion ? undefined : stagger}
             initial="hidden"
             animate="visible"
-            className="space-y-2"
+            className="grid grid-cols-1 sm:grid-cols-2 gap-2"
           >
             {donors.map((donor) => (
               <motion.div

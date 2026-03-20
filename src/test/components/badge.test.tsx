@@ -44,7 +44,7 @@ describe('Badge', () => {
 
   it('renders with icon', () => {
     render(
-      <Badge variant="activity" activity="wildlife" icon={<span data-testid="icon">🦜</span>}>
+      <Badge variant="activity" activity="wildlife" icon={<span data-testid="icon">W</span>}>
         Wildlife
       </Badge>,
     )

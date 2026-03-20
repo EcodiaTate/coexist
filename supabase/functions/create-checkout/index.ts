@@ -342,21 +342,30 @@ serve(async (req: Request) => {
               sessionParams.discounts = [{ coupon: coupon.id }]
             }
 
-            // Atomically increment usage count to prevent race conditions
-            // Only increment if still under max_uses (atomic check-and-set)
-            const { error: incrError } = await supabase.rpc('increment_promo_uses', {
-              p_promo_id: promo.id,
-              p_max_uses: promo.max_uses ?? 999999,
-            })
-            if (incrError) {
-              console.error('[create-checkout] Promo increment failed:', incrError.message)
-              // If the atomic increment fails (e.g., max reached), promo was still applied to Stripe
-              // but we log and continue since the Stripe session hasn't been created yet
-            }
           }
         }
 
         const session = await stripe.checkout.sessions.create(sessionParams)
+
+        // Increment promo usage AFTER Stripe session is created successfully.
+        // This prevents wasting a promo use if session creation fails.
+        if (body.promo_code_id) {
+          const { data: promoForIncr } = await supabase
+            .from('promo_codes')
+            .select('id, max_uses')
+            .eq('id', body.promo_code_id)
+            .single()
+
+          if (promoForIncr) {
+            const { error: incrError } = await supabase.rpc('increment_promo_uses', {
+              p_promo_id: promoForIncr.id,
+              p_max_uses: promoForIncr.max_uses ?? 999999,
+            })
+            if (incrError) {
+              console.error('[create-checkout] Promo increment failed:', incrError.message)
+            }
+          }
+        }
 
         return json({ session_id: session.id, url: session.url })
       }

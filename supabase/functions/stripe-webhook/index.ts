@@ -455,9 +455,34 @@ serve(async (req: Request) => {
 
           console.log('Merch order refunded:', order.id)
         } else {
-          // May be a donation refund - update donation status if we tracked it
-          // Donations table doesn't have a status column, so just log
-          console.log('Charge refunded (no matching order):', charge.id, paymentIntentId)
+          // Donation refund: update donation status to 'refunded'
+          const { data: donation } = await supabase
+            .from('donations')
+            .select('id, user_id')
+            .eq('stripe_payment_id', paymentIntentId)
+            .maybeSingle()
+
+          if (donation) {
+            await supabase
+              .from('donations')
+              .update({ status: 'refunded' })
+              .eq('id', donation.id)
+
+            // Send refund confirmation email
+            if (donation.user_id) {
+              const refundAmount = (charge.amount_refunded ?? 0) / 100
+              await sendTemplateEmail(supabase, 'refund_confirmation', donation.user_id, {
+                name: '',
+                order_id: donation.id.slice(0, 8),
+                refund_amount: refundAmount.toFixed(2),
+                currency: 'AUD',
+              })
+            }
+
+            console.log('Donation refunded:', donation.id)
+          } else {
+            console.log('Charge refunded (no matching order or donation):', charge.id, paymentIntentId)
+          }
         }
 
         break

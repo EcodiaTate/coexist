@@ -25,7 +25,7 @@ import { useReferralCode, useReferralStats, useReferralLeaderboard, useSendInvit
 
 function ReferralSkeleton() {
   return (
-    <div className="px-4 py-6 space-y-6">
+    <div className="py-6 space-y-6">
       <Skeleton variant="card" />
       <div className="grid grid-cols-3 gap-3">
         <Skeleton variant="stat-card" />
@@ -92,7 +92,7 @@ export default function ReferralPage() {
 
   return (
     <Page header={<Header title="Invite Friends" back />}>
-      <div className="px-4 pb-8">
+      <div className="pb-8">
         {/* Hero */}
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
@@ -125,11 +125,12 @@ export default function ReferralPage() {
               {code}
             </div>
             <button
+              type="button"
               onClick={handleCopy}
               className={cn(
-                'flex items-center justify-center w-11 h-11 rounded-xl border transition-colors',
+                'flex items-center justify-center min-h-11 min-w-11 rounded-xl border active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 copied
-                  ? 'bg-green-50 border-green-200 text-green-600'
+                  ? 'bg-success-50 border-success-200 text-success-600'
                   : 'bg-white border-primary-200 text-primary-400 hover:bg-primary-50',
               )}
               aria-label="Copy code"
@@ -156,8 +157,9 @@ export default function ReferralPage() {
             Share Invite Link
           </Button>
           <button
+            type="button"
             onClick={() => {/* QR modal would go here */}}
-            className="flex items-center justify-center w-11 h-11 rounded-xl bg-white border border-primary-200 text-primary-400 hover:bg-primary-50 transition-colors shrink-0"
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-xl bg-white border border-primary-200 text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none shrink-0"
             aria-label="Show QR code"
           >
             <QrCode size={20} />

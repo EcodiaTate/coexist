@@ -38,7 +38,7 @@ export function OfflineIndicator({
 
   if (isOffline) {
     return (
-      <span className={cn('inline-flex items-center gap-1 text-xs text-amber-600', className)}>
+      <span className={cn('inline-flex items-center gap-1 text-xs text-warning-600', className)}>
         <WifiOff size={12} />
         {!compact && <span>Offline - cached data</span>}
       </span>

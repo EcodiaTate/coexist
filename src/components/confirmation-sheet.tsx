@@ -22,13 +22,13 @@ const variantConfig: Record<
   { iconBg: string; iconColor: string; icon: typeof Trash2 }
 > = {
   danger: {
-    iconBg: 'bg-red-100',
-    iconColor: 'text-red-600',
+    iconBg: 'bg-error-100',
+    iconColor: 'text-error-600',
     icon: Trash2,
   },
   warning: {
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600',
+    iconBg: 'bg-warning-100',
+    iconColor: 'text-warning-600',
     icon: AlertTriangle,
   },
 }

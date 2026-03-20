@@ -1,10 +1,10 @@
-import { useState, useRef } from 'react'
+import { useRef } from 'react'
 import { Camera, Upload } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/hooks/use-auth'
+import { useImageUpload } from '@/hooks/use-image-upload'
 import { Avatar } from '@/components/avatar'
 import { Button } from '@/components/button'
+import { UploadProgress } from '@/components/upload-progress'
 import { cn } from '@/lib/cn'
 
 interface StepProfilePhotoProps {
@@ -15,28 +15,23 @@ interface StepProfilePhotoProps {
 }
 
 export function StepProfilePhoto({ avatarUrl, onUpload, onNext, onSkip }: StepProfilePhotoProps) {
-  const { user } = useAuth()
   const shouldReduceMotion = useReducedMotion()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [uploading, setUploading] = useState(false)
+  const { upload, progress, uploading, error } = useImageUpload({ bucket: 'avatars' })
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
-    if (!file || !user) return
+    if (!file) return
 
-    setUploading(true)
-    const ext = file.name.split('.').pop()
-    const path = `${user.id}/avatar.${ext}`
-
-    const { error } = await supabase.storage
-      .from('avatars')
-      .upload(path, file, { upsert: true })
-
-    if (!error) {
-      const { data } = supabase.storage.from('avatars').getPublicUrl(path)
-      onUpload(data.publicUrl)
+    try {
+      const result = await upload(file)
+      onUpload(result.url)
+    } catch {
+      // error state is managed by the hook
     }
-    setUploading(false)
+
+    // Reset the input so re-selecting the same file triggers onChange
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   return (
@@ -80,9 +75,9 @@ export function StepProfilePhoto({ avatarUrl, onUpload, onNext, onSkip }: StepPr
           aria-hidden="true"
         />
 
-        {uploading && (
-          <p className="mt-4 text-sm text-primary-400 animate-pulse">Uploading...</p>
-        )}
+        <div className="mt-4 w-40">
+          <UploadProgress progress={progress} uploading={uploading} error={error} />
+        </div>
       </div>
 
       <div

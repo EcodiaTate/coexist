@@ -176,7 +176,7 @@ function RoleAssignSheet({
                 onClick={() => onAssign(role)}
                 disabled={isActive}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm transition-colors',
+                  'flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                   isActive
                     ? 'bg-white text-primary-400'
                     : 'text-primary-800 hover:bg-primary-50',
@@ -280,7 +280,7 @@ export default function CollectiveManagePage() {
   if (loadingCollective || loadingMembers) {
     return (
       <Page header={<Header title="Manage" back />}>
-        <div className="p-4 space-y-4">
+        <div className="py-4 space-y-4">
           <Skeleton variant="card" />
           <Skeleton variant="list-item" count={6} />
         </div>
@@ -312,7 +312,7 @@ export default function CollectiveManagePage() {
               type="button"
               onClick={handleExportCSV}
               aria-label="Export members CSV"
-              className="flex items-center justify-center w-9 h-9 rounded-full text-primary-400 hover:bg-primary-50 transition-colors duration-150"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
             >
               <Download size={20} />
             </button>
@@ -320,7 +320,7 @@ export default function CollectiveManagePage() {
         />
       }
     >
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 py-4">
         {/* Collective info card */}
         <div className="rounded-2xl bg-white p-4 shadow-sm">
           <div className="flex items-center gap-3">
@@ -395,6 +395,7 @@ export default function CollectiveManagePage() {
                     type="button"
                     onClick={() => setSelectedUser(member)}
                     aria-label={`View ${member.profiles?.display_name}`}
+                    className="flex items-center justify-center min-h-11 min-w-11 rounded-full active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                   >
                     <Avatar
                       src={member.profiles?.avatar_url}
@@ -407,7 +408,7 @@ export default function CollectiveManagePage() {
                   <button
                     type="button"
                     onClick={() => setSelectedUser(member)}
-                    className="flex-1 min-w-0 text-left"
+                    className="flex-1 min-w-0 min-h-11 text-left active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                   >
                     <p className="text-sm font-medium text-primary-800 truncate">
                       {member.profiles?.display_name ?? 'Unknown'}
@@ -433,7 +434,7 @@ export default function CollectiveManagePage() {
                         type="button"
                         onClick={() => setRoleAssignMember(member)}
                         aria-label="Change role"
-                        className="flex items-center justify-center w-8 h-8 rounded-full text-primary-400 hover:bg-primary-50 transition-colors"
+                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                       >
                         <Shield size={16} />
                       </button>
@@ -441,7 +442,7 @@ export default function CollectiveManagePage() {
                         type="button"
                         onClick={() => setRemovingMember(member)}
                         aria-label="Remove member"
-                        className="flex items-center justify-center w-8 h-8 rounded-full text-primary-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-red-50 hover:text-red-500 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                       >
                         <UserMinus size={16} />
                       </button>

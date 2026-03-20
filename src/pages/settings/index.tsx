@@ -700,7 +700,7 @@ function DataPrivacySheet({
 
 function SettingsSkeleton() {
   return (
-    <div className="space-y-3 px-4 py-6">
+    <div className="space-y-3 py-6">
       {Array.from({ length: 8 }).map((_, i) => (
         <Skeleton key={i} variant="text" className="h-13 rounded-lg" />
       ))}
@@ -971,14 +971,14 @@ export default function SettingsPage() {
         </div>
 
         {/* ---- App Info ---- */}
-        <div className="mt-6 px-4 text-center">
+        <div className="mt-6 text-center">
           <p className="text-xs text-primary-400">
             {APP_NAME} v{APP_VERSION}
           </p>
         </div>
 
         {/* ---- Logout ---- */}
-        <div className="mt-4 px-4">
+        <div className="mt-4">
           <Button
             variant="ghost"
             fullWidth

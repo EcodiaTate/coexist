@@ -61,7 +61,7 @@ export function VirtualList<T>({
   return (
     <div
       ref={containerRef}
-      className={cn('overflow-y-auto', className)}
+      className={cn('overflow-y-auto overscroll-contain', className)}
       onScroll={handleScroll}
       role="list"
       aria-label={ariaLabel}

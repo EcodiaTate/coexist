@@ -6,6 +6,18 @@ import { useLayout } from '@/hooks/use-layout'
 /** Global scroll-position cache keyed by history entry */
 const scrollPositions = new Map<string, number>()
 
+/** Cap cache size to prevent unbounded memory growth */
+const MAX_SCROLL_ENTRIES = 100
+
+function saveScrollPosition(key: string, pos: number) {
+  if (scrollPositions.size >= MAX_SCROLL_ENTRIES) {
+    // Evict oldest entry
+    const firstKey = scrollPositions.keys().next().value
+    if (firstKey !== undefined) scrollPositions.delete(firstKey)
+  }
+  scrollPositions.set(key, pos)
+}
+
 interface PageProps {
   /** Optional header component (e.g. <Header />) */
   header?: ReactNode
@@ -34,34 +46,52 @@ export function Page({
   // while forward-nav starts at top (no saved position for new keys)
   const scrollKey = location.key ?? location.pathname
 
+  const isDesktopNav = navMode === 'sidebar'
+
   // Restore saved scroll position on mount, or scroll to top for new routes
   useEffect(() => {
     if (noScrollRestore) return
-    const el = scrollRef.current
-    if (!el) return
 
     const saved = scrollPositions.get(scrollKey)
-    if (saved !== undefined) {
-      el.scrollTop = saved
+
+    if (isDesktopNav) {
+      // Desktop: scroll the window itself
+      if (saved !== undefined) {
+        requestAnimationFrame(() => window.scrollTo(0, saved))
+      } else {
+        window.scrollTo(0, 0)
+      }
     } else {
-      el.scrollTo(0, 0)
+      // Mobile: scroll the inner container
+      const el = scrollRef.current
+      if (!el) return
+      if (saved !== undefined) {
+        requestAnimationFrame(() => { el.scrollTop = saved })
+      } else {
+        el.scrollTop = 0
+      }
     }
-  }, [scrollKey, noScrollRestore])
+  }, [scrollKey, noScrollRestore, isDesktopNav])
 
   // Save scroll position on unmount
   useEffect(() => {
     if (noScrollRestore) return
+
+    if (isDesktopNav) {
+      return () => {
+        saveScrollPosition(scrollKey, window.scrollY)
+      }
+    }
+
     const el = scrollRef.current
     return () => {
       if (el) {
-        scrollPositions.set(scrollKey, el.scrollTop)
+        saveScrollPosition(scrollKey, el.scrollTop)
       }
     }
-  }, [scrollKey, noScrollRestore])
+  }, [scrollKey, noScrollRestore, isDesktopNav])
 
   const hasBottomTabs = navMode === 'bottom-tabs'
-
-  const isDesktopNav = navMode === 'sidebar'
 
   return (
     <div className={cn('flex flex-col flex-1', !isDesktopNav && 'min-h-0')}>
@@ -75,12 +105,14 @@ export function Page({
           // On mobile/native, use inner scroll container for tab-bar offset + scroll restore
           // On desktop, let the browser handle scrolling naturally
           !isDesktopNav && 'overflow-y-auto overflow-x-hidden overscroll-contain',
+          // Side padding for all page content
+          'px-4 lg:px-6',
           // Small gap between sidebar and page content on desktop
           isDesktopNav && 'pl-4',
-          // Pad bottom for bottom tab bar + safe area + home indicator
+          // Pad bottom: generous scroll buffer + tab bar + safe area
           hasBottomTabs
-            ? 'pb-[calc(3.5rem+var(--safe-bottom))]'
-            : 'pb-[var(--safe-bottom)]',
+            ? 'pb-[calc(6rem+3.5rem+var(--safe-bottom))]'
+            : 'pb-[calc(6rem+var(--safe-bottom))]',
           className,
         )}
       >
@@ -97,8 +129,8 @@ export function Page({
           )}
           style={{
             paddingBottom: hasBottomTabs
-              ? 'calc(3.5rem + var(--safe-bottom) + 0.75rem)'
-              : 'calc(var(--safe-bottom) + 0.75rem)',
+              ? 'calc(3.5rem + var(--safe-bottom) + 1rem)'
+              : 'calc(var(--safe-bottom) + 1rem)',
           }}
         >
           {footer}

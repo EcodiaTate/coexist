@@ -37,7 +37,7 @@ const tierLabels: Record<TierName, string> = {
 
 function ViewProfileSkeleton() {
   return (
-    <div className="space-y-6 px-4 py-6">
+    <div className="space-y-6 py-6">
       <div className="flex flex-col items-center gap-3">
         <Skeleton variant="avatar" className="h-24 w-24" />
         <Skeleton variant="title" className="w-40" />
@@ -94,7 +94,7 @@ export default function ViewProfilePage() {
 
   return (
     <Page header={<Header title={profile.display_name ?? 'Profile'} back />}>
-      <div className="px-4 pb-8">
+      <div className="pb-8">
         {/* Profile Header */}
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}

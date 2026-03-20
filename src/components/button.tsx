@@ -14,9 +14,9 @@ const variantStyles = {
 } as const
 
 const sizeStyles = {
-  sm: 'h-8 px-3 text-sm gap-1.5',
-  md: 'h-10 px-4 gap-2',
-  lg: 'h-12 px-6 text-base gap-2.5',
+  sm: 'min-h-11 px-4 text-sm gap-1.5',
+  md: 'min-h-12 px-5 gap-2',
+  lg: 'min-h-14 px-6 text-base gap-2.5',
 } as const
 
 type ButtonVariant = keyof typeof variantStyles
@@ -99,8 +99,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
         className={cn(
           'relative inline-flex items-center justify-center font-heading font-semibold',
-          'rounded-lg cursor-pointer select-none',
-          'transition-colors duration-150',
+          'rounded-xl cursor-pointer select-none',
+          'transition-all duration-150 active:scale-[0.97]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           variantStyles[variant],
           sizeStyles[size],

@@ -90,7 +90,7 @@ export default function OrderDetailPage() {
   if (isLoading) {
     return (
       <Page header={<Header title="Order" back />}>
-        <div className="p-4 space-y-3">
+        <div className="py-4 space-y-3">
           <Skeleton variant="title" />
           <Skeleton variant="text" count={4} />
           <Skeleton variant="card" />
@@ -119,7 +119,7 @@ export default function OrderDetailPage() {
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-4 py-5 space-y-6"
+        className="py-5 space-y-6"
       >
         {/* Status timeline */}
         <section>
@@ -128,12 +128,12 @@ export default function OrderDetailPage() {
 
         {/* Tracking info */}
         {order.tracking_number && (
-          <section className="p-3 rounded-xl bg-violet-50 border border-violet-100">
+          <section className="p-3 rounded-xl bg-plum-50 border border-plum-100">
             <div className="flex items-center gap-2">
-              <Truck size={16} className="text-violet-600" />
-              <span className="text-sm font-medium text-violet-700">Tracking number</span>
+              <Truck size={16} className="text-plum-600" />
+              <span className="text-sm font-medium text-plum-700">Tracking number</span>
             </div>
-            <p className="mt-1 text-sm font-mono text-violet-900">{order.tracking_number}</p>
+            <p className="mt-1 text-sm font-mono text-plum-900">{order.tracking_number}</p>
           </section>
         )}
 

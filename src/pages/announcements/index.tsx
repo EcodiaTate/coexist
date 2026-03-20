@@ -239,7 +239,7 @@ export default function AnnouncementsPage() {
         initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="px-4 pt-3 pb-2"
+        className="pt-3 pb-2"
       >
         <SearchBar
           value={searchQuery}
@@ -251,7 +251,7 @@ export default function AnnouncementsPage() {
       </motion.div>
 
       {isLoading ? (
-        <div className="p-4 space-y-4">
+        <div className="py-4 space-y-4">
           <Skeleton variant="card" />
           <Skeleton variant="card" />
           <Skeleton variant="card" />
@@ -269,7 +269,7 @@ export default function AnnouncementsPage() {
             variants={shouldReduceMotion ? undefined : stagger}
             initial="hidden"
             animate="visible"
-            className="p-4 space-y-4"
+            className="py-4 space-y-4"
           >
             {/* Pinned section */}
             {filteredPinned.length > 0 && (

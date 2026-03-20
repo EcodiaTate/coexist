@@ -121,7 +121,7 @@ export default function CheckoutPage() {
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-4 py-5 space-y-6"
+        className="py-5 space-y-6"
       >
         {/* Saved addresses */}
         {savedAddresses && savedAddresses.length > 0 && (
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={() => handleSelectSaved(saved)}
                   className={cn(
-                    'w-full text-left p-3 rounded-xl border-2 transition-colors duration-150 cursor-pointer',
+                    'w-full text-left p-3 min-h-11 rounded-xl border-2 cursor-pointer select-none active:scale-[0.97] transition-all duration-150',
                     address.line1 === saved.line1 && address.postcode === saved.postcode
                       ? 'border-primary-500 bg-white'
                       : 'border-primary-200 hover:border-primary-200',

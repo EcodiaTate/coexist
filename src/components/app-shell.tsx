@@ -43,7 +43,6 @@ export function AppShell({ children, bare = false }: AppShellProps) {
         <main className={cn(
           'flex-1 flex flex-col min-w-0',
           showBottomTabs && 'min-h-0',
-          showBottomTabs ? 'pb-24' : 'pb-12',
         )}>
           {children}
         </main>

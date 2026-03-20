@@ -26,7 +26,7 @@ const BADGE_CATEGORIES = [
 
 function BadgeSkeleton() {
   return (
-    <div className="grid grid-cols-3 gap-4 px-4 py-6">
+    <div className="grid grid-cols-3 gap-4 py-6">
       {Array.from({ length: 9 }).map((_, i) => (
         <div key={i} className="flex flex-col items-center gap-2">
           <Skeleton variant="avatar" className="w-16 h-16" />
@@ -233,7 +233,7 @@ export default function BadgesPage() {
   return (
     <Page header={<Header title="Badges" back />}>
       <PullToRefresh onRefresh={handleRefresh}>
-      <div className="px-4 pb-8">
+      <div className="pb-8">
         {/* Progress header */}
         <div className="mt-4 mb-4">
           <div className="flex items-center justify-between mb-2">

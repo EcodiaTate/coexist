@@ -72,13 +72,12 @@ interface SidebarNavProps {
 export function SidebarNav({ className }: SidebarNavProps) {
   const location = useLocation()
   const shouldReduceMotion = useReducedMotion()
-  const { profile, isStaff } = useAuth()
+  const { profile, collectiveRoles, isStaff } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
 
   // Check if user is a leader in any collective
-  const isAnyLeader = (profile as any)?.collective_memberships?.some(
-    (m: { role: string }) =>
-      ['leader', 'co_leader', 'assist_leader'].includes(m.role),
+  const isAnyLeader = collectiveRoles.some(
+    (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
   )
 
   const isActive = (path: string) => {

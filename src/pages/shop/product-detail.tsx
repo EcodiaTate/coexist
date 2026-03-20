@@ -46,7 +46,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
   }
 
   return (
-    <div className="relative">
+    <div className="relative -mx-4 lg:-mx-6">
       <div
         ref={scrollRef}
         onScroll={handleScroll}
@@ -73,7 +73,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
               onClick={() => scrollTo(i)}
               aria-label={`Image ${i + 1}`}
               className={cn(
-                'w-2 h-2 rounded-full transition-colors duration-150 cursor-pointer',
+                'w-2 h-2 rounded-full p-2.5 bg-clip-content transition-all duration-150 cursor-pointer select-none active:scale-[0.97]',
                 i === currentIndex ? 'bg-white' : 'bg-white/50',
               )}
             />
@@ -86,7 +86,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
           <button
             type="button"
             onClick={() => scrollTo(Math.max(0, currentIndex - 1))}
-            className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 items-center justify-center w-8 h-8 rounded-full bg-white/80 shadow-sm cursor-pointer"
+            className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 items-center justify-center min-w-11 min-h-11 rounded-full bg-white/80 shadow-sm cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
             aria-label="Previous image"
           >
             <ChevronLeft size={18} />
@@ -94,7 +94,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
           <button
             type="button"
             onClick={() => scrollTo(Math.min(images.length - 1, currentIndex + 1))}
-            className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 items-center justify-center w-8 h-8 rounded-full bg-white/80 shadow-sm cursor-pointer"
+            className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 items-center justify-center min-w-11 min-h-11 rounded-full bg-white/80 shadow-sm cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
             aria-label="Next image"
           >
             <ChevronRight size={18} />
@@ -157,7 +157,7 @@ export default function ProductDetailPage() {
     return (
       <Page header={<Header title="Product" back />}>
         <Skeleton variant="card" className="rounded-none" />
-        <div className="p-4 space-y-3">
+        <div className="py-4 space-y-3">
           <Skeleton variant="title" />
           <Skeleton variant="text" count={3} />
         </div>
@@ -204,7 +204,7 @@ export default function ProductDetailPage() {
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="px-4 py-5 space-y-5"
+        className="py-5 space-y-5"
       >
         {/* Name + price */}
         <div>
@@ -258,8 +258,8 @@ export default function ProductDetailPage() {
                     onClick={() => variant && setSelectedVariant(variant)}
                     disabled={!available}
                     className={cn(
-                      'px-4 py-2 rounded-lg border-2 text-sm font-medium cursor-pointer',
-                      'transition-colors duration-150',
+                      'px-4 py-2 min-h-11 rounded-xl border-2 text-sm font-medium cursor-pointer select-none',
+                      'active:scale-[0.97] transition-all duration-150',
                       isSelected
                         ? 'border-primary-500 bg-white text-primary-400'
                         : available
@@ -294,8 +294,8 @@ export default function ProductDetailPage() {
                     onClick={() => variant && setSelectedVariant(variant)}
                     disabled={!available}
                     className={cn(
-                      'px-4 py-2 rounded-lg border-2 text-sm font-medium cursor-pointer',
-                      'transition-colors duration-150',
+                      'px-4 py-2 min-h-11 rounded-xl border-2 text-sm font-medium cursor-pointer select-none',
+                      'active:scale-[0.97] transition-all duration-150',
                       isSelected
                         ? 'border-primary-500 bg-white text-primary-400'
                         : available
@@ -318,7 +318,7 @@ export default function ProductDetailPage() {
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="flex items-center justify-center w-9 h-9 rounded-md text-primary-400 hover:bg-primary-50 transition-colors cursor-pointer"
+              className="flex items-center justify-center min-w-11 min-h-11 rounded-xl text-primary-400 hover:bg-primary-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
               aria-label="Decrease quantity"
             >
               <Minus size={16} />
@@ -329,7 +329,7 @@ export default function ProductDetailPage() {
             <button
               type="button"
               onClick={() => setQuantity((q) => q + 1)}
-              className="flex items-center justify-center w-9 h-9 rounded-md text-primary-400 hover:bg-primary-50 transition-colors cursor-pointer"
+              className="flex items-center justify-center min-w-11 min-h-11 rounded-xl text-primary-400 hover:bg-primary-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
               aria-label="Increase quantity"
             >
               <Plus size={16} />
@@ -375,13 +375,14 @@ export default function ProductDetailPage() {
             <h3 className="font-heading font-semibold text-primary-800 mb-3">
               You might also like
             </h3>
-            <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2">
+            <div className="-mx-4 lg:-mx-6">
+            <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
               {related.map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   onClick={() => navigate(`/shop/${p.slug}`)}
-                  className="shrink-0 w-36 cursor-pointer"
+                  className="shrink-0 w-36 min-h-11 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
                 >
                   <Card variant="merch">
                     <Card.Image
@@ -398,6 +399,7 @@ export default function ProductDetailPage() {
                   </Card>
                 </button>
               ))}
+            </div>
             </div>
           </div>
         )}

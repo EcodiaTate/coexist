@@ -78,62 +78,62 @@ const ACTIVITY_META: Record<string, {
   tree_planting: {
     icon: <TreePine size={16} />,
     iconLg: <TreePine size={22} />,
-    bg: 'bg-green-50', bgSolid: 'bg-green-500', text: 'text-green-700',
-    ring: 'ring-green-300', gradient: 'from-green-400 to-emerald-500',
+    bg: 'bg-success-50', bgSolid: 'bg-success-500', text: 'text-success-700',
+    ring: 'ring-success-300', gradient: 'from-success-400 to-primary-500',
   },
   beach_cleanup: {
     icon: <Waves size={16} />,
     iconLg: <Waves size={22} />,
-    bg: 'bg-blue-50', bgSolid: 'bg-blue-500', text: 'text-blue-700',
-    ring: 'ring-blue-300', gradient: 'from-blue-400 to-cyan-500',
+    bg: 'bg-sky-50', bgSolid: 'bg-sky-500', text: 'text-sky-700',
+    ring: 'ring-sky-300', gradient: 'from-sky-400 to-moss-500',
   },
   habitat_restoration: {
     icon: <Flower2 size={16} />,
     iconLg: <Flower2 size={22} />,
-    bg: 'bg-emerald-50', bgSolid: 'bg-emerald-500', text: 'text-emerald-700',
-    ring: 'ring-emerald-300', gradient: 'from-emerald-400 to-teal-500',
+    bg: 'bg-primary-50', bgSolid: 'bg-primary-500', text: 'text-primary-700',
+    ring: 'ring-primary-300', gradient: 'from-primary-400 to-moss-500',
   },
   nature_walk: {
     icon: <Compass size={16} />,
     iconLg: <Compass size={22} />,
-    bg: 'bg-amber-50', bgSolid: 'bg-amber-500', text: 'text-amber-700',
-    ring: 'ring-amber-300', gradient: 'from-amber-400 to-orange-500',
+    bg: 'bg-bark-50', bgSolid: 'bg-bark-500', text: 'text-bark-700',
+    ring: 'ring-bark-300', gradient: 'from-bark-400 to-bark-500',
   },
   education: {
     icon: <GraduationCap size={16} />,
     iconLg: <GraduationCap size={22} />,
-    bg: 'bg-violet-50', bgSolid: 'bg-violet-500', text: 'text-violet-700',
-    ring: 'ring-violet-300', gradient: 'from-violet-400 to-purple-500',
+    bg: 'bg-plum-50', bgSolid: 'bg-plum-500', text: 'text-plum-700',
+    ring: 'ring-plum-300', gradient: 'from-plum-400 to-plum-500',
   },
   wildlife_survey: {
     icon: <Bird size={16} />,
     iconLg: <Bird size={22} />,
-    bg: 'bg-amber-50', bgSolid: 'bg-amber-500', text: 'text-amber-700',
-    ring: 'ring-amber-300', gradient: 'from-amber-400 to-yellow-500',
+    bg: 'bg-bark-50', bgSolid: 'bg-bark-500', text: 'text-bark-700',
+    ring: 'ring-bark-300', gradient: 'from-bark-400 to-warning-500',
   },
   seed_collecting: {
     icon: <Sprout size={16} />,
     iconLg: <Sprout size={22} />,
-    bg: 'bg-lime-50', bgSolid: 'bg-lime-500', text: 'text-lime-700',
-    ring: 'ring-lime-300', gradient: 'from-lime-400 to-green-500',
+    bg: 'bg-sprout-50', bgSolid: 'bg-sprout-500', text: 'text-sprout-700',
+    ring: 'ring-sprout-300', gradient: 'from-sprout-400 to-success-500',
   },
   weed_removal: {
     icon: <Leaf size={16} />,
     iconLg: <Leaf size={22} />,
-    bg: 'bg-orange-50', bgSolid: 'bg-orange-500', text: 'text-orange-700',
-    ring: 'ring-orange-300', gradient: 'from-orange-400 to-red-400',
+    bg: 'bg-bark-50', bgSolid: 'bg-bark-500', text: 'text-bark-700',
+    ring: 'ring-bark-300', gradient: 'from-bark-400 to-error-400',
   },
   waterway_cleanup: {
     icon: <Droplets size={16} />,
     iconLg: <Droplets size={22} />,
-    bg: 'bg-cyan-50', bgSolid: 'bg-cyan-500', text: 'text-cyan-700',
-    ring: 'ring-cyan-300', gradient: 'from-cyan-400 to-blue-500',
+    bg: 'bg-moss-50', bgSolid: 'bg-moss-500', text: 'text-moss-700',
+    ring: 'ring-moss-300', gradient: 'from-moss-400 to-sky-500',
   },
   community_garden: {
     icon: <Flower2 size={16} />,
     iconLg: <Flower2 size={22} />,
-    bg: 'bg-pink-50', bgSolid: 'bg-pink-500', text: 'text-pink-700',
-    ring: 'ring-pink-300', gradient: 'from-pink-400 to-rose-500',
+    bg: 'bg-coral-50', bgSolid: 'bg-coral-500', text: 'text-coral-700',
+    ring: 'ring-coral-300', gradient: 'from-coral-400 to-coral-500',
   },
   other: {
     icon: <CircleDot size={16} />,
@@ -250,8 +250,8 @@ function FilterSection({
         type="button"
         onClick={() => setOpen(!open)}
         className={cn(
-          'flex items-center gap-3 w-full py-4',
-          'text-left transition-colors duration-150',
+          'flex items-center gap-3 w-full py-4 min-h-11',
+          'text-left active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:rounded-lg',
         )}
         aria-expanded={open}
@@ -324,8 +324,8 @@ function ActivityTile({
       onClick={onToggle}
       whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
       className={cn(
-        'relative flex items-center gap-3 w-full px-3 py-3 rounded-xl',
-        'text-left transition-all duration-150',
+        'relative flex items-center gap-3 w-full px-3 py-3 min-h-11 rounded-xl',
+        'text-left active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
         selected
           ? `${meta.bg} ring-1.5 ${meta.ring}`
@@ -442,7 +442,7 @@ function DistanceSelector({
               type="button"
               onClick={() => onChange(tick)}
               className={cn(
-                'text-[11px] font-medium tabular-nums transition-colors',
+                'text-[11px] font-medium tabular-nums min-h-11 min-w-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded',
                 value === tick ? 'text-primary-700 font-semibold' : 'text-primary-300',
               )}
@@ -480,8 +480,8 @@ function StateSelector({
             onClick={() => onChange(isSelected ? null : s.value)}
             whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
             className={cn(
-              'flex items-center gap-3 w-full px-3 py-2.5 rounded-xl',
-              'text-left transition-all duration-150',
+              'flex items-center gap-3 w-full px-3 py-2.5 min-h-11 rounded-xl',
+              'text-left active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               isSelected
                 ? 'bg-primary-50 ring-1.5 ring-primary-300'
@@ -562,8 +562,8 @@ function DateRangeSelector({
                 }
               }}
               className={cn(
-                'flex items-center gap-2 px-3 py-2.5 rounded-xl',
-                'text-sm font-medium text-left transition-all duration-150',
+                'flex items-center gap-2 px-3 py-2.5 min-h-11 rounded-xl',
+                'text-sm font-medium text-left active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 isActive
                   ? 'bg-primary-600 text-white shadow-sm'
@@ -648,7 +648,8 @@ function ActivityScroller({
   const shouldReduceMotion = useReducedMotion()
 
   return (
-    <div className="flex gap-3 overflow-x-auto scrollbar-none px-4 pb-2">
+    <div className="-mx-4 lg:-mx-6">
+    <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
       {Object.entries(ACTIVITY_TYPE_LABELS).map(([key, label]) => {
         const meta = ACTIVITY_META[key] ?? ACTIVITY_META.other
         const isSelected = selected.includes(key)
@@ -658,7 +659,7 @@ function ActivityScroller({
             type="button"
             onClick={() => onToggle(key)}
             whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
-            className="flex flex-col items-center gap-1.5 shrink-0 focus-visible:outline-none"
+            className="flex flex-col items-center gap-1.5 shrink-0 min-w-11 min-h-11 cursor-pointer select-none focus-visible:outline-none"
             aria-label={label}
             aria-pressed={isSelected}
           >
@@ -683,6 +684,7 @@ function ActivityScroller({
           </motion.button>
         )
       })}
+    </div>
     </div>
   )
 }
@@ -838,7 +840,7 @@ export default function ExplorePage() {
         {/* ============================================================ */}
         {/*  Search bar                                                   */}
         {/* ============================================================ */}
-        <div className="px-4 pt-3 pb-2">
+        <div className="pt-3 pb-2">
           <SearchBar
             ref={searchInputRef}
             value={query}
@@ -853,7 +855,7 @@ export default function ExplorePage() {
         {/* ============================================================ */}
         {/*  Filter bar: active chips + filter button + view toggle       */}
         {/* ============================================================ */}
-        <div className="px-4 flex items-center gap-2 pb-2">
+        <div className="flex items-center gap-2 pb-2">
           <div className="flex-1 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
             {/* Active filter chips */}
             {filters.activityTypes.map((type) => {
@@ -912,7 +914,7 @@ export default function ExplorePage() {
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="text-xs font-medium text-primary-400 hover:text-primary-600 whitespace-nowrap transition-colors ml-1"
+                className="text-xs font-medium text-primary-400 hover:text-primary-600 whitespace-nowrap min-h-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none ml-1"
               >
                 Clear all
               </button>
@@ -925,8 +927,8 @@ export default function ExplorePage() {
             onClick={openFilters}
             whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
             className={cn(
-              'relative flex items-center justify-center w-10 h-10 rounded-xl shrink-0',
-              'border transition-all duration-150',
+              'relative flex items-center justify-center min-h-11 min-w-11 rounded-xl shrink-0',
+              'border active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
               activeFilterCount > 0
                 ? 'border-primary-400 bg-primary-50 text-primary-600 shadow-sm'
                 : 'border-primary-200 bg-white text-primary-400',
@@ -948,8 +950,8 @@ export default function ExplorePage() {
               type="button"
               onClick={() => setViewMode('map')}
               className={cn(
-                'flex items-center justify-center w-10 h-10',
-                'transition-all duration-150',
+                'flex items-center justify-center min-h-11 min-w-11',
+                'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 viewMode === 'map'
                   ? 'bg-primary-600 text-white'
                   : 'bg-white text-primary-400 hover:bg-primary-50',
@@ -963,8 +965,8 @@ export default function ExplorePage() {
               type="button"
               onClick={() => setViewMode('list')}
               className={cn(
-                'flex items-center justify-center w-10 h-10',
-                'transition-all duration-150',
+                'flex items-center justify-center min-h-11 min-w-11',
+                'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 viewMode === 'list'
                   ? 'bg-primary-600 text-white'
                   : 'bg-white text-primary-400 hover:bg-primary-50',
@@ -993,7 +995,7 @@ export default function ExplorePage() {
                 className="pb-4"
               >
                 {recentSearches.length > 0 && (
-                  <div className="px-4 mb-4">
+                  <div className="mb-4">
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
                         Recent
@@ -1001,7 +1003,7 @@ export default function ExplorePage() {
                       <button
                         type="button"
                         onClick={clearRecentSearches}
-                        className="text-xs text-primary-400 font-medium hover:text-primary-600 transition-colors"
+                        className="text-xs text-primary-400 font-medium hover:text-primary-600 min-h-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                       >
                         Clear
                       </button>
@@ -1013,9 +1015,9 @@ export default function ExplorePage() {
                           type="button"
                           onClick={() => handleSearchSubmit(term)}
                           className={cn(
-                            'flex items-center gap-3 w-full px-3 py-2.5 rounded-xl',
+                            'flex items-center gap-3 w-full px-3 py-2.5 min-h-11 rounded-xl',
                             'text-sm text-primary-800 hover:bg-white',
-                            'transition-colors duration-150 group',
+                            'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none group',
                           )}
                         >
                           <Clock size={14} className="text-primary-300 shrink-0" />
@@ -1028,7 +1030,7 @@ export default function ExplorePage() {
                               e.stopPropagation()
                               removeRecentSearch(term)
                             }}
-                            className="text-primary-200 hover:text-primary-400 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-200 hover:text-primary-400 shrink-0 opacity-0 group-hover:opacity-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                             aria-label={`Remove ${term}`}
                           >
                             <X size={14} />
@@ -1050,8 +1052,9 @@ export default function ExplorePage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                {/* Result type tabs */}
-                <div className="px-4 flex gap-1.5 mb-3 overflow-x-auto scrollbar-none">
+                {/* Result type tabs � edge-to-edge scroll */}
+                <div className="-mx-4 lg:-mx-6">
+                <div className="flex gap-1.5 mb-3 overflow-x-auto px-4 lg:px-6 scrollbar-none">
                   {RESULT_TABS.map((tab) => {
                     const count =
                       tab.key === 'all'
@@ -1071,9 +1074,10 @@ export default function ExplorePage() {
                     )
                   })}
                 </div>
+                </div>
 
                 {results.isLoading ? (
-                  <div className="px-4 space-y-3">
+                  <div className="space-y-3">
                     <Skeleton variant="list-item" count={5} />
                   </div>
                 ) : totalResults === 0 ? (
@@ -1087,7 +1091,7 @@ export default function ExplorePage() {
                     }}
                   />
                 ) : (
-                  <div className="px-4 space-y-6 pb-6">
+                  <div className="space-y-6 pb-6">
                     {/* Events results */}
                     {(resultTab === 'all' || resultTab === 'events') &&
                       results.data &&
@@ -1206,8 +1210,8 @@ export default function ExplorePage() {
                                   navigate(`/profile/${person.id}`)
                                 }
                                 className={cn(
-                                  'flex items-center gap-3 w-full px-3 py-2.5 rounded-xl',
-                                  'hover:bg-white transition-colors duration-150',
+                                  'flex items-center gap-3 w-full px-3 py-2.5 min-h-11 rounded-xl',
+                                  'hover:bg-white active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                                 )}
                               >
                                 <Avatar
@@ -1234,7 +1238,7 @@ export default function ExplorePage() {
                 key="typing"
                 initial={shouldReduceMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="px-4 pt-8 text-center text-sm text-primary-400"
+                className="pt-8 text-center text-sm text-primary-400"
               >
                 Keep typing to search...
               </motion.div>
@@ -1257,7 +1261,7 @@ export default function ExplorePage() {
                 </div>
 
                 {viewMode === 'map' ? (
-                  <div className="px-4">
+                  <div>
                     <MapView
                       center={
                         userLocation ?? { lat: -33.8688, lng: 151.2093 }
@@ -1289,7 +1293,7 @@ export default function ExplorePage() {
                     />
                   </div>
                 ) : (
-                  <div className="px-4 space-y-6 pb-6">
+                  <div className="space-y-6 pb-6">
                     {/* Nearby events */}
                     <div>
                       <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-2">
@@ -1449,7 +1453,7 @@ export default function ExplorePage() {
                 setDraftFilters(cleared)
               }}
               className={cn(
-                'text-sm font-medium transition-colors',
+                'text-sm font-medium min-h-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 draftFilterCount > 0
                   ? 'text-primary-600 hover:text-primary-800'
                   : 'text-primary-300',

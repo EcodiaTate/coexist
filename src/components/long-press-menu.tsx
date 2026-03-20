@@ -129,7 +129,7 @@ export function LongPressMenu({
                       'text-sm font-medium transition-colors duration-100',
                       'focus-visible:outline-none focus-visible:bg-white',
                       action.destructive
-                        ? 'text-error hover:bg-red-50'
+                        ? 'text-error hover:bg-error-50'
                         : 'text-primary-800 hover:bg-primary-50',
                       i > 0 && 'border-t border-primary-100',
                     )}

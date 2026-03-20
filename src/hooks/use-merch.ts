@@ -6,21 +6,16 @@ import type { Product, ProductReview, ShippingConfig } from '@/types/merch'
 /*  Product listing                                                    */
 /* ------------------------------------------------------------------ */
 
-export function useProducts(category?: string) {
+export function useProducts() {
   return useQuery({
-    queryKey: ['products', category],
+    queryKey: ['products'],
     queryFn: async () => {
-      let query = supabase
-        .from('products' as any)
-        .select('*, variants:product_variants(*)')
-        .eq('status', 'active')
+      const { data, error } = await supabase
+        .from('merch_products')
+        .select('*')
+        .eq('is_active', true)
         .order('created_at', { ascending: false })
 
-      if (category) {
-        query = query.eq('category', category)
-      }
-
-      const { data, error } = await query
       if (error) throw error
       return data as unknown as Product[]
     },
@@ -32,15 +27,15 @@ export function useProducts(category?: string) {
 /*  Single product detail                                              */
 /* ------------------------------------------------------------------ */
 
-export function useProduct(slug: string | undefined) {
+export function useProduct(productId: string | undefined) {
   return useQuery({
-    queryKey: ['product', slug],
-    enabled: !!slug,
+    queryKey: ['product', productId],
+    enabled: !!productId,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('products' as any)
-        .select('*, variants:product_variants(*)')
-        .eq('slug', slug!)
+        .from('merch_products')
+        .select('*')
+        .eq('id', productId!)
         .single()
       if (error) throw error
       return data as unknown as Product
@@ -53,23 +48,18 @@ export function useProduct(slug: string | undefined) {
 /*  Related products                                                   */
 /* ------------------------------------------------------------------ */
 
-export function useRelatedProducts(productId: string | undefined, category: string | null) {
+export function useRelatedProducts(productId: string | undefined) {
   return useQuery({
-    queryKey: ['related-products', productId, category],
+    queryKey: ['related-products', productId],
     enabled: !!productId,
     queryFn: async () => {
-      let query = supabase
-        .from('products' as any)
-        .select('*, variants:product_variants(*)')
-        .eq('status', 'active')
+      const { data, error } = await supabase
+        .from('merch_products')
+        .select('*')
+        .eq('is_active', true)
         .neq('id', productId!)
         .limit(4)
 
-      if (category) {
-        query = query.eq('category', category)
-      }
-
-      const { data, error } = await query
       if (error) throw error
       return data as unknown as Product[]
     },
@@ -90,7 +80,7 @@ export function useProductReviews(productId: string | undefined) {
         .from('product_reviews')
         .select('*, profiles(display_name, avatar_url)')
         .eq('product_id', productId!)
-        .eq('status', 'approved')
+        .eq('is_approved', true)
         .order('created_at', { ascending: false })
       if (error) throw error
       return data as unknown as ProductReview[]
@@ -100,16 +90,32 @@ export function useProductReviews(productId: string | undefined) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Promo code validation                                              */
+/*  Product inventory (stock check for variant)                        */
 /* ------------------------------------------------------------------ */
 
-export function useValidatePromo() {
+export function useProductStock(productId: string | undefined) {
   return useQuery({
-    queryKey: ['validate-promo'],
-    enabled: false, // manually triggered
-    queryFn: async () => null,
+    queryKey: ['product-stock', productId],
+    enabled: !!productId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('merch_inventory')
+        .select('variant_key, stock_count, low_stock_threshold')
+        .eq('product_id', productId!)
+      if (error) throw error
+      const map = new Map<string, number>()
+      for (const row of data ?? []) {
+        map.set(row.variant_key, row.stock_count)
+      }
+      return map
+    },
+    staleTime: 60 * 1000,
   })
 }
+
+/* ------------------------------------------------------------------ */
+/*  Promo code validation                                              */
+/* ------------------------------------------------------------------ */
 
 /** Validate a promo code (called imperatively) */
 export async function validatePromoCode(code: string) {
@@ -127,27 +133,4 @@ export async function validatePromoCode(code: string) {
   if (data.max_uses && data.uses_count >= data.max_uses) return { valid: false, promo: null }
 
   return { valid: true, promo: data }
-}
-
-/* ------------------------------------------------------------------ */
-/*  Shipping config                                                    */
-/* ------------------------------------------------------------------ */
-
-export function useShippingConfig() {
-  return useQuery({
-    queryKey: ['shipping-config'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shipping_config' as any)
-        .select('*')
-        .limit(1)
-        .single()
-      if (error) {
-        // Default fallback
-        return { flat_rate_cents: 995, free_shipping_threshold_cents: 10000 } as ShippingConfig
-      }
-      return data as unknown as ShippingConfig
-    },
-    staleTime: 10 * 60 * 1000,
-  })
 }

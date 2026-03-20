@@ -20,10 +20,10 @@ function getPasswordStrength(pw: string): { score: number; label: string; color:
   if (/[0-9]/.test(pw)) score++
   if (/[^A-Za-z0-9]/.test(pw)) score++
 
-  if (score <= 1) return { score, label: 'Weak', color: 'bg-red-500' }
-  if (score <= 2) return { score, label: 'Fair', color: 'bg-amber-500' }
-  if (score <= 3) return { score, label: 'Good', color: 'bg-yellow-500' }
-  return { score, label: 'Strong', color: 'bg-green-500' }
+  if (score <= 1) return { score, label: 'Weak', color: 'bg-error-500' }
+  if (score <= 2) return { score, label: 'Fair', color: 'bg-warning-500' }
+  if (score <= 3) return { score, label: 'Good', color: 'bg-warning-400' }
+  return { score, label: 'Strong', color: 'bg-success-500' }
 }
 
 /* ------------------------------------------------------------------ */
@@ -40,12 +40,12 @@ function calculateAge(dob: string): number {
 }
 
 const stagger = {
-  animate: { transition: { staggerChildren: 0.06 } },
+  animate: { transition: { staggerChildren: 0.05 } },
 }
 
 const fadeUp = {
-  initial: { opacity: 0, y: 18 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
+  initial: { opacity: 0, y: 14 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] } },
 }
 
 export default function SignUpPage() {
@@ -101,235 +101,239 @@ export default function SignUpPage() {
   const motionProps = shouldReduceMotion ? {} : fadeUp
 
   return (
-    <div className="min-h-dvh flex flex-col bg-primary-50 relative overflow-hidden">
-      {/* Organic background decoration */}
+    <div className="min-h-dvh flex flex-col bg-primary-50/60 relative overflow-hidden">
+      {/* Subtle background accents */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-24 -left-20 w-72 h-72 rounded-full bg-primary-200/40 blur-3xl" />
-        <div className="absolute -top-10 -right-16 w-56 h-56 rounded-full bg-primary-300/20 blur-3xl" />
-        <div className="absolute top-28 right-6 text-primary-200/25">
-          <Leaf size={56} strokeWidth={1} style={{ transform: 'rotate(45deg)' }} />
-        </div>
-        <div className="absolute top-52 left-4 text-primary-200/15">
-          <Leaf size={36} strokeWidth={1} style={{ transform: 'rotate(-15deg)' }} />
+        <div className="absolute -top-32 -left-28 w-80 h-80 rounded-full bg-primary-200/30 blur-[80px]" />
+        <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-primary-300/15 blur-[60px]" />
+        <div className="absolute top-36 right-8 text-primary-200/20 hidden sm:block">
+          <Leaf size={44} strokeWidth={1} style={{ transform: 'rotate(45deg)' }} />
         </div>
       </div>
 
-      <motion.form
-        onSubmit={handleSubmit}
-        variants={shouldReduceMotion ? undefined : stagger}
-        initial="initial"
-        animate="animate"
-        className="relative flex-1 flex flex-col"
-      >
-        {/* Top - back button */}
-        <div
-          className="px-5 pt-3"
-          style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
+      {/* Centered container — caps width on larger screens */}
+      <div className="relative flex-1 flex flex-col w-full max-w-[440px] mx-auto">
+        <motion.form
+          onSubmit={handleSubmit}
+          variants={shouldReduceMotion ? undefined : stagger}
+          initial="initial"
+          animate="animate"
+          className="flex-1 flex flex-col"
         >
-          <motion.button
-            type="button"
-            onClick={() => navigate('/welcome')}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
-            className={cn(
-              'flex items-center justify-center',
-              'w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm',
-              'text-primary-800 shadow-sm',
-              'cursor-pointer select-none',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-            )}
-            aria-label="Go back"
+          {/* Back button */}
+          <div
+            className="px-5 pt-3"
+            style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
           >
-            <ArrowLeft size={20} />
-          </motion.button>
-        </div>
-
-        {/* Hero area */}
-        <motion.div {...motionProps} className="px-8 pt-5 pb-1">
-          <h1 className="text-h2 font-bold text-primary-900 tracking-tight">
-            Join the movement
-          </h1>
-          <p className="mt-1.5 text-body text-primary-400">
-            Create your account to get started
-          </p>
-        </motion.div>
-
-        {/* Scrollable form area */}
-        <div className="flex-1 px-5 pt-4 overflow-y-auto">
-          {/* Social buttons */}
-          <motion.div {...motionProps} className="flex gap-3">
-            <button
+            <motion.button
               type="button"
-              onClick={() => handleSocial('google')}
+              onClick={() => navigate('/welcome')}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
               className={cn(
-                'flex-1 flex items-center justify-center gap-2.5',
-                'h-12 rounded-2xl bg-white',
-                'text-sm text-primary-800 font-semibold',
-                'shadow-sm active:shadow-none active:scale-[0.98]',
-                'transition-all duration-150',
-                'cursor-pointer',
+                'flex items-center justify-center',
+                'w-10 h-10 rounded-full',
+                'bg-white/70 backdrop-blur-md',
+                'text-primary-700 shadow-xs',
+                'cursor-pointer select-none',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               )}
+              aria-label="Go back"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-              </svg>
-              Google
-            </button>
+              <ArrowLeft size={20} />
+            </motion.button>
+          </div>
 
-            <button
-              type="button"
-              onClick={() => handleSocial('apple')}
-              className={cn(
-                'flex-1 flex items-center justify-center gap-2.5',
-                'h-12 rounded-2xl bg-white',
-                'text-sm text-primary-800 font-semibold',
-                'shadow-sm active:shadow-none active:scale-[0.98]',
-                'transition-all duration-150',
-                'cursor-pointer',
-              )}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-1.55 4.3-3.74 4.25z" />
-              </svg>
-              Apple
-            </button>
+          {/* Hero */}
+          <motion.div {...motionProps} className="px-6 pt-6 pb-1">
+            <h1 className="text-[28px] font-bold text-primary-900 tracking-tight leading-tight">
+              Join the movement
+            </h1>
+            <p className="mt-1 text-[15px] text-primary-400">
+              Create your account to get started
+            </p>
           </motion.div>
 
-          {/* Divider */}
-          <motion.div {...motionProps} className="flex items-center gap-4 my-5">
-            <div className="flex-1 h-px bg-primary-200/60" />
-            <span className="text-xs text-primary-300 font-medium uppercase tracking-widest">or</span>
-            <div className="flex-1 h-px bg-primary-200/60" />
-          </motion.div>
+          {/* Scrollable form body */}
+          <div className="flex-1 px-5 pt-5 overflow-y-auto">
+            {/* Social sign-up */}
+            <motion.div {...motionProps} className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => handleSocial('google')}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2.5',
+                  'h-[50px] rounded-2xl',
+                  'bg-white/80 backdrop-blur-sm border border-primary-100/80',
+                  'text-sm text-primary-800 font-semibold',
+                  'active:scale-[0.97] transition-all duration-150',
+                  'cursor-pointer',
+                )}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                </svg>
+                Google
+              </button>
 
-          {/* Form fields in card */}
-          <motion.div
-            {...motionProps}
-            className="bg-white rounded-2xl p-4 shadow-sm space-y-3"
-          >
-            <Input
-              label="Display name"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              autoComplete="name"
-              required
-              maxLength={50}
-            />
+              <button
+                type="button"
+                onClick={() => handleSocial('apple')}
+                className={cn(
+                  'flex-1 flex items-center justify-center gap-2.5',
+                  'h-[50px] rounded-2xl',
+                  'bg-white/80 backdrop-blur-sm border border-primary-100/80',
+                  'text-sm text-primary-800 font-semibold',
+                  'active:scale-[0.97] transition-all duration-150',
+                  'cursor-pointer',
+                )}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-1.55 4.3-3.74 4.25z" />
+                </svg>
+                Apple
+              </button>
+            </motion.div>
 
-            <Input
-              type="email"
-              label="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              required
-            />
+            {/* Divider */}
+            <motion.div {...motionProps} className="flex items-center gap-4 my-5">
+              <div className="flex-1 h-px bg-primary-200/50" />
+              <span className="text-[11px] text-primary-300 font-semibold uppercase tracking-[0.15em]">or</span>
+              <div className="flex-1 h-px bg-primary-200/50" />
+            </motion.div>
 
-            <div>
+            {/* Form card */}
+            <motion.div
+              {...motionProps}
+              className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-primary-100/50 space-y-4"
+            >
               <Input
-                type="password"
-                label="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-                helperText="At least 8 characters with uppercase, number, or symbol"
+                label="Display name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                autoComplete="name"
+                required
+                maxLength={50}
+              />
+
+              <Input
+                type="email"
+                label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 required
               />
-              {password.length > 0 && (
-                <div className="mt-2 flex items-center gap-2.5 px-1">
-                  <div className="flex-1 flex gap-1">
-                    {Array.from({ length: 4 }).map((_, i) => (
-                      <div
-                        key={i}
-                        className={cn(
-                          'h-1.5 flex-1 rounded-full transition-all duration-300',
-                          i < Math.ceil(passwordStrength.score / 1.25)
-                            ? passwordStrength.color
-                            : 'bg-primary-100',
-                        )}
-                      />
-                    ))}
+
+              <div>
+                <Input
+                  type="password"
+                  label="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  helperText="At least 8 characters with uppercase, number, or symbol"
+                  required
+                />
+                {password.length > 0 && (
+                  <div className="mt-2.5 flex items-center gap-2.5 px-0.5">
+                    <div className="flex-1 flex gap-1">
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ scaleX: 0 }}
+                          animate={{ scaleX: 1 }}
+                          transition={{ duration: 0.25, delay: i * 0.05 }}
+                          className={cn(
+                            'h-1 flex-1 rounded-full origin-left transition-colors duration-300',
+                            i < Math.ceil(passwordStrength.score / 1.25)
+                              ? passwordStrength.color
+                              : 'bg-primary-100',
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <span className="text-[11px] font-semibold text-primary-400 min-w-[3rem]">
+                      {passwordStrength.label}
+                    </span>
                   </div>
-                  <span className="text-xs font-semibold text-primary-400 min-w-[3rem]">
-                    {passwordStrength.label}
-                  </span>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
 
-            <Input
-              type="date"
-              label="Date of Birth"
-              value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
-              max={maxDob}
-              required
-              helperText="You must be at least 18 years old"
-              error={dateOfBirth && !isAgeValid ? 'You must be at least 18 to create an account' : undefined}
-            />
-          </motion.div>
-
-          {/* Terms checkbox - outside card for visual hierarchy */}
-          <motion.div {...motionProps} className="mt-4 px-1">
-            <Checkbox
-              checked={agreedToTerms}
-              onChange={setAgreedToTerms}
-              label={
-                <>
-                  I agree to the{' '}
-                  <Link to="/terms" className="text-primary-600 font-bold hover:underline">
-                    Terms of Service
-                  </Link>{' '}
-                  and{' '}
-                  <Link to="/privacy" className="text-primary-600 font-bold hover:underline">
-                    Privacy Policy
-                  </Link>
-                </>
-              }
-            />
-          </motion.div>
-
-          {/* Error */}
-          {error && (
-            <motion.div
-              initial={shouldReduceMotion ? false : { opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-4 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600 text-center font-medium"
-              role="alert"
-            >
-              {error}
+              <Input
+                type="date"
+                label="Date of Birth"
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
+                max={maxDob}
+                required
+                helperText="You must be at least 18 years old"
+                error={dateOfBirth && !isAgeValid ? 'You must be at least 18 to create an account' : undefined}
+              />
             </motion.div>
-          )}
-        </div>
 
-        {/* Bottom CTA */}
-        <motion.div
-          {...motionProps}
-          className="px-5 py-5"
-          style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
-        >
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            fullWidth
-            loading={isSubmitting}
-            disabled={!canSubmit}
-            className="!rounded-2xl !h-14 !text-base"
+            {/* Terms checkbox */}
+            <motion.div {...motionProps} className="mt-5 px-1">
+              <Checkbox
+                checked={agreedToTerms}
+                onChange={setAgreedToTerms}
+                label={
+                  <>
+                    I agree to the{' '}
+                    <Link to="/terms" className="text-primary-600 font-bold hover:underline">
+                      Terms of Service
+                    </Link>{' '}
+                    and{' '}
+                    <Link to="/privacy" className="text-primary-600 font-bold hover:underline">
+                      Privacy Policy
+                    </Link>
+                  </>
+                }
+              />
+            </motion.div>
+
+            {/* Error */}
+            {error && (
+              <motion.div
+                initial={shouldReduceMotion ? false : { opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 px-4 py-3 bg-error-50 border border-error-100 rounded-xl text-sm text-error-600 text-center font-medium"
+                role="alert"
+              >
+                {error}
+              </motion.div>
+            )}
+          </div>
+
+          {/* Bottom CTA */}
+          <motion.div
+            {...motionProps}
+            className="px-5 pt-4 pb-5"
+            style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
           >
-            Create Account
-          </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={isSubmitting}
+              disabled={!canSubmit}
+              className="!rounded-2xl !h-[54px] !text-[15px] !font-bold !shadow-sm"
+            >
+              Create Account
+            </Button>
 
-          <p className="mt-4 text-center text-sm text-primary-400">
-            Already have an account?{' '}
-            <Link to="/login" className="text-primary-600 font-bold hover:underline">
-              Log in
-            </Link>
-          </p>
-        </motion.div>
-      </motion.form>
+            <p className="mt-4 text-center text-sm text-primary-400">
+              Already have an account?{' '}
+              <Link to="/login" className="text-primary-600 font-bold hover:underline">
+                Log in
+              </Link>
+            </p>
+          </motion.div>
+        </motion.form>
+      </div>
     </div>
   )
 }

@@ -44,8 +44,8 @@ const VARIANT_CONFIG: Record<CardVariant, {
   },
   badge: {
     icon: Award,
-    gradient: 'from-amber-500 to-amber-700',
-    accent: 'text-amber-200',
+    gradient: 'from-bark-500 to-bark-700',
+    accent: 'text-bark-200',
   },
   event: {
     icon: Calendar,
@@ -54,8 +54,8 @@ const VARIANT_CONFIG: Record<CardVariant, {
   },
   milestone: {
     icon: TreePine,
-    gradient: 'from-emerald-600 to-emerald-800',
-    accent: 'text-emerald-200',
+    gradient: 'from-secondary-600 to-secondary-800',
+    accent: 'text-secondary-200',
   },
 }
 

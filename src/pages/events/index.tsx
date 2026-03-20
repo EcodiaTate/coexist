@@ -188,9 +188,10 @@ function EventCard({
                 onCancel(event.id)
               }}
               className={cn(
-                'mt-3 flex items-center gap-1 text-caption font-medium text-primary-400',
-                'hover:text-error transition-colors duration-150',
+                'mt-3 min-h-11 flex items-center justify-center gap-1 text-caption font-medium text-primary-400',
+                'hover:text-error',
                 'cursor-pointer select-none',
+                'active:scale-[0.97] transition-all duration-150',
               )}
               aria-label="Cancel registration"
             >
@@ -210,7 +211,7 @@ function EventCard({
 
 function EventListSkeleton() {
   return (
-    <div className="space-y-4 px-4">
+    <div className="space-y-4">
       {Array.from({ length: 3 }, (_, i) => (
         <Card.Skeleton key={i} hasImage lines={3} />
       ))}
@@ -271,7 +272,7 @@ export default function MyEventsPage() {
             <button
               type="button"
               onClick={() => {}}
-              className="flex items-center justify-center w-9 h-9 rounded-full text-primary-400 hover:bg-primary-50 cursor-pointer"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
               aria-label="Calendar view"
             >
               <Calendar size={20} />
@@ -280,7 +281,7 @@ export default function MyEventsPage() {
         />
       }
     >
-      <div className="px-4 pt-3 pb-2">
+      <div className="pt-3 pb-2">
         <div className="flex items-center gap-2 bg-white rounded-lg p-1">
           <TabBar
             tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon }))}
@@ -315,7 +316,7 @@ export default function MyEventsPage() {
                 variants={shouldReduceMotion ? undefined : stagger}
                 initial="hidden"
                 animate="visible"
-                className="space-y-4 px-4"
+                className="space-y-4"
               >
                 {events.map((event) => (
                   <EventCard

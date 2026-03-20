@@ -56,19 +56,19 @@ const typeConfig: Record<
     icon: XCircle,
     iconClass: 'text-error',
     barClass: 'bg-error',
-    bgClass: 'bg-red-50 border-red-200',
+    bgClass: 'bg-error-50 border-error-200',
   },
   info: {
     icon: Info,
     iconClass: 'text-info',
     barClass: 'bg-info',
-    bgClass: 'bg-blue-50 border-blue-200',
+    bgClass: 'bg-info-50 border-info-200',
   },
   warning: {
     icon: AlertTriangle,
     iconClass: 'text-warning',
     barClass: 'bg-warning',
-    bgClass: 'bg-amber-50 border-amber-200',
+    bgClass: 'bg-warning-50 border-warning-200',
   },
 }
 

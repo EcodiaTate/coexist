@@ -124,7 +124,7 @@ export default function DiscoverCollectivesPage() {
               type="button"
               onClick={() => setView(view === 'list' ? 'map' : 'list')}
               aria-label={view === 'list' ? 'Switch to map view' : 'Switch to list view'}
-              className="flex items-center justify-center w-9 h-9 rounded-full text-primary-400 hover:bg-primary-50 transition-colors duration-150"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
             >
               {view === 'list' ? <Map size={20} /> : <List size={20} />}
             </button>
@@ -133,7 +133,7 @@ export default function DiscoverCollectivesPage() {
       }
     >
       <PullToRefresh onRefresh={handleRefresh}>
-      <div className="space-y-4 p-4">
+      <div className="space-y-4 py-4">
         {/* Search */}
         <SearchBar
           value={search}
@@ -148,7 +148,7 @@ export default function DiscoverCollectivesPage() {
             type="button"
             onClick={() => setSelectedState(null)}
             className={cn(
-              'shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150',
+              'shrink-0 rounded-full px-3 py-1.5 min-h-11 text-xs font-semibold active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
               selectedState === null
                 ? 'bg-primary-800 text-white'
                 : 'bg-white text-primary-400 hover:bg-primary-50',
@@ -162,7 +162,7 @@ export default function DiscoverCollectivesPage() {
               type="button"
               onClick={() => setSelectedState(selectedState === state ? null : state)}
               className={cn(
-                'shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors duration-150',
+                'shrink-0 rounded-full px-3 py-1.5 min-h-11 text-xs font-semibold active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 selectedState === state
                   ? 'bg-primary-800 text-white'
                   : 'bg-white text-primary-400 hover:bg-primary-50',

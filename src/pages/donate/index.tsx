@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
-import { Heart, Users, Repeat } from 'lucide-react'
+import { Heart, Users, Repeat, Sparkles } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -19,10 +19,10 @@ import { cn } from '@/lib/cn'
 /*  Animations                                                         */
 /* ------------------------------------------------------------------ */
 
-const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.07 } } }
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -48,18 +48,18 @@ function ProjectThermometer({
       onClick={onSelect}
       whileTap={{ scale: 0.98 }}
       className={cn(
-        'w-full rounded-2xl p-4 text-left transition-colors duration-150',
+        'w-full rounded-2xl p-4 text-left transition-all duration-150',
         'border-2',
         selected
-          ? 'border-primary-500 bg-white'
-          : 'border-primary-200 bg-white hover:border-primary-200',
+          ? 'border-primary-500 bg-white shadow-sm'
+          : 'border-primary-100 bg-white hover:border-primary-300',
       )}
     >
       {project.image_url && (
         <img
           src={project.image_url}
           alt={project.name}
-          className="w-full h-28 object-cover rounded-xl mb-3"
+          className="w-full h-32 object-cover rounded-xl mb-3"
           loading="lazy"
         />
       )}
@@ -73,7 +73,7 @@ function ProjectThermometer({
           aria-label={`${Math.round(pct)}% funded`}
         />
         <div className="flex justify-between mt-1.5 text-xs text-primary-400">
-          <span className="font-semibold text-primary-400">
+          <span className="font-semibold text-primary-600">
             ${project.raised_amount.toLocaleString()}
           </span>
           <span>of ${project.goal_amount.toLocaleString()}</span>
@@ -94,7 +94,6 @@ export default function DonatePage() {
   const { data: projects, isLoading: loadingProjects } = useDonationProjects()
   const createDonation = useCreateDonation()
 
-  // Form state
   const [selectedAmount, setSelectedAmount] = useState<number | null>(25)
   const [customAmount, setCustomAmount] = useState('')
   const [frequency, setFrequency] = useState<DonationFrequency>('one_time')
@@ -159,170 +158,202 @@ export default function DonatePage() {
         />
       }
       footer={
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          icon={<Heart size={18} />}
-          loading={createDonation.isPending}
-          disabled={!isValid}
-          onClick={handleDonate}
-        >
-          {frequency === 'monthly'
-            ? `Donate $${effectiveAmount}/mo`
-            : `Donate $${effectiveAmount}`}
-        </Button>
+        <div className="max-w-2xl mx-auto w-full">
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            icon={<Heart size={18} />}
+            loading={createDonation.isPending}
+            disabled={!isValid}
+            onClick={handleDonate}
+          >
+            {frequency === 'monthly'
+              ? `Donate $${effectiveAmount}/mo`
+              : `Donate $${effectiveAmount}`}
+          </Button>
+        </div>
       }
     >
-      {/* Hero image */}
-      <div className="relative w-full h-44 overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80&auto=format&fit=crop"
-          alt="Volunteers planting native trees"
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-primary-900/60 via-primary-900/20 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <h2 className="font-heading font-bold text-white text-xl leading-tight">
-            Every dollar goes to conservation
-          </h2>
-          <p className="text-sm text-white/80 mt-1">
-            100% funds events, native plantings & habitat restoration
-          </p>
+      {/* ---- Full-bleed hero — break out of Page px-4 / lg:px-6 ---- */}
+      <div className="-mx-4 lg:-mx-6">
+        <div className="relative w-full h-52 sm:h-60 lg:h-72 overflow-hidden">
+          <img
+            src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80&auto=format&fit=crop"
+            alt="Volunteers planting native trees"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-primary-900/70 via-primary-900/25 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-5 lg:px-8 lg:pb-7">
+            <div className="max-w-2xl mx-auto">
+              <p className="text-xs font-semibold text-white/60 uppercase tracking-widest mb-1.5">
+                Co-Exist Australia
+              </p>
+              <h2 className="font-heading font-bold text-white text-2xl lg:text-3xl leading-tight">
+                Every dollar funds conservation
+              </h2>
+              <p className="text-sm text-white/75 mt-1.5 max-w-md">
+                100% goes to events, native plantings & habitat restoration
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <motion.div
-        variants={shouldReduceMotion ? undefined : stagger}
-        initial="hidden"
-        animate="visible"
-        className="px-4 pt-5 pb-8 space-y-6"
-      >
-        {/* Amount selection */}
-        <motion.section variants={fadeUp}>
-          <h3 className="font-heading font-semibold text-primary-800 mb-3">
-            Choose an amount
-          </h3>
-          <div className="grid grid-cols-4 gap-2 mb-3">
-            {PRESET_AMOUNTS.map((amount) => (
-              <motion.button
-                key={amount}
-                type="button"
-                onClick={() => handlePresetSelect(amount)}
-                whileTap={{ scale: 0.95 }}
-                className={cn(
-                  'h-12 rounded-xl font-heading font-semibold text-base',
-                  'border-2 transition-colors duration-150 cursor-pointer',
-                  selectedAmount === amount
-                    ? 'border-primary-500 bg-white text-primary-400'
-                    : 'border-primary-200 bg-white text-primary-800 hover:border-primary-200',
-                )}
-              >
-                ${amount}
-              </motion.button>
-            ))}
-          </div>
-          <Input
-            label="Custom amount"
-            type="text"
-            value={customAmount}
-            onChange={handleCustomChange}
-            placeholder="Enter amount"
-            icon={<span className="text-primary-400 font-semibold">$</span>}
-          />
-        </motion.section>
-
-        {/* Frequency toggle */}
-        <motion.section variants={fadeUp}>
-          <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-primary-200">
-            <Repeat size={18} className="text-primary-400 shrink-0" />
-            <Toggle
-              label="Monthly giving"
-              description="Set up a recurring donation via Stripe"
-              checked={frequency === 'monthly'}
-              onChange={(checked) => setFrequency(checked ? 'monthly' : 'one_time')}
-            />
-          </div>
-        </motion.section>
-
-        {/* Project selection */}
-        <motion.section variants={fadeUp}>
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-heading font-semibold text-primary-800">
-              Support a project (optional)
+      {/* ---- Contained form content ---- */}
+      <div className="max-w-2xl mx-auto w-full">
+        <motion.div
+          variants={shouldReduceMotion ? undefined : stagger}
+          initial="hidden"
+          animate="visible"
+          className="pt-8 space-y-8"
+        >
+          {/* ---- Amount selection ---- */}
+          <motion.section variants={fadeUp}>
+            <h3 className="font-heading font-semibold text-primary-800 text-lg mb-4">
+              Choose an amount
             </h3>
-          </div>
-          {loadingProjects ? (
-            <div className="space-y-3">
-              <Skeleton variant="card" />
-              <Skeleton variant="card" />
-            </div>
-          ) : projects && projects.length > 0 ? (
-            <div className="space-y-3">
-              {projects.map((p) => (
-                <ProjectThermometer
-                  key={p.id}
-                  project={p}
-                  selected={selectedProject === p.id}
-                  onSelect={() =>
-                    setSelectedProject(selectedProject === p.id ? null : p.id)
-                  }
-                />
+            <div className="grid grid-cols-4 gap-2.5 mb-4">
+              {PRESET_AMOUNTS.map((amount) => (
+                <motion.button
+                  key={amount}
+                  type="button"
+                  onClick={() => handlePresetSelect(amount)}
+                  whileTap={{ scale: 0.95 }}
+                  className={cn(
+                    'h-13 rounded-xl font-heading font-semibold text-base',
+                    'border-2 transition-all duration-150 cursor-pointer',
+                    selectedAmount === amount
+                      ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-sm'
+                      : 'border-primary-100 bg-white text-primary-800 hover:border-primary-300',
+                  )}
+                >
+                  ${amount}
+                </motion.button>
               ))}
             </div>
-          ) : null}
-        </motion.section>
-
-        {/* Optional message */}
-        <motion.section variants={fadeUp}>
-          <Input
-            type="textarea"
-            label="Leave a message (optional)"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            rows={3}
-          />
-        </motion.section>
-
-        {/* On behalf of org */}
-        <motion.section variants={fadeUp}>
-          <div className="flex items-center gap-3 mb-3">
-            <Users size={18} className="text-primary-400 shrink-0" />
-            <Toggle
-              label="On behalf of an organisation"
-              checked={showOrg}
-              onChange={setShowOrg}
-              size="sm"
+            <Input
+              label="Custom amount"
+              type="text"
+              value={customAmount}
+              onChange={handleCustomChange}
+              placeholder="Enter amount"
+              icon={<span className="text-primary-400 font-semibold">$</span>}
             />
-          </div>
-          <AnimatePresence>
-            {showOrg && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <Input
-                  label="Organisation name"
-                  value={onBehalfOf}
-                  onChange={(e) => setOnBehalfOf(e.target.value)}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.section>
+          </motion.section>
 
-        {/* Public toggle */}
-        <motion.section variants={fadeUp}>
-          <Toggle
-            label="Show on donor wall"
-            description="Your name (or org) appears on our public donor recognition page"
-            checked={isPublic}
-            onChange={setIsPublic}
-          />
-        </motion.section>
-      </motion.div>
+          {/* ---- Frequency toggle ---- */}
+          <motion.section variants={fadeUp}>
+            <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-primary-100">
+              <Repeat size={18} className="text-primary-400 shrink-0" />
+              <Toggle
+                label="Monthly giving"
+                description="Set up a recurring donation via Stripe"
+                checked={frequency === 'monthly'}
+                onChange={(checked) => setFrequency(checked ? 'monthly' : 'one_time')}
+              />
+            </div>
+          </motion.section>
+
+          {/* ---- Divider ---- */}
+          <div className="h-px bg-primary-100" />
+
+          {/* ---- Project selection ---- */}
+          <motion.section variants={fadeUp}>
+            <h3 className="font-heading font-semibold text-primary-800 text-lg mb-1">
+              Support a project
+            </h3>
+            <p className="text-sm text-primary-400 mb-4">
+              Optional — direct your donation to a specific initiative
+            </p>
+            {loadingProjects ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Skeleton variant="card" />
+                <Skeleton variant="card" />
+              </div>
+            ) : projects && projects.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {projects.map((p) => (
+                  <ProjectThermometer
+                    key={p.id}
+                    project={p}
+                    selected={selectedProject === p.id}
+                    onSelect={() =>
+                      setSelectedProject(selectedProject === p.id ? null : p.id)
+                    }
+                  />
+                ))}
+              </div>
+            ) : null}
+          </motion.section>
+
+          {/* ---- Divider ---- */}
+          <div className="h-px bg-primary-100" />
+
+          {/* ---- Personal touches ---- */}
+          <motion.section variants={fadeUp} className="space-y-6">
+            <div>
+              <h3 className="font-heading font-semibold text-primary-800 text-lg mb-1">
+                Personal touches
+              </h3>
+              <p className="text-sm text-primary-400 mb-5">
+                All optional — add a message or donate on behalf of a group
+              </p>
+
+              <div className="space-y-5">
+                <Input
+                  type="textarea"
+                  label="Leave a message (optional)"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  rows={3}
+                />
+
+                <div>
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-primary-100">
+                    <Users size={18} className="text-primary-400 shrink-0" />
+                    <Toggle
+                      label="On behalf of an organisation"
+                      checked={showOrg}
+                      onChange={setShowOrg}
+                      size="sm"
+                    />
+                  </div>
+                  <AnimatePresence>
+                    {showOrg && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pt-3">
+                          <Input
+                            label="Organisation name"
+                            value={onBehalfOf}
+                            onChange={(e) => setOnBehalfOf(e.target.value)}
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-primary-100">
+                  <Sparkles size={18} className="text-primary-400 shrink-0" />
+                  <Toggle
+                    label="Show on donor wall"
+                    description="Your name appears on our public recognition page"
+                    checked={isPublic}
+                    onChange={setIsPublic}
+                  />
+                </div>
+              </div>
+            </div>
+          </motion.section>
+        </motion.div>
+
+      </div>
     </Page>
   )
 }

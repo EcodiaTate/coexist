@@ -60,7 +60,7 @@ const fadeUp = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Section wrapper                                                    */
+/*  Section wrapper — title is padded, children are full-bleed         */
 /* ------------------------------------------------------------------ */
 
 function Section({
@@ -75,7 +75,7 @@ function Section({
   className?: string
 }) {
   return (
-    <section className={cn('px-4 lg:px-6', className)} aria-label={title}>
+    <section className={cn(className)} aria-label={title}>
       <div className="flex items-center justify-between mb-3">
         <h2 className="font-heading text-lg font-semibold text-primary-800">
           {title}
@@ -96,7 +96,7 @@ function Section({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Horizontal scroll container                                        */
+/*  Horizontal scroll — edge-to-edge with inset padding for items      */
 /* ------------------------------------------------------------------ */
 
 function HScroll({
@@ -107,15 +107,20 @@ function HScroll({
   className?: string
 }) {
   return (
-    <div
-      className={cn(
-        'flex gap-3 overflow-x-auto pb-1 -mx-4 px-4',
-        'lg:-mx-6 lg:px-6',
-        'scrollbar-none snap-x snap-mandatory',
-        className,
-      )}
-    >
-      {children}
+    <div className="relative -mx-4 lg:-mx-6">
+      {/* Subtle fade on right edge only — left edge uses padding so first item is fully visible */}
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 lg:w-8 bg-gradient-to-l from-white to-transparent" />
+      <div
+        className={cn(
+          'flex gap-3 overflow-x-auto px-4 lg:px-6 pb-1',
+          'scrollbar-none snap-x snap-proximity',
+          'scroll-smooth',
+          className,
+        )}
+        style={{ WebkitOverflowScrolling: 'touch' }}
+      >
+        {children}
+      </div>
     </div>
   )
 }
@@ -185,16 +190,6 @@ export default function HomePage() {
   const trending = useTrendingCollectives()
   const suggestions = useSuggestedConnections()
 
-  // DEBUG - remove after fixing
-  console.log('[home] render', {
-    announcement: { loading: announcement.isLoading, error: announcement.isError },
-    featured: { loading: featured.isLoading, error: featured.isError },
-    upcoming: { loading: upcoming.isLoading, error: upcoming.isError },
-    myCollective: { loading: myCollective.isLoading, error: myCollective.isError },
-    impact: { loading: impact.isLoading, error: impact.isError },
-    profile: !!profile,
-  })
-
   const firstName = profile?.display_name?.split(' ')[0]
   const eventsAttended = impact.data?.events_attended ?? 0
   const isNewUser = eventsAttended === 0 && !myCollective.data
@@ -224,9 +219,10 @@ export default function HomePage() {
             type="button"
             onClick={() => navigate('/notifications')}
             className={cn(
-              'flex items-center justify-center w-9 h-9 rounded-full',
+              'flex items-center justify-center min-h-11 min-w-11 rounded-full',
               'text-primary-400 hover:bg-primary-50',
-              'transition-colors duration-150',
+              'active:scale-[0.97] transition-all duration-150',
+              'cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             )}
             aria-label="Notifications"
@@ -248,7 +244,7 @@ export default function HomePage() {
         >
           {/* 1. Greeting */}
           <motion.div
-            className="px-4 lg:px-6 pt-4"
+            className="pt-4"
             variants={shouldReduceMotion ? undefined : fadeUp}
           >
             <EasterEgg>
@@ -263,12 +259,9 @@ export default function HomePage() {
 
           {/* 2. Announcement banner */}
           {announcement.isLoading ? (
-            <div className="px-4 lg:px-6">
-              <Skeleton variant="card" className="h-16" />
-            </div>
+            <Skeleton variant="card" className="h-16" />
           ) : announcement.data ? (
             <motion.div
-              className="px-4 lg:px-6"
               variants={shouldReduceMotion ? undefined : fadeUp}
             >
               <Card.Root
@@ -297,11 +290,9 @@ export default function HomePage() {
             </motion.div>
           ) : null}
 
-          {/* 3. Hero - featured event carousel */}
+          {/* 3. Hero - featured event carousel (full-bleed) */}
           {featured.isLoading ? (
-            <div className="px-4 lg:px-6">
-              <Skeleton variant="image" />
-            </div>
+            <Skeleton variant="image" />
           ) : featured.data && featured.data.length > 0 ? (
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <HScroll>
@@ -355,7 +346,7 @@ export default function HomePage() {
             </motion.div>
           ) : null}
 
-          {/* 4. Upcoming near you */}
+          {/* 4. Upcoming near you — horizontal scroll, edge-to-edge */}
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <Section
               title="Upcoming near you"
@@ -528,48 +519,46 @@ export default function HomePage() {
 
           {/* 7. National Challenge (active users: 5+ events) */}
           {!isActiveUser ? null : challenge.isLoading ? (
-            <div className="px-4 lg:px-6">
-              <Skeleton variant="card" className="h-32" />
-            </div>
+            <Skeleton variant="card" className="h-32" />
           ) : challenge.data ? (
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <Section title="National Challenge">
                 <Card.Root variant="stat" aria-label={challenge.data.title}>
-                  <Card.Content>
-                    <div className="flex items-start gap-3">
-                      <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-primary-400 shrink-0">
-                        <Target size={20} />
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <Card.Title className="text-base">
-                          {challenge.data.title}
-                        </Card.Title>
-                        {challenge.data.description && (
-                          <p className="mt-0.5 text-xs text-primary-400 line-clamp-2">
-                            {challenge.data.description}
-                          </p>
-                        )}
+                    <Card.Content>
+                      <div className="flex items-start gap-3">
+                        <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-primary-400 shrink-0">
+                          <Target size={20} />
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <Card.Title className="text-base">
+                            {challenge.data.title}
+                          </Card.Title>
+                          {challenge.data.description && (
+                            <p className="mt-0.5 text-xs text-primary-400 line-clamp-2">
+                              {challenge.data.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="mt-4">
-                      <ProgressBar
-                        value={
-                          (challenge.data.total_progress /
-                            challenge.data.goal_value) *
-                          100
-                        }
-                        size="md"
-                        label={`${challenge.data.total_progress.toLocaleString()} / ${challenge.data.goal_value.toLocaleString()} ${challenge.data.goal_type}`}
-                        showLabel
-                      />
-                    </div>
-                  </Card.Content>
-                </Card.Root>
+                      <div className="mt-4">
+                        <ProgressBar
+                          value={
+                            (challenge.data.total_progress /
+                              challenge.data.goal_value) *
+                            100
+                          }
+                          size="md"
+                          label={`${challenge.data.total_progress.toLocaleString()} / ${challenge.data.goal_value.toLocaleString()} ${challenge.data.goal_type}`}
+                          showLabel
+                        />
+                      </div>
+                    </Card.Content>
+                  </Card.Root>
               </Section>
             </motion.div>
           ) : null}
 
-          {/* 8. Trending Collectives (for users not in a collective) */}
+          {/* 8. Trending Collectives — horizontal scroll (for users not in a collective) */}
           {!myCollective.data && !myCollective.isLoading && (
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <Section
@@ -615,7 +604,7 @@ export default function HomePage() {
             </motion.div>
           )}
 
-          {/* 9. People you may know */}
+          {/* 9. People you may know — horizontal scroll */}
           {suggestions.data && suggestions.data.length > 0 && (
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <Section title="People you may know">
@@ -625,7 +614,7 @@ export default function HomePage() {
                       key={person.id}
                       type="button"
                       onClick={() => navigate(`/profile/${person.id}`)}
-                      className="flex flex-col items-center gap-1.5 shrink-0 w-16 snap-start"
+                      className="flex flex-col items-center justify-center gap-1.5 shrink-0 w-16 min-h-11 snap-start active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                     >
                       <Avatar
                         src={person.avatar_url}
@@ -642,18 +631,20 @@ export default function HomePage() {
             </motion.div>
           )}
 
-          {/* 10. Category quick-filter chips */}
+          {/* 10. Category quick-filter chips — horizontal scroll */}
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <Section title="Browse by activity">
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(ACTIVITY_TYPE_LABELS).map(([key, label]) => (
-                  <Chip
-                    key={key}
-                    label={label}
-                    variant="activity"
-                    onSelect={() => navigate(`/explore?activity=${key}`)}
-                  />
-                ))}
+              <div className="-mx-4 lg:-mx-6">
+                <div className="flex gap-2 overflow-x-auto px-4 lg:px-6 pb-1 scrollbar-none">
+                  {Object.entries(ACTIVITY_TYPE_LABELS).map(([key, label]) => (
+                    <Chip
+                      key={key}
+                      label={label}
+                      variant="activity"
+                      onSelect={() => navigate(`/explore?activity=${key}`)}
+                    />
+                  ))}
+                </div>
               </div>
             </Section>
           </motion.div>
@@ -722,7 +713,6 @@ export default function HomePage() {
           {/* 13. New user empty state with guided CTAs */}
           {isNewUser && !impact.isLoading && (
             <motion.div
-              className="px-4 lg:px-6"
               variants={shouldReduceMotion ? undefined : fadeUp}
             >
               <Card.Root variant="stat">

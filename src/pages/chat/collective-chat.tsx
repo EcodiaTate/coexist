@@ -133,7 +133,7 @@ function MessageActionsSheet({
         <button
           type="button"
           onClick={onReply}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-primary-800 hover:bg-primary-50 transition-colors"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
         >
           <Reply size={18} className="text-primary-400" />
           Reply
@@ -143,7 +143,7 @@ function MessageActionsSheet({
           <button
             type="button"
             onClick={onEdit}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-primary-800 hover:bg-primary-50 transition-colors"
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
           >
             <Pencil size={18} className="text-primary-400" />
             Edit message
@@ -155,7 +155,7 @@ function MessageActionsSheet({
             <button
               type="button"
               onClick={onPin}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-primary-800 hover:bg-primary-50 transition-colors"
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
             >
               <Pin size={18} className="text-primary-400" />
               {message.is_pinned ? 'Unpin message' : 'Pin message'}
@@ -166,7 +166,7 @@ function MessageActionsSheet({
                 onClose()
                 onDelete()
               }}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-red-600 hover:bg-red-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
             >
               <Trash2 size={18} />
               Delete message
@@ -196,7 +196,7 @@ function PinnedMessageBar({
     <button
       type="button"
       onClick={onTap}
-      className="flex w-full items-center gap-2 border-b border-primary-100 bg-white/50 px-4 py-2"
+      className="flex w-full items-center gap-2 border-b border-primary-100 bg-white/50 px-4 py-2 min-h-11 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
     >
       <Pin size={14} className="text-primary-400 shrink-0" />
       <p className="text-xs text-primary-800 truncate flex-1 text-left">
@@ -274,7 +274,7 @@ function ChatSearchOverlay({
           className="flex-1"
           aria-label="Search messages"
         />
-        <button type="button" onClick={onClose} aria-label="Close search" className="shrink-0 p-1.5 rounded-full hover:bg-primary-100/60 transition-colors">
+        <button type="button" onClick={onClose} aria-label="Close search" className="flex items-center justify-center shrink-0 min-h-11 min-w-11 rounded-full hover:bg-primary-100/60 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none">
           <X size={18} className="text-primary-400" />
         </button>
       </div>
@@ -548,7 +548,7 @@ export default function CollectiveChatPage() {
   if (isLoading) {
     return (
       <Page header={<Header title="Chat" back />}>
-        <div className="p-4">
+        <div className="py-4">
           <Skeleton variant="list-item" count={8} />
         </div>
       </Page>
@@ -566,7 +566,7 @@ export default function CollectiveChatPage() {
             type="button"
             onClick={() => setShowSearch(true)}
             aria-label="Search messages"
-            className="flex items-center justify-center w-9 h-9 rounded-full text-primary-400 hover:bg-primary-50 transition-colors duration-150"
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
           >
             <Search size={20} />
           </button>
@@ -731,7 +731,7 @@ export default function CollectiveChatPage() {
                 type="button"
                 onClick={() => setReplyTo(null)}
                 aria-label="Cancel reply"
-                className="text-primary-400 hover:text-primary-400"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               >
                 <X size={16} />
               </button>
@@ -758,7 +758,7 @@ export default function CollectiveChatPage() {
                 type="button"
                 onClick={() => { setEditingMessage(null); setEditText('') }}
                 aria-label="Cancel edit"
-                className="text-primary-400 hover:text-primary-400"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               >
                 <X size={16} />
               </button>
@@ -777,7 +777,7 @@ export default function CollectiveChatPage() {
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={scrollToBottom}
             aria-label="Scroll to latest messages"
-            className="absolute bottom-20 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-md text-primary-400 hover:bg-primary-50 transition-colors"
+            className="absolute bottom-20 right-4 z-20 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white shadow-md text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
           >
             <ArrowDown size={20} />
           </motion.button>

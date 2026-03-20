@@ -39,7 +39,7 @@ export default function OrdersPage() {
 
   return (
     <Page header={<Header title="My Orders" back />}>
-      <div className="px-4 py-4">
+      <div className="py-4">
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (

@@ -111,7 +111,7 @@ function AttendeeRow({
       </div>
 
       {isCheckedIn ? (
-        <span className="flex items-center justify-center w-9 h-9 rounded-full bg-green-100 text-green-600">
+        <span className="flex items-center justify-center w-9 h-9 rounded-full bg-success-100 text-success-600">
           <Check size={18} />
         </span>
       ) : (
@@ -191,7 +191,7 @@ export default function EventDayPage() {
   if (isLoading) {
     return (
       <Page header={<Header title="Event Day" back />}>
-        <div className="px-4 pt-4 space-y-4">
+        <div className="pt-4 space-y-4">
           <Skeleton variant="title" />
           <div className="flex gap-3">
             <Skeleton variant="stat-card" className="flex-1" />
@@ -241,7 +241,7 @@ export default function EventDayPage() {
         </div>
       }
     >
-      <div className="px-4 pt-4 pb-6">
+      <div className="pt-4 pb-6">
         {/* Event header */}
         <div className="mb-4">
           <h2 className="font-heading text-lg font-bold text-primary-800">
@@ -258,13 +258,13 @@ export default function EventDayPage() {
             <p className="text-xl font-bold text-primary-400">{stats.registered}</p>
             <p className="text-caption text-primary-400">Registered</p>
           </div>
-          <div className="rounded-xl bg-green-50 p-3 text-center">
-            <p className="text-xl font-bold text-green-700">{stats.checkedIn}</p>
-            <p className="text-caption text-green-600">Checked In</p>
+          <div className="rounded-xl bg-success-50 p-3 text-center">
+            <p className="text-xl font-bold text-success-700">{stats.checkedIn}</p>
+            <p className="text-caption text-success-600">Checked In</p>
           </div>
-          <div className="rounded-xl bg-amber-50 p-3 text-center">
-            <p className="text-xl font-bold text-amber-700">{stats.waitlisted}</p>
-            <p className="text-caption text-amber-600">Waitlisted</p>
+          <div className="rounded-xl bg-warning-50 p-3 text-center">
+            <p className="text-xl font-bold text-warning-700">{stats.waitlisted}</p>
+            <p className="text-caption text-warning-600">Waitlisted</p>
           </div>
         </div>
 
@@ -279,7 +279,7 @@ export default function EventDayPage() {
             </div>
             <div className="h-2.5 rounded-full bg-white overflow-hidden">
               <motion.div
-                className="h-full rounded-full bg-green-500"
+                className="h-full rounded-full bg-success-500"
                 initial={{ width: 0 }}
                 animate={{ width: `${stats.registered > 0 ? (stats.checkedIn / stats.registered) * 100 : 0}%` }}
                 transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.6, ease: 'easeOut' }}

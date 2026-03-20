@@ -45,7 +45,7 @@ import { useCollectiveRole } from '@/hooks/use-collective-role'
 
 function CollectiveDetailSkeleton() {
   return (
-    <div className="space-y-6 p-4">
+    <div className="space-y-6 py-4">
       <Skeleton variant="image" />
       <Skeleton variant="title" />
       <Skeleton variant="text" count={3} />
@@ -154,7 +154,7 @@ export default function CollectiveDetailPage() {
                   type="button"
                   onClick={() => navigate(`/collectives/${slug}/manage`)}
                   aria-label="Manage collective"
-                  className="flex items-center justify-center w-9 h-9 rounded-full text-primary-400 hover:bg-primary-50 transition-colors duration-150"
+                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                 >
                   <Settings size={20} />
                 </button>
@@ -163,7 +163,7 @@ export default function CollectiveDetailPage() {
                 type="button"
                 onClick={handleShare}
                 aria-label="Share collective"
-                className="flex items-center justify-center w-9 h-9 rounded-full text-primary-400 hover:bg-primary-50 transition-colors duration-150"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               >
                 <Share2 size={20} />
               </button>
@@ -235,7 +235,7 @@ export default function CollectiveDetailPage() {
         </div>
       </div>
 
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 py-4">
         {/* Just-joined WhatsNext prompt */}
         {justJoined && (
           <WhatsNext

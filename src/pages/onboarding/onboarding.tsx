@@ -99,7 +99,7 @@ export default function OnboardingPage() {
     if (data.collectiveId) {
       const { error: memberError } = await supabase
         .from('collective_members')
-        .upsert({
+        .insert({
           collective_id: data.collectiveId,
           user_id: user.id,
           role: 'member',
