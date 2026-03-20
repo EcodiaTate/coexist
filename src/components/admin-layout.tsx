@@ -348,23 +348,25 @@ export function AdminLayout() {
 
         {/* Main content */}
         <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-          {/* Page header */}
-          <div className="flex items-center justify-between px-6 py-5 border-b border-primary-100 bg-white">
-            <div className="flex items-center gap-2 min-w-0">
-              <button
-                type="button"
-                onClick={() => setMobileOpen(true)}
-                className="md:hidden p-1.5 -ml-1.5 mr-1 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
-                aria-label="Open admin menu"
-              >
-                <Menu size={20} />
-              </button>
-              <h1 className="font-heading text-xl font-bold text-primary-800 truncate">
-                {header.title}
-              </h1>
-            </div>
+          {/* Mobile menu trigger + optional page actions (no title, no border) */}
+          <div className="flex items-center justify-between px-6 py-3 md:hidden">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              className="p-1.5 -ml-1.5 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
+              aria-label="Open admin menu"
+            >
+              <Menu size={20} />
+            </button>
             {header.actions && <div className="flex items-center gap-2 shrink-0">{header.actions}</div>}
           </div>
+
+          {/* Desktop: show actions row only when actions exist */}
+          {header.actions && (
+            <div className="hidden md:flex items-center justify-end px-6 py-3">
+              <div className="flex items-center gap-2 shrink-0">{header.actions}</div>
+            </div>
+          )}
 
           {/* Content — rendered by nested <Route> children */}
           <div className="flex-1 p-6">
