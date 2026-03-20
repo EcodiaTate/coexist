@@ -1,57 +1,79 @@
 @import "tailwindcss";
 
+/* ===== Global Smooth Scrolling ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ===== Self-Hosted Fonts ===== */
+
+/* Montserrat — Global (headings + body) */
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../assets/fonts/Montserrat-Variable.woff2') format('woff2');
+}
+
 @theme {
-  /* Primary — Sage Green Family */
-  --color-primary-50: #f4f7f4;
-  --color-primary-100: #e3ebe3;
-  --color-primary-200: #c8d7c8;
-  --color-primary-300: #a3bda3;
-  --color-primary-400: #7a9e7a;
-  --color-primary-500: #5a835a;
-  --color-primary-600: #466946;
-  --color-primary-700: #395439;
-  --color-primary-800: #2f442f;
-  --color-primary-900: #283828;
-  --color-primary-950: #121e12;
+  /* Primary — Olive Green (#879e62) scale */
+  --color-primary-50: #f5f7f0;
+  --color-primary-100: #e8eddf;
+  --color-primary-200: #d1dbbf;
+  --color-primary-300: #b3c496;
+  --color-primary-400: #879e62;
+  --color-primary-500: #748b50;
+  --color-primary-600: #5d7340;
+  --color-primary-700: #4a5c34;
+  --color-primary-800: #3d4d33;
+  --color-primary-900: #333f2b;
+  --color-primary-950: #1a2115;
 
-  /* Secondary — Warm Earth */
-  --color-secondary-50: #faf6f1;
-  --color-secondary-100: #f0e6d6;
-  --color-secondary-200: #e0ccac;
-  --color-secondary-300: #cdab7c;
-  --color-secondary-400: #be9058;
-  --color-secondary-500: #b07d46;
-  --color-secondary-600: #9a653b;
-  --color-secondary-700: #7f4e32;
-  --color-secondary-800: #69412e;
-  --color-secondary-900: #583728;
-  --color-secondary-950: #321b13;
+  /* Secondary — Forest Dark (#3d4d33) scale */
+  --color-secondary-50: #f2f4ef;
+  --color-secondary-100: #e0e5d9;
+  --color-secondary-200: #c2ccb4;
+  --color-secondary-300: #9dab88;
+  --color-secondary-400: #7a8b63;
+  --color-secondary-500: #5c6d47;
+  --color-secondary-600: #4a5938;
+  --color-secondary-700: #3d4d33;
+  --color-secondary-800: #333f2b;
+  --color-secondary-900: #2b3524;
+  --color-secondary-950: #151b12;
 
-  /* Accent — Energetic CTA */
-  --color-accent-50: #fef7ee;
-  --color-accent-100: #fcedd8;
-  --color-accent-200: #f8d7b0;
-  --color-accent-300: #f3bb7e;
-  --color-accent-400: #ed964a;
-  --color-accent-500: #e97c28;
-  --color-accent-600: #da631e;
-  --color-accent-700: #b54b1a;
-  --color-accent-800: #903c1c;
-  --color-accent-900: #74331a;
-  --color-accent-950: #3e180b;
+  /* Accent — Olive Green (matches primary for unified look) */
+  --color-accent-50: #f5f7f0;
+  --color-accent-100: #e8eddf;
+  --color-accent-200: #d1dbbf;
+  --color-accent-300: #b3c496;
+  --color-accent-400: #879e62;
+  --color-accent-500: #748b50;
+  --color-accent-600: #5d7340;
+  --color-accent-700: #4a5c34;
+  --color-accent-800: #3d4d33;
+  --color-accent-900: #333f2b;
+  --color-accent-950: #1a2115;
 
-  /* Neutrals — Warm tinted (never cold grey) */
-  --color-neutral-50: #fafaf8;
-  --color-neutral-100: #f3f3ef;
-  --color-neutral-200: #e5e5df;
-  --color-neutral-300: #d2d2c9;
-  --color-neutral-400: #b5b5a8;
-  --color-neutral-500: #9a9a8b;
-  --color-neutral-600: #7e7e6f;
-  --color-neutral-700: #67675b;
-  --color-neutral-800: #56564c;
-  --color-neutral-900: #4a4a42;
-  --color-neutral-950: #272723;
+  /* Neutrals — White-first, minimal grey */
+  --color-neutral-50: #ffffff;
+  --color-neutral-100: #ffffff;
+  --color-neutral-200: #e8eddf;
+  --color-neutral-300: #d1dbbf;
+  --color-neutral-400: #879e62;
+  --color-neutral-500: #6b7a52;
+  --color-neutral-600: #5a6745;
+  --color-neutral-700: #3d4d33;
+  --color-neutral-800: #333f2b;
+  --color-neutral-900: #1a1a1a;
+  --color-neutral-950: #000000;
 
   /* Semantic */
   --color-success: #4ade80;
@@ -65,8 +87,20 @@
   --shadow-lg: 0 10px 15px -3px rgba(74, 74, 66, 0.1), 0 4px 6px -4px rgba(74, 74, 66, 0.06);
 
   /* Typography */
-  --font-heading: 'General Sans', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Montserrat', system-ui, sans-serif;
+  --font-body: 'Montserrat', system-ui, sans-serif;
+
+  /* Typography Scale */
+  --text-h1: 2.25rem;
+  --text-h2: 1.875rem;
+  --text-h3: 1.5rem;
+  --text-h4: 1.25rem;
+  --text-h5: 1.125rem;
+  --text-h6: 1rem;
+  --text-body: 0.9375rem;
+  --text-caption: 0.8125rem;
+  --text-overline: 0.6875rem;
+  --text-button: 0.875rem;
 
   /* Spacing */
   --radius-sm: 0.375rem;
@@ -93,7 +127,7 @@ html {
 body {
   font-family: var(--font-body);
   color: var(--color-neutral-900);
-  background-color: var(--color-neutral-50);
+  background-color: #ffffff;
   min-height: 100dvh;
 }
 
@@ -116,9 +150,86 @@ body {
   }
 }
 
+/* Typography utilities */
+h1, .h1 { font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
+h2, .h2 { font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 700; line-height: 1.25; letter-spacing: -0.015em; }
+h3, .h3 { font-family: var(--font-heading); font-size: var(--text-h3); font-weight: 600; line-height: 1.3; letter-spacing: -0.01em; }
+h4, .h4 { font-family: var(--font-heading); font-size: var(--text-h4); font-weight: 600; line-height: 1.35; }
+h5, .h5 { font-family: var(--font-heading); font-size: var(--text-h5); font-weight: 600; line-height: 1.4; }
+h6, .h6 { font-family: var(--font-heading); font-size: var(--text-h6); font-weight: 600; line-height: 1.4; }
+.text-caption { font-size: var(--text-caption); line-height: 1.4; }
+.text-overline { font-size: var(--text-overline); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.4; }
+.text-button { font-family: var(--font-heading); font-size: var(--text-button); font-weight: 600; line-height: 1; }
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
 /* Prevent iOS input zoom */
 input,
 select,
 textarea {
   font-size: 16px;
+}
+
+/* Text scaling support — up to 200% (§41 item 57) */
+html {
+  font-size: 100%;
+}
+
+@media (min-resolution: 2dppx) {
+  html {
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+}
+
+/* Focus indicators for keyboard navigation (§41 item 53) */
+:focus-visible {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Screen reader landmarks (§41 item 55) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Hide all scrollbars globally */
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Legacy utility class (kept for clarity in markup) */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

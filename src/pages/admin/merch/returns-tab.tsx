@@ -1,0 +1,114 @@
+import { useCallback } from 'react'
+import { Check, X } from 'lucide-react'
+import { Button } from '@/components/button'
+import { Skeleton } from '@/components/skeleton'
+import { EmptyState } from '@/components/empty-state'
+import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
+import { Avatar } from '@/components/avatar'
+import { useToast } from '@/components/toast'
+import { useAdminReturns, useUpdateReturnStatus } from '@/hooks/use-admin-merch'
+import { formatPrice, type ReturnStatus } from '@/types/merch'
+import { cn } from '@/lib/cn'
+
+const STATUS_COLORS: Record<ReturnStatus, string> = {
+  requested: 'bg-amber-100 text-amber-800',
+  approved: 'bg-green-100 text-green-800',
+  denied: 'bg-red-100 text-red-700',
+  refunded: 'bg-violet-100 text-violet-800',
+}
+
+export default function ReturnsTab() {
+  const { data: returns, isLoading } = useAdminReturns()
+  const updateReturn = useUpdateReturnStatus()
+  const { toast } = useToast()
+
+  const handleUpdate = useCallback(
+    async (returnId: string, status: 'approved' | 'denied') => {
+      try {
+        await updateReturn.mutateAsync({ returnId, status })
+        toast(`Return ${status}`, 'success')
+      } catch {
+        toast('Failed to update return', 'error')
+      }
+    },
+    [updateReturn, toast],
+  )
+
+  if (isLoading) {
+    return <Skeleton variant="text" count={5} />
+  }
+
+  if (!returns || returns.length === 0) {
+    return (
+      <EmptyState
+        illustration="empty"
+        title="No return requests"
+        description="Return requests from customers will appear here"
+      />
+    )
+  }
+
+  return (
+    <StaggeredList className="space-y-3">
+      {returns.map((ret) => (
+        <StaggeredItem
+          key={ret.id}
+          className="p-4 bg-white rounded-2xl border border-primary-100 shadow-sm"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <Avatar
+                src={ret.profiles?.avatar_url}
+                name={ret.profiles?.display_name ?? 'User'}
+                size="xs"
+              />
+              <span className="text-sm font-medium text-primary-800">
+                {ret.profiles?.display_name ?? 'Unknown'}
+              </span>
+            </div>
+            <span
+              className={cn(
+                'px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize',
+                STATUS_COLORS[ret.status],
+              )}
+            >
+              {ret.status}
+            </span>
+          </div>
+          <p className="text-sm text-primary-400 mb-1">
+            <span className="font-medium">Reason:</span> {ret.reason}
+          </p>
+          {ret.order && (
+            <p className="text-xs text-primary-400">
+              Order #{(ret.order as { id: string }).id.slice(0, 8)} ·{' '}
+              {formatPrice((ret.order as { total_cents: number }).total_cents)}
+            </p>
+          )}
+
+          {ret.status === 'requested' && (
+            <div className="flex gap-2 mt-3">
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<Check size={14} />}
+                loading={updateReturn.isPending}
+                onClick={() => handleUpdate(ret.id, 'approved')}
+              >
+                Approve
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                icon={<X size={14} />}
+                loading={updateReturn.isPending}
+                onClick={() => handleUpdate(ret.id, 'denied')}
+              >
+                Deny
+              </Button>
+            </div>
+          )}
+        </StaggeredItem>
+      ))}
+    </StaggeredList>
+  )
+}

@@ -1,0 +1,327 @@
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/use-auth'
+import type {
+  Event,
+  Collective,
+  GlobalAnnouncement,
+  Challenge,
+  ChallengeParticipant,
+  Profile,
+} from '@/types/database.types'
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+export interface ImpactStats {
+  events_attended: number
+  trees_planted: number
+  hours_volunteered: number
+  rubbish_kg: number
+}
+
+export interface CollectiveWithNextEvent extends Collective {
+  next_event: Event | null
+  events_this_month: number
+}
+
+export interface ActiveChallenge extends Challenge {
+  user_progress: number
+  total_progress: number
+}
+
+interface EventWithCollective extends Event {
+  collectives: Pick<Collective, 'id' | 'name'> | null
+}
+
+/* ------------------------------------------------------------------ */
+/*  Greeting                                                           */
+/* ------------------------------------------------------------------ */
+
+export function getGreeting(firstName: string | undefined): string {
+  const hour = new Date().getHours()
+  const name = firstName ?? 'there'
+
+  if (hour < 12) return `Good morning, ${name}`
+  if (hour < 17) return `Good afternoon, ${name}`
+  if (hour < 21) return `Good evening, ${name}`
+  return `Good night, ${name}`
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hooks                                                              */
+/* ------------------------------------------------------------------ */
+
+/** Pinned or urgent announcements */
+export function useLatestAnnouncement() {
+  return useQuery({
+    queryKey: ['home', 'announcement'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('global_announcements')
+        .select('*')
+        .or('is_pinned.eq.true,priority.eq.urgent')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (error) throw error
+      return data as GlobalAnnouncement | null
+    },
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+/** Featured events for hero carousel */
+export function useFeaturedEvents() {
+  return useQuery({
+    queryKey: ['home', 'featured-events'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*, collectives(id, name)')
+        .eq('status', 'published')
+        .eq('is_public', true)
+        .gte('date_start', new Date().toISOString())
+        .order('date_start', { ascending: true })
+        .limit(5)
+      if (error) throw error
+      return (data ?? []) as EventWithCollective[]
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/** Upcoming events near user (all if no location) */
+export function useUpcomingNearby() {
+  return useQuery({
+    queryKey: ['home', 'upcoming-nearby'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*, collectives(id, name)')
+        .eq('status', 'published')
+        .gte('date_start', new Date().toISOString())
+        .order('date_start', { ascending: true })
+        .limit(10)
+      if (error) throw error
+      return (data ?? []) as EventWithCollective[]
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/** User's primary collective with next event + stats */
+export function useMyCollective() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['home', 'my-collective', user?.id],
+    queryFn: async () => {
+      if (!user) return null
+
+      // Get user's collective membership
+      const { data: membership } = await supabase
+        .from('collective_members')
+        .select('collective_id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle()
+
+      if (!membership) return null
+
+      // Fetch collective
+      const { data: collective, error } = await supabase
+        .from('collectives')
+        .select('*')
+        .eq('id', membership.collective_id)
+        .single()
+      if (error) throw error
+
+      // Next event
+      const { data: nextEvent } = await supabase
+        .from('events')
+        .select('*')
+        .eq('collective_id', collective.id)
+        .eq('status', 'published')
+        .gte('date_start', new Date().toISOString())
+        .order('date_start', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+
+      // Events this month
+      const monthStart = new Date()
+      monthStart.setDate(1)
+      monthStart.setHours(0, 0, 0, 0)
+      const { count } = await supabase
+        .from('events')
+        .select('id', { count: 'exact', head: true })
+        .eq('collective_id', collective.id)
+        .gte('date_start', monthStart.toISOString())
+
+      return {
+        ...collective,
+        next_event: nextEvent ?? null,
+        events_this_month: count ?? 0,
+      } as CollectiveWithNextEvent
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/** Impact stats from RPC */
+export function useImpactStats() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['home', 'impact-stats', user?.id],
+    queryFn: async () => {
+      if (!user) return null
+      const { data, error } = await supabase.rpc('get_user_impact_stats', {
+        p_user_id: user.id,
+      })
+      if (error) throw error
+      return (data ?? {
+        events_attended: 0,
+        trees_planted: 0,
+        hours_volunteered: 0,
+        rubbish_kg: 0,
+      }) as ImpactStats
+    },
+    enabled: !!user,
+    staleTime: 10 * 60 * 1000,
+  })
+}
+
+/** Active national challenge */
+export function useActiveChallenge() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['home', 'active-challenge', user?.id],
+    queryFn: async () => {
+      const { data: challenge, error } = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('is_active', true)
+        .lte('start_date', new Date().toISOString())
+        .gte('end_date', new Date().toISOString())
+        .order('start_date', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (error) throw error
+      if (!challenge) return null
+
+      // Get aggregated progress
+      const { data: participants } = await supabase
+        .from('challenge_participants')
+        .select('progress')
+        .eq('challenge_id', challenge.id)
+
+      const totalProgress = (participants ?? []).reduce(
+        (sum, p) => sum + (p.progress ?? 0),
+        0,
+      )
+
+      // User's individual progress
+      let userProgress = 0
+      if (user) {
+        const { data: myParticipation } = await supabase
+          .from('challenge_participants')
+          .select('progress')
+          .eq('challenge_id', challenge.id)
+          .eq('user_id', user.id)
+          .maybeSingle()
+        userProgress = myParticipation?.progress ?? 0
+      }
+
+      return {
+        ...challenge,
+        user_progress: userProgress,
+        total_progress: totalProgress,
+      } as ActiveChallenge
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/** Trending collectives (for users not in one) */
+export function useTrendingCollectives() {
+  return useQuery({
+    queryKey: ['home', 'trending-collectives'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('collectives')
+        .select('*')
+        .eq('is_active', true)
+        .order('member_count', { ascending: false })
+        .limit(8)
+      if (error) throw error
+      return (data ?? []) as Collective[]
+    },
+    staleTime: 10 * 60 * 1000,
+  })
+}
+
+/** Suggested connections — people from shared collectives/events */
+export function useSuggestedConnections() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['home', 'suggested-connections', user?.id],
+    queryFn: async () => {
+      if (!user) return []
+
+      // Get user's collective ids
+      const { data: memberships } = await supabase
+        .from('collective_members')
+        .select('collective_id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+
+      const collectiveIds = (memberships ?? []).map((m) => m.collective_id)
+      if (collectiveIds.length === 0) return []
+
+      // Get other members from same collectives
+      const { data, error } = await supabase
+        .from('collective_members')
+        .select('user_id, profiles(id, display_name, avatar_url)')
+        .in('collective_id', collectiveIds)
+        .neq('user_id', user.id)
+        .eq('status', 'active')
+        .limit(15)
+      if (error) throw error
+
+      // Deduplicate by user_id
+      const seen = new Set<string>()
+      const profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url'>[] = []
+      for (const row of data ?? []) {
+        if (row.profiles && !seen.has(row.user_id)) {
+          seen.add(row.user_id)
+          profiles.push(row.profiles as Pick<Profile, 'id' | 'display_name' | 'avatar_url'>)
+        }
+      }
+
+      return profiles.slice(0, 10)
+    },
+    enabled: !!user,
+    staleTime: 10 * 60 * 1000,
+  })
+}
+
+/** Activity type labels for chips */
+export const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+  tree_planting: 'Tree Planting',
+  beach_cleanup: 'Beach Cleanup',
+  habitat_restoration: 'Habitat Restoration',
+  nature_walk: 'Nature Walk',
+  education: 'Education',
+  wildlife_survey: 'Wildlife Survey',
+  seed_collecting: 'Seed Collecting',
+  weed_removal: 'Weed Removal',
+  waterway_cleanup: 'Waterway Cleanup',
+  community_garden: 'Community Garden',
+  other: 'Other',
+}

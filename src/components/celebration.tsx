@@ -1,0 +1,139 @@
+import { type ReactNode, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { cn } from '@/lib/cn'
+import { Confetti } from './confetti'
+
+interface CelebrationProps {
+  open: boolean
+  onClose: () => void
+  title: string
+  subtitle?: string
+  icon?: ReactNode
+  /** Auto-dismiss after ms (0 = manual only) */
+  autoDismiss?: number
+  className?: string
+}
+
+/**
+ * Full-screen celebration overlay for big wins:
+ * first event, badge unlock, tier up, milestones.
+ */
+export function Celebration({
+  open,
+  onClose,
+  title,
+  subtitle,
+  icon,
+  autoDismiss = 4000,
+  className,
+}: CelebrationProps) {
+  const shouldReduceMotion = useReducedMotion()
+  const [showConfetti, setShowConfetti] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      setShowConfetti(true)
+      if (autoDismiss > 0) {
+        const timer = setTimeout(onClose, autoDismiss)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [open, autoDismiss, onClose])
+
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [open])
+
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className={cn(
+            'fixed inset-0 z-[100] flex flex-col items-center justify-center',
+            'bg-gradient-to-b from-primary-900/95 via-primary-800/95 to-primary-900/95',
+            'text-white',
+            className,
+          )}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: shouldReduceMotion ? 0.1 : 0.3 }}
+          onClick={onClose}
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+        >
+          <Confetti active={showConfetti} count={50} duration={3000} />
+
+          {/* Glow ring */}
+          {!shouldReduceMotion && (
+            <motion.div
+              className="absolute w-64 h-64 rounded-full bg-primary-400/10"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.5, 1.2], opacity: [0, 0.6, 0.3] }}
+              transition={{ duration: 1, ease: 'easeOut' }}
+              aria-hidden="true"
+            />
+          )}
+
+          {/* Icon */}
+          {icon && (
+            <motion.div
+              className="relative mb-6"
+              initial={shouldReduceMotion ? false : { scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={
+                shouldReduceMotion
+                  ? { duration: 0 }
+                  : { type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }
+              }
+            >
+              <div className="flex items-center justify-center w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm">
+                {icon}
+              </div>
+            </motion.div>
+          )}
+
+          {/* Title */}
+          <motion.h2
+            className="font-heading text-3xl font-bold text-center px-6 max-w-sm"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: shouldReduceMotion ? 0 : 0.4, duration: 0.4 }}
+          >
+            {title}
+          </motion.h2>
+
+          {/* Subtitle */}
+          {subtitle && (
+            <motion.p
+              className="mt-3 text-base text-white/80 text-center px-6 max-w-xs"
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: shouldReduceMotion ? 0 : 0.6, duration: 0.3 }}
+            >
+              {subtitle}
+            </motion.p>
+          )}
+
+          {/* Tap to dismiss */}
+          <motion.p
+            className="absolute bottom-12 text-sm text-white/40"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: shouldReduceMotion ? 0 : 1.5 }}
+          >
+            Tap anywhere to continue
+          </motion.p>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
+  )
+}

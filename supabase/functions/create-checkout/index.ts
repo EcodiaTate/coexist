@@ -1,0 +1,404 @@
+/**
+ * create-checkout — Supabase Edge Function
+ *
+ * Creates Stripe Checkout sessions for:
+ *   - One-time donations
+ *   - Recurring donations (Stripe Subscriptions)
+ *   - Merch purchases (with promo code support)
+ *   - Subscription cancellation
+ *
+ * Returns: `{ session_id: string, url: string }` for checkout types,
+ *          `{ success: true }` for cancel.
+ */
+
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import Stripe from 'https://esm.sh/stripe@14?target=deno'
+
+const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
+  apiVersion: '2024-04-10',
+})
+
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    const body = await req.json()
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const origin = req.headers.get('origin') ?? 'https://coexistaus.org'
+
+    // ---- Authenticate the caller ----
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Missing authorization' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user: caller }, error: authError } = await supabase.auth.getUser(token)
+    if (authError || !caller) {
+      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    // Enforce that the caller can only act on their own behalf
+    if (body.user_id && body.user_id !== caller.id) {
+      return new Response(JSON.stringify({ error: 'user_id does not match authenticated user' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    // Default user_id to the authenticated caller
+    if (!body.user_id) {
+      body.user_id = caller.id
+    }
+
+    const json = (data: unknown, status = 200) =>
+      new Response(JSON.stringify(data), {
+        status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+
+    // ---- Input validation helpers ----
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+    function validateUuid(val: unknown, field: string): string | null {
+      if (typeof val !== 'string' || !UUID_RE.test(val)) return `Invalid ${field}`
+      return null
+    }
+
+    function validateAmount(val: unknown): string | null {
+      if (typeof val !== 'number' || !Number.isFinite(val) || val < 1 || val > 50000) {
+        return 'Amount must be between $1 and $50,000'
+      }
+      return null
+    }
+
+    function validateString(val: unknown, field: string, maxLen = 500): string | null {
+      if (val === undefined || val === null || val === '') return null
+      if (typeof val !== 'string') return `${field} must be a string`
+      if (val.length > maxLen) return `${field} must be under ${maxLen} characters`
+      return null
+    }
+
+    // ---- Validate required fields ----
+    if (!body.type || typeof body.type !== 'string') {
+      return json({ error: 'Missing or invalid type' }, 400)
+    }
+
+    if (body.user_id) {
+      const err = validateUuid(body.user_id, 'user_id')
+      if (err) return json({ error: err }, 400)
+    }
+
+    // Look up user email for Stripe customer_email
+    async function getUserEmail(userId: string): Promise<string | undefined> {
+      const { data } = await supabase.auth.admin.getUserById(userId)
+      return data?.user?.email
+    }
+
+    switch (body.type) {
+      /* ---- One-time donation ---- */
+      case 'donation': {
+        // Validate donation-specific fields
+        const amountErr = validateAmount(body.amount)
+        if (amountErr) return json({ error: amountErr }, 400)
+        const msgErr = validateString(body.message, 'message', 500)
+        if (msgErr) return json({ error: msgErr }, 400)
+        const behalfErr = validateString(body.on_behalf_of, 'on_behalf_of', 200)
+        if (behalfErr) return json({ error: behalfErr }, 400)
+        if (body.frequency && !['one_time', 'monthly'].includes(body.frequency)) {
+          return json({ error: 'Invalid frequency' }, 400)
+        }
+        const customerEmail = await getUserEmail(body.user_id)
+
+        if (body.frequency === 'monthly') {
+          // Recurring: create a dynamic price on a generic donation product
+          const product = await stripe.products.create({
+            name: `Co-Exist Monthly Donation — $${body.amount}`,
+            metadata: { type: 'recurring_donation' },
+          })
+
+          const price = await stripe.prices.create({
+            product: product.id,
+            unit_amount: Math.round(body.amount * 100),
+            currency: 'aud',
+            recurring: { interval: 'month' },
+          })
+
+          const session = await stripe.checkout.sessions.create({
+            mode: 'subscription',
+            customer_email: customerEmail,
+            line_items: [{ price: price.id, quantity: 1 }],
+            success_url: `${origin}/donate/thank-you?amount=${body.amount}&recurring=true`,
+            cancel_url: `${origin}/donate`,
+            metadata: {
+              type: 'donation',
+              frequency: 'monthly',
+              user_id: body.user_id,
+              project_id: body.project_id ?? '',
+              message: body.message ?? '',
+              on_behalf_of: body.on_behalf_of ?? '',
+              is_public: String(body.is_public ?? true),
+            },
+            subscription_data: {
+              metadata: {
+                user_id: body.user_id,
+                project_id: body.project_id ?? '',
+              },
+            },
+          })
+
+          return json({ session_id: session.id, url: session.url })
+        }
+
+        // One-time donation
+        const session = await stripe.checkout.sessions.create({
+          mode: 'payment',
+          customer_email: customerEmail,
+          line_items: [
+            {
+              price_data: {
+                currency: 'aud',
+                product_data: {
+                  name: body.project_id
+                    ? 'Co-Exist Donation — Project'
+                    : 'Co-Exist Donation',
+                },
+                unit_amount: Math.round(body.amount * 100),
+              },
+              quantity: 1,
+            },
+          ],
+          success_url: `${origin}/donate/thank-you?amount=${body.amount}`,
+          cancel_url: `${origin}/donate`,
+          metadata: {
+            type: 'donation',
+            frequency: 'one_time',
+            user_id: body.user_id,
+            project_id: body.project_id ?? '',
+            message: body.message ?? '',
+            on_behalf_of: body.on_behalf_of ?? '',
+            is_public: String(body.is_public ?? true),
+          },
+        })
+
+        return json({ session_id: session.id, url: session.url })
+      }
+
+      /* ---- Merch checkout ---- */
+      case 'merch': {
+        // Validate merch-specific fields
+        if (!Array.isArray(body.items) || body.items.length === 0 || body.items.length > 50) {
+          return json({ error: 'Items must be an array with 1-50 items' }, 400)
+        }
+        for (const item of body.items) {
+          if (typeof item.quantity !== 'number' || item.quantity < 1 || item.quantity > 100) {
+            return json({ error: 'Item quantity must be between 1 and 100' }, 400)
+          }
+          if (typeof item.price_cents !== 'number' || item.price_cents < 0 || item.price_cents > 1000000) {
+            return json({ error: 'Invalid item price' }, 400)
+          }
+          const nameErr = validateString(item.product_name, 'product_name', 200)
+          if (nameErr) return json({ error: nameErr }, 400)
+        }
+        if (body.promo_code_id) {
+          const promoErr = validateUuid(body.promo_code_id, 'promo_code_id')
+          if (promoErr) return json({ error: promoErr }, 400)
+        }
+
+        const customerEmail = await getUserEmail(body.user_id)
+
+        // Verify prices server-side to prevent price manipulation
+        const productIds = [...new Set(body.items.map((i: { product_id: string }) => i.product_id))]
+        const { data: dbProducts } = await supabase
+          .from('merch_products')
+          .select('id, name, price, images, variants')
+          .in('id', productIds)
+          .eq('is_active', true)
+
+        const productMap = new Map<string, { name: string; price: number; images: string[]; variants: any[] }>()
+        for (const p of dbProducts ?? []) {
+          productMap.set(p.id, {
+            name: p.name,
+            price: p.price,
+            images: p.images ?? [],
+            variants: Array.isArray(p.variants) ? p.variants : [],
+          })
+        }
+
+        // Build Stripe line items using server-verified prices
+        const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
+        let serverTotalCents = 0
+        for (const item of body.items as Array<{ product_id: string; variant_id: string; quantity: number; price_cents: number; variant_label?: string }>) {
+          const product = productMap.get(item.product_id)
+          if (!product) {
+            return json({ error: `Product ${item.product_id} not found or inactive` }, 400)
+          }
+          // Use the server-side price (converted to cents), not the client-submitted one
+          const unitPriceCents = Math.round(product.price * 100)
+          const variantLabel = item.variant_label ?? item.variant_id ?? 'Standard'
+          serverTotalCents += unitPriceCents * item.quantity
+          lineItems.push({
+            price_data: {
+              currency: 'aud',
+              product_data: {
+                name: `${product.name} (${variantLabel})`,
+                images: product.images.length > 0 ? [product.images[0]] : [],
+              },
+              unit_amount: unitPriceCents,
+            },
+            quantity: item.quantity,
+          })
+        }
+
+        // Add shipping as a line item (validate it's a positive integer)
+        const shippingCents = typeof body.shipping_cents === 'number' && body.shipping_cents > 0
+          ? Math.round(body.shipping_cents)
+          : 0
+        if (shippingCents > 0) {
+          lineItems.push({
+            price_data: {
+              currency: 'aud',
+              product_data: { name: 'Shipping' },
+              unit_amount: shippingCents,
+            },
+            quantity: 1,
+          })
+          serverTotalCents += shippingCents
+        }
+
+        // Insert pending order into DB using server-computed total
+        const { data: order, error: orderError } = await supabase
+          .from('merch_orders')
+          .insert({
+            user_id: body.user_id,
+            status: 'pending',
+            items: body.items,
+            total: serverTotalCents / 100,
+            shipping_address: body.shipping_address,
+          })
+          .select()
+          .single()
+
+        if (orderError || !order) {
+          return json({ error: 'Failed to create order' }, 500)
+        }
+
+        // Build checkout session params
+        const sessionParams: Stripe.Checkout.SessionCreateParams = {
+          mode: 'payment',
+          customer_email: customerEmail,
+          line_items: lineItems,
+          success_url: `${origin}/shop/order-confirmation?order_id=${order.id}`,
+          cancel_url: `${origin}/shop/cart`,
+          metadata: {
+            type: 'merch',
+            order_id: order.id,
+            user_id: body.user_id,
+          },
+        }
+
+        // Apply promo code: look it up and add Stripe discount
+        if (body.promo_code_id) {
+          const { data: promo } = await supabase
+            .from('promo_codes')
+            .select('*')
+            .eq('id', body.promo_code_id)
+            .single()
+
+          if (promo && promo.is_active) {
+            // Check max_uses limit before applying
+            if (promo.max_uses && promo.uses_count >= promo.max_uses) {
+              return json({ error: 'Promo code has reached its usage limit' }, 400)
+            }
+
+            // Create a Stripe coupon matching the promo
+            const couponParams: Stripe.CouponCreateParams = {
+              currency: 'aud',
+              name: promo.code,
+            }
+            if (promo.type === 'percentage') {
+              couponParams.percent_off = Number(promo.value)
+            } else if (promo.type === 'flat') {
+              couponParams.amount_off = Number(promo.value) * 100
+            }
+            // free_shipping is handled by zeroing shipping_cents client-side
+
+            if (couponParams.percent_off || couponParams.amount_off) {
+              const coupon = await stripe.coupons.create(couponParams)
+              sessionParams.discounts = [{ coupon: coupon.id }]
+            }
+
+            // Atomically increment usage count to prevent race conditions
+            // Only increment if still under max_uses (atomic check-and-set)
+            const { error: incrError } = await supabase.rpc('increment_promo_uses', {
+              p_promo_id: promo.id,
+              p_max_uses: promo.max_uses ?? 999999,
+            })
+            if (incrError) {
+              console.error('[create-checkout] Promo increment failed:', incrError.message)
+              // If the atomic increment fails (e.g., max reached), promo was still applied to Stripe
+              // but we log and continue since the Stripe session hasn't been created yet
+            }
+          }
+        }
+
+        const session = await stripe.checkout.sessions.create(sessionParams)
+
+        return json({ session_id: session.id, url: session.url })
+      }
+
+      /* ---- Cancel subscription ---- */
+      case 'cancel_subscription': {
+        if (!body.stripe_subscription_id || typeof body.stripe_subscription_id !== 'string') {
+          return json({ error: 'Missing stripe_subscription_id' }, 400)
+        }
+
+        // Verify the subscription belongs to the authenticated user
+        const { data: ownedSub } = await supabase
+          .from('recurring_donations')
+          .select('id')
+          .eq('stripe_subscription_id', body.stripe_subscription_id)
+          .eq('user_id', caller.id)
+          .single()
+
+        if (!ownedSub) {
+          return json({ error: 'Subscription not found or not owned by you' }, 403)
+        }
+
+        await stripe.subscriptions.cancel(body.stripe_subscription_id)
+
+        await supabase
+          .from('recurring_donations')
+          .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+          .eq('stripe_subscription_id', body.stripe_subscription_id)
+
+        return json({ success: true })
+      }
+
+      default:
+        return json({ error: `Unknown checkout type: ${body.type}` }, 400)
+    }
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: (err as Error).message }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      },
+    )
+  }
+})

@@ -1,9 +1,25 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  QueryClient,
+  QueryClientProvider,
+  dehydrate,
+  hydrate,
+} from '@tanstack/react-query'
+import { HelmetProvider } from 'react-helmet-async'
+import { AuthProvider } from '@/components/auth-provider'
+import { ToastProvider } from '@/components/toast'
+import {
+  attachOfflineSyncListener,
+  restoreQueryCache,
+  persistQueryCache,
+} from '@/lib/offline-sync'
+import { CookieConsentBanner } from '@/components/cookie-consent'
+import { SentryErrorBoundary } from '@/lib/sentry'
 import App from './App'
 import './styles/globals.css'
+import '@/lib/i18n'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -15,12 +31,72 @@ const queryClient = new QueryClient({
   },
 })
 
+// Restore cached query data from localStorage on startup
+const savedCache = restoreQueryCache()
+if (savedCache) {
+  try {
+    hydrate(queryClient, savedCache)
+  } catch {
+    // Corrupted cache — ignore
+  }
+}
+
+// Persist critical query cache to localStorage periodically + on visibility change
+const CRITICAL_QUERY_PREFIXES = [
+  'profile',
+  'profile-collectives',
+  'profile-stats',
+  'my-events',
+  'chat-messages',
+]
+
+function persistCriticalCache() {
+  const state = dehydrate(queryClient, {
+    shouldDehydrateQuery: (query) => {
+      const key = query.queryKey[0] as string
+      return CRITICAL_QUERY_PREFIXES.includes(key)
+    },
+  })
+  persistQueryCache(state)
+}
+
+// Save cache every 30 seconds
+setInterval(persistCriticalCache, 30_000)
+
+// Save cache when user navigates away or tabs out
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    persistCriticalCache()
+  }
+})
+
+// Auto-sync offline check-ins when connectivity is restored
+attachOfflineSyncListener()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <ToastProvider>
+              <SentryErrorBoundary>
+                <App />
+              </SentryErrorBoundary>
+              <CookieConsentBanner />
+            </ToastProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
   </StrictMode>,
 )
+
+// Register service worker for static asset caching
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Service worker registration failed — silent fallback
+    })
+  })
+}

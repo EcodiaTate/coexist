@@ -1,0 +1,204 @@
+import { useState, useEffect, useCallback } from 'react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { Cookie, X } from 'lucide-react'
+import { Button } from '@/components/button'
+import { Toggle } from '@/components/toggle'
+import { usePlatform } from '@/hooks/use-platform'
+import { cn } from '@/lib/cn'
+
+/* ------------------------------------------------------------------ */
+/*  Cookie categories                                                  */
+/* ------------------------------------------------------------------ */
+
+interface CookieConsent {
+  essential: true // always on
+  analytics: boolean
+  marketing: boolean
+}
+
+const STORAGE_KEY = 'coexist-cookie-consent'
+const CONSENT_VERSION = '1.0'
+
+function loadConsent(): CookieConsent | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    if (parsed.version !== CONSENT_VERSION) return null
+    return parsed.consent as CookieConsent
+  } catch {
+    return null
+  }
+}
+
+function saveConsent(consent: CookieConsent) {
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify({ version: CONSENT_VERSION, consent, timestamp: Date.now() }),
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
+
+export function CookieConsentBanner({ className }: { className?: string }) {
+  const { isWeb } = usePlatform()
+  const shouldReduceMotion = useReducedMotion()
+  const [visible, setVisible] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
+  const [consent, setConsent] = useState<CookieConsent>({
+    essential: true,
+    analytics: true,
+    marketing: false,
+  })
+
+  // Show banner if no consent stored (web only)
+  useEffect(() => {
+    if (!isWeb) return
+    const existing = loadConsent()
+    if (!existing) {
+      setVisible(true)
+    } else {
+      setConsent(existing)
+    }
+  }, [isWeb])
+
+  // Listen for re-open event from settings
+  useEffect(() => {
+    const handler = () => setVisible(true)
+    window.addEventListener('coexist:open-cookie-consent', handler)
+    return () => window.removeEventListener('coexist:open-cookie-consent', handler)
+  }, [])
+
+  const handleAcceptAll = useCallback(() => {
+    const all: CookieConsent = { essential: true, analytics: true, marketing: true }
+    setConsent(all)
+    saveConsent(all)
+    setVisible(false)
+    // Re-init analytics now that consent is given
+    window.dispatchEvent(new CustomEvent('coexist:consent-changed'))
+  }, [])
+
+  const handleRejectNonEssential = useCallback(() => {
+    const minimal: CookieConsent = { essential: true, analytics: false, marketing: false }
+    setConsent(minimal)
+    saveConsent(minimal)
+    setVisible(false)
+  }, [])
+
+  const handleSavePreferences = useCallback(() => {
+    saveConsent(consent)
+    setVisible(false)
+    window.dispatchEvent(new CustomEvent('coexist:consent-changed'))
+  }, [consent])
+
+  if (!isWeb) return null
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          initial={shouldReduceMotion ? { opacity: 1 } : { y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={shouldReduceMotion ? { opacity: 0 } : { y: 100, opacity: 0 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+          className={cn(
+            'fixed bottom-0 inset-x-0 z-[60]',
+            'mx-auto max-w-lg',
+            'p-4',
+            className,
+          )}
+        >
+          <div className="rounded-2xl bg-white shadow-lg border border-primary-200 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-start gap-3 p-4 pb-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white text-primary-400 shrink-0">
+                <Cookie size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-heading text-sm font-semibold text-primary-800">
+                  We use cookies
+                </h3>
+                <p className="text-xs text-primary-400 mt-0.5 leading-relaxed">
+                  We use cookies to improve your experience and analyse how the site is used.
+                </p>
+              </div>
+              <button
+                onClick={handleRejectNonEssential}
+                className="flex items-center justify-center w-7 h-7 rounded-full text-primary-400 hover:bg-primary-50 transition-colors shrink-0"
+                aria-label="Reject non-essential cookies"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Details toggle */}
+            <AnimatePresence>
+              {showDetails && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  className="overflow-hidden px-4"
+                >
+                  <div className="space-y-2 py-2 border-t border-primary-100">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-medium text-primary-800">Essential</p>
+                        <p className="text-[10px] text-primary-400">Required for the site to work</p>
+                      </div>
+                      <Toggle checked disabled onChange={() => {}} size="sm" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-medium text-primary-800">Analytics</p>
+                        <p className="text-[10px] text-primary-400">Help us improve the experience</p>
+                      </div>
+                      <Toggle
+                        checked={consent.analytics}
+                        onChange={(v) => setConsent((p) => ({ ...p, analytics: v }))}
+                        size="sm"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-medium text-primary-800">Marketing</p>
+                        <p className="text-[10px] text-primary-400">Personalised content and campaigns</p>
+                      </div>
+                      <Toggle
+                        checked={consent.marketing}
+                        onChange={(v) => setConsent((p) => ({ ...p, marketing: v }))}
+                        size="sm"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Actions */}
+            <div className="flex gap-2 p-4 pt-2">
+              <button
+                onClick={() => setShowDetails(!showDetails)}
+                className="text-xs font-medium text-primary-400 hover:text-primary-800 transition-colors px-2 py-1.5"
+              >
+                {showDetails ? 'Hide details' : 'Customise'}
+              </button>
+              <div className="flex-1" />
+              {showDetails ? (
+                <Button size="sm" onClick={handleSavePreferences}>
+                  Save Preferences
+                </Button>
+              ) : (
+                <Button size="sm" onClick={handleAcceptAll}>
+                  Accept All
+                </Button>
+              )}
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}

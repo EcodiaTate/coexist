@@ -1,0 +1,279 @@
+import { useState, useCallback, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
+import { MapPin, CreditCard } from 'lucide-react'
+import { Page } from '@/components/page'
+import { Header } from '@/components/header'
+import { Button } from '@/components/button'
+import { Input } from '@/components/input'
+import { Divider } from '@/components/divider'
+import { Dropdown } from '@/components/dropdown'
+import { useToast } from '@/components/toast'
+import { useCart } from '@/hooks/use-cart'
+import { useCreateMerchCheckout, useSavedAddresses } from '@/hooks/use-orders'
+import { redirectToCheckout } from '@/lib/stripe'
+import { formatPrice, type ShippingAddress } from '@/types/merch'
+import { cn } from '@/lib/cn'
+
+const AU_STATES = [
+  { label: 'NSW', value: 'NSW' },
+  { label: 'VIC', value: 'VIC' },
+  { label: 'QLD', value: 'QLD' },
+  { label: 'WA', value: 'WA' },
+  { label: 'SA', value: 'SA' },
+  { label: 'TAS', value: 'TAS' },
+  { label: 'ACT', value: 'ACT' },
+  { label: 'NT', value: 'NT' },
+]
+
+const EMPTY_ADDRESS: ShippingAddress = {
+  full_name: '',
+  line1: '',
+  line2: null,
+  city: '',
+  state: '',
+  postcode: '',
+  country: 'AU',
+  phone: null,
+}
+
+export default function CheckoutPage() {
+  const navigate = useNavigate()
+  const shouldReduceMotion = useReducedMotion()
+  const { toast } = useToast()
+
+  const items = useCart((s) => s.items)
+  const subtotalCents = useCart((s) => s.subtotalCents())
+  const discountCents = useCart((s) => s.discountCents())
+  const shippingCents = useCart((s) => s.shippingCents())
+  const totalCents = useCart((s) => s.totalCents())
+  const clearCart = useCart((s) => s.clear)
+
+  const { data: savedAddresses } = useSavedAddresses()
+  const checkout = useCreateMerchCheckout()
+
+  const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Pre-fill from saved address
+  const handleSelectSaved = useCallback((saved: ShippingAddress) => {
+    setAddress(saved)
+    setErrors({})
+  }, [])
+
+  const updateField = useCallback((field: keyof ShippingAddress, value: string) => {
+    setAddress((a) => ({ ...a, [field]: value || null }))
+    setErrors((e) => ({ ...e, [field]: '' }))
+  }, [])
+
+  const validate = useCallback((): boolean => {
+    const errs: Record<string, string> = {}
+    if (!address.full_name.trim()) errs.full_name = 'Name is required'
+    if (!address.line1.trim()) errs.line1 = 'Address is required'
+    if (!address.city.trim()) errs.city = 'City is required'
+    if (!address.state) errs.state = 'State is required'
+    if (!address.postcode.trim()) errs.postcode = 'Postcode is required'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }, [address])
+
+  const handleCheckout = useCallback(async () => {
+    if (!validate()) return
+    try {
+      const result = await checkout.mutateAsync({ shippingAddress: address })
+      if (result.url) {
+        window.location.href = result.url
+      } else if (result.session_id) {
+        await redirectToCheckout(result.session_id)
+      }
+    } catch {
+      toast('Checkout failed. Please try again.', 'error')
+    }
+  }, [validate, checkout, address, toast])
+
+  // Redirect if cart is empty
+  useEffect(() => {
+    if (items.length === 0) {
+      navigate('/shop/cart', { replace: true })
+    }
+  }, [items.length, navigate])
+
+  if (items.length === 0) {
+    return null
+  }
+
+  return (
+    <Page
+      header={<Header title="Checkout" back />}
+      footer={
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          icon={<CreditCard size={18} />}
+          loading={checkout.isPending}
+          onClick={handleCheckout}
+        >
+          Pay {formatPrice(totalCents)}
+        </Button>
+      }
+    >
+      <motion.div
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="px-4 py-5 space-y-6"
+      >
+        {/* Saved addresses */}
+        {savedAddresses && savedAddresses.length > 0 && (
+          <section>
+            <h3 className="font-heading font-semibold text-primary-800 mb-3">
+              Saved addresses
+            </h3>
+            <div className="space-y-2">
+              {savedAddresses.map((saved, i) => (
+                <button
+                  key={saved.id ?? i}
+                  type="button"
+                  onClick={() => handleSelectSaved(saved)}
+                  className={cn(
+                    'w-full text-left p-3 rounded-xl border-2 transition-colors duration-150 cursor-pointer',
+                    address.line1 === saved.line1 && address.postcode === saved.postcode
+                      ? 'border-primary-500 bg-white'
+                      : 'border-primary-200 hover:border-primary-200',
+                  )}
+                >
+                  <p className="text-sm font-medium text-primary-800">{saved.full_name}</p>
+                  <p className="text-xs text-primary-400 mt-0.5">
+                    {saved.line1}, {saved.city} {saved.state} {saved.postcode}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Shipping address form */}
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <MapPin size={18} className="text-primary-400" />
+            <h3 className="font-heading font-semibold text-primary-800">
+              Shipping address
+            </h3>
+          </div>
+          <div className="space-y-3">
+            <Input
+              label="Full name"
+              value={address.full_name}
+              onChange={(e) => updateField('full_name', e.target.value)}
+              error={errors.full_name}
+              required
+              autoComplete="name"
+            />
+            <Input
+              label="Address line 1"
+              value={address.line1}
+              onChange={(e) => updateField('line1', e.target.value)}
+              error={errors.line1}
+              required
+              autoComplete="address-line1"
+            />
+            <Input
+              label="Address line 2 (optional)"
+              value={address.line2 ?? ''}
+              onChange={(e) => updateField('line2', e.target.value)}
+              autoComplete="address-line2"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="City"
+                value={address.city}
+                onChange={(e) => updateField('city', e.target.value)}
+                error={errors.city}
+                required
+                autoComplete="address-level2"
+              />
+              <Input
+                label="State"
+                value={address.state}
+                onChange={(e) => updateField('state', e.target.value)}
+                error={errors.state}
+                required
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Postcode"
+                value={address.postcode}
+                onChange={(e) => updateField('postcode', e.target.value)}
+                error={errors.postcode}
+                required
+                autoComplete="postal-code"
+              />
+              <Input
+                label="Phone (optional)"
+                value={address.phone ?? ''}
+                onChange={(e) => updateField('phone', e.target.value)}
+                autoComplete="tel"
+              />
+            </div>
+          </div>
+        </section>
+
+        <Divider />
+
+        {/* Order summary */}
+        <section>
+          <h3 className="font-heading font-semibold text-primary-800 mb-3">
+            Order summary
+          </h3>
+          <div className="space-y-2">
+            {items.map((item) => (
+              <div key={item.variant.id} className="flex items-center gap-3">
+                <img
+                  src={item.product.images[0] ?? '/img/placeholder-merch.jpg'}
+                  alt={item.product.name}
+                  className="w-12 h-12 object-cover rounded-lg shrink-0"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-primary-800 truncate">
+                    {item.product.name}
+                  </p>
+                  <p className="text-xs text-primary-400">
+                    x{item.quantity}
+                  </p>
+                </div>
+                <span className="text-sm font-semibold text-primary-800 tabular-nums">
+                  {formatPrice(item.variant.price_cents * item.quantity)}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 space-y-2 text-sm">
+            <div className="flex justify-between text-primary-400">
+              <span>Subtotal</span>
+              <span className="tabular-nums">{formatPrice(subtotalCents)}</span>
+            </div>
+            {discountCents > 0 && (
+              <div className="flex justify-between text-primary-400">
+                <span>Discount</span>
+                <span className="tabular-nums">-{formatPrice(discountCents)}</span>
+              </div>
+            )}
+            <div className="flex justify-between text-primary-400">
+              <span>Shipping</span>
+              <span className="tabular-nums">
+                {shippingCents === 0 ? 'Free' : formatPrice(shippingCents)}
+              </span>
+            </div>
+            <Divider />
+            <div className="flex justify-between font-heading font-bold text-primary-800 text-base">
+              <span>Total</span>
+              <span className="tabular-nums">{formatPrice(totalCents)}</span>
+            </div>
+          </div>
+        </section>
+      </motion.div>
+    </Page>
+  )
+}

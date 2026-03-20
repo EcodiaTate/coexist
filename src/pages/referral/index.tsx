@@ -1,0 +1,298 @@
+import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import {
+  Share2,
+  Copy,
+  QrCode,
+  Users,
+  Gift,
+  CheckCircle,
+  UserPlus,
+  Trophy,
+  Clock,
+} from 'lucide-react'
+import { Page } from '@/components/page'
+import { Header } from '@/components/header'
+import { Button } from '@/components/button'
+import { Input } from '@/components/input'
+import { Avatar } from '@/components/avatar'
+import { StatCard } from '@/components/stat-card'
+import { Skeleton } from '@/components/skeleton'
+import { EmptyState } from '@/components/empty-state'
+import { useToast } from '@/components/toast'
+import { cn } from '@/lib/cn'
+import { useReferralCode, useReferralStats, useReferralLeaderboard, useSendInvite } from '@/hooks/use-referral'
+
+function ReferralSkeleton() {
+  return (
+    <div className="px-4 py-6 space-y-6">
+      <Skeleton variant="card" />
+      <div className="grid grid-cols-3 gap-3">
+        <Skeleton variant="stat-card" />
+        <Skeleton variant="stat-card" />
+        <Skeleton variant="stat-card" />
+      </div>
+    </div>
+  )
+}
+
+export default function ReferralPage() {
+  const shouldReduceMotion = useReducedMotion()
+  const { success, error: showError } = useToast()
+  const { data: code, isLoading: codeLoading } = useReferralCode()
+  const { data: stats } = useReferralStats()
+  const { data: leaderboard } = useReferralLeaderboard()
+  const sendInvite = useSendInvite()
+
+  const [email, setEmail] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  const referralLink = code
+    ? `${window.location.origin}/signup?ref=${code}`
+    : ''
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(referralLink)
+    setCopied(true)
+    success('Link copied!')
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleShare = async () => {
+    const shareData = {
+      title: 'Join Co-Exist',
+      text: 'Join me on Co-Exist — the conservation movement for young Australians!',
+      url: referralLink,
+    }
+    if (navigator.share) {
+      await navigator.share(shareData)
+    } else {
+      await handleCopy()
+    }
+  }
+
+  const handleSendInvite = async () => {
+    if (!email || !code) return
+    try {
+      await sendInvite.mutateAsync({ email, code })
+      success('Invite sent!')
+      setEmail('')
+    } catch {
+      showError('Failed to send invite')
+    }
+  }
+
+  if (codeLoading) {
+    return (
+      <Page header={<Header title="Invite Friends" back />}>
+        <ReferralSkeleton />
+      </Page>
+    )
+  }
+
+  return (
+    <Page header={<Header title="Invite Friends" back />}>
+      <div className="px-4 pb-8">
+        {/* Hero */}
+        <motion.div
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-4 rounded-2xl bg-gradient-to-br from-white to-white border border-primary-100 p-5 text-center"
+        >
+          <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
+            <Gift size={28} className="text-primary-500" />
+          </div>
+          <h2 className="font-heading text-lg font-bold text-primary-800">
+            Grow the Movement
+          </h2>
+          <p className="mt-1 text-sm text-primary-400 max-w-xs mx-auto">
+            Invite friends to join Co-Exist. Earn 200 points when they attend their first event!
+          </p>
+        </motion.div>
+
+        {/* Referral Code */}
+        <motion.div
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mt-5"
+        >
+          <h3 className="font-heading text-sm font-semibold text-primary-800 mb-2">
+            Your Referral Code
+          </h3>
+          <div className="flex items-center gap-2">
+            <div className="flex-1 rounded-xl bg-white px-4 py-3 text-center font-heading text-lg font-bold text-primary-800 tracking-wider select-all">
+              {code}
+            </div>
+            <button
+              onClick={handleCopy}
+              className={cn(
+                'flex items-center justify-center w-11 h-11 rounded-xl border transition-colors',
+                copied
+                  ? 'bg-green-50 border-green-200 text-green-600'
+                  : 'bg-white border-primary-200 text-primary-400 hover:bg-primary-50',
+              )}
+              aria-label="Copy code"
+            >
+              {copied ? <CheckCircle size={20} /> : <Copy size={20} />}
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Share buttons */}
+        <motion.div
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mt-4 flex gap-2"
+        >
+          <Button
+            variant="primary"
+            size="md"
+            fullWidth
+            icon={<Share2 size={16} />}
+            onClick={handleShare}
+          >
+            Share Invite Link
+          </Button>
+          <button
+            onClick={() => {/* QR modal would go here */}}
+            className="flex items-center justify-center w-11 h-11 rounded-xl bg-white border border-primary-200 text-primary-400 hover:bg-primary-50 transition-colors shrink-0"
+            aria-label="Show QR code"
+          >
+            <QrCode size={20} />
+          </button>
+        </motion.div>
+
+        {/* Send invite by email */}
+        <motion.div
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mt-5"
+        >
+          <h3 className="font-heading text-sm font-semibold text-primary-800 mb-2">
+            Invite by Email
+          </h3>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="friend@example.com"
+                type="email"
+              />
+            </div>
+            <Button
+              variant="secondary"
+              size="md"
+              icon={<UserPlus size={16} />}
+              onClick={handleSendInvite}
+              loading={sendInvite.isPending}
+              disabled={!email}
+            >
+              Send
+            </Button>
+          </div>
+        </motion.div>
+
+        {/* Stats */}
+        {stats && (
+          <motion.div
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mt-6 grid grid-cols-3 gap-3"
+          >
+            <StatCard
+              value={stats.total}
+              label="Invites Sent"
+              icon={<Share2 size={18} />}
+            />
+            <StatCard
+              value={stats.accepted}
+              label="Joined"
+              icon={<Users size={18} />}
+            />
+            <StatCard
+              value={stats.pending}
+              label="Pending"
+              icon={<Clock size={18} />}
+            />
+          </motion.div>
+        )}
+
+        {/* Reward chain */}
+        <motion.section
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="mt-6"
+        >
+          <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
+            Referral Rewards
+          </h3>
+          <div className="space-y-2">
+            {[
+              { label: 'Friend joins Co-Exist', points: 50, icon: <UserPlus size={16} /> },
+              { label: 'Friend attends first event', points: 200, icon: <CheckCircle size={16} /> },
+              { label: 'Friend attends 5th event', points: 100, icon: <Trophy size={16} /> },
+            ].map(({ label, points, icon }) => (
+              <div
+                key={label}
+                className="flex items-center gap-3 rounded-xl bg-white border border-primary-100 shadow-sm px-4 py-3"
+              >
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-primary-400">
+                  {icon}
+                </span>
+                <span className="flex-1 text-sm text-primary-800">{label}</span>
+                <span className="text-sm font-bold text-primary-400">+{points} pts</span>
+              </div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Referral Leaderboard */}
+        {leaderboard && leaderboard.length > 0 && (
+          <motion.section
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="mt-6"
+          >
+            <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
+              Top Recruiters
+            </h3>
+            <div className="rounded-xl bg-white border border-primary-100 shadow-sm overflow-hidden">
+              {leaderboard.slice(0, 10).map((entry, i) => (
+                <div
+                  key={entry.userId}
+                  className={cn(
+                    'flex items-center gap-3 px-4 py-2.5',
+                    i > 0 && 'border-t border-primary-100',
+                  )}
+                >
+                  <span className="w-6 text-sm font-bold text-primary-400 tabular-nums text-center">
+                    {entry.rank}
+                  </span>
+                  <Avatar
+                    src={entry.avatarUrl}
+                    name={entry.displayName}
+                    size="sm"
+                  />
+                  <span className="flex-1 text-sm font-medium text-primary-800 truncate">
+                    {entry.displayName}
+                  </span>
+                  <span className="text-sm font-semibold text-primary-400">
+                    {entry.referrals} invited
+                  </span>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+      </div>
+    </Page>
+  )
+}
+

@@ -1,0 +1,30 @@
+import { CloudOff } from 'lucide-react'
+import { cn } from '@/lib/cn'
+import { usePendingSync } from '@/hooks/use-pending-sync'
+
+interface PendingSyncBadgeProps {
+  className?: string
+}
+
+/**
+ * Shows a small badge with the count of pending offline actions.
+ * Only visible when there are queued actions waiting to sync.
+ */
+export function PendingSyncBadge({ className }: PendingSyncBadgeProps) {
+  const { count } = usePendingSync()
+
+  if (count === 0) return null
+
+  return (
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5',
+        'text-xs font-medium text-amber-700',
+        className,
+      )}
+    >
+      <CloudOff size={12} />
+      <span>{count} pending</span>
+    </span>
+  )
+}

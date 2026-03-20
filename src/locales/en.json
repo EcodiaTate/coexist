@@ -1,0 +1,140 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "search": "Search",
+    "seeAll": "See all",
+    "viewAll": "View all",
+    "share": "Share",
+    "edit": "Edit",
+    "close": "Close",
+    "pullToRefresh": "Pull to refresh",
+    "refreshing": "Refreshing...",
+    "noResults": "No results found",
+    "offline": "You're offline",
+    "offlineBanner": "No internet connection. Some features may be limited."
+  },
+  "auth": {
+    "signUp": "Sign Up",
+    "logIn": "Log In",
+    "logOut": "Log Out",
+    "forgotPassword": "Forgot Password?",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "displayName": "Display Name"
+  },
+  "home": {
+    "title": "Home",
+    "greeting": "Hey, {{name}}!",
+    "greetingGeneric": "Welcome back!",
+    "subtitle": "Here's what's happening in your world",
+    "upcomingNearYou": "Upcoming near you",
+    "yourCollective": "Your Collective",
+    "yourImpact": "Your Impact",
+    "nationalChallenge": "National Challenge",
+    "trendingCollectives": "Trending Collectives",
+    "peopleYouMayKnow": "People you may know",
+    "browseByActivity": "Browse by activity",
+    "findCollective": "Find your collective",
+    "findCollectiveDescription": "Join a local group and start making an impact",
+    "noUpcomingEvents": "No upcoming events",
+    "noUpcomingEventsDescription": "Check back soon or explore collectives near you"
+  },
+  "events": {
+    "title": "My Events",
+    "create": "Create Event",
+    "register": "Register",
+    "registered": "Registered",
+    "checkIn": "Check In",
+    "logImpact": "Log Impact",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "attendees": "{{count}} attending",
+    "spotsLeft": "{{count}} spots left",
+    "eventDay": "Today's the day!"
+  },
+  "collectives": {
+    "title": "Collectives",
+    "discover": "Discover Collectives",
+    "members": "{{count}} members",
+    "eventsThisMonth": "{{count}} events this month",
+    "join": "Join Collective",
+    "manage": "Manage"
+  },
+  "impact": {
+    "title": "Your Impact",
+    "eventsAttended": "Events attended",
+    "treesPlanted": "Trees planted",
+    "hoursVolunteered": "Hours volunteered",
+    "rubbishCollected": "Rubbish collected (kg)"
+  },
+  "badges": {
+    "title": "Badges",
+    "unlocked": "Badge Unlocked!",
+    "awesome": "Awesome!",
+    "proximity": "{{count}} events away from {{badge}}!"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "memberSince": "Member since {{date}}",
+    "tier": "Tier: {{tier}}"
+  },
+  "chat": {
+    "title": "Chat",
+    "sendMessage": "Send a message",
+    "typing": "{{name}} is typing..."
+  },
+  "donate": {
+    "title": "Donate",
+    "thankYou": "Thank You!",
+    "donorWall": "Donor Wall",
+    "raised": "${{amount}} raised",
+    "goal": "of ${{amount}} goal"
+  },
+  "shop": {
+    "title": "Shop",
+    "addToCart": "Add to Cart",
+    "cart": "Cart",
+    "checkout": "Checkout",
+    "orderConfirmation": "Order Confirmed!"
+  },
+  "settings": {
+    "title": "Settings",
+    "sounds": "Sound Effects",
+    "notifications": "Notifications",
+    "darkMode": "Dark Mode",
+    "language": "Language"
+  },
+  "celebration": {
+    "welcomeToMovement": "Welcome to the movement!",
+    "welcomeSubtitle": "You've just attended your first event. This is where the magic begins.",
+    "milestone5": "5 events and counting!",
+    "milestone10": "Double digits! 10 events!",
+    "milestone25": "25 events — you're a force of nature!",
+    "milestone50": "50 events — legendary!",
+    "milestone100": "100 events — Elder status!",
+    "tapToContinue": "Tap anywhere to continue"
+  },
+  "maintenance": {
+    "title": "Under Maintenance",
+    "message": "We're making things even better. Back shortly!"
+  },
+  "accessibility": {
+    "skipToContent": "Skip to main content",
+    "mainNavigation": "Main navigation",
+    "bottomSheet": "Bottom sheet",
+    "contextMenu": "Context menu",
+    "loadingCard": "Loading card",
+    "loadingContent": "Loading content"
+  }
+}

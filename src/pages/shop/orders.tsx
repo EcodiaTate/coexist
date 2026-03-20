@@ -1,0 +1,132 @@
+import { useNavigate } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
+import { Package, ChevronRight } from 'lucide-react'
+import { Page } from '@/components/page'
+import { Header } from '@/components/header'
+import { Skeleton } from '@/components/skeleton'
+import { EmptyState } from '@/components/empty-state'
+import { useMyOrders } from '@/hooks/use-orders'
+import { formatPrice, type OrderStatus } from '@/types/merch'
+import { cn } from '@/lib/cn'
+
+const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }
+const fadeUp = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
+}
+
+const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
+  pending: { label: 'Pending', color: 'bg-amber-100 text-amber-800' },
+  processing: { label: 'Processing', color: 'bg-blue-100 text-blue-800' },
+  shipped: { label: 'Shipped', color: 'bg-violet-100 text-violet-800' },
+  delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800' },
+  cancelled: { label: 'Cancelled', color: 'bg-white text-primary-400' },
+  refunded: { label: 'Refunded', color: 'bg-red-100 text-red-700' },
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+export default function OrdersPage() {
+  const navigate = useNavigate()
+  const shouldReduceMotion = useReducedMotion()
+  const { data: orders, isLoading } = useMyOrders()
+
+  return (
+    <Page header={<Header title="My Orders" back />}>
+      <div className="px-4 py-4">
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} variant="card" />
+            ))}
+          </div>
+        ) : !orders || orders.length === 0 ? (
+          <EmptyState
+            illustration="empty"
+            title="No orders yet"
+            description="Your merch orders will appear here"
+            action={{ label: 'Browse shop', to: '/shop' }}
+          />
+        ) : (
+          <motion.div
+            variants={shouldReduceMotion ? undefined : stagger}
+            initial="hidden"
+            animate="visible"
+            className="space-y-3"
+          >
+            {orders.map((order) => {
+              const config = STATUS_CONFIG[order.status]
+              return (
+                <motion.button
+                  key={order.id}
+                  variants={fadeUp}
+                  type="button"
+                  onClick={() => navigate(`/shop/orders/${order.id}`)}
+                  className={cn(
+                    'w-full text-left p-4 rounded-2xl bg-white',
+                    'border border-primary-100 shadow-sm',
+                    'hover:shadow-md transition-shadow duration-150 cursor-pointer',
+                  )}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-primary-400 font-mono">
+                      #{order.id.slice(0, 8)}
+                    </span>
+                    <span
+                      className={cn(
+                        'px-2 py-0.5 rounded-full text-xs font-semibold',
+                        config.color,
+                      )}
+                    >
+                      {config.label}
+                    </span>
+                  </div>
+
+                  {/* Item previews */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex -space-x-2">
+                      {order.items.slice(0, 3).map((item) => (
+                        <img
+                          key={item.id}
+                          src={item.image_url ?? '/img/placeholder-merch.jpg'}
+                          alt={item.product_name}
+                          className="w-8 h-8 rounded-lg object-cover border-2 border-white"
+                        />
+                      ))}
+                      {order.items.length > 3 && (
+                        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-white border-2 border-white text-xs font-medium text-primary-400">
+                          +{order.items.length - 3}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-sm text-primary-400">
+                      {order.items.length} item{order.items.length > 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-primary-400">
+                      {formatDate(order.created_at)}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-heading font-bold text-sm text-primary-800">
+                        {formatPrice(order.total_cents)}
+                      </span>
+                      <ChevronRight size={16} className="text-primary-400" />
+                    </div>
+                  </div>
+                </motion.button>
+              )
+            })}
+          </motion.div>
+        )}
+      </div>
+    </Page>
+  )
+}

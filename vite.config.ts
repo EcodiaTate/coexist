@@ -14,6 +14,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false,
     rollupOptions: {
+      external: ['@capacitor-mlkit/barcode-scanning'],
       output: {
         manualChunks(id) {
           if (id.includes('react-dom') || id.includes('react-router')) return 'vendor'
