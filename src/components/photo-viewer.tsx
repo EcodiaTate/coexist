@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { X, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -62,7 +63,7 @@ export function PhotoViewer({
   const photo = photos[index]
   if (!photo) return null
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -74,6 +75,10 @@ export function PhotoViewer({
             'fixed inset-0 z-50 flex flex-col bg-black/95',
             className,
           )}
+          style={{
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          }}
           role="dialog"
           aria-modal="true"
           aria-label="Photo viewer"
@@ -165,6 +170,7 @@ export function PhotoViewer({
           )}
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

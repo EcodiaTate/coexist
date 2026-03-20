@@ -2,8 +2,8 @@ import { Routes, Route } from 'react-router-dom'
 import { lazy, Suspense, useState, useCallback } from 'react'
 import { RequireAuth, RequireRole } from '@/components/route-guard'
 import { AppShell } from '@/components/app-shell'
+import { AdminLayout as AdminLayoutRoute } from '@/components/admin-layout'
 import { PageTransition } from '@/components/page-transition'
-import { SkipNav } from '@/components/skip-nav'
 import { MaintenanceMode } from '@/components/maintenance-mode'
 import { useAppUpdate } from '@/hooks/use-app-update'
 import { useDeepLink } from '@/hooks/use-deep-link'
@@ -82,6 +82,9 @@ const NotificationsPage = lazy(() => import('@/pages/notifications/index'))
 const AnnouncementsPage = lazy(() => import('@/pages/announcements/index'))
 const CreateAnnouncementPage = lazy(() => import('@/pages/announcements/create'))
 
+// Membership
+const MembershipPage = lazy(() => import('@/pages/membership/index'))
+
 // Donations
 const DonatePage = lazy(() => import('@/pages/donate/index'))
 const DonateThankYouPage = lazy(() => import('@/pages/donate/thank-you'))
@@ -95,6 +98,9 @@ const CheckoutPage = lazy(() => import('@/pages/shop/checkout'))
 const OrderConfirmationPage = lazy(() => import('@/pages/shop/order-confirmation'))
 const OrdersPage = lazy(() => import('@/pages/shop/orders'))
 const OrderDetailPage = lazy(() => import('@/pages/shop/order-detail'))
+
+// Admin - Membership
+const AdminMembershipPage = lazy(() => import('@/pages/admin/membership'))
 
 // Admin - Merch
 const AdminMerchPage = lazy(() => import('@/pages/admin/merch/index'))
@@ -177,7 +183,6 @@ function App() {
     <>
     {showSplash && <SplashPage onReady={handleSplashReady} />}
     <Suspense fallback={<PageFallback />}>
-      <SkipNav />
       <Routes>
         {/* ---- Bare routes (no app shell) ---- */}
         <Route
@@ -609,6 +614,20 @@ function App() {
           }
         />
 
+        {/* ---- Membership ---- */}
+        <Route
+          path="/membership"
+          element={
+            <RequireAuth>
+              <AppShell>
+                <PageTransition>
+                  <MembershipPage />
+                </PageTransition>
+              </AppShell>
+            </RequireAuth>
+          }
+        />
+
         {/* ---- Donate routes ---- */}
         <Route
           path="/donate"
@@ -776,244 +795,38 @@ function App() {
         />
 
         {/* ---- Admin routes (staff+) ---- */}
+        {/* Shared layout: AppShell + AdminLayout stay mounted across pages */}
         <Route
           path="/admin"
           element={
             <RequireAuth>
               <RequireRole minRole="national_staff">
                 <AppShell>
-                  <PageTransition>
-                    <AdminDashboardPage />
-                  </PageTransition>
+                  <AdminLayoutRoute />
                 </AppShell>
               </RequireRole>
             </RequireAuth>
           }
-        />
-        <Route
-          path="/admin/collectives"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminCollectivesPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminUsersPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/events"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminEventsPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/partners"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminPartnersPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/challenges"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminChallengesPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/surveys"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminSurveysPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/reports"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <ReportsPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/national-impact"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <NationalImpactPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/moderation"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <ModerationQueuePage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/email"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminEmailPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/charity"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminCharityPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/exports"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminExportsPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/audit-log"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminAuditLogPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/system"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminSystemPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/merch"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
-                  <PageTransition>
-                    <AdminMerchPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/admin/super"
-          element={
-            <RequireAuth>
-              <RequireRole minRole="super_admin">
-                <AppShell>
-                  <PageTransition>
-                    <SuperAdminPage />
-                  </PageTransition>
-                </AppShell>
-              </RequireRole>
-            </RequireAuth>
-          }
-        />
+        >
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="collectives" element={<AdminCollectivesPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="events" element={<AdminEventsPage />} />
+          <Route path="partners" element={<AdminPartnersPage />} />
+          <Route path="challenges" element={<AdminChallengesPage />} />
+          <Route path="surveys" element={<AdminSurveysPage />} />
+          <Route path="reports" element={<ReportsPage />} />
+          <Route path="national-impact" element={<NationalImpactPage />} />
+          <Route path="moderation" element={<ModerationQueuePage />} />
+          <Route path="email" element={<AdminEmailPage />} />
+          <Route path="charity" element={<AdminCharityPage />} />
+          <Route path="exports" element={<AdminExportsPage />} />
+          <Route path="audit-log" element={<AdminAuditLogPage />} />
+          <Route path="system" element={<AdminSystemPage />} />
+          <Route path="membership" element={<AdminMembershipPage />} />
+          <Route path="merch" element={<AdminMerchPage />} />
+          <Route path="super" element={<RequireRole minRole="super_admin"><SuperAdminPage /></RequireRole>} />
+        </Route>
 
         {/* ---- Legal pages (no auth required) ---- */}
         <Route

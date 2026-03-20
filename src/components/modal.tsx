@@ -1,13 +1,13 @@
-import { useEffect, useRef, useCallback, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useCallback, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 const sizeClasses = {
-  sm: 'sm:max-w-sm',
-  md: 'sm:max-w-md',
-  lg: 'sm:max-w-lg',
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
 } as const
 
 type ModalSize = keyof typeof sizeClasses
@@ -21,23 +21,6 @@ interface ModalProps {
   className?: string
 }
 
-function useIsDesktop() {
-  const [desktop, setDesktop] = useState(
-    () =>
-      typeof window !== 'undefined' &&
-      window.matchMedia('(min-width: 640px)').matches,
-  )
-
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 640px)')
-    const handler = (e: MediaQueryListEvent) => setDesktop(e.matches)
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
-
-  return desktop
-}
-
 export function Modal({
   open,
   onClose,
@@ -48,7 +31,6 @@ export function Modal({
 }: ModalProps) {
   const contentRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
-  const isDesktop = useIsDesktop()
   const shouldReduceMotion = useReducedMotion()
 
   const handleKeyDown = useCallback(
@@ -114,7 +96,7 @@ export function Modal({
     exit: { opacity: 0, transition: shouldReduceMotion ? instant : { duration: 0.15, ease: 'easeIn' } },
   }
 
-  const desktopVariants = {
+  const contentVariants = {
     hidden: { opacity: 0, scale: 0.92, y: 8 },
     visible: {
       opacity: 1,
@@ -131,23 +113,6 @@ export function Modal({
       transition: shouldReduceMotion ? instant : { duration: 0.15, ease: [0.4, 0, 1, 1] },
     },
   }
-
-  const mobileVariants = {
-    hidden: { y: '100%', borderRadius: '16px 16px 0 0' },
-    visible: {
-      y: 0,
-      borderRadius: '16px 16px 0 0',
-      transition: shouldReduceMotion
-        ? instant
-        : { type: 'spring', stiffness: 400, damping: 34, mass: 0.8 },
-    },
-    exit: {
-      y: '100%',
-      transition: shouldReduceMotion ? instant : { duration: 0.2, ease: [0.4, 0, 1, 1] },
-    },
-  }
-
-  const contentVariants = isDesktop ? desktopVariants : mobileVariants
 
   /* ---- Header content stagger ---- */
 
@@ -178,7 +143,8 @@ export function Modal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)', paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 1rem)' }}
           initial="hidden"
           animate="visible"
           exit="exit"
@@ -197,8 +163,8 @@ export function Modal({
             aria-label={title}
             className={cn(
               'relative z-10 w-full bg-white shadow-lg',
-              'rounded-t-2xl sm:rounded-2xl',
-              'max-h-[85vh] overflow-y-auto overscroll-contain',
+              'rounded-2xl',
+              'max-h-[min(85vh,calc(100dvh-3rem))] overflow-y-auto overscroll-contain',
               sizeClasses[size],
               className,
             )}

@@ -62,7 +62,7 @@ export default function PublicSharePage() {
 
   const pageUrl = `${window.location.origin}/share/${type}/${badge.id}`
   const Icon = isBadge ? Award : TreePine
-  const gradient = isBadge ? 'from-amber-500 to-amber-700' : 'from-emerald-600 to-emerald-800'
+  const gradient = isBadge ? 'from-warning-500 to-warning-700' : 'from-secondary-600 to-secondary-800'
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">

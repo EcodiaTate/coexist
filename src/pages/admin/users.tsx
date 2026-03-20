@@ -9,7 +9,7 @@ import {
   UserCog,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { SearchBar } from '@/components/search-bar'
@@ -33,23 +33,11 @@ function useAdminUsers(search: string, roleFilter: string) {
   return useQuery({
     queryKey: ['admin-users', search, roleFilter],
     queryFn: async () => {
-      let query = supabase
-        .from('profiles')
-        .select('id, display_name, email, avatar_url, role, is_suspended, created_at' as any)
-        .order('created_at', { ascending: false })
-        .limit(50)
-
-      if (search) {
-        // Escape special PostgREST/SQL characters to prevent filter injection
-        const escaped = search.replace(/[%_\\,().]/g, '\\$&')
-        query = query.or(`display_name.ilike.%${escaped}%,email.ilike.%${escaped}%`)
-      }
-
-      if (roleFilter && roleFilter !== 'all') {
-        query = query.eq('role', roleFilter as any)
-      }
-
-      const { data, error } = await query
+      const { data, error } = await supabase.rpc('admin_list_users' as any, {
+        search_term: search,
+        role_filter: roleFilter || 'all',
+        result_limit: 50,
+      })
       if (error) throw error
       return (data ?? []) as any[]
     },
@@ -67,9 +55,9 @@ const roleOptions = [
 
 const roleBadgeColors: Record<string, string> = {
   participant: 'bg-white text-primary-400',
-  national_staff: 'bg-blue-100 text-blue-700',
-  national_admin: 'bg-purple-100 text-purple-700',
-  super_admin: 'bg-red-100 text-red-700',
+  national_staff: 'bg-info-100 text-info-700',
+  national_admin: 'bg-plum-100 text-plum-700',
+  super_admin: 'bg-error-100 text-error-700',
 }
 
 /* ------------------------------------------------------------------ */
@@ -92,6 +80,8 @@ export default function AdminUsersPage() {
   const { toast } = useToast()
 
   const { data: users, isLoading } = useAdminUsers(search, roleFilter)
+
+  useAdminHeader('User Management')
 
   const changeRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
@@ -183,7 +173,7 @@ export default function AdminUsersPage() {
   }, [])
 
   return (
-    <AdminLayout title="User Management">
+    <>
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="flex-1">
@@ -198,7 +188,7 @@ export default function AdminUsersPage() {
           options={roleOptions}
           value={roleFilter}
           onChange={setRoleFilter}
-          label="Role"
+          placeholder="All Roles"
           className="w-48"
         />
       </div>
@@ -252,7 +242,7 @@ export default function AdminUsersPage() {
                 'flex items-center gap-3 p-3 rounded-xl',
                 'bg-white border border-primary-100',
                 'hover:bg-primary-50 transition-colors duration-150',
-                user.is_suspended && 'opacity-60 bg-red-50/50',
+                user.is_suspended && 'opacity-60 bg-error-50/50',
                 selectedUsers.has(user.id) && 'ring-2 ring-primary-400',
               )}
             >
@@ -289,7 +279,7 @@ export default function AdminUsersPage() {
                       {user.role?.replace('_', ' ')}
                     </span>
                     {user.is_suspended && (
-                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 shrink-0">
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-error-100 text-error-700 shrink-0">
                         Suspended
                       </span>
                     )}
@@ -318,7 +308,7 @@ export default function AdminUsersPage() {
                   <button
                     type="button"
                     onClick={() => unsuspendMutation.mutate(user.id)}
-                    className="p-1.5 rounded-lg text-green-500 hover:bg-green-50 cursor-pointer"
+                    className="p-1.5 rounded-lg text-success-500 hover:bg-success-50 cursor-pointer"
                     title="Unsuspend"
                     aria-label={`Unsuspend ${user.display_name}`}
                   >
@@ -331,7 +321,7 @@ export default function AdminUsersPage() {
                       setSelectedUser(user)
                       setShowSuspendModal(true)
                     }}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-amber-50 hover:text-amber-600 cursor-pointer"
+                    className="p-1.5 rounded-lg text-primary-400 hover:bg-warning-50 hover:text-warning-600 cursor-pointer"
                     title="Suspend"
                     aria-label={`Suspend ${user.display_name}`}
                   >
@@ -356,7 +346,7 @@ export default function AdminUsersPage() {
                       setSelectedUser(user)
                       setShowDeleteConfirm(true)
                     }}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-red-50 hover:text-red-600 cursor-pointer"
+                    className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                     title="Delete user"
                     aria-label={`Delete ${user.display_name}`}
                   >
@@ -446,6 +436,6 @@ export default function AdminUsersPage() {
         confirmLabel="Delete Permanently"
         variant="danger"
       />
-    </AdminLayout>
+    </>
   )
 }

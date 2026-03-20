@@ -137,7 +137,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={() => removeItem(item.variant.id)}
-                    className="flex items-center justify-center min-w-11 min-h-11 rounded-full text-primary-400 hover:text-error hover:bg-red-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+                    className="flex items-center justify-center min-w-11 min-h-11 rounded-full text-primary-400 hover:text-error hover:bg-error-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
                     aria-label={`Remove ${item.product.name}`}
                   >
                     <Trash2 size={16} />

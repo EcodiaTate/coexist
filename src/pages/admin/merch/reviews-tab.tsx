@@ -62,7 +62,7 @@ export default function ReviewsTab() {
                   key={i}
                   size={12}
                   className={cn(
-                    i < review.rating ? 'text-amber-400 fill-amber-400' : 'text-primary-300',
+                    i < review.rating ? 'text-warning-400 fill-warning-400' : 'text-primary-300',
                   )}
                 />
               ))}
@@ -75,9 +75,9 @@ export default function ReviewsTab() {
             <span
               className={cn(
                 'px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize',
-                review.status === 'approved' && 'bg-green-100 text-green-800',
-                review.status === 'pending' && 'bg-amber-100 text-amber-800',
-                review.status === 'removed' && 'bg-red-100 text-red-700',
+                review.status === 'approved' && 'bg-success-100 text-success-800',
+                review.status === 'pending' && 'bg-warning-100 text-warning-800',
+                review.status === 'removed' && 'bg-error-100 text-error-700',
               )}
             >
               {review.status}

@@ -166,7 +166,7 @@ function MessageActionsSheet({
                 onClose()
                 onDelete()
               }}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-red-600 hover:bg-red-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-error-600 hover:bg-error-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
             >
               <Trash2 size={18} />
               Delete message
@@ -262,7 +262,7 @@ function ChatSearchOverlay({
   const [query, setQuery] = useState('')
 
   return (
-    <div className="absolute inset-0 z-50 bg-white flex flex-col">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="flex items-center gap-2 border-b border-primary-100 px-3 py-2">
         <SearchBar
           value={query}
@@ -667,7 +667,7 @@ export default function CollectiveChatPage() {
                             msg.reply_message
                               ? {
                                   message: msg.reply_message.content ?? '',
-                                  senderName: msg.reply_message.profiles?.display_name ?? 'Unknown',
+                                  senderName: allMessages.find((m) => m.id === msg.reply_message!.id)?.profiles?.display_name ?? 'Someone',
                                 }
                               : undefined
                           }
@@ -747,11 +747,11 @@ export default function CollectiveChatPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-primary-100 bg-amber-50 px-4 py-2"
+            className="border-t border-primary-100 bg-warning-50 px-4 py-2"
           >
             <div className="flex items-center gap-2">
-              <Pencil size={14} className="text-amber-600 shrink-0" />
-              <p className="text-xs font-semibold text-amber-700 flex-1">
+              <Pencil size={14} className="text-warning-600 shrink-0" />
+              <p className="text-xs font-semibold text-warning-700 flex-1">
                 Editing message
               </p>
               <button

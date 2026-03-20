@@ -229,7 +229,7 @@ export function useAdminReturns() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('return_requests' as any)
-        .select('*, order:merch_orders(id, status, total), profiles(display_name, avatar_url)')
+        .select('*, order:merch_orders(id, status, total_cents), profiles(display_name, avatar_url)')
         .order('created_at', { ascending: false })
       if (error) throw error
       return data as unknown as ReturnRequest[]
@@ -320,6 +320,73 @@ export function useModerateReview() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Shipping config (admin)                                            */
+/* ------------------------------------------------------------------ */
+
+export function useUpdateShippingConfig() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (config: { flat_rate_cents: number; free_shipping_threshold_cents: number | null }) => {
+      const entries = [
+        { key: 'flat_rate_cents', value: String(config.flat_rate_cents) },
+        { key: 'free_shipping_threshold_cents', value: config.free_shipping_threshold_cents != null ? String(config.free_shipping_threshold_cents) : '' },
+      ]
+      for (const entry of entries) {
+        const { error } = await supabase
+          .from('shipping_config' as any)
+          .upsert(entry, { onConflict: 'key' })
+        if (error) throw error
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['shipping-config'] }),
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Sales analytics                                                    */
+/* ------------------------------------------------------------------ */
+
+export function useSalesAnalytics(period: 'week' | 'month' | 'year') {
+  return useQuery({
+    queryKey: ['admin-sales-analytics', period],
+    queryFn: async () => {
+      const now = new Date()
+      let rangeStart: Date
+      switch (period) {
+        case 'week':
+          rangeStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+          break
+        case 'month':
+          rangeStart = new Date(now.getFullYear(), now.getMonth(), 1)
+          break
+        case 'year':
+          rangeStart = new Date(now.getFullYear(), 0, 1)
+          break
+      }
+
+      const { data, error } = await supabase
+        .from('merch_orders')
+        .select('total_cents, items, created_at')
+        .gte('created_at', rangeStart.toISOString())
+        .in('status', ['completed', 'shipped', 'processing'])
+
+      if (error) throw error
+
+      const orders = (data ?? []) as any[]
+      const total_revenue_cents = orders.reduce((sum, o) => sum + (o.total_cents ?? 0), 0)
+      const total_orders = orders.length
+      const total_units_sold = orders.reduce((sum, o) => {
+        if (!Array.isArray(o.items)) return sum
+        return sum + o.items.reduce((s: number, i: any) => s + (i.quantity ?? 1), 0)
+      }, 0)
+
+      return { total_revenue_cents, total_orders, total_units_sold }
+    },
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+/* ------------------------------------------------------------------ */
 /*  Export orders CSV                                                   */
 /* ------------------------------------------------------------------ */
 
@@ -342,10 +409,10 @@ export async function exportOrdersCsv(statusFilter?: OrderStatus) {
     items: Array.isArray(o.items)
       ? o.items.map((i: any) => `${i.product_name ?? i.product_id} x${i.quantity}`).join('; ')
       : '',
-    total: Number(o.total).toFixed(2),
+    total: ((o.total_cents ?? 0) / 100).toFixed(2),
     tracking: o.tracking_number ?? '',
     address: o.shipping_address
-      ? `${o.shipping_address.line1 ?? ''}, ${o.shipping_address.city ?? ''} ${o.shipping_address.state ?? ''} ${o.shipping_address.postcode ?? ''}`
+      ? `${o.shipping_address}, ${o.shipping_city ?? ''} ${o.shipping_state ?? ''} ${o.shipping_postcode ?? ''}`
       : '',
   }))
 

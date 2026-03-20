@@ -16,12 +16,12 @@ const fadeUp: Variants = {
 }
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
-  pending: { label: 'Pending', color: 'bg-amber-100 text-amber-800' },
-  processing: { label: 'Processing', color: 'bg-blue-100 text-blue-800' },
-  shipped: { label: 'Shipped', color: 'bg-violet-100 text-violet-800' },
-  delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800' },
+  pending: { label: 'Pending', color: 'bg-warning-100 text-warning-800' },
+  processing: { label: 'Processing', color: 'bg-info-100 text-info-800' },
+  shipped: { label: 'Shipped', color: 'bg-plum-100 text-plum-800' },
+  delivered: { label: 'Delivered', color: 'bg-success-100 text-success-800' },
   cancelled: { label: 'Cancelled', color: 'bg-white text-primary-400' },
-  refunded: { label: 'Refunded', color: 'bg-red-100 text-red-700' },
+  refunded: { label: 'Refunded', color: 'bg-error-100 text-error-700' },
 }
 
 function formatDate(dateStr: string): string {

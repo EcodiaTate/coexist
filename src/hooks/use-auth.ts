@@ -269,137 +269,78 @@ export function useAuthProvider(): AuthContextValue {
   /* ---- init: restore session + subscribe ---- */
   useEffect(() => {
     let mounted = true
-    // Track whether init() has resolved so the onAuthStateChange handler
-    // knows whether to treat INITIAL_SESSION as redundant.
-    let initDone = false
-    // When getSession times out, an onAuthStateChange SIGNED_IN event
-    // may already be in-flight. Don't set isLoading=false in init's
-    // finally block — let the auth handler do it after loadUserData.
-    let deferLoadingToAuthHandler = false
 
-    async function init() {
-      console.log('[auth] init start')
-      try {
-        // Try to restore native session first
-        const restored = await restoreSession()
-        if (restored) {
-          const { data } = await supabase.auth.setSession(restored)
-          if (data.session && mounted) {
-            setUser(data.session.user)
-            setSession(data.session)
-            // Seed with cached profile so route guard doesn't flash onboarding
-            const cachedProfile = await restoreProfile()
-            if (cachedProfile && mounted) {
-              setProfile(cachedProfile)
-            }
-            // Then fetch fresh profile from server (updates cache)
-            await loadUserData(data.session.user.id)
-          }
-        } else {
-          // Web: Supabase handles cookies/localStorage automatically.
-          // Immediately seed cached profile so the route guard doesn't
-          // flash onboarding while we wait for getSession().
-          const cachedProfile = await restoreProfile()
-          if (cachedProfile && mounted) {
-            setProfile(cachedProfile)
-          }
-
-          // getSession() can be slow if it needs to refresh tokens, so we
-          // use a timeout - but only to unblock the UI, NOT to nuke the session.
-          let resolved = false
-          const sessionPromise = supabase.auth.getSession().then((result) => {
-            resolved = true
-            return result
-          })
-
-          const sessionResult = await Promise.race([
-            sessionPromise,
-            new Promise<null>((resolve) =>
-              setTimeout(() => resolve(null), 3000)
-            ),
-          ])
-
-          if (sessionResult && sessionResult.data.session && mounted) {
-            // getSession returned in time
-            setUser(sessionResult.data.session.user)
-            setSession(sessionResult.data.session)
-            await loadUserData(sessionResult.data.session.user.id)
-          } else if (!resolved && mounted) {
-            // Timed out - let the onAuthStateChange handler pick it up
-            // when getSession eventually resolves. Do NOT sign out or
-            // clear tokens - the session may still be valid.
-            // Keep isLoading=true so the route guard shows the loading
-            // screen instead of flashing login/onboarding.
-            console.warn('[auth] getSession timed out, waiting for auth event')
-            deferLoadingToAuthHandler = true
-            // Safety: if auth handler never fires (user genuinely not signed
-            // in, or getSession hangs), unblock after 10s total.
-            setTimeout(() => {
-              if (mounted) setIsLoading(false)
-            }, 7000) // 3s already elapsed from getSession timeout
-          }
-          // If sessionResult was returned but session is null, the user
-          // genuinely has no session - no need to sign out or clear anything,
-          // just let them land on the login page naturally.
-        }
-      } catch (err) {
-        console.error('[auth] init failed:', err)
-        // Don't nuke the session on init errors - the tokens in localStorage
-        // may still be valid and the onAuthStateChange handler can recover.
-      } finally {
-        initDone = true
-        if (deferLoadingToAuthHandler) {
-          console.log('[auth] init done, deferring isLoading to auth handler')
-        } else {
-          console.log('[auth] init done, setting isLoading=false')
-          if (mounted) setIsLoading(false)
-        }
+    // Immediately seed cached profile so the route guard never flashes
+    // onboarding while we wait for Supabase auth to resolve.
+    restoreProfile().then((cached) => {
+      if (cached && mounted) {
+        console.log('[auth] restored cached profile')
+        setProfile(cached)
       }
+    })
+
+    // For native: restore the persisted session and set it on the client.
+    // This triggers onAuthStateChange SIGNED_IN which handles everything.
+    if (Capacitor.isNativePlatform()) {
+      restoreSession().then(async (restored) => {
+        if (restored) {
+          await supabase.auth.setSession(restored)
+        }
+        // If no restored session, onAuthStateChange INITIAL_SESSION
+        // will fire with null — handled below.
+      })
     }
 
-    // Subscribe BEFORE init so we don't miss events, but skip
-    // the INITIAL_SESSION event since init() handles it.
+    // Let onAuthStateChange be the single source of truth for auth state.
+    // This avoids the getSession() timeout / lock deadlock issues.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (event, newSession) => {
         console.log('[auth] onAuthStateChange:', event, !!newSession)
         if (!mounted) return
-        // INITIAL_SESSION is handled by init() - skip to avoid double work
-        // and to avoid hanging on the same stale getSession() call.
-        if (event === 'INITIAL_SESSION') return
 
         setSession(newSession)
         setUser(newSession?.user ?? null)
         persistSession(newSession)
 
         if (newSession?.user) {
-          // Defer loadUserData to next microtask — calling it synchronously
-          // inside onAuthStateChange can deadlock because the Supabase JS
-          // client holds an internal auth lock during _recoverAndRefresh,
-          // and any fetch that needs the token will wait on the same lock.
           const userId = newSession.user.id
+          // Defer loadUserData — calling it inside onAuthStateChange can
+          // deadlock because the Supabase JS client holds an internal auth
+          // lock during token recovery, blocking any fetch that needs auth.
           setTimeout(async () => {
             if (!mounted) return
             try {
+              console.log('[auth] loadUserData start (deferred)', userId)
               await loadUserData(userId)
-            } catch (profileErr) {
-              console.error('[auth] loadUserData failed (session still valid):', profileErr)
+            } catch (err) {
+              console.error('[auth] loadUserData failed:', err)
             } finally {
-              if (mounted) setIsLoading(false)
+              if (mounted) {
+                console.log('[auth] setting isLoading=false')
+                setIsLoading(false)
+              }
             }
           }, 0)
         } else {
           setProfile(null)
           setCollectiveRoles([])
           persistProfile(null)
-          if (mounted && initDone) setIsLoading(false)
+          setIsLoading(false)
         }
       },
     )
 
-    init()
+    // Safety: if nothing fires within 10s, unblock the UI.
+    const safety = setTimeout(() => {
+      if (mounted) {
+        console.warn('[auth] safety timeout - forcing isLoading=false')
+        setIsLoading(false)
+      }
+    }, 10000)
 
     return () => {
       mounted = false
+      clearTimeout(safety)
       subscription.unsubscribe()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

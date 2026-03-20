@@ -37,11 +37,11 @@ const sizeMap: Record<AvatarSize, { px: number; text: string; dot: string; ring:
 /* ------------------------------------------------------------------ */
 
 const tierRingColor: Record<Tier, string> = {
-  seedling: 'ring-green-400',
-  sapling: 'ring-emerald-400',
-  native: 'ring-teal-500',
+  seedling: 'ring-success-400',
+  sapling: 'ring-primary-400',
+  native: 'ring-moss-500',
   canopy: 'ring-primary-500',
-  elder: 'ring-amber-500',
+  elder: 'ring-warning-500',
 }
 
 /* ------------------------------------------------------------------ */

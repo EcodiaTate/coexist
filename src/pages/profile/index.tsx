@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Settings,
   Share2,
@@ -40,7 +39,6 @@ import { useProfile, useProfileCollectives, useProfileStats } from '@/hooks/use-
 import { useBadgesWithStatus } from '@/hooks/use-badges'
 import { usePointsBalance, getTierProgress, getTierFromPoints } from '@/hooks/use-points'
 import type { TierName } from '@/hooks/use-points'
-import MembershipCard from './membership-card'
 
 const tierLabels: Record<TierName, string> = {
   seedling: 'Seedling',
@@ -78,7 +76,7 @@ export default function ProfilePage() {
   const { data: stats, isLoading: statsLoading } = useProfileStats()
   const { data: badges } = useBadgesWithStatus()
   const { data: pointsData } = usePointsBalance()
-  const [showCard, setShowCard] = useState(false)
+
 
   const isLoading = profileLoading || collectivesLoading || statsLoading
 
@@ -229,7 +227,7 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
-        {/* Membership Card */}
+        {/* Membership link */}
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -237,36 +235,15 @@ export default function ProfilePage() {
           className="mt-4"
         >
           <button
-            onClick={() => setShowCard(!showCard)}
-            className="w-full flex items-center justify-between rounded-xl bg-gradient-to-r from-white to-white px-4 py-3 border border-primary-100 transition-colors hover:from-primary-100"
+            onClick={() => navigate('/membership')}
+            className="w-full flex items-center justify-between rounded-xl bg-gradient-to-r from-primary-50 to-white px-4 py-3 border border-primary-200 transition-colors hover:from-primary-100"
           >
-            <span className="flex items-center gap-2 text-sm font-semibold text-primary-400">
+            <span className="flex items-center gap-2 text-sm font-semibold text-primary-700">
               <CreditCard size={18} />
-              Digital Membership Card
+              Membership & Perks
             </span>
-            <ChevronRight size={18} className={cn('text-primary-400 transition-transform', showCard && 'rotate-90')} />
+            <ChevronRight size={18} className="text-primary-400" />
           </button>
-          <AnimatePresence>
-            {showCard && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="overflow-hidden"
-              >
-                <div className="pt-3">
-                  <MembershipCard
-                    name={profile.display_name ?? ''}
-                    memberId={profile.id.substring(0, 8).toUpperCase()}
-                    userId={profile.id}
-                    tier={tier}
-                    memberSince={memberSince}
-                    avatarUrl={profile.avatar_url}
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </motion.div>
 
         {/* Tier Progression */}
@@ -469,6 +446,7 @@ export default function ProfilePage() {
             { label: 'Leaderboard', icon: <Trophy size={18} />, to: '/leaderboard' },
             { label: 'Chat', icon: <MessageCircle size={18} />, to: '/chat' },
             { label: 'Shop', icon: <ShoppingBag size={18} />, to: '/shop' },
+            { label: 'Membership', icon: <CreditCard size={18} />, to: '/membership' },
             { label: 'Donate', icon: <Heart size={18} />, to: '/donate' },
             { label: 'Invite Friends', icon: <Share2 size={18} />, to: '/referral' },
           ].map(({ label, icon, to }) => (

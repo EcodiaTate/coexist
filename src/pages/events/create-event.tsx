@@ -368,9 +368,9 @@ function StepDetails({
           value={data.difficulty}
           onChange={(v) => onChange({ difficulty: v as 'easy' | 'moderate' | 'challenging' })}
           options={[
-            { value: 'easy', label: 'Easy - suitable for everyone', icon: <Mountain size={16} className="text-green-600" /> },
-            { value: 'moderate', label: 'Moderate - some fitness required', icon: <Mountain size={16} className="text-amber-600" /> },
-            { value: 'challenging', label: 'Challenging - good fitness needed', icon: <Mountain size={16} className="text-red-600" /> },
+            { value: 'easy', label: 'Easy - suitable for everyone', icon: <Mountain size={16} className="text-success-600" /> },
+            { value: 'moderate', label: 'Moderate - some fitness required', icon: <Mountain size={16} className="text-warning-600" /> },
+            { value: 'challenging', label: 'Challenging - good fitness needed', icon: <Mountain size={16} className="text-error-600" /> },
           ]}
         />
       </div>

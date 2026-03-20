@@ -11,10 +11,10 @@ import { formatPrice, type ReturnStatus } from '@/types/merch'
 import { cn } from '@/lib/cn'
 
 const STATUS_COLORS: Record<ReturnStatus, string> = {
-  requested: 'bg-amber-100 text-amber-800',
-  approved: 'bg-green-100 text-green-800',
-  denied: 'bg-red-100 text-red-700',
-  refunded: 'bg-violet-100 text-violet-800',
+  requested: 'bg-warning-100 text-warning-800',
+  approved: 'bg-success-100 text-success-800',
+  denied: 'bg-error-100 text-error-700',
+  refunded: 'bg-plum-100 text-plum-800',
 }
 
 export default function ReturnsTab() {

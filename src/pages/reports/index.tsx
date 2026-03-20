@@ -13,6 +13,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
+import { useAdminHeader, useIsAdminLayout } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -109,6 +110,8 @@ function useReportHistory() {
 /* ------------------------------------------------------------------ */
 
 export default function ReportsPage() {
+  const isAdmin = useIsAdminLayout()
+  useAdminHeader('Reports')
   const [activeTab, setActiveTab] = useState('builder')
   const [reportType, setReportType] = useState<ReportType>('collective')
   const [datePreset, setDatePreset] = useState('this-month')
@@ -163,8 +166,7 @@ export default function ReportsPage() {
     }
   }
 
-  return (
-    <Page header={<Header title="Impact Reports" back />}>
+  const content = (
       <div className="py-4 space-y-4 pb-8">
         <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
@@ -364,6 +366,13 @@ export default function ReportsPage() {
           </>
         )}
       </div>
+  )
+
+  if (isAdmin) return content
+
+  return (
+    <Page header={<Header title="Impact Reports" back />}>
+      {content}
     </Page>
   )
 }

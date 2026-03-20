@@ -12,7 +12,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Modal } from '@/components/modal'
@@ -94,15 +94,15 @@ function UsageGauge({
   return (
     <div className={cn(
       'p-4 rounded-xl border',
-      isNearLimit ? 'bg-red-50 border-red-200' : 'bg-white border-primary-100',
+      isNearLimit ? 'bg-error-50 border-error-200' : 'bg-white border-primary-100',
     )}>
       <div className="flex items-center gap-2 mb-2">
-        <span className={cn('text-primary-400', isNearLimit && 'text-red-500')}>
+        <span className={cn('text-primary-400', isNearLimit && 'text-error-500')}>
           {icon}
         </span>
         <span className="text-sm font-medium text-primary-800">{label}</span>
         {isNearLimit && (
-          <AlertTriangle size={14} className="text-red-500 ml-auto" />
+          <AlertTriangle size={14} className="text-error-500 ml-auto" />
         )}
       </div>
       <div className="flex items-end gap-1">
@@ -117,7 +117,7 @@ function UsageGauge({
         <div
           className={cn(
             'h-full rounded-full transition-all duration-500',
-            isNearLimit ? 'bg-red-500' : 'bg-primary-500',
+            isNearLimit ? 'bg-error-500' : 'bg-primary-500',
           )}
           style={{ width: `${percent}%` }}
         />
@@ -139,6 +139,8 @@ export default function AdminSystemPage() {
   const { toast } = useToast()
   const { data: stats, isLoading: statsLoading } = useSystemStats()
   const { data: flags, isLoading: flagsLoading } = useFeatureFlags()
+
+  useAdminHeader('System')
 
   const toggleFlagMutation = useMutation({
     mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
@@ -187,7 +189,7 @@ export default function AdminSystemPage() {
   })
 
   return (
-    <AdminLayout title="System">
+    <>
       <div className="space-y-6">
         {/* Supabase Usage */}
         <section>
@@ -274,7 +276,7 @@ export default function AdminSystemPage() {
                         className={cn(
                           'text-[10px] font-medium px-1.5 py-0.5 rounded-full',
                           flag.enabled
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-success-100 text-success-700'
                             : 'bg-white text-primary-400',
                         )}
                       >
@@ -299,7 +301,7 @@ export default function AdminSystemPage() {
                   <button
                     type="button"
                     onClick={() => deleteFlagMutation.mutate(flag.id)}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-red-50 hover:text-red-600 cursor-pointer"
+                    className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                     aria-label={`Delete ${flag.key}`}
                   >
                     <Trash2 size={14} />
@@ -342,6 +344,6 @@ export default function AdminSystemPage() {
           </Button>
         </div>
       </Modal>
-    </AdminLayout>
+    </>
   )
 }

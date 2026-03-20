@@ -49,12 +49,12 @@ const LeafletDrawMap = lazy(() => import('@/components/leaflet-draw-map'))
 /* ------------------------------------------------------------------ */
 
 const fieldIcons: Record<string, React.ReactNode> = {
-  tree: <TreePine size={18} className="text-green-600" />,
-  trash: <Trash2 size={18} className="text-red-500" />,
-  wave: <Waves size={18} className="text-blue-500" />,
-  leaf: <Leaf size={18} className="text-emerald-500" />,
-  eye: <Eye size={18} className="text-amber-500" />,
-  area: <Ruler size={18} className="text-violet-500" />,
+  tree: <TreePine size={18} className="text-success-600" />,
+  trash: <Trash2 size={18} className="text-error-500" />,
+  wave: <Waves size={18} className="text-info-500" />,
+  leaf: <Leaf size={18} className="text-primary-500" />,
+  eye: <Eye size={18} className="text-warning-500" />,
+  area: <Ruler size={18} className="text-plum-500" />,
 }
 
 /* ------------------------------------------------------------------ */
@@ -100,7 +100,7 @@ function SpeciesTracker({
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-semibold text-primary-800 flex items-center gap-2">
-        <Leaf size={16} className="text-emerald-600" />
+        <Leaf size={16} className="text-primary-600" />
         Species Planted
       </h3>
 
@@ -131,7 +131,7 @@ function SpeciesTracker({
           <button
             type="button"
             onClick={() => removeSpecies(i)}
-            className="min-w-11 min-h-11 flex items-center justify-center text-primary-400 hover:text-red-500 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+            className="min-w-11 min-h-11 flex items-center justify-center text-primary-400 hover:text-error-500 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
             aria-label={`Remove ${s.name}`}
           >
             <X size={14} />
@@ -397,9 +397,9 @@ export default function LogImpactPage() {
             initial={shouldReduceMotion ? undefined : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.1, type: 'spring', stiffness: 200 }}
-            className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4"
+            className="w-16 h-16 rounded-full bg-success-100 flex items-center justify-center mb-4"
           >
-            <CheckCircle2 size={32} className="text-green-600" />
+            <CheckCircle2 size={32} className="text-success-600" />
           </motion.div>
 
           <h2 className="font-heading text-xl font-bold text-primary-800">
@@ -472,7 +472,7 @@ export default function LogImpactPage() {
         </div>
 
         {existingImpact && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-50 text-amber-700 text-sm">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning-50 text-warning-700 text-sm">
             <Clock size={16} />
             Editing existing impact data. You can update within 48 hours.
           </div>

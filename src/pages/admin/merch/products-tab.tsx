@@ -286,8 +286,8 @@ export default function ProductsTab() {
                     <span
                       className={cn(
                         'px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize',
-                        product.status === 'active' && 'bg-green-100 text-green-800',
-                        product.status === 'draft' && 'bg-amber-100 text-amber-800',
+                        product.status === 'active' && 'bg-success-100 text-success-800',
+                        product.status === 'draft' && 'bg-warning-100 text-warning-800',
                         product.status === 'archived' && 'bg-white text-primary-400',
                       )}
                     >
@@ -301,7 +301,7 @@ export default function ProductsTab() {
 
                   {/* Low stock warning */}
                   {product.variants.some((v) => v.stock > 0 && v.stock <= v.low_stock_threshold) && (
-                    <div className="flex items-center gap-1 mt-1 text-amber-600">
+                    <div className="flex items-center gap-1 mt-1 text-warning-600">
                       <AlertTriangle size={12} />
                       <span className="text-xs font-medium">Low stock on some variants</span>
                     </div>
@@ -324,7 +324,7 @@ export default function ProductsTab() {
                         <span
                           className={cn(
                             'tabular-nums font-semibold',
-                            v.stock <= v.low_stock_threshold ? 'text-amber-600' : 'text-primary-400',
+                            v.stock <= v.low_stock_threshold ? 'text-warning-600' : 'text-primary-400',
                           )}
                         >
                           {v.stock} in stock

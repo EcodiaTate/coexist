@@ -61,7 +61,6 @@ export { WebFooter } from './web-footer'
 export { ShareableCard } from './shareable-card'
 export { Page } from './page'
 export { PageTransition } from './page-transition'
-export { SkipNav } from './skip-nav'
 
 // Animation & Delight
 export { Confetti } from './confetti'

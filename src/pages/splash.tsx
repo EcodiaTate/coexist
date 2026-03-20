@@ -46,7 +46,7 @@ export default function SplashPage({ onReady }: SplashProps) {
             <motion.img
               src="/logos/black-wordmark.png"
               alt={APP_NAME}
-              className="w-[70vw] max-w-md sm:w-[50vw] sm:max-w-lg h-auto"
+              className="w-[225px] max-w-[60vw] h-auto"
               initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
@@ -54,7 +54,7 @@ export default function SplashPage({ onReady }: SplashProps) {
 
             {/* Tagline */}
             <motion.p
-              className="text-sm sm:text-base text-primary-600 font-medium tracking-[0.2em] uppercase"
+              className="text-[10px] sm:text-xs text-primary-600 font-medium tracking-[0.2em] uppercase"
               initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}

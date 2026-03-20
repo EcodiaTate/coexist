@@ -172,13 +172,13 @@ export default function PointsPage() {
                           <div
                             className={cn(
                               'w-8 h-8 rounded-full flex items-center justify-center',
-                              entry.amount > 0 ? 'bg-green-50' : 'bg-red-50',
+                              entry.amount > 0 ? 'bg-success-50' : 'bg-error-50',
                             )}
                           >
                             {entry.amount > 0 ? (
-                              <TrendingUp size={14} className="text-green-500" />
+                              <TrendingUp size={14} className="text-success-500" />
                             ) : (
-                              <Star size={14} className="text-red-500" />
+                              <Star size={14} className="text-error-500" />
                             )}
                           </div>
                           <span className="text-sm text-primary-800">
@@ -188,7 +188,7 @@ export default function PointsPage() {
                         <span
                           className={cn(
                             'text-sm font-bold tabular-nums',
-                            entry.amount > 0 ? 'text-green-600' : 'text-red-600',
+                            entry.amount > 0 ? 'text-success-600' : 'text-error-600',
                           )}
                         >
                           {entry.amount > 0 ? '+' : ''}

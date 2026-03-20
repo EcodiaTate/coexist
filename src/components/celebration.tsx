@@ -124,7 +124,8 @@ export function Celebration({
 
           {/* Tap to dismiss */}
           <motion.p
-            className="absolute bottom-12 text-sm text-white/40"
+            className="absolute text-sm text-white/40"
+            style={{ bottom: 'max(env(safe-area-inset-bottom, 0px), 3rem)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: shouldReduceMotion ? 0 : 1.5 }}

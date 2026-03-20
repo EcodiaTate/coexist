@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Trophy,
   Plus,
@@ -7,7 +7,7 @@ import {
   Trash2,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -50,6 +50,22 @@ export default function AdminChallengesPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const { data: challenges, isLoading } = useChallenges()
+
+  const actions = useMemo(
+    () => (
+      <Button
+        variant="primary"
+        size="sm"
+        icon={<Plus size={16} />}
+        onClick={() => setShowCreate(true)}
+      >
+        Create Challenge
+      </Button>
+    ),
+    [setShowCreate],
+  )
+
+  useAdminHeader('Challenges', actions)
 
   const createMutation = useMutation({
     mutationFn: async () => {
@@ -109,19 +125,7 @@ export default function AdminChallengesPage() {
   })
 
   return (
-    <AdminLayout
-      title="Challenges"
-      actions={
-        <Button
-          variant="primary"
-          size="sm"
-          icon={<Plus size={16} />}
-          onClick={() => setShowCreate(true)}
-        >
-          Create Challenge
-        </Button>
-      }
-    >
+    <>
       {isLoading ? (
         <Skeleton variant="list-item" count={4} />
       ) : !challenges?.length ? (
@@ -166,7 +170,7 @@ export default function AdminChallengesPage() {
                           className={cn(
                             'text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
                             isActive
-                              ? 'bg-green-100 text-green-700'
+                              ? 'bg-success-100 text-success-700'
                               : 'bg-white text-primary-400',
                           )}
                         >
@@ -211,7 +215,7 @@ export default function AdminChallengesPage() {
                     <button
                       type="button"
                       onClick={() => setDeleteTarget(challenge.id)}
-                      className="p-1.5 rounded-lg text-primary-400 hover:bg-red-50 hover:text-red-600 cursor-pointer"
+                      className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                       aria-label="Delete challenge"
                     >
                       <Trash2 size={16} />
@@ -307,6 +311,6 @@ export default function AdminChallengesPage() {
         confirmLabel="Delete"
         variant="danger"
       />
-    </AdminLayout>
+    </>
   )
 }

@@ -34,9 +34,9 @@ const METRIC_TABS = [
 ]
 
 const MEDAL_ICONS = [
-  <Crown size={18} className="text-amber-500" />,
+  <Crown size={18} className="text-warning-500" />,
   <Medal size={18} className="text-primary-400" />,
-  <Medal size={18} className="text-amber-700" />,
+  <Medal size={18} className="text-warning-700" />,
 ]
 
 function LeaderboardSkeleton() {
@@ -170,10 +170,10 @@ export default function LeaderboardPage() {
                         className={cn(
                           'w-16 rounded-t-lg',
                           isFirst
-                            ? 'h-16 bg-amber-100'
+                            ? 'h-16 bg-warning-100'
                             : entry.rank === 2
                               ? 'h-12 bg-white'
-                              : 'h-10 bg-amber-50',
+                              : 'h-10 bg-warning-50',
                         )}
                       />
                     </button>

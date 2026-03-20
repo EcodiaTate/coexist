@@ -7,7 +7,7 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { StatCard } from '@/components/stat-card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -85,13 +85,14 @@ function useEmailComplaints() {
 }
 
 export default function AdminEmailPage() {
+  useAdminHeader('Email & Delivery')
   const [activeTab, setActiveTab] = useState('overview')
   const { data: stats, isLoading: statsLoading } = useEmailStats()
   const { data: bounces, isLoading: bouncesLoading } = useEmailBounces()
   const { data: complaints, isLoading: complaintsLoading } = useEmailComplaints()
 
   return (
-    <AdminLayout title="Email & Delivery">
+    <>
       <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
 
       {/* Overview */}
@@ -109,13 +110,13 @@ export default function AdminEmailPage() {
                 value={stats?.bounces ?? 0}
                 label="Total Bounces"
                 icon={<XCircle size={20} />}
-                className="from-red-50 to-red-100/50 border-red-100"
+                className="from-error-50 to-error-100/50 border-error-100"
               />
               <StatCard
                 value={stats?.complaints ?? 0}
                 label="Spam Complaints"
                 icon={<AlertTriangle size={20} />}
-                className="from-amber-50 to-amber-100/50 border-amber-100"
+                className="from-warning-50 to-warning-100/50 border-warning-100"
               />
               <StatCard
                 value={stats?.suppressed ?? 0}
@@ -126,14 +127,14 @@ export default function AdminEmailPage() {
             </div>
           )}
 
-          <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
+          <div className="p-4 rounded-xl bg-info-50 border border-info-200">
             <div className="flex items-start gap-3">
-              <Mail size={18} className="text-blue-600 mt-0.5 shrink-0" />
+              <Mail size={18} className="text-info-600 mt-0.5 shrink-0" />
               <div>
-                <h3 className="text-sm font-semibold text-blue-900">
+                <h3 className="text-sm font-semibold text-info-900">
                   SendGrid Integration
                 </h3>
-                <p className="text-xs text-blue-700 mt-1">
+                <p className="text-xs text-info-700 mt-1">
                   Bounced and complained addresses are automatically added to the suppression
                   list. Emails to suppressed addresses are blocked to protect sender reputation.
                 </p>
@@ -161,8 +162,8 @@ export default function AdminEmailPage() {
                   key={event.id}
                   className="flex items-center gap-3 p-3 rounded-xl bg-white border border-primary-100"
                 >
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 shrink-0">
-                    <XCircle size={16} className="text-red-500" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-error-100 shrink-0">
+                    <XCircle size={16} className="text-error-500" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-primary-800 truncate">
@@ -177,7 +178,7 @@ export default function AdminEmailPage() {
                       })}
                     </p>
                   </div>
-                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 shrink-0">
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-error-100 text-error-700 shrink-0">
                     Suppressed
                   </span>
                 </StaggeredItem>
@@ -205,8 +206,8 @@ export default function AdminEmailPage() {
                   key={event.id}
                   className="flex items-center gap-3 p-3 rounded-xl bg-white border border-primary-100"
                 >
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-100 shrink-0">
-                    <AlertTriangle size={16} className="text-amber-500" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-warning-100 shrink-0">
+                    <AlertTriangle size={16} className="text-warning-500" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-primary-800 truncate">
@@ -221,7 +222,7 @@ export default function AdminEmailPage() {
                       })}
                     </p>
                   </div>
-                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700 shrink-0">
+                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-warning-100 text-warning-700 shrink-0">
                     Suppressed
                   </span>
                 </StaggeredItem>
@@ -230,6 +231,6 @@ export default function AdminEmailPage() {
           )}
         </>
       )}
-    </AdminLayout>
+    </>
   )
 }

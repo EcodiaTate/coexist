@@ -6,7 +6,6 @@ import {
   Compass,
   CalendarDays,
   Users,
-  User,
   BarChart3,
   Settings,
   Shield,
@@ -18,6 +17,7 @@ import {
   Trophy,
   ShoppingBag,
   Heart,
+  Crown,
   MessageCircle,
   Bell,
   Megaphone,
@@ -50,9 +50,9 @@ const activityNav: NavItem[] = [
 const secondaryNav: NavItem[] = [
   { label: 'Explore', path: '/explore', icon: <Compass size={20} /> },
   { label: 'Announcements', path: '/announcements', icon: <Megaphone size={20} /> },
+  { label: 'Membership', path: '/membership', icon: <Crown size={20} /> },
   { label: 'Shop', path: '/shop', icon: <ShoppingBag size={20} /> },
   { label: 'Donate', path: '/donate', icon: <Heart size={20} /> },
-  { label: 'Profile', path: '/profile', icon: <User size={20} /> },
 ]
 
 const leaderNav: NavItem[] = [
@@ -130,37 +130,6 @@ export function SidebarNav({ className }: SidebarNavProps) {
         </div>
       )}
 
-      {/* User info */}
-      {!collapsed && (
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-primary-100">
-          <Avatar
-            src={profile?.avatar_url}
-            name={profile?.display_name || ''}
-            size="md"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="font-heading text-sm font-semibold text-primary-800 truncate">
-              {profile?.display_name}
-            </p>
-            {(profile as any)?.collective_name && (
-              <p className="text-caption text-primary-400 truncate">
-                {(profile as any).collective_name}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {collapsed && (
-        <div className="flex items-center justify-center py-3 border-b border-primary-100">
-          <Avatar
-            src={profile?.avatar_url}
-            name={profile?.display_name || ''}
-            size="sm"
-          />
-        </div>
-      )}
-
       {/* Navigation sections */}
       <nav className="flex-1 overflow-y-auto py-3 px-2">
         <NavSection items={mainNav} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
@@ -193,7 +162,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
           </>
         )}
 
-        {isStaff && (
+        {(isStaff || isAnyLeader) && (
           <>
             {!collapsed && (
               <p className="text-overline text-primary-400 px-3 mt-5 mb-2">
@@ -201,10 +170,47 @@ export function SidebarNav({ className }: SidebarNavProps) {
               </p>
             )}
             {collapsed && <div className="my-3 border-t border-primary-100" />}
-            <NavSection items={adminNav} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
+            <NavSection items={isStaff ? adminNav : [adminNav[0]]} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
           </>
         )}
       </nav>
+
+      {/* User profile link */}
+      <div className="border-t border-primary-100 p-2">
+        <Link
+          to="/profile"
+          className={cn(
+            'flex items-center gap-3 w-full',
+            'rounded-lg p-2',
+            'text-primary-400 hover:text-primary-800 hover:bg-primary-50',
+            'cursor-pointer select-none',
+            'transition-colors duration-150',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+            collapsed && 'justify-center',
+            location.pathname.startsWith('/profile') && 'bg-primary-50 text-primary-800',
+          )}
+          aria-label="View profile"
+          title={collapsed ? profile?.display_name || 'Profile' : undefined}
+        >
+          <Avatar
+            src={profile?.avatar_url}
+            name={profile?.display_name || ''}
+            size="sm"
+          />
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="font-heading text-sm font-semibold text-primary-800 truncate">
+                {profile?.display_name}
+              </p>
+              {(profile as any)?.collective_name && (
+                <p className="text-caption text-primary-400 truncate text-xs">
+                  {(profile as any).collective_name}
+                </p>
+              )}
+            </div>
+          )}
+        </Link>
+      </div>
 
       {/* Collapse toggle */}
       <div className="border-t border-primary-100 p-2">

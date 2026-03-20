@@ -151,7 +151,7 @@ function Firefly({ config }: { config: ParticleConfig }) {
       }}
     >
       <div
-        className="rounded-full bg-yellow-300"
+        className="rounded-full bg-warning-300"
         style={{
           width: config.size * 0.6,
           height: config.size * 0.6,

@@ -124,29 +124,29 @@ export default function MorePage() {
   )
 
   const mainLinks: MenuLink[] = [
-    { label: 'Notifications', to: '/notifications', icon: <Bell size={17} />, iconBg: 'bg-red-50', iconColor: 'text-red-500' },
+    { label: 'Notifications', to: '/notifications', icon: <Bell size={17} />, iconBg: 'bg-error-50', iconColor: 'text-error-500' },
     { label: 'Settings', to: '/settings', icon: <Settings size={17} />, iconBg: 'bg-primary-100/80', iconColor: 'text-primary-600' },
   ]
 
   const activityLinks: MenuLink[] = [
-    { label: 'Impact Dashboard', to: '/impact', icon: <TrendingUp size={17} />, iconBg: 'bg-emerald-50', iconColor: 'text-emerald-600' },
-    { label: 'Badges', to: '/badges', icon: <Award size={17} />, iconBg: 'bg-amber-50', iconColor: 'text-amber-600' },
-    { label: 'Points History', to: '/points', icon: <Star size={17} />, iconBg: 'bg-yellow-50', iconColor: 'text-yellow-600' },
-    { label: 'Leaderboard', to: '/leaderboard', icon: <Trophy size={17} />, iconBg: 'bg-orange-50', iconColor: 'text-orange-600' },
-    { label: 'National Impact', to: '/impact/national', icon: <MapPin size={17} />, iconBg: 'bg-teal-50', iconColor: 'text-teal-600' },
+    { label: 'Impact Dashboard', to: '/impact', icon: <TrendingUp size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
+    { label: 'Badges', to: '/badges', icon: <Award size={17} />, iconBg: 'bg-warning-50', iconColor: 'text-warning-600' },
+    { label: 'Points History', to: '/points', icon: <Star size={17} />, iconBg: 'bg-warning-50', iconColor: 'text-warning-600' },
+    { label: 'Leaderboard', to: '/leaderboard', icon: <Trophy size={17} />, iconBg: 'bg-bark-50', iconColor: 'text-bark-600' },
+    { label: 'National Impact', to: '/impact/national', icon: <MapPin size={17} />, iconBg: 'bg-moss-50', iconColor: 'text-moss-600' },
   ]
 
   const communityLinks: MenuLink[] = [
     { label: 'Chat', to: '/chat', icon: <MessageCircle size={17} />, iconBg: 'bg-sky-50', iconColor: 'text-sky-600' },
     { label: 'Collectives', to: '/collectives', icon: <Users size={17} />, iconBg: 'bg-primary-100/80', iconColor: 'text-primary-600' },
-    { label: 'Announcements', to: '/announcements', icon: <Megaphone size={17} />, iconBg: 'bg-violet-50', iconColor: 'text-violet-600' },
-    { label: 'Invite Friends', to: '/referral', icon: <Share2 size={17} />, iconBg: 'bg-pink-50', iconColor: 'text-pink-500' },
+    { label: 'Announcements', to: '/announcements', icon: <Megaphone size={17} />, iconBg: 'bg-plum-50', iconColor: 'text-plum-600' },
+    { label: 'Invite Friends', to: '/referral', icon: <Share2 size={17} />, iconBg: 'bg-coral-50', iconColor: 'text-coral-500' },
   ]
 
   const shopLinks: MenuLink[] = [
     { label: 'Shop', to: '/shop', icon: <ShoppingBag size={17} />, iconBg: 'bg-primary-100/80', iconColor: 'text-primary-700' },
-    { label: 'Donate', to: '/donate', icon: <Heart size={17} />, iconBg: 'bg-rose-50', iconColor: 'text-rose-500' },
-    { label: 'Partner Offers', to: '/shop', icon: <Gift size={17} />, iconBg: 'bg-amber-50', iconColor: 'text-amber-600' },
+    { label: 'Donate', to: '/donate', icon: <Heart size={17} />, iconBg: 'bg-coral-50', iconColor: 'text-coral-500' },
+    { label: 'Partner Offers', to: '/shop', icon: <Gift size={17} />, iconBg: 'bg-warning-50', iconColor: 'text-warning-600' },
   ]
 
   const leaderLinks: MenuLink[] = [
@@ -156,7 +156,7 @@ export default function MorePage() {
   ]
 
   const adminLinks: MenuLink[] = [
-    { label: 'Admin Dashboard', to: '/admin', icon: <Shield size={17} />, iconBg: 'bg-red-100/60', iconColor: 'text-red-700' },
+    { label: 'Admin Dashboard', to: '/admin', icon: <Shield size={17} />, iconBg: 'bg-error-100/60', iconColor: 'text-error-700' },
   ]
 
   return (

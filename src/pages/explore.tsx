@@ -1165,7 +1165,7 @@ export default function ExplorePage() {
                                 key={c.id}
                                 variant="collective"
                                 onClick={() =>
-                                  navigate(`/community/${c.slug}`)
+                                  navigate(`/collectives/${c.slug}`)
                                 }
                                 aria-label={c.name}
                               >
@@ -1286,7 +1286,7 @@ export default function ExplorePage() {
                       onMarkerClick={(id) => {
                         const isEvent = nearbyEvents.data?.some((e) => e.id === id)
                         if (isEvent) navigate(`/events/${id}`)
-                        else navigate(`/community/${id}`)
+                        else navigate(`/collectives/${id}`)
                       }}
                       className="h-[60vh] rounded-2xl"
                       aria-label="Map showing nearby events and collectives"
@@ -1385,7 +1385,7 @@ export default function ExplorePage() {
                               key={c.id}
                               variant="collective"
                               onClick={() =>
-                                navigate(`/community/${c.slug}`)
+                                navigate(`/collectives/${c.slug}`)
                               }
                               aria-label={c.name}
                             >

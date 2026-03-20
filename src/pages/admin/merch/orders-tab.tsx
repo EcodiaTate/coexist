@@ -27,12 +27,12 @@ const STATUS_OPTIONS: { value: OrderStatus | 'all'; label: string }[] = [
 ]
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
-  pending: 'bg-amber-100 text-amber-800',
-  processing: 'bg-blue-100 text-blue-800',
-  shipped: 'bg-violet-100 text-violet-800',
-  delivered: 'bg-green-100 text-green-800',
+  pending: 'bg-warning-100 text-warning-800',
+  processing: 'bg-info-100 text-info-800',
+  shipped: 'bg-plum-100 text-plum-800',
+  delivered: 'bg-success-100 text-success-800',
   cancelled: 'bg-white text-primary-400',
-  refunded: 'bg-red-100 text-red-700',
+  refunded: 'bg-error-100 text-error-700',
 }
 
 function formatDate(dateStr: string): string {

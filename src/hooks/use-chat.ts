@@ -10,9 +10,7 @@ import type { ChatMessage, Profile } from '@/types/database.types'
 
 export interface ChatMessageWithSender extends ChatMessage {
   profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url'> | null
-  reply_message: Pick<ChatMessage, 'id' | 'content' | 'user_id'> & {
-    profiles: Pick<Profile, 'id' | 'display_name'> | null
-  } | null
+  reply_message: Pick<ChatMessage, 'id' | 'content' | 'user_id'> | null
   sender_role?: string
 }
 
@@ -44,7 +42,7 @@ export function useChatMessages(collectiveId: string | undefined) {
         .select(`
           *,
           profiles!chat_messages_user_id_fkey(id, display_name, avatar_url),
-          reply_message:chat_messages!chat_messages_reply_to_id_fkey(id, content, user_id, profiles!chat_messages_user_id_fkey(id, display_name))
+          reply_message:chat_messages!chat_messages_reply_to_id_fkey(id, content, user_id)
         `)
         .eq('collective_id', collectiveId)
         .order('created_at', { ascending: false })
@@ -88,7 +86,7 @@ export function useChatMessages(collectiveId: string | undefined) {
             .select(`
               *,
               profiles!chat_messages_user_id_fkey(id, display_name, avatar_url),
-              reply_message:chat_messages!chat_messages_reply_to_id_fkey(id, content, user_id, profiles!chat_messages_user_id_fkey(id, display_name))
+              reply_message:chat_messages!chat_messages_reply_to_id_fkey(id, content, user_id)
             `)
             .eq('id', payload.new.id)
             .single()

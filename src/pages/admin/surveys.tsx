@@ -15,7 +15,7 @@ import {
   ToggleLeft,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -142,6 +142,7 @@ const tabs = [
 ]
 
 export default function AdminSurveysPage() {
+  useAdminHeader('Surveys')
   const [activeTab, setActiveTab] = useState('surveys')
   const [showCreate, setShowCreate] = useState(false)
   const [selectedSurvey, setSelectedSurvey] = useState<string | null>(null)
@@ -235,7 +236,7 @@ export default function AdminSurveysPage() {
   }
 
   return (
-    <AdminLayout title="Surveys">
+    <>
       <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
 
       {/* Surveys list */}
@@ -280,7 +281,7 @@ export default function AdminSurveysPage() {
                         className={cn(
                           'text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
                           (survey as any).status === 'active' || survey.is_active
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-success-100 text-success-700'
                             : 'bg-white text-primary-400',
                         )}
                       >
@@ -311,7 +312,7 @@ export default function AdminSurveysPage() {
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(survey.id)}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-red-50 hover:text-red-600 cursor-pointer"
+                    className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                     aria-label="Delete survey"
                   >
                     <Trash2 size={16} />
@@ -452,7 +453,7 @@ export default function AdminSurveysPage() {
                   <button
                     type="button"
                     onClick={() => removeQuestion(q.id)}
-                    className="p-1 text-primary-400 hover:text-red-500 cursor-pointer"
+                    className="p-1 text-primary-400 hover:text-error-500 cursor-pointer"
                     aria-label="Remove question"
                   >
                     <Trash2 size={14} />
@@ -516,6 +517,6 @@ export default function AdminSurveysPage() {
         confirmLabel="Delete"
         variant="danger"
       />
-    </AdminLayout>
+    </>
   )
 }

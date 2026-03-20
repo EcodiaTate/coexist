@@ -117,7 +117,7 @@ function Stars({ rating }: { rating: number }) {
           key={i}
           size={14}
           className={cn(
-            i < Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-primary-300',
+            i < Math.round(rating) ? 'text-warning-400 fill-warning-400' : 'text-primary-300',
           )}
         />
       ))}
@@ -228,7 +228,7 @@ export default function ProductDetailPage() {
             <p className="mt-1 text-sm font-medium text-error">Out of stock</p>
           )}
           {activeVariant && activeVariant.stock > 0 && activeVariant.stock <= 5 && (
-            <p className="mt-1 text-sm font-medium text-amber-600">
+            <p className="mt-1 text-sm font-medium text-warning-600">
               Only {activeVariant.stock} left
             </p>
           )}

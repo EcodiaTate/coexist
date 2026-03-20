@@ -133,8 +133,8 @@ export const Input = forwardRef<
     (isSearch || icon) && 'pl-10',
     isPassword && 'pr-12',
     error
-      ? 'border-error focus:border-error focus:ring-1 focus:ring-error'
-      : 'border-primary-200 focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
+      ? 'border-error focus:border-error'
+      : 'border-primary-200 focus:border-primary-500',
   )
 
   const labelMotion = {

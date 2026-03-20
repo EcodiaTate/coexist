@@ -310,6 +310,13 @@ html {
   outline-offset: 2px;
 }
 
+/* Inputs use border-color changes for focus, not an outline ring */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+}
+
 /* Screen reader landmarks (§41 item 55) */
 .sr-only {
   position: absolute;

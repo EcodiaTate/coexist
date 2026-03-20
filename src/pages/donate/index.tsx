@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
-import { Heart, Users, Repeat, Sparkles } from 'lucide-react'
+import { Heart, Users, Sparkles, Crown, ChevronRight } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/skeleton'
 import { useToast } from '@/components/toast'
 import { useDonationProjects, useCreateDonation } from '@/hooks/use-donations'
 import { redirectToCheckout } from '@/lib/stripe'
-import { PRESET_AMOUNTS, type DonationFrequency, type DonationProject } from '@/types/donations'
+import { PRESET_AMOUNTS, type DonationProject } from '@/types/donations'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -96,7 +96,6 @@ export default function DonatePage() {
 
   const [selectedAmount, setSelectedAmount] = useState<number | null>(25)
   const [customAmount, setCustomAmount] = useState('')
-  const [frequency, setFrequency] = useState<DonationFrequency>('one_time')
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [onBehalfOf, setOnBehalfOf] = useState('')
@@ -121,7 +120,7 @@ export default function DonatePage() {
     try {
       const result = await createDonation.mutateAsync({
         amount: effectiveAmount,
-        frequency,
+        frequency: 'one_time',
         projectId: selectedProject ?? undefined,
         message: message.trim() || undefined,
         onBehalfOf: showOrg && onBehalfOf.trim() ? onBehalfOf.trim() : undefined,
@@ -136,7 +135,7 @@ export default function DonatePage() {
       toast.error('Something went wrong. Please try again.')
     }
   }, [
-    isValid, effectiveAmount, frequency, selectedProject,
+    isValid, effectiveAmount, selectedProject,
     message, onBehalfOf, showOrg, isPublic, createDonation, toast,
   ])
 
@@ -168,9 +167,7 @@ export default function DonatePage() {
             disabled={!isValid}
             onClick={handleDonate}
           >
-            {frequency === 'monthly'
-              ? `Donate $${effectiveAmount}/mo`
-              : `Donate $${effectiveAmount}`}
+            Donate ${effectiveAmount > 0 ? `$${effectiveAmount}` : ''}
           </Button>
         </div>
       }
@@ -242,17 +239,25 @@ export default function DonatePage() {
             />
           </motion.section>
 
-          {/* ---- Frequency toggle ---- */}
+          {/* ---- Membership callout ---- */}
           <motion.section variants={fadeUp}>
-            <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-primary-100">
-              <Repeat size={18} className="text-primary-400 shrink-0" />
-              <Toggle
-                label="Monthly giving"
-                description="Set up a recurring donation via Stripe"
-                checked={frequency === 'monthly'}
-                onChange={(checked) => setFrequency(checked ? 'monthly' : 'one_time')}
-              />
-            </div>
+            <Link
+              to="/membership"
+              className="flex items-center gap-3 p-4 rounded-2xl bg-primary-50 border border-primary-200 transition-colors hover:bg-primary-100"
+            >
+              <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center shrink-0">
+                <Crown size={16} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-heading text-sm font-semibold text-primary-800">
+                  Want to give regularly?
+                </p>
+                <p className="text-xs text-primary-400 mt-0.5">
+                  Become a member for ongoing support + exclusive perks
+                </p>
+              </div>
+              <ChevronRight size={18} className="text-primary-400 shrink-0" />
+            </Link>
           </motion.section>
 
           {/* ---- Divider ---- */}

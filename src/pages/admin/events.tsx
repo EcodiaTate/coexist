@@ -7,7 +7,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
 import { Skeleton } from '@/components/skeleton'
@@ -72,8 +72,10 @@ export default function AdminEventsPage() {
 
   const { data: events, isLoading, isError } = useAdminEvents(search, status)
 
+  useAdminHeader('Events')
+
   return (
-    <AdminLayout title="Events">
+    <>
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="flex-1">
           <Input
@@ -164,7 +166,7 @@ export default function AdminEventsPage() {
                     'text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
                     isPast
                       ? 'bg-white text-primary-400'
-                      : 'bg-green-100 text-green-700',
+                      : 'bg-success-100 text-success-700',
                   )}
                 >
                   {isPast ? 'Past' : 'Upcoming'}
@@ -176,6 +178,6 @@ export default function AdminEventsPage() {
           })}
         </StaggeredList>
       )}
-    </AdminLayout>
+    </>
   )
 }

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
+import { useAdminHeader } from '@/components/admin-layout'
 import { TabBar } from '@/components/tab-bar'
 import { Package, ShoppingCart, BarChart3, Tag, RotateCcw, Star, Settings } from 'lucide-react'
 
@@ -34,12 +35,13 @@ const TAB_COMPONENTS: Record<string, React.ComponentType> = {
 }
 
 export default function AdminMerchPage() {
+  useAdminHeader('Merch Management')
   const [activeTab, setActiveTab] = useState('products')
   const shouldReduceMotion = useReducedMotion()
   const ActiveComponent = TAB_COMPONENTS[activeTab]
 
   return (
-    <Page header={<Header title="Merch Management" back />}>
+    <>
       <div className="px-4 pt-3">
         <TabBar
           tabs={TABS}
@@ -57,6 +59,6 @@ export default function AdminMerchPage() {
       >
         <ActiveComponent />
       </motion.div>
-    </Page>
+    </>
   )
 }

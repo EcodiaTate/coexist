@@ -61,9 +61,9 @@ const ROLE_ICONS: Record<CollectiveRole, typeof Crown> = {
 }
 
 const ROLE_COLORS: Record<CollectiveRole, string> = {
-  leader: 'text-amber-600 bg-amber-50',
+  leader: 'text-warning-600 bg-warning-50',
   co_leader: 'text-primary-400 bg-white',
-  assist_leader: 'text-blue-600 bg-blue-50',
+  assist_leader: 'text-info-600 bg-info-50',
   member: 'text-primary-400 bg-white',
 }
 
@@ -442,7 +442,7 @@ export default function CollectiveManagePage() {
                         type="button"
                         onClick={() => setRemovingMember(member)}
                         aria-label="Remove member"
-                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-red-50 hover:text-red-500 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-error-50 hover:text-error-500 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                       >
                         <UserMinus size={16} />
                       </button>

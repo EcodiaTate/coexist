@@ -10,7 +10,7 @@ import {
   UserCog,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -86,9 +86,9 @@ const tabs = [
 ]
 
 const roleBadgeColors: Record<string, string> = {
-  national_staff: 'bg-blue-100 text-blue-700',
-  national_admin: 'bg-purple-100 text-purple-700',
-  super_admin: 'bg-red-100 text-red-700',
+  national_staff: 'bg-info-100 text-info-700',
+  national_admin: 'bg-plum-100 text-plum-700',
+  super_admin: 'bg-error-100 text-error-700',
 }
 
 /* ------------------------------------------------------------------ */
@@ -109,6 +109,8 @@ export default function SuperAdminPage() {
   const queryClient = useQueryClient()
   const { isSuperAdmin } = useAuth()
   const { data: staff, isLoading } = useStaffDirectory()
+
+  useAdminHeader('Super Admin')
 
   const addStaffMutation = useMutation({
     mutationFn: async () => {
@@ -177,11 +179,11 @@ export default function SuperAdminPage() {
         .single()
       if (!user) throw new Error('User not found')
 
-      await supabase.from('audit_logs' as any).insert({
+      await supabase.from('audit_log' as any).insert({
         action: 'impersonation_started',
         target_type: 'user',
         target_id: user.id,
-        details: `Viewing as ${user.display_name} (${email}) - read-only mode`,
+        details: { message: `Viewing as ${user.display_name} (${email}) - read-only mode` },
       } as any)
 
       return user
@@ -189,7 +191,7 @@ export default function SuperAdminPage() {
   })
 
   return (
-    <AdminLayout title="Super Admin">
+    <>
       <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
 
       {/* Staff Directory */}
@@ -275,7 +277,7 @@ export default function SuperAdminPage() {
                     <button
                       type="button"
                       onClick={() => setRemoveTarget(member.id)}
-                      className="p-1.5 rounded-lg text-primary-400 hover:bg-red-50 hover:text-red-600 cursor-pointer"
+                      className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                       title="Remove staff access"
                       aria-label={`Remove ${member.display_name}`}
                     >
@@ -318,7 +320,7 @@ export default function SuperAdminPage() {
                   {PERMISSIONS.map((p) => (
                     <td key={p.key} className="text-center py-2.5 px-2">
                       {member.permissions[p.key] ? (
-                        <CheckCircle size={16} className="text-green-500 mx-auto" />
+                        <CheckCircle size={16} className="text-success-500 mx-auto" />
                       ) : (
                         <XCircle size={16} className="text-primary-300 mx-auto" />
                       )}
@@ -334,14 +336,14 @@ export default function SuperAdminPage() {
       {/* View as User (Impersonation) */}
       {activeTab === 'impersonate' && (
         <div className="max-w-md space-y-4">
-          <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
+          <div className="p-4 rounded-xl bg-warning-50 border border-warning-200">
             <div className="flex items-start gap-3">
-              <Eye size={18} className="text-amber-600 mt-0.5 shrink-0" />
+              <Eye size={18} className="text-warning-600 mt-0.5 shrink-0" />
               <div>
-                <h3 className="text-sm font-semibold text-amber-900">
+                <h3 className="text-sm font-semibold text-warning-900">
                   View as User - Read Only
                 </h3>
-                <p className="text-xs text-amber-700 mt-1">
+                <p className="text-xs text-warning-700 mt-1">
                   This feature allows you to see the app as a specific user would see it.
                   All actions are read-only and the impersonation is logged in the audit trail.
                 </p>
@@ -368,8 +370,8 @@ export default function SuperAdminPage() {
           </Button>
 
           {impersonateMutation.isSuccess && (
-            <div className="p-3 rounded-lg bg-green-50 border border-green-200">
-              <p className="text-sm text-green-700">
+            <div className="p-3 rounded-lg bg-success-50 border border-success-200">
+              <p className="text-sm text-success-700">
                 Impersonation logged. In production, this would switch the view to show
                 the app from the perspective of{' '}
                 <strong>{(impersonateMutation.data as any)?.display_name}</strong>.
@@ -468,6 +470,6 @@ export default function SuperAdminPage() {
         confirmLabel="Remove Access"
         variant="danger"
       />
-    </AdminLayout>
+    </>
   )
 }

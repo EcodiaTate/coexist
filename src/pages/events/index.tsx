@@ -70,9 +70,9 @@ type TabId = (typeof TABS)[number]['id']
 
 const statusBadge: Record<string, { label: string; className: string }> = {
   registered: { label: 'Registered', className: 'bg-primary-100 text-primary-400' },
-  waitlisted: { label: 'Waitlisted', className: 'bg-amber-100 text-amber-700' },
-  attended: { label: 'Attended', className: 'bg-green-100 text-green-700' },
-  invited: { label: 'Invited', className: 'bg-blue-100 text-blue-700' },
+  waitlisted: { label: 'Waitlisted', className: 'bg-warning-100 text-warning-700' },
+  attended: { label: 'Attended', className: 'bg-success-100 text-success-700' },
+  invited: { label: 'Invited', className: 'bg-info-100 text-info-700' },
 }
 
 /* ------------------------------------------------------------------ */

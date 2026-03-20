@@ -34,8 +34,8 @@ export default function OrderConfirmationPage() {
           transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.2 }}
           className="mb-6"
         >
-          <div className="flex items-center justify-center w-20 h-20 rounded-full bg-green-100">
-            <CheckCircle size={36} className="text-green-600" />
+          <div className="flex items-center justify-center w-20 h-20 rounded-full bg-success-100">
+            <CheckCircle size={36} className="text-success-600" />
           </div>
         </motion.div>
 

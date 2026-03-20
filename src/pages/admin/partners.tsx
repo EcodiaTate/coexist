@@ -11,7 +11,7 @@ import {
   Trophy,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -104,6 +104,8 @@ export default function AdminPartnersPage() {
   const { data: organisations, isLoading: orgsLoading } = useOrganisations()
   const { data: offers, isLoading: offersLoading } = usePartnerOffers()
 
+  useAdminHeader('Partners & Sponsors')
+
   const createOrgMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('organisations').insert(orgForm as any)
@@ -155,7 +157,7 @@ export default function AdminPartnersPage() {
   })
 
   return (
-    <AdminLayout title="Partners & Sponsors">
+    <>
       <TabBar
         tabs={tabs}
         activeTab={activeTab}
@@ -233,7 +235,7 @@ export default function AdminPartnersPage() {
                   <button
                     type="button"
                     onClick={() => setDeleteTarget({ id: org.id, type: 'org' })}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-red-50 hover:text-red-600 cursor-pointer"
+                    className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                     aria-label={`Delete ${org.name}`}
                   >
                     <Trash2 size={16} />
@@ -289,7 +291,7 @@ export default function AdminPartnersPage() {
                     <button
                       type="button"
                       onClick={() => setDeleteTarget({ id: offer.id, type: 'offer' })}
-                      className="p-1 rounded text-primary-400 hover:text-red-600 cursor-pointer"
+                      className="p-1 rounded text-primary-400 hover:text-error-600 cursor-pointer"
                       aria-label="Delete offer"
                     >
                       <Trash2 size={14} />
@@ -488,6 +490,6 @@ export default function AdminPartnersPage() {
         confirmLabel="Delete"
         variant="danger"
       />
-    </AdminLayout>
+    </>
   )
 }

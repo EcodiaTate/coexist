@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   TreePine,
@@ -16,10 +15,10 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
+import { useAdminHeader, useIsAdminLayout } from '@/components/admin-layout'
 import { CountUp } from '@/components/count-up'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
-import { Dropdown } from '@/components/dropdown'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { parseLocationPoint } from '@/lib/geo'
@@ -54,14 +53,12 @@ function useNationalImpact() {
       const totalRubbish = logs.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0)
       const totalCoastline = logs.reduce((s: number, r: any) => s + (r.coastline_km ?? 0), 0)
 
-      // Breakdown by activity type
       const byActivity: Record<string, number> = {}
       for (const log of logs as any[]) {
         const type = (log as any).activity_type ?? 'Other'
         byActivity[type] = (byActivity[type] ?? 0) + 1
       }
 
-      // Breakdown by state
       const byState: Record<string, number> = {}
       for (const log of logs as any[]) {
         const state = (log as any).state ?? 'Unknown'
@@ -167,43 +164,43 @@ function useTrends() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Counter card                                                       */
+/*  Big counter                                                        */
 /* ------------------------------------------------------------------ */
 
-function ImpactCounter({
+function NationalStat({
   icon,
   value,
   suffix,
   label,
-  color,
+  bg,
   delay,
 }: {
   icon: React.ReactNode
   value: number
   suffix?: string
   label: string
-  color: string
+  bg: string
   delay: number
 }) {
   const shouldReduceMotion = useReducedMotion()
 
   return (
     <motion.div
-      initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
+      initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4, ease: 'easeOut' }}
       className={cn(
-        'p-5 rounded-2xl text-center',
-        color,
+        'flex flex-col items-center justify-center text-center rounded-3xl p-6 min-h-[140px]',
+        bg,
       )}
     >
-      <div className="flex items-center justify-center mb-2" aria-hidden="true">
+      <div className="mb-3 opacity-50" aria-hidden="true">
         {icon}
       </div>
-      <div className="font-heading text-3xl sm:text-4xl font-bold text-primary-800">
+      <div className="font-heading text-4xl font-bold text-primary-800 tabular-nums leading-none">
         <CountUp end={value} duration={2000} suffix={suffix} />
       </div>
-      <p className="text-sm text-primary-400 mt-1">{label}</p>
+      <p className="text-[11px] uppercase tracking-[0.15em] text-primary-500 font-medium mt-2">{label}</p>
     </motion.div>
   )
 }
@@ -213,6 +210,8 @@ function ImpactCounter({
 /* ------------------------------------------------------------------ */
 
 export default function NationalImpactPage() {
+  const isAdmin = useIsAdminLayout()
+  useAdminHeader('Impact')
   const shouldReduceMotion = useReducedMotion()
   const { data, isLoading } = useNationalImpact()
   const { data: topCollectives } = useTopCollectives()
@@ -220,23 +219,26 @@ export default function NationalImpactPage() {
   const { data: eventMapPoints } = useEventMapPoints()
 
   if (isLoading) {
+    const skeleton = (
+        <div className="p-5 space-y-5">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="h-36 rounded-3xl bg-primary-100/30 animate-pulse" />
+            <div className="h-36 rounded-3xl bg-primary-100/30 animate-pulse" />
+            <div className="h-36 rounded-3xl bg-primary-100/30 animate-pulse" />
+            <div className="h-36 rounded-3xl bg-primary-100/30 animate-pulse" />
+          </div>
+          <div className="h-64 rounded-3xl bg-primary-100/20 animate-pulse" />
+        </div>
+    )
+    if (isAdmin) return skeleton
     return (
       <Page header={<Header title="National Impact" back />}>
-        <div className="p-4 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
-          </div>
-          <Skeleton variant="card" />
-        </div>
+        {skeleton}
       </Page>
     )
   }
 
   const exportPDF = () => {
-    // In production: call edge function to generate branded PDF
     alert('PDF export will be generated via Edge Function with branded Co-Exist template')
   }
 
@@ -250,214 +252,235 @@ export default function NationalImpactPage() {
     }
   }
 
-  return (
-    <Page
-      header={
-        <Header
-          title="National Impact"
-          back
-          rightActions={
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={shareLink}
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
-                aria-label="Share"
-              >
-                <Share2 size={18} />
-              </button>
-            </div>
-          }
-        />
-      }
-    >
-      <div className="p-4 space-y-6 pb-8">
-        {/* Big animated counters */}
-        <div className="grid grid-cols-2 gap-3">
-          <ImpactCounter
-            icon={<TreePine size={28} className="text-success-600" />}
-            value={data?.totalTrees ?? 0}
-            label="Trees Planted"
-            color="bg-success-50 border border-success-200"
-            delay={0}
-          />
-          <ImpactCounter
-            icon={<Clock size={28} className="text-info-600" />}
+  const content = (
+      <div className="pb-12">
+
+        {/* ─── Hero headline ─── */}
+        <motion.div
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="px-5 pt-8 pb-2"
+        >
+          <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium">
+            Australia-Wide
+          </p>
+          <p className="font-heading text-7xl font-bold text-primary-800 tabular-nums leading-none tracking-tight mt-4">
+            <CountUp end={data?.totalTrees ?? 0} duration={2000} />
+          </p>
+          <p className="text-base text-primary-400 font-medium mt-2">trees planted nationally</p>
+        </motion.div>
+
+        {/* ─── Divider ─── */}
+        <div className="mx-5 h-px bg-primary-100/60 my-6" />
+
+        {/* ─── Stats Grid ─── */}
+        <div className="px-5 grid grid-cols-2 gap-4">
+          <NationalStat
+            icon={<Clock size={22} className="text-primary-500" />}
             value={data?.totalHours ?? 0}
             label="Hours Volunteered"
-            color="bg-info-50 border border-info-200"
-            delay={0.1}
+            bg="bg-primary-50/80"
+            delay={0.05}
           />
-          <ImpactCounter
-            icon={<RubbishIcon size={28} className="text-warning-600" />}
+          <NationalStat
+            icon={<RubbishIcon size={22} className="text-primary-500" />}
             value={data?.totalRubbish ?? 0}
             suffix=" kg"
             label="Rubbish Collected"
-            color="bg-warning-50 border border-warning-200"
-            delay={0.2}
+            bg="bg-moss-50/80"
+            delay={0.1}
           />
-          <ImpactCounter
-            icon={<Waves size={28} className="text-moss-600" />}
+          <NationalStat
+            icon={<Waves size={22} className="text-moss-500" />}
             value={data?.totalCoastline ?? 0}
             suffix=" km"
             label="Coastline Cleaned"
-            color="bg-moss-50 border border-moss-200"
-            delay={0.3}
+            bg="bg-bark-50/60"
+            delay={0.15}
           />
-          <ImpactCounter
-            icon={<CalendarDays size={28} className="text-plum-600" />}
+          <NationalStat
+            icon={<CalendarDays size={22} className="text-plum-500" />}
             value={data?.totalEvents ?? 0}
             label="Events Held"
-            color="bg-plum-50 border border-plum-200"
-            delay={0.4}
+            bg="bg-plum-50/60"
+            delay={0.2}
           />
-          <ImpactCounter
-            icon={<Users size={28} className="text-primary-400" />}
+          <NationalStat
+            icon={<Users size={22} className="text-primary-500" />}
             value={data?.totalMembers ?? 0}
             label="Active Members"
-            color="bg-white border border-primary-200"
-            delay={0.5}
+            bg="bg-white border border-primary-100/50"
+            delay={0.25}
           />
-          <ImpactCounter
-            icon={<MapPin size={28} className="text-primary-400" />}
+          <NationalStat
+            icon={<MapPin size={22} className="text-bark-500" />}
             value={data?.totalCollectives ?? 0}
             label="Collectives"
-            color="bg-white border border-secondary-200"
-            delay={0.6}
+            bg="bg-white border border-primary-100/50"
+            delay={0.3}
           />
         </div>
 
-        {/* Geographic activity map */}
-        <div className="bg-white rounded-2xl border border-primary-100 p-5">
-          <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
+        {/* ─── Geographic Activity Map ─── */}
+        <motion.section
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.4 }}
+          className="mx-5 mt-10"
+        >
+          <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
             Geographic Activity
-          </h2>
-          <MapView
-            center={{ lat: -28.0, lng: 134.0 }}
-            zoom={4}
-            markers={eventMapPoints ?? []}
-            aria-label="National activity map showing event locations"
-            className="h-64 rounded-xl"
-          />
-        </div>
-
-        {/* Trends */}
-        {trends && trends.length > 0 && (
-          <div className="bg-white rounded-2xl border border-primary-100 p-5">
-            <h2 className="font-heading text-base font-semibold text-primary-800 mb-4">
-              Monthly Volunteer Hours
-            </h2>
-            <div className="flex items-end gap-3 h-28">
-              {trends.map((t, i) => {
-                const max = Math.max(...trends.map((tr) => tr.impact), 1)
-                const height = (t.impact / max) * 100
-                return (
-                  <div key={t.month} className="flex-1 flex flex-col items-center gap-1">
-                    <span className="text-[10px] text-primary-400 tabular-nums">{t.impact}</span>
-                    <motion.div
-                      className="w-full rounded-t-md bg-primary-400 min-h-[4px]"
-                      initial={shouldReduceMotion ? { height: `${height}%` } : { height: 0 }}
-                      animate={{ height: `${height}%` }}
-                      transition={{ duration: 0.5, delay: i * 0.08, ease: 'easeOut' }}
-                    />
-                    <span className="text-[10px] text-primary-400">{t.month}</span>
-                  </div>
-                )
-              })}
-            </div>
+          </p>
+          <div className="rounded-3xl bg-white border border-primary-100/50 p-5 overflow-hidden">
+            <MapView
+              center={{ lat: -28.0, lng: 134.0 }}
+              zoom={4}
+              markers={eventMapPoints ?? []}
+              aria-label="National activity map showing event locations"
+              className="h-72 rounded-2xl"
+            />
           </div>
+        </motion.section>
+
+        {/* ─── Monthly Volunteer Hours Trend ─── */}
+        {trends && trends.length > 0 && (
+          <motion.section
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+            className="mx-5 mt-10"
+          >
+            <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
+              Monthly Volunteer Hours
+            </p>
+            <div className="rounded-3xl bg-white border border-primary-100/50 p-6">
+              <div className="flex items-end gap-4 h-32">
+                {trends.map((t, i) => {
+                  const max = Math.max(...trends.map((tr) => tr.impact), 1)
+                  const height = (t.impact / max) * 100
+                  return (
+                    <div key={t.month} className="flex-1 flex flex-col items-center gap-2">
+                      <span className="text-[10px] text-primary-400/60 tabular-nums font-medium">{t.impact}</span>
+                      <motion.div
+                        className="w-full rounded-full bg-gradient-to-t from-primary-600 to-primary-300 min-h-[4px]"
+                        initial={shouldReduceMotion ? { height: `${height}%` } : { height: 0 }}
+                        animate={{ height: `${height}%` }}
+                        transition={{ duration: 0.5, delay: i * 0.08, ease: 'easeOut' }}
+                      />
+                      <span className="text-[10px] text-primary-400/60 font-medium">{t.month}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </motion.section>
         )}
 
-        {/* Breakdown by activity */}
+        {/* ─── Breakdown by Activity ─── */}
         {data?.byActivity && data.byActivity.length > 0 && (
-          <div className="bg-white rounded-2xl border border-primary-100 p-5">
-            <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
+          <motion.section
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 0.4 }}
+            className="mx-5 mt-10"
+          >
+            <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
               By Activity Type
-            </h2>
-            <div className="space-y-2">
+            </p>
+            <div className="rounded-3xl bg-white border border-primary-100/50 p-6 space-y-4">
               {data.byActivity.map(([type, count]) => {
                 const total = data.byActivity.reduce((s, [, c]) => s + c, 0)
                 const percent = total > 0 ? Math.round((count / total) * 100) : 0
                 return (
                   <div key={type}>
-                    <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-primary-800 capitalize">{type}</span>
-                      <span className="text-primary-400 tabular-nums">{count} ({percent}%)</span>
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="text-primary-700 font-medium capitalize">{type.replace(/_/g, ' ')}</span>
+                      <span className="text-primary-400/70 tabular-nums text-xs">{count} ({percent}%)</span>
                     </div>
-                    <div className="h-2 bg-white rounded-full overflow-hidden">
-                      <div
+                    <div className="h-2 bg-primary-100/40 rounded-full overflow-hidden">
+                      <motion.div
                         className="h-full bg-primary-400 rounded-full"
-                        style={{ width: `${percent}%` }}
+                        initial={shouldReduceMotion ? { width: `${percent}%` } : { width: 0 }}
+                        animate={{ width: `${percent}%` }}
+                        transition={{ duration: 0.6, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
                       />
                     </div>
                   </div>
                 )
               })}
             </div>
-          </div>
+          </motion.section>
         )}
 
-        {/* Breakdown by state */}
+        {/* ─── Breakdown by State ─── */}
         {data?.byState && data.byState.length > 0 && (
-          <div className="bg-white rounded-2xl border border-primary-100 p-5">
-            <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
+          <motion.section
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.4 }}
+            className="mx-5 mt-10"
+          >
+            <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
               By State / Region
-            </h2>
-            <div className="space-y-2">
+            </p>
+            <div className="rounded-3xl bg-white border border-primary-100/50 p-6 space-y-1">
               {data.byState.map(([state, count]) => (
                 <div
                   key={state}
-                  className="flex items-center justify-between py-1.5 border-b border-primary-100 last:border-0"
+                  className="flex items-center justify-between py-3 border-b border-primary-100/40 last:border-0"
                 >
-                  <span className="text-sm text-primary-800">{state}</span>
-                  <span className="text-sm font-medium text-primary-800 tabular-nums">
-                    {count} events
+                  <span className="text-sm text-primary-700 font-medium">{state}</span>
+                  <span className="text-sm font-bold text-primary-800 tabular-nums">
+                    {count}
                   </span>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.section>
         )}
 
-        {/* Top collectives */}
+        {/* ─── Top Collectives ─── */}
         {topCollectives && topCollectives.length > 0 && (
-          <div className="bg-white rounded-2xl border border-primary-100 p-5">
-            <h2 className="font-heading text-base font-semibold text-primary-800 mb-3 flex items-center gap-2">
-              <Trophy size={16} className="text-primary-400" />
-              Top Performing Collectives
-            </h2>
-            <div className="space-y-2">
+          <motion.section
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.55, duration: 0.4 }}
+            className="mx-5 mt-10"
+          >
+            <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4 flex items-center gap-2">
+              <Trophy size={14} className="text-primary-400/50" />
+              Top Collectives
+            </p>
+            <div className="rounded-3xl bg-white border border-primary-100/50 p-6 space-y-1">
               {topCollectives.map((c, i) => (
                 <div
                   key={c.id}
-                  className="flex items-center gap-3 py-2"
+                  className="flex items-center gap-4 py-3 border-b border-primary-100/40 last:border-0"
                 >
                   <span
                     className={cn(
-                      'flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold',
+                      'flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0',
                       i === 0
-                        ? 'bg-accent-100 text-primary-800'
-                        : 'bg-white text-primary-400',
+                        ? 'bg-bark-100 text-bark-700'
+                        : 'bg-primary-50 text-primary-500',
                     )}
                   >
                     {i + 1}
                   </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-primary-800 truncate">
-                      {c.name}
-                    </p>
-                  </div>
-                  <span className="text-sm text-primary-400 tabular-nums">
+                  <p className="flex-1 min-w-0 text-sm font-medium text-primary-800 truncate">
+                    {c.name}
+                  </p>
+                  <span className="text-xs text-primary-400/70 tabular-nums shrink-0">
                     {c.eventCount} events
                   </span>
                 </div>
               ))}
             </div>
-          </div>
+          </motion.section>
         )}
 
-        {/* Export */}
-        <div className="flex gap-3">
+        {/* ─── Export / Share ─── */}
+        <div className="mx-5 mt-10 flex gap-3">
           <Button
             variant="primary"
             icon={<Download size={16} />}
@@ -474,6 +497,30 @@ export default function NationalImpactPage() {
           </Button>
         </div>
       </div>
+  )
+
+  if (isAdmin) return content
+
+  return (
+    <Page
+      header={
+        <Header
+          title="National Impact"
+          back
+          rightActions={
+            <button
+              type="button"
+              onClick={shareLink}
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+              aria-label="Share"
+            >
+              <Share2 size={18} />
+            </button>
+          }
+        />
+      }
+    >
+      {content}
     </Page>
   )
 }

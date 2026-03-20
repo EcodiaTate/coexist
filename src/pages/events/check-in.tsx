@@ -38,8 +38,8 @@ const CONFETTI_COLORS = [
   'bg-primary-500',
   'bg-secondary-400',
   'bg-accent-400',
-  'bg-green-400',
-  'bg-amber-400',
+  'bg-success-400',
+  'bg-warning-400',
 ]
 
 function Confetti() {
@@ -398,7 +398,7 @@ export default function CheckInPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg bg-amber-50 text-amber-700 text-caption"
+                className="flex items-center gap-2 mt-3 px-3 py-2 rounded-lg bg-warning-50 text-warning-700 text-caption"
               >
                 <WifiOff size={14} />
                 Queued offline - will sync when you reconnect
@@ -464,8 +464,8 @@ export default function CheckInPage() {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center"
           >
-            <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
-              <XCircle size={32} className="text-red-600" />
+            <div className="w-16 h-16 rounded-full bg-error-100 flex items-center justify-center mb-4">
+              <XCircle size={32} className="text-error-600" />
             </div>
             <h2 className="font-heading text-xl font-bold text-primary-800">
               {errorKind === 'already_checked_in' ? 'Already Checked In' : 'Check-in Failed'}
@@ -547,7 +547,7 @@ export default function CheckInPage() {
 
             {/* Offline banner */}
             {isOffline && (
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 text-amber-700 text-sm font-medium mb-4">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-warning-50 text-warning-700 text-sm font-medium mb-4">
                 <WifiOff size={16} />
                 You're offline. Check-in will be queued and synced later.
               </div>
@@ -624,7 +624,7 @@ export default function CheckInPage() {
 
             {/* Offline notice */}
             {!isOffline && (
-              <div className="mt-6 flex items-start gap-2 p-3 rounded-lg bg-amber-50 text-amber-700 text-caption">
+              <div className="mt-6 flex items-start gap-2 p-3 rounded-lg bg-warning-50 text-warning-700 text-caption">
                 <AlertCircle size={16} className="shrink-0 mt-0.5" />
                 <span>
                   No signal? Check-in will be queued and synced when you're back online.

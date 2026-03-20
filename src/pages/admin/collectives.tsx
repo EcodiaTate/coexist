@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -12,7 +12,7 @@ import {
   Activity,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Skeleton } from '@/components/skeleton'
@@ -29,7 +29,7 @@ function useCollectives(search: string) {
     queryFn: async () => {
       let query = supabase
         .from('collectives')
-        .select('id, name, location_name, cover_image_url, is_archived, created_at' as any)
+        .select('id, name, slug, region, state, cover_image_url, is_active, created_at' as any)
         .order('name')
 
       if (search) {
@@ -79,9 +79,9 @@ function useCollectives(search: string) {
 }
 
 const healthColors = {
-  healthy: 'bg-green-100 text-green-700',
-  moderate: 'bg-amber-100 text-amber-700',
-  'needs-attention': 'bg-red-100 text-red-700',
+  healthy: 'bg-success-100 text-success-700',
+  moderate: 'bg-warning-100 text-warning-700',
+  'needs-attention': 'bg-error-100 text-error-700',
 }
 
 const healthLabels = {
@@ -101,11 +101,29 @@ export default function AdminCollectivesPage() {
 
   const { data: collectives, isLoading } = useCollectives(search)
 
+  const actions = useMemo(
+    () => (
+      <Button
+        variant="primary"
+        size="sm"
+        icon={<Plus size={16} />}
+        onClick={() => setShowCreate(true)}
+      >
+        Create
+      </Button>
+    ),
+    [setShowCreate],
+  )
+
+  useAdminHeader('Collectives', actions)
+
   const createMutation = useMutation({
     mutationFn: async () => {
+      const slug = newName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
       const { error } = await supabase.from('collectives').insert({
         name: newName,
-        location_name: newLocation,
+        slug,
+        region: newLocation || null,
       } as any)
       if (error) throw error
     },
@@ -123,7 +141,7 @@ export default function AdminCollectivesPage() {
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('collectives')
-        .update({ is_active: false } as any)
+        .update({ is_active: false })
         .eq('id', id)
       if (error) throw error
     },
@@ -136,19 +154,7 @@ export default function AdminCollectivesPage() {
   })
 
   return (
-    <AdminLayout
-      title="Collectives"
-      actions={
-        <Button
-          variant="primary"
-          size="sm"
-          icon={<Plus size={16} />}
-          onClick={() => setShowCreate(true)}
-        >
-          Create
-        </Button>
-      }
-    >
+    <>
       {/* Search */}
       <div className="mb-4">
         <Input
@@ -184,7 +190,7 @@ export default function AdminCollectivesPage() {
                 'flex items-center gap-4 p-4 rounded-xl',
                 'bg-white border border-primary-100 shadow-sm',
                 'hover:shadow-md transition-shadow duration-150',
-                c.is_archived && 'opacity-50',
+                !c.is_active && 'opacity-50',
               )}
             >
               {c.cover_image_url ? (
@@ -213,10 +219,10 @@ export default function AdminCollectivesPage() {
                     {healthLabels[c.health as keyof typeof healthLabels]}
                   </span>
                 </div>
-                {c.location_name && (
+                {(c.region || c.state) && (
                   <p className="text-xs text-primary-400 mt-0.5 flex items-center gap-1">
                     <MapPin size={12} />
-                    {c.location_name}
+                    {[c.region, c.state].filter(Boolean).join(', ')}
                   </p>
                 )}
                 <div className="flex items-center gap-3 mt-1 text-xs text-primary-400">
@@ -230,7 +236,7 @@ export default function AdminCollectivesPage() {
               </div>
 
               <div className="flex items-center gap-2 shrink-0">
-                {!c.is_archived && (
+                {c.is_active && (
                   <button
                     type="button"
                     onClick={(e) => {
@@ -293,6 +299,6 @@ export default function AdminCollectivesPage() {
         confirmLabel="Archive"
         variant="warning"
       />
-    </AdminLayout>
+    </>
   )
 }

@@ -10,7 +10,7 @@ import {
   Image as ImageIcon,
   FileText,
 } from 'lucide-react'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Avatar } from '@/components/avatar'
 import { TabBar } from '@/components/tab-bar'
@@ -37,10 +37,10 @@ interface ReportWithReporter extends ContentReport {
 /* ------------------------------------------------------------------ */
 
 const contentTypeConfig: Record<string, { icon: typeof FileText; label: string; color: string }> = {
-  post: { icon: FileText, label: 'Post', color: 'text-blue-600 bg-blue-100' },
-  photo: { icon: ImageIcon, label: 'Photo', color: 'text-purple-600 bg-purple-100' },
-  chat_message: { icon: MessageSquare, label: 'Chat Message', color: 'text-green-600 bg-green-100' },
-  comment: { icon: MessageSquare, label: 'Comment', color: 'text-amber-600 bg-amber-100' },
+  post: { icon: FileText, label: 'Post', color: 'text-info-600 bg-info-100' },
+  photo: { icon: ImageIcon, label: 'Photo', color: 'text-plum-600 bg-plum-100' },
+  chat_message: { icon: MessageSquare, label: 'Chat Message', color: 'text-success-600 bg-success-100' },
+  comment: { icon: MessageSquare, label: 'Comment', color: 'text-warning-600 bg-warning-100' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -152,11 +152,11 @@ function ReportCard({
               <span className={cn(
                 'text-xs px-2 py-0.5 rounded-full font-medium',
                 report.status === 'pending'
-                  ? 'bg-amber-100 text-amber-700'
+                  ? 'bg-warning-100 text-warning-700'
                   : report.status === 'approved'
-                    ? 'bg-green-100 text-green-700'
+                    ? 'bg-success-100 text-success-700'
                     : report.status === 'removed'
-                      ? 'bg-red-100 text-red-700'
+                      ? 'bg-error-100 text-error-700'
                       : 'bg-white text-primary-400',
               )}>
                 {report.status}
@@ -206,7 +206,7 @@ function ReportCard({
               size="sm"
               icon={<Check size={14} />}
               onClick={onApprove}
-              className="flex-1 !text-green-600 hover:!bg-green-50"
+              className="flex-1 !text-success-600 hover:!bg-success-50"
             >
               Approve
             </Button>
@@ -215,7 +215,7 @@ function ReportCard({
               size="sm"
               icon={<Trash2 size={14} />}
               onClick={() => setShowRemoveConfirm(true)}
-              className="flex-1 !text-red-600 hover:!bg-red-50"
+              className="flex-1 !text-error-600 hover:!bg-error-50"
             >
               Remove
             </Button>
@@ -256,6 +256,7 @@ const statusTabs = [
 ]
 
 export default function ModerationQueuePage() {
+  useAdminHeader('Content Moderation')
   const { toast } = useToast()
   const [activeStatus, setActiveStatus] = useState<Enums<'report_status'>>('pending')
   const { data: reports, isLoading, refetch } = useModerationQueue(activeStatus)
@@ -285,7 +286,7 @@ export default function ModerationQueuePage() {
   const isEmpty = !isLoading && (reports ?? []).length === 0
 
   return (
-    <AdminLayout title="Content Moderation">
+    <>
       <TabBar
         tabs={statusTabs}
         activeTab={activeStatus}
@@ -316,7 +317,7 @@ export default function ModerationQueuePage() {
             {/* Stats header for pending */}
             {activeStatus === 'pending' && (
               <div className="flex items-center gap-2 px-1">
-                <AlertTriangle size={14} className="text-amber-500" aria-hidden="true" />
+                <AlertTriangle size={14} className="text-warning-500" aria-hidden="true" />
                 <span className="text-sm font-medium text-primary-800">
                   {reports?.length ?? 0} report{(reports?.length ?? 0) !== 1 ? 's' : ''} pending review
                 </span>
@@ -335,6 +336,6 @@ export default function ModerationQueuePage() {
           </div>
         </PullToRefresh>
       )}
-    </AdminLayout>
+    </>
   )
 }

@@ -7,8 +7,6 @@ import {
   Calendar,
   Users,
   TreePine,
-  Clock,
-  Trash2,
   Megaphone,
   Target,
   Sparkles,
@@ -32,7 +30,6 @@ import {
   Page,
   PullToRefresh,
   Card,
-  StatCard,
   Avatar,
   Badge,
   Chip,
@@ -411,7 +408,7 @@ export default function HomePage() {
                 <Card.Root
                   variant="collective"
                   onClick={() =>
-                    navigate(`/community/${myCollective.data!.slug}`)
+                    navigate(`/collectives/${myCollective.data!.slug}`)
                   }
                   aria-label={myCollective.data.name}
                 >
@@ -481,41 +478,28 @@ export default function HomePage() {
             </Section>
           </motion.div>
 
-          {/* 6. Your Impact */}
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-            <Section title="Your Impact">
-              {impact.isLoading ? (
-                <div className="grid grid-cols-2 gap-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <Skeleton key={i} variant="stat-card" />
-                  ))}
+          {/* 6. Your Impact — compact CTA linking to full dashboard */}
+          {impact.data && (impact.data.events_attended > 0 || impact.data.trees_planted > 0) && (
+            <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+              <Link
+                to="/impact"
+                className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary-50/80 to-white border border-primary-100/60 p-5 active:scale-[0.98] transition-all duration-150"
+              >
+                <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-400/10 shrink-0">
+                  <TreePine size={22} className="text-primary-500" />
                 </div>
-              ) : impact.data ? (
-                <div className="grid grid-cols-2 gap-3">
-                  <StatCard
-                    value={impact.data.events_attended}
-                    label="Events attended"
-                    icon={<Calendar size={20} />}
-                  />
-                  <StatCard
-                    value={impact.data.trees_planted}
-                    label="Trees planted"
-                    icon={<TreePine size={20} />}
-                  />
-                  <StatCard
-                    value={impact.data.hours_volunteered}
-                    label="Hours volunteered"
-                    icon={<Clock size={20} />}
-                  />
-                  <StatCard
-                    value={impact.data.rubbish_kg}
-                    label="Rubbish collected (kg)"
-                    icon={<Trash2 size={20} />}
-                  />
+                <div className="flex-1 min-w-0">
+                  <p className="font-heading text-sm font-semibold text-primary-800">
+                    Your Impact
+                  </p>
+                  <p className="text-xs text-primary-400 mt-0.5">
+                    {impact.data.trees_planted} trees · {impact.data.events_attended} events · {impact.data.hours_volunteered}h volunteered
+                  </p>
                 </div>
-              ) : null}
-            </Section>
-          </motion.div>
+                <ChevronRight size={18} className="text-primary-300 shrink-0" />
+              </Link>
+            </motion.div>
+          )}
 
           {/* 7. National Challenge (active users: 5+ events) */}
           {!isActiveUser ? null : challenge.isLoading ? (
@@ -581,7 +565,7 @@ export default function HomePage() {
                       <Card.Root
                         key={c.id}
                         variant="collective"
-                        onClick={() => navigate(`/community/${c.slug}`)}
+                        onClick={() => navigate(`/collectives/${c.slug}`)}
                         className="shrink-0 w-44 snap-start"
                         aria-label={c.name}
                       >

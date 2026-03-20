@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   Users,
@@ -9,7 +9,7 @@ import {
   Clock,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { StatCard } from '@/components/stat-card'
 import { Skeleton } from '@/components/skeleton'
 import { Dropdown } from '@/components/dropdown'
@@ -204,36 +204,37 @@ export default function AdminDashboardPage() {
   const { data, isLoading } = useAdminOverview(dateRange)
   const { data: trends } = useTrendData()
 
+  const actions = useMemo(
+    () => (
+      <Dropdown
+        options={dateRangeOptions}
+        value={dateRange}
+        onChange={(v) => setDateRange(v as DateRange)}
+        className="w-40"
+      />
+    ),
+    [dateRange, setDateRange],
+  )
+
+  useAdminHeader('Dashboard', actions)
+
   if (isLoading) {
     return (
-      <AdminLayout title="Dashboard">
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
-          </div>
-          <Skeleton variant="card" />
-          <Skeleton variant="card" />
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <Skeleton variant="stat-card" />
+          <Skeleton variant="stat-card" />
+          <Skeleton variant="stat-card" />
+          <Skeleton variant="stat-card" />
         </div>
-      </AdminLayout>
+        <Skeleton variant="card" />
+        <Skeleton variant="card" />
+      </div>
     )
   }
 
   return (
-    <AdminLayout
-      title="Dashboard"
-      actions={
-        <Dropdown
-          options={dateRangeOptions}
-          value={dateRange}
-          onChange={(v) => setDateRange(v as DateRange)}
-          className="w-40"
-        />
-      }
-    >
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Primary stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard
@@ -274,7 +275,7 @@ export default function AdminDashboardPage() {
             value={data?.totalTrees ?? 0}
             label="Trees Planted"
             icon={<TreePine size={20} />}
-            className="from-green-50 to-green-100/50 border-green-100"
+            className="from-success-50 to-success-100/50 border-success-100"
           />
           <StatCard
             value={data?.totalRubbish ?? 0}
@@ -284,7 +285,7 @@ export default function AdminDashboardPage() {
                 &#9851;
               </span>
             }
-            className="from-blue-50 to-blue-100/50 border-blue-100"
+            className="from-info-50 to-info-100/50 border-info-100"
           />
           <StatCard
             value={data?.periodEvents ?? 0}
@@ -324,6 +325,5 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
   )
 }

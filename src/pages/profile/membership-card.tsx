@@ -17,11 +17,11 @@ interface MembershipCardProps {
 }
 
 const tierGradients: Record<TierName, string> = {
-  seedling: 'from-green-500 to-green-700',
-  sapling: 'from-emerald-500 to-emerald-700',
-  native: 'from-teal-500 to-teal-700',
-  canopy: 'from-primary-500 to-primary-700',
-  elder: 'from-amber-500 to-amber-700',
+  seedling: 'from-primary-400 to-primary-600',
+  sapling: 'from-primary-500 to-secondary-700',
+  native: 'from-secondary-600 to-secondary-800',
+  canopy: 'from-primary-600 to-primary-800',
+  elder: 'from-bark-500 to-bark-700',
 }
 
 const tierLabels: Record<TierName, string> = {

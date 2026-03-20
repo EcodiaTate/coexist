@@ -46,7 +46,7 @@ function ProductCard({ product, onClick }: { product: Product; onClick: () => vo
         )}
         {lowStock && inStock && (
           <Card.Badge position="top-right">
-            <span className="px-2 py-0.5 bg-amber-100 text-amber-800 text-xs font-semibold rounded-full">
+            <span className="px-2 py-0.5 bg-warning-100 text-warning-800 text-xs font-semibold rounded-full">
               Low stock
             </span>
           </Card.Badge>
@@ -61,7 +61,7 @@ function ProductCard({ product, onClick }: { product: Product; onClick: () => vo
           {product.avg_rating !== null && product.review_count > 0 && (
             <span className="flex items-center gap-0.5 text-xs text-primary-400">
               {Array.from({ length: Math.round(product.avg_rating) }).map((_, i) => (
-                <Star key={i} size={12} className="text-amber-400" fill="currentColor" />
+                <Star key={i} size={12} className="text-warning-400" fill="currentColor" />
               ))}
               {' '}({product.review_count})
             </span>

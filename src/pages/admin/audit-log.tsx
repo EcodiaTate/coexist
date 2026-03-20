@@ -3,7 +3,7 @@ import {
   Clock,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
 import { Skeleton } from '@/components/skeleton'
@@ -29,10 +29,10 @@ const actionTypeOptions = [
 ]
 
 const actionColors: Record<string, string> = {
-  user_deleted: 'text-red-600 bg-red-50',
-  user_suspended: 'text-amber-600 bg-amber-50',
-  role_changed: 'text-purple-600 bg-purple-50',
-  impersonation_started: 'text-red-600 bg-red-50',
+  user_deleted: 'text-error-600 bg-error-50',
+  user_suspended: 'text-warning-600 bg-warning-50',
+  role_changed: 'text-plum-600 bg-plum-50',
+  impersonation_started: 'text-error-600 bg-error-50',
   default: 'text-primary-400 bg-white',
 }
 
@@ -42,15 +42,15 @@ function useAuditLog(search: string, actionFilter: string, page: number) {
     queryKey: ['admin-audit-log', search, actionFilter, page],
     queryFn: async () => {
       let query = supabase
-        .from('audit_logs' as any)
-        .select('*, profiles!audit_logs_user_id_fkey(display_name, avatar_url)', {
+        .from('audit_log' as any)
+        .select('*, profiles!audit_log_user_id_fkey(display_name, avatar_url)', {
           count: 'exact',
         })
         .order('created_at', { ascending: false })
         .range(page * pageSize, (page + 1) * pageSize - 1)
 
       if (search) {
-        query = query.or(`action.ilike.%${search}%,details.ilike.%${search}%`)
+        query = query.ilike('action', `%${search}%`)
       }
 
       if (actionFilter && actionFilter !== 'all') {
@@ -66,6 +66,7 @@ function useAuditLog(search: string, actionFilter: string, page: number) {
 }
 
 export default function AdminAuditLogPage() {
+  useAdminHeader('Audit Log')
   const [search, setSearch] = useState('')
   const [actionFilter, setActionFilter] = useState('all')
   const [page, setPage] = useState(0)
@@ -75,7 +76,7 @@ export default function AdminAuditLogPage() {
   const totalPages = data ? Math.ceil(data.total / pageSize) : 0
 
   return (
-    <AdminLayout title="Audit Log">
+    <>
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="flex-1">
@@ -146,7 +147,7 @@ export default function AdminAuditLogPage() {
                     </div>
                     {log.details && (
                       <p className="text-xs text-primary-400 mt-0.5 line-clamp-2">
-                        {log.details}
+                        {typeof log.details === 'string' ? log.details : log.details?.message ?? JSON.stringify(log.details)}
                       </p>
                     )}
                     {log.target_type && log.target_id && (
@@ -205,6 +206,6 @@ export default function AdminAuditLogPage() {
           )}
         </>
       )}
-    </AdminLayout>
+    </>
   )
 }

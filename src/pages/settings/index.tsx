@@ -119,7 +119,7 @@ function MenuRow({
       <span
         className={cn(
           'flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mr-3',
-          danger ? 'bg-red-100 text-red-600' : 'bg-white text-primary-400',
+          danger ? 'bg-error-100 text-error-600' : 'bg-white text-primary-400',
         )}
         aria-hidden="true"
       >
@@ -129,7 +129,7 @@ function MenuRow({
         <span
           className={cn(
             'block text-sm font-medium truncate',
-            danger ? 'text-red-600' : 'text-primary-800',
+            danger ? 'text-error-600' : 'text-primary-800',
           )}
         >
           {label}

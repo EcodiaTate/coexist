@@ -6,7 +6,7 @@ import {
   CheckCircle,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -35,10 +35,12 @@ function useCharitySettings() {
 }
 
 export default function AdminCharityPage() {
+  useAdminHeader('Charity Settings')
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const { data: settings, isLoading } = useCharitySettings()
   const [saved, setSaved] = useState(false)
+  const shouldReduceMotion = useReducedMotion()
 
   const [form, setForm] = useState({
     abn: '',
@@ -83,19 +85,14 @@ export default function AdminCharityPage() {
 
   if (isLoading) {
     return (
-      <AdminLayout title="Charity Settings">
-        <div className="space-y-4 max-w-xl">
-          <Skeleton variant="text" count={6} />
-        </div>
-      </AdminLayout>
+      <div className="space-y-4 max-w-xl">
+        <Skeleton variant="text" count={6} />
+      </div>
     )
   }
 
-  const shouldReduceMotion = useReducedMotion()
-
   return (
-    <AdminLayout title="Charity Settings">
-      <motion.div
+    <motion.div
         className="max-w-xl space-y-6"
         initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -177,7 +174,6 @@ export default function AdminCharityPage() {
         >
           {saved ? 'Saved!' : 'Save Settings'}
         </Button>
-      </motion.div>
-    </AdminLayout>
+    </motion.div>
   )
 }

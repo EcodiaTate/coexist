@@ -28,8 +28,8 @@ describe('Badge', () => {
       </Badge>,
     )
     const badge = screen.getByRole('status')
-    expect(badge.className).toContain('bg-blue-100')
-    expect(badge.className).toContain('text-blue-800')
+    expect(badge.className).toContain('bg-sky-100')
+    expect(badge.className).toContain('text-sky-800')
   })
 
   it('applies tier-specific colors', () => {
@@ -39,7 +39,7 @@ describe('Badge', () => {
       </Badge>,
     )
     const badge = screen.getByRole('status')
-    expect(badge.className).toContain('bg-amber-100')
+    expect(badge.className).toContain('bg-bark-100')
   })
 
   it('renders with icon', () => {

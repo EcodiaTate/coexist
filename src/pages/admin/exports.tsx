@@ -12,7 +12,7 @@ import {
   BarChart3,
   Calendar,
 } from 'lucide-react'
-import { AdminLayout } from '@/components/admin-layout'
+import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Dropdown } from '@/components/dropdown'
 import { Input } from '@/components/input'
@@ -41,7 +41,7 @@ const exportTypes: ExportType[] = [
     description: 'Name, email, join date, events attended, total hours',
     icon: <Users size={20} />,
     formats: ['csv'],
-    color: 'bg-blue-50 border-blue-200 text-blue-600',
+    color: 'bg-primary-50 border-primary-200 text-primary-600',
   },
   {
     id: 'attendance',
@@ -49,7 +49,7 @@ const exportTypes: ExportType[] = [
     description: 'Per event: name, checked in Y/N, time',
     icon: <CalendarDays size={20} />,
     formats: ['csv'],
-    color: 'bg-purple-50 border-purple-200 text-purple-600',
+    color: 'bg-moss-50 border-moss-200 text-moss-600',
   },
   {
     id: 'impact-pdf',
@@ -57,7 +57,7 @@ const exportTypes: ExportType[] = [
     description: 'Branded template with charts and summary stats',
     icon: <TreePine size={20} />,
     formats: ['pdf'],
-    color: 'bg-green-50 border-green-200 text-green-600',
+    color: 'bg-secondary-50 border-secondary-200 text-secondary-600',
   },
   {
     id: 'impact-csv',
@@ -65,7 +65,7 @@ const exportTypes: ExportType[] = [
     description: 'Raw impact data per event for analysis',
     icon: <BarChart3 size={20} />,
     formats: ['csv'],
-    color: 'bg-green-50 border-green-200 text-green-600',
+    color: 'bg-primary-50 border-primary-200 text-primary-500',
   },
   {
     id: 'survey',
@@ -73,7 +73,7 @@ const exportTypes: ExportType[] = [
     description: 'All survey responses with question data',
     icon: <ClipboardList size={20} />,
     formats: ['csv'],
-    color: 'bg-amber-50 border-amber-200 text-amber-600',
+    color: 'bg-plum-50 border-plum-200 text-plum-600',
   },
   {
     id: 'financial',
@@ -81,7 +81,7 @@ const exportTypes: ExportType[] = [
     description: 'All donations received with donor details',
     icon: <DollarSign size={20} />,
     formats: ['csv'],
-    color: 'bg-white border-primary-200 text-primary-400',
+    color: 'bg-bark-50 border-bark-200 text-bark-600',
   },
   {
     id: 'orders',
@@ -89,7 +89,7 @@ const exportTypes: ExportType[] = [
     description: 'Order list for fulfilment with shipping details',
     icon: <ShoppingBag size={20} />,
     formats: ['csv'],
-    color: 'bg-white border-secondary-200 text-primary-400',
+    color: 'bg-moss-50 border-moss-200 text-moss-700',
   },
   {
     id: 'charity-annual',
@@ -97,7 +97,7 @@ const exportTypes: ExportType[] = [
     description: 'ACNC-formatted annual report for compliance',
     icon: <FileText size={20} />,
     formats: ['pdf'],
-    color: 'bg-red-50 border-red-200 text-red-600',
+    color: 'bg-secondary-50 border-secondary-200 text-secondary-500',
   },
   {
     id: 'reconciliation',
@@ -105,7 +105,7 @@ const exportTypes: ExportType[] = [
     description: 'Compare Stripe payments vs Supabase records',
     icon: <Receipt size={20} />,
     formats: ['csv'],
-    color: 'bg-white border-primary-200 text-primary-400',
+    color: 'bg-bark-50 border-bark-200 text-bark-700',
   },
   {
     id: 'gst',
@@ -113,7 +113,7 @@ const exportTypes: ExportType[] = [
     description: 'Australian GST on merch sales, BAS-ready format',
     icon: <Receipt size={20} />,
     formats: ['csv'],
-    color: 'bg-white border-primary-200 text-primary-400',
+    color: 'bg-plum-50 border-plum-200 text-plum-500',
   },
   {
     id: 'donation-tax',
@@ -121,7 +121,7 @@ const exportTypes: ExportType[] = [
     description: 'Annual summary of tax-deductible donations per donor (DGR)',
     icon: <DollarSign size={20} />,
     formats: ['csv', 'pdf'],
-    color: 'bg-white border-primary-200 text-primary-400',
+    color: 'bg-primary-50 border-primary-200 text-primary-600',
   },
 ]
 
@@ -164,6 +164,7 @@ function downloadCsv(csv: string, filename: string) {
 /* ------------------------------------------------------------------ */
 
 export default function AdminExportsPage() {
+  useAdminHeader('Export Centre')
   const [dateStart, setDateStart] = useState('')
   const [dateEnd, setDateEnd] = useState('')
   const [scope, setScope] = useState('national')
@@ -219,18 +220,18 @@ export default function AdminExportsPage() {
         )
       } else if (exportId === 'impact-csv') {
         let query = supabase
-          .from('impact_logs' as any)
-          .select('event_id, trees_planted, volunteer_hours, rubbish_kg, area_restored_m2, created_at, events(title)')
-          .order('created_at', { ascending: false })
-        if (dateStart) query = query.gte('created_at', dateStart)
-        if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
+          .from('event_impact' as any)
+          .select('event_id, trees_planted, hours_total, rubbish_kg, area_restored_sqm, logged_at, events(title)')
+          .order('logged_at', { ascending: false })
+        if (dateStart) query = query.gte('logged_at', dateStart)
+        if (dateEnd) query = query.lte('logged_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
           ['Event', 'Trees', 'Hours', 'Rubbish (kg)', 'Area Restored (m2)', 'Date'],
           (data ?? []).map((r: any) => [
             r.events?.title ?? r.event_id, r.trees_planted ?? 0,
-            r.volunteer_hours ?? 0, r.rubbish_kg ?? 0, r.area_restored_m2 ?? 0, r.created_at,
+            r.hours_total ?? 0, r.rubbish_kg ?? 0, r.area_restored_sqm ?? 0, r.logged_at,
           ]),
         )
       } else if (exportId === 'survey') {
@@ -350,8 +351,7 @@ export default function AdminExportsPage() {
   }
 
   return (
-    <AdminLayout title="Export Centre">
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-3 p-4 bg-white rounded-xl border border-primary-100">
           <div className="flex items-center gap-2 text-sm text-primary-400 shrink-0">
@@ -429,7 +429,6 @@ export default function AdminExportsPage() {
             </StaggeredItem>
           ))}
         </StaggeredList>
-      </div>
-    </AdminLayout>
+    </div>
   )
 }

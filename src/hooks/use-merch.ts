@@ -117,6 +117,39 @@ export function useProductStock(productId: string | undefined) {
 /*  Promo code validation                                              */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/*  Shipping config                                                    */
+/* ------------------------------------------------------------------ */
+
+export function useShippingConfig() {
+  return useQuery({
+    queryKey: ['shipping-config'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shipping_config' as any)
+        .select('*')
+      if (error) throw error
+
+      const config: ShippingConfig = {
+        flat_rate_cents: 995,
+        free_shipping_threshold_cents: null,
+      }
+      for (const row of (data ?? []) as any[]) {
+        if (row.key === 'flat_rate_cents') config.flat_rate_cents = parseInt(row.value) || 995
+        if (row.key === 'free_shipping_threshold_cents') {
+          config.free_shipping_threshold_cents = row.value ? parseInt(row.value) || null : null
+        }
+      }
+      return config
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Promo code validation                                              */
+/* ------------------------------------------------------------------ */
+
 /** Validate a promo code (called imperatively) */
 export async function validatePromoCode(code: string) {
   const { data, error } = await supabase
