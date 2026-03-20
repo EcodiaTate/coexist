@@ -77,8 +77,10 @@ export function Page({
           !isDesktopNav && 'overflow-y-auto overflow-x-hidden overscroll-contain',
           // Small gap between sidebar and page content on desktop
           isDesktopNav && 'pl-4',
-          // Pad bottom for bottom tab bar + safe area
-          hasBottomTabs && 'pb-[calc(3.5rem+var(--safe-bottom))]',
+          // Pad bottom for bottom tab bar + safe area + home indicator
+          hasBottomTabs
+            ? 'pb-[calc(3.5rem+var(--safe-bottom))]'
+            : 'pb-[var(--safe-bottom)]',
           className,
         )}
       >

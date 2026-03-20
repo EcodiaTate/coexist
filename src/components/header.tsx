@@ -36,7 +36,6 @@ export function Header({
     <header
       className={cn(
         'sticky top-0 z-40',
-        'flex items-center h-14',
         'px-4',
         transparent
           ? 'bg-transparent'
@@ -48,6 +47,7 @@ export function Header({
       }}
       aria-label={`${title} page header`}
     >
+      <div className="flex items-center h-14">
       {/* Left zone: back button */}
       <div className="flex items-center shrink-0 w-10">
         {back && (
@@ -86,6 +86,7 @@ export function Header({
       {/* Right zone: actions */}
       <div className="flex items-center shrink-0 w-10 justify-end">
         {rightActions}
+      </div>
       </div>
     </header>
   )
