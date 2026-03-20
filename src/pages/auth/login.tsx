@@ -94,7 +94,7 @@ export default function LoginPage() {
         variants={shouldReduceMotion ? undefined : stagger}
         initial="initial"
         animate="animate"
-        className="relative flex-1 flex flex-col"
+        className="relative flex-1 flex flex-col max-w-md w-full mx-auto"
       >
         {/* Top section - back button + branding */}
         <div
