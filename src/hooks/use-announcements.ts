@@ -139,7 +139,19 @@ export function useMarkAnnouncementRead() {
 
       if (error) throw error
     },
-    onSuccess: () => {
+    onMutate: async (announcementId) => {
+      await queryClient.cancelQueries({ queryKey: ['announcements'] })
+      const previous = queryClient.getQueryData<AnnouncementWithAuthor[]>(['announcements', user?.id])
+      queryClient.setQueryData<AnnouncementWithAuthor[]>(['announcements', user?.id], (old) => {
+        if (!old) return old
+        return old.map(a => a.id === announcementId ? { ...a, is_read: true } : a)
+      })
+      return { previous }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previous) queryClient.setQueryData(['announcements', user?.id], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] })
       queryClient.invalidateQueries({ queryKey: ['announcements-unread'] })
     },

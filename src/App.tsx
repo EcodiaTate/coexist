@@ -111,6 +111,7 @@ const ModerationQueuePage = lazy(() => import('@/pages/admin/moderation/index'))
 // Admin - Dashboards & Management
 const AdminDashboardPage = lazy(() => import('@/pages/admin/index'))
 const AdminCollectivesPage = lazy(() => import('@/pages/admin/collectives'))
+const AdminCollectiveDetailPage = lazy(() => import('@/pages/admin/collective-detail'))
 const AdminUsersPage = lazy(() => import('@/pages/admin/users'))
 const AdminEventsPage = lazy(() => import('@/pages/admin/events'))
 const AdminPartnersPage = lazy(() => import('@/pages/admin/partners'))
@@ -810,6 +811,7 @@ function App() {
         >
           <Route index element={<AdminDashboardPage />} />
           <Route path="collectives" element={<AdminCollectivesPage />} />
+          <Route path="collectives/:collectiveId" element={<AdminCollectiveDetailPage />} />
           <Route path="users" element={<AdminUsersPage />} />
           <Route path="events" element={<AdminEventsPage />} />
           <Route path="partners" element={<AdminPartnersPage />} />

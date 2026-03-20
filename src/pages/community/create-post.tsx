@@ -15,6 +15,20 @@ import { useImageUpload } from '@/hooks/use-image-upload'
 import { compressImage } from '@/lib/image-utils'
 
 /* ------------------------------------------------------------------ */
+/*  Animation variants                                                 */
+/* ------------------------------------------------------------------ */
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
+/* ------------------------------------------------------------------ */
 /*  Create post page                                                   */
 /* ------------------------------------------------------------------ */
 
@@ -102,9 +116,14 @@ export default function CreatePostPage() {
         />
       }
     >
-      <div className="flex-1 pt-4">
+      <motion.div
+        className="flex-1 pt-4"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Author row */}
-        <div className="flex items-center gap-3 mb-4">
+        <motion.div variants={fadeUp} className="flex items-center gap-3 mb-4">
           <Avatar
             src={profile?.avatar_url}
             name={profile?.display_name ?? 'You'}
@@ -120,10 +139,10 @@ export default function CreatePostPage() {
               </p>
             )}
           </div>
-        </div>
+        </motion.div>
 
         {/* Caption */}
-        <div className="rounded-2xl bg-white border border-primary-100 p-4 mb-3">
+        <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-4 mb-3">
           <textarea
             value={caption}
             onChange={(e) => setCaption(e.target.value)}
@@ -141,7 +160,7 @@ export default function CreatePostPage() {
           />
 
           {/* Character count */}
-          <div className="flex justify-end pt-2 border-t border-primary-50">
+          <div className="flex justify-end pt-2">
             <span className={cn(
               'text-xs',
               caption.length > 1800 ? 'text-warning' : 'text-primary-300',
@@ -149,7 +168,7 @@ export default function CreatePostPage() {
               {caption.length}/2000
             </span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Image previews */}
         {previews.length > 0 && (
@@ -195,7 +214,7 @@ export default function CreatePostPage() {
         />
 
         {/* Action buttons */}
-        <div className="flex gap-3 mt-2">
+        <motion.div variants={fadeUp} className="flex gap-3 mt-2">
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -203,7 +222,7 @@ export default function CreatePostPage() {
             className={cn(
               'flex-1 flex flex-col items-center justify-center gap-2 min-h-11',
               'py-5 rounded-2xl',
-              'bg-primary-50 border-2 border-primary-100',
+              'bg-primary-50 shadow-sm',
               'active:scale-[0.97] transition-all duration-150',
               'cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
@@ -227,7 +246,7 @@ export default function CreatePostPage() {
             className={cn(
               'flex-1 flex flex-col items-center justify-center gap-2 min-h-11',
               'py-5 rounded-2xl',
-              'bg-white border-2 border-primary-100',
+              'bg-white shadow-sm',
               'opacity-40 cursor-not-allowed select-none',
             )}
           >
@@ -243,7 +262,7 @@ export default function CreatePostPage() {
             className={cn(
               'flex-1 flex flex-col items-center justify-center gap-2 min-h-11',
               'py-5 rounded-2xl',
-              'bg-white border-2 border-primary-100',
+              'bg-white shadow-sm',
               'opacity-40 cursor-not-allowed select-none',
             )}
           >
@@ -252,7 +271,7 @@ export default function CreatePostPage() {
             </div>
             <span className="text-xs font-semibold text-primary-400">Tag People</span>
           </button>
-        </div>
+        </motion.div>
 
         {/* Hidden file input */}
         <input
@@ -267,7 +286,7 @@ export default function CreatePostPage() {
 
         {/* Bottom buffer */}
         <div className="h-24" />
-      </div>
+      </motion.div>
     </Page>
   )
 }

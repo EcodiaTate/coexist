@@ -7,6 +7,21 @@ import { Button } from '@/components/button'
 import { UploadProgress } from '@/components/upload-progress'
 import { cn } from '@/lib/cn'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
+const springScale = {
+  hidden: { opacity: 0, scale: 0.7 },
+  visible: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 200, damping: 15 } },
+}
+
 interface StepProfilePhotoProps {
   avatarUrl: string | null
   onUpload: (url: string) => void
@@ -36,15 +51,21 @@ export function StepProfilePhoto({ avatarUrl, onUpload, onNext, onSkip }: StepPr
 
   return (
     <div className="flex-1 flex flex-col px-6 pt-8">
-      <div className="flex-1 flex flex-col items-center">
-        <h2 className="font-heading text-2xl font-bold text-primary-800 text-center">
+      <motion.div
+        className="flex-1 flex flex-col items-center"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800 text-center">
           Add a profile photo
-        </h2>
-        <p className="mt-2 text-primary-400 text-center max-w-xs">
+        </motion.h2>
+        <motion.p variants={fadeUp} className="mt-2 text-primary-400 text-center max-w-xs">
           Show your collective who you are. You can always change this later.
-        </p>
+        </motion.p>
 
         <motion.button
+          variants={springScale}
           type="button"
           onClick={() => fileInputRef.current?.click()}
           whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
@@ -75,10 +96,10 @@ export function StepProfilePhoto({ avatarUrl, onUpload, onNext, onSkip }: StepPr
           aria-hidden="true"
         />
 
-        <div className="mt-4 w-40">
+        <motion.div variants={fadeUp} className="mt-4 w-40">
           <UploadProgress progress={progress} uploading={uploading} error={error} />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       <div
         className="py-6 space-y-3"

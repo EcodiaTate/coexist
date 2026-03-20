@@ -169,7 +169,16 @@ export function useUpdateProfile() {
         .eq('id', user.id)
       if (error) throw error
     },
-    onSuccess: () => {
+    onMutate: async (updates) => {
+      await queryClient.cancelQueries({ queryKey: ['profile', user?.id] })
+      const previous = queryClient.getQueryData(['profile', user?.id])
+      queryClient.setQueryData(['profile', user?.id], (old: any) => old ? { ...old, ...updates } : old)
+      return { previous }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previous) queryClient.setQueryData(['profile', user?.id], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] })
       refreshProfile()
     },

@@ -495,7 +495,7 @@ export default function CheckInPage() {
             animate={{ opacity: 1 }}
             className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center"
           >
-            <div className="relative w-64 h-64 rounded-2xl border-2 border-dashed border-primary-300 bg-white flex items-center justify-center mb-6">
+            <div className="relative w-64 h-64 rounded-2xl bg-primary-50/60 shadow-sm flex items-center justify-center mb-6">
               <Camera size={48} className="text-primary-300" />
               {/* Scanning animation line */}
               <motion.div

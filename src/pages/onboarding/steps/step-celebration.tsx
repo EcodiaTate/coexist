@@ -4,6 +4,16 @@ import { PartyPopper, Leaf, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/button'
 import { APP_NAME } from '@/lib/constants'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 interface StepCelebrationProps {
   onContinue: () => void
 }
@@ -47,7 +57,12 @@ export function StepCelebration({ onContinue }: StepCelebrationProps) {
   }, [showConfetti])
 
   return (
-    <div className="min-h-dvh flex flex-col items-center justify-center px-6 bg-white relative overflow-hidden">
+    <motion.div
+      className="min-h-dvh flex flex-col items-center justify-center px-6 bg-white relative overflow-hidden"
+      variants={shouldReduceMotion ? undefined : stagger}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Confetti */}
       {showConfetti && (
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -58,9 +73,10 @@ export function StepCelebration({ onContinue }: StepCelebrationProps) {
       )}
 
       <motion.div
-        initial={shouldReduceMotion ? false : { scale: 0.5, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
+        variants={{
+          hidden: { scale: 0.5, opacity: 0 },
+          visible: { scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 200, damping: 15 } },
+        }}
       >
         <div className="w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center">
           <PartyPopper className="w-12 h-12 text-primary-400" />
@@ -68,27 +84,21 @@ export function StepCelebration({ onContinue }: StepCelebrationProps) {
       </motion.div>
 
       <motion.h1
-        initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        variants={fadeUp}
         className="mt-8 font-heading text-3xl font-bold text-primary-800 text-center"
       >
         You're all set!
       </motion.h1>
 
       <motion.p
-        initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
+        variants={fadeUp}
         className="mt-3 text-primary-400 text-center max-w-xs leading-relaxed"
       >
         Welcome to {APP_NAME}. You're now part of a movement protecting Australia's environment.
       </motion.p>
 
       <motion.div
-        initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9 }}
+        variants={fadeUp}
         className="mt-4 flex items-center gap-2 text-primary-400"
       >
         <Leaf size={16} />
@@ -97,9 +107,7 @@ export function StepCelebration({ onContinue }: StepCelebrationProps) {
       </motion.div>
 
       <motion.div
-        initial={shouldReduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
+        variants={fadeUp}
         className="mt-12 w-full max-w-sm"
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >
@@ -113,6 +121,6 @@ export function StepCelebration({ onContinue }: StepCelebrationProps) {
           Let's go
         </Button>
       </motion.div>
-    </div>
+    </motion.div>
   )
 }

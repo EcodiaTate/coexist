@@ -117,9 +117,9 @@ function EditCollectiveSheet({
             placeholder="Tell people what your collective is about..."
             rows={4}
             className={cn(
-              'mt-1 w-full rounded-xl border border-primary-200 bg-white px-3 py-2.5 text-sm text-primary-800',
+              'mt-1 w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
               'placeholder:text-primary-400',
-              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
+              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
               'resize-none',
             )}
           />
@@ -214,6 +214,23 @@ export default function CollectiveManagePage() {
   const updateCollective = useUpdateCollective()
   const removeMember = useRemoveMember()
   const updateRole = useUpdateMemberRole()
+
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
+  const listStagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.03 } },
+  }
 
   const [searchQuery, setSearchQuery] = useState('')
   const [showEdit, setShowEdit] = useState(false)
@@ -320,9 +337,9 @@ export default function CollectiveManagePage() {
         />
       }
     >
-      <div className="space-y-6 py-4">
+      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="space-y-6 py-4">
         {/* Collective info card */}
-        <div className="rounded-2xl bg-white p-4 shadow-sm">
+        <motion.div variants={fadeUp} className="rounded-2xl bg-white p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-primary-100">
               {collective.cover_image_url ? (
@@ -350,10 +367,10 @@ export default function CollectiveManagePage() {
               Edit
             </Button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Member search */}
-        <div>
+        <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider">
               Members ({members.length})
@@ -372,22 +389,24 @@ export default function CollectiveManagePage() {
               placeholder="Search members..."
               aria-label="Search members"
               className={cn(
-                'w-full rounded-xl border border-primary-200 bg-white py-2 pl-9 pr-3 text-sm text-primary-800',
+                'w-full rounded-xl bg-primary-50/50 py-2 pl-9 pr-3 text-sm text-primary-800',
                 'placeholder:text-primary-400',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
+                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
               )}
             />
           </div>
 
           {/* Member list */}
-          <div className="space-y-1">
+          <motion.div variants={shouldReduceMotion ? undefined : listStagger} initial="hidden" animate="visible" className="space-y-1">
             {filteredMembers.map((member) => {
               const Icon = ROLE_ICONS[member.role]
               const isCurrentUser = member.user_id === user?.id
 
               return (
-                <div
+                <motion.div
                   key={member.id}
+                  variants={fadeUp}
+                  layout
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-primary-50 transition-colors"
                 >
                   {/* Avatar - tappable to user card */}
@@ -448,12 +467,12 @@ export default function CollectiveManagePage() {
                       </button>
                     </div>
                   )}
-                </div>
+                </motion.div>
               )
             })}
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Edit collective sheet */}
       <EditCollectiveSheet

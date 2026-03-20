@@ -42,7 +42,7 @@ function QrCodeDisplay({ eventId, title }: { eventId: string; title: string }) {
 
   return (
     <div className="flex flex-col items-center py-6">
-      <div className="w-56 h-56 rounded-2xl bg-white border-2 border-primary-200 flex items-center justify-center shadow-md p-4">
+      <div className="w-56 h-56 rounded-2xl bg-white shadow-md flex items-center justify-center p-4">
         <QRCodeSVG
           value={`coexist://event/${eventId}`}
           size={192}
@@ -88,7 +88,7 @@ function AttendeeRow({
       layout
       className={cn(
         'flex items-center gap-3 px-4 py-3',
-        'border-b border-primary-100 last:border-b-0',
+        'border-b border-primary-100/40 last:border-b-0',
       )}
     >
       <Avatar
@@ -144,6 +144,16 @@ export default function EventDayPage() {
 
   const checkIn = useCheckIn()
   const bulkCheckIn = useBulkCheckIn()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
 
   const [searchQuery, setSearchQuery] = useState('')
   const [showQr, setShowQr] = useState(false)
@@ -241,19 +251,19 @@ export default function EventDayPage() {
         </div>
       }
     >
-      <div className="pt-4 pb-6">
+      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="pt-4 pb-6">
         {/* Event header */}
-        <div className="mb-4">
+        <motion.div variants={fadeUp} className="mb-4">
           <h2 className="font-heading text-lg font-bold text-primary-800">
             {event.title}
           </h2>
           <p className="text-caption text-primary-400 mt-0.5">
             {formatEventDate(event.date_start)}
           </p>
-        </div>
+        </motion.div>
 
         {/* Stats row */}
-        <div className="grid grid-cols-3 gap-3 mb-5">
+        <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3 mb-5">
           <div className="rounded-xl bg-white p-3 text-center">
             <p className="text-xl font-bold text-primary-400">{stats.registered}</p>
             <p className="text-caption text-primary-400">Registered</p>
@@ -266,11 +276,11 @@ export default function EventDayPage() {
             <p className="text-xl font-bold text-warning-700">{stats.waitlisted}</p>
             <p className="text-caption text-warning-600">Waitlisted</p>
           </div>
-        </div>
+        </motion.div>
 
         {/* Live count bar */}
         {stats.registered > 0 && (
-          <div className="mb-5">
+          <motion.div variants={fadeUp} className="mb-5">
             <div className="flex items-center justify-between text-caption mb-1">
               <span className="text-primary-400">Check-in progress</span>
               <span className="font-semibold text-primary-800">
@@ -285,11 +295,11 @@ export default function EventDayPage() {
                 transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.6, ease: 'easeOut' }}
               />
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Search */}
-        <div className="relative mb-3">
+        <motion.div variants={fadeUp} className="relative mb-3">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 pointer-events-none">
             <Search size={18} />
           </span>
@@ -299,15 +309,16 @@ export default function EventDayPage() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={cn(
-              'w-full rounded-lg border border-primary-200 bg-white',
+              'w-full rounded-lg bg-primary-50/50',
               'pl-10 pr-4 py-2.5 text-[16px]',
-              'focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
+              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
               'placeholder:text-primary-400',
             )}
           />
-        </div>
+        </motion.div>
 
         {/* Attendee list */}
+        <motion.div variants={fadeUp}>
         {filteredAttendees.length === 0 ? (
           <EmptyState
             illustration="search"
@@ -315,7 +326,7 @@ export default function EventDayPage() {
             description={searchQuery ? 'Try a different search' : 'No one has registered yet'}
           />
         ) : (
-          <div className="rounded-xl border border-primary-200 overflow-hidden">
+          <div className="rounded-xl shadow-sm overflow-hidden">
             {filteredAttendees.map((attendee) => (
               <AttendeeRow
                 key={attendee.user_id}
@@ -326,9 +337,10 @@ export default function EventDayPage() {
             ))}
           </div>
         )}
+        </motion.div>
 
         {/* Post-event action */}
-        <div className="mt-6">
+        <motion.div variants={fadeUp} className="mt-6">
           <Button
             variant="secondary"
             fullWidth
@@ -337,8 +349,8 @@ export default function EventDayPage() {
           >
             Log Impact Data
           </Button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
 
       {/* QR Code bottom sheet */}
       <BottomSheet

@@ -467,7 +467,23 @@ export function useRegisterForEvent() {
         }
       }
     },
-    onSuccess: (_, { eventId }) => {
+    onMutate: async ({ eventId, asWaitlist }) => {
+      await queryClient.cancelQueries({ queryKey: ['event', eventId] })
+      const previousEvent = queryClient.getQueryData(['event', eventId, user?.id])
+      queryClient.setQueryData(['event', eventId, user?.id], (old: EventDetailData | undefined) => {
+        if (!old) return old
+        return {
+          ...old,
+          registration_count: old.registration_count + (asWaitlist ? 0 : 1),
+          user_registration: { event_id: eventId, user_id: user!.id, status: asWaitlist ? 'waitlisted' : 'registered', checked_in_at: null, registered_at: new Date().toISOString() } as EventRegistration,
+        }
+      })
+      return { previousEvent }
+    },
+    onError: (_err, { eventId }, context) => {
+      if (context?.previousEvent) queryClient.setQueryData(['event', eventId, user?.id], context.previousEvent)
+    },
+    onSettled: (_, __, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
@@ -490,7 +506,31 @@ export function useCancelRegistration() {
         .eq('user_id', user.id)
       if (error) throw error
     },
-    onSuccess: (_, eventId) => {
+    onMutate: async (eventId: string) => {
+      // Cancel outgoing refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['my-events'] })
+
+      // Snapshot previous value for rollback
+      const previousUpcoming = queryClient.getQueryData<MyEventItem[]>(['my-events', 'upcoming'])
+
+      // Optimistically remove the event from the upcoming list
+      if (previousUpcoming) {
+        queryClient.setQueryData<MyEventItem[]>(
+          ['my-events', 'upcoming'],
+          previousUpcoming.filter((e) => e.id !== eventId),
+        )
+      }
+
+      return { previousUpcoming }
+    },
+    onError: (_err, _eventId, context) => {
+      // Rollback on failure
+      if (context?.previousUpcoming) {
+        queryClient.setQueryData(['my-events', 'upcoming'], context.previousUpcoming)
+      }
+    },
+    onSettled: (_, __, eventId) => {
+      // Always refetch after error or success to ensure server state
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
@@ -518,7 +558,19 @@ export function useCheckIn() {
         .eq('user_id', userId)
       if (error) throw error
     },
-    onSuccess: (_, { eventId }) => {
+    onMutate: async ({ eventId, userId }) => {
+      await queryClient.cancelQueries({ queryKey: ['event-attendees', eventId] })
+      const previous = queryClient.getQueryData<AttendeeWithStatus[]>(['event-attendees', eventId])
+      queryClient.setQueryData<AttendeeWithStatus[]>(['event-attendees', eventId], (old) => {
+        if (!old) return old
+        return old.map(a => a.user_id === userId ? { ...a, status: 'attended' as const, checked_in_at: new Date().toISOString() } : a)
+      })
+      return { previous }
+    },
+    onError: (_err, { eventId }, context) => {
+      if (context?.previous) queryClient.setQueryData(['event-attendees', eventId], context.previous)
+    },
+    onSettled: (_, __, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
@@ -541,7 +593,19 @@ export function useBulkCheckIn() {
         .eq('status', 'registered')
       if (error) throw error
     },
-    onSuccess: (_, eventId) => {
+    onMutate: async (eventId) => {
+      await queryClient.cancelQueries({ queryKey: ['event-attendees', eventId] })
+      const previous = queryClient.getQueryData<AttendeeWithStatus[]>(['event-attendees', eventId])
+      queryClient.setQueryData<AttendeeWithStatus[]>(['event-attendees', eventId], (old) => {
+        if (!old) return old
+        return old.map(a => a.status === 'registered' ? { ...a, status: 'attended' as const, checked_in_at: new Date().toISOString() } : a)
+      })
+      return { previous }
+    },
+    onError: (_err, eventId, context) => {
+      if (context?.previous) queryClient.setQueryData(['event-attendees', eventId], context.previous)
+    },
+    onSettled: (_, __, eventId) => {
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
     },
@@ -568,8 +632,14 @@ export function useCreateEvent() {
       if (error) throw error
       return data as Event
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['collective-events', data.collective_id] })
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['collective-events'] })
+      await queryClient.cancelQueries({ queryKey: ['nearby-events'] })
+    },
+    onSettled: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ['collective-events', data.collective_id] })
+      }
       queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
     },
@@ -590,9 +660,16 @@ export function useUpdateEvent() {
       if (error) throw error
       return data as Event
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['event', data.id] })
-      queryClient.invalidateQueries({ queryKey: ['collective-events', data.collective_id] })
+    onMutate: async ({ eventId }) => {
+      await queryClient.cancelQueries({ queryKey: ['event', eventId] })
+      await queryClient.cancelQueries({ queryKey: ['collective-events'] })
+      await queryClient.cancelQueries({ queryKey: ['nearby-events'] })
+    },
+    onSettled: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ['event', data.id] })
+        queryClient.invalidateQueries({ queryKey: ['collective-events', data.collective_id] })
+      }
       queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
     },
   })
@@ -642,7 +719,10 @@ export function useCancelEvent() {
         }
       }
     },
-    onSuccess: (_, { eventId }) => {
+    onMutate: async ({ eventId }) => {
+      await queryClient.cancelQueries({ queryKey: ['event', eventId] })
+    },
+    onSettled: (_, __, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
@@ -679,8 +759,13 @@ export function useDuplicateEvent() {
       if (error) throw error
       return data as Event
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['collective-events', data.collective_id] })
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['collective-events'] })
+    },
+    onSettled: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ['collective-events', data.collective_id] })
+      }
     },
   })
 }
@@ -708,9 +793,14 @@ export function useLogImpact() {
       if (error) throw error
       return data as EventImpact
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['event-impact', data.event_id] })
-      queryClient.invalidateQueries({ queryKey: ['event', data.event_id] })
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['event-impact'] })
+    },
+    onSettled: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ['event-impact', data.event_id] })
+        queryClient.invalidateQueries({ queryKey: ['event', data.event_id] })
+      }
       queryClient.invalidateQueries({ queryKey: ['home', 'impact-stats'] })
     },
   })
@@ -798,7 +888,11 @@ export function useInviteCollective() {
         }
       }
     },
-    onSuccess: (_, { eventId }) => {
+    onMutate: async ({ eventId }) => {
+      await queryClient.cancelQueries({ queryKey: ['event', eventId] })
+      await queryClient.cancelQueries({ queryKey: ['event-attendees', eventId] })
+    },
+    onSettled: (_, __, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
     },
@@ -847,7 +941,23 @@ export function usePromoteFromWaitlist() {
         }).catch(console.error)
       }
     },
-    onSuccess: (_, { eventId }) => {
+    onMutate: async ({ eventId, userId }) => {
+      await queryClient.cancelQueries({ queryKey: ['event-waitlist', eventId] })
+      await queryClient.cancelQueries({ queryKey: ['event-attendees', eventId] })
+      const previousWaitlist = queryClient.getQueryData<WaitlistEntry[]>(['event-waitlist', eventId])
+      const previousAttendees = queryClient.getQueryData<AttendeeWithStatus[]>(['event-attendees', eventId])
+      queryClient.setQueryData<WaitlistEntry[]>(['event-waitlist', eventId], (old) => old?.filter(e => e.user_id !== userId))
+      queryClient.setQueryData<AttendeeWithStatus[]>(['event-attendees', eventId], (old) => {
+        if (!old) return old
+        return old.map(a => a.user_id === userId ? { ...a, status: 'registered' as const } : a)
+      })
+      return { previousWaitlist, previousAttendees }
+    },
+    onError: (_err, { eventId }, context) => {
+      if (context?.previousWaitlist) queryClient.setQueryData(['event-waitlist', eventId], context.previousWaitlist)
+      if (context?.previousAttendees) queryClient.setQueryData(['event-attendees', eventId], context.previousAttendees)
+    },
+    onSettled: (_, __, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ['event-waitlist', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })

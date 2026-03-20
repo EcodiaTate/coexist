@@ -1,14 +1,10 @@
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
-  FileText,
-  Download,
-  Calendar,
-  MapPin,
-  BarChart3,
-  Clock,
-  Check,
-  ChevronRight,
-  Mail,
+    FileText,
+    Download, BarChart3,
+    Clock,
+    Check, Mail
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
@@ -71,6 +67,20 @@ const tabs = [
 ]
 
 /* ------------------------------------------------------------------ */
+/*  Animation variants                                                 */
+/* ------------------------------------------------------------------ */
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
+/* ------------------------------------------------------------------ */
 /*  Hooks                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -93,13 +103,8 @@ function useReportHistory() {
   return useQuery({
     queryKey: ['report-history'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('report_history' as any)
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(20)
-      if (error) throw error
-      return (data ?? []) as any[]
+      // report_history table not yet created  return empty until migration is run
+      return [] as any[]
     },
     staleTime: 60 * 1000,
   })
@@ -112,6 +117,7 @@ function useReportHistory() {
 export default function ReportsPage() {
   const isAdmin = useIsAdminLayout()
   useAdminHeader('Reports')
+  const shouldReduceMotion = useReducedMotion()
   const [activeTab, setActiveTab] = useState('builder')
   const [reportType, setReportType] = useState<ReportType>('collective')
   const [datePreset, setDatePreset] = useState('this-month')
@@ -153,27 +159,27 @@ export default function ReportsPage() {
         a.click()
         URL.revokeObjectURL(url)
       }
-      // Log report generation
-      await supabase.from('report_history' as any).insert({
-        report_type: reportType,
-        date_range: datePreset,
-        scope,
-        format,
-        metrics: Array.from(selectedMetrics),
-      })
+      // TODO: Log report generation once report_history table is created
     } finally {
       setGenerating(false)
     }
   }
 
   const content = (
-      <div className="py-4 space-y-4 pb-8">
-        <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+      <motion.div
+        className="py-4 space-y-4 pb-8"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={fadeUp}>
+          <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
+        </motion.div>
 
         {activeTab === 'builder' && (
           <div className="space-y-6">
             {/* Report type */}
-            <section>
+            <motion.section variants={fadeUp}>
               <h2 className="font-heading text-sm font-semibold text-primary-800 mb-2">
                 Report Type
               </h2>
@@ -185,10 +191,10 @@ export default function ReportsPage() {
                     onClick={() => setReportType(rt.value)}
                     className={cn(
                       'w-full flex items-start gap-3 p-3 rounded-xl text-left min-h-11',
-                      'border active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                      'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                       reportType === rt.value
-                        ? 'bg-white border-primary-300 ring-1 ring-primary-300'
-                        : 'bg-white border-primary-100 hover:bg-primary-50',
+                        ? 'bg-white ring-1 ring-primary-300 shadow-sm'
+                        : 'bg-white shadow-sm hover:bg-primary-50',
                     )}
                   >
                     <div
@@ -210,10 +216,10 @@ export default function ReportsPage() {
                   </button>
                 ))}
               </div>
-            </section>
+            </motion.section>
 
             {/* Date range */}
-            <section>
+            <motion.section variants={fadeUp}>
               <h2 className="font-heading text-sm font-semibold text-primary-800 mb-2">
                 Date Range
               </h2>
@@ -238,10 +244,10 @@ export default function ReportsPage() {
                   />
                 </div>
               )}
-            </section>
+            </motion.section>
 
             {/* Scope */}
-            <section>
+            <motion.section variants={fadeUp}>
               <h2 className="font-heading text-sm font-semibold text-primary-800 mb-2">
                 Scope
               </h2>
@@ -262,10 +268,10 @@ export default function ReportsPage() {
                   className="mt-3"
                 />
               )}
-            </section>
+            </motion.section>
 
             {/* Metric selector */}
-            <section>
+            <motion.section variants={fadeUp}>
               <h2 className="font-heading text-sm font-semibold text-primary-800 mb-2">
                 Metrics to Include
               </h2>
@@ -279,10 +285,10 @@ export default function ReportsPage() {
                   />
                 ))}
               </div>
-            </section>
+            </motion.section>
 
             {/* Schedule */}
-            <section>
+            <motion.section variants={fadeUp}>
               <Toggle
                 checked={scheduleRecurring}
                 onChange={setScheduleRecurring}
@@ -297,10 +303,10 @@ export default function ReportsPage() {
                   </p>
                 </div>
               )}
-            </section>
+            </motion.section>
 
             {/* Export buttons */}
-            <div className="flex gap-3">
+            <motion.div variants={fadeUp} className="flex gap-3">
               <Button
                 variant="primary"
                 icon={<Download size={16} />}
@@ -317,7 +323,7 @@ export default function ReportsPage() {
               >
                 Export CSV
               </Button>
-            </div>
+            </motion.div>
           </div>
         )}
 
@@ -337,7 +343,7 @@ export default function ReportsPage() {
                 {history.map((report) => (
                   <StaggeredItem
                     key={report.id}
-                    className="flex items-center gap-3 p-3 rounded-xl bg-white border border-primary-100"
+                    className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm"
                   >
                     <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary-100 shrink-0">
                       <FileText size={16} className="text-primary-500" />
@@ -365,7 +371,7 @@ export default function ReportsPage() {
             )}
           </>
         )}
-      </div>
+      </motion.div>
   )
 
   if (isAdmin) return content

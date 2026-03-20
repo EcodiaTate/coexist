@@ -11,7 +11,6 @@ import {
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
-import { Input } from '@/components/input'
 import { SearchBar } from '@/components/search-bar'
 import { Avatar } from '@/components/avatar'
 import { Skeleton } from '@/components/skeleton'

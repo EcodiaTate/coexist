@@ -50,25 +50,25 @@ const typeConfig: Record<
     icon: CheckCircle,
     iconClass: 'text-primary-400',
     barClass: 'bg-primary-500',
-    bgClass: 'bg-white border-primary-200',
+    bgClass: 'bg-white',
   },
   error: {
     icon: XCircle,
     iconClass: 'text-error',
     barClass: 'bg-error',
-    bgClass: 'bg-error-50 border-error-200',
+    bgClass: 'bg-error-50',
   },
   info: {
     icon: Info,
     iconClass: 'text-info',
     barClass: 'bg-info',
-    bgClass: 'bg-info-50 border-info-200',
+    bgClass: 'bg-info-50',
   },
   warning: {
     icon: AlertTriangle,
     iconClass: 'text-warning',
     barClass: 'bg-warning',
-    bgClass: 'bg-warning-50 border-warning-200',
+    bgClass: 'bg-warning-50',
   },
 }
 
@@ -182,7 +182,7 @@ function ToastCard({
       }}
       className={cn(
         'pointer-events-auto w-full max-w-sm',
-        'flex items-start gap-3 rounded-xl border px-4 py-3 shadow-md',
+        'flex items-start gap-3 rounded-xl px-4 py-3 shadow-lg',
         config.bgClass,
       )}
     >

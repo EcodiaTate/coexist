@@ -1,11 +1,13 @@
 import {
-  type ReactNode,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useId,
+    type ReactNode,
+    useState,
+    useRef,
+    useEffect,
+    useCallback,
+    useId,
+    useLayoutEffect,
 } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import { ChevronDown, Check } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -65,6 +67,20 @@ export function Dropdown({
 
   const selectedOption = options.find((o) => o.value === value)
 
+  // Track trigger position for fixed-position popover (escapes overflow clipping)
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({})
+
+  useLayoutEffect(() => {
+    if (!open || isMobile || !triggerRef.current) return
+    const rect = triggerRef.current.getBoundingClientRect()
+    setPopoverStyle({
+      position: 'fixed',
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+    })
+  }, [open, isMobile])
+
   const handleSelect = useCallback(
     (optionValue: string) => {
       onChange(optionValue)
@@ -115,17 +131,18 @@ export function Dropdown({
       aria-describedby={error ? errorId : undefined}
       aria-label={!label ? placeholder : undefined}
       className={cn(
-        'flex items-center justify-between w-full rounded-lg border bg-white px-4 py-3',
-        'text-[16px] leading-normal text-left',
+        'flex items-center justify-between w-full h-11 rounded-full bg-primary-50/60 px-4',
+        'text-[16px] sm:text-sm leading-normal text-left',
         'cursor-pointer select-none',
-        'transition-colors duration-150',
+        'transition-all duration-150',
+        'shadow-sm hover:shadow-md',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         error
-          ? 'border-error'
+          ? 'ring-2 ring-error'
           : open
-            ? 'border-primary-500 ring-1 ring-primary-500'
-            : 'border-primary-200',
+            ? 'ring-2 ring-primary-500 bg-white'
+            : '',
       )}
     >
       <span
@@ -182,7 +199,7 @@ export function Dropdown({
             }}
             tabIndex={0}
             className={cn(
-              'flex items-center justify-between gap-3 px-4 py-3 rounded-lg',
+              'flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl mx-1.5',
               'cursor-pointer select-none',
               'transition-colors duration-100',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
@@ -227,28 +244,59 @@ export function Dropdown({
       <div className="relative">
         {trigger}
 
-        {/* Desktop popover */}
-        {!isMobile && (
-          <AnimatePresence>
-            {open && (
-              <motion.div
-                ref={popoverRef}
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
-                transition={{ duration: 0.15 }}
-                className={cn(
-                  'absolute left-0 right-0 top-full mt-1 z-50',
-                  'bg-white border border-primary-200 rounded-lg shadow-lg',
-                  'max-h-60 overflow-y-auto',
-                  'py-1',
-                )}
-              >
-                {optionsList}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
+        {/* Desktop popover  portalled with fixed position to escape overflow clipping */}
+        {!isMobile &&
+          createPortal(
+            <AnimatePresence>
+              {open && (
+                <motion.div
+                  initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                  transition={{ duration: 0.15 }}
+                  style={popoverStyle}
+                  className="z-[60] relative"
+                >
+                  {/* Scrollable list */}
+                  <div
+                    ref={(node) => {
+                      (popoverRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+                      if (node) {
+                        const canScroll = node.scrollHeight > node.clientHeight
+                        const hint = node.parentElement?.querySelector<HTMLElement>('[data-scroll-hint]')
+                        if (hint) hint.style.opacity = canScroll ? '1' : '0'
+                      }
+                    }}
+                    className={cn(
+                      'bg-white rounded-2xl shadow-xl border border-primary-100',
+                      'max-h-60 overflow-y-auto',
+                      'py-1.5',
+                    )}
+                    onScroll={(e) => {
+                      const el = e.currentTarget
+                      const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 4
+                      const hint = el.parentElement?.querySelector<HTMLElement>('[data-scroll-hint]')
+                      if (hint) hint.style.opacity = atBottom ? '0' : '1'
+                    }}
+                  >
+                    {optionsList}
+                  </div>
+
+                  {/* Scroll hint gradient  overlays bottom of list */}
+                  <div
+                    data-scroll-hint
+                    className={cn(
+                      'absolute bottom-0 left-0 right-0 h-10 rounded-b-2xl',
+                      'bg-gradient-to-t from-primary-200/80 via-primary-100/50 to-transparent',
+                      'pointer-events-none transition-opacity duration-200',
+                    )}
+                    style={{ opacity: 0 }}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>,
+            document.body,
+          )}
       </div>
 
       {/* Mobile bottom sheet */}

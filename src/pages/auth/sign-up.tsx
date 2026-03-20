@@ -111,7 +111,7 @@ export default function SignUpPage() {
         </div>
       </div>
 
-      {/* Centered container — caps width on larger screens */}
+      {/* Centered container  caps width on larger screens */}
       <div className="relative flex-1 flex flex-col w-full max-w-[440px] mx-auto">
         <motion.form
           onSubmit={handleSubmit}

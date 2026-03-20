@@ -32,7 +32,6 @@ import {
   Card,
   Avatar,
   Badge,
-  Chip,
   ProgressBar,
   Skeleton,
   EmptyState,
@@ -57,7 +56,7 @@ const fadeUp = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Section wrapper — title is padded, children are full-bleed         */
+/*  Section wrapper  title is padded, children are full-bleed         */
 /* ------------------------------------------------------------------ */
 
 function Section({
@@ -93,7 +92,7 @@ function Section({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Horizontal scroll — edge-to-edge with inset padding for items      */
+/*  Horizontal scroll  edge-to-edge with inset padding for items      */
 /* ------------------------------------------------------------------ */
 
 function HScroll({
@@ -105,7 +104,7 @@ function HScroll({
 }) {
   return (
     <div className="relative -mx-4 lg:-mx-6">
-      {/* Subtle fade on right edge only — left edge uses padding so first item is fully visible */}
+      {/* Subtle fade on right edge only  left edge uses padding so first item is fully visible */}
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 lg:w-8 bg-gradient-to-l from-white to-transparent" />
       <div
         className={cn(
@@ -204,14 +203,11 @@ export default function HomePage() {
         <header
           className={cn(
             'sticky top-0 z-40',
-            'flex items-center justify-between h-14 px-4',
-            'bg-white/90 backdrop-blur-sm border-b border-primary-100',
+            'flex items-center justify-end h-14 px-4',
+            'bg-white/90 backdrop-blur-sm',
           )}
           style={{ paddingTop: 'var(--safe-top)' }}
         >
-          <h1 className="font-heading text-xl font-bold text-primary-800">
-            Home
-          </h1>
           <button
             type="button"
             onClick={() => navigate('/notifications')}
@@ -266,8 +262,8 @@ export default function HomePage() {
                 onClick={() => navigate('/announcements')}
                 aria-label={`Announcement: ${announcement.data.title}`}
               >
-                <Card.Content className="flex items-center gap-3 py-3">
-                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-accent-100 text-primary-400 shrink-0">
+                <Card.Content className="flex items-center gap-3 py-3 bg-primary-50/60">
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-200/60 text-primary-600 shrink-0">
                     <Megaphone size={16} />
                   </span>
                   <div className="flex-1 min-w-0">
@@ -287,7 +283,93 @@ export default function HomePage() {
             </motion.div>
           ) : null}
 
-          {/* 3. Hero - featured event carousel (full-bleed) */}
+          {/* 3. Your Collective  hero position */}
+          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+            {myCollective.isLoading ? (
+              <Skeleton variant="card" className="h-40" />
+            ) : myCollective.data ? (
+              <div
+                className="rounded-2xl bg-gradient-to-br from-primary-800 to-primary-950 p-5 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                onClick={() =>
+                  navigate(`/collectives/${myCollective.data!.slug}`)
+                }
+                role="button"
+                tabIndex={0}
+                aria-label={myCollective.data.name}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-400/20 text-primary-200 shrink-0">
+                    <Users size={22} />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-primary-300 uppercase tracking-wider">
+                      Your Collective
+                    </p>
+                    <h2 className="font-heading text-xl font-bold text-white truncate">
+                      {myCollective.data.name}
+                    </h2>
+                  </div>
+                  <ChevronRight
+                    size={20}
+                    className="text-primary-300 shrink-0"
+                  />
+                </div>
+                <div className="flex items-center gap-4 text-sm text-primary-200">
+                  <span className="flex items-center gap-1.5">
+                    <Users size={14} aria-hidden="true" />
+                    {myCollective.data.member_count} members
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Calendar size={14} aria-hidden="true" />
+                    {myCollective.data.events_this_month} events this month
+                  </span>
+                </div>
+                {myCollective.data.next_event && (
+                  <div className="mt-4 pt-3 border-t border-primary-500/20">
+                    <p className="text-xs font-medium text-primary-300 uppercase tracking-wider">
+                      Next event
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold text-white">
+                      {myCollective.data.next_event.title}
+                    </p>
+                    <p className="text-xs text-primary-300">
+                      {formatEventDate(
+                        myCollective.data.next_event.date_start,
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div
+                className="rounded-2xl bg-gradient-to-br from-primary-700 to-primary-900 p-5 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                onClick={() => navigate('/explore')}
+                role="button"
+                tabIndex={0}
+                aria-label="Find your collective"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-400/20 text-primary-200 shrink-0">
+                    <Users size={24} />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-heading text-lg font-bold text-white">
+                      Find your collective
+                    </p>
+                    <p className="text-sm text-primary-200">
+                      Join a local group and start making an impact
+                    </p>
+                  </div>
+                  <ChevronRight
+                    size={20}
+                    className="text-primary-300 shrink-0"
+                  />
+                </div>
+              </div>
+            )}
+          </motion.div>
+
+          {/* 4. Hero - featured event carousel (full-bleed) */}
           {featured.isLoading ? (
             <Skeleton variant="image" />
           ) : featured.data && featured.data.length > 0 ? (
@@ -323,7 +405,7 @@ export default function HomePage() {
                         </Badge>
                       </Card.Badge>
                     </div>
-                    <Card.Content>
+                    <Card.Content className="bg-primary-50/40">
                       <Card.Title>{event.title}</Card.Title>
                       <Card.Meta>
                         <span className="flex items-center gap-1">
@@ -343,7 +425,7 @@ export default function HomePage() {
             </motion.div>
           ) : null}
 
-          {/* 4. Upcoming near you — horizontal scroll, edge-to-edge */}
+          {/* 5. Upcoming near you  horizontal scroll, edge-to-edge */}
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <Section
               title="Upcoming near you"
@@ -376,7 +458,7 @@ export default function HomePage() {
                         alt={event.title}
                         aspectRatio="4/3"
                       />
-                      <Card.Content className="p-3">
+                      <Card.Content className="p-3 bg-primary-50/30">
                         <Card.Title className="text-sm">
                           {event.title}
                         </Card.Title>
@@ -399,104 +481,25 @@ export default function HomePage() {
             </Section>
           </motion.div>
 
-          {/* 5. Your Collective */}
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-            <Section title="Your Collective">
-              {myCollective.isLoading ? (
-                <Skeleton variant="card" className="h-28" />
-              ) : myCollective.data ? (
-                <Card.Root
-                  variant="collective"
-                  onClick={() =>
-                    navigate(`/collectives/${myCollective.data!.slug}`)
-                  }
-                  aria-label={myCollective.data.name}
-                >
-                  <Card.Content>
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <Card.Title>{myCollective.data.name}</Card.Title>
-                        <div className="flex items-center gap-3 mt-2 text-sm text-primary-400">
-                          <span className="flex items-center gap-1">
-                            <Users size={14} aria-hidden="true" />
-                            {myCollective.data.member_count} members
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar size={14} aria-hidden="true" />
-                            {myCollective.data.events_this_month} events this
-                            month
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight
-                        size={20}
-                        className="text-primary-400 shrink-0"
-                      />
-                    </div>
-                    {myCollective.data.next_event && (
-                      <div className="mt-3 pt-3 border-t border-primary-100">
-                        <p className="text-xs font-medium text-primary-400 uppercase tracking-wider">
-                          Next event
-                        </p>
-                        <p className="mt-0.5 text-sm font-medium text-primary-800">
-                          {myCollective.data.next_event.title}
-                        </p>
-                        <p className="text-xs text-primary-400">
-                          {formatEventDate(
-                            myCollective.data.next_event.date_start,
-                          )}
-                        </p>
-                      </div>
-                    )}
-                  </Card.Content>
-                </Card.Root>
-              ) : (
-                <Card.Root
-                  variant="collective"
-                  onClick={() => navigate('/explore')}
-                  aria-label="Find your collective"
-                >
-                  <Card.Content className="flex items-center gap-3">
-                    <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 text-primary-400">
-                      <Users size={20} />
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-primary-800">
-                        Find your collective
-                      </p>
-                      <p className="text-xs text-primary-400">
-                        Join a local group and start making an impact
-                      </p>
-                    </div>
-                    <ChevronRight
-                      size={18}
-                      className="text-primary-400 shrink-0"
-                    />
-                  </Card.Content>
-                </Card.Root>
-              )}
-            </Section>
-          </motion.div>
-
-          {/* 6. Your Impact — compact CTA linking to full dashboard */}
+          {/* 6. Your Impact  compact CTA linking to full dashboard */}
           {impact.data && (impact.data.events_attended > 0 || impact.data.trees_planted > 0) && (
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <Link
                 to="/impact"
-                className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary-50/80 to-white border border-primary-100/60 p-5 active:scale-[0.98] transition-all duration-150"
+                className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary-100 to-primary-50 shadow-sm p-5 active:scale-[0.98] transition-all duration-150"
               >
-                <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-400/10 shrink-0">
-                  <TreePine size={22} className="text-primary-500" />
+                <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-400/15 shrink-0">
+                  <TreePine size={22} className="text-primary-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-heading text-sm font-semibold text-primary-800">
                     Your Impact
                   </p>
-                  <p className="text-xs text-primary-400 mt-0.5">
+                  <p className="text-xs text-primary-500 mt-0.5">
                     {impact.data.trees_planted} trees · {impact.data.events_attended} events · {impact.data.hours_volunteered}h volunteered
                   </p>
                 </div>
-                <ChevronRight size={18} className="text-primary-300 shrink-0" />
+                <ChevronRight size={18} className="text-primary-400 shrink-0" />
               </Link>
             </motion.div>
           )}
@@ -508,9 +511,9 @@ export default function HomePage() {
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <Section title="National Challenge">
                 <Card.Root variant="stat" aria-label={challenge.data.title}>
-                    <Card.Content>
+                    <Card.Content className="bg-primary-50/50">
                       <div className="flex items-start gap-3">
-                        <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-accent-100 text-primary-400 shrink-0">
+                        <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary-200/60 text-primary-600 shrink-0">
                           <Target size={20} />
                         </span>
                         <div className="flex-1 min-w-0">
@@ -542,7 +545,7 @@ export default function HomePage() {
             </motion.div>
           ) : null}
 
-          {/* 8. Trending Collectives — horizontal scroll (for users not in a collective) */}
+          {/* 8. Trending Collectives  horizontal scroll (for users not in a collective) */}
           {!myCollective.data && !myCollective.isLoading && (
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <Section
@@ -569,14 +572,14 @@ export default function HomePage() {
                         className="shrink-0 w-44 snap-start"
                         aria-label={c.name}
                       >
-                        <Card.Content className="p-3">
+                        <Card.Content className="p-3 bg-primary-50/40">
                           <p className="font-heading text-sm font-semibold text-primary-800 truncate">
                             {c.name}
                           </p>
                           <p className="mt-0.5 text-xs text-primary-400">
                             {c.region ?? c.state}
                           </p>
-                          <p className="mt-2 text-xs text-primary-400 font-medium">
+                          <p className="mt-2 text-xs text-primary-500 font-medium">
                             {c.member_count} members
                           </p>
                         </Card.Content>
@@ -588,7 +591,7 @@ export default function HomePage() {
             </motion.div>
           )}
 
-          {/* 9. People you may know — horizontal scroll */}
+          {/* 9. People you may know  horizontal scroll */}
           {suggestions.data && suggestions.data.length > 0 && (
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <Section title="People you may know">
@@ -615,25 +618,7 @@ export default function HomePage() {
             </motion.div>
           )}
 
-          {/* 10. Category quick-filter chips — horizontal scroll */}
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-            <Section title="Browse by activity">
-              <div className="-mx-4 lg:-mx-6">
-                <div className="flex gap-2 overflow-x-auto px-4 lg:px-6 pb-1 scrollbar-none">
-                  {Object.entries(ACTIVITY_TYPE_LABELS).map(([key, label]) => (
-                    <Chip
-                      key={key}
-                      label={label}
-                      variant="activity"
-                      onSelect={() => navigate(`/explore?activity=${key}`)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </Section>
-          </motion.div>
-
-          {/* 11. Leaderboard teaser (active users: 5+ events) */}
+          {/* 10. Leaderboard teaser (active users: 5+ events) */}
           {isActiveUser && (
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <Section
@@ -645,8 +630,8 @@ export default function HomePage() {
                   onClick={() => navigate('/leaderboard')}
                   aria-label="View leaderboard"
                 >
-                  <Card.Content className="flex items-center gap-3">
-                    <span className="flex items-center justify-center w-10 h-10 rounded-full bg-accent-100 text-primary-400 shrink-0">
+                  <Card.Content className="flex items-center gap-3 bg-primary-50/40">
+                    <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-200/50 text-primary-600 shrink-0">
                       <Trophy size={20} />
                     </span>
                     <div className="flex-1 min-w-0">
@@ -674,8 +659,8 @@ export default function HomePage() {
                     onClick={() => navigate('/referral')}
                     aria-label="Invite friends"
                   >
-                    <Card.Content className="flex items-center gap-3">
-                      <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 text-primary-400 shrink-0">
+                    <Card.Content className="flex items-center gap-3 bg-primary-100/50">
+                      <span className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-200/60 text-primary-600 shrink-0">
                         <Users size={20} />
                       </span>
                       <div className="flex-1 min-w-0">
@@ -700,8 +685,8 @@ export default function HomePage() {
               variants={shouldReduceMotion ? undefined : fadeUp}
             >
               <Card.Root variant="stat">
-                <Card.Content className="text-center py-6">
-                  <span className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-primary-100 text-primary-400 mb-3">
+                <Card.Content className="text-center py-6 bg-gradient-to-b from-primary-50 to-primary-100/40">
+                  <span className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-primary-200/60 text-primary-600 mb-3">
                     <Sparkles size={24} />
                   </span>
                   <h3 className="font-heading text-lg font-semibold text-primary-800">

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Users,
   Shield,
@@ -172,30 +173,41 @@ export default function AdminUsersPage() {
     })
   }, [])
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="flex-1">
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-            placeholder="Search by name or email..."
-            compact
-          />
-        </div>
+      <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-4">
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Search by name or email..."
+          compact
+          className="flex-1"
+        />
         <Dropdown
           options={roleOptions}
           value={roleFilter}
           onChange={setRoleFilter}
           placeholder="All Roles"
-          className="w-48"
+          className="sm:w-52"
         />
-      </div>
+      </motion.div>
 
       {/* Bulk actions */}
       {selectedUsers.size > 0 && (
-        <div className="flex items-center gap-2 mb-4 p-3 bg-white rounded-lg">
+        <motion.div variants={fadeUp} className="flex items-center gap-2 mb-4 p-3 bg-white rounded-lg">
           <span className="text-sm text-primary-400 font-medium">
             {selectedUsers.size} selected
           </span>
@@ -221,10 +233,11 @@ export default function AdminUsersPage() {
           >
             Clear
           </Button>
-        </div>
+        </motion.div>
       )}
 
       {/* User list */}
+      <motion.div variants={fadeUp}>
       {isLoading ? (
         <Skeleton variant="list-item" count={8} />
       ) : !users?.length ? (
@@ -240,7 +253,7 @@ export default function AdminUsersPage() {
               key={user.id}
               className={cn(
                 'flex items-center gap-3 p-3 rounded-xl',
-                'bg-white border border-primary-100',
+                'bg-white shadow-sm',
                 'hover:bg-primary-50 transition-colors duration-150',
                 user.is_suspended && 'opacity-60 bg-error-50/50',
                 selectedUsers.has(user.id) && 'ring-2 ring-primary-400',
@@ -358,6 +371,7 @@ export default function AdminUsersPage() {
           ))}
         </StaggeredList>
       )}
+      </motion.div>
 
       {/* Change role modal */}
       <Modal
@@ -436,6 +450,6 @@ export default function AdminUsersPage() {
         confirmLabel="Delete Permanently"
         variant="danger"
       />
-    </>
+    </motion.div>
   )
 }

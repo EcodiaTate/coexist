@@ -119,10 +119,10 @@ function ProductFormSheet({
               type="button"
               onClick={() => setStatus(s)}
               className={cn(
-                'flex-1 py-2 rounded-lg border-2 text-sm font-medium capitalize cursor-pointer transition-colors',
+                'flex-1 py-2 rounded-lg text-sm font-medium capitalize cursor-pointer transition-colors',
                 status === s
-                  ? 'border-primary-500 bg-white text-primary-400'
-                  : 'border-primary-200 text-primary-400',
+                  ? 'ring-2 ring-primary-500 bg-white text-primary-400 shadow-sm'
+                  : 'bg-primary-50/60 text-primary-400',
               )}
             >
               {s}
@@ -240,9 +240,21 @@ export default function ProductsTab() {
     )
   }
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
-      <div className="flex justify-between items-center mb-4">
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={fadeUp} className="flex justify-between items-center mb-4">
         <h2 className="font-heading font-semibold text-primary-800">
           Products ({products?.length ?? 0})
         </h2>
@@ -257,8 +269,9 @@ export default function ProductsTab() {
         >
           Add
         </Button>
-      </div>
+      </motion.div>
 
+      <motion.div variants={fadeUp}>
       {!products || products.length === 0 ? (
         <EmptyState
           illustration="empty"
@@ -270,7 +283,7 @@ export default function ProductsTab() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="p-4 bg-white rounded-2xl border border-primary-100 shadow-sm"
+              className="p-4 bg-white rounded-2xl shadow-sm"
             >
               <div className="flex gap-3">
                 <img
@@ -370,6 +383,7 @@ export default function ProductsTab() {
           ))}
         </div>
       )}
+      </motion.div>
 
       <ProductFormSheet
         open={formOpen}
@@ -395,6 +409,6 @@ export default function ProductsTab() {
           currentStock={stockTarget.stock}
         />
       )}
-    </>
+    </motion.div>
   )
 }

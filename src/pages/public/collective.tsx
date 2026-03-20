@@ -10,6 +10,16 @@ import { OGMeta } from '@/components/og-meta'
 import { APP_NAME } from '@/lib/constants'
 import { WebFooter } from '@/components/web-footer'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 export default function PublicCollectivePage() {
   const { slug } = useParams<{ slug: string }>()
   const shouldReduceMotion = useReducedMotion()
@@ -111,76 +121,73 @@ export default function PublicCollectivePage() {
       </div>
 
       {/* Content */}
-      <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
-        <motion.div
-          initial={shouldReduceMotion ? false : { y: 15, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.25 }}
-        >
-          {/* Stats */}
-          <div className="flex gap-6">
-            <div>
-              <p className="font-heading text-2xl font-bold text-primary-800">{collective.member_count ?? 0}</p>
-              <p className="text-sm text-primary-400">Members</p>
-            </div>
-            {upcomingEvents && (
-              <div>
-                <p className="font-heading text-2xl font-bold text-primary-800">{upcomingEvents.length}</p>
-                <p className="text-sm text-primary-400">Upcoming events</p>
-              </div>
-            )}
+      <motion.div
+        className="mx-auto max-w-2xl px-4 py-6 sm:px-6"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Stats */}
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="flex gap-6">
+          <div>
+            <p className="font-heading text-2xl font-bold text-primary-800">{collective.member_count ?? 0}</p>
+            <p className="text-sm text-primary-400">Members</p>
           </div>
-
-          {/* Description */}
-          {collective.description && (
-            <div className="mt-6">
-              <h2 className="font-heading text-lg font-semibold text-primary-800">About</h2>
-              <p className="mt-2 whitespace-pre-line text-primary-400 leading-relaxed">
-                {collective.description}
-              </p>
-            </div>
-          )}
-
-          {/* Upcoming events */}
-          {upcomingEvents && upcomingEvents.length > 0 && (
-            <div className="mt-8">
-              <h2 className="font-heading text-lg font-semibold text-primary-800">Upcoming Events</h2>
-              <div className="mt-3 space-y-3">
-                {upcomingEvents.map((evt) => (
-                  <a
-                    key={evt.id}
-                    href={`/event/${evt.id}`}
-                    className={cn(
-                      'flex items-center gap-3 rounded-xl bg-white p-4',
-                      'shadow-sm border border-primary-100',
-                      'hover:shadow-md transition-shadow duration-150',
-                    )}
-                  >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white text-primary-400">
-                      <Calendar size={20} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-primary-800 truncate">{evt.title}</p>
-                      <p className="text-sm text-primary-400">
-                        {new Date(evt.date_start).toLocaleDateString('en-AU', {
-                          day: 'numeric',
-                          month: 'short',
-                        })}
-                        {evt.address ? ` · ${evt.address}` : ''}
-                      </p>
-                    </div>
-                  </a>
-                ))}
-              </div>
+          {upcomingEvents && (
+            <div>
+              <p className="font-heading text-2xl font-bold text-primary-800">{upcomingEvents.length}</p>
+              <p className="text-sm text-primary-400">Upcoming events</p>
             </div>
           )}
         </motion.div>
 
+        {/* Description */}
+        {collective.description && (
+          <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-6">
+            <h2 className="font-heading text-lg font-semibold text-primary-800">About</h2>
+            <p className="mt-2 whitespace-pre-line text-primary-400 leading-relaxed">
+              {collective.description}
+            </p>
+          </motion.div>
+        )}
+
+        {/* Upcoming events */}
+        {upcomingEvents && upcomingEvents.length > 0 && (
+          <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-8">
+            <h2 className="font-heading text-lg font-semibold text-primary-800">Upcoming Events</h2>
+            <div className="mt-3 space-y-3">
+              {upcomingEvents.map((evt) => (
+                <a
+                  key={evt.id}
+                  href={`/event/${evt.id}`}
+                  className={cn(
+                    'flex items-center gap-3 rounded-xl bg-white p-4',
+                    'shadow-sm',
+                    'hover:shadow-md transition-shadow duration-150',
+                  )}
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white text-primary-400">
+                    <Calendar size={20} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-primary-800 truncate">{evt.title}</p>
+                    <p className="text-sm text-primary-400">
+                      {new Date(evt.date_start).toLocaleDateString('en-AU', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
+                      {evt.address ? ` · ${evt.address}` : ''}
+                    </p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* CTAs */}
         <motion.div
-          initial={shouldReduceMotion ? false : { y: 15, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.25 }}
+          variants={shouldReduceMotion ? undefined : fadeUp}
           className={cn(
             'mt-8 flex flex-col gap-3',
             'sticky bottom-4 rounded-2xl bg-white/95 p-4 shadow-lg backdrop-blur-sm',
@@ -212,7 +219,7 @@ export default function PublicCollectivePage() {
           </Button>
         </motion.div>
 
-      </div>
+      </motion.div>
 
       <WebFooter />
     </div>

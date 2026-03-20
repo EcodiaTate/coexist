@@ -2,32 +2,32 @@ import { type ReactNode, useState, useEffect, createContext, useContext, useCall
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  LayoutDashboard,
-  Users,
-  CalendarDays,
-  MapPin,
-  Handshake,
-  Trophy,
-  ClipboardList,
-  FileText,
-  Shield,
-  Settings,
-  Download,
-  Mail,
-  Heart,
-  BarChart3,
-  AlertCircle,
-  PanelLeftClose,
-  PanelLeftOpen,
-  ArrowLeft,
-  Menu,
-  X,
+    LayoutDashboard,
+    Users,
+    CalendarDays,
+    MapPin,
+    Handshake,
+    Trophy,
+    ClipboardList,
+    FileText,
+    Shield,
+    Settings,
+    Download,
+    Mail,
+    Heart,
+    BarChart3,
+    AlertCircle,
+    PanelLeftClose,
+    PanelLeftOpen,
+    ArrowLeft,
+    Menu,
+    X,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 
 /* ------------------------------------------------------------------ */
-/*  Admin header context — lets child pages set title + actions        */
+/*  Admin header context  lets child pages set title + actions        */
 /* ------------------------------------------------------------------ */
 
 interface AdminHeaderState {
@@ -89,7 +89,7 @@ const superAdminNavItems: AdminNavItem[] = [
 ]
 
 /* ------------------------------------------------------------------ */
-/*  AdminLayout — route-level layout, renders <Outlet />              */
+/*  AdminLayout  route-level layout, renders <Outlet />              */
 /* ------------------------------------------------------------------ */
 
 export function AdminLayout() {
@@ -121,8 +121,8 @@ export function AdminLayout() {
         <aside
           className={cn(
             'hidden md:flex flex-col',
-            'sticky top-0 self-start max-h-dvh',
-            'bg-white border-r border-primary-100',
+            'sticky top-0 self-start max-h-dvh z-50',
+            'bg-white shadow-2xl',
             'transition-[width] duration-250 ease-in-out',
             'overflow-y-auto',
             collapsed ? 'w-14' : 'w-56',
@@ -130,7 +130,7 @@ export function AdminLayout() {
           aria-label="Admin navigation"
         >
           {/* Back to app */}
-          <div className="border-b border-primary-100 px-1.5 py-2">
+          <div className="bg-primary-50/30 px-1.5 py-2">
             <Link
               to="/"
               className={cn(
@@ -192,7 +192,7 @@ export function AdminLayout() {
                     Super Admin
                   </p>
                 )}
-                {collapsed && <div className="my-2 border-t border-primary-100" />}
+                {collapsed && <div className="my-2 h-px bg-primary-100/40" />}
                 {superAdminNavItems.map((item) => {
                   const active = isActive(item.path)
                   return (
@@ -224,7 +224,7 @@ export function AdminLayout() {
             )}
           </div>
 
-          <div className="border-t border-primary-100 p-1.5">
+          <div className="bg-primary-50/30 p-1.5">
             <button
               type="button"
               onClick={() => setCollapsed((p) => !p)}
@@ -261,13 +261,13 @@ export function AdminLayout() {
               {/* Drawer */}
               <motion.aside
                 key="admin-drawer"
-                className="md:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-primary-100 flex flex-col overflow-y-auto"
+                className="md:hidden fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg flex flex-col overflow-y-auto"
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
                 transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 35 }}
               >
-                <div className="flex items-center justify-between px-4 py-3 border-b border-primary-100">
+                <div className="flex items-center justify-between px-4 py-3 bg-primary-50/30">
                   <Link
                     to="/"
                     className="flex items-center gap-2 text-[13px] text-primary-400 hover:text-primary-800 transition-colors"
@@ -368,7 +368,7 @@ export function AdminLayout() {
             </div>
           )}
 
-          {/* Content — rendered by nested <Route> children */}
+          {/* Content  rendered by nested <Route> children */}
           <div className="flex-1 p-6">
             <Outlet />
           </div>

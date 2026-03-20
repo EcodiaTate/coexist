@@ -191,7 +191,7 @@ export function ShareableCard({
           )}
 
           {/* Attribution */}
-          <div className="mt-6 flex items-center justify-between border-t border-white/20 pt-3">
+          <div className="mt-6 flex items-center justify-between bg-white/10 rounded-lg px-3 pt-3 pb-2 -mx-1">
             {userName && (
               <p className="text-xs text-white/70">{userName}</p>
             )}

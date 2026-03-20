@@ -242,10 +242,10 @@ export default function CreateAnnouncementPage() {
           ) : (
             <label
               className={cn(
-                'flex items-center justify-center gap-2 h-24 rounded-xl border-2 border-dashed border-primary-200',
+                'flex items-center justify-center gap-2 h-24 rounded-xl bg-primary-50/60',
                 'text-sm text-primary-400 font-medium',
-                'cursor-pointer hover:border-primary-300 hover:text-primary-500',
-                'transition-colors duration-150',
+                'cursor-pointer hover:bg-primary-100/60 hover:text-primary-500 hover:shadow-sm',
+                'transition-all duration-150',
               )}
             >
               <ImageIcon size={18} aria-hidden="true" />
@@ -277,11 +277,11 @@ export default function CreateAnnouncementPage() {
               onClick={() => setPriority('normal')}
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-medium',
-                'border-2 transition-all duration-150 cursor-pointer select-none',
+                'transition-all duration-150 cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 priority === 'normal'
-                  ? 'border-primary-500 bg-white text-primary-400'
-                  : 'border-primary-200 text-primary-400 hover:border-primary-200',
+                  ? 'bg-primary-100 text-primary-800 shadow-sm ring-2 ring-primary-500'
+                  : 'bg-primary-50/60 text-primary-400 hover:bg-primary-100/60',
               )}
               aria-pressed={priority === 'normal'}
             >
@@ -292,11 +292,11 @@ export default function CreateAnnouncementPage() {
               onClick={() => setPriority('urgent')}
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-medium',
-                'border-2 transition-all duration-150 cursor-pointer select-none',
+                'transition-all duration-150 cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 priority === 'urgent'
-                  ? 'border-accent-500 bg-white text-primary-800'
-                  : 'border-primary-200 text-primary-400 hover:border-primary-200',
+                  ? 'bg-accent-100 text-primary-800 shadow-sm ring-2 ring-accent-500'
+                  : 'bg-primary-50/60 text-primary-400 hover:bg-primary-100/60',
               )}
               aria-pressed={priority === 'urgent'}
             >
@@ -322,11 +322,11 @@ export default function CreateAnnouncementPage() {
                   onClick={() => setTargetAudience(opt.value)}
                   className={cn(
                     'flex items-center gap-3 w-full px-4 py-3 rounded-xl text-left',
-                    'border-2 transition-all duration-150 cursor-pointer select-none',
+                    'transition-all duration-150 cursor-pointer select-none',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                     isSelected
-                      ? 'border-primary-500 bg-white'
-                      : 'border-primary-200 hover:border-primary-200',
+                      ? 'bg-primary-100 shadow-sm ring-2 ring-primary-500'
+                      : 'bg-primary-50/60 hover:bg-primary-100/60',
                   )}
                   aria-pressed={isSelected}
                 >
@@ -356,11 +356,11 @@ export default function CreateAnnouncementPage() {
           onClick={() => setIsPinned(!isPinned)}
           className={cn(
             'flex items-center gap-3 w-full px-4 py-3 rounded-xl',
-            'border-2 transition-all duration-150 cursor-pointer select-none',
+            'transition-all duration-150 cursor-pointer select-none',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             isPinned
-              ? 'border-primary-500 bg-white'
-              : 'border-primary-200 hover:border-primary-200',
+              ? 'bg-primary-100 shadow-sm ring-2 ring-primary-500'
+              : 'bg-primary-50/60 hover:bg-primary-100/60',
           )}
           aria-pressed={isPinned}
         >
@@ -396,8 +396,8 @@ export default function CreateAnnouncementPage() {
             className={cn(
               'rounded-2xl shadow-md overflow-hidden',
               priority === 'urgent'
-                ? 'bg-gradient-to-br from-white to-accent-100 border border-accent-200'
-                : 'bg-white border border-primary-200',
+                ? 'bg-gradient-to-br from-white to-accent-100'
+                : 'bg-white',
             )}
           >
             {isPinned && (
@@ -424,7 +424,7 @@ export default function CreateAnnouncementPage() {
               <p className="mt-2 text-sm text-primary-400 leading-relaxed whitespace-pre-wrap">
                 {content || 'Announcement content will appear here...'}
               </p>
-              <div className="flex items-center gap-2.5 mt-3 pt-3 border-t border-primary-100/60">
+              <div className="flex items-center gap-2.5 mt-3 pt-3">
                 <Avatar
                   src={profile?.avatar_url}
                   name={profile?.display_name ?? 'Staff'}

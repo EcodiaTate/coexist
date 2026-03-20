@@ -110,7 +110,7 @@ export function CookieConsentBanner({ className }: { className?: string }) {
             className,
           )}
         >
-          <div className="rounded-2xl bg-white shadow-lg border border-primary-200 overflow-hidden">
+          <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
             {/* Header */}
             <div className="flex items-start gap-3 p-4 pb-2">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white text-primary-400 shrink-0">
@@ -142,7 +142,7 @@ export function CookieConsentBanner({ className }: { className?: string }) {
                   exit={{ height: 0, opacity: 0 }}
                   className="overflow-hidden px-4"
                 >
-                  <div className="space-y-2 py-2 border-t border-primary-100">
+                  <div className="space-y-2 py-2">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs font-medium text-primary-800">Essential</p>

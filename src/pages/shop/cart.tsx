@@ -29,6 +29,16 @@ export default function CartPage() {
   const shippingCents = useCart((s) => s.shippingCents())
   const totalCents = useCart((s) => s.totalCents())
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   const [promoInput, setPromoInput] = useState('')
   const [promoLoading, setPromoLoading] = useState(false)
 
@@ -79,7 +89,7 @@ export default function CartPage() {
         </Button>
       }
     >
-      <div className="py-4 space-y-4">
+      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="py-4 space-y-4">
         {/* Cart items */}
         <AnimatePresence mode="popLayout">
           {items.map((item) => (
@@ -89,7 +99,7 @@ export default function CartPage() {
               initial={shouldReduceMotion ? false : { opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={shouldReduceMotion ? undefined : { opacity: 0, x: 20, height: 0 }}
-              className="flex gap-3 p-3 bg-white rounded-2xl border border-primary-100 shadow-sm"
+              className="flex gap-3 p-3 bg-white rounded-2xl shadow-sm"
             >
               {/* Image */}
               <img
@@ -149,7 +159,7 @@ export default function CartPage() {
         </AnimatePresence>
 
         {/* Promo code */}
-        <div className="flex gap-2">
+        <motion.div variants={fadeUp} className="flex gap-2">
           <div className="flex-1">
             <Input
               label="Promo code"
@@ -167,9 +177,9 @@ export default function CartPage() {
           >
             Apply
           </Button>
-        </div>
+        </motion.div>
         {promoCode && (
-          <div className="flex items-center justify-between px-3 py-2 bg-white rounded-lg border border-primary-100">
+          <div className="flex items-center justify-between px-3 py-2 bg-white rounded-lg shadow-sm">
             <span className="text-sm text-primary-400 font-medium">
               <Tag size={14} className="inline -mt-0.5 mr-1" />
               {promoCode.code}
@@ -187,7 +197,7 @@ export default function CartPage() {
         <Divider />
 
         {/* Summary */}
-        <div className="space-y-2 text-sm">
+        <motion.div variants={fadeUp} className="space-y-2 text-sm">
           <div className="flex justify-between text-primary-400">
             <span>Subtotal</span>
             <span className="tabular-nums">{formatPrice(subtotalCents)}</span>
@@ -209,8 +219,8 @@ export default function CartPage() {
             <span>Total</span>
             <span className="tabular-nums">{formatPrice(totalCents)}</span>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </Page>
   )
 }

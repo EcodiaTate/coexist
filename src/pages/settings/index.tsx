@@ -59,6 +59,16 @@ const APP_VERSION = '1.0.0'
 const TOS_VERSION = '1.0'
 const PRIVACY_VERSION = '1.0'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 /* ------------------------------------------------------------------ */
 /*  Section header                                                     */
 /* ------------------------------------------------------------------ */
@@ -112,7 +122,7 @@ function MenuRow({
         'transition-colors duration-100',
         'cursor-pointer hover:bg-primary-50 active:bg-primary-50',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
-        !hideDivider && 'border-b border-primary-100',
+        !hideDivider && '',
       )}
       aria-label={label}
     >
@@ -270,7 +280,7 @@ function QuietHoursSheet({
               type="time"
               value={prefs.quiet_hours_start}
               onChange={(e) => onUpdate('quiet_hours_start', e.target.value)}
-              className="w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-800 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+              className="w-full rounded-lg bg-primary-50/50 px-3 py-2 text-sm text-primary-800 focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none"
             />
           </div>
           <div className="flex-1">
@@ -279,7 +289,7 @@ function QuietHoursSheet({
               type="time"
               value={prefs.quiet_hours_end}
               onChange={(e) => onUpdate('quiet_hours_end', e.target.value)}
-              className="w-full rounded-lg border border-primary-200 px-3 py-2 text-sm text-primary-800 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 outline-none"
+              className="w-full rounded-lg bg-primary-50/50 px-3 py-2 text-sm text-primary-800 focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none"
             />
           </div>
         </div>
@@ -482,7 +492,7 @@ function AboutSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
         </div>
 
         {/* Aboriginal Acknowledgment */}
-        <div className="mt-6 rounded-xl bg-white border border-secondary-100 p-4 text-left">
+        <div className="mt-6 rounded-xl bg-secondary-50/40 shadow-sm p-4 text-left">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary-800 mb-1.5">
             Acknowledgment of Country
           </p>
@@ -612,7 +622,7 @@ function HelpSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
             <p className="text-sm text-primary-400 mt-1 leading-relaxed">{a}</p>
           </div>
         ))}
-        <div className="pt-2 border-t border-primary-100">
+        <div className="pt-2">
           <p className="text-sm text-primary-400">
             Still need help?{' '}
             <a
@@ -796,11 +806,13 @@ export default function SettingsPage() {
   return (
     <Page header={<Header title="Settings" back />}>
       <motion.div
-        initial={shouldReduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
         className="pb-8"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
       >
         {/* ---- Notifications ---- */}
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="Notifications" className="pt-4" />
         <div className="bg-white">
           <MenuRow
@@ -840,7 +852,10 @@ export default function SettingsPage() {
           />
         </div>
 
+        </motion.div>
+
         {/* ---- Privacy ---- */}
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="Privacy" />
         <div className="bg-white">
           <MenuRow
@@ -885,7 +900,10 @@ export default function SettingsPage() {
           />
         </div>
 
+        </motion.div>
+
         {/* ---- Account ---- */}
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="Account" />
         <div className="bg-white">
           <MenuRow
@@ -914,7 +932,10 @@ export default function SettingsPage() {
           />
         </div>
 
+        </motion.div>
+
         {/* ---- About ---- */}
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="About" />
         <div className="bg-white">
           <MenuRow
@@ -970,15 +991,17 @@ export default function SettingsPage() {
           />
         </div>
 
+        </motion.div>
+
         {/* ---- App Info ---- */}
-        <div className="mt-6 text-center">
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-6 text-center">
           <p className="text-xs text-primary-400">
             {APP_NAME} v{APP_VERSION}
           </p>
-        </div>
+        </motion.div>
 
         {/* ---- Logout ---- */}
-        <div className="mt-4">
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-4">
           <Button
             variant="ghost"
             fullWidth
@@ -988,7 +1011,7 @@ export default function SettingsPage() {
           >
             Log Out
           </Button>
-        </div>
+        </motion.div>
 
         {/* ---- All Bottom Sheets ---- */}
         <NotificationPrefsSheet

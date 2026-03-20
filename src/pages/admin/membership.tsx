@@ -154,10 +154,10 @@ function RewardForm({
               key={cat}
               onClick={() => set('category', cat)}
               className={cn(
-                'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all border cursor-pointer',
+                'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer',
                 form.category === cat
-                  ? 'border-primary-500 bg-primary-50 text-primary-700'
-                  : 'border-primary-100 bg-white text-primary-400 hover:border-primary-300',
+                  ? 'ring-2 ring-primary-500 bg-primary-50 text-primary-700 shadow-sm'
+                  : 'bg-primary-50/60 text-primary-400 hover:bg-primary-100',
               )}
             >
               {categoryIcons[cat]}
@@ -167,7 +167,7 @@ function RewardForm({
         </div>
       </div>
 
-      <div className="p-4 rounded-2xl bg-white border border-primary-100">
+      <div className="p-4 rounded-2xl bg-white shadow-sm">
         <Toggle
           label="Active"
           description="Visible to members"
@@ -247,10 +247,20 @@ export default function AdminMembershipPage() {
     [upsertReward, toast],
   )
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
       {/* Tab bar */}
-      <div className="flex items-center gap-1 mb-6 border-b border-primary-100">
+      <motion.div variants={fadeUp} className="flex items-center gap-1 mb-6">
         {(['rewards', 'plans'] as const).map((t) => (
           <button
             key={t}
@@ -269,11 +279,11 @@ export default function AdminMembershipPage() {
             )}
           </button>
         ))}
-      </div>
+      </motion.div>
 
       {/* ---- Rewards tab ---- */}
       {tab === 'rewards' && (
-        <>
+        <motion.div variants={fadeUp}>
           {/* Editing form */}
           <AnimatePresence>
             {editingReward && (
@@ -283,7 +293,7 @@ export default function AdminMembershipPage() {
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden mb-6"
               >
-                <div className="rounded-2xl border border-primary-200 bg-primary-50/50 p-5">
+                <div className="rounded-2xl shadow-sm bg-primary-50/50 p-5">
                   <RewardForm
                     initial={editingReward}
                     onSave={handleSaveReward}
@@ -307,7 +317,7 @@ export default function AdminMembershipPage() {
                 <div
                   key={reward.id}
                   className={cn(
-                    'flex items-center gap-4 rounded-xl border border-primary-100 bg-white px-4 py-3 transition-opacity',
+                    'flex items-center gap-4 rounded-xl shadow-sm bg-white px-4 py-3 transition-opacity',
                     !reward.is_active && 'opacity-50',
                   )}
                 >
@@ -358,12 +368,12 @@ export default function AdminMembershipPage() {
               className="min-h-[240px]"
             />
           )}
-        </>
+        </motion.div>
       )}
 
       {/* ---- Plans tab ---- */}
       {tab === 'plans' && (
-        <>
+        <motion.div variants={fadeUp}>
           {plansLoading ? (
             <div className="space-y-3">
               <Skeleton variant="card" />
@@ -375,7 +385,7 @@ export default function AdminMembershipPage() {
                 <div
                   key={plan.id}
                   className={cn(
-                    'rounded-xl border border-primary-100 bg-white p-5 transition-opacity',
+                    'rounded-xl shadow-sm bg-white p-5 transition-opacity',
                     !plan.is_active && 'opacity-50',
                   )}
                 >
@@ -410,14 +420,14 @@ export default function AdminMembershipPage() {
             />
           )}
 
-          <div className="mt-6 rounded-xl bg-primary-50 border border-primary-100 p-4">
+          <div className="mt-6 rounded-xl bg-primary-50 shadow-sm p-4">
             <p className="text-sm text-primary-500">
               Plans are managed via Stripe Products. Create or modify plans in your Stripe
               dashboard and they'll sync here automatically.
             </p>
           </div>
-        </>
+        </motion.div>
       )}
-    </>
+    </motion.div>
   )
 }

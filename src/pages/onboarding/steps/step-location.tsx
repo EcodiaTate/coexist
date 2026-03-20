@@ -4,6 +4,16 @@ import { MapPin } from 'lucide-react'
 import { Input } from '@/components/input'
 import { Button } from '@/components/button'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 interface StepLocationProps {
   location: string
   onChange: (location: string, point: { lat: number; lng: number } | null) => void
@@ -26,22 +36,22 @@ export function StepLocation({ location, onChange, onNext, onSkip }: StepLocatio
     <div className="flex-1 flex flex-col px-6 pt-8">
       <motion.div
         className="flex-1"
-        initial={shouldReduceMotion ? undefined : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
       >
-        <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mb-6">
+        <motion.div variants={fadeUp} className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mb-6">
           <MapPin className="w-7 h-7 text-primary-400" />
-        </div>
+        </motion.div>
 
-        <h2 className="font-heading text-2xl font-bold text-primary-800">
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800">
           Where are you based?
-        </h2>
-        <p className="mt-2 text-primary-400 leading-relaxed">
+        </motion.h2>
+        <motion.p variants={fadeUp} className="mt-2 text-primary-400 leading-relaxed">
           We'll suggest nearby collectives and events in your area.
-        </p>
+        </motion.p>
 
-        <div className="mt-8">
+        <motion.div variants={fadeUp} className="mt-8">
           <Input
             label="Suburb or city"
             value={query}
@@ -49,7 +59,7 @@ export function StepLocation({ location, onChange, onNext, onSkip }: StepLocatio
             placeholder="e.g. Byron Bay, NSW"
             icon={<MapPin size={18} />}
           />
-        </div>
+        </motion.div>
       </motion.div>
 
       <div

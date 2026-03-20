@@ -140,6 +140,16 @@ export default function ProductDetailPage() {
   const { data: related } = useRelatedProducts(product?.id, product?.category ?? null)
   const addItem = useCart((s) => s.addItem)
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
   const [quantity, setQuantity] = useState(1)
 
@@ -202,12 +212,13 @@ export default function ProductDetailPage() {
       <ImageGallery images={product.images} alt={product.name} />
 
       <motion.div
-        initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
         className="py-5 space-y-5"
       >
         {/* Name + price */}
-        <div>
+        <motion.div variants={fadeUp}>
           <h1 className="font-heading text-xl font-bold text-primary-800">
             {product.name}
           </h1>
@@ -232,16 +243,18 @@ export default function ProductDetailPage() {
               Only {activeVariant.stock} left
             </p>
           )}
-        </div>
+        </motion.div>
 
         {/* Description */}
+        <motion.div variants={fadeUp}>
         <p className="text-sm text-primary-400 leading-relaxed">
           {product.description}
         </p>
+        </motion.div>
 
         {/* Variant selector: sizes */}
         {sizes.length > 0 && (
-          <div>
+          <motion.div variants={fadeUp}>
             <h3 className="text-sm font-semibold text-primary-800 mb-2">Size</h3>
             <div className="flex flex-wrap gap-2">
               {sizes.map((size) => {
@@ -258,13 +271,13 @@ export default function ProductDetailPage() {
                     onClick={() => variant && setSelectedVariant(variant)}
                     disabled={!available}
                     className={cn(
-                      'px-4 py-2 min-h-11 rounded-xl border-2 text-sm font-medium cursor-pointer select-none',
+                      'px-4 py-2 min-h-11 rounded-xl text-sm font-medium cursor-pointer select-none',
                       'active:scale-[0.97] transition-all duration-150',
                       isSelected
-                        ? 'border-primary-500 bg-white text-primary-400'
+                        ? 'bg-primary-100 text-primary-800 shadow-sm ring-2 ring-primary-500'
                         : available
-                          ? 'border-primary-200 text-primary-800 hover:border-primary-200'
-                          : 'border-primary-100 text-primary-300 cursor-not-allowed line-through',
+                          ? 'bg-primary-50/60 text-primary-800 hover:bg-primary-100/60'
+                          : 'bg-primary-50/30 text-primary-300 cursor-not-allowed line-through',
                     )}
                   >
                     {size}
@@ -272,12 +285,12 @@ export default function ProductDetailPage() {
                 )
               })}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Variant selector: colours */}
         {colours.length > 0 && (
-          <div>
+          <motion.div variants={fadeUp}>
             <h3 className="text-sm font-semibold text-primary-800 mb-2">Colour</h3>
             <div className="flex flex-wrap gap-2">
               {colours.map((colour) => {
@@ -294,13 +307,13 @@ export default function ProductDetailPage() {
                     onClick={() => variant && setSelectedVariant(variant)}
                     disabled={!available}
                     className={cn(
-                      'px-4 py-2 min-h-11 rounded-xl border-2 text-sm font-medium cursor-pointer select-none',
+                      'px-4 py-2 min-h-11 rounded-xl text-sm font-medium cursor-pointer select-none',
                       'active:scale-[0.97] transition-all duration-150',
                       isSelected
-                        ? 'border-primary-500 bg-white text-primary-400'
+                        ? 'bg-primary-100 text-primary-800 shadow-sm ring-2 ring-primary-500'
                         : available
-                          ? 'border-primary-200 text-primary-800 hover:border-primary-200'
-                          : 'border-primary-100 text-primary-300 cursor-not-allowed line-through',
+                          ? 'bg-primary-50/60 text-primary-800 hover:bg-primary-100/60'
+                          : 'bg-primary-50/30 text-primary-300 cursor-not-allowed line-through',
                     )}
                   >
                     {colour}
@@ -308,11 +321,11 @@ export default function ProductDetailPage() {
                 )
               })}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Quantity */}
-        <div>
+        <motion.div variants={fadeUp}>
           <h3 className="text-sm font-semibold text-primary-800 mb-2">Quantity</h3>
           <div className="inline-flex items-center gap-3 bg-white rounded-lg p-1">
             <button
@@ -335,11 +348,11 @@ export default function ProductDetailPage() {
               <Plus size={16} />
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Reviews */}
         {reviews && reviews.length > 0 && (
-          <div>
+          <motion.div variants={fadeUp}>
             <h3 className="font-heading font-semibold text-primary-800 mb-3">
               Reviews ({reviews.length})
             </h3>
@@ -347,7 +360,7 @@ export default function ProductDetailPage() {
               {reviews.slice(0, 5).map((review) => (
                 <div
                   key={review.id}
-                  className="p-3 rounded-xl bg-white border border-primary-100"
+                  className="p-3 rounded-xl bg-primary-50/40"
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <Avatar
@@ -366,12 +379,12 @@ export default function ProductDetailPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* Related products */}
         {related && related.length > 0 && (
-          <div>
+          <motion.div variants={fadeUp}>
             <h3 className="font-heading font-semibold text-primary-800 mb-3">
               You might also like
             </h3>
@@ -401,7 +414,7 @@ export default function ProductDetailPage() {
               ))}
             </div>
             </div>
-          </div>
+          </motion.div>
         )}
       </motion.div>
     </Page>

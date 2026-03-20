@@ -10,6 +10,16 @@ import type { Database } from '@/types/database.types'
 
 type Event = Database['public']['Tables']['events']['Row']
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 interface StepFirstEventProps {
   collectiveId: string | null
   onNext: () => void
@@ -61,25 +71,28 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
 
   return (
     <div className="flex-1 flex flex-col px-6 pt-8 min-h-0">
-      <div className="flex-1 overflow-y-auto">
-        <h2 className="font-heading text-2xl font-bold text-primary-800">
+      <motion.div
+        className="flex-1 overflow-y-auto"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800">
           Find your first event
-        </h2>
-        <p className="mt-2 text-primary-400 leading-relaxed">
+        </motion.h2>
+        <motion.p variants={fadeUp} className="mt-2 text-primary-400 leading-relaxed">
           Jump in! One tap to RSVP.
-        </p>
+        </motion.p>
 
         <div className="mt-6 space-y-3">
           {isLoading ? (
             <Skeleton variant="list-item" count={3} />
           ) : events && events.length > 0 ? (
-            events.map((event, i) => (
+            events.map((event) => (
               <motion.div
                 key={event.id}
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.03 }}
-                className="flex items-start gap-3 p-4 rounded-xl border border-primary-200"
+                variants={fadeUp}
+                className="flex items-start gap-3 p-4 rounded-xl shadow-sm bg-white"
               >
                 <div className="w-12 h-12 rounded-lg bg-accent-100 flex flex-col items-center justify-center shrink-0">
                   <Calendar size={16} className="text-primary-400" />
@@ -114,7 +127,7 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       <div
         className="py-6 space-y-3"

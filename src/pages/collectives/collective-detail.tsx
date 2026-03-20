@@ -87,6 +87,16 @@ export default function CollectiveDetailPage() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
   const [justJoined, setJustJoined] = useState(false)
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   const isMember = !!membership
 
   const handleJoin = async () => {
@@ -209,7 +219,12 @@ export default function CollectiveDetailPage() {
       }
     >
       {/* Cover image hero */}
-      <div className="relative aspect-[2.2/1] w-full overflow-hidden bg-primary-100">
+      <motion.div
+        initial={shouldReduceMotion ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35 }}
+        className="relative aspect-[2.2/1] w-full overflow-hidden bg-primary-100"
+      >
         {collective.cover_image_url ? (
           <img
             src={collective.cover_image_url}
@@ -233,11 +248,12 @@ export default function CollectiveDetailPage() {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
-      <div className="space-y-6 py-4">
+      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="space-y-6 py-4">
         {/* Just-joined WhatsNext prompt */}
         {justJoined && (
+          <motion.div variants={fadeUp}>
           <WhatsNext
             title="Welcome! Here's what to do next"
             suggestions={[
@@ -265,18 +281,21 @@ export default function CollectiveDetailPage() {
               },
             ]}
           />
+          </motion.div>
         )}
 
         {/* Description */}
         {collective.description && (
-          <p className="text-sm leading-relaxed text-primary-400">
-            {collective.description}
-          </p>
+          <motion.div variants={fadeUp}>
+            <p className="text-sm leading-relaxed text-primary-400">
+              {collective.description}
+            </p>
+          </motion.div>
         )}
 
         {/* Leaders */}
         {leaders.length > 0 && (
-          <section aria-label="Leaders">
+          <motion.section variants={fadeUp} aria-label="Leaders">
             <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider mb-3">
               Leaders
             </h3>
@@ -303,12 +322,12 @@ export default function CollectiveDetailPage() {
                 </Link>
               ))}
             </div>
-          </section>
+          </motion.section>
         )}
 
         {/* Stats */}
         {stats && (
-          <section aria-label="Collective stats">
+          <motion.section variants={fadeUp} aria-label="Collective stats">
             <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider mb-3">
               Impact
             </h3>
@@ -329,11 +348,11 @@ export default function CollectiveDetailPage() {
                 icon={<Clock size={18} />}
               />
             </div>
-          </section>
+          </motion.section>
         )}
 
         {/* Member gallery */}
-        <section aria-label="Members">
+        <motion.section variants={fadeUp} aria-label="Members">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider">
               Members ({collective.member_count})
@@ -359,10 +378,10 @@ export default function CollectiveDetailPage() {
               </div>
             )}
           </div>
-        </section>
+        </motion.section>
 
         {/* Upcoming events */}
-        <section aria-label="Upcoming events">
+        <motion.section variants={fadeUp} aria-label="Upcoming events">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider">
               Upcoming Events
@@ -417,11 +436,11 @@ export default function CollectiveDetailPage() {
               ))}
             </div>
           )}
-        </section>
+        </motion.section>
 
         {/* Past events */}
         {pastEvents.length > 0 && (
-          <section aria-label="Past events">
+          <motion.section variants={fadeUp} aria-label="Past events">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider">
                 Past Events
@@ -451,11 +470,11 @@ export default function CollectiveDetailPage() {
                 </Link>
               ))}
             </div>
-          </section>
+          </motion.section>
         )}
 
         {/* Map */}
-        <section aria-label="Location">
+        <motion.section variants={fadeUp} aria-label="Location">
           <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider mb-3">
             Location
           </h3>
@@ -472,8 +491,8 @@ export default function CollectiveDetailPage() {
               />
             )
           })()}
-        </section>
-      </div>
+        </motion.section>
+      </motion.div>
 
       {/* Leave confirmation */}
       <ConfirmationSheet

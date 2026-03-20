@@ -5,101 +5,165 @@ import {
   MapPin,
   Users,
   CalendarDays,
-  Search,
   Plus,
   Archive,
+  RotateCcw,
   ChevronRight,
-  Activity,
+  Crown,
+  Filter,
 } from 'lucide-react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
-import { Input } from '@/components/input'
+import { SearchBar } from '@/components/search-bar'
+import { Avatar } from '@/components/avatar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { Modal } from '@/components/modal'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
-import { supabase } from '@/lib/supabase'
+import {
+  useAdminCollectives,
+  useCreateCollective,
+  useArchiveCollective,
+  type AdminCollective,
+} from '@/hooks/use-admin-collectives'
 
-function useCollectives(search: string) {
-  return useQuery({
-    queryKey: ['admin-collectives', search],
-    queryFn: async () => {
-      let query = supabase
-        .from('collectives')
-        .select('id, name, slug, region, state, cover_image_url, is_active, created_at' as any)
-        .order('name')
+/* ------------------------------------------------------------------ */
+/*  Constants                                                          */
+/* ------------------------------------------------------------------ */
 
-      if (search) {
-        query = query.ilike('name', `%${search}%`)
-      }
+const healthConfig = {
+  healthy: { color: 'bg-success-100 text-success-700', label: 'Healthy' },
+  moderate: { color: 'bg-warning-100 text-warning-700', label: 'Moderate' },
+  'needs-attention': { color: 'bg-error-100 text-error-700', label: 'Needs Attention' },
+} as const
 
-      const { data, error } = await query
-      if (error) throw error
+const AUSTRALIAN_STATES = [
+  '', 'NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT',
+] as const
 
-      // Enrich with member counts
-      const enriched = await Promise.all(
-        (data as any[] ?? []).map(async (collective: any) => {
-          const [membersRes, eventsRes] = await Promise.all([
-            supabase
-              .from('collective_members')
-              .select('id', { count: 'exact', head: true })
-              .eq('collective_id', collective.id),
-            supabase
-              .from('events')
-              .select('id', { count: 'exact', head: true })
-              .eq('collective_id', collective.id),
-          ])
+type StatusFilter = 'all' | 'active' | 'archived'
 
-          // Simple health score: based on member count + recent events
-          const memberCount = membersRes.count ?? 0
-          const eventCount = eventsRes.count ?? 0
-          const health =
-            memberCount >= 10 && eventCount >= 3
-              ? 'healthy'
-              : memberCount >= 5
-                ? 'moderate'
-                : 'needs-attention'
+/* ------------------------------------------------------------------ */
+/*  Create collective modal                                            */
+/* ------------------------------------------------------------------ */
 
-          return {
-            ...collective,
-            memberCount,
-            eventCount,
-            health: health as 'healthy' | 'moderate' | 'needs-attention',
-          }
-        }),
-      )
+function CreateCollectiveModal({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  const { toast } = useToast()
+  const createCollective = useCreateCollective()
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [region, setRegion] = useState('')
+  const [state, setState] = useState('')
 
-      return enriched
-    },
-    staleTime: 2 * 60 * 1000,
-  })
+  const handleCreate = async () => {
+    try {
+      await createCollective.mutateAsync({
+        name,
+        description: description || undefined,
+        region: region || undefined,
+        state: state || undefined,
+      })
+      toast.success('Collective created')
+      setName('')
+      setDescription('')
+      setRegion('')
+      setState('')
+      onClose()
+    } catch {
+      toast.error('Failed to create collective')
+    }
+  }
+
+  return (
+    <Modal open={open} onClose={onClose} title="Create Collective">
+      <div className="space-y-4">
+        <Input
+          label="Collective Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          placeholder="e.g. Byron Bay Collective"
+        />
+        <div>
+          <label className="block text-xs font-semibold text-primary-500 uppercase tracking-wider mb-1">
+            Description
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="What does this collective focus on?"
+            rows={3}
+            className={cn(
+              'w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
+              'placeholder:text-primary-400',
+              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
+              'resize-none',
+            )}
+          />
+        </div>
+        <Input
+          label="Region"
+          value={region}
+          onChange={(e) => setRegion(e.target.value)}
+          placeholder="e.g. Byron Bay"
+        />
+        <div>
+          <label className="block text-xs font-semibold text-primary-500 uppercase tracking-wider mb-1">
+            State
+          </label>
+          <select
+            value={state}
+            onChange={(e) => setState(e.target.value)}
+            className={cn(
+              'w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
+              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
+            )}
+          >
+            <option value="">Select state...</option>
+            {AUSTRALIAN_STATES.filter(Boolean).map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={handleCreate}
+          loading={createCollective.isPending}
+          disabled={!name.trim()}
+        >
+          Create Collective
+        </Button>
+      </div>
+    </Modal>
+  )
 }
 
-const healthColors = {
-  healthy: 'bg-success-100 text-success-700',
-  moderate: 'bg-warning-100 text-warning-700',
-  'needs-attention': 'bg-error-100 text-error-700',
-}
-
-const healthLabels = {
-  healthy: 'Healthy',
-  moderate: 'Moderate',
-  'needs-attention': 'Needs Attention',
-}
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
 export default function AdminCollectivesPage() {
+  const shouldReduceMotion = useReducedMotion()
   const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
   const [showCreate, setShowCreate] = useState(false)
-  const [archiveTarget, setArchiveTarget] = useState<string | null>(null)
-  const [newName, setNewName] = useState('')
-  const [newLocation, setNewLocation] = useState('')
-  const queryClient = useQueryClient()
+  const [archiveTarget, setArchiveTarget] = useState<AdminCollective | null>(null)
   const { toast } = useToast()
 
-  const { data: collectives, isLoading } = useCollectives(search)
+  const { data: collectives, isLoading } = useAdminCollectives({
+    search,
+    status: statusFilter,
+  })
+  const archiveMutation = useArchiveCollective()
 
   const actions = useMemo(
     () => (
@@ -112,61 +176,104 @@ export default function AdminCollectivesPage() {
         Create
       </Button>
     ),
-    [setShowCreate],
+    [],
   )
 
   useAdminHeader('Collectives', actions)
 
-  const createMutation = useMutation({
-    mutationFn: async () => {
-      const slug = newName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-      const { error } = await supabase.from('collectives').insert({
-        name: newName,
-        slug,
-        region: newLocation || null,
-      } as any)
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-collectives'] })
-      setShowCreate(false)
-      setNewName('')
-      setNewLocation('')
-      toast.success('Collective created')
-    },
-    onError: () => toast.error('Failed to create collective'),
-  })
+  const handleArchiveToggle = async () => {
+    if (!archiveTarget) return
+    const isCurrentlyActive = archiveTarget.is_active
+    try {
+      await archiveMutation.mutateAsync({
+        collectiveId: archiveTarget.id,
+        archive: isCurrentlyActive,
+      })
+      toast.success(isCurrentlyActive ? 'Collective archived' : 'Collective restored')
+    } catch {
+      toast.error('Failed to update collective')
+    }
+    setArchiveTarget(null)
+  }
 
-  const archiveMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('collectives')
-        .update({ is_active: false })
-        .eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-collectives'] })
-      setArchiveTarget(null)
-      toast.success('Collective archived')
-    },
-    onError: () => toast.error('Failed to archive collective'),
-  })
+  // Stats summary
+  const stats = useMemo(() => {
+    if (!collectives) return null
+    const total = collectives.length
+    const active = collectives.filter((c) => c.is_active).length
+    const totalMembers = collectives.reduce((acc, c) => acc + c.memberCount, 0)
+    const totalEvents = collectives.reduce((acc, c) => acc + c.eventCount, 0)
+    return { total, active, totalMembers, totalEvents }
+  }, [collectives])
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
 
   return (
-    <>
-      {/* Search */}
-      <div className="mb-4">
-        <Input
-          type="search"
-          label="Search collectives"
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      {/* Stats row */}
+      {stats && (
+        <motion.div variants={fadeUp} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+          {[
+            { label: 'Total', value: stats.total, icon: <MapPin size={16} /> },
+            { label: 'Active', value: stats.active, icon: <Users size={16} /> },
+            { label: 'Members', value: stats.totalMembers, icon: <Users size={16} /> },
+            { label: 'Events', value: stats.totalEvents, icon: <CalendarDays size={16} /> },
+          ].map((s) => (
+            <div
+              key={s.label}
+              className="rounded-xl bg-white p-3 shadow-sm"
+            >
+              <div className="flex items-center gap-2 text-primary-400 mb-1">
+                {s.icon}
+                <span className="text-[11px] font-semibold uppercase tracking-wider">
+                  {s.label}
+                </span>
+              </div>
+              <p className="text-xl font-bold text-primary-800">{s.value.toLocaleString()}</p>
+            </div>
+          ))}
+        </motion.div>
+      )}
+
+      {/* Filters */}
+      <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
+        <SearchBar
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name..."
+          onChange={setSearch}
+          placeholder="Search collectives..."
+          compact
+          className="flex-1"
         />
-      </div>
+        <div className="flex items-center gap-1 rounded-xl shadow-sm bg-white p-0.5">
+          {(['active', 'archived', 'all'] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => setStatusFilter(s)}
+              className={cn(
+                'px-3 py-1.5 rounded-lg text-xs font-semibold capitalize',
+                'transition-colors duration-150 cursor-pointer select-none',
+                statusFilter === s
+                  ? 'bg-primary-100 text-primary-800'
+                  : 'text-primary-400 hover:text-primary-600',
+              )}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      </motion.div>
 
       {/* List */}
+      <motion.div variants={fadeUp}>
       {isLoading ? (
         <Skeleton variant="list-item" count={5} />
       ) : !collectives?.length ? (
@@ -182,123 +289,126 @@ export default function AdminCollectivesPage() {
         />
       ) : (
         <div className="space-y-2">
-          {collectives.map((c: any) => (
-            <Link
-              key={c.id}
-              to={`/collectives/${c.slug ?? c.id}`}
-              className={cn(
-                'flex items-center gap-4 p-4 rounded-xl',
-                'bg-white border border-primary-100 shadow-sm',
-                'hover:shadow-md transition-shadow duration-150',
-                !c.is_active && 'opacity-50',
-              )}
-            >
-              {c.cover_image_url ? (
-                <img
-                  src={c.cover_image_url}
-                  alt=""
-                  className="w-14 h-14 rounded-xl object-cover shrink-0"
-                />
-              ) : (
-                <div className="w-14 h-14 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
-                  <MapPin size={24} className="text-primary-500" />
-                </div>
-              )}
+          {collectives.map((c, i) => {
+            const healthCfg = healthConfig[c.health]
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="font-heading text-sm font-semibold text-primary-800 truncate">
-                    {c.name}
-                  </p>
-                  <span
-                    className={cn(
-                      'text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
-                      healthColors[c.health as keyof typeof healthColors],
+            return (
+              <motion.div
+                key={c.id}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: Math.min(i * 0.025, 0.2),
+                  duration: 0.2,
+                  ease: 'easeOut',
+                }}
+              >
+                <Link
+                  to={`/admin/collectives/${c.id}`}
+                  className={cn(
+                    'flex items-center gap-4 p-4 rounded-xl',
+                    'bg-white shadow-sm',
+                    'hover:shadow-md transition-all duration-150',
+                    !c.is_active && 'opacity-60',
+                  )}
+                >
+                  {/* Cover image */}
+                  {c.cover_image_url ? (
+                    <img
+                      src={c.cover_image_url}
+                      alt=""
+                      className="w-14 h-14 rounded-xl object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center shrink-0">
+                      <MapPin size={24} className="text-primary-400" />
+                    </div>
+                  )}
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <p className="font-heading text-sm font-semibold text-primary-800 truncate">
+                        {c.name}
+                      </p>
+                      <span
+                        className={cn(
+                          'text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0',
+                          healthCfg.color,
+                        )}
+                      >
+                        {healthCfg.label}
+                      </span>
+                      {!c.is_active && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-500 shrink-0">
+                          Archived
+                        </span>
+                      )}
+                    </div>
+                    {(c.region || c.state) && (
+                      <p className="text-xs text-primary-400 flex items-center gap-1">
+                        <MapPin size={12} />
+                        {[c.region, c.state].filter(Boolean).join(', ')}
+                      </p>
                     )}
-                  >
-                    {healthLabels[c.health as keyof typeof healthLabels]}
-                  </span>
-                </div>
-                {(c.region || c.state) && (
-                  <p className="text-xs text-primary-400 mt-0.5 flex items-center gap-1">
-                    <MapPin size={12} />
-                    {[c.region, c.state].filter(Boolean).join(', ')}
-                  </p>
-                )}
-                <div className="flex items-center gap-3 mt-1 text-xs text-primary-400">
-                  <span className="flex items-center gap-1">
-                    <Users size={12} /> {c.memberCount}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <CalendarDays size={12} /> {c.eventCount} events
-                  </span>
-                </div>
-              </div>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-primary-400">
+                      <span className="flex items-center gap-1">
+                        <Users size={12} /> {c.memberCount} members
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <CalendarDays size={12} /> {c.eventCount} events
+                      </span>
+                      {c.leaderName && (
+                        <span className="flex items-center gap-1 truncate">
+                          <Crown size={12} /> {c.leaderName}
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-              <div className="flex items-center gap-2 shrink-0">
-                {c.is_active && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      setArchiveTarget(c.id)
-                    }}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-primary-50 hover:text-primary-400 cursor-pointer"
-                    aria-label={`Archive ${c.name}`}
-                  >
-                    <Archive size={16} />
-                  </button>
-                )}
-                <ChevronRight size={16} className="text-primary-300" />
-              </div>
-            </Link>
-          ))}
+                  {/* Actions */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setArchiveTarget(c)
+                      }}
+                      className="p-2 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer transition-colors"
+                      aria-label={c.is_active ? `Archive ${c.name}` : `Restore ${c.name}`}
+                    >
+                      {c.is_active ? <Archive size={16} /> : <RotateCcw size={16} />}
+                    </button>
+                    <ChevronRight size={16} className="text-primary-300" />
+                  </div>
+                </Link>
+              </motion.div>
+            )
+          })}
         </div>
       )}
 
       {/* Create modal */}
-      <Modal
+      <CreateCollectiveModal
         open={showCreate}
         onClose={() => setShowCreate(false)}
-        title="Create Collective"
-      >
-        <div className="space-y-4">
-          <Input
-            label="Collective Name"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            required
-            placeholder="e.g. Byron Bay Collective"
-          />
-          <Input
-            label="Location"
-            value={newLocation}
-            onChange={(e) => setNewLocation(e.target.value)}
-            placeholder="e.g. Byron Bay, NSW"
-          />
-          <Button
-            variant="primary"
-            fullWidth
-            onClick={() => createMutation.mutate()}
-            loading={createMutation.isPending}
-            disabled={!newName.trim()}
-          >
-            Create Collective
-          </Button>
-        </div>
-      </Modal>
+      />
 
-      {/* Archive confirmation */}
+      {/* Archive / Restore confirmation */}
       <ConfirmationSheet
         open={!!archiveTarget}
         onClose={() => setArchiveTarget(null)}
-        onConfirm={() => archiveTarget && archiveMutation.mutate(archiveTarget)}
-        title="Archive Collective"
-        description="This collective will be hidden from members. You can restore it later."
-        confirmLabel="Archive"
+        onConfirm={handleArchiveToggle}
+        title={archiveTarget?.is_active ? 'Archive Collective' : 'Restore Collective'}
+        description={
+          archiveTarget?.is_active
+            ? `"${archiveTarget?.name}" will be hidden from members. You can restore it later.`
+            : `"${archiveTarget?.name}" will be made visible to members again.`
+        }
+        confirmLabel={archiveTarget?.is_active ? 'Archive' : 'Restore'}
         variant="warning"
       />
-    </>
+    </motion.div>
   )
 }

@@ -120,7 +120,7 @@ export default function LeaderboardPage() {
               <motion.div
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-4 rounded-xl bg-white border border-primary-100 px-4 py-3 text-center"
+                className="mb-4 rounded-xl bg-white shadow-sm px-4 py-3 text-center"
               >
                 <p className="text-sm text-primary-400">
                   Your rank:{' '}
@@ -194,7 +194,7 @@ export default function LeaderboardPage() {
                     onClick={() => navigate(`/profile/${entry.userId}`)}
                     className={cn(
                       'w-full flex items-center justify-center gap-3 rounded-xl px-3 py-2.5 min-h-11 active:scale-[0.97] transition-all duration-150 hover:bg-primary-50 cursor-pointer select-none',
-                      entry.userId === user?.id && 'bg-white border border-primary-100',
+                      entry.userId === user?.id && 'bg-white shadow-sm',
                     )}
                   >
                     <span className="w-8 text-sm font-bold text-primary-400 tabular-nums text-center">
@@ -238,7 +238,7 @@ export default function LeaderboardPage() {
                   initial={shouldReduceMotion ? false : { opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.03 }}
-                  className="flex items-center gap-3 rounded-xl bg-white border border-primary-100 shadow-sm px-4 py-3"
+                  className="flex items-center gap-3 rounded-xl bg-white shadow-sm px-4 py-3"
                 >
                   <span className="w-8 text-center">
                     {entry.rank <= 3 ? (

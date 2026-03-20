@@ -87,7 +87,7 @@ export default function PointsPage() {
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 rounded-2xl bg-gradient-to-br from-white to-accent-100 border border-accent-200 p-5 text-center"
+          className="mt-4 rounded-2xl bg-gradient-to-br from-white to-accent-100 shadow-md p-5 text-center"
         >
           <p className="text-sm font-medium text-primary-400 mb-1">Total Points</p>
           <p className="font-heading text-4xl font-bold text-primary-800">
@@ -122,13 +122,13 @@ export default function PointsPage() {
           <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
             How to Earn Points
           </h3>
-          <div className="rounded-xl bg-white border border-primary-100 shadow-sm overflow-hidden">
+          <div className="rounded-xl bg-white shadow-sm overflow-hidden">
             {Object.entries(POINT_VALUES).map(([key, value], i) => (
               <div
                 key={key}
                 className={cn(
                   'flex items-center justify-between px-4 py-2.5',
-                  i > 0 && 'border-t border-primary-100',
+                  i > 0 && 'bg-primary-50/30 even:bg-white',
                 )}
               >
                 <span className="text-sm text-primary-400">
@@ -159,13 +159,12 @@ export default function PointsPage() {
                     <Calendar size={12} />
                     {date}
                   </p>
-                  <div className="rounded-xl bg-white border border-primary-100 shadow-sm overflow-hidden">
+                  <div className="rounded-xl bg-white shadow-sm overflow-hidden">
                     {entries!.map((entry, i) => (
                       <div
                         key={entry.id}
                         className={cn(
                           'flex items-center justify-between px-4 py-3',
-                          i > 0 && 'border-t border-primary-100',
                         )}
                       >
                         <div className="flex items-center gap-3">

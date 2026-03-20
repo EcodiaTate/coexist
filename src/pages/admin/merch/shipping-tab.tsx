@@ -46,14 +46,27 @@ export default function ShippingTab() {
 
   const shouldReduceMotion = useReducedMotion()
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
     <motion.div
       className="space-y-4"
-      initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
+      variants={shouldReduceMotion ? undefined : stagger}
+      initial="hidden"
+      animate="visible"
     >
-      <h2 className="font-heading font-semibold text-primary-800">Shipping configuration</h2>
+      <motion.div variants={fadeUp}>
+        <h2 className="font-heading font-semibold text-primary-800">Shipping configuration</h2>
+      </motion.div>
+      <motion.div variants={fadeUp}>
       <Input
         label="Flat rate ($)"
         value={flatRate}
@@ -66,6 +79,8 @@ export default function ShippingTab() {
         onChange={(e) => setFreeThreshold(e.target.value)}
         helperText="Orders above this amount get free shipping. Leave empty for no threshold."
       />
+      </motion.div>
+      <motion.div variants={fadeUp}>
       <Button
         variant="primary"
         fullWidth
@@ -74,6 +89,7 @@ export default function ShippingTab() {
       >
         Save
       </Button>
+      </motion.div>
     </motion.div>
   )
 }

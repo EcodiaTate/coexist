@@ -84,6 +84,16 @@ export default function ViewProfilePage() {
     )
   }
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   const points = pointsData?.points ?? profile.points ?? 0
   const tier = getTierFromPoints(points)
   const earnedBadges = badges?.filter((b) => b.earned) ?? []
@@ -94,11 +104,10 @@ export default function ViewProfilePage() {
 
   return (
     <Page header={<Header title={profile.display_name ?? 'Profile'} back />}>
-      <div className="pb-8">
+      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="pb-8">
         {/* Profile Header */}
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
+          variants={fadeUp}
           className="flex flex-col items-center pt-6 pb-4"
         >
           <Avatar
@@ -159,10 +168,8 @@ export default function ViewProfilePage() {
         {/* Mutual Connections */}
         {mutualData && (mutualData.sharedCollectives.length > 0 || mutualData.sharedEventCount > 0) && (
           <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="mt-2 rounded-xl bg-white border border-primary-100 px-4 py-3"
+            variants={fadeUp}
+            className="mt-2 rounded-xl bg-white shadow-sm px-4 py-3"
           >
             <div className="flex items-center gap-2 text-sm text-primary-400">
               <Users size={16} />
@@ -189,9 +196,7 @@ export default function ViewProfilePage() {
 
         {/* Stats */}
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          variants={fadeUp}
           className="mt-6 grid grid-cols-3 gap-3"
         >
           <StatCard
@@ -214,9 +219,7 @@ export default function ViewProfilePage() {
         {/* Collectives */}
         {collectives && collectives.length > 0 && (
           <motion.section
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
+            variants={fadeUp}
             className="mt-6"
           >
             <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
@@ -240,9 +243,7 @@ export default function ViewProfilePage() {
         {/* Badges */}
         {earnedBadges.length > 0 && (
           <motion.section
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            variants={fadeUp}
             className="mt-6"
           >
             <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
@@ -273,9 +274,7 @@ export default function ViewProfilePage() {
         {/* Interests */}
         {profile.interests && profile.interests.length > 0 && (
           <motion.section
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
+            variants={fadeUp}
             className="mt-6"
           >
             <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
@@ -295,9 +294,7 @@ export default function ViewProfilePage() {
           if (!pos) return null
           return (
             <motion.section
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              variants={fadeUp}
               className="mt-6"
             >
               <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
@@ -314,7 +311,7 @@ export default function ViewProfilePage() {
             </motion.section>
           )
         })()}
-      </div>
+      </motion.div>
     </Page>
   )
 }

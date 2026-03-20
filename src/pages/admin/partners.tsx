@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Handshake,
   Plus,
@@ -156,14 +157,28 @@ export default function AdminPartnersPage() {
     },
   })
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
-      <TabBar
-        tabs={tabs}
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        className="mb-4"
-      />
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={fadeUp}>
+        <TabBar
+          tabs={tabs}
+          activeTab={activeTab}
+          onChange={setActiveTab}
+          className="mb-4"
+        />
+      </motion.div>
 
       {/* Organisations tab */}
       {activeTab === 'organisations' && (
@@ -193,7 +208,7 @@ export default function AdminPartnersPage() {
               {organisations.map((org) => (
                 <StaggeredItem
                   key={org.id}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-white border border-primary-100 shadow-sm"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-white shadow-sm"
                 >
                   {org.logo_url ? (
                     <img
@@ -202,7 +217,7 @@ export default function AdminPartnersPage() {
                       className="w-10 h-10 rounded-lg object-contain bg-white shrink-0"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-white border border-primary-400 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-primary-50/60 shadow-sm flex items-center justify-center shrink-0">
                       <Building2 size={18} className="text-primary-400" />
                     </div>
                   )}
@@ -275,7 +290,7 @@ export default function AdminPartnersPage() {
               {offers.map((offer: any) => (
                 <StaggeredItem
                   key={offer.id}
-                  className="p-4 rounded-xl bg-white border border-primary-100 shadow-sm"
+                  className="p-4 rounded-xl bg-white shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -303,7 +318,7 @@ export default function AdminPartnersPage() {
                     </p>
                   )}
                   {offer.category && (
-                    <span className="inline-flex items-center gap-1 mt-2 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-white border border-primary-400 text-primary-800">
+                    <span className="inline-flex items-center gap-1 mt-2 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary-50/60 shadow-sm text-primary-800">
                       <Tag size={10} />
                       {offer.category}
                     </span>
@@ -318,7 +333,7 @@ export default function AdminPartnersPage() {
       {/* Corporate Programs tab */}
       {activeTab === 'corporate' && (
         <div className="space-y-4">
-          <div className="p-6 rounded-xl bg-gradient-to-br from-white to-secondary-100 border border-secondary-200">
+          <div className="p-6 rounded-xl bg-gradient-to-br from-white to-secondary-100 shadow-sm">
             <h3 className="font-heading text-base font-semibold text-primary-800 mb-2">
               Corporate Volunteer Programs
             </h3>
@@ -490,6 +505,6 @@ export default function AdminPartnersPage() {
         confirmLabel="Delete"
         variant="danger"
       />
-    </>
+    </motion.div>
   )
 }

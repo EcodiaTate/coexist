@@ -64,7 +64,7 @@ export default function OrderConfirmationPage() {
             transition={{ delay: 0.5 }}
             className={cn(
               'mt-4 px-4 py-2 rounded-xl text-sm',
-              'bg-white border border-primary-200 text-primary-400',
+              'bg-white shadow-sm text-primary-400',
             )}
           >
             Order ID: <span className="font-mono font-medium">{orderId.slice(0, 8)}</span>

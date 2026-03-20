@@ -31,7 +31,7 @@ export function DonationThermometer({
       aria-label={label ?? `$${current.toLocaleString()} raised of $${goal.toLocaleString()} goal`}
     >
       {/* Thermometer */}
-      <div className="relative w-10 h-48 rounded-full bg-white border border-primary-200 overflow-hidden">
+      <div className="relative w-10 h-48 rounded-full bg-primary-50 shadow-inner overflow-hidden">
         {/* Fill */}
         <motion.div
           className={cn(

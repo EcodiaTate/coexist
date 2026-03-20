@@ -2,6 +2,16 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Input } from '@/components/input'
 import { Button } from '@/components/button'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 interface StepNameHandleProps {
   displayName: string
   instagramHandle: string
@@ -17,18 +27,18 @@ export function StepNameHandle({ displayName, instagramHandle, onChange, onNext,
     <div className="flex-1 flex flex-col px-6 pt-8">
       <motion.div
         className="flex-1"
-        initial={shouldReduceMotion ? undefined : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
       >
-        <h2 className="font-heading text-2xl font-bold text-primary-800">
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800">
           What should we call you?
-        </h2>
-        <p className="mt-2 text-primary-400">
+        </motion.h2>
+        <motion.p variants={fadeUp} className="mt-2 text-primary-400">
           This is how you'll appear in your collective.
-        </p>
+        </motion.p>
 
-        <div className="mt-8 space-y-4">
+        <motion.div variants={fadeUp} className="mt-8 space-y-4">
           <Input
             label="Display name"
             value={displayName}
@@ -42,7 +52,7 @@ export function StepNameHandle({ displayName, instagramHandle, onChange, onNext,
             onChange={(e) => onChange(displayName, e.target.value)}
             placeholder="@yourhandle"
           />
-        </div>
+        </motion.div>
       </motion.div>
 
       <div

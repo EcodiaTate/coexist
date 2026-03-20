@@ -88,9 +88,9 @@ export function SidebarNav({ className }: SidebarNavProps) {
   return (
     <aside
       className={cn(
-        'sticky top-0 self-start max-h-dvh',
+        'sticky top-0 self-start max-h-dvh z-50',
         'flex flex-col',
-        'bg-white border-r border-primary-100',
+        'bg-white shadow-2xl',
         'transition-[width] duration-250 ease-in-out',
         collapsed ? 'w-16' : 'w-64',
         className,
@@ -99,7 +99,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
     >
       {/* Wordmark */}
       {!collapsed && (
-        <div className="px-4 py-4 border-b border-primary-100">
+        <div className="flex items-center justify-center px-4 py-4">
           <Link
             to="/"
             className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-md"
@@ -115,7 +115,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
       )}
 
       {collapsed && (
-        <div className="flex items-center justify-center py-4 border-b border-primary-100">
+        <div className="flex items-center justify-center py-4">
           <Link
             to="/"
             className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-md"
@@ -139,7 +139,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
             Activity
           </p>
         )}
-        {collapsed && <div className="my-3 border-t border-primary-100" />}
+        {collapsed && <div className="my-3 bg-primary-50/30" />}
         <NavSection items={activityNav} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
 
         {!collapsed && (
@@ -147,7 +147,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
             Discover
           </p>
         )}
-        {collapsed && <div className="my-3 border-t border-primary-100" />}
+        {collapsed && <div className="my-3 bg-primary-50/30" />}
         <NavSection items={secondaryNav} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
 
         {isAnyLeader && (
@@ -157,7 +157,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
                 Leader Tools
               </p>
             )}
-            {collapsed && <div className="my-3 border-t border-primary-100" />}
+            {collapsed && <div className="my-3 bg-primary-50/30" />}
             <NavSection items={leaderNav} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
           </>
         )}
@@ -169,24 +169,24 @@ export function SidebarNav({ className }: SidebarNavProps) {
                 Admin
               </p>
             )}
-            {collapsed && <div className="my-3 border-t border-primary-100" />}
+            {collapsed && <div className="my-3 bg-primary-50/30" />}
             <NavSection items={isStaff ? adminNav : [adminNav[0]]} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
           </>
         )}
       </nav>
 
-      {/* User profile link */}
-      <div className="border-t border-primary-100 p-2">
+      {/* User profile + collapse toggle */}
+      <div className="p-2 flex items-center gap-2">
         <Link
           to="/profile"
           className={cn(
-            'flex items-center gap-3 w-full',
+            'flex items-center gap-3 flex-1 min-w-0',
             'rounded-lg p-2',
             'text-primary-400 hover:text-primary-800 hover:bg-primary-50',
             'cursor-pointer select-none',
             'transition-colors duration-150',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-            collapsed && 'justify-center',
+            collapsed && 'justify-center flex-none',
             location.pathname.startsWith('/profile') && 'bg-primary-50 text-primary-800',
           )}
           aria-label="View profile"
@@ -210,16 +210,13 @@ export function SidebarNav({ className }: SidebarNavProps) {
             </div>
           )}
         </Link>
-      </div>
 
-      {/* Collapse toggle */}
-      <div className="border-t border-primary-100 p-2">
         <button
           type="button"
           onClick={() => setCollapsed((p) => !p)}
           className={cn(
-            'flex items-center justify-center gap-2 w-full',
-            'h-9 rounded-lg',
+            'flex items-center justify-center shrink-0',
+            'w-9 h-9 rounded-lg',
             'text-primary-400 hover:text-primary-800 hover:bg-primary-50',
             'cursor-pointer select-none',
             'transition-colors duration-150',
@@ -228,7 +225,6 @@ export function SidebarNav({ className }: SidebarNavProps) {
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
-          {!collapsed && <span className="text-sm">Collapse</span>}
         </button>
       </div>
     </aside>

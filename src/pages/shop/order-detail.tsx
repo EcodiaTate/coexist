@@ -72,6 +72,16 @@ export default function OrderDetailPage() {
   const { data: order, isLoading } = useOrder(orderId)
   const requestReturn = useRequestReturn()
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   const [showReturnSheet, setShowReturnSheet] = useState(false)
   const [returnReason, setReturnReason] = useState('')
 
@@ -117,28 +127,29 @@ export default function OrderDetailPage() {
   return (
     <Page header={<Header title={`Order #${order.id.slice(0, 8)}`} back />}>
       <motion.div
-        initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
         className="py-5 space-y-6"
       >
         {/* Status timeline */}
-        <section>
+        <motion.section variants={fadeUp}>
           <StatusTimeline current={order.status} />
-        </section>
+        </motion.section>
 
         {/* Tracking info */}
         {order.tracking_number && (
-          <section className="p-3 rounded-xl bg-plum-50 border border-plum-100">
+          <motion.section variants={fadeUp} className="p-3 rounded-xl bg-plum-50 shadow-sm">
             <div className="flex items-center gap-2">
               <Truck size={16} className="text-plum-600" />
               <span className="text-sm font-medium text-plum-700">Tracking number</span>
             </div>
             <p className="mt-1 text-sm font-mono text-plum-900">{order.tracking_number}</p>
-          </section>
+          </motion.section>
         )}
 
         {/* Items */}
-        <section>
+        <motion.section variants={fadeUp}>
           <h3 className="font-heading font-semibold text-primary-800 mb-3">
             Items ({order.items.length})
           </h3>
@@ -165,12 +176,12 @@ export default function OrderDetailPage() {
               </div>
             ))}
           </div>
-        </section>
+        </motion.section>
 
         <Divider />
 
         {/* Price breakdown */}
-        <section className="space-y-2 text-sm">
+        <motion.section variants={fadeUp} className="space-y-2 text-sm">
           <div className="flex justify-between text-primary-400">
             <span>Subtotal</span>
             <span className="tabular-nums">{formatPrice(order.subtotal_cents)}</span>
@@ -192,17 +203,17 @@ export default function OrderDetailPage() {
             <span>Total</span>
             <span className="tabular-nums">{formatPrice(order.total_cents)}</span>
           </div>
-        </section>
+        </motion.section>
 
         {/* Shipping address */}
-        <section>
+        <motion.section variants={fadeUp}>
           <div className="flex items-center gap-2 mb-2">
             <MapPin size={16} className="text-primary-400" />
             <h3 className="font-heading font-semibold text-primary-800 text-sm">
               Shipping address
             </h3>
           </div>
-          <div className="p-3 rounded-xl bg-white border border-primary-100 text-sm text-primary-800">
+          <div className="p-3 rounded-xl bg-white shadow-sm text-sm text-primary-800">
             <p className="font-medium">{order.shipping_address.full_name}</p>
             <p>{order.shipping_address.line1}</p>
             {order.shipping_address.line2 && <p>{order.shipping_address.line2}</p>}
@@ -211,7 +222,7 @@ export default function OrderDetailPage() {
               {order.shipping_address.postcode}
             </p>
           </div>
-        </section>
+        </motion.section>
 
         {/* Order date */}
         <p className="text-xs text-primary-400 text-center">

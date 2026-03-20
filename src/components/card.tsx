@@ -35,12 +35,12 @@ function useCard() {
 
 const variantWrapper: Record<CardVariant, string> = {
   event: 'bg-white',
-  collective: 'bg-white border border-primary-100',
+  collective: 'bg-primary-50/60',
   stat: 'bg-gradient-to-br from-white to-primary-100/50',
-  profile: 'bg-white border border-primary-200',
+  profile: 'bg-primary-50/40',
   merch: 'bg-white',
   announcement:
-    'bg-gradient-to-br from-white to-accent-100 border border-accent-200',
+    'bg-gradient-to-br from-white to-accent-100',
 }
 
 /* ------------------------------------------------------------------ */

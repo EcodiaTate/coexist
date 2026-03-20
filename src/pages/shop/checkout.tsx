@@ -52,6 +52,16 @@ export default function CheckoutPage() {
   const { data: savedAddresses } = useSavedAddresses()
   const checkout = useCreateMerchCheckout()
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   const [address, setAddress] = useState<ShippingAddress>(EMPTY_ADDRESS)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -119,13 +129,14 @@ export default function CheckoutPage() {
       }
     >
       <motion.div
-        initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
         className="py-5 space-y-6"
       >
         {/* Saved addresses */}
         {savedAddresses && savedAddresses.length > 0 && (
-          <section>
+          <motion.section variants={fadeUp}>
             <h3 className="font-heading font-semibold text-primary-800 mb-3">
               Saved addresses
             </h3>
@@ -136,10 +147,10 @@ export default function CheckoutPage() {
                   type="button"
                   onClick={() => handleSelectSaved(saved)}
                   className={cn(
-                    'w-full text-left p-3 min-h-11 rounded-xl border-2 cursor-pointer select-none active:scale-[0.97] transition-all duration-150',
+                    'w-full text-left p-3 min-h-11 rounded-xl cursor-pointer select-none active:scale-[0.97] transition-all duration-150',
                     address.line1 === saved.line1 && address.postcode === saved.postcode
-                      ? 'border-primary-500 bg-white'
-                      : 'border-primary-200 hover:border-primary-200',
+                      ? 'ring-2 ring-primary-500 bg-white shadow-sm'
+                      : 'bg-primary-50/60',
                   )}
                 >
                   <p className="text-sm font-medium text-primary-800">{saved.full_name}</p>
@@ -149,11 +160,11 @@ export default function CheckoutPage() {
                 </button>
               ))}
             </div>
-          </section>
+          </motion.section>
         )}
 
         {/* Shipping address form */}
-        <section>
+        <motion.section variants={fadeUp}>
           <div className="flex items-center gap-2 mb-4">
             <MapPin size={18} className="text-primary-400" />
             <h3 className="font-heading font-semibold text-primary-800">
@@ -217,12 +228,12 @@ export default function CheckoutPage() {
               />
             </div>
           </div>
-        </section>
+        </motion.section>
 
         <Divider />
 
         {/* Order summary */}
-        <section>
+        <motion.section variants={fadeUp}>
           <h3 className="font-heading font-semibold text-primary-800 mb-3">
             Order summary
           </h3>
@@ -272,7 +283,7 @@ export default function CheckoutPage() {
               <span className="tabular-nums">{formatPrice(totalCents)}</span>
             </div>
           </div>
-        </section>
+        </motion.section>
       </motion.div>
     </Page>
   )

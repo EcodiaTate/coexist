@@ -374,8 +374,10 @@ html, body {
 
 /* ===== 60fps Scroll Performance ===== */
 
-/* GPU-accelerate all scrollable containers */
-[style*="overflow"], .overflow-y-auto, .overflow-x-auto, .overflow-auto,
+/* GPU-accelerate all scrollable containers (exclude body — its inline
+   overflow:hidden set by modals would create a containing block that
+   breaks fixed-position overlays) */
+[style*="overflow"]:not(body), .overflow-y-auto, .overflow-x-auto, .overflow-auto,
 .overflow-y-scroll, .overflow-x-scroll, .overflow-scroll {
   -webkit-overflow-scrolling: touch;
   will-change: scroll-position;
@@ -401,6 +403,20 @@ html, body {
   -webkit-overflow-scrolling: touch;
   will-change: scroll-position;
   transform: translateZ(0);
+}
+
+/* Prevent text selection on mobile for native app feel */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+@media (min-width: 1024px) {
+  body {
+    -webkit-user-select: auto;
+    user-select: auto;
+    -webkit-touch-callout: auto;
+  }
 }
 
 /* Prevent text selection on interactive elements (native feel) */

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Settings,
   Database,
@@ -93,8 +94,8 @@ function UsageGauge({
 
   return (
     <div className={cn(
-      'p-4 rounded-xl border',
-      isNearLimit ? 'bg-error-50 border-error-200' : 'bg-white border-primary-100',
+      'p-4 rounded-xl shadow-sm',
+      isNearLimit ? 'bg-error-50' : 'bg-white',
     )}>
       <div className="flex items-center gap-2 mb-2">
         <span className={cn('text-primary-400', isNearLimit && 'text-error-500')}>
@@ -188,11 +189,23 @@ export default function AdminSystemPage() {
     onError: () => toast.error('Failed to delete flag'),
   })
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
       <div className="space-y-6">
         {/* Supabase Usage */}
-        <section>
+        <motion.div variants={fadeUp}><section>
           <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
             Supabase Usage
           </h2>
@@ -236,10 +249,10 @@ export default function AdminSystemPage() {
               />
             </div>
           )}
-        </section>
+        </section></motion.div>
 
         {/* Feature Flags */}
-        <section>
+        <motion.div variants={fadeUp}><section>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-heading text-base font-semibold text-primary-800">
               Feature Flags
@@ -265,7 +278,7 @@ export default function AdminSystemPage() {
               {flags.map((flag) => (
                 <StaggeredItem
                   key={flag.id}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-white border border-primary-100"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -310,7 +323,7 @@ export default function AdminSystemPage() {
               ))}
             </StaggeredList>
           )}
-        </section>
+        </section></motion.div>
       </div>
 
       {/* Add flag modal */}
@@ -344,6 +357,6 @@ export default function AdminSystemPage() {
           </Button>
         </div>
       </Modal>
-    </>
+    </motion.div>
   )
 }

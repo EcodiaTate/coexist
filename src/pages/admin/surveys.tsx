@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   ClipboardList,
   Plus,
@@ -235,13 +236,27 @@ export default function AdminSurveysPage() {
     URL.revokeObjectURL(url)
   }
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
-      <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={fadeUp}>
+        <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
+      </motion.div>
 
       {/* Surveys list */}
       {activeTab === 'surveys' && (
-        <>
+        <motion.div variants={fadeUp}>
           <div className="flex justify-end mb-4">
             <Button
               variant="primary"
@@ -267,7 +282,7 @@ export default function AdminSurveysPage() {
               {surveys.map((survey) => (
                 <StaggeredItem
                   key={survey.id}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-white border border-primary-100 shadow-sm"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-white shadow-sm"
                 >
                   <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary-100 shrink-0">
                     <ClipboardList size={18} className="text-primary-500" />
@@ -321,7 +336,7 @@ export default function AdminSurveysPage() {
               ))}
             </StaggeredList>
           )}
-        </>
+        </motion.div>
       )}
 
       {/* Templates */}
@@ -330,7 +345,7 @@ export default function AdminSurveysPage() {
           {TEMPLATES.map((template) => (
             <StaggeredItem
               key={template.name}
-              className="p-4 rounded-xl bg-white border border-primary-100 shadow-sm"
+              className="p-4 rounded-xl bg-white shadow-sm"
             >
               <h3 className="font-heading text-sm font-semibold text-primary-800">
                 {template.name}
@@ -387,7 +402,7 @@ export default function AdminSurveysPage() {
                   description="Share this survey to start collecting responses"
                 />
               ) : (
-                <div className="p-4 rounded-xl bg-white border border-primary-100">
+                <div className="p-4 rounded-xl bg-white shadow-sm">
                   <p className="text-sm text-primary-400">
                     {results.length} total responses collected. Detailed aggregate charts will
                     render per question type once responses come in.
@@ -464,7 +479,7 @@ export default function AdminSurveysPage() {
           )}
 
           {/* Add question */}
-          <div className="p-3 rounded-lg border border-dashed border-primary-200 space-y-3">
+          <div className="p-3 rounded-lg bg-primary-50/60 space-y-3">
             <p className="text-sm font-medium text-primary-800">Add Question</p>
             <Dropdown
               options={[
@@ -517,6 +532,6 @@ export default function AdminSurveysPage() {
         confirmLabel="Delete"
         variant="danger"
       />
-    </>
+    </motion.div>
   )
 }

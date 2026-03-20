@@ -150,7 +150,7 @@ function ExpandableSection({
   const shouldReduceMotion = useReducedMotion()
 
   return (
-    <div className="border-b border-primary-100 last:border-b-0">
+    <div className="border-b border-primary-100/40 last:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
@@ -403,7 +403,7 @@ export default function EventDetailPage() {
     <Page
       header={
         <Header
-          title={event.title}
+          title=""
           back
           transparent={!!event.cover_image_url}
           rightActions={
@@ -626,7 +626,7 @@ export default function EventDetailPage() {
         )}
 
         {/* Expandable details sections */}
-        <div className="rounded-xl border border-primary-100 overflow-hidden">
+        <div className="rounded-xl shadow-sm overflow-hidden">
           <ExpandableSection title="What to Bring" icon={<Backpack size={16} />}>
             <p className="text-primary-400 italic">
               The leader will share what to bring closer to the event.
@@ -823,7 +823,7 @@ export default function EventDetailPage() {
         snapPoints={[0.6]}
       >
         <div className="flex flex-col items-center py-6">
-          <div className="w-56 h-56 rounded-2xl bg-white border-2 border-primary-200 flex items-center justify-center shadow-md p-4">
+          <div className="w-56 h-56 rounded-2xl bg-white shadow-md flex items-center justify-center p-4">
             <QRCodeSVG
               value={`coexist://event/${event.id}`}
               size={192}

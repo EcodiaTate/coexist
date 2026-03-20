@@ -3,6 +3,16 @@ import { Trees, Waves, Bird, Sprout, Bug, Flower2, Droplets, Fence, Leaf } from 
 import { Chip } from '@/components/chip'
 import { Button } from '@/components/button'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 const INTERESTS = [
   { id: 'tree_planting', label: 'Tree Planting', icon: <Trees size={16} /> },
   { id: 'beach_cleanup', label: 'Beach Cleanups', icon: <Waves size={16} /> },
@@ -37,26 +47,27 @@ export function StepInterests({ selected, onChange, onNext, onSkip }: StepIntere
     <div className="flex-1 flex flex-col px-6 pt-8 min-h-0">
       <motion.div
         className="flex-1"
-        initial={shouldReduceMotion ? undefined : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
       >
-        <h2 className="font-heading text-2xl font-bold text-primary-800">
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800">
           What are you into?
-        </h2>
-        <p className="mt-2 text-primary-400">
+        </motion.h2>
+        <motion.p variants={fadeUp} className="mt-2 text-primary-400">
           Pick the conservation activities that excite you. Choose as many as you like.
-        </p>
+        </motion.p>
 
         <div className="mt-8 flex flex-wrap gap-2.5" role="listbox" aria-multiselectable="true">
           {INTERESTS.map((interest) => (
+            <motion.div key={interest.id} variants={fadeUp}>
             <Chip
-              key={interest.id}
               label={interest.label}
               icon={interest.icon}
               selected={selected.includes(interest.id)}
               onSelect={() => toggle(interest.id)}
             />
+            </motion.div>
           ))}
         </div>
       </motion.div>

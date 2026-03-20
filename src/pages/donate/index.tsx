@@ -49,10 +49,9 @@ function ProjectThermometer({
       whileTap={{ scale: 0.98 }}
       className={cn(
         'w-full rounded-2xl p-4 text-left transition-all duration-150',
-        'border-2',
         selected
-          ? 'border-primary-500 bg-white shadow-sm'
-          : 'border-primary-100 bg-white hover:border-primary-300',
+          ? 'ring-2 ring-primary-500 shadow-sm bg-primary-100'
+          : 'bg-primary-50/60',
       )}
     >
       {project.image_url && (
@@ -172,7 +171,7 @@ export default function DonatePage() {
         </div>
       }
     >
-      {/* ---- Full-bleed hero — break out of Page px-4 / lg:px-6 ---- */}
+      {/* ---- Full-bleed hero  break out of Page px-4 / lg:px-6 ---- */}
       <div className="-mx-4 lg:-mx-6">
         <div className="relative w-full h-52 sm:h-60 lg:h-72 overflow-hidden">
           <img
@@ -219,10 +218,10 @@ export default function DonatePage() {
                   whileTap={{ scale: 0.95 }}
                   className={cn(
                     'h-13 rounded-xl font-heading font-semibold text-base',
-                    'border-2 transition-all duration-150 cursor-pointer',
+                    'transition-all duration-150 cursor-pointer',
                     selectedAmount === amount
-                      ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-sm'
-                      : 'border-primary-100 bg-white text-primary-800 hover:border-primary-300',
+                      ? 'ring-2 ring-primary-500 shadow-sm bg-primary-100 text-primary-700'
+                      : 'bg-primary-50/60 text-primary-800',
                   )}
                 >
                   ${amount}
@@ -243,7 +242,7 @@ export default function DonatePage() {
           <motion.section variants={fadeUp}>
             <Link
               to="/membership"
-              className="flex items-center gap-3 p-4 rounded-2xl bg-primary-50 border border-primary-200 transition-colors hover:bg-primary-100"
+              className="flex items-center gap-3 p-4 rounded-2xl bg-primary-50 shadow-sm transition-colors hover:bg-primary-100"
             >
               <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center shrink-0">
                 <Crown size={16} className="text-white" />
@@ -269,7 +268,7 @@ export default function DonatePage() {
               Support a project
             </h3>
             <p className="text-sm text-primary-400 mb-4">
-              Optional — direct your donation to a specific initiative
+              Optional  direct your donation to a specific initiative
             </p>
             {loadingProjects ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -302,7 +301,7 @@ export default function DonatePage() {
                 Personal touches
               </h3>
               <p className="text-sm text-primary-400 mb-5">
-                All optional — add a message or donate on behalf of a group
+                All optional  add a message or donate on behalf of a group
               </p>
 
               <div className="space-y-5">
@@ -315,7 +314,7 @@ export default function DonatePage() {
                 />
 
                 <div>
-                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-primary-100">
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-white shadow-sm">
                     <Users size={18} className="text-primary-400 shrink-0" />
                     <Toggle
                       label="On behalf of an organisation"
@@ -344,7 +343,7 @@ export default function DonatePage() {
                   </AnimatePresence>
                 </div>
 
-                <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-primary-100">
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-white shadow-sm">
                   <Sparkles size={18} className="text-primary-400 shrink-0" />
                   <Toggle
                     label="Show on donor wall"

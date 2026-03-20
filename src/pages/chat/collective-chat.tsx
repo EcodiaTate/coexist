@@ -6,30 +6,23 @@ import {
   useMemo,
   Fragment,
 } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
   Search,
   Pin,
-  MoreVertical,
   X,
   Reply,
   Pencil,
   Trash2,
-  Mic,
-  Camera,
-  MapPin as MapPinIcon,
-  Image as ImageIcon,
   ArrowDown,
-  Check,
   ChevronDown,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Avatar } from '@/components/avatar'
-import { ChatBubble } from '@/components/chat-bubble'
+import { ChatBubble, PollCard, AnnouncementCard } from '@/components/chat-bubble'
 import { MessageInput } from '@/components/message-input'
-import { UserCard } from '@/components/user-card'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { Button } from '@/components/button'
@@ -38,6 +31,9 @@ import { EmptyState } from '@/components/empty-state'
 import { useToast } from '@/components/toast'
 import { UploadProgress } from '@/components/upload-progress'
 import { SearchBar } from '@/components/search-bar'
+import { CreatePollSheet } from '@/components/create-poll-sheet'
+import { CreateAnnouncementSheet } from '@/components/create-announcement-sheet'
+import { BroadcastNotificationSheet } from '@/components/broadcast-notification-sheet'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollective, useCollectiveMembers } from '@/hooks/use-collective'
@@ -51,14 +47,23 @@ import {
   usePinnedMessages,
   useMarkChatRead,
   useCollectiveMemberRoles,
+  useCreatePoll,
+  usePollVote,
+  useRemovePollVote,
+  usePollDetail,
+  useCreateAnnouncement,
+  useAnnouncementDetail,
+  useRespondToAnnouncement,
+  useBroadcastLog,
+  useSendBroadcastNotification,
   type ChatMessageWithSender,
 } from '@/hooks/use-chat'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useTyping } from '@/hooks/use-typing'
 import { useChatSearch } from '@/hooks/use-chat-search'
-import { useProfileStats } from '@/hooks/use-profile'
 import { useOffline } from '@/hooks/use-offline'
+import { useLayout } from '@/hooks/use-layout'
 import { OfflineIndicator } from '@/components/offline-indicator'
 import {
   queueOfflineAction,
@@ -184,66 +189,95 @@ function MessageActionsSheet({
 
 function PinnedMessageBar({
   messages,
-  onTap,
+  isStaff,
+  onUnpin,
 }: {
   messages: ChatMessageWithSender[]
-  onTap: () => void
+  isStaff: boolean
+  onUnpin: (messageId: string) => void
 }) {
+  const [expanded, setExpanded] = useState(false)
+
   if (messages.length === 0) return null
   const latest = messages[0]
+  const hasMultiple = messages.length > 1
 
   return (
-    <button
-      type="button"
-      onClick={onTap}
-      className="flex w-full items-center gap-2 border-b border-primary-100 bg-white/50 px-4 py-2 min-h-11 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
-    >
-      <Pin size={14} className="text-primary-400 shrink-0" />
-      <p className="text-xs text-primary-800 truncate flex-1 text-left">
-        <span className="font-semibold">Pinned: </span>
-        {latest.content ?? 'Image'}
-      </p>
-      <span className="text-[10px] text-primary-500 font-semibold shrink-0">
-        {messages.length > 1 ? `${messages.length} pinned` : ''}
-      </span>
-    </button>
-  )
-}
+    <div className="bg-white/90 backdrop-blur-sm shadow-sm">
+      {/* Main pinned bar */}
+      <div className="flex w-full items-center gap-2 px-4 py-2 min-h-11">
+        <Pin size={14} className="text-primary-400 shrink-0" />
+        <p className="text-xs text-primary-800 truncate flex-1 text-left">
+          <span className="font-semibold">Pinned: </span>
+          {latest.content ?? 'Image'}
+        </p>
 
-/* ------------------------------------------------------------------ */
-/*  User card popup                                                    */
-/* ------------------------------------------------------------------ */
+        {/* Expand button for multiple */}
+        {hasMultiple && (
+          <button
+            type="button"
+            onClick={() => setExpanded(!expanded)}
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none"
+            aria-label={expanded ? 'Collapse pinned messages' : 'Show all pinned messages'}
+          >
+            <ChevronDown size={16} className={cn('transition-transform duration-200', expanded && 'rotate-180')} />
+            <span className="text-[10px] font-semibold ml-0.5">{messages.length}</span>
+          </button>
+        )}
 
-function UserCardPopup({
-  userId,
-  onClose,
-}: {
-  userId: string | null
-  onClose: () => void
-}) {
-  const { data: members = [] } = useCollectiveMembers(undefined)
-  const { data: stats } = useProfileStats(userId ?? undefined)
-
-  // We fetch profile info via the members list - simple approach
-  // For a full impl, use useProfile(userId)
-
-  if (!userId) return null
-
-  return (
-    <BottomSheet open={!!userId} onClose={onClose}>
-      <div className="flex flex-col items-center pb-4">
-        <Button
-          variant="primary"
-          size="md"
-          onClick={() => {
-            onClose()
-            window.location.href = `/profile/${userId}`
-          }}
-        >
-          View Full Profile
-        </Button>
+        {/* Unpin button for staff (single message or collapsed view) */}
+        {isStaff && !expanded && (
+          <button
+            type="button"
+            onClick={() => onUnpin(latest.id)}
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-300 hover:text-primary-500 hover:bg-primary-100 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none"
+            aria-label="Unpin message"
+          >
+            <X size={16} />
+          </button>
+        )}
       </div>
-    </BottomSheet>
+
+      {/* Expanded list of all pinned messages */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-2 space-y-1.5">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className="flex items-center gap-2 rounded-xl bg-primary-50/60 px-3 py-2"
+                >
+                  <Pin size={10} className="text-primary-300 shrink-0" />
+                  <p className="text-xs text-primary-700 truncate flex-1">
+                    {msg.content ?? 'Image'}
+                  </p>
+                  <span className="text-[10px] text-primary-400 shrink-0">
+                    {msg.profiles?.display_name}
+                  </span>
+                  {isStaff && (
+                    <button
+                      type="button"
+                      onClick={() => onUnpin(msg.id)}
+                      className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-300 hover:text-error-500 hover:bg-error-50 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none"
+                      aria-label={`Unpin: ${msg.content?.slice(0, 30) ?? 'message'}`}
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
@@ -258,12 +292,12 @@ function ChatSearchOverlay({
   collectiveId: string
   onClose: () => void
 }) {
-  const { searchQuery, results, isLoading, search, clearSearch } = useChatSearch(collectiveId)
+  const { searchQuery, results, isLoading, search } = useChatSearch(collectiveId)
   const [query, setQuery] = useState('')
 
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      <div className="flex items-center gap-2 border-b border-primary-100 px-3 py-2">
+      <div className="flex items-center gap-2 px-3 py-2 shadow-sm">
         <SearchBar
           value={query}
           onChange={setQuery}
@@ -291,10 +325,7 @@ function ChatSearchOverlay({
         ) : (
           <div className="space-y-2">
             {results.map((msg) => (
-              <div
-                key={msg.id}
-                className="rounded-xl bg-white p-3"
-              >
+              <div key={msg.id} className="rounded-xl bg-white p-3">
                 <div className="flex items-center gap-2 mb-1">
                   <Avatar
                     src={msg.profiles?.avatar_url}
@@ -319,6 +350,90 @@ function ChatSearchOverlay({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Inline Poll Renderer                                               */
+/* ------------------------------------------------------------------ */
+
+function InlinePoll({
+  pollId,
+  collectiveId,
+  sent,
+}: {
+  pollId: string
+  collectiveId: string
+  sent: boolean
+}) {
+  const { data: poll } = usePollDetail(pollId)
+  const vote = usePollVote()
+  const removeVote = useRemovePollVote()
+
+  if (!poll) return null
+
+  return (
+    <PollCard
+      question={poll.question}
+      options={poll.options}
+      voteCounts={poll._vote_counts ?? {}}
+      totalVotes={poll._total_votes ?? 0}
+      userVotes={poll._user_votes ?? []}
+      isClosed={poll.is_closed}
+      allowMultiple={poll.allow_multiple}
+      anonymous={poll.anonymous}
+      creatorName={poll.profiles?.display_name ?? undefined}
+      closesAt={poll.closes_at}
+      onVote={(optionId) => vote.mutate({ pollId, optionId, collectiveId })}
+      onRemoveVote={(optionId) => removeVote.mutate({ pollId, optionId, collectiveId })}
+      sent={sent}
+    />
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Inline Announcement Renderer                                       */
+/* ------------------------------------------------------------------ */
+
+function InlineAnnouncement({
+  announcementId,
+  sent,
+}: {
+  announcementId: string
+  sent: boolean
+}) {
+  const { data: announcement } = useAnnouncementDetail(announcementId)
+  const respond = useRespondToAnnouncement()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  if (!announcement) return null
+
+  const userResponse = announcement.responses?.find((r) => r.user_id === user?.id)?.response ?? null
+
+  return (
+    <AnnouncementCard
+      type={announcement.type}
+      title={announcement.title}
+      body={announcement.body}
+      creatorName={announcement.profiles?.display_name ?? undefined}
+      metadata={announcement.metadata}
+      responses={announcement.responses}
+      userResponse={userResponse}
+      isActive={announcement.is_active}
+      sent={sent}
+      onRespond={(response) => respond.mutate({ announcementId, response })}
+      onViewEvent={(eventId) => navigate(`/events/${eventId}`)}
+    />
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Animation variants                                                 */
+/* ------------------------------------------------------------------ */
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main chat page                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -326,13 +441,15 @@ export default function CollectiveChatPage() {
   const { collectiveId } = useParams<{ collectiveId: string }>()
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { user } = useAuth()
+  const { user, isStaff, isAdmin, isSuperAdmin } = useAuth()
   const shouldReduceMotion = useReducedMotion()
 
   const { data: collective } = useCollective(collectiveId)
-  const { data: members = [] } = useCollectiveMembers(collectiveId)
-  const { isAssistLeader } = useCollectiveRole(collectiveId)
+  const { isAssistLeader, isCoLeader, isLeader } = useCollectiveRole(collectiveId)
   const { data: memberRoles = new Map() } = useCollectiveMemberRoles(collectiveId)
+
+  // Superadmin/staff get all leader powers in every collective
+  const isLeaderOrAbove = isAssistLeader || isCoLeader || isLeader || isStaff || isAdmin || isSuperAdmin
 
   const {
     data: messagesData,
@@ -348,11 +465,19 @@ export default function CollectiveChatPage() {
   const editMessage = useEditMessage()
   const deleteMessage = useDeleteMessage()
   const pinMessage = usePinMessage()
-  const { pickFromGallery, loading: cameraLoading } = useCamera()
+  const { pickFromGallery } = useCamera()
   const chatUpload = useImageUpload({ bucket: 'chat-images' })
 
   const { typingText, sendTyping, stopTyping } = useTyping(collectiveId)
   const { isOffline } = useOffline()
+  const { navMode } = useLayout()
+  const hasBottomTabs = navMode === 'bottom-tabs'
+
+  // Leader features
+  const createPoll = useCreatePoll()
+  const createAnnouncement = useCreateAnnouncement()
+  const { data: broadcastLog = [] } = useBroadcastLog(isLeaderOrAbove ? collectiveId : undefined)
+  const sendBroadcast = useSendBroadcastNotification()
 
   // Restore draft on mount
   const savedDraft = collectiveId ? getChatDraft(collectiveId) : null
@@ -362,10 +487,13 @@ export default function CollectiveChatPage() {
   const [editingMessage, setEditingMessage] = useState<ChatMessageWithSender | null>(null)
   const [editText, setEditText] = useState('')
   const [selectedMessage, setSelectedMessage] = useState<ChatMessageWithSender | null>(null)
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [showSearch, setShowSearch] = useState(false)
   const [showScrollDown, setShowScrollDown] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [showPollSheet, setShowPollSheet] = useState(false)
+  const [showAnnouncementSheet, setShowAnnouncementSheet] = useState(false)
+  const [announcementType, setAnnouncementType] = useState<'announcement' | 'event_invite' | 'rsvp'>('announcement')
+  const [showBroadcastSheet, setShowBroadcastSheet] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -414,7 +542,6 @@ export default function CollectiveChatPage() {
     const distanceFromBottom = scrollHeight - scrollTop - clientHeight
     setShowScrollDown(distanceFromBottom > 200)
 
-    // Load more when near top
     if (scrollTop < 200 && hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
     }
@@ -440,11 +567,9 @@ export default function CollectiveChatPage() {
       return
     }
 
-    // Clear persisted draft
     removeChatDraft(collectiveId)
 
     if (isOffline) {
-      // Queue message for sync when back online
       queueOfflineAction('chat-message', {
         collectiveId,
         userId: user.id,
@@ -456,11 +581,16 @@ export default function CollectiveChatPage() {
       return
     }
 
-    await sendMessage.mutateAsync({
-      collectiveId,
-      content: text,
-      replyToId: replyTo?.id,
-    })
+    try {
+      await sendMessage.mutateAsync({
+        collectiveId,
+        content: text,
+        replyToId: replyTo?.id,
+      })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Message failed to send'
+      toast.error(msg)
+    }
     setReplyTo(null)
   }
 
@@ -474,6 +604,7 @@ export default function CollectiveChatPage() {
       await sendMessage.mutateAsync({
         collectiveId,
         imageUrl: uploaded.url,
+        messageType: 'image',
       })
     } catch {
       toast.error('Failed to upload image')
@@ -481,6 +612,7 @@ export default function CollectiveChatPage() {
   }
 
   const handleMessageLongPress = (msg: ChatMessageWithSender) => {
+    if (msg._optimistic) return
     setSelectedMessage(msg)
   }
 
@@ -534,15 +666,59 @@ export default function CollectiveChatPage() {
     setSelectedMessage(null)
   }
 
-  const handleAvatarTap = (userId: string | null) => {
-    if (userId && userId !== user?.id) {
-      setSelectedUserId(userId)
-    }
-  }
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth' })
     setShowScrollDown(false)
+  }
+
+  // Leader action handlers - close dialog immediately, run mutation in background
+  const handleCreatePoll = (data: {
+    question: string
+    options: string[]
+    allowMultiple: boolean
+    anonymous: boolean
+  }) => {
+    if (!collectiveId) return
+    setShowPollSheet(false)
+    toast.info('Creating poll...')
+    createPoll.mutate(
+      { collectiveId, ...data },
+      {
+        onSuccess: () => toast.success('Poll posted!'),
+        onError: () => toast.error('Failed to create poll'),
+      },
+    )
+  }
+
+  const handleCreateAnnouncement = (data: {
+    type: 'announcement' | 'event_invite' | 'rsvp'
+    title: string
+    body?: string
+    metadata?: Record<string, unknown>
+  }) => {
+    if (!collectiveId) return
+    setShowAnnouncementSheet(false)
+    toast.info('Posting announcement...')
+    createAnnouncement.mutate(
+      { collectiveId, ...data },
+      {
+        onSuccess: () => toast.success('Announcement posted!'),
+        onError: () => toast.error('Failed to create announcement'),
+      },
+    )
+  }
+
+  const handleBroadcast = (data: { title: string; body: string }) => {
+    if (!collectiveId) return
+    setShowBroadcastSheet(false)
+    toast.info('Sending notification...')
+    sendBroadcast.mutate(
+      { collectiveId, ...data },
+      {
+        onSuccess: (result) => toast.success(`Notification sent to ${result?.sent ?? 0} members`),
+        onError: () => toast.error('Failed to send notification'),
+      },
+    )
   }
 
   if (isLoading) {
@@ -556,34 +732,50 @@ export default function CollectiveChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-full relative">
+    <div className="flex flex-col h-full overflow-hidden relative bg-primary-50/50">
       {/* Header */}
-      <Header
-        title={collective?.name ?? 'Chat'}
-        back
-        rightActions={
-          <button
-            type="button"
-            onClick={() => setShowSearch(true)}
-            aria-label="Search messages"
-            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
-          >
-            <Search size={20} />
-          </button>
-        }
-      />
+      <motion.div
+        variants={shouldReduceMotion ? undefined : fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
+        <Header
+          title={collective?.name ?? 'Chat'}
+          back
+          rightActions={
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setShowSearch(true)}
+                aria-label="Search messages"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+              >
+                <Search size={20} />
+              </button>
+            </div>
+          }
+        />
+      </motion.div>
 
       {/* Pinned messages */}
       <PinnedMessageBar
         messages={pinnedMessages as ChatMessageWithSender[]}
-        onTap={() => {/* Could scroll to pinned message */}}
+        isStaff={isLeaderOrAbove}
+        onUnpin={async (messageId) => {
+          try {
+            await pinMessage.mutateAsync({ messageId, collectiveId: collectiveId!, pinned: false })
+            toast.success('Message unpinned')
+          } catch {
+            toast.error('Failed to unpin')
+          }
+        }}
       />
 
       {/* Messages area */}
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto overscroll-contain px-4 py-2"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain scroll-smooth px-3 py-2"
         role="log"
         aria-label="Chat messages"
         aria-live="polite"
@@ -605,12 +797,14 @@ export default function CollectiveChatPage() {
           messageGroups.map((group) => (
             <Fragment key={group.date}>
               {/* Date separator */}
-              <div className="flex items-center gap-3 py-3">
-                <div className="flex-1 border-t border-primary-100" />
-                <span className="text-[11px] font-semibold text-primary-400 uppercase">
+              <div className="flex items-center justify-center py-4">
+                <motion.span
+                  initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="rounded-full bg-white/80 px-3.5 py-1 text-[11px] font-semibold text-primary-500 shadow-sm ring-1 ring-primary-100/50 backdrop-blur-sm"
+                >
                   {dateHeader(group.date)}
-                </span>
-                <div className="flex-1 border-t border-primary-100" />
+                </motion.span>
               </div>
 
               {/* Messages */}
@@ -618,6 +812,7 @@ export default function CollectiveChatPage() {
                 const isSent = msg.user_id === user?.id
                 const isDeleted = msg.is_deleted
                 const roleBadge = msg.user_id ? memberRoles.get(msg.user_id) : undefined
+                const messageType = msg.message_type ?? 'text'
 
                 return (
                   <div
@@ -627,20 +822,21 @@ export default function CollectiveChatPage() {
                       e.preventDefault()
                       handleMessageLongPress(msg)
                     }}
-                    onClick={() => {
-                      // On mobile, long press is handled via touch events
-                      // For desktop, context menu is sufficient
-                    }}
                   >
                     {isDeleted ? (
-                      <div
-                        className={cn(
-                          'flex py-1',
-                          isSent ? 'justify-end' : 'justify-start',
-                        )}
-                      >
-                        <p className="text-xs italic text-primary-400 px-3 py-2 rounded-2xl bg-white">
-                          [message removed by moderator]
+                      <div className={cn('flex py-1', isSent ? 'justify-end' : 'justify-start')}>
+                        <p className="text-xs italic text-primary-400 px-3 py-2 rounded-2xl bg-white/60 ring-1 ring-primary-100/40">
+                          Message removed
+                        </p>
+                      </div>
+                    ) : messageType === 'poll' && msg.poll_id ? (
+                      <InlinePoll pollId={msg.poll_id} collectiveId={collectiveId!} sent={isSent} />
+                    ) : messageType === 'announcement' && msg.announcement_id ? (
+                      <InlineAnnouncement announcementId={msg.announcement_id} sent={isSent} />
+                    ) : messageType === 'system' ? (
+                      <div className="flex justify-center py-2">
+                        <p className="text-xs text-primary-400 italic bg-white/60 px-3 py-1.5 rounded-full">
+                          {msg.content}
                         </p>
                       </div>
                     ) : (
@@ -661,8 +857,10 @@ export default function CollectiveChatPage() {
                           senderId={msg.user_id ?? undefined}
                           photo={msg.image_url ?? undefined}
                           roleBadge={roleBadge}
+                          skipAnimation={msg._confirmed}
                           onAvatarTap={(userId) => navigate(`/profile/${userId}`)}
                           onSenderTap={(userId) => navigate(`/profile/${userId}`)}
+                          onLongPress={() => handleMessageLongPress(msg)}
                           replyTo={
                             msg.reply_message
                               ? {
@@ -673,8 +871,7 @@ export default function CollectiveChatPage() {
                           }
                         />
 
-                        {/* Edited indicator */}
-                        {msg.content && msg.created_at !== (msg as unknown as { updated_at?: string }).updated_at && (
+                        {msg.updated_at && msg.updated_at !== msg.created_at && (
                           <p className={cn(
                             'text-[10px] text-primary-400 mt-0.5',
                             isSent ? 'text-right pr-2' : 'pl-10',
@@ -701,9 +898,27 @@ export default function CollectiveChatPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="px-4 pb-1"
+            transition={{ duration: 0.15 }}
+            className="px-4 pb-1 bg-white/60"
           >
-            <p className="text-xs text-primary-400 italic">{typingText}</p>
+            <div className="flex items-center gap-1.5">
+              <div className="flex gap-0.5">
+                {[0, 1, 2].map((i) => (
+                  <motion.div
+                    key={i}
+                    className="h-1.5 w-1.5 rounded-full bg-primary-400"
+                    animate={{ y: [0, -3, 0] }}
+                    transition={{
+                      duration: 0.6,
+                      repeat: Infinity,
+                      delay: i * 0.15,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                ))}
+              </div>
+              <p className="text-xs text-primary-500 italic">{typingText}</p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -715,23 +930,20 @@ export default function CollectiveChatPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-primary-100 bg-white px-4 py-2"
+            transition={{ duration: 0.15 }}
+            className="bg-white/95 px-4 py-2 backdrop-blur-sm shadow-sm"
           >
             <div className="flex items-center gap-2">
               <Reply size={14} className="text-primary-500 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-primary-400">
-                  {replyTo.profiles?.display_name}
-                </p>
-                <p className="text-xs text-primary-400 truncate">
-                  {replyTo.content ?? 'Image'}
-                </p>
+                <p className="text-xs font-semibold text-primary-400">{replyTo.profiles?.display_name}</p>
+                <p className="text-xs text-primary-400 truncate">{replyTo.content ?? 'Image'}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setReplyTo(null)}
                 aria-label="Cancel reply"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               >
                 <X size={16} />
               </button>
@@ -747,18 +959,17 @@ export default function CollectiveChatPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-primary-100 bg-warning-50 px-4 py-2"
+            transition={{ duration: 0.15 }}
+            className="bg-warning-50/90 px-4 py-2 backdrop-blur-sm shadow-sm"
           >
             <div className="flex items-center gap-2">
               <Pencil size={14} className="text-warning-600 shrink-0" />
-              <p className="text-xs font-semibold text-warning-700 flex-1">
-                Editing message
-              </p>
+              <p className="text-xs font-semibold text-warning-700 flex-1">Editing message</p>
               <button
                 type="button"
                 onClick={() => { setEditingMessage(null); setEditText('') }}
                 aria-label="Cancel edit"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               >
                 <X size={16} />
               </button>
@@ -777,7 +988,10 @@ export default function CollectiveChatPage() {
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={scrollToBottom}
             aria-label="Scroll to latest messages"
-            className="absolute bottom-20 right-4 z-20 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white shadow-md text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+            className={cn(
+              'absolute right-4 z-20 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-primary-100/50 text-primary-500 hover:bg-primary-50 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none',
+              hasBottomTabs ? 'bottom-32' : 'bottom-20',
+            )}
           >
             <ArrowDown size={20} />
           </motion.button>
@@ -805,26 +1019,45 @@ export default function CollectiveChatPage() {
       )}
 
       {/* Message input */}
-      <MessageInput
-        onSend={handleSend}
-        onAttach={isOffline ? undefined : handleAttach}
-        placeholder={
-          editingMessage
-            ? 'Edit message...'
-            : isOffline
-              ? 'Type a message (will send when online)...'
-              : 'Type a message...'
-        }
-        initialValue={savedDraft?.content ?? ''}
-        onValueChange={(text) => {
-          if (collectiveId) saveChatDraft(collectiveId, text, replyTo?.id)
-        }}
-      />
+      <motion.div
+        variants={shouldReduceMotion ? undefined : fadeUp}
+        initial="hidden"
+        animate="visible"
+      >
+        <MessageInput
+          onSend={handleSend}
+          onAttach={isOffline ? undefined : handleAttach}
+          onTyping={sendTyping}
+          placeholder={
+            editingMessage
+              ? 'Edit message...'
+              : isOffline
+                ? 'Type a message (will send when online)...'
+                : 'Type a message...'
+          }
+          initialValue={editingMessage ? editText : (savedDraft?.content ?? '')}
+          onValueChange={(text) => {
+            if (collectiveId && !editingMessage) saveChatDraft(collectiveId, text, replyTo?.id)
+          }}
+          padForTabBar={hasBottomTabs}
+          isLeader={isLeaderOrAbove}
+          onCreatePoll={() => setShowPollSheet(true)}
+          onCreateAnnouncement={() => {
+            setAnnouncementType('announcement')
+            setShowAnnouncementSheet(true)
+          }}
+          onCreateEventInvite={() => {
+            setAnnouncementType('event_invite')
+            setShowAnnouncementSheet(true)
+          }}
+          onBroadcastNotification={() => setShowBroadcastSheet(true)}
+        />
+      </motion.div>
 
       {/* Message actions sheet */}
       <MessageActionsSheet
         message={selectedMessage}
-        isModerator={isAssistLeader}
+        isModerator={isLeaderOrAbove}
         isOwnMessage={selectedMessage?.user_id === user?.id}
         onClose={() => setSelectedMessage(null)}
         onReply={handleReply}
@@ -833,24 +1066,42 @@ export default function CollectiveChatPage() {
         onPin={handlePin}
       />
 
-      {/* User card popup */}
-      <UserCardPopup
-        userId={selectedUserId}
-        onClose={() => setSelectedUserId(null)}
-      />
-
       {/* Delete message confirmation */}
       <ConfirmationSheet
         open={showDeleteConfirm}
-        onClose={() => {
-          setShowDeleteConfirm(false)
-          setSelectedMessage(null)
-        }}
+        onClose={() => { setShowDeleteConfirm(false); setSelectedMessage(null) }}
         onConfirm={confirmDelete}
         title="Delete this message?"
         description="This message will be permanently removed for everyone in the chat."
         confirmLabel="Delete Message"
         variant="danger"
+      />
+
+      {/* Poll creation sheet */}
+      <CreatePollSheet
+        open={showPollSheet}
+        onClose={() => setShowPollSheet(false)}
+        onSubmit={handleCreatePoll}
+        loading={createPoll.isPending}
+      />
+
+      {/* Announcement creation sheet */}
+      <CreateAnnouncementSheet
+        open={showAnnouncementSheet}
+        onClose={() => setShowAnnouncementSheet(false)}
+        onSubmit={handleCreateAnnouncement}
+        loading={createAnnouncement.isPending}
+        defaultType={announcementType}
+      />
+
+      {/* Broadcast notification sheet */}
+      <BroadcastNotificationSheet
+        open={showBroadcastSheet}
+        onClose={() => setShowBroadcastSheet(false)}
+        onSend={handleBroadcast}
+        loading={sendBroadcast.isPending}
+        recentBroadcasts={broadcastLog}
+        collectiveName={collective?.name}
       />
 
       {/* Search overlay */}

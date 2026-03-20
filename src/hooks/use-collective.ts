@@ -297,7 +297,21 @@ export function useJoinCollective() {
         })
       if (error) throw error
     },
-    onSuccess: (_, collectiveId) => {
+    onMutate: async (collectiveId) => {
+      await queryClient.cancelQueries({ queryKey: ['collective-membership', collectiveId] })
+      const previous = queryClient.getQueryData(['collective-membership', collectiveId, user?.id])
+      queryClient.setQueryData(['collective-membership', collectiveId, user?.id], {
+        id: `temp-${Date.now()}`,
+        role: 'member',
+        status: 'active',
+        joined_at: new Date().toISOString(),
+      })
+      return { previous }
+    },
+    onError: (_err, collectiveId, context) => {
+      if (context?.previous !== undefined) queryClient.setQueryData(['collective-membership', collectiveId, user?.id], context.previous)
+    },
+    onSettled: (_, __, collectiveId) => {
       queryClient.invalidateQueries({ queryKey: ['collective-membership', collectiveId] })
       queryClient.invalidateQueries({ queryKey: ['collective-members', collectiveId] })
       queryClient.invalidateQueries({ queryKey: ['collective', collectiveId] })
@@ -324,7 +338,16 @@ export function useLeaveCollective() {
         .eq('user_id', user.id)
       if (error) throw error
     },
-    onSuccess: (_, collectiveId) => {
+    onMutate: async (collectiveId) => {
+      await queryClient.cancelQueries({ queryKey: ['collective-membership', collectiveId] })
+      const previous = queryClient.getQueryData(['collective-membership', collectiveId, user?.id])
+      queryClient.setQueryData(['collective-membership', collectiveId, user?.id], null)
+      return { previous }
+    },
+    onError: (_err, collectiveId, context) => {
+      if (context?.previous !== undefined) queryClient.setQueryData(['collective-membership', collectiveId, user?.id], context.previous)
+    },
+    onSettled: (_, __, collectiveId) => {
       queryClient.invalidateQueries({ queryKey: ['collective-membership', collectiveId] })
       queryClient.invalidateQueries({ queryKey: ['collective-members', collectiveId] })
       queryClient.invalidateQueries({ queryKey: ['collective', collectiveId] })
@@ -371,7 +394,16 @@ export function useRemoveMember() {
         .eq('user_id', userId)
       if (error) throw error
     },
-    onSuccess: (_, { collectiveId }) => {
+    onMutate: async ({ collectiveId, userId }) => {
+      await queryClient.cancelQueries({ queryKey: ['collective-members', collectiveId] })
+      const previous = queryClient.getQueryData<CollectiveMemberWithProfile[]>(['collective-members', collectiveId])
+      queryClient.setQueryData<CollectiveMemberWithProfile[]>(['collective-members', collectiveId], (old) => old?.filter(m => m.user_id !== userId))
+      return { previous }
+    },
+    onError: (_err, { collectiveId }, context) => {
+      if (context?.previous) queryClient.setQueryData(['collective-members', collectiveId], context.previous)
+    },
+    onSettled: (_, __, { collectiveId }) => {
       queryClient.invalidateQueries({ queryKey: ['collective-members', collectiveId] })
       queryClient.invalidateQueries({ queryKey: ['collective', collectiveId] })
     },
@@ -394,7 +426,19 @@ export function useUpdateMemberRole() {
         .eq('user_id', userId)
       if (error) throw error
     },
-    onSuccess: (_, { collectiveId }) => {
+    onMutate: async ({ collectiveId, userId, role }) => {
+      await queryClient.cancelQueries({ queryKey: ['collective-members', collectiveId] })
+      const previous = queryClient.getQueryData<CollectiveMemberWithProfile[]>(['collective-members', collectiveId])
+      queryClient.setQueryData<CollectiveMemberWithProfile[]>(['collective-members', collectiveId], (old) => {
+        if (!old) return old
+        return old.map(m => m.user_id === userId ? { ...m, role } : m)
+      })
+      return { previous }
+    },
+    onError: (_err, { collectiveId }, context) => {
+      if (context?.previous) queryClient.setQueryData(['collective-members', collectiveId], context.previous)
+    },
+    onSettled: (_, __, { collectiveId }) => {
       queryClient.invalidateQueries({ queryKey: ['collective-members', collectiveId] })
       queryClient.invalidateQueries({ queryKey: ['collective-leaders', collectiveId] })
       queryClient.invalidateQueries({ queryKey: ['collective-role', collectiveId] })

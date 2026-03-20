@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Trophy,
   Plus,
@@ -124,8 +125,21 @@ export default function AdminChallengesPage() {
     onError: () => toast.error('Failed to delete challenge'),
   })
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={fadeUp}>
       {isLoading ? (
         <Skeleton variant="list-item" count={4} />
       ) : !challenges?.length ? (
@@ -144,7 +158,7 @@ export default function AdminChallengesPage() {
               <StaggeredItem
                 key={challenge.id}
                 className={cn(
-                  'p-4 rounded-xl bg-white border border-primary-100 shadow-sm',
+                  'p-4 rounded-xl bg-white shadow-sm',
                   !isActive && 'opacity-60',
                 )}
               >
@@ -227,6 +241,7 @@ export default function AdminChallengesPage() {
           })}
         </StaggeredList>
       )}
+      </motion.div>
 
       {/* Create modal */}
       <Modal
@@ -311,6 +326,6 @@ export default function AdminChallengesPage() {
         confirmLabel="Delete"
         variant="danger"
       />
-    </>
+    </motion.div>
   )
 }

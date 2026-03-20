@@ -245,7 +245,7 @@ function FilterSection({
   const shouldReduceMotion = useReducedMotion()
 
   return (
-    <div className="border-b border-primary-100 last:border-b-0">
+    <div>
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -393,7 +393,7 @@ function DistanceSelector({
           {[0.3, 0.55, 0.8, 1.0].map((scale, i) => (
             <div
               key={i}
-              className="absolute inset-0 rounded-full border border-primary-100"
+              className="absolute inset-0 rounded-full ring-1 ring-primary-100"
               style={{
                 transform: `scale(${scale})`,
                 opacity: fraction >= scale * 0.8 ? 0.8 : 0.2,
@@ -595,13 +595,13 @@ function DateRangeSelector({
                 onChange(e.target.value || null, dateTo)
               }
               className={cn(
-                'w-full h-11 px-3 rounded-xl border',
-                'text-sm bg-white',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400',
+                'w-full h-11 px-3 rounded-xl',
+                'text-sm bg-primary-50/50',
+                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
                 'transition-all duration-150',
                 dateFrom
-                  ? 'border-primary-300 text-primary-800'
-                  : 'border-primary-100 text-primary-400',
+                  ? 'text-primary-800'
+                  : 'text-primary-400',
               )}
               style={{ fontSize: '16px' }}
             />
@@ -617,13 +617,13 @@ function DateRangeSelector({
                 onChange(dateFrom, e.target.value || null)
               }
               className={cn(
-                'w-full h-11 px-3 rounded-xl border',
-                'text-sm bg-white',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400',
+                'w-full h-11 px-3 rounded-xl',
+                'text-sm bg-primary-50/50',
+                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
                 'transition-all duration-150',
                 dateTo
-                  ? 'border-primary-300 text-primary-800'
-                  : 'border-primary-100 text-primary-400',
+                  ? 'text-primary-800'
+                  : 'text-primary-400',
               )}
               style={{ fontSize: '16px' }}
             />
@@ -928,10 +928,10 @@ export default function ExplorePage() {
             whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
             className={cn(
               'relative flex items-center justify-center min-h-11 min-w-11 rounded-xl shrink-0',
-              'border active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+              'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
               activeFilterCount > 0
-                ? 'border-primary-400 bg-primary-50 text-primary-600 shadow-sm'
-                : 'border-primary-200 bg-white text-primary-400',
+                ? 'bg-primary-50 text-primary-600 shadow-sm'
+                : 'bg-primary-50/60 text-primary-400',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             )}
             aria-label={`Filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}
@@ -945,7 +945,7 @@ export default function ExplorePage() {
           </motion.button>
 
           {/* View toggle */}
-          <div className="flex rounded-xl border border-primary-200 overflow-hidden shrink-0 shadow-sm">
+          <div className="flex rounded-xl overflow-hidden shrink-0 shadow-sm">
             <button
               type="button"
               onClick={() => setViewMode('map')}
@@ -1532,7 +1532,7 @@ export default function ExplorePage() {
           </div>
 
           {/* Sticky apply button */}
-          <div className="pt-4 border-t border-primary-100 -mx-5 px-5">
+          <div className="pt-4 -mx-5 px-5">
             <Button
               variant="primary"
               size="lg"

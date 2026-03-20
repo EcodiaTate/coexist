@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Shield,
   Plus,
@@ -51,7 +52,7 @@ function useStaffDirectory() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, display_name, email, avatar_url, role' as any)
+        .select('id, display_name, avatar_url, role')
         .in('role', ['national_staff', 'national_admin', 'super_admin'])
         .order('role')
 
@@ -190,13 +191,27 @@ export default function SuperAdminPage() {
     },
   })
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
-      <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={fadeUp}>
+        <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
+      </motion.div>
 
       {/* Staff Directory */}
       {activeTab === 'directory' && (
-        <>
+        <motion.div variants={fadeUp}>
           <div className="flex justify-end mb-4">
             <Button
               variant="primary"
@@ -222,7 +237,7 @@ export default function SuperAdminPage() {
               {staff.map((member: any) => (
                 <StaggeredItem
                   key={member.id}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-white border border-primary-100 shadow-sm"
+                  className="flex items-center gap-3 p-4 rounded-xl bg-white shadow-sm"
                 >
                   <Avatar
                     src={member.avatar_url}
@@ -243,7 +258,7 @@ export default function SuperAdminPage() {
                         {member.role?.replace(/_/g, ' ')}
                       </span>
                     </div>
-                    <p className="text-xs text-primary-400 truncate">{member.email}</p>
+                    {member.phone && <p className="text-xs text-primary-400 truncate">{member.phone}</p>}
                     {/* Permission badges */}
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {PERMISSIONS.filter((p) => member.permissions[p.key]).map((p) => (
@@ -288,7 +303,7 @@ export default function SuperAdminPage() {
               ))}
             </StaggeredList>
           )}
-        </>
+        </motion.div>
       )}
 
       {/* Permission Audit */}
@@ -296,7 +311,7 @@ export default function SuperAdminPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-primary-200">
+              <tr className="border-b border-primary-100/40">
                 <th className="text-left py-3 px-3 text-primary-400 font-medium">Staff Member</th>
                 {PERMISSIONS.map((p) => (
                   <th
@@ -310,7 +325,7 @@ export default function SuperAdminPage() {
             </thead>
             <tbody>
               {(staff ?? []).map((member: any) => (
-                <tr key={member.id} className="border-b border-primary-100 hover:bg-primary-50">
+                <tr key={member.id} className="border-b border-primary-100/40 hover:bg-primary-50">
                   <td className="py-2.5 px-3">
                     <div className="flex items-center gap-2">
                       <Avatar src={member.avatar_url} name={member.display_name ?? ''} size="sm" />
@@ -336,7 +351,7 @@ export default function SuperAdminPage() {
       {/* View as User (Impersonation) */}
       {activeTab === 'impersonate' && (
         <div className="max-w-md space-y-4">
-          <div className="p-4 rounded-xl bg-warning-50 border border-warning-200">
+          <div className="p-4 rounded-xl bg-warning-50 shadow-sm">
             <div className="flex items-start gap-3">
               <Eye size={18} className="text-warning-600 mt-0.5 shrink-0" />
               <div>
@@ -370,7 +385,7 @@ export default function SuperAdminPage() {
           </Button>
 
           {impersonateMutation.isSuccess && (
-            <div className="p-3 rounded-lg bg-success-50 border border-success-200">
+            <div className="p-3 rounded-lg bg-success-50 shadow-sm">
               <p className="text-sm text-success-700">
                 Impersonation logged. In production, this would switch the view to show
                 the app from the perspective of{' '}
@@ -470,6 +485,6 @@ export default function SuperAdminPage() {
         confirmLabel="Remove Access"
         variant="danger"
       />
-    </>
+    </motion.div>
   )
 }

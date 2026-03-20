@@ -72,6 +72,16 @@ export default function EditProfilePage() {
     setInitialized(true)
   }
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   const tier = getTierFromPoints(profile?.points ?? 0)
 
   const handleAvatarChange = async () => {
@@ -178,7 +188,8 @@ export default function EditProfilePage() {
         </motion.div>
 
         {/* Form fields */}
-        <div className="space-y-5 mt-4">
+        <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="space-y-5 mt-4">
+          <motion.div variants={fadeUp}>
           <Input
             label="Display Name"
             value={displayName}
@@ -186,8 +197,9 @@ export default function EditProfilePage() {
             placeholder="Your name"
             maxLength={50}
           />
+          </motion.div>
 
-          <div>
+          <motion.div variants={fadeUp}>
             <label className="block text-sm font-medium text-primary-800 mb-1.5">Pronouns</label>
             <div className="flex flex-wrap gap-2">
               {PRONOUN_OPTIONS.map((opt) => (
@@ -208,8 +220,9 @@ export default function EditProfilePage() {
                 className="mt-2"
               />
             )}
-          </div>
+          </motion.div>
 
+          <motion.div variants={fadeUp}>
           <Input
             label="Bio"
             value={bio}
@@ -217,7 +230,9 @@ export default function EditProfilePage() {
             placeholder="Tell people about yourself..."
             maxLength={500}
           />
+          </motion.div>
 
+          <motion.div variants={fadeUp}>
           <Input
             label="Instagram Handle"
             value={instagramHandle}
@@ -225,7 +240,9 @@ export default function EditProfilePage() {
             placeholder="@coexistaus"
             maxLength={30}
           />
+          </motion.div>
 
+          <motion.div variants={fadeUp}>
           <Input
             label="Location"
             value={location}
@@ -234,7 +251,9 @@ export default function EditProfilePage() {
             icon={<MapPin size={16} />}
             maxLength={100}
           />
+          </motion.div>
 
+          <motion.div variants={fadeUp}>
           <Input
             label="Phone"
             value={phone}
@@ -243,9 +262,10 @@ export default function EditProfilePage() {
             type="tel"
             maxLength={20}
           />
+          </motion.div>
 
           {/* Interests */}
-          <div>
+          <motion.div variants={fadeUp}>
             <label className="block text-sm font-medium text-primary-800 mb-2">
               Conservation Interests
             </label>
@@ -259,10 +279,10 @@ export default function EditProfilePage() {
                 />
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Privacy */}
-          <div>
+          <motion.div variants={fadeUp}>
             <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
               Privacy Settings
             </h3>
@@ -280,10 +300,10 @@ export default function EditProfilePage() {
                   key={opt.value}
                   onClick={() => setVisibility(opt.value)}
                   className={cn(
-                    'w-full flex items-start gap-3 rounded-xl px-4 py-3 border text-left transition-colors',
+                    'w-full flex items-start gap-3 rounded-xl px-4 py-3 text-left transition-colors',
                     visibility === opt.value
-                      ? 'border-primary-300 bg-white'
-                      : 'border-primary-200 hover:bg-primary-50',
+                      ? 'ring-2 ring-primary-500 bg-white shadow-sm'
+                      : 'bg-primary-50/60 hover:bg-primary-50',
                   )}
                 >
                   <div
@@ -303,8 +323,8 @@ export default function EditProfilePage() {
                 </button>
               ))}
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </Page>
   )

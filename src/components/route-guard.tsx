@@ -56,7 +56,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
     return <Navigate to="/accept-terms" replace />
   }
 
-  // Profile not loaded yet — wait rather than flashing onboarding.
+  // Profile not loaded yet  wait rather than flashing onboarding.
   // After 12s safety timeout, fall through to onboarding redirect.
   if (!profile && !profileTimeout) {
     return <div className="min-h-dvh bg-white" />

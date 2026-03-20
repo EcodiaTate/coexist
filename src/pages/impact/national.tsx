@@ -38,30 +38,32 @@ function useNationalImpact() {
         eventsRes,
         membersRes,
         collectivesRes,
+        eventsWithTypeRes,
       ] = await Promise.all([
-        supabase.from('impact_logs' as any).select(
-          'trees_planted, volunteer_hours, rubbish_kg, coastline_km, activity_type, state',
+        supabase.from('event_impact').select(
+          'trees_planted, hours_total, rubbish_kg, coastline_cleaned_m',
         ),
-        supabase.from('events').select('id', { count: 'exact', head: true }),
+        supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
+        supabase.from('events').select('activity_type, collectives(state)').lt('date_start', new Date().toISOString()).limit(10000),
       ])
 
-      const logs = (impactRes.data ?? []) as any[]
-      const totalTrees = logs.reduce((s: number, r: any) => s + (r.trees_planted ?? 0), 0)
-      const totalHours = logs.reduce((s: number, r: any) => s + (r.volunteer_hours ?? 0), 0)
-      const totalRubbish = logs.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0)
-      const totalCoastline = logs.reduce((s: number, r: any) => s + (r.coastline_km ?? 0), 0)
+      const logs = impactRes.data ?? []
+      const totalTrees = logs.reduce((s, r) => s + (r.trees_planted ?? 0), 0)
+      const totalHours = logs.reduce((s, r) => s + (r.hours_total ?? 0), 0)
+      const totalRubbish = logs.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0)
+      const totalCoastline = logs.reduce((s, r) => s + (r.coastline_cleaned_m ?? 0), 0)
 
       const byActivity: Record<string, number> = {}
-      for (const log of logs as any[]) {
-        const type = (log as any).activity_type ?? 'Other'
+      for (const ev of (eventsWithTypeRes.data ?? []) as any[]) {
+        const type = ev.activity_type ?? 'Other'
         byActivity[type] = (byActivity[type] ?? 0) + 1
       }
 
       const byState: Record<string, number> = {}
-      for (const log of logs as any[]) {
-        const state = (log as any).state ?? 'Unknown'
+      for (const ev of (eventsWithTypeRes.data ?? []) as any[]) {
+        const state = (ev.collectives as any)?.state ?? 'Unknown'
         byState[state] = (byState[state] ?? 0) + 1
       }
 
@@ -144,12 +146,12 @@ function useTrends() {
         const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
 
         const { data } = await supabase
-          .from('impact_logs' as any)
-          .select('volunteer_hours')
-          .gte('created_at', start.toISOString())
-          .lte('created_at', end.toISOString())
+          .from('event_impact')
+          .select('hours_total')
+          .gte('logged_at', start.toISOString())
+          .lte('logged_at', end.toISOString())
 
-        const hours = ((data ?? []) as any[]).reduce((s: number, r: any) => s + (r.volunteer_hours ?? 0), 0)
+        const hours = (data ?? []).reduce((s, r) => s + (r.hours_total ?? 0), 0)
 
         months.push({
           month: start.toLocaleDateString('en-AU', { month: 'short' }),
@@ -161,6 +163,20 @@ function useTrends() {
     },
     staleTime: 10 * 60 * 1000,
   })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Animation variants                                                 */
+/* ------------------------------------------------------------------ */
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -253,12 +269,16 @@ export default function NationalImpactPage() {
   }
 
   const content = (
-      <div className="pb-12">
+      <motion.div
+        className="pb-12"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
 
         {/* ─── Hero headline ─── */}
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          variants={fadeUp}
           className="px-5 pt-8 pb-2"
         >
           <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium">
@@ -274,7 +294,7 @@ export default function NationalImpactPage() {
         <div className="mx-5 h-px bg-primary-100/60 my-6" />
 
         {/* ─── Stats Grid ─── */}
-        <div className="px-5 grid grid-cols-2 gap-4">
+        <motion.div variants={fadeUp} className="px-5 grid grid-cols-2 gap-4">
           <NationalStat
             icon={<Clock size={22} className="text-primary-500" />}
             value={data?.totalHours ?? 0}
@@ -309,29 +329,27 @@ export default function NationalImpactPage() {
             icon={<Users size={22} className="text-primary-500" />}
             value={data?.totalMembers ?? 0}
             label="Active Members"
-            bg="bg-white border border-primary-100/50"
+            bg="bg-white shadow-sm"
             delay={0.25}
           />
           <NationalStat
             icon={<MapPin size={22} className="text-bark-500" />}
             value={data?.totalCollectives ?? 0}
             label="Collectives"
-            bg="bg-white border border-primary-100/50"
+            bg="bg-white shadow-sm"
             delay={0.3}
           />
-        </div>
+        </motion.div>
 
         {/* ─── Geographic Activity Map ─── */}
         <motion.section
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35, duration: 0.4 }}
+          variants={fadeUp}
           className="mx-5 mt-10"
         >
           <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
             Geographic Activity
           </p>
-          <div className="rounded-3xl bg-white border border-primary-100/50 p-5 overflow-hidden">
+          <div className="rounded-3xl bg-white shadow-sm p-5 overflow-hidden">
             <MapView
               center={{ lat: -28.0, lng: 134.0 }}
               zoom={4}
@@ -345,15 +363,13 @@ export default function NationalImpactPage() {
         {/* ─── Monthly Volunteer Hours Trend ─── */}
         {trends && trends.length > 0 && (
           <motion.section
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.4 }}
+            variants={fadeUp}
             className="mx-5 mt-10"
           >
             <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
               Monthly Volunteer Hours
             </p>
-            <div className="rounded-3xl bg-white border border-primary-100/50 p-6">
+            <div className="rounded-3xl bg-white shadow-sm p-6">
               <div className="flex items-end gap-4 h-32">
                 {trends.map((t, i) => {
                   const max = Math.max(...trends.map((tr) => tr.impact), 1)
@@ -379,15 +395,13 @@ export default function NationalImpactPage() {
         {/* ─── Breakdown by Activity ─── */}
         {data?.byActivity && data.byActivity.length > 0 && (
           <motion.section
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45, duration: 0.4 }}
+            variants={fadeUp}
             className="mx-5 mt-10"
           >
             <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
               By Activity Type
             </p>
-            <div className="rounded-3xl bg-white border border-primary-100/50 p-6 space-y-4">
+            <div className="rounded-3xl bg-white shadow-sm p-6 space-y-4">
               {data.byActivity.map(([type, count]) => {
                 const total = data.byActivity.reduce((s, [, c]) => s + c, 0)
                 const percent = total > 0 ? Math.round((count / total) * 100) : 0
@@ -415,19 +429,17 @@ export default function NationalImpactPage() {
         {/* ─── Breakdown by State ─── */}
         {data?.byState && data.byState.length > 0 && (
           <motion.section
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.4 }}
+            variants={fadeUp}
             className="mx-5 mt-10"
           >
             <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
               By State / Region
             </p>
-            <div className="rounded-3xl bg-white border border-primary-100/50 p-6 space-y-1">
+            <div className="rounded-3xl bg-white shadow-sm p-6 space-y-1">
               {data.byState.map(([state, count]) => (
                 <div
                   key={state}
-                  className="flex items-center justify-between py-3 border-b border-primary-100/40 last:border-0"
+                  className="flex items-center justify-between py-3 "
                 >
                   <span className="text-sm text-primary-700 font-medium">{state}</span>
                   <span className="text-sm font-bold text-primary-800 tabular-nums">
@@ -442,20 +454,18 @@ export default function NationalImpactPage() {
         {/* ─── Top Collectives ─── */}
         {topCollectives && topCollectives.length > 0 && (
           <motion.section
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.55, duration: 0.4 }}
+            variants={fadeUp}
             className="mx-5 mt-10"
           >
             <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4 flex items-center gap-2">
               <Trophy size={14} className="text-primary-400/50" />
               Top Collectives
             </p>
-            <div className="rounded-3xl bg-white border border-primary-100/50 p-6 space-y-1">
+            <div className="rounded-3xl bg-white shadow-sm p-6 space-y-1">
               {topCollectives.map((c, i) => (
                 <div
                   key={c.id}
-                  className="flex items-center gap-4 py-3 border-b border-primary-100/40 last:border-0"
+                  className="flex items-center gap-4 py-3 "
                 >
                   <span
                     className={cn(
@@ -480,7 +490,7 @@ export default function NationalImpactPage() {
         )}
 
         {/* ─── Export / Share ─── */}
-        <div className="mx-5 mt-10 flex gap-3">
+        <motion.div variants={fadeUp} className="mx-5 mt-10 flex gap-3">
           <Button
             variant="primary"
             icon={<Download size={16} />}
@@ -495,8 +505,8 @@ export default function NationalImpactPage() {
           >
             Share
           </Button>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
   )
 
   if (isAdmin) return content

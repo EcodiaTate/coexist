@@ -71,7 +71,7 @@ function useAdminOverview(dateRange: DateRange) {
       ] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
-        supabase.from('events').select('id', { count: 'exact', head: true }),
+        supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
         supabase.from('event_impact').select('trees_planted, hours_total, rubbish_kg').limit(10000),
         rangeStart
           ? supabase
@@ -84,6 +84,7 @@ function useAdminOverview(dateRange: DateRange) {
               .from('events')
               .select('id', { count: 'exact', head: true })
               .gte('created_at', rangeStart)
+              .lt('date_start', new Date().toISOString())
           : Promise.resolve({ count: 0 }),
       ])
 
@@ -133,7 +134,7 @@ function useTrendData() {
             .from('events')
             .select('id', { count: 'exact', head: true })
             .gte('date_start', start.toISOString())
-            .lte('date_start', end.toISOString()),
+            .lte('date_start', new Date(Math.min(end.getTime(), now.getTime())).toISOString()),
         ])
 
         months.push({
@@ -168,7 +169,7 @@ function SimpleBarChart({
   const max = Math.max(...data.map((d) => d[dataKey] as number), 1)
 
   return (
-    <div className="bg-white rounded-xl border border-primary-100 p-4">
+    <div className="bg-white rounded-xl shadow-sm p-4">
       <h3 className="font-heading text-sm font-semibold text-primary-800 mb-4">
         {label}
       </h3>
@@ -216,6 +217,8 @@ export default function AdminDashboardPage() {
     [dateRange, setDateRange],
   )
 
+  const shouldReduceMotion = useReducedMotion()
+
   useAdminHeader('Dashboard', actions)
 
   if (isLoading) {
@@ -233,10 +236,20 @@ export default function AdminDashboardPage() {
     )
   }
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <div className="space-y-6">
+    <motion.div className="space-y-6" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
         {/* Primary stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <StatCard
             value={data?.totalMembers ?? 0}
             label="Total Members"
@@ -267,15 +280,15 @@ export default function AdminDashboardPage() {
             label="Volunteer Hours"
             icon={<Clock size={20} />}
           />
-        </div>
+        </motion.div>
 
         {/* Impact stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+        <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           <StatCard
             value={data?.totalTrees ?? 0}
             label="Trees Planted"
             icon={<TreePine size={20} />}
-            className="from-success-50 to-success-100/50 border-success-100"
+            className="from-success-50 to-success-100/50"
           />
           <StatCard
             value={data?.totalRubbish ?? 0}
@@ -285,19 +298,19 @@ export default function AdminDashboardPage() {
                 &#9851;
               </span>
             }
-            className="from-info-50 to-info-100/50 border-info-100"
+            className="from-info-50 to-info-100/50"
           />
           <StatCard
             value={data?.periodEvents ?? 0}
             label={`Events (${dateRangeOptions.find((o) => o.value === dateRange)?.label})`}
             icon={<TrendingUp size={20} />}
-            className="from-white to-accent-100/50 border-accent-100"
+            className="from-white to-accent-100/50"
           />
-        </div>
+        </motion.div>
 
         {/* Trend charts */}
         {trends && trends.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <SimpleBarChart
               data={trends}
               dataKey="members"
@@ -310,11 +323,11 @@ export default function AdminDashboardPage() {
               label="Event Frequency"
               color="bg-accent-400"
             />
-          </div>
+          </motion.div>
         )}
 
         {/* Geographic placeholder */}
-        <div className="bg-white rounded-xl border border-primary-100 p-6">
+        <motion.div variants={fadeUp} className="bg-white rounded-xl shadow-sm p-6">
           <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
             Geographic Activity
           </h3>
@@ -323,7 +336,7 @@ export default function AdminDashboardPage() {
               Heat map - connect to Mapbox for live geographic data
             </p>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
   )
 }

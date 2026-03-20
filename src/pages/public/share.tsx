@@ -14,6 +14,16 @@ import { cn } from '@/lib/cn'
  * Public share page for badges and milestones.
  * Route: /share/badge/:id  or  /share/milestone/:id
  */
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 export default function PublicSharePage() {
   const { type, id } = useParams<{ type: string; id: string }>()
   const shouldReduceMotion = useReducedMotion()
@@ -73,11 +83,15 @@ export default function PublicSharePage() {
         image={badge.icon_url || undefined}
       />
 
-      <div className="flex flex-1 flex-col items-center justify-center px-4 py-16">
+      <motion.div
+        className="flex flex-1 flex-col items-center justify-center px-4 py-16"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Card */}
         <motion.div
-          initial={shouldReduceMotion ? false : { scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.3 }}
+          variants={shouldReduceMotion ? undefined : fadeUp}
           className={cn(
             'relative w-full max-w-sm overflow-hidden rounded-2xl',
             'bg-gradient-to-br text-white shadow-xl',
@@ -106,9 +120,7 @@ export default function PublicSharePage() {
 
         {/* CTAs */}
         <motion.div
-          initial={shouldReduceMotion ? false : { y: 15, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.15, duration: 0.25 }}
+          variants={shouldReduceMotion ? undefined : fadeUp}
           className="mt-8 flex w-full max-w-sm flex-col gap-3"
         >
           <Button
@@ -136,7 +148,7 @@ export default function PublicSharePage() {
             Download {APP_NAME}
           </Button>
         </motion.div>
-      </div>
+      </motion.div>
 
       <WebFooter />
     </div>

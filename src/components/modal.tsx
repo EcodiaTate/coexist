@@ -164,14 +164,14 @@ export function Modal({
             className={cn(
               'relative z-10 w-full bg-white shadow-lg',
               'rounded-2xl',
-              'max-h-[min(85vh,calc(100dvh-3rem))] overflow-y-auto overscroll-contain',
+              'max-h-[min(85vh,calc(100dvh-3rem))] flex flex-col',
               sizeClasses[size],
               className,
             )}
             variants={contentVariants}
           >
             <motion.div
-              className="sticky top-0 z-10 flex items-center justify-between border-b border-primary-100 bg-white/90 px-5 py-4 backdrop-blur-sm rounded-t-2xl"
+              className="shrink-0 z-10 flex items-center justify-between border-b border-primary-100 bg-white px-5 py-4 rounded-t-2xl"
               variants={headerVariants}
             >
               <h2 className="font-heading text-lg font-semibold text-primary-800">
@@ -185,7 +185,7 @@ export function Modal({
                 <X size={20} />
               </button>
             </motion.div>
-            <motion.div className="p-5" variants={bodyVariants}>
+            <motion.div className="p-5 overflow-y-auto overscroll-contain" variants={bodyVariants}>
               {children}
             </motion.div>
           </motion.div>

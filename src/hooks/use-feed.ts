@@ -268,7 +268,7 @@ export function usePostComments(postId: string) {
 }
 
 export function useAddComment() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -284,25 +284,36 @@ export function useAddComment() {
       if (error) throw error
       return data
     },
-    onSuccess: (_, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: ['post-comments', postId] })
+    onMutate: async ({ postId, content }) => {
+      await queryClient.cancelQueries({ queryKey: ['post-comments', postId] })
+      const previousComments = queryClient.getQueryData<CommentWithAuthor[]>(['post-comments', postId])
+      const optimisticComment: CommentWithAuthor = {
+        id: `temp-${Date.now()}`,
+        post_id: postId,
+        user_id: user!.id,
+        content,
+        is_deleted: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        author: { id: user!.id, display_name: profile?.display_name ?? null, avatar_url: profile?.avatar_url ?? null, membership_level: profile?.membership_level ?? 'seedling' },
+      } as CommentWithAuthor
+      queryClient.setQueryData<CommentWithAuthor[]>(['post-comments', postId], (old) => [...(old ?? []), optimisticComment])
       // Update comment count in feed
       queryClient.setQueriesData<{ pages: PostWithDetails[][] }>(
         { queryKey: ['feed'] },
         (old) => {
           if (!old) return old
-          return {
-            ...old,
-            pages: old.pages.map((page) =>
-              page.map((post) =>
-                post.id === postId
-                  ? { ...post, comment_count: post.comment_count + 1 }
-                  : post,
-              ),
-            ),
-          }
+          return { ...old, pages: old.pages.map(page => page.map(post => post.id === postId ? { ...post, comment_count: post.comment_count + 1 } : post)) }
         },
       )
+      return { previousComments }
+    },
+    onError: (_err, { postId }, context) => {
+      if (context?.previousComments) queryClient.setQueryData(['post-comments', postId], context.previousComments)
+      queryClient.invalidateQueries({ queryKey: ['feed'] })
+    },
+    onSettled: (_, __, { postId }) => {
+      queryClient.invalidateQueries({ queryKey: ['post-comments', postId] })
     },
   })
 }
@@ -318,9 +329,25 @@ export function useDeleteComment() {
         .eq('id', commentId)
       if (error) throw error
     },
-    onSuccess: (_, { postId }) => {
-      queryClient.invalidateQueries({ queryKey: ['post-comments', postId] })
+    onMutate: async ({ commentId, postId }) => {
+      await queryClient.cancelQueries({ queryKey: ['post-comments', postId] })
+      const previousComments = queryClient.getQueryData<CommentWithAuthor[]>(['post-comments', postId])
+      queryClient.setQueryData<CommentWithAuthor[]>(['post-comments', postId], (old) => old?.filter(c => c.id !== commentId))
+      queryClient.setQueriesData<{ pages: PostWithDetails[][] }>(
+        { queryKey: ['feed'] },
+        (old) => {
+          if (!old) return old
+          return { ...old, pages: old.pages.map(page => page.map(post => post.id === postId ? { ...post, comment_count: Math.max(0, post.comment_count - 1) } : post)) }
+        },
+      )
+      return { previousComments }
+    },
+    onError: (_err, { postId }, context) => {
+      if (context?.previousComments) queryClient.setQueryData(['post-comments', postId], context.previousComments)
       queryClient.invalidateQueries({ queryKey: ['feed'] })
+    },
+    onSettled: (_, __, { postId }) => {
+      queryClient.invalidateQueries({ queryKey: ['post-comments', postId] })
     },
   })
 }

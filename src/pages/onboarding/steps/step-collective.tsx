@@ -9,6 +9,16 @@ import type { Database } from '@/types/database.types'
 
 type Collective = Database['public']['Tables']['collectives']['Row']
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 interface StepCollectiveProps {
   selectedId: string | null
   onSelect: (id: string | null) => void
@@ -34,35 +44,38 @@ export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCol
 
   return (
     <div className="flex-1 flex flex-col px-6 pt-8 min-h-0">
-      <div className="flex-1 overflow-y-auto">
-        <h2 className="font-heading text-2xl font-bold text-primary-800">
+      <motion.div
+        className="flex-1 overflow-y-auto"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800">
           Join a Collective
-        </h2>
-        <p className="mt-2 text-primary-400 leading-relaxed">
+        </motion.h2>
+        <motion.p variants={fadeUp} className="mt-2 text-primary-400 leading-relaxed">
           Collectives are local volunteer groups. Join one to find events near you.
-        </p>
+        </motion.p>
 
         <div className="mt-6 space-y-3">
           {isLoading ? (
             <Skeleton variant="list-item" count={4} />
           ) : collectives && collectives.length > 0 ? (
-            collectives.map((collective, i) => {
+            collectives.map((collective) => {
               const isSelected = selectedId === collective.id
               return (
                 <motion.button
                   key={collective.id}
                   type="button"
                   onClick={() => onSelect(isSelected ? null : collective.id)}
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.03 }}
+                  variants={fadeUp}
                   whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
                   className={cn(
-                    'w-full flex items-center gap-3 p-4 rounded-xl border text-left cursor-pointer',
+                    'w-full flex items-center gap-3 p-4 rounded-xl text-left cursor-pointer',
                     'transition-colors duration-150',
                     isSelected
-                      ? 'border-primary-400 bg-white'
-                      : 'border-primary-200 hover:bg-primary-50',
+                      ? 'ring-2 ring-primary-500 bg-white shadow-sm'
+                      : 'bg-primary-50/60 hover:bg-primary-50',
                   )}
                 >
                   {collective.cover_image_url ? (
@@ -106,7 +119,7 @@ export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCol
             </p>
           )}
         </div>
-      </div>
+      </motion.div>
 
       <div
         className="py-6 space-y-3"

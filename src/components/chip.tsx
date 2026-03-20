@@ -16,12 +16,12 @@ interface ChipProps {
 
 const variantStyles = {
   default: {
-    selected: 'bg-primary-100 text-primary-400 border-primary-300',
-    unselected: 'bg-white text-primary-400 border-primary-200 hover:bg-primary-50',
+    selected: 'bg-primary-100 text-primary-400 shadow-sm',
+    unselected: 'bg-primary-50/60 text-primary-400 hover:bg-primary-100/60',
   },
   activity: {
-    selected: 'bg-accent-100 text-primary-800 border-accent-300',
-    unselected: 'bg-white text-primary-400 border-primary-200 hover:bg-primary-50',
+    selected: 'bg-accent-100 text-primary-800 shadow-sm',
+    unselected: 'bg-primary-50/60 text-primary-400 hover:bg-primary-100/60',
   },
 } as const
 
@@ -49,7 +49,7 @@ export function Chip({
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       className={cn(
         'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5',
-        'border text-sm font-medium cursor-pointer select-none',
+        'text-sm font-medium cursor-pointer select-none',
         'transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1',
         selected ? styles.selected : styles.unselected,

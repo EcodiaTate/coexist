@@ -77,7 +77,6 @@ export function StatCard({
       className={cn(
         'rounded-xl shadow-sm p-4',
         'bg-gradient-to-br from-white to-primary-100/50',
-        'border border-primary-100',
         className,
       )}
     >

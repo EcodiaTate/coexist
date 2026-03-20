@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Download,
   Users,
@@ -41,7 +42,7 @@ const exportTypes: ExportType[] = [
     description: 'Name, email, join date, events attended, total hours',
     icon: <Users size={20} />,
     formats: ['csv'],
-    color: 'bg-primary-50 border-primary-200 text-primary-600',
+    color: 'bg-primary-400/25 text-primary-900',
   },
   {
     id: 'attendance',
@@ -49,7 +50,7 @@ const exportTypes: ExportType[] = [
     description: 'Per event: name, checked in Y/N, time',
     icon: <CalendarDays size={20} />,
     formats: ['csv'],
-    color: 'bg-moss-50 border-moss-200 text-moss-600',
+    color: 'bg-moss-400/25 text-moss-900',
   },
   {
     id: 'impact-pdf',
@@ -57,7 +58,7 @@ const exportTypes: ExportType[] = [
     description: 'Branded template with charts and summary stats',
     icon: <TreePine size={20} />,
     formats: ['pdf'],
-    color: 'bg-secondary-50 border-secondary-200 text-secondary-600',
+    color: 'bg-secondary-400/25 text-secondary-900',
   },
   {
     id: 'impact-csv',
@@ -65,7 +66,7 @@ const exportTypes: ExportType[] = [
     description: 'Raw impact data per event for analysis',
     icon: <BarChart3 size={20} />,
     formats: ['csv'],
-    color: 'bg-primary-50 border-primary-200 text-primary-500',
+    color: 'bg-primary-400/30 text-primary-900',
   },
   {
     id: 'survey',
@@ -73,7 +74,7 @@ const exportTypes: ExportType[] = [
     description: 'All survey responses with question data',
     icon: <ClipboardList size={20} />,
     formats: ['csv'],
-    color: 'bg-plum-50 border-plum-200 text-plum-600',
+    color: 'bg-plum-400/25 text-plum-900',
   },
   {
     id: 'financial',
@@ -81,7 +82,7 @@ const exportTypes: ExportType[] = [
     description: 'All donations received with donor details',
     icon: <DollarSign size={20} />,
     formats: ['csv'],
-    color: 'bg-bark-50 border-bark-200 text-bark-600',
+    color: 'bg-bark-400/25 text-bark-900',
   },
   {
     id: 'orders',
@@ -89,7 +90,7 @@ const exportTypes: ExportType[] = [
     description: 'Order list for fulfilment with shipping details',
     icon: <ShoppingBag size={20} />,
     formats: ['csv'],
-    color: 'bg-moss-50 border-moss-200 text-moss-700',
+    color: 'bg-moss-400/30 text-moss-900',
   },
   {
     id: 'charity-annual',
@@ -97,7 +98,7 @@ const exportTypes: ExportType[] = [
     description: 'ACNC-formatted annual report for compliance',
     icon: <FileText size={20} />,
     formats: ['pdf'],
-    color: 'bg-secondary-50 border-secondary-200 text-secondary-500',
+    color: 'bg-secondary-400/30 text-secondary-900',
   },
   {
     id: 'reconciliation',
@@ -105,7 +106,7 @@ const exportTypes: ExportType[] = [
     description: 'Compare Stripe payments vs Supabase records',
     icon: <Receipt size={20} />,
     formats: ['csv'],
-    color: 'bg-bark-50 border-bark-200 text-bark-700',
+    color: 'bg-bark-400/30 text-bark-900',
   },
   {
     id: 'gst',
@@ -113,7 +114,7 @@ const exportTypes: ExportType[] = [
     description: 'Australian GST on merch sales, BAS-ready format',
     icon: <Receipt size={20} />,
     formats: ['csv'],
-    color: 'bg-plum-50 border-plum-200 text-plum-500',
+    color: 'bg-plum-400/30 text-plum-900',
   },
   {
     id: 'donation-tax',
@@ -121,7 +122,7 @@ const exportTypes: ExportType[] = [
     description: 'Annual summary of tax-deductible donations per donor (DGR)',
     icon: <DollarSign size={20} />,
     formats: ['csv', 'pdf'],
-    color: 'bg-primary-50 border-primary-200 text-primary-600',
+    color: 'bg-primary-400/25 text-primary-900',
   },
 ]
 
@@ -192,35 +193,35 @@ export default function AdminExportsPage() {
       if (exportId === 'members') {
         let query = supabase
           .from('profiles')
-          .select('display_name, email, role, created_at' as any)
+          .select('display_name, role, created_at')
           .order('created_at', { ascending: false })
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
-          ['Name', 'Email', 'Role', 'Join Date'],
-          ((data ?? []) as any[]).map((r: any) => [r.display_name, r.email, r.role, r.created_at]),
+          ['Name', 'Role', 'Join Date'],
+          ((data ?? []) as any[]).map((r: any) => [r.display_name, r.role, r.created_at]),
         )
       } else if (exportId === 'attendance') {
         let query = supabase
           .from('event_registrations')
-          .select('event_id, user_id, checked_in, checked_in_at, events(title), profiles(display_name, email)' as any)
+          .select('event_id, user_id, checked_in, checked_in_at, events(title), profiles(display_name)' as any)
           .order('checked_in_at' as any, { ascending: false })
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
-          ['Event', 'Name', 'Email', 'Checked In', 'Check-in Time'],
+          ['Event', 'Name', 'Checked In', 'Check-in Time'],
           (data ?? []).map((r: any) => [
-            r.events?.title, r.profiles?.display_name, r.profiles?.email,
+            r.events?.title, r.profiles?.display_name,
             r.checked_in ? 'Yes' : 'No', r.checked_in_at ?? '',
           ]),
         )
       } else if (exportId === 'impact-csv') {
         let query = supabase
-          .from('event_impact' as any)
+          .from('event_impact')
           .select('event_id, trees_planted, hours_total, rubbish_kg, area_restored_sqm, logged_at, events(title)')
           .order('logged_at', { ascending: false })
         if (dateStart) query = query.gte('logged_at', dateStart)
@@ -350,10 +351,22 @@ export default function AdminExportsPage() {
     }
   }
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <div className="space-y-6">
+    <motion.div className="space-y-6" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 p-4 bg-white rounded-xl border border-primary-100">
+        <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 p-4 bg-white rounded-xl shadow-sm">
           <div className="flex items-center gap-2 text-sm text-primary-400 shrink-0">
             <Calendar size={16} />
             Filters:
@@ -379,17 +392,17 @@ export default function AdminExportsPage() {
             label="Scope"
             className="w-40"
           />
-        </div>
+        </motion.div>
 
         {/* Export cards */}
+        <motion.div variants={fadeUp}>
         <StaggeredList className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {exportTypes.map((exp) => (
             <StaggeredItem
               key={exp.id}
               className={cn(
-                'p-4 rounded-xl border shadow-sm',
+                'p-4 rounded-xl shadow-sm',
                 exp.color.split(' ')[0],
-                exp.color.split(' ')[1],
               )}
             >
               <div className="flex items-start gap-3">
@@ -397,7 +410,7 @@ export default function AdminExportsPage() {
                   className={cn(
                     'flex items-center justify-center w-10 h-10 rounded-lg shrink-0',
                     exp.color.split(' ')[0],
-                    exp.color.split(' ')[2],
+                    exp.color.split(' ')[1],
                   )}
                 >
                   {exp.icon}
@@ -429,6 +442,7 @@ export default function AdminExportsPage() {
             </StaggeredItem>
           ))}
         </StaggeredList>
-    </div>
+        </motion.div>
+    </motion.div>
   )
 }

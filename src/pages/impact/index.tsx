@@ -403,7 +403,7 @@ export default function ImpactDashboardPage() {
               initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 22 }}
-              className="mx-5 mt-8 flex items-center gap-5 rounded-3xl bg-white border border-primary-100/50 p-6"
+              className="mx-5 mt-8 flex items-center gap-5 rounded-3xl bg-white shadow-sm p-6"
             >
               <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-50">
                 <Flame size={24} className="text-primary-500" />
@@ -438,7 +438,7 @@ export default function ImpactDashboardPage() {
               <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
                 Monthly Activity
               </p>
-              <div className="rounded-3xl bg-white border border-primary-100/50 p-6">
+              <div className="rounded-3xl bg-white shadow-sm p-6">
                 <ActivitySparkline data={monthly} />
               </div>
             </motion.section>
@@ -455,7 +455,7 @@ export default function ImpactDashboardPage() {
               <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
                 Impact Breakdown
               </p>
-              <div className="rounded-3xl bg-white border border-primary-100/50 p-6">
+              <div className="rounded-3xl bg-white shadow-sm p-6">
                 <ImpactRing data={byCategory} />
               </div>
             </motion.section>
@@ -468,7 +468,7 @@ export default function ImpactDashboardPage() {
             transition={{ delay: 0.35, type: 'spring', stiffness: 200, damping: 22 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate('/impact/national')}
-            className="mx-5 mt-10 w-[calc(100%-2.5rem)] flex items-center gap-5 rounded-3xl bg-primary-50/60 border border-primary-100/50 p-6 min-h-11 text-left active:scale-[0.97] transition-all duration-150 hover:shadow-sm cursor-pointer select-none"
+            className="mx-5 mt-10 w-[calc(100%-2.5rem)] flex items-center gap-5 rounded-3xl bg-primary-50/60 shadow-sm p-6 min-h-11 text-left active:scale-[0.97] transition-all duration-150 hover:shadow-md cursor-pointer select-none"
           >
             <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary-400/10">
               <Globe size={22} className="text-primary-500" />
@@ -487,7 +487,7 @@ export default function ImpactDashboardPage() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 22 }}
-            className="mx-5 mt-8 rounded-3xl bg-bark-50/40 border border-bark-100/40 p-6"
+            className="mx-5 mt-8 rounded-3xl bg-bark-50/40 shadow-sm p-6"
           >
             <p className="text-sm text-primary-600 font-medium leading-relaxed">
               {stats.treesPlanted > 10

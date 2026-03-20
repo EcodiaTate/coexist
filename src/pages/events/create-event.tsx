@@ -296,7 +296,7 @@ function StepLocation({
         draggable
         onDragEnd={(pos: MapCenter) => onChange({ location_lat: pos.lat, location_lng: pos.lng })}
         aria-label="Drag the pin to set event location"
-        className="aspect-[16/10] rounded-xl border border-primary-200"
+        className="aspect-[16/10] rounded-xl shadow-sm"
       />
 
       <Input
@@ -498,9 +498,9 @@ function StepVisibility({
           type="button"
           onClick={() => onChange({ is_public: true })}
           className={cn(
-            'w-full min-h-11 flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer select-none text-left',
+            'w-full min-h-11 flex items-start gap-3 p-4 rounded-xl cursor-pointer select-none text-left',
             'active:scale-[0.97] transition-all duration-150',
-            data.is_public ? 'border-primary-500 bg-white' : 'border-primary-200 hover:border-primary-200',
+            data.is_public ? 'ring-2 ring-primary-500 shadow-sm bg-primary-100' : 'bg-primary-50/60',
           )}
         >
           <Eye size={20} className={data.is_public ? 'text-primary-400' : 'text-primary-400'} />
@@ -516,9 +516,9 @@ function StepVisibility({
           type="button"
           onClick={() => onChange({ is_public: false })}
           className={cn(
-            'w-full min-h-11 flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer select-none text-left',
+            'w-full min-h-11 flex items-start gap-3 p-4 rounded-xl cursor-pointer select-none text-left',
             'active:scale-[0.97] transition-all duration-150',
-            !data.is_public ? 'border-primary-500 bg-white' : 'border-primary-200 hover:border-primary-200',
+            !data.is_public ? 'ring-2 ring-primary-500 shadow-sm bg-primary-100' : 'bg-primary-50/60',
           )}
         >
           <Users size={20} className={!data.is_public ? 'text-primary-400' : 'text-primary-400'} />
@@ -670,7 +670,7 @@ function StepReview({
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between py-1.5 border-b border-primary-100 last:border-b-0">
+    <div className="flex items-start justify-between py-1.5">
       <span className="text-primary-400">{label}</span>
       <span className="text-primary-800 font-medium text-right max-w-[60%]">{value}</span>
     </div>

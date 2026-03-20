@@ -56,7 +56,6 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
       className={cn(
         'sticky top-0 z-50',
         'bg-white/95 backdrop-blur-md',
-        'border-b border-primary-100',
         'shadow-sm',
         className,
       )}
@@ -133,7 +132,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                 className={cn(
                   'absolute top-1.5 right-1.5',
                   'w-2.5 h-2.5 rounded-full',
-                  'bg-error border-2 border-white',
+                  'bg-error ring-2 ring-white',
                 )}
               />
             )}
@@ -180,13 +179,13 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                   className={cn(
                     'absolute right-0 top-full mt-2',
                     'w-56 py-1.5 rounded-xl',
-                    'bg-white border border-primary-100',
+                    'bg-white',
                     'shadow-lg',
                   )}
                   role="menu"
                 >
                   {/* User info */}
-                  <div className="px-4 py-3 border-b border-primary-100">
+                  <div className="px-4 py-3 bg-primary-50/40">
                     <p className="font-heading text-sm font-semibold text-primary-800 truncate">
                       {profile?.display_name}
                     </p>
@@ -215,7 +214,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                     label="Donate"
                     onClick={() => navigate('/donate')}
                   />
-                  <div className="my-1.5 border-t border-primary-100" />
+                  <div className="my-1.5 h-px bg-primary-100/40" />
                   <DropdownItem
                     icon={<Settings size={16} />}
                     label="Settings"
@@ -228,7 +227,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                       onClick={() => navigate('/admin')}
                     />
                   )}
-                  <div className="my-1.5 border-t border-primary-100" />
+                  <div className="my-1.5 h-px bg-primary-100/40" />
                   <DropdownItem
                     icon={<LogOut size={16} />}
                     label="Log out"

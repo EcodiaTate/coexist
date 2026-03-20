@@ -95,13 +95,13 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
       [onSubmit, value, handleClear],
     )
 
-    const h = compact ? 'h-10' : 'h-12'
+    const h = compact ? 'h-11' : 'h-12'
 
     return (
       <div className={cn('relative group', className)}>
         {/* Animated gradient glow behind - visible on focus */}
         <motion.div
-          className="absolute -inset-[1px] rounded-2xl opacity-0 pointer-events-none"
+          className="absolute -inset-[1px] rounded-full opacity-0 pointer-events-none"
           style={{
             background:
               'linear-gradient(135deg, var(--color-primary-300), var(--color-accent-400), var(--color-primary-300))',
@@ -131,9 +131,9 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
           className={cn(
             'relative flex items-center gap-2',
             h,
-            'rounded-2xl',
+            'rounded-full',
             'bg-white',
-            'border border-primary-200/60',
+            'bg-primary-50/40',
             'shadow-sm',
             'transition-shadow duration-200',
             focused && 'shadow-md shadow-primary-400/10',
@@ -188,13 +188,11 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
               'flex-1 bg-transparent outline-none ring-0 border-none',
               'focus:outline-none focus:ring-0 focus:border-none',
               'appearance-none [&::-webkit-search-cancel-button]:hidden',
-              compact ? 'text-sm' : 'text-[15px]',
               'text-primary-800 placeholder:text-primary-400/60',
               'caret-primary-500',
-              // prevent iOS zoom
-              'text-[16px] sm:text-[15px]',
+              // 16px on mobile prevents iOS zoom, smaller on desktop
+              'text-[16px] sm:text-sm',
             )}
-            style={{ fontSize: compact ? '14px' : '16px' }}
           />
 
           {/* Right side: sparkle hint or clear button */}

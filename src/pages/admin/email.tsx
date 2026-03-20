@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Mail,
   AlertTriangle,
@@ -91,13 +92,27 @@ export default function AdminEmailPage() {
   const { data: bounces, isLoading: bouncesLoading } = useEmailBounces()
   const { data: complaints, isLoading: complaintsLoading } = useEmailComplaints()
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
-      <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={fadeUp}>
+        <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
+      </motion.div>
 
       {/* Overview */}
       {activeTab === 'overview' && (
-        <div className="space-y-4">
+        <motion.div variants={fadeUp} className="space-y-4">
           {statsLoading ? (
             <div className="grid grid-cols-3 gap-3">
               <Skeleton variant="stat-card" />
@@ -110,24 +125,24 @@ export default function AdminEmailPage() {
                 value={stats?.bounces ?? 0}
                 label="Total Bounces"
                 icon={<XCircle size={20} />}
-                className="from-error-50 to-error-100/50 border-error-100"
+                className="from-error-50 to-error-100/50"
               />
               <StatCard
                 value={stats?.complaints ?? 0}
                 label="Spam Complaints"
                 icon={<AlertTriangle size={20} />}
-                className="from-warning-50 to-warning-100/50 border-warning-100"
+                className="from-warning-50 to-warning-100/50"
               />
               <StatCard
                 value={stats?.suppressed ?? 0}
                 label="Suppressed Addresses"
                 icon={<Ban size={20} />}
-                className="from-white to-primary-100/50 border-primary-200"
+                className="from-white to-primary-100/50"
               />
             </div>
           )}
 
-          <div className="p-4 rounded-xl bg-info-50 border border-info-200">
+          <div className="p-4 rounded-xl bg-info-50 shadow-sm">
             <div className="flex items-start gap-3">
               <Mail size={18} className="text-info-600 mt-0.5 shrink-0" />
               <div>
@@ -141,12 +156,12 @@ export default function AdminEmailPage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Bounces */}
       {activeTab === 'bounces' && (
-        <>
+        <motion.div variants={fadeUp}>
           {bouncesLoading ? (
             <Skeleton variant="list-item" count={5} />
           ) : !bounces?.length ? (
@@ -160,7 +175,7 @@ export default function AdminEmailPage() {
               {bounces.map((event) => (
                 <StaggeredItem
                   key={event.id}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-white border border-primary-100"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm"
                 >
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-error-100 shrink-0">
                     <XCircle size={16} className="text-error-500" />
@@ -185,12 +200,12 @@ export default function AdminEmailPage() {
               ))}
             </StaggeredList>
           )}
-        </>
+        </motion.div>
       )}
 
       {/* Complaints */}
       {activeTab === 'complaints' && (
-        <>
+        <motion.div variants={fadeUp}>
           {complaintsLoading ? (
             <Skeleton variant="list-item" count={5} />
           ) : !complaints?.length ? (
@@ -204,7 +219,7 @@ export default function AdminEmailPage() {
               {complaints.map((event) => (
                 <StaggeredItem
                   key={event.id}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-white border border-primary-100"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm"
                 >
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-warning-100 shrink-0">
                     <AlertTriangle size={16} className="text-warning-500" />
@@ -229,8 +244,8 @@ export default function AdminEmailPage() {
               ))}
             </StaggeredList>
           )}
-        </>
+        </motion.div>
       )}
-    </>
+    </motion.div>
   )
 }

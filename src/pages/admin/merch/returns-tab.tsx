@@ -1,4 +1,5 @@
 import { useCallback } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Check, X } from 'lucide-react'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
@@ -48,12 +49,26 @@ export default function ReturnsTab() {
     )
   }
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+    <motion.div variants={fadeUp}>
     <StaggeredList className="space-y-3">
       {returns.map((ret) => (
         <StaggeredItem
           key={ret.id}
-          className="p-4 bg-white rounded-2xl border border-primary-100 shadow-sm"
+          className="p-4 bg-white rounded-2xl shadow-sm"
         >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
@@ -110,5 +125,7 @@ export default function ReturnsTab() {
         </StaggeredItem>
       ))}
     </StaggeredList>
+    </motion.div>
+    </motion.div>
   )
 }

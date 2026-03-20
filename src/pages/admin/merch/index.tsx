@@ -40,17 +40,28 @@ export default function AdminMerchPage() {
   const shouldReduceMotion = useReducedMotion()
   const ActiveComponent = TAB_COMPONENTS[activeTab]
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
-      <div className="px-4 pt-3">
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={fadeUp} className="px-4 pt-3">
         <TabBar
           tabs={TABS}
           activeTab={activeTab}
           onChange={setActiveTab}
           aria-label="Merch admin tabs"
         />
-      </div>
+      </motion.div>
       <motion.div
+        variants={fadeUp}
         key={activeTab}
         initial={shouldReduceMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -59,6 +70,6 @@ export default function AdminMerchPage() {
       >
         <ActiveComponent />
       </motion.div>
-    </>
+    </motion.div>
   )
 }

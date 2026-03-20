@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Search, Download, Truck, RefreshCw } from 'lucide-react'
+import { Download, Truck, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/button'
-import { Input } from '@/components/input'
+import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { BottomSheet } from '@/components/bottom-sheet'
@@ -114,10 +114,20 @@ export default function OrdersTab() {
     )
   }
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
       {/* Filters */}
-      <div className="flex gap-2 mb-3 overflow-x-auto scrollbar-none">
+      <motion.div variants={fadeUp} className="flex gap-2 mb-3 overflow-x-auto scrollbar-none">
         {STATUS_OPTIONS.map((opt) => (
           <button
             key={opt.value}
@@ -125,31 +135,30 @@ export default function OrdersTab() {
             onClick={() => setStatusFilter(opt.value)}
             className={cn(
               'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap cursor-pointer transition-colors',
-              'border',
               statusFilter === opt.value
-                ? 'border-primary-500 bg-white text-primary-400'
-                : 'border-primary-200 text-primary-400',
+                ? 'ring-2 ring-primary-500 bg-white text-primary-400 shadow-sm'
+                : 'bg-primary-50/60 text-primary-400',
             )}
           >
             {opt.label}
           </button>
         ))}
-      </div>
+      </motion.div>
 
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1">
-          <Input
-            type="search"
-            label="Search orders"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+      <motion.div variants={fadeUp} className="flex gap-2 mb-4">
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Search orders..."
+          compact
+          className="flex-1"
+        />
         <Button variant="ghost" size="sm" icon={<Download size={14} />} onClick={handleExport}>
           CSV
         </Button>
-      </div>
+      </motion.div>
 
+      <motion.div variants={fadeUp}>
       {!filteredOrders || filteredOrders.length === 0 ? (
         <EmptyState
           illustration="empty"
@@ -163,7 +172,7 @@ export default function OrdersTab() {
               key={order.id}
               type="button"
               onClick={() => setSelectedOrder(order)}
-              className="w-full text-left p-4 bg-white rounded-2xl border border-primary-100 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              className="w-full text-left p-4 bg-white rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between mb-1">
                 <span className="text-xs text-primary-400 font-mono">
@@ -193,6 +202,7 @@ export default function OrdersTab() {
           ))}
         </div>
       )}
+      </motion.div>
 
       {/* Order detail sheet */}
       <BottomSheet
@@ -305,6 +315,6 @@ export default function OrdersTab() {
         confirmLabel="Refund"
         variant="danger"
       />
-    </>
+    </motion.div>
   )
 }

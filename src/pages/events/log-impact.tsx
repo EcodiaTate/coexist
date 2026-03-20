@@ -147,9 +147,9 @@ function SpeciesTracker({
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addSpecies()}
           className={cn(
-            'flex-1 rounded-lg border border-primary-200 bg-white',
+            'flex-1 rounded-lg bg-primary-50/50',
             'px-3 py-2 text-[16px]',
-            'focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
+            'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
             'placeholder:text-primary-400',
           )}
         />
@@ -216,9 +216,9 @@ function PhotoUploadSection({
           onClick={onAdd}
           disabled={uploading}
           className={cn(
-            'shrink-0 w-20 h-20 min-h-11 min-w-11 rounded-xl border-2 border-dashed border-primary-200',
+            'shrink-0 w-20 h-20 min-h-11 min-w-11 rounded-xl bg-primary-50/60',
             'flex flex-col items-center justify-center text-primary-400',
-            'hover:border-primary-400 hover:text-primary-500',
+            'hover:bg-primary-100 hover:text-primary-500',
             'cursor-pointer select-none',
             'active:scale-[0.97] transition-all duration-150',
             'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -252,6 +252,16 @@ export default function LogImpactPage() {
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: existingImpact, isLoading: impactLoading } = useEventImpact(eventId)
   const logImpact = useLogImpact()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
 
   const [submitted, setSubmitted] = useState(false)
 
@@ -455,9 +465,9 @@ export default function LogImpactPage() {
         </Button>
       }
     >
-      <div className="pt-4 pb-8 space-y-6">
+      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="pt-4 pb-8 space-y-6">
         {/* Event header */}
-        <div>
+        <motion.div variants={fadeUp}>
           <h2 className="font-heading text-lg font-bold text-primary-800">
             {event.title}
           </h2>
@@ -469,17 +479,17 @@ export default function LogImpactPage() {
               Duration: {getEventDuration(event.date_start, event.date_end)}
             </p>
           )}
-        </div>
+        </motion.div>
 
         {existingImpact && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning-50 text-warning-700 text-sm">
+          <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning-50 text-warning-700 text-sm">
             <Clock size={16} />
             Editing existing impact data. You can update within 48 hours.
-          </div>
+          </motion.div>
         )}
 
         {/* Impact metric fields */}
-        <div className="space-y-4">
+        <motion.div variants={fadeUp} className="space-y-4">
           <h3 className="text-sm font-semibold text-primary-800">
             Impact Metrics
           </h3>
@@ -505,9 +515,9 @@ export default function LogImpactPage() {
                       }))
                     }
                     className={cn(
-                      'w-24 rounded-lg border border-primary-200 bg-white',
+                      'w-24 rounded-lg bg-primary-50/50',
                       'px-3 py-2 text-[16px] text-right font-semibold text-primary-800',
-                      'focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500',
+                      'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
                     )}
                     min="0"
                     step="any"
@@ -517,17 +527,20 @@ export default function LogImpactPage() {
               </div>
             </div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Species tracking (for relevant activity types) */}
+        <motion.div variants={fadeUp}>
         {(activityType === 'tree_planting' ||
           activityType === 'habitat_restoration' ||
           activityType === 'community_garden' ||
           activityType === 'seed_collecting') && (
           <SpeciesTracker species={species} onChange={setSpecies} />
         )}
+        </motion.div>
 
         {/* Photo uploads */}
+        <motion.div variants={fadeUp}>
         <PhotoUploadSection
           photos={photos}
           onAdd={() => handleAddPhoto(setPhotos, eventPhotosUpload)}
@@ -537,9 +550,10 @@ export default function LogImpactPage() {
           progress={eventPhotosUpload.progress}
           error={eventPhotosUpload.error}
         />
+        </motion.div>
 
         {/* Before/After photos */}
-        <div className="grid grid-cols-2 gap-3">
+        <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
           <PhotoUploadSection
             photos={beforePhotos}
             onAdd={() => handleAddPhoto(setBeforePhotos, beforeUpload)}
@@ -558,10 +572,10 @@ export default function LogImpactPage() {
             progress={afterUpload.progress}
             error={afterUpload.error}
           />
-        </div>
+        </motion.div>
 
         {/* GPS area - draw polygon/circle */}
-        <div className="rounded-xl bg-white border border-primary-200 p-4">
+        <motion.div variants={fadeUp} className="rounded-xl bg-white shadow-sm p-4">
           <div className="flex items-center gap-2 mb-2">
             <MapPin size={16} className="text-primary-400" />
             <h3 className="text-sm font-semibold text-primary-800">
@@ -582,9 +596,10 @@ export default function LogImpactPage() {
               className="aspect-[16/10] rounded-lg"
             />
           </Suspense>
-        </div>
+        </motion.div>
 
         {/* Notes */}
+        <motion.div variants={fadeUp}>
         <Input
           type="textarea"
           label="Notes"
@@ -593,7 +608,8 @@ export default function LogImpactPage() {
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
         />
-      </div>
+        </motion.div>
+      </motion.div>
     </Page>
   )
 }

@@ -61,23 +61,23 @@ function useLeaderDashboard(collectiveId: string | undefined) {
         // Upcoming events
         supabase
           .from('events' as any)
-          .select('id, title, start_date, location_name, cover_image_url')
+          .select('id, title, date_start, address, cover_image_url')
           .eq('collective_id', collectiveId)
-          .gte('start_date', now.toISOString())
-          .order('start_date', { ascending: true })
+          .gte('date_start', now.toISOString())
+          .order('date_start', { ascending: true })
           .limit(5),
         // Events this month
         supabase
           .from('events')
           .select('id', { count: 'exact', head: true })
           .eq('collective_id', collectiveId)
-          .gte('start_date', startOfMonth),
-        // Hours this month (from impact logs)
+          .gte('date_start', startOfMonth),
+        // Hours this month (from event impact via events)
         supabase
-          .from('impact_logs' as any)
-          .select('volunteer_hours')
-          .eq('collective_id', collectiveId)
-          .gte('created_at', startOfMonth),
+          .from('event_impact')
+          .select('hours_total, events!inner(collective_id)')
+          .eq('events.collective_id' as any, collectiveId)
+          .gte('logged_at', startOfMonth),
         // Recent activity - new members + check-ins
         supabase
           .from('collective_members' as any)
@@ -88,7 +88,7 @@ function useLeaderDashboard(collectiveId: string | undefined) {
       ])
 
       const totalHours = ((monthHoursRes.data ?? []) as any[]).reduce(
-        (sum: number, row: any) => sum + (row.volunteer_hours ?? 0),
+        (sum: number, row: any) => sum + (row.hours_total ?? 0),
         0,
       )
 
@@ -176,17 +176,17 @@ function usePendingItems(collectiveId: string | undefined) {
       // Events that have passed but have no impact log
       const { data: pastEvents } = await supabase
         .from('events' as any)
-        .select('id, title, start_date')
+        .select('id, title, date_start')
         .eq('collective_id', collectiveId)
-        .lt('start_date', new Date().toISOString())
-        .order('start_date', { ascending: false })
+        .lt('date_start', new Date().toISOString())
+        .order('date_start', { ascending: false })
         .limit(10)
 
       const events = (pastEvents ?? []) as any[]
       if (!events.length) return []
 
       const { data: loggedEvents } = await supabase
-        .from('impact_logs' as any)
+        .from('event_impact')
         .select('event_id')
         .in(
           'event_id',
@@ -200,7 +200,7 @@ function usePendingItems(collectiveId: string | undefined) {
           id: e.id,
           type: 'impact_not_logged' as const,
           message: `Impact not logged for "${e.title}"`,
-          date: e.start_date,
+          date: e.date_start,
         }))
     },
     enabled: !!collectiveId,
@@ -223,10 +223,10 @@ function useEventCalendar(collectiveId: string | undefined, month: Date) {
 
       const { data } = await supabase
         .from('events' as any)
-        .select('id, title, start_date')
+        .select('id, title, date_start')
         .eq('collective_id', collectiveId)
-        .gte('start_date', start.toISOString())
-        .lte('start_date', end.toISOString())
+        .gte('date_start', start.toISOString())
+        .lte('date_start', end.toISOString())
 
       return (data ?? []) as any[]
     },
@@ -244,7 +244,7 @@ function MiniCalendar({
   const { data: events = [] } = useEventCalendar(collectiveId, currentMonth)
 
   const eventDays = useMemo(
-    () => new Set(events.map((e) => new Date(e.start_date).getDate())),
+    () => new Set(events.map((e) => new Date(e.date_start).getDate())),
     [events],
   )
 
@@ -266,7 +266,7 @@ function MiniCalendar({
   ]
 
   return (
-    <div className="bg-white rounded-xl border border-primary-100 p-4">
+    <div className="bg-white rounded-xl shadow-sm p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-heading text-sm font-semibold text-primary-800">
           {monthNames[month]} {year}
@@ -328,6 +328,20 @@ function MiniCalendar({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Animation variants                                                 */
+/* ------------------------------------------------------------------ */
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
+/* ------------------------------------------------------------------ */
 /*  Leader Dashboard Page                                              */
 /* ------------------------------------------------------------------ */
 
@@ -381,21 +395,16 @@ export default function LeaderDashboardPage() {
     )
   }
 
-  const stagger = shouldReduceMotion ? {} : { transition: { staggerChildren: 0.05 } }
-  const fadeUp = shouldReduceMotion
-    ? {}
-    : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 } }
-
   return (
     <Page header={<Header title="Leader Dashboard" back />}>
       <motion.div
         className="py-4 space-y-6 pb-8"
-        initial="initial"
-        animate="animate"
-        variants={{ animate: stagger }}
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
       >
         {/* Stat cards */}
-        <div className="grid grid-cols-2 gap-3">
+        <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
           <StatCard
             value={data?.activeMembers ?? 0}
             label="Active Members"
@@ -416,10 +425,10 @@ export default function LeaderDashboardPage() {
             label="Events This Month"
             icon={<CalendarCheck size={20} />}
           />
-        </div>
+        </motion.div>
 
         {/* Quick actions */}
-        <motion.div {...fadeUp}>
+        <motion.div variants={fadeUp}>
           <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
             Quick Actions
           </h2>
@@ -437,9 +446,9 @@ export default function LeaderDashboardPage() {
                 to={action.to}
                 className={cn(
                   'flex items-center gap-2 px-3 py-2.5 rounded-xl',
-                  'bg-white border border-primary-100 shadow-sm',
+                  'bg-white shadow-sm',
                   'text-sm font-medium text-primary-800',
-                  'hover:bg-primary-50 hover:text-primary-400 hover:border-primary-200',
+                  'hover:bg-primary-50 hover:text-primary-400 hover:shadow-md',
                   'transition-colors duration-150',
                 )}
               >
@@ -454,7 +463,7 @@ export default function LeaderDashboardPage() {
 
         {/* Notification centre - pending items */}
         {pendingItems.length > 0 && (
-          <motion.div {...fadeUp}>
+          <motion.div variants={fadeUp}>
             <h2 className="font-heading text-base font-semibold text-primary-800 mb-3 flex items-center gap-2">
               <Bell size={18} className="text-primary-400" />
               Needs Attention
@@ -469,7 +478,7 @@ export default function LeaderDashboardPage() {
                   to={`/events/${item.id}/impact`}
                   className={cn(
                     'flex items-center gap-3 p-3 rounded-xl',
-                    'bg-warning-50 border border-warning-200',
+                    'bg-warning-50 shadow-sm',
                     'hover:bg-warning-100 transition-colors duration-150',
                   )}
                 >
@@ -483,7 +492,7 @@ export default function LeaderDashboardPage() {
         )}
 
         {/* Upcoming events */}
-        <motion.div {...fadeUp}>
+        <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-heading text-base font-semibold text-primary-800">
               Upcoming Events
@@ -503,7 +512,7 @@ export default function LeaderDashboardPage() {
                   to={`/events/${event.id}`}
                   className={cn(
                     'flex items-center gap-3 p-3 rounded-xl',
-                    'bg-white border border-primary-100 shadow-sm',
+                    'bg-white shadow-sm',
                     'hover:shadow-md transition-shadow duration-150',
                   )}
                 >
@@ -523,7 +532,7 @@ export default function LeaderDashboardPage() {
                       {event.title}
                     </p>
                     <p className="text-xs text-primary-400 mt-0.5">
-                      {new Date(event.start_date).toLocaleDateString('en-AU', {
+                      {new Date(event.date_start).toLocaleDateString('en-AU', {
                         weekday: 'short',
                         day: 'numeric',
                         month: 'short',
@@ -531,8 +540,8 @@ export default function LeaderDashboardPage() {
                         minute: '2-digit',
                       })}
                     </p>
-                    {event.location_name && (
-                      <p className="text-xs text-primary-400 truncate">{event.location_name}</p>
+                    {event.address && (
+                      <p className="text-xs text-primary-400 truncate">{event.address}</p>
                     )}
                   </div>
                   <ChevronRight size={16} className="text-primary-300 shrink-0" />
@@ -556,7 +565,7 @@ export default function LeaderDashboardPage() {
         </motion.div>
 
         {/* Event calendar */}
-        <motion.div {...fadeUp}>
+        <motion.div variants={fadeUp}>
           <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
             Event Calendar
           </h2>
@@ -565,12 +574,12 @@ export default function LeaderDashboardPage() {
 
         {/* Member engagement */}
         {engagement && (
-          <motion.div {...fadeUp}>
+          <motion.div variants={fadeUp}>
             <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
               Member Engagement
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-xl bg-success-50 border border-success-200">
+              <div className="p-4 rounded-xl bg-success-50 shadow-sm">
                 <div className="flex items-center gap-2 mb-1">
                   <CheckCircle2 size={16} className="text-success-600" />
                   <span className="text-xs font-medium text-success-700">Active</span>
@@ -582,7 +591,7 @@ export default function LeaderDashboardPage() {
                   Attended event in last 30 days
                 </p>
               </div>
-              <div className="p-4 rounded-xl bg-warning-50 border border-warning-200">
+              <div className="p-4 rounded-xl bg-warning-50 shadow-sm">
                 <div className="flex items-center gap-2 mb-1">
                   <AlertTriangle size={16} className="text-warning-600" />
                   <span className="text-xs font-medium text-warning-700">At Risk</span>
@@ -599,7 +608,7 @@ export default function LeaderDashboardPage() {
         )}
 
         {/* Recent members */}
-        <motion.div {...fadeUp}>
+        <motion.div variants={fadeUp}>
           <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
             Recent Members
           </h2>
@@ -613,7 +622,7 @@ export default function LeaderDashboardPage() {
                     to={`/profile/${member.user_id}`}
                     className={cn(
                       'flex items-center gap-3 p-3 rounded-xl',
-                      'bg-white border border-primary-100',
+                      'bg-white shadow-sm',
                       'hover:bg-primary-50 transition-colors duration-150',
                     )}
                   >
@@ -646,11 +655,11 @@ export default function LeaderDashboardPage() {
 
         {/* Invite stats */}
         {inviteStats && (
-          <motion.div {...fadeUp}>
+          <motion.div variants={fadeUp}>
             <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
               Event Invite Stats
             </h2>
-            <div className="p-4 rounded-xl bg-white border border-primary-100">
+            <div className="p-4 rounded-xl bg-white shadow-sm">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-primary-400">Acceptance Rate</span>
                 <span className="font-heading text-lg font-bold text-primary-400">
@@ -670,13 +679,13 @@ export default function LeaderDashboardPage() {
         )}
 
         {/* Charity impact - link to reports */}
-        <motion.div {...fadeUp}>
+        <motion.div variants={fadeUp}>
           <Link
             to="/admin/reports"
             className={cn(
               'flex items-center gap-3 p-4 rounded-xl',
-              'bg-gradient-to-r from-white to-white',
-              'border border-primary-100',
+              'bg-white',
+              'shadow-sm',
               'hover:shadow-md transition-shadow duration-150',
             )}
           >

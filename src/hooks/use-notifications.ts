@@ -285,7 +285,22 @@ export function useMarkRead() {
         .eq('id', notificationId)
       if (error) throw error
     },
-    onSuccess: () => {
+    onMutate: async (notificationId) => {
+      await queryClient.cancelQueries({ queryKey: ['notifications', user?.id] })
+      const previous = queryClient.getQueryData<Notification[]>(['notifications', user?.id])
+      const previousUnread = queryClient.getQueryData<number>(['notifications-unread', user?.id])
+      queryClient.setQueryData<Notification[]>(['notifications', user?.id], (old) => {
+        if (!old) return old
+        return old.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)
+      })
+      queryClient.setQueryData<number>(['notifications-unread', user?.id], (old) => Math.max(0, (old ?? 0) - 1))
+      return { previous, previousUnread }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previous) queryClient.setQueryData(['notifications', user?.id], context.previous)
+      if (context?.previousUnread !== undefined) queryClient.setQueryData(['notifications-unread', user?.id], context.previousUnread)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] })
       queryClient.invalidateQueries({ queryKey: ['notifications-unread', user?.id] })
     },
@@ -309,7 +324,23 @@ export function useMarkAllRead() {
 
       if (error) throw error
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['notifications', user?.id] })
+      const previous = queryClient.getQueryData<Notification[]>(['notifications', user?.id])
+      const previousUnread = queryClient.getQueryData<number>(['notifications-unread', user?.id])
+      const now = new Date().toISOString()
+      queryClient.setQueryData<Notification[]>(['notifications', user?.id], (old) => {
+        if (!old) return old
+        return old.map(n => n.read_at ? n : { ...n, read_at: now })
+      })
+      queryClient.setQueryData<number>(['notifications-unread', user?.id], 0)
+      return { previous, previousUnread }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previous) queryClient.setQueryData(['notifications', user?.id], context.previous)
+      if (context?.previousUnread !== undefined) queryClient.setQueryData(['notifications-unread', user?.id], context.previousUnread)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] })
       queryClient.invalidateQueries({ queryKey: ['notifications-unread', user?.id] })
     },

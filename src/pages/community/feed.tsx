@@ -214,7 +214,7 @@ function CommentSection({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="pt-3 border-t border-primary-100 mt-2 space-y-3">
+            <div className="pt-3 mt-2 space-y-3">
               {isLoading ? (
                 <Skeleton variant="list-item" count={2} />
               ) : (
@@ -411,7 +411,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
           onClick={() => navigate(`/events/${post.event!.id}`)}
           className={cn(
             'mx-4 mb-3 flex items-center justify-center gap-2 px-3 py-2 rounded-xl min-h-11',
-            'bg-white border border-primary-100',
+            'bg-white shadow-sm',
             'text-sm text-primary-400 font-medium',
             'cursor-pointer select-none hover:bg-primary-100 active:scale-[0.97] transition-all duration-150',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
@@ -449,7 +449,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-1 px-2 pb-3 border-t border-primary-100 pt-1">
+      <div className="flex items-center gap-1 px-2 pb-3 pt-1">
         <LikeButton
           isLiked={post.is_liked}
           count={post.like_count}

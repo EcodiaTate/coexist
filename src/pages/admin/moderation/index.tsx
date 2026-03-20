@@ -200,7 +200,7 @@ function ReportCard({
 
         {/* Actions */}
         {report.status === 'pending' && (
-          <div className="flex gap-2 px-4 py-3 border-t border-primary-100">
+          <div className="flex gap-2 px-4 py-3 border-t border-primary-100/40">
             <Button
               variant="ghost"
               size="sm"
@@ -285,16 +285,31 @@ export default function ModerationQueuePage() {
 
   const isEmpty = !isLoading && (reports ?? []).length === 0
 
-  return (
-    <>
-      <TabBar
-        tabs={statusTabs}
-        activeTab={activeStatus}
-        onChange={(id) => setActiveStatus(id as Enums<'report_status'>)}
-        aria-label="Report status filter"
-        className="mb-4"
-      />
+  const shouldReduceMotion2 = useReducedMotion()
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
+  return (
+    <motion.div variants={shouldReduceMotion2 ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={fadeUp}>
+        <TabBar
+          tabs={statusTabs}
+          activeTab={activeStatus}
+          onChange={(id) => setActiveStatus(id as Enums<'report_status'>)}
+          aria-label="Report status filter"
+          className="mb-4"
+        />
+      </motion.div>
+
+      <motion.div variants={fadeUp}>
       {isLoading ? (
         <div className="space-y-4">
           <Skeleton variant="card" />
@@ -336,6 +351,7 @@ export default function ModerationQueuePage() {
           </div>
         </PullToRefresh>
       )}
-    </>
+      </motion.div>
+    </motion.div>
   )
 }

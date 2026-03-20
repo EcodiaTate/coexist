@@ -159,7 +159,7 @@ export default function ProfilePage() {
             />
             <button
               onClick={() => navigate('/profile/edit')}
-              className="absolute -bottom-1 -right-1 flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-md border border-primary-100 text-primary-400 hover:bg-primary-50 transition-colors"
+              className="absolute -bottom-1 -right-1 flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-md text-primary-400 hover:bg-primary-50 transition-colors"
               aria-label="Edit profile"
             >
               <Edit3 size={14} />
@@ -236,7 +236,7 @@ export default function ProfilePage() {
         >
           <button
             onClick={() => navigate('/membership')}
-            className="w-full flex items-center justify-between rounded-xl bg-gradient-to-r from-primary-50 to-white px-4 py-3 border border-primary-200 transition-colors hover:from-primary-100"
+            className="w-full flex items-center justify-between rounded-xl bg-gradient-to-r from-primary-50 to-white px-4 py-3 shadow-sm transition-colors hover:from-primary-100"
           >
             <span className="flex items-center gap-2 text-sm font-semibold text-primary-700">
               <CreditCard size={18} />
@@ -453,7 +453,7 @@ export default function ProfilePage() {
             <button
               key={to}
               onClick={() => navigate(to)}
-              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 bg-white border border-primary-100 shadow-sm hover:bg-primary-50 transition-colors"
+              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 bg-white shadow-sm hover:bg-primary-50 transition-colors"
             >
               <span className="flex items-center justify-center text-primary-500">{icon}</span>
               <span className="flex-1 text-left text-sm font-medium text-primary-800">{label}</span>

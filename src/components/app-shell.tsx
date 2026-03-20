@@ -29,27 +29,31 @@ export function AppShell({ children, bare = false }: AppShellProps) {
   const showBottomTabs = navMode === 'bottom-tabs'
   const showSidebar = navMode === 'sidebar'
 
+  const isChatRoute = location.pathname.startsWith('/chat/')
+
   return (
-    <div className="flex flex-col min-h-dvh bg-white">
+    <div className={cn(
+      'flex flex-col bg-white',
+      // Chat pages need fixed viewport height to prevent scroll bleed
+      // Other pages can grow beyond viewport for natural page scrolling
+      isChatRoute ? 'h-dvh overflow-hidden' : 'min-h-dvh',
+    )}>
       {/* Offline connectivity banner */}
       <OfflineBanner />
 
       {/* Sidebar + content row */}
-      <div className={cn('flex flex-1', showBottomTabs && 'min-h-0')}>
+      <div className="flex flex-1 min-h-0">
         {/* Sidebar - hidden on admin pages (AdminLayout has its own) */}
         {showSidebar && !isAdminRoute && <SidebarNav />}
 
         {/* Content */}
-        <main className={cn(
-          'flex-1 flex flex-col min-w-0',
-          showBottomTabs && 'min-h-0',
-        )}>
+        <main className="flex-1 flex flex-col min-w-0 min-h-0">
           {children}
         </main>
       </div>
 
       {/* Web footer - full width, below the sidebar row so sidebar unsticks at footer */}
-      {isWeb && !isMobile && <WebFooter />}
+      {isWeb && !isMobile && !isChatRoute && <WebFooter />}
 
       {/* Bottom tab bar (mobile + native) */}
       {showBottomTabs && <BottomTabBar />}

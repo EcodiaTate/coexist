@@ -91,15 +91,25 @@ export default function AdminCharityPage() {
     )
   }
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
     <motion.div
         className="max-w-xl space-y-6"
-        initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: 'easeOut' }}
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
       >
         {/* Info banner */}
-        <div className="p-4 rounded-xl bg-white border border-primary-200">
+        <motion.div variants={fadeUp} className="p-4 rounded-xl bg-white shadow-sm">
           <div className="flex items-start gap-3">
             <Heart size={18} className="text-primary-400 mt-0.5 shrink-0" />
             <div>
@@ -112,10 +122,10 @@ export default function AdminCharityPage() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Form */}
-        <div className="space-y-4">
+        <motion.div variants={fadeUp} className="space-y-4">
           <Input
             label="Charity Name"
             value={form.charity_name}
@@ -163,9 +173,10 @@ export default function AdminCharityPage() {
             }
             placeholder="YYYY-MM-DD"
           />
-        </div>
+        </motion.div>
 
         {/* Save */}
+        <motion.div variants={fadeUp}>
         <Button
           variant="primary"
           icon={saved ? <CheckCircle size={16} /> : <Save size={16} />}
@@ -174,6 +185,7 @@ export default function AdminCharityPage() {
         >
           {saved ? 'Saved!' : 'Save Settings'}
         </Button>
+        </motion.div>
     </motion.div>
   )
 }

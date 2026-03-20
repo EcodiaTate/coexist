@@ -7,6 +7,16 @@ import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 export default function WelcomeBackPage() {
   const navigate = useNavigate()
   const { user, profile } = useAuth()
@@ -48,32 +58,34 @@ export default function WelcomeBackPage() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-white">
-      <div className="flex-1 flex flex-col px-6 pt-12">
+      <motion.div
+        className="flex-1 flex flex-col px-6 pt-12"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Wave emoji */}
         <motion.div
-          initial={shouldReduceMotion ? false : { scale: 0.5, opacity: 0, rotate: -20 }}
-          animate={{ scale: 1, opacity: 1, rotate: 0 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          variants={{
+            hidden: { scale: 0.5, opacity: 0, rotate: -20 },
+            visible: { scale: 1, opacity: 1, rotate: 0, transition: { type: 'spring', stiffness: 200, damping: 15 } },
+          }}
           className="mx-auto mb-6"
         >
-          <div className="w-20 h-20 rounded-full bg-white border border-primary-400 flex items-center justify-center">
+          <div className="w-20 h-20 rounded-full bg-white shadow-sm flex items-center justify-center">
             <Hand className="w-10 h-10 text-primary-400" />
           </div>
         </motion.div>
 
         <motion.h1
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          variants={fadeUp}
           className="font-heading text-2xl font-bold text-primary-800 text-center"
         >
           Welcome back, {displayName}!
         </motion.h1>
 
         <motion.p
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
+          variants={fadeUp}
           className="mt-2 text-primary-400 text-center max-w-xs mx-auto"
         >
           We missed you. Here's what's been happening while you were away.
@@ -87,10 +99,8 @@ export default function WelcomeBackPage() {
             <>
               {missedData.missedEventsCount > 0 && (
                 <motion.div
-                  initial={shouldReduceMotion ? false : { opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="flex items-center gap-4 p-4 rounded-xl bg-white border border-primary-100"
+                  variants={fadeUp}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-white shadow-sm"
                 >
                   <div className="w-10 h-10 rounded-lg bg-accent-100 flex items-center justify-center shrink-0">
                     <Calendar size={20} className="text-primary-400" />
@@ -106,10 +116,8 @@ export default function WelcomeBackPage() {
 
               {missedData.newBadgesCount > 0 && (
                 <motion.div
-                  initial={shouldReduceMotion ? false : { opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.58 }}
-                  className="flex items-center gap-4 p-4 rounded-xl bg-white border border-primary-100"
+                  variants={fadeUp}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-white shadow-sm"
                 >
                   <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
                     <Award size={20} className="text-primary-400" />
@@ -124,9 +132,7 @@ export default function WelcomeBackPage() {
               )}
 
               <motion.div
-                initial={shouldReduceMotion ? false : { opacity: 0, x: -16 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.66 }}
+                variants={fadeUp}
                 className="flex items-center gap-4 p-4 rounded-xl bg-white border border-primary-100"
               >
                 <div className="w-10 h-10 rounded-lg bg-primary-200 flex items-center justify-center shrink-0">
@@ -142,13 +148,13 @@ export default function WelcomeBackPage() {
             </>
           ) : null}
         </div>
-      </div>
+      </motion.div>
 
       {/* CTA */}
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9 }}
+        transition={{ delay: 0.5 }}
         className="px-6 py-6"
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >

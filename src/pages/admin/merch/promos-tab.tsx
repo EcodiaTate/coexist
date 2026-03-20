@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Plus, Edit3, Ban } from 'lucide-react'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -72,10 +73,10 @@ function PromoFormSheet({
               type="button"
               onClick={() => setType(t)}
               className={cn(
-                'flex-1 py-2 rounded-lg border-2 text-xs font-medium cursor-pointer transition-colors',
+                'flex-1 py-2 rounded-lg text-xs font-medium cursor-pointer transition-colors',
                 type === t
-                  ? 'border-primary-500 bg-white text-primary-400'
-                  : 'border-primary-200 text-primary-400',
+                  ? 'ring-2 ring-primary-500 bg-white text-primary-400 shadow-sm'
+                  : 'bg-primary-50/60 text-primary-400',
               )}
             >
               {t === 'percentage' ? '% Off' : t === 'flat' ? '$ Off' : 'Free Ship'}
@@ -118,9 +119,21 @@ export default function PromosTab() {
     return <Skeleton variant="text" count={5} />
   }
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
-      <div className="flex justify-between items-center mb-4">
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={fadeUp} className="flex justify-between items-center mb-4">
         <h2 className="font-heading font-semibold text-primary-800">
           Promo Codes ({promos?.length ?? 0})
         </h2>
@@ -135,8 +148,9 @@ export default function PromosTab() {
         >
           Add
         </Button>
-      </div>
+      </motion.div>
 
+      <motion.div variants={fadeUp}>
       {!promos || promos.length === 0 ? (
         <EmptyState
           illustration="empty"
@@ -148,7 +162,7 @@ export default function PromosTab() {
           {promos.map((promo) => (
             <StaggeredItem
               key={promo.id}
-              className="flex items-center justify-between p-3 bg-white rounded-xl border border-primary-100"
+              className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm"
             >
               <div>
                 <div className="flex items-center gap-2">
@@ -184,12 +198,13 @@ export default function PromosTab() {
           ))}
         </StaggeredList>
       )}
+      </motion.div>
 
       <PromoFormSheet
         open={formOpen}
         onClose={() => setFormOpen(false)}
         promo={editPromo}
       />
-    </>
+    </motion.div>
   )
 }

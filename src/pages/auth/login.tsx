@@ -86,7 +86,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Centered container — caps width on larger screens */}
+      {/* Centered container  caps width on larger screens */}
       <div className="relative flex-1 flex flex-col w-full max-w-[440px] mx-auto">
         <motion.form
           onSubmit={handleSubmit}
@@ -233,7 +233,7 @@ export default function LoginPage() {
             )}
           </div>
 
-          {/* Bottom CTA — sticky feel */}
+          {/* Bottom CTA  sticky feel */}
           <motion.div
             {...motionProps}
             className="px-5 pt-4 pb-6"

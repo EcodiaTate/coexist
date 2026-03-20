@@ -39,29 +39,39 @@ export default function AnalyticsTab() {
     )
   }
 
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <div className="space-y-4">
+    <motion.div className="space-y-4" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
       {/* Period selector */}
-      <div className="flex gap-2">
+      <motion.div variants={fadeUp} className="flex gap-2">
         {PERIODS.map((p) => (
           <button
             key={p.value}
             type="button"
             onClick={() => setPeriod(p.value)}
             className={cn(
-              'px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors border',
+              'px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors',
               period === p.value
-                ? 'border-primary-500 bg-white text-primary-400'
-                : 'border-primary-200 text-primary-400',
+                ? 'ring-2 ring-primary-500 bg-white text-primary-400 shadow-sm'
+                : 'bg-primary-50/60 text-primary-400',
             )}
           >
             {p.label}
           </button>
         ))}
-      </div>
+      </motion.div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 gap-3">
+      <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
         <StatCard
           value={formatPrice(analytics.total_revenue_cents)}
           label="Revenue"
@@ -77,17 +87,17 @@ export default function AnalyticsTab() {
           label="Units sold"
           icon={<TrendingUp size={20} />}
         />
-      </div>
+      </motion.div>
 
       {/* By product */}
       {analytics.by_product.length > 0 && (
-        <section>
+        <motion.div variants={fadeUp}><section>
           <h3 className="font-heading font-semibold text-primary-800 mb-3">By product</h3>
           <div className="space-y-2">
             {analytics.by_product.map((row) => (
               <div
                 key={row.product_id}
-                className="flex items-center justify-between p-3 bg-white rounded-xl border border-primary-100"
+                className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm"
               >
                 <div>
                   <p className="text-sm font-medium text-primary-800">{row.product_name}</p>
@@ -99,12 +109,12 @@ export default function AnalyticsTab() {
               </div>
             ))}
           </div>
-        </section>
+        </section></motion.div>
       )}
 
       {/* By period */}
       {analytics.by_period.length > 0 && (
-        <section>
+        <motion.div variants={fadeUp}><section>
           <h3 className="font-heading font-semibold text-primary-800 mb-3">Timeline</h3>
           <div className="space-y-1.5">
             {analytics.by_period.map((row) => (
@@ -120,8 +130,8 @@ export default function AnalyticsTab() {
               </div>
             ))}
           </div>
-        </section>
+        </section></motion.div>
       )}
-    </div>
+    </motion.div>
   )
 }

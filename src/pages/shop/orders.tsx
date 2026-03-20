@@ -70,7 +70,7 @@ export default function OrdersPage() {
                   onClick={() => navigate(`/shop/orders/${order.id}`)}
                   className={cn(
                     'w-full text-left p-4 rounded-2xl bg-white',
-                    'border border-primary-100 shadow-sm',
+                    'shadow-sm',
                     'hover:shadow-md transition-shadow duration-150 cursor-pointer',
                   )}
                 >

@@ -23,6 +23,16 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useReferralCode, useReferralStats, useReferralLeaderboard, useSendInvite } from '@/hooks/use-referral'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 function ReferralSkeleton() {
   return (
     <div className="py-6 space-y-6">
@@ -92,12 +102,16 @@ export default function ReferralPage() {
 
   return (
     <Page header={<Header title="Invite Friends" back />}>
-      <div className="pb-8">
+      <motion.div
+        className="pb-8"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Hero */}
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-4 rounded-2xl bg-gradient-to-br from-white to-white border border-primary-100 p-5 text-center"
+          variants={fadeUp}
+          className="mt-4 rounded-2xl bg-gradient-to-br from-white to-white shadow-sm p-5 text-center"
         >
           <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
             <Gift size={28} className="text-primary-500" />
@@ -112,9 +126,7 @@ export default function ReferralPage() {
 
         {/* Referral Code */}
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
+          variants={fadeUp}
           className="mt-5"
         >
           <h3 className="font-heading text-sm font-semibold text-primary-800 mb-2">
@@ -128,10 +140,10 @@ export default function ReferralPage() {
               type="button"
               onClick={handleCopy}
               className={cn(
-                'flex items-center justify-center min-h-11 min-w-11 rounded-xl border active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                'flex items-center justify-center min-h-11 min-w-11 rounded-xl active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 copied
-                  ? 'bg-success-50 border-success-200 text-success-600'
-                  : 'bg-white border-primary-200 text-primary-400 hover:bg-primary-50',
+                  ? 'bg-success-50 shadow-sm text-success-600'
+                  : 'bg-white shadow-sm text-primary-400 hover:bg-primary-50',
               )}
               aria-label="Copy code"
             >
@@ -142,9 +154,7 @@ export default function ReferralPage() {
 
         {/* Share buttons */}
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          variants={fadeUp}
           className="mt-4 flex gap-2"
         >
           <Button
@@ -159,7 +169,7 @@ export default function ReferralPage() {
           <button
             type="button"
             onClick={() => {/* QR modal would go here */}}
-            className="flex items-center justify-center min-h-11 min-w-11 rounded-xl bg-white border border-primary-200 text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none shrink-0"
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-xl bg-white shadow-sm text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none shrink-0"
             aria-label="Show QR code"
           >
             <QrCode size={20} />
@@ -168,9 +178,7 @@ export default function ReferralPage() {
 
         {/* Send invite by email */}
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
+          variants={fadeUp}
           className="mt-5"
         >
           <h3 className="font-heading text-sm font-semibold text-primary-800 mb-2">
@@ -202,9 +210,7 @@ export default function ReferralPage() {
         {/* Stats */}
         {stats && (
           <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            variants={fadeUp}
             className="mt-6 grid grid-cols-3 gap-3"
           >
             <StatCard
@@ -227,9 +233,7 @@ export default function ReferralPage() {
 
         {/* Reward chain */}
         <motion.section
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
+          variants={fadeUp}
           className="mt-6"
         >
           <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
@@ -243,7 +247,7 @@ export default function ReferralPage() {
             ].map(({ label, points, icon }) => (
               <div
                 key={label}
-                className="flex items-center gap-3 rounded-xl bg-white border border-primary-100 shadow-sm px-4 py-3"
+                className="flex items-center gap-3 rounded-xl bg-white shadow-sm px-4 py-3"
               >
                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-primary-400">
                   {icon}
@@ -258,21 +262,19 @@ export default function ReferralPage() {
         {/* Referral Leaderboard */}
         {leaderboard && leaderboard.length > 0 && (
           <motion.section
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            variants={fadeUp}
             className="mt-6"
           >
             <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
               Top Recruiters
             </h3>
-            <div className="rounded-xl bg-white border border-primary-100 shadow-sm overflow-hidden">
+            <div className="rounded-xl bg-white shadow-sm overflow-hidden">
               {leaderboard.slice(0, 10).map((entry, i) => (
                 <div
                   key={entry.userId}
                   className={cn(
                     'flex items-center gap-3 px-4 py-2.5',
-                    i > 0 && 'border-t border-primary-100',
+                    i > 0 && 'mt-px',
                   )}
                 >
                   <span className="w-6 text-sm font-bold text-primary-400 tabular-nums text-center">
@@ -294,7 +296,7 @@ export default function ReferralPage() {
             </div>
           </motion.section>
         )}
-      </div>
+      </motion.div>
     </Page>
   )
 }

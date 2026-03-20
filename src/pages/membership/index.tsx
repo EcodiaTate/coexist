@@ -74,7 +74,7 @@ function RewardCard({ reward }: { reward: MembershipReward }) {
   }, [reward.discount_code, toast])
 
   return (
-    <div className="rounded-2xl border border-primary-100 bg-white p-4 space-y-3">
+    <div className="rounded-2xl bg-white shadow-sm p-4 space-y-3">
       <div className="flex items-start gap-3">
         {reward.partner_logo_url ? (
           <img
@@ -215,7 +215,7 @@ export default function MembershipPage() {
           {/* ---- Active membership banner ---- */}
           {isActive && membership && (
             <motion.section variants={fadeUp}>
-              <div className="rounded-2xl bg-primary-50 border border-primary-200 p-5">
+              <div className="rounded-2xl bg-primary-50 shadow-sm p-5">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-9 h-9 rounded-full bg-primary-500 flex items-center justify-center">
                     <Crown size={18} className="text-white" />
@@ -280,7 +280,7 @@ export default function MembershipPage() {
                     return (
                       <div
                         key={plan.id}
-                        className="rounded-2xl border-2 border-primary-100 bg-white p-5 hover:border-primary-300 transition-colors"
+                        className="rounded-2xl bg-white shadow-sm p-5 hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div>
@@ -368,7 +368,7 @@ export default function MembershipPage() {
                         ) : (
                           <div
                             key={reward.id}
-                            className="rounded-2xl border border-primary-100 bg-primary-50/50 p-4 opacity-60"
+                            className="rounded-2xl bg-primary-50/50 shadow-sm p-4 opacity-60"
                           >
                             <div className="flex items-start gap-3">
                               <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center text-primary-300">

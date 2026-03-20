@@ -40,6 +40,16 @@ const ACTIVITY_LABELS: Record<string, string> = {
   other: 'Other',
 }
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 export default function PublicEventPage() {
   const { id } = useParams<{ id: string }>()
   const shouldReduceMotion = useReducedMotion()
@@ -128,12 +138,14 @@ export default function PublicEventPage() {
       </div>
 
       {/* Content */}
-      <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
-        <motion.div
-          initial={shouldReduceMotion ? false : { y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.25 }}
-        >
+      <motion.div
+        className="mx-auto max-w-2xl px-4 py-6 sm:px-6"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Title */}
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
           <h1 className="font-heading text-2xl font-bold text-primary-800 sm:text-3xl">
             {event.title}
           </h1>
@@ -143,51 +155,49 @@ export default function PublicEventPage() {
               Hosted by {collectiveName}
             </p>
           )}
+        </motion.div>
 
-          {/* Details grid */}
-          <div className="mt-6 space-y-3">
-            <div className="flex items-start gap-3">
-              <Calendar size={20} className="mt-0.5 shrink-0 text-primary-500" />
-              <div>
-                <p className="font-medium text-primary-800">{formatDate(event.date_start)}</p>
-                <p className="text-sm text-primary-400">
-                  {formatTime(event.date_start)}
-                  {event.date_end && ` - ${formatTime(event.date_end)}`}
-                </p>
-              </div>
+        {/* Details grid */}
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-6 space-y-3">
+          <div className="flex items-start gap-3">
+            <Calendar size={20} className="mt-0.5 shrink-0 text-primary-500" />
+            <div>
+              <p className="font-medium text-primary-800">{formatDate(event.date_start)}</p>
+              <p className="text-sm text-primary-400">
+                {formatTime(event.date_start)}
+                {event.date_end && ` - ${formatTime(event.date_end)}`}
+              </p>
             </div>
-
-            {event.address && (
-              <div className="flex items-start gap-3">
-                <MapPin size={20} className="mt-0.5 shrink-0 text-primary-500" />
-                <p className="text-primary-800">{event.address}</p>
-              </div>
-            )}
-
-            {event.capacity && (
-              <div className="flex items-start gap-3">
-                <Users size={20} className="mt-0.5 shrink-0 text-primary-500" />
-                <p className="text-primary-800">{event.capacity} spots</p>
-              </div>
-            )}
           </div>
 
-          {/* Description */}
-          {event.description && (
-            <div className="mt-6">
-              <h2 className="font-heading text-lg font-semibold text-primary-800">About this event</h2>
-              <p className="mt-2 whitespace-pre-line text-primary-400 leading-relaxed">
-                {event.description}
-              </p>
+          {event.address && (
+            <div className="flex items-start gap-3">
+              <MapPin size={20} className="mt-0.5 shrink-0 text-primary-500" />
+              <p className="text-primary-800">{event.address}</p>
+            </div>
+          )}
+
+          {event.capacity && (
+            <div className="flex items-start gap-3">
+              <Users size={20} className="mt-0.5 shrink-0 text-primary-500" />
+              <p className="text-primary-800">{event.capacity} spots</p>
             </div>
           )}
         </motion.div>
 
+        {/* Description */}
+        {event.description && (
+          <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-6">
+            <h2 className="font-heading text-lg font-semibold text-primary-800">About this event</h2>
+            <p className="mt-2 whitespace-pre-line text-primary-400 leading-relaxed">
+              {event.description}
+            </p>
+          </motion.div>
+        )}
+
         {/* CTAs */}
         <motion.div
-          initial={shouldReduceMotion ? false : { y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.25 }}
+          variants={shouldReduceMotion ? undefined : fadeUp}
           className={cn(
             'mt-8 flex flex-col gap-3',
             'sticky bottom-4 rounded-2xl bg-white/95 p-4 shadow-lg backdrop-blur-sm',
@@ -220,7 +230,7 @@ export default function PublicEventPage() {
           </Button>
         </motion.div>
 
-      </div>
+      </motion.div>
 
       <WebFooter />
     </div>

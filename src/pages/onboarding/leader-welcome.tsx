@@ -4,6 +4,16 @@ import { Crown, CalendarPlus, Users, MessageSquare, BarChart3, ArrowRight } from
 import { Button } from '@/components/button'
 import { cn } from '@/lib/cn'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 const LEADER_TOOLS = [
   {
     icon: <CalendarPlus size={20} />,
@@ -33,12 +43,18 @@ export default function LeaderWelcomePage() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-white">
-      <div className="flex-1 flex flex-col px-6 pt-12">
+      <motion.div
+        className="flex-1 flex flex-col px-6 pt-12"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
         {/* Crown badge */}
         <motion.div
-          initial={shouldReduceMotion ? false : { scale: 0.5, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+          variants={{
+            hidden: { scale: 0.5, opacity: 0 },
+            visible: { scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 200, damping: 15 } },
+          }}
           className="mx-auto mb-6"
         >
           <div className="w-20 h-20 rounded-full bg-accent-100 flex items-center justify-center">
@@ -47,18 +63,14 @@ export default function LeaderWelcomePage() {
         </motion.div>
 
         <motion.h1
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+          variants={fadeUp}
           className="font-heading text-2xl font-bold text-primary-800 text-center"
         >
           Welcome, Leader!
         </motion.h1>
 
         <motion.p
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
+          variants={fadeUp}
           className="mt-2 text-primary-400 text-center max-w-xs mx-auto leading-relaxed"
         >
           You've got the tools to make a real difference. Here's a quick look at what you can do.
@@ -66,15 +78,13 @@ export default function LeaderWelcomePage() {
 
         {/* Tool cards */}
         <div className="mt-8 space-y-3">
-          {LEADER_TOOLS.map((tool, i) => (
+          {LEADER_TOOLS.map((tool) => (
             <motion.div
               key={tool.title}
-              initial={shouldReduceMotion ? false : { opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.5 + i * 0.08 }}
+              variants={fadeUp}
               className={cn(
                 'flex items-start gap-4 p-4 rounded-xl',
-                'bg-white border border-primary-100',
+                'bg-white shadow-sm',
               )}
             >
               <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center shrink-0 text-primary-400">
@@ -87,13 +97,13 @@ export default function LeaderWelcomePage() {
             </motion.div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* CTA */}
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1 }}
+        transition={{ delay: 0.6 }}
         className="px-6 py-6"
         style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
       >

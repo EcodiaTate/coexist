@@ -1,10 +1,11 @@
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Clock,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
-import { Input } from '@/components/input'
+import { SearchBar } from '@/components/search-bar'
 import { Dropdown } from '@/components/dropdown'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -75,22 +76,32 @@ export default function AdminAuditLogPage() {
   const pageSize = 25
   const totalPages = data ? Math.ceil(data.total / pageSize) : 0
 
+  const shouldReduceMotion = useReducedMotion()
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   return (
-    <>
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="flex-1">
-          <Input
-            type="search"
-            label="Search actions"
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              setPage(0)
-            }}
-            placeholder="Search..."
-          />
-        </div>
+      <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-4">
+        <SearchBar
+          value={search}
+          onChange={(v) => {
+            setSearch(v)
+            setPage(0)
+          }}
+          placeholder="Search actions..."
+          compact
+          className="flex-1"
+        />
         <Dropdown
           options={actionTypeOptions}
           value={actionFilter}
@@ -98,12 +109,12 @@ export default function AdminAuditLogPage() {
             setActionFilter(v)
             setPage(0)
           }}
-          label="Action Type"
-          className="w-48"
+          className="sm:w-52"
         />
-      </div>
+      </motion.div>
 
       {/* Log list */}
+      <motion.div variants={fadeUp}>
       {isLoading ? (
         <Skeleton variant="list-item" count={8} />
       ) : !data?.logs.length ? (
@@ -124,7 +135,7 @@ export default function AdminAuditLogPage() {
               return (
                 <StaggeredItem
                   key={log.id}
-                  className="flex items-start gap-3 p-3 rounded-xl bg-white border border-primary-100"
+                  className="flex items-start gap-3 p-3 rounded-xl bg-white shadow-sm"
                 >
                   <Avatar
                     src={profile?.avatar_url}
@@ -206,6 +217,7 @@ export default function AdminAuditLogPage() {
           )}
         </>
       )}
-    </>
+      </motion.div>
+    </motion.div>
   )
 }

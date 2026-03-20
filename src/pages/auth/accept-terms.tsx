@@ -9,6 +9,16 @@ import { useAuth } from '@/hooks/use-auth'
 
 const CURRENT_TOS_VERSION = '1.0'
 
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
 export default function AcceptTermsPage() {
   const navigate = useNavigate()
   const { acceptTos, signOut } = useAuth()
@@ -37,12 +47,12 @@ export default function AcceptTermsPage() {
       <Header title="Updated Terms" />
 
       <motion.div
-        initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
         className="flex-1 flex flex-col px-6 pt-6"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
       >
-        <div className="flex items-center gap-3 mb-4">
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="flex items-center gap-3 mb-4">
           <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-white text-primary-400">
             <FileText size={24} />
           </div>
@@ -52,14 +62,14 @@ export default function AcceptTermsPage() {
             </h1>
             <p className="text-sm text-primary-400">Version {CURRENT_TOS_VERSION}</p>
           </div>
-        </div>
+        </motion.div>
 
-        <p className="text-sm text-primary-400 leading-relaxed mb-4">
+        <motion.p variants={shouldReduceMotion ? undefined : fadeUp} className="text-sm text-primary-400 leading-relaxed mb-4">
           We've updated our Terms of Service and Privacy Policy. Please review and accept
           the updated terms to continue using Co-Exist.
-        </p>
+        </motion.p>
 
-        <div className="flex-1 overflow-y-auto rounded-xl border border-primary-200 bg-white p-4 mb-4 max-h-[50vh]">
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="flex-1 overflow-y-auto rounded-xl border border-primary-200 bg-white p-4 mb-4 max-h-[50vh]">
           <h2 className="font-heading text-sm font-semibold text-primary-800 mb-2">
             Summary of Changes
           </h2>
@@ -70,15 +80,18 @@ export default function AcceptTermsPage() {
             <li>Updated age verification requirements (18+)</li>
             <li>Added cookie consent and analytics disclosure</li>
           </ul>
-        </div>
+        </motion.div>
 
-        <Checkbox
-          checked={agreed}
-          onChange={setAgreed}
-          label="I have read and agree to the updated Terms of Service and Privacy Policy"
-        />
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+          <Checkbox
+            checked={agreed}
+            onChange={setAgreed}
+            label="I have read and agree to the updated Terms of Service and Privacy Policy"
+          />
+        </motion.div>
 
-        <div
+        <motion.div
+          variants={shouldReduceMotion ? undefined : fadeUp}
           className="mt-6 space-y-3"
           style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
         >
@@ -102,7 +115,7 @@ export default function AcceptTermsPage() {
           >
             Decline & Log Out
           </Button>
-        </div>
+        </motion.div>
       </motion.div>
     </div>
   )
