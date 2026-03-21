@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ShieldX, Mail } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import { OGMeta } from '@/components/og-meta'
 import { Button } from '@/components/button'
 import { CONTACT_EMAIL } from '@/lib/constants'
 
@@ -19,6 +20,11 @@ export default function SuspendedAccountPage() {
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-6 bg-white">
+      <OGMeta
+        title="Account Suspended"
+        description="Your Co-Exist account has been suspended. Contact us to appeal."
+        noindex
+      />
       <motion.div
         initial={shouldReduceMotion ? false : { scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

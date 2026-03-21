@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, Leaf } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import { OGMeta } from '@/components/og-meta'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Checkbox } from '@/components/checkbox'
@@ -102,6 +103,12 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-primary-50/60 relative overflow-hidden">
+      <OGMeta
+        title="Sign Up"
+        description="Create your free Co-Exist account. Join thousands of young Australians volunteering for conservation — tree planting, beach cleanups, habitat restoration, and more."
+        canonicalPath="/signup"
+        noindex
+      />
       {/* Subtle background accents */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <div className="absolute -top-32 -left-28 w-80 h-80 rounded-full bg-primary-200/30 blur-[80px]" />

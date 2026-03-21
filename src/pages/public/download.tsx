@@ -37,7 +37,27 @@ export default function DownloadPage() {
     <div className="flex min-h-dvh flex-col bg-white">
       <OGMeta
         title="Download the App"
-        description="Join the Co-Exist movement. Download the app to explore conservation events, connect with your local collective, and protect the environment."
+        description="Download the free Co-Exist app for iOS and Android. Join 5,500+ volunteers planting native trees, cleaning beaches, and restoring habitats across Australia."
+        canonicalPath="/download"
+        jsonLd={[
+          {
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: 'Co-Exist',
+            operatingSystem: 'iOS, Android',
+            applicationCategory: 'LifestyleApplication',
+            description: "Australia's youth conservation app. Join events, connect with collectives, and track your environmental impact.",
+            offers: { '@type': 'Offer', price: '0', priceCurrency: 'AUD' },
+          },
+          {
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Co-Exist Australia',
+            url: 'https://www.coexistaus.org',
+            sameAs: ['https://www.instagram.com/coexistaus'],
+            description: "Australia's youth conservation movement connecting volunteers with local environmental events.",
+          },
+        ]}
       />
 
       {/* Hero section */}

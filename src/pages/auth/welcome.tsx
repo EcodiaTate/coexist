@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Leaf, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/button'
+import { OGMeta } from '@/components/og-meta'
 import { APP_NAME, TAGLINE } from '@/lib/constants'
 import { useAppImage } from '@/hooks/use-app-images'
 import { cn } from '@/lib/cn'
@@ -21,6 +22,27 @@ export default function WelcomePage() {
 
   return (
     <div className="relative min-h-dvh flex flex-col overflow-hidden bg-white">
+      <OGMeta
+        title="Welcome"
+        description="Co-Exist is Australia's youth conservation platform. Join local tree planting, beach cleanups, habitat restoration events, and connect with conservation collectives near you."
+        canonicalPath="/welcome"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          name: 'Co-Exist',
+          description: "Australia's youth conservation platform. Join events, connect with collectives, and protect the environment.",
+          url: 'https://app.coexistaus.org',
+          applicationCategory: 'LifestyleApplication',
+          operatingSystem: 'iOS, Android, Web',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'AUD' },
+          creator: {
+            '@type': 'Organization',
+            name: 'Co-Exist Australia',
+            url: 'https://www.coexistaus.org',
+            sameAs: ['https://www.instagram.com/coexistaus'],
+          },
+        }}
+      />
       {/* Nature background photo */}
       <div className="absolute inset-0" aria-hidden="true">
         <img

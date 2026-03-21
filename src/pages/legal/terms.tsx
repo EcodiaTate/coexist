@@ -1,11 +1,17 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Page } from '@/components/page'
+import { OGMeta } from '@/components/og-meta'
 
 export default function TermsOfServicePage() {
   const shouldReduceMotion = useReducedMotion()
 
   return (
     <Page>
+      <OGMeta
+        title="Terms of Service"
+        description="Read the Co-Exist Terms of Service. By using Co-Exist you agree to these terms governing your participation in conservation events and community features across Australia."
+        canonicalPath="/terms"
+      />
       <motion.div
         className="py-8 space-y-6"
         initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}

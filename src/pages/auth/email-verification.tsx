@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Mail, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { OGMeta } from '@/components/og-meta'
 import { Button } from '@/components/button'
 
 export default function EmailVerificationPage() {
@@ -25,6 +26,11 @@ export default function EmailVerificationPage() {
 
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-6 bg-white">
+      <OGMeta
+        title="Verify Your Email"
+        description="Check your inbox to verify your Co-Exist account email address and start volunteering for conservation."
+        noindex
+      />
       {/* Animated envelope */}
       <motion.div
         initial={shouldReduceMotion ? false : { scale: 0.5, opacity: 0 }}

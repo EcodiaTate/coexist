@@ -318,11 +318,11 @@ function HeroStatCard({
 
   return (
     <motion.div
-      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 20, scale: 0.97 }}
+      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 40, scale: 0.9 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{
-        duration: 0.4,
-        delay: reducedMotion ? 0 : delay,
+        duration: 0.8,
+        delay: reducedMotion ? 0 : 1.5 + delay * 3,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
       className={cn(
@@ -439,21 +439,98 @@ export default function AdminDashboardPage() {
   if (isLoading) {
     return (
       <div className="relative min-h-screen overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-700 via-primary-800/95 to-primary-900" />
-        <div className="relative z-10 p-6 space-y-6 pt-[280px]">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-36 rounded-2xl opacity-20" />
-            ))}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary-600 via-secondary-700 to-primary-950" />
+        {/* Filled circle top-left */}
+        <div className="absolute -left-[8%] -top-[8%] w-[45vw] h-[45vw] max-w-[420px] max-h-[420px] rounded-full bg-white/[0.06]" />
+        {/* Ring top-right */}
+        <div className="absolute -right-[15%] -top-[10%] w-[70vw] h-[70vw] max-w-[700px] max-h-[700px] rounded-full border border-white/[0.08]" />
+
+        <div className="relative z-10">
+          {/* Hero wordmark area */}
+          <div className="flex flex-col items-center justify-center min-h-[240px] sm:min-h-[320px] lg:min-h-[380px] pt-10">
+            <div className="h-24 sm:h-32 lg:h-40 w-48 sm:w-64 lg:w-80 rounded-2xl bg-white/[0.06] animate-pulse" />
+            <div className="mt-4 h-4 w-40 rounded-full bg-white/[0.05] animate-pulse" />
           </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-20 rounded-xl opacity-20" />
-            ))}
+
+          {/* Filter bar */}
+          <div className="px-6 sm:px-8 py-4 sm:py-5 flex items-center justify-between">
+            <div className="h-4 w-24 rounded-full bg-white/[0.06] animate-pulse" />
+            <div className="h-9 w-36 rounded-xl bg-white/[0.06] animate-pulse" />
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Skeleton className="h-56 rounded-2xl opacity-20" />
-            <Skeleton className="h-56 rounded-2xl opacity-20" />
+
+          {/* Body */}
+          <div className="px-6 sm:px-8 space-y-10 sm:space-y-14 pb-20">
+            {/* Stat cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-2xl bg-white/[0.08] p-5 sm:p-6 space-y-3 animate-pulse" style={{ animationDelay: `${i * 150}ms` }}>
+                  <div className="w-9 h-9 rounded-xl bg-white/[0.08]" />
+                  <div className="h-8 w-16 rounded-lg bg-white/[0.06]" />
+                  <div className="h-3 w-20 rounded-full bg-white/[0.05]" />
+                </div>
+              ))}
+            </div>
+
+            {/* Impact section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-5 w-44 rounded-full bg-white/[0.06] animate-pulse" />
+                <div className="h-3 w-20 rounded-full bg-white/[0.04] animate-pulse" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 rounded-xl bg-white/[0.08] px-4 py-3.5 animate-pulse" style={{ animationDelay: `${i * 100}ms` }}>
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.08] shrink-0" />
+                    <div className="space-y-2 flex-1">
+                      <div className="h-5 w-12 rounded-lg bg-white/[0.06]" />
+                      <div className="h-3 w-20 rounded-full bg-white/[0.04]" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Period highlight */}
+            <div className="rounded-2xl bg-white/[0.08] p-5 animate-pulse">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-4 h-4 rounded bg-white/[0.08]" />
+                <div className="h-4 w-36 rounded-full bg-white/[0.06]" />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="text-center space-y-2">
+                    <div className="h-8 w-14 rounded-lg bg-white/[0.06] mx-auto" />
+                    <div className="h-3 w-20 rounded-full bg-white/[0.04] mx-auto" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Trend charts */}
+            <div className="space-y-4">
+              <div className="h-5 w-32 rounded-full bg-white/[0.06] animate-pulse" />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="rounded-2xl bg-white/[0.08] p-5 sm:p-6 animate-pulse" style={{ animationDelay: `${i * 200}ms` }}>
+                    <div className="flex items-center gap-2.5 mb-6">
+                      <div className="w-8 h-8 rounded-lg bg-white/[0.08]" />
+                      <div className="space-y-1.5">
+                        <div className="h-4 w-28 rounded-full bg-white/[0.06]" />
+                        <div className="h-3 w-16 rounded-full bg-white/[0.04]" />
+                      </div>
+                    </div>
+                    <div className="flex items-end gap-2 h-28 sm:h-36">
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <div key={j} className="flex-1 flex flex-col items-center gap-1.5 justify-end h-full">
+                          <div className="w-full rounded-lg bg-white/[0.08]" style={{ height: `${20 + Math.random() * 60}%` }} />
+                          <div className="h-2.5 w-6 rounded-full bg-white/[0.05]" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -590,24 +667,24 @@ export default function AdminDashboardPage() {
       <div className="relative z-10">
         {/* ── Hero — wordmark area ── */}
         <motion.div
-          initial={rm ? { opacity: 1 } : { opacity: 0 }}
+          initial={rm ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 1.5, ease: 'easeOut' }}
           className="flex flex-col items-center justify-center min-h-[240px] sm:min-h-[320px] lg:min-h-[380px] pt-10"
         >
           <div className="flex flex-col items-center text-center px-6">
             <motion.img
               src="/logos/white-wordmark.webp"
               alt="Co-Exist"
-              initial={rm ? {} : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
+              initial={rm ? {} : { opacity: 0, y: 30, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 1.2, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="h-24 sm:h-32 lg:h-40 w-auto object-contain"
             />
             <motion.p
-              initial={rm ? {} : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.35 }}
+              initial={rm ? {} : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8, ease: 'easeOut' }}
               className="mt-4 text-sm sm:text-base text-white/30 font-medium tracking-widest uppercase"
             >
               National Dashboard
@@ -616,7 +693,12 @@ export default function AdminDashboardPage() {
         </motion.div>
 
         {/* ── Period filter bar ── */}
-        <div className="px-6 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-3">
+        <motion.div
+          initial={rm ? {} : { opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 1.1, ease: 'easeOut' }}
+          className="px-6 sm:px-8 py-4 sm:py-5 flex items-center justify-between gap-3"
+        >
           <p className="text-sm font-medium text-white/50">
             {dateRangeOptions.find((o) => o.value === dateRange)?.label}
           </p>
@@ -626,10 +708,15 @@ export default function AdminDashboardPage() {
             onChange={(v) => setDateRange(v as DateRange)}
             className="w-40"
           />
-        </div>
+        </motion.div>
 
         {/* ── Body ── */}
-        <div className="px-6 sm:px-8 space-y-10 sm:space-y-14 pb-20">
+        <motion.div
+          initial={rm ? {} : { opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 1.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="px-6 sm:px-8 space-y-10 sm:space-y-14 pb-20"
+        >
 
         {/* ── Primary stats grid ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
@@ -797,7 +884,7 @@ export default function AdminDashboardPage() {
           </div>
         </motion.div>
 
-        </div>{/* end body wrapper */}
+        </motion.div>{/* end body wrapper */}
       </div>{/* end content z-10 */}
     </div>
   )

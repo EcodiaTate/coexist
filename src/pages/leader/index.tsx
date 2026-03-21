@@ -320,7 +320,7 @@ function MiniCalendar({
   ]
 
   return (
-    <div className="rounded-2xl bg-white/[0.18] backdrop-blur-md p-5">
+    <div className="rounded-2xl bg-white/[0.12] backdrop-blur-md p-5">
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-heading text-sm font-bold text-white/90">
           {monthNames[month]} {year}
@@ -386,12 +386,12 @@ function MiniCalendar({
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06 } },
+  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.6 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -441,14 +441,17 @@ function HeroStat({
   gradient: string
 }) {
   return (
-    <div className={cn('rounded-2xl p-4 relative overflow-hidden', gradient)}>
-      <div className="absolute top-3 right-3 opacity-15">
-        <span className="[&>svg]:w-10 [&>svg]:h-10">{icon}</span>
+    <div className={cn('rounded-2xl p-5 relative overflow-hidden min-h-[110px] flex flex-col justify-end', gradient)}>
+      {/* Background icon — large, positioned */}
+      <div className="absolute top-2 right-2 opacity-[0.08]">
+        <span className="[&>svg]:w-16 [&>svg]:h-16">{icon}</span>
       </div>
-      <p className="font-heading text-3xl font-extrabold text-white tabular-nums leading-none">
+      {/* Inner corner glow */}
+      <div className="absolute -bottom-4 -left-4 w-24 h-24 rounded-full bg-white/[0.06]" />
+      <p className="font-heading text-4xl font-extrabold text-white tabular-nums leading-none relative z-10">
         {value}
       </p>
-      <p className="mt-1.5 text-xs font-semibold text-white/80">{label}</p>
+      <p className="mt-2 text-[11px] font-semibold text-white/70 uppercase tracking-wider relative z-10">{label}</p>
     </div>
   )
 }
@@ -489,15 +492,112 @@ export default function LeaderDashboardPage() {
   if (isLoading) {
     return (
       <Wrapper>
-        <div className="py-4 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
+        <div className="relative min-h-screen overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
+          {/* Filled circle top-left */}
+          <div className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06]" />
+          {/* Ring bottom-right */}
+          <div className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08]" />
+
+          <div className="relative z-10 px-6 pt-8 space-y-10 pb-20">
+            {/* Collective header shimmer */}
+            <div className="space-y-2 animate-pulse">
+              <div className="h-3 w-28 rounded-full bg-white/[0.06]" />
+              <div className="h-8 w-48 rounded-xl bg-white/[0.08]" />
+            </div>
+
+            {/* Hero stat cards */}
+            <div className="grid grid-cols-2 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-2xl bg-white/[0.10] p-5 min-h-[110px] flex flex-col justify-end animate-pulse" style={{ animationDelay: `${i * 120}ms` }}>
+                  <div className="h-9 w-14 rounded-lg bg-white/[0.08]" />
+                  <div className="mt-2 h-3 w-24 rounded-full bg-white/[0.05]" />
+                </div>
+              ))}
+            </div>
+
+            {/* Attendance row */}
+            <div className="flex gap-4">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="flex-1 rounded-2xl bg-white/[0.08] p-4 animate-pulse" style={{ animationDelay: `${i * 150}ms` }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-xl bg-white/[0.08]" />
+                    <div className="h-3 w-16 rounded-full bg-white/[0.05]" />
+                  </div>
+                  <div className="h-6 w-12 rounded-lg bg-white/[0.06]" />
+                  <div className="mt-3 h-1.5 rounded-full bg-white/[0.05]" />
+                </div>
+              ))}
+            </div>
+
+            {/* Quick actions */}
+            <div className="space-y-4">
+              <div className="h-3 w-24 rounded-full bg-white/[0.05] animate-pulse" />
+              <div className="grid grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex flex-col items-center gap-3 rounded-2xl bg-white/[0.08] p-5 animate-pulse" style={{ animationDelay: `${i * 80}ms` }}>
+                    <div className="w-11 h-11 rounded-xl bg-white/[0.08]" />
+                    <div className="h-2.5 w-14 rounded-full bg-white/[0.05]" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Upcoming events */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-28 rounded-full bg-white/[0.05] animate-pulse" />
+                <div className="h-3 w-14 rounded-full bg-white/[0.04] animate-pulse" />
+              </div>
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.08] animate-pulse" style={{ animationDelay: `${i * 100}ms` }}>
+                    <div className="w-14 h-14 rounded-xl bg-white/[0.08] shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-3/4 rounded-full bg-white/[0.06]" />
+                      <div className="h-3 w-1/2 rounded-full bg-white/[0.04]" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Calendar */}
+            <div className="space-y-4">
+              <div className="h-3 w-24 rounded-full bg-white/[0.05] animate-pulse" />
+              <div className="rounded-2xl bg-white/[0.08] p-5 animate-pulse">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="h-4 w-28 rounded-full bg-white/[0.06]" />
+                  <div className="flex gap-1">
+                    <div className="w-8 h-8 rounded-lg bg-white/[0.06]" />
+                    <div className="w-8 h-8 rounded-lg bg-white/[0.06]" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: 35 }).map((_, i) => (
+                    <div key={i} className="w-8 h-8 rounded-lg bg-white/[0.04] mx-auto" />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Engagement */}
+            <div className="space-y-4">
+              <div className="h-3 w-32 rounded-full bg-white/[0.05] animate-pulse" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-success-500/15 p-4 animate-pulse">
+                  <div className="w-8 h-8 rounded-xl bg-white/[0.08] mb-3" />
+                  <div className="h-8 w-10 rounded-lg bg-white/[0.06]" />
+                  <div className="mt-2 h-3 w-12 rounded-full bg-white/[0.05]" />
+                </div>
+                <div className="rounded-2xl bg-warning-500/15 p-4 animate-pulse">
+                  <div className="w-8 h-8 rounded-xl bg-white/[0.08] mb-3" />
+                  <div className="h-8 w-10 rounded-lg bg-white/[0.06]" />
+                  <div className="mt-2 h-3 w-12 rounded-full bg-white/[0.05]" />
+                </div>
+              </div>
+            </div>
           </div>
-          <Skeleton variant="card" />
-          <Skeleton variant="list-item" count={3} />
         </div>
       </Wrapper>
     )
@@ -517,11 +617,11 @@ export default function LeaderDashboardPage() {
   }
 
   const quickActions = [
-    { label: 'Create Event', icon: <Plus size={20} />, to: '/leader/events/create', bg: 'bg-primary-500', text: 'text-white' },
-    { label: 'Announcement', icon: <Megaphone size={20} />, to: '/leader/announcements', bg: 'bg-secondary-600', text: 'text-white' },
+    { label: 'Create Event', icon: <Plus size={20} />, to: '/leader/events/create', bg: 'bg-success-600', text: 'text-white' },
+    { label: 'Announcement', icon: <Megaphone size={20} />, to: '/leader/announcements', bg: 'bg-secondary-500', text: 'text-white' },
     { label: 'Members', icon: <Users size={20} />, to: '/leader/members', bg: 'bg-primary-500', text: 'text-white' },
     { label: 'Log Impact', icon: <TreePine size={20} />, to: '/leader/impact', bg: 'bg-bark-500', text: 'text-white' },
-    { label: 'Invite', icon: <Send size={20} />, to: '/leader/invite', bg: 'bg-sky-500', text: 'text-white' },
+    { label: 'Invite', icon: <Send size={20} />, to: '/leader/invite', bg: 'bg-sky-600', text: 'text-white' },
     { label: 'Reports', icon: <BarChart3 size={20} />, to: '/leader/reports', bg: 'bg-plum-500', text: 'text-white' },
   ]
 
@@ -532,52 +632,60 @@ export default function LeaderDashboardPage() {
         {/* Layered background — Co-Exist olive green palette */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
 
-        {/* ── Bold geometric shapes — clean edges, no blur ── */}
-        {/* Giant top-right circle */}
+        {/* ── Bold geometric shapes ── */}
+        {/* Big filled circle — top-left */}
         <motion.div
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -right-[18%] -top-[12%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.07]"
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: [1, 1.04, 1], opacity: 1 }}
+          transition={{ scale: { duration: 16, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.2, ease: 'easeOut' } }}
+          className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06]"
         />
-        {/* Concentric inner */}
+        {/* Large ring — bottom-right */}
         <motion.div
-          animate={{ scale: [1, 1.07, 1] }}
-          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-          className="absolute -right-[12%] -top-[6%] w-[45vw] h-[45vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.05]"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: [1, 1.05, 1], opacity: 1 }}
+          transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.5, delay: 0.3, ease: 'easeOut' } }}
+          className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08]"
         />
-        {/* Bottom-left arc */}
+        {/* Inner concentric */}
         <motion.div
-          animate={{ scale: [1, 1.04, 1], y: [0, -10, 0] }}
-          transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-          className="absolute -left-[15%] bottom-[5%] w-[55vw] h-[55vw] max-w-[550px] max-h-[550px] rounded-full border border-white/[0.06]"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: [1, 1.07, 1], opacity: 1 }}
+          transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.5, delay: 0.5, ease: 'easeOut' } }}
+          className="absolute -right-[12%] bottom-[8%] w-[45vw] h-[45vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.06]"
         />
-        {/* Solid accent circle top-left */}
+        {/* Top-right ring */}
         <motion.div
-          animate={{ scale: [1, 1.08, 1], opacity: [0.07, 0.12, 0.07] }}
-          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute left-[5%] top-[3%] w-[220px] h-[220px] rounded-full bg-white/[0.07]"
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: [1, 1.04, 1], opacity: 1 }}
+          transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 2, delay: 0.6, ease: 'easeOut' } }}
+          className="absolute -right-[5%] -top-[12%] w-[40vw] h-[40vw] max-w-[380px] max-h-[380px] rounded-full border border-white/[0.05]"
         />
-        {/* Small solid circle mid-left */}
+        {/* Small filled accent — mid-right */}
         <motion.div
-          animate={{ y: [0, 14, 0], opacity: [0.06, 0.11, 0.06] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
-          className="absolute left-[8%] top-[55%] w-[120px] h-[120px] rounded-full bg-white/[0.05]"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 1, delay: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="absolute right-[5%] top-[40%] w-[80px] h-[80px] rounded-full bg-white/[0.04]"
         />
-        {/* Tiny dots */}
+        {/* Floating dots */}
         <motion.div
+          initial={{ opacity: 0 }}
           animate={{ y: [0, -8, 0], opacity: [0.3, 0.55, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute left-[18%] top-[18%] w-2 h-2 rounded-full bg-white/30"
+          transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1.2 } }}
+          className="absolute left-[20%] top-[15%] w-2 h-2 rounded-full bg-white/30"
         />
         <motion.div
+          initial={{ opacity: 0 }}
           animate={{ y: [0, 6, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-          className="absolute right-[15%] top-[45%] w-1.5 h-1.5 rounded-full bg-white/25"
+          transition={{ y: { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 0.8, delay: 1.5 } }}
+          className="absolute right-[22%] top-[25%] w-1.5 h-1.5 rounded-full bg-white/25"
         />
         <motion.div
-          animate={{ y: [0, -5, 0], opacity: [0.25, 0.45, 0.25] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-          className="absolute right-[35%] bottom-[12%] w-2 h-2 rounded-full bg-white/20"
+          initial={{ opacity: 0 }}
+          animate={{ y: [0, -5, 0], opacity: [0.2, 0.4, 0.2] }}
+          transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 0.8, delay: 1.8 } }}
+          className="absolute left-[45%] bottom-[18%] w-2 h-2 rounded-full bg-white/20"
         />
 
         {/* Content */}
@@ -606,25 +714,25 @@ export default function LeaderDashboardPage() {
               value={data?.activeMembers ?? 0}
               label="Active Members"
               icon={<Users />}
-              gradient="bg-white/[0.20] backdrop-blur-md"
+              gradient="bg-white/[0.14] backdrop-blur-md"
             />
             <HeroStat
               value={data?.upcomingEvents?.length ?? 0}
               label="Upcoming Events"
               icon={<CalendarDays />}
-              gradient="bg-white/[0.20] backdrop-blur-md"
+              gradient="bg-white/[0.14] backdrop-blur-md"
             />
             <HeroStat
               value={data?.hoursThisMonth ?? 0}
               label="Hours This Month"
               icon={<Clock />}
-              gradient="bg-white/[0.20] backdrop-blur-md"
+              gradient="bg-white/[0.14] backdrop-blur-md"
             />
             <HeroStat
               value={data?.eventsThisMonth ?? 0}
               label="Events This Month"
               icon={<CalendarCheck />}
-              gradient="bg-white/[0.20] backdrop-blur-md"
+              gradient="bg-white/[0.14] backdrop-blur-md"
             />
           </motion.div>
 
@@ -632,7 +740,7 @@ export default function LeaderDashboardPage() {
           {((data?.attendanceRate ?? 0) > 0 || (data?.surveyResponseCount ?? 0) > 0) && (
             <motion.div variants={fadeUp} className="flex gap-3">
               {(data?.attendanceRate ?? 0) > 0 && (
-                <div className="flex-1 rounded-2xl bg-white/[0.18] backdrop-blur-md p-4">
+                <div className="flex-1 rounded-2xl bg-white/[0.12] backdrop-blur-md p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
                       <CheckCircle2 size={16} className="text-success-300" />
@@ -653,7 +761,7 @@ export default function LeaderDashboardPage() {
                 </div>
               )}
               {(data?.surveyResponseCount ?? 0) > 0 && (
-                <div className="flex-1 rounded-2xl bg-white/[0.18] backdrop-blur-md p-4">
+                <div className="flex-1 rounded-2xl bg-white/[0.12] backdrop-blur-md p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
                       <Send size={16} className="text-white/80" />
@@ -677,11 +785,11 @@ export default function LeaderDashboardPage() {
                 <Link
                   key={action.label}
                   to={action.to}
-                  className="group flex flex-col items-center gap-2 rounded-2xl bg-white/[0.18] backdrop-blur-md p-4 hover:bg-white/[0.25] active:scale-[0.97] transition-all duration-150"
+                  className="group flex flex-col items-center gap-3 rounded-2xl bg-white/[0.12] backdrop-blur-md p-5 hover:bg-white/[0.20] active:scale-[0.96] transition-all duration-200"
                 >
                   <div className={cn(
-                    'flex items-center justify-center w-11 h-11 rounded-xl transition-transform group-hover:scale-105',
-                    'bg-white/20 text-white',
+                    'flex items-center justify-center w-12 h-12 rounded-xl transition-transform group-hover:scale-110',
+                    action.bg, action.text,
                   )}>
                     {action.icon}
                   </div>
@@ -727,12 +835,12 @@ export default function LeaderDashboardPage() {
               Upcoming Events
             </SectionHeader>
             {data?.upcomingEvents && data.upcomingEvents.length > 0 ? (
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {data.upcomingEvents.map((event) => (
                   <Link
                     key={event.id}
                     to={`/events/${event.id}`}
-                    className="flex items-center gap-3.5 p-3 rounded-2xl bg-white/[0.18] backdrop-blur-md hover:bg-white/[0.25] active:scale-[0.99] transition-all duration-150"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.12] backdrop-blur-md hover:bg-white/[0.20] active:scale-[0.99] transition-all duration-200"
                   >
                     {event.cover_image_url ? (
                       <img
@@ -770,7 +878,7 @@ export default function LeaderDashboardPage() {
                 ))}
               </div>
             ) : (
-              <div className="p-6 rounded-2xl bg-white/[0.18] backdrop-blur-md text-center">
+              <div className="p-6 rounded-2xl bg-white/[0.12] backdrop-blur-md text-center">
                 <div className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-3">
                   <CalendarDays size={24} className="text-white/60" />
                 </div>
@@ -840,7 +948,7 @@ export default function LeaderDashboardPage() {
               New Members
             </SectionHeader>
             {data?.recentMembers && data.recentMembers.length > 0 ? (
-              <div className="rounded-2xl bg-white/[0.18] backdrop-blur-md overflow-hidden">
+              <div className="rounded-2xl bg-white/[0.12] backdrop-blur-md overflow-hidden">
                 {data.recentMembers.map((member, idx) => {
                   const profile = (member as any).profiles
                   return (
@@ -876,7 +984,7 @@ export default function LeaderDashboardPage() {
                 })}
               </div>
             ) : (
-              <p className="text-sm text-white/50 bg-white/[0.18] backdrop-blur-md rounded-2xl p-4">No recent members</p>
+              <p className="text-sm text-white/50 bg-white/[0.12] backdrop-blur-md rounded-2xl p-4">No recent members</p>
             )}
           </motion.div>
 
@@ -884,7 +992,7 @@ export default function LeaderDashboardPage() {
           {inviteStats && inviteStats.acceptanceRate > 0 && (
             <motion.div variants={fadeUp}>
               <SectionHeader>Invite Acceptance</SectionHeader>
-              <div className="rounded-2xl bg-white/[0.18] backdrop-blur-md p-5">
+              <div className="rounded-2xl bg-white/[0.12] backdrop-blur-md p-5">
                 <div className="flex items-end justify-between mb-3">
                   <div>
                     <p className="text-[11px] font-semibold text-white/50 uppercase tracking-wide">Rate</p>

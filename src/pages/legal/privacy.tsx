@@ -1,11 +1,17 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Page } from '@/components/page'
+import { OGMeta } from '@/components/og-meta'
 
 export default function PrivacyPolicyPage() {
   const shouldReduceMotion = useReducedMotion()
 
   return (
     <Page>
+      <OGMeta
+        title="Privacy Policy"
+        description="Co-Exist Australia's Privacy Policy. Learn how we collect, use, and safeguard your personal information when you use the Co-Exist conservation platform."
+        canonicalPath="/privacy"
+      />
       <motion.div
         className="py-8 space-y-6"
         initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}

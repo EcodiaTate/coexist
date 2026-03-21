@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Mail, CheckCircle } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import { OGMeta } from '@/components/og-meta'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Header } from '@/components/header'
@@ -37,6 +38,12 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-white">
+      <OGMeta
+        title="Reset Password"
+        description="Reset your Co-Exist account password. Enter your email to receive a secure password reset link."
+        canonicalPath="/forgot-password"
+        noindex
+      />
       <Header title="Reset Password" back />
 
       <div className="flex-1 flex flex-col px-6 pt-8">

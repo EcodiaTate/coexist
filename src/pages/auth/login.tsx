@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowLeft, Mail, Leaf } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import { OGMeta } from '@/components/og-meta'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { cn } from '@/lib/cn'
@@ -77,6 +78,12 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-dvh flex flex-col bg-primary-50/60 relative overflow-hidden">
+      <OGMeta
+        title="Log In"
+        description="Sign in to your Co-Exist account. Access conservation events, connect with your collective, and track your environmental impact across Australia."
+        canonicalPath="/login"
+        noindex
+      />
       {/* Subtle background accents */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-primary-200/30 blur-[80px]" />

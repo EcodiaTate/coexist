@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
-import { OGMeta } from '@/components/og-meta'
+import { OGMeta, SITE_URL } from '@/components/og-meta'
 import { APP_NAME } from '@/lib/constants'
 import { WebFooter } from '@/components/web-footer'
 
@@ -82,15 +82,46 @@ export default function PublicCollectivePage() {
     )
   }
 
-  const pageUrl = `${window.location.origin}/collective/${collective.slug}`
+  const canonicalPath = `/collective/${collective.slug}`
+  const locationStr = [collective.region, collective.state].filter(Boolean).join(', ')
+  const metaDescription = collective.description
+    ? collective.description.slice(0, 155) + (collective.description.length > 155 ? '...' : '')
+    : `Join ${collective.name}${locationStr ? ` in ${locationStr}` : ''} — a Co-Exist conservation collective organising volunteer events across Australia.`
+
+  const collectiveJsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: collective.name,
+    description: collective.description || metaDescription,
+    url: `${SITE_URL}${canonicalPath}`,
+    ...(collective.cover_image_url && { image: collective.cover_image_url }),
+    ...(locationStr && {
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: collective.region || undefined,
+        addressRegion: collective.state || undefined,
+        addressCountry: 'AU',
+      },
+    }),
+    parentOrganization: {
+      '@type': 'Organization',
+      name: 'Co-Exist Australia',
+      url: 'https://www.coexistaus.org',
+    },
+    ...(collective.member_count && {
+      numberOfEmployees: { '@type': 'QuantitativeValue', value: collective.member_count },
+    }),
+  }
 
   return (
     <div className="min-h-dvh bg-white">
       <OGMeta
         title={collective.name}
-        description={collective.description || `Join ${collective.name} - a Co-Exist conservation collective`}
-        url={pageUrl}
+        description={metaDescription}
+        canonicalPath={canonicalPath}
         image={collective.cover_image_url || undefined}
+        type="profile"
+        jsonLd={collectiveJsonLd}
       />
 
       {/* Hero */}

@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
-import { OGMeta } from '@/components/og-meta'
+import { OGMeta, SITE_URL } from '@/components/og-meta'
 import { APP_NAME } from '@/lib/constants'
 import { WebFooter } from '@/components/web-footer'
 
@@ -98,15 +98,49 @@ export default function PublicEventPage() {
     ? ((event as Record<string, unknown>).collectives as { name: string }).name
     : undefined
 
-  const pageUrl = `${window.location.origin}/event/${event.id}`
+  const canonicalPath = `/event/${event.id}`
+  const activityLabel = ACTIVITY_LABELS[event.activity_type] || 'conservation'
+  const metaDescription = event.description
+    ? event.description.slice(0, 155) + (event.description.length > 155 ? '...' : '')
+    : `Join this ${activityLabel} event with Co-Exist${collectiveName ? `, hosted by ${collectiveName}` : ''} in Australia.`
+
+  const eventJsonLd: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'Event',
+    name: event.title,
+    description: event.description || metaDescription,
+    startDate: event.date_start,
+    ...(event.date_end && { endDate: event.date_end }),
+    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    eventStatus: 'https://schema.org/EventScheduled',
+    ...(event.address && {
+      location: {
+        '@type': 'Place',
+        name: event.address,
+        address: { '@type': 'PostalAddress', addressCountry: 'AU', streetAddress: event.address },
+      },
+    }),
+    ...(event.cover_image_url && { image: event.cover_image_url }),
+    organizer: {
+      '@type': 'Organization',
+      name: collectiveName || 'Co-Exist Australia',
+      url: 'https://www.coexistaus.org',
+    },
+    ...(event.capacity && {
+      maximumAttendeeCapacity: event.capacity,
+    }),
+    isAccessibleForFree: true,
+    url: `${SITE_URL}${canonicalPath}`,
+  }
 
   return (
     <div className="min-h-dvh bg-white">
       <OGMeta
         title={event.title}
-        description={event.description || `Join this ${ACTIVITY_LABELS[event.activity_type] || 'conservation'} event with Co-Exist`}
-        url={pageUrl}
+        description={metaDescription}
+        canonicalPath={canonicalPath}
         image={event.cover_image_url || undefined}
+        jsonLd={eventJsonLd}
       />
 
       {/* Hero image */}
