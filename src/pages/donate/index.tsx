@@ -166,7 +166,7 @@ export default function DonatePage() {
             disabled={!isValid}
             onClick={handleDonate}
           >
-            Donate ${effectiveAmount > 0 ? `$${effectiveAmount}` : ''}
+            Donate{effectiveAmount > 0 ? ` $${effectiveAmount}` : ''}
           </Button>
         </div>
       }

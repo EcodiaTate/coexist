@@ -6,14 +6,11 @@ import {
   MapPin,
   Users,
   ChevronRight,
-  TrendingUp,
   Clock,
   Flame,
-  Eye,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
-import { StatCard } from '@/components/stat-card'
 import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -195,40 +192,6 @@ function groupByCollective(events: AdminEvent[]): CollectiveGroup[] {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Capacity bar                                                       */
-/* ------------------------------------------------------------------ */
-
-function CapacityBar({ registered, capacity }: { registered: number; capacity: number | null }) {
-  if (!capacity) return null
-  const pct = Math.min((registered / capacity) * 100, 100)
-  const isNearFull = pct >= 80
-
-  return (
-    <div className="mt-2">
-      <div className="flex items-center justify-between text-[10px] mb-1">
-        <span className="text-primary-400">
-          {registered}/{capacity} spots
-        </span>
-        {isNearFull && (
-          <span className="text-warning-600 font-semibold">Almost full</span>
-        )}
-      </div>
-      <div className="h-1.5 rounded-full bg-primary-100 overflow-hidden">
-        <motion.div
-          className={cn(
-            'h-full rounded-full',
-            isNearFull ? 'bg-warning-500' : 'bg-primary-400',
-          )}
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-        />
-      </div>
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
 /*  Countdown badge                                                    */
 /* ------------------------------------------------------------------ */
 
@@ -334,13 +297,11 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
             </p>
           )}
 
-          {/* Registration + capacity */}
+          {/* Registration count */}
           <div className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-primary-600">
             <Users size={12} />
-            <span>{event.registrationCount} registered</span>
+            <span>{event.registrationCount} registered{event.capacity ? ` / ${event.capacity}` : ''}</span>
           </div>
-
-          <CapacityBar registered={event.registrationCount} capacity={event.capacity} />
         </div>
       </Link>
     </motion.div>
@@ -500,7 +461,6 @@ function PastEventRow({ event, index }: { event: AdminEvent; index: number }) {
 export default function AdminEventsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('upcoming')
-  const [viewMode, setViewMode] = useState<'grouped' | 'all'>('grouped')
 
   const { data, isLoading, isError } = useAdminEventsData()
 
@@ -537,8 +497,8 @@ export default function AdminEventsPage() {
   }, [data, statusFilter, search])
 
   const collectiveGroups = useMemo(
-    () => (statusFilter === 'upcoming' && viewMode === 'grouped' ? groupByCollective(filteredEvents) : []),
-    [filteredEvents, statusFilter, viewMode],
+    () => (statusFilter === 'upcoming' ? groupByCollective(filteredEvents) : []),
+    [filteredEvents, statusFilter],
   )
 
   if (isLoading) {
@@ -582,35 +542,6 @@ export default function AdminEventsPage() {
 
   return (
     <motion.div className="space-y-6" variants={shouldReduceMotion2 ? undefined : stagger} initial="hidden" animate="visible">
-      {/* ── Stats row ── */}
-      <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <StatCard
-          value={stats?.upcoming ?? 0}
-          label="Upcoming Events"
-          icon={<CalendarDays size={20} />}
-        />
-        <StatCard
-          value={stats?.upcomingRegistrations ?? 0}
-          label="People Coming"
-          icon={<Users size={20} />}
-          trend={
-            stats?.upcomingRegistrations
-              ? { value: stats.upcomingRegistrations, direction: 'up' }
-              : undefined
-          }
-        />
-        <StatCard
-          value={stats?.activeCollectives ?? 0}
-          label="Active Collectives"
-          icon={<MapPin size={20} />}
-        />
-        <StatCard
-          value={stats?.avgAttendance ?? 0}
-          label="Avg Attendance"
-          icon={<TrendingUp size={20} />}
-        />
-      </motion.div>
-
       {/* ── Hottest event spotlight ── */}
       {stats?.hottestEvent && stats.hottestEvent.registrationCount > 0 && (
         <motion.div variants={fadeUp}><HottestEventSpotlight event={stats.hottestEvent} /></motion.div>
@@ -647,37 +578,6 @@ export default function AdminEventsPage() {
             ))}
           </div>
 
-          {/* View mode toggle (only for upcoming) */}
-          {statusFilter === 'upcoming' && (
-            <div className="flex items-center gap-0.5 rounded-xl shadow-sm bg-white p-0.5">
-              <button
-                type="button"
-                onClick={() => setViewMode('grouped')}
-                className={cn(
-                  'p-1.5 rounded-lg transition-colors duration-150 cursor-pointer',
-                  viewMode === 'grouped'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-primary-400 hover:text-primary-600',
-                )}
-                aria-label="Group by collective"
-              >
-                <MapPin size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('all')}
-                className={cn(
-                  'p-1.5 rounded-lg transition-colors duration-150 cursor-pointer',
-                  viewMode === 'all'
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-primary-400 hover:text-primary-600',
-                )}
-                aria-label="Show all events"
-              >
-                <Eye size={14} />
-              </button>
-            </div>
-          )}
         </div>
       </motion.div>
 
@@ -695,7 +595,7 @@ export default function AdminEventsPage() {
                 : 'No past events yet'
           }
         />
-      ) : statusFilter === 'upcoming' && viewMode === 'grouped' ? (
+      ) : statusFilter === 'upcoming' ? (
         /* Grouped by collective */
         <div className="space-y-8">
           {collectiveGroups.map((group) => {

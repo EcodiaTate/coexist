@@ -4,7 +4,6 @@ import {
   User,
   Settings,
   TrendingUp,
-  Award,
   Star,
   Trophy,
   ShoppingBag,
@@ -130,7 +129,6 @@ export default function MorePage() {
 
   const activityLinks: MenuLink[] = [
     { label: 'Impact Dashboard', to: '/impact', icon: <TrendingUp size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
-    { label: 'Badges', to: '/badges', icon: <Award size={17} />, iconBg: 'bg-warning-50', iconColor: 'text-warning-600' },
     { label: 'Points History', to: '/points', icon: <Star size={17} />, iconBg: 'bg-warning-50', iconColor: 'text-warning-600' },
     { label: 'Leaderboard', to: '/leaderboard', icon: <Trophy size={17} />, iconBg: 'bg-bark-50', iconColor: 'text-bark-600' },
     { label: 'National Impact', to: '/impact/national', icon: <MapPin size={17} />, iconBg: 'bg-moss-50', iconColor: 'text-moss-600' },

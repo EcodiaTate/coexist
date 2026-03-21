@@ -1,10 +1,8 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Page } from '@/components/page'
-import { Header } from '@/components/header'
 import { useAdminHeader } from '@/components/admin-layout'
 import { TabBar } from '@/components/tab-bar'
-import { Package, ShoppingCart, BarChart3, Tag, RotateCcw, Star, Settings } from 'lucide-react'
+import { Package, ShoppingCart, BarChart3, Star, Settings } from 'lucide-react'
 
 import ProductsTab from './products-tab'
 import OrdersTab from './orders-tab'
@@ -14,24 +12,51 @@ import ReturnsTab from './returns-tab'
 import ReviewsTab from './reviews-tab'
 import ShippingTab from './shipping-tab'
 
+/* Combined tab components */
+function FeedbackTab() {
+  return (
+    <div className="space-y-8">
+      <section>
+        <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">Returns</h3>
+        <ReturnsTab />
+      </section>
+      <section>
+        <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">Reviews</h3>
+        <ReviewsTab />
+      </section>
+    </div>
+  )
+}
+
+function OperationsTab() {
+  return (
+    <div className="space-y-8">
+      <section>
+        <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">Promotions</h3>
+        <PromosTab />
+      </section>
+      <section>
+        <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">Shipping</h3>
+        <ShippingTab />
+      </section>
+    </div>
+  )
+}
+
 const TABS = [
   { id: 'products', label: 'Products', icon: <Package size={14} /> },
   { id: 'orders', label: 'Orders', icon: <ShoppingCart size={14} /> },
   { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
-  { id: 'promos', label: 'Promos', icon: <Tag size={14} /> },
-  { id: 'returns', label: 'Returns', icon: <RotateCcw size={14} /> },
-  { id: 'reviews', label: 'Reviews', icon: <Star size={14} /> },
-  { id: 'shipping', label: 'Shipping', icon: <Settings size={14} /> },
+  { id: 'operations', label: 'Operations', icon: <Settings size={14} /> },
+  { id: 'feedback', label: 'Feedback', icon: <Star size={14} /> },
 ]
 
 const TAB_COMPONENTS: Record<string, React.ComponentType> = {
   products: ProductsTab,
   orders: OrdersTab,
   analytics: AnalyticsTab,
-  promos: PromosTab,
-  returns: ReturnsTab,
-  reviews: ReviewsTab,
-  shipping: ShippingTab,
+  operations: OperationsTab,
+  feedback: FeedbackTab,
 }
 
 export default function AdminMerchPage() {

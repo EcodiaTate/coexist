@@ -45,7 +45,6 @@ export const ANALYTICS_EVENTS = {
   COLLECTIVE_LEFT: 'collective_left',
 
   // Gamification
-  BADGE_UNLOCKED: 'badge_unlocked',
   TIER_UP: 'tier_up',
 
   // Social

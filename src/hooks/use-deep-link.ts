@@ -11,8 +11,6 @@ import { Capacitor } from '@capacitor/core'
  *   coexist://events/{id}      → /events/{id}
  *   coexist://collectives/{id} → /collectives/{id}
  *   coexist://member/{id}      → /profile/{id}
- *   coexist://badges/{id}      → /badges?highlight={id}
- *   coexist://milestones/{id}  → /badges?milestone={id}
  *   coexist://share/impact     → /profile (impact tab)
  *   coexist://share/event/{id} → /events/{id}
  */
@@ -29,15 +27,9 @@ function resolveDeepLinkPath(rawPath: string): string {
       return `/collectives/${second || ''}`
     case 'member':
       return `/profile/${second || ''}`
-    case 'badges':
-      return second ? `/badges?highlight=${second}` : '/badges'
-    case 'milestones':
-      return second ? `/badges?milestone=${second}` : '/badges'
     case 'share':
       if (second === 'impact') return '/profile'
       if (second === 'event' && third) return `/events/${third}`
-      if (second === 'badge' && third) return `/badges?highlight=${third}`
-      if (second === 'milestone' && third) return `/badges?milestone=${third}`
       return '/home'
     default:
       return `/${rawPath}`

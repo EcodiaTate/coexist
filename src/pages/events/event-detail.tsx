@@ -9,24 +9,17 @@ import {
   Users,
   Share2,
   CalendarPlus,
-  ChevronDown,
   ChevronRight,
-  Navigation,
-  Accessibility,
-  Mountain,
-  Shirt,
-  Backpack,
   TreePine,
   Trash2,
   Waves,
   Eye,
   Leaf,
-  CloudSun,
-  Car,
   CheckCircle2,
   AlertCircle,
   XCircle,
   Mail,
+  QrCode,
 } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { useAuth } from '@/hooks/use-auth'
@@ -132,69 +125,6 @@ function EventDetailSkeleton() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Expandable Section                                                 */
-/* ------------------------------------------------------------------ */
-
-function ExpandableSection({
-  title,
-  icon,
-  children,
-  defaultOpen = false,
-}: {
-  title: string
-  icon: React.ReactNode
-  children: React.ReactNode
-  defaultOpen?: boolean
-}) {
-  const [open, setOpen] = useState(defaultOpen)
-  const shouldReduceMotion = useReducedMotion()
-
-  return (
-    <div className="border-b border-primary-100/40 last:border-b-0">
-      <button
-        type="button"
-        onClick={() => setOpen((p) => !p)}
-        className={cn(
-          'flex items-center justify-between w-full min-h-11 py-3 px-4',
-          'text-left cursor-pointer select-none',
-          'active:scale-[0.97] transition-all duration-150',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
-        )}
-        aria-expanded={open}
-      >
-        <span className="flex items-center gap-2 text-sm font-semibold text-primary-800">
-          <span className="flex items-center justify-center text-primary-400" aria-hidden="true">
-            {icon}
-          </span>
-          {title}
-        </span>
-        <ChevronDown
-          size={18}
-          className={cn(
-            'text-primary-400 transition-transform duration-200',
-            open && 'rotate-180',
-          )}
-          aria-hidden="true"
-        />
-      </button>
-      <motion.div
-        initial={false}
-        animate={{
-          height: open ? 'auto' : 0,
-          opacity: open ? 1 : 0,
-        }}
-        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.25 }}
-        className="overflow-hidden"
-      >
-        <div className="px-4 pb-4 text-sm text-primary-400 leading-relaxed">
-          {children}
-        </div>
-      </motion.div>
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
 /*  Info Row                                                           */
 /* ------------------------------------------------------------------ */
 
@@ -254,6 +184,16 @@ export default function EventDetailPage() {
 
   const past = event ? isPastEvent(event) : false
   const isAtCapacity = event?.capacity ? event.registration_count >= event.capacity : false
+
+  // Event is "active" if it started (or starts within 1 hour) and hasn't ended
+  const isEventActive = (() => {
+    if (!event) return false
+    const now = Date.now()
+    const start = new Date(event.date_start).getTime()
+    const end = event.date_end ? new Date(event.date_end).getTime() : start + 3 * 60 * 60 * 1000
+    const earlyWindow = start - 60 * 60 * 1000 // 1 hour before
+    return now >= earlyWindow && now <= end
+  })()
   const userStatus = event?.user_registration?.status ?? null
   const isLeaderOrAbove = collectiveRole.isCoLeader || collectiveRole.isLeader
 
@@ -327,10 +267,57 @@ export default function EventDetailPage() {
     }
 
     if (past) {
+      // Show survey CTA for attendees who haven't filled it out
+      if (userStatus === 'attended') {
+        return (
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            onClick={() => navigate(`/events/${event.id}/survey`)}
+          >
+            Share Your Feedback
+          </Button>
+        )
+      }
       return null
     }
 
-    if (userStatus === 'registered' || userStatus === 'attended') {
+    if (userStatus === 'attended') {
+      return (
+        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-success-50 text-success-700 text-sm font-semibold">
+          <CheckCircle2 size={18} />
+          You're checked in!
+        </div>
+      )
+    }
+
+    if (userStatus === 'registered') {
+      // Event is active — show check-in CTA
+      if (isEventActive) {
+        return (
+          <div className="space-y-2">
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              icon={<QrCode size={20} />}
+              onClick={() => navigate(`/events/${event.id}/check-in`)}
+            >
+              Check In
+            </Button>
+            <Button
+              variant="ghost"
+              fullWidth
+              onClick={() => setShowCancelSheet(true)}
+            >
+              Cancel Registration
+            </Button>
+          </div>
+        )
+      }
+
+      // Event not active yet — show "You're going"
       return (
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-white text-primary-400 text-sm font-semibold">
@@ -523,14 +510,6 @@ export default function EventDetailPage() {
           )
         })()}
 
-        {/* Countdown chip */}
-        {!past && userStatus === 'registered' && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white text-primary-400 text-sm font-medium">
-            <Clock size={16} />
-            {getCountdown(event.date_start)}
-          </div>
-        )}
-
         {/* Collective */}
         {event.collectives && (
           <Link
@@ -625,83 +604,18 @@ export default function EventDetailPage() {
           </div>
         )}
 
-        {/* Expandable details sections */}
-        <div className="rounded-xl shadow-sm overflow-hidden">
-          <ExpandableSection title="What to Bring" icon={<Backpack size={16} />}>
-            <p className="text-primary-400 italic">
-              The leader will share what to bring closer to the event.
-            </p>
-          </ExpandableSection>
-
-          <ExpandableSection title="What to Expect" icon={<Eye size={16} />}>
-            <p className="text-primary-400 italic">
-              Details about what to expect will be shared closer to the event.
-            </p>
-          </ExpandableSection>
-
-          <ExpandableSection title="What to Wear" icon={<Shirt size={16} />}>
-            <p className="text-primary-400 italic">
-              Wear comfortable clothes suitable for outdoor activities.
-            </p>
-          </ExpandableSection>
-
-          <ExpandableSection title="Accessibility" icon={<Accessibility size={16} />}>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Mountain size={14} className="text-primary-400" />
-                <span>Terrain info will be updated by the leader</span>
-              </div>
-            </div>
-          </ExpandableSection>
-        </div>
-
-        {/* Weather placeholder */}
-        <div className="rounded-xl bg-gradient-to-br from-info-50 to-sky-50 p-4">
-          <div className="flex items-center gap-3">
-            <CloudSun size={28} className="text-sky-500" />
-            <div>
-              <p className="text-sm font-semibold text-primary-800">Weather Forecast</p>
-              <p className="text-caption text-primary-400">
-                Weather info will be available closer to the event
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Carpooling placeholder */}
-        <div className="rounded-xl bg-white p-4">
-          <div className="flex items-center gap-3">
-            <Car size={20} className="text-primary-400" />
-            <div>
-              <p className="text-sm font-semibold text-primary-800">Need a lift?</p>
-              <p className="text-caption text-primary-400">
-                Carpooling coordination coming soon
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Action buttons row */}
-        <div className="flex gap-2">
+        {/* Add to Calendar */}
+        {!past && (
           <Button
             variant="secondary"
             size="md"
             icon={<CalendarPlus size={16} />}
             onClick={() => setShowCalendarSheet(true)}
-            className="flex-1"
+            fullWidth
           >
             Add to Calendar
           </Button>
-          <Button
-            variant="secondary"
-            size="md"
-            icon={<Share2 size={16} />}
-            onClick={handleShare}
-            className="flex-1"
-          >
-            Share
-          </Button>
-        </div>
+        )}
 
         {/* Leader actions */}
         {isLeaderOrAbove && (

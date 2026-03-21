@@ -9,6 +9,7 @@ import {
     Handshake,
     Trophy,
     ClipboardList,
+    ClipboardCheck,
     FileText,
     Shield,
     Settings,
@@ -22,6 +23,7 @@ import {
     ArrowLeft,
     Menu,
     X,
+    Bug,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -64,28 +66,32 @@ interface AdminNavItem {
   label: string
   path: string
   icon: React.ReactNode
+  /** If set, only shown when user has this capability */
+  capability?: string
 }
 
 const adminNavItems: AdminNavItem[] = [
   { label: 'Overview', path: '/admin', icon: <LayoutDashboard size={18} /> },
-  { label: 'Collectives', path: '/admin/collectives', icon: <MapPin size={18} /> },
-  { label: 'Users', path: '/admin/users', icon: <Users size={18} /> },
-  { label: 'Events', path: '/admin/events', icon: <CalendarDays size={18} /> },
-  { label: 'Partners', path: '/admin/partners', icon: <Handshake size={18} /> },
-  { label: 'Challenges', path: '/admin/challenges', icon: <Trophy size={18} /> },
-  { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={18} /> },
-  { label: 'Reports', path: '/admin/reports', icon: <FileText size={18} /> },
-  { label: 'Impact', path: '/admin/national-impact', icon: <BarChart3 size={18} /> },
-  { label: 'Moderation', path: '/admin/moderation', icon: <AlertCircle size={18} /> },
-  { label: 'Email', path: '/admin/email', icon: <Mail size={18} /> },
-  { label: 'Charity', path: '/admin/charity', icon: <Heart size={18} /> },
-  { label: 'Exports', path: '/admin/exports', icon: <Download size={18} /> },
-  { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={18} /> },
-  { label: 'System', path: '/admin/system', icon: <Settings size={18} /> },
+  { label: 'Collectives', path: '/admin/collectives', icon: <MapPin size={18} />, capability: 'manage_collectives' },
+  { label: 'Users', path: '/admin/users', icon: <Users size={18} />, capability: 'manage_users' },
+  { label: 'Workflows', path: '/admin/workflows', icon: <ClipboardCheck size={18} />, capability: 'manage_workflows' },
+  { label: 'Events', path: '/admin/events', icon: <CalendarDays size={18} />, capability: 'manage_events' },
+  { label: 'Partners', path: '/admin/partners', icon: <Handshake size={18} />, capability: 'manage_partners' },
+  { label: 'Challenges', path: '/admin/challenges', icon: <Trophy size={18} />, capability: 'manage_challenges' },
+  { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={18} />, capability: 'manage_surveys' },
+  { label: 'Reports', path: '/admin/reports', icon: <FileText size={18} />, capability: 'view_reports' },
+  { label: 'Impact', path: '/admin/national-impact', icon: <BarChart3 size={18} />, capability: 'view_reports' },
+  { label: 'Moderation', path: '/admin/moderation', icon: <AlertCircle size={18} />, capability: 'manage_content' },
+  { label: 'Email', path: '/admin/email', icon: <Mail size={18} />, capability: 'manage_email' },
+  { label: 'Charity', path: '/admin/charity', icon: <Heart size={18} />, capability: 'manage_charity' },
+  { label: 'Exports', path: '/admin/exports', icon: <Download size={18} />, capability: 'manage_exports' },
+  { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={18} />, capability: 'view_audit_log' },
+  { label: 'System', path: '/admin/system', icon: <Settings size={18} />, capability: 'manage_system' },
 ]
 
 const superAdminNavItems: AdminNavItem[] = [
   { label: 'Staff & Permissions', path: '/admin/super', icon: <Shield size={18} /> },
+  { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={18} /> },
 ]
 
 /* ------------------------------------------------------------------ */
@@ -95,7 +101,7 @@ const superAdminNavItems: AdminNavItem[] = [
 export function AdminLayout() {
   const location = useLocation()
   const shouldReduceMotion = useReducedMotion()
-  const { isSuperAdmin } = useAuth()
+  const { isSuperAdmin, hasCapability } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [header, setHeaderState] = useState<AdminHeaderState>({ title: '' })
@@ -150,7 +156,7 @@ export function AdminLayout() {
           </div>
 
           <div className="flex-1 py-3 px-1.5 space-y-0.5">
-            {adminNavItems.map((item) => {
+            {adminNavItems.filter((item) => !item.capability || hasCapability(item.capability)).map((item) => {
               const active = isActive(item.path)
               return (
                 <Link
@@ -285,7 +291,7 @@ export function AdminLayout() {
                   </button>
                 </div>
                 <nav className="flex-1 py-3 px-2 space-y-0.5">
-                  {adminNavItems.map((item) => {
+                  {adminNavItems.filter((item) => !item.capability || hasCapability(item.capability)).map((item) => {
                     const active = isActive(item.path)
                     return (
                       <Link

@@ -120,7 +120,6 @@ export default function CheckInPage() {
   const [pointsTrigger, setPointsTrigger] = useState(0)
   const [showCelebration, setShowCelebration] = useState(false)
   const [checkedInOffline, setCheckedInOffline] = useState(false)
-  const [earnedBadges, setEarnedBadges] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Focus manual input when switching to manual mode
@@ -181,18 +180,6 @@ export default function CheckInPage() {
               })
             } catch {
               // Points will be reconciled later
-            }
-
-            // Check for new badges
-            try {
-              const { data: badges } = await supabase.rpc('check_badge_criteria', {
-                p_user_id: user.id,
-              })
-              if (badges && badges.length > 0) {
-                setEarnedBadges(badges)
-              }
-            } catch {
-              // Badge check is non-critical
             }
 
             // Show celebration after a brief delay
@@ -405,24 +392,6 @@ export default function CheckInPage() {
               </motion.div>
             )}
 
-            {/* Earned badges */}
-            {earnedBadges.length > 0 && (
-              <motion.div
-                initial={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.7 }}
-                className="mt-3 flex flex-wrap justify-center gap-2"
-              >
-                {earnedBadges.map((badge) => (
-                  <span
-                    key={badge}
-                    className="px-3 py-1 rounded-full bg-accent-100 text-primary-800 text-caption font-semibold"
-                  >
-                    {badge}
-                  </span>
-                ))}
-              </motion.div>
-            )}
 
             {/* What's next? */}
             <motion.div
@@ -444,14 +413,6 @@ export default function CheckInPage() {
                     description: 'Capture the moment with your group',
                     icon: <Camera size={18} />,
                     to: `/events/${event.id}?tab=photos`,
-                  },
-                  {
-                    label: 'View Your Badges',
-                    description: earnedBadges.length > 0
-                      ? `You just earned ${earnedBadges.length} new badge${earnedBadges.length > 1 ? 's' : ''}!`
-                      : 'Check your badge collection',
-                    icon: <Sparkles size={18} />,
-                    to: '/badges',
                   },
                 ]}
               />

@@ -20,6 +20,7 @@ import {
 import {
   useEventDetail,
   useEventImpact,
+  useEventAttendees,
   useLogImpact,
   IMPACT_FIELDS_BY_ACTIVITY,
   ACTIVITY_TYPE_LABELS,
@@ -251,6 +252,7 @@ export default function LogImpactPage() {
 
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: existingImpact, isLoading: impactLoading } = useEventImpact(eventId)
+  const { data: attendees } = useEventAttendees(eventId)
   const logImpact = useLogImpact()
 
   const stagger = {
@@ -270,11 +272,11 @@ export default function LogImpactPage() {
     trees_planted: '0',
     rubbish_kg: '0',
     coastline_cleaned_m: '0',
-    hours_total: '0',
     area_restored_sqm: '0',
     native_plants: '0',
     wildlife_sightings: '0',
   })
+  const [eventDurationHours, setEventDurationHours] = useState('')
   const [notes, setNotes] = useState('')
   const [species, setSpecies] = useState<SpeciesEntry[]>([])
   const [photos, setPhotos] = useState<string[]>([])
@@ -301,6 +303,12 @@ export default function LogImpactPage() {
     }
   }
 
+  // Checked-in attendee count (status === 'attended')
+  const checkedInCount = useMemo(
+    () => (attendees ?? []).filter((a) => a.status === 'attended').length,
+    [attendees],
+  )
+
   // Pre-populate from existing impact data
   useEffect(() => {
     if (existingImpact) {
@@ -308,39 +316,40 @@ export default function LogImpactPage() {
         trees_planted: String(existingImpact.trees_planted),
         rubbish_kg: String(existingImpact.rubbish_kg),
         coastline_cleaned_m: String(existingImpact.coastline_cleaned_m),
-        hours_total: String(existingImpact.hours_total),
         area_restored_sqm: String(existingImpact.area_restored_sqm),
         native_plants: String(existingImpact.native_plants),
         wildlife_sightings: String(existingImpact.wildlife_sightings),
       })
       setNotes(existingImpact.notes ?? '')
+      // Back-calculate duration from stored hours_total
+      if (existingImpact.hours_total && checkedInCount > 0) {
+        setEventDurationHours(String(Math.round((existingImpact.hours_total / checkedInCount) * 10) / 10))
+      }
     }
-  }, [existingImpact])
+  }, [existingImpact, checkedInCount])
 
-  // Auto-calculate hours if we have event duration and attendee count
+  // Auto-calculate duration from event start/end times
   useEffect(() => {
-    if (event && event.date_end && event.registration_count > 0) {
+    if (event?.date_end && !existingImpact) {
       const durationHours =
         (new Date(event.date_end).getTime() - new Date(event.date_start).getTime()) /
         (1000 * 60 * 60)
-      const totalHours = Math.round(durationHours * event.registration_count * 10) / 10
-      setFormValues((prev) => ({
-        ...prev,
-        hours_total: String(totalHours),
-      }))
+      setEventDurationHours(String(Math.round(durationHours * 10) / 10))
     }
-  }, [event])
+  }, [event, existingImpact])
+
+  // Computed total volunteer hours = duration × checked-in attendees
+  const computedHoursTotal = useMemo(() => {
+    const duration = parseFloat(eventDurationHours) || 0
+    return Math.round(duration * checkedInCount * 10) / 10
+  }, [eventDurationHours, checkedInCount])
 
   const activityType = event?.activity_type as Database['public']['Enums']['activity_type'] | undefined
   const impactFields = activityType ? IMPACT_FIELDS_BY_ACTIVITY[activityType] : []
 
-  // Always show hours_total
+  // Activity-specific fields only (hours handled separately)
   const allFields: ImpactField[] = useMemo(() => {
-    const base: ImpactField[] = [
-      { key: 'hours_total', label: 'Total Volunteer Hours', unit: 'hours', icon: 'clock' },
-    ]
-    const extra = impactFields.filter((f) => f.key !== 'hours_total')
-    return [...base, ...extra]
+    return impactFields.filter((f) => f.key !== 'hours_total')
   }, [impactFields])
 
   const handleSubmit = useCallback(async () => {
@@ -351,7 +360,7 @@ export default function LogImpactPage() {
       trees_planted: parseFloat(formValues.trees_planted) || 0,
       rubbish_kg: parseFloat(formValues.rubbish_kg) || 0,
       coastline_cleaned_m: parseFloat(formValues.coastline_cleaned_m) || 0,
-      hours_total: parseFloat(formValues.hours_total) || 0,
+      hours_total: computedHoursTotal,
       area_restored_sqm: parseFloat(formValues.area_restored_sqm) || 0,
       native_plants: parseFloat(formValues.native_plants) || 0,
       wildlife_sightings: parseFloat(formValues.wildlife_sightings) || 0,
@@ -472,7 +481,7 @@ export default function LogImpactPage() {
             {event.title}
           </h2>
           <p className="text-caption text-primary-400 mt-0.5">
-            {ACTIVITY_TYPE_LABELS[event.activity_type]} · {event.registration_count} attendees
+            {ACTIVITY_TYPE_LABELS[event.activity_type]} · {checkedInCount} checked in / {event.registration_count} registered
           </p>
           {event.date_end && (
             <p className="text-caption text-primary-400 mt-0.5">
@@ -488,7 +497,66 @@ export default function LogImpactPage() {
           </motion.div>
         )}
 
-        {/* Impact metric fields */}
+        {/* Volunteer Hours - duration × checked-in attendees */}
+        <motion.div variants={fadeUp} className="space-y-3">
+          <h3 className="text-sm font-semibold text-primary-800">
+            Volunteer Hours
+          </h3>
+
+          <div className="rounded-xl bg-white border border-primary-100/40 p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-primary-50 shrink-0">
+                <Clock size={18} className="text-primary-400" />
+              </span>
+              <div className="flex-1 min-w-0">
+                <label className="block text-caption text-primary-400 mb-0.5">
+                  How long was the event?
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={eventDurationHours}
+                    onChange={(e) => setEventDurationHours(e.target.value)}
+                    placeholder="0"
+                    className={cn(
+                      'w-24 rounded-lg bg-primary-50/50',
+                      'px-3 py-2 text-[16px] text-right font-semibold text-primary-800',
+                      'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
+                    )}
+                    min="0"
+                    step="0.5"
+                  />
+                  <span className="text-caption text-primary-400">hours</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Calculation breakdown */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50/60 text-sm">
+              <span className="font-semibold text-primary-700">
+                {eventDurationHours || '0'} hrs
+              </span>
+              <span className="text-primary-400">&times;</span>
+              <span className="font-semibold text-primary-700">
+                {checkedInCount} checked in
+              </span>
+              <span className="text-primary-400">=</span>
+              <span className="font-bold text-primary-800">
+                {computedHoursTotal} volunteer hours
+              </span>
+            </div>
+
+            {checkedInCount === 0 && (
+              <p className="text-caption text-warning-600">
+                No attendees checked in yet. Check in attendees on the Event Day page to calculate volunteer hours.
+              </p>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Activity-specific impact fields */}
+        {allFields.length > 0 && (
         <motion.div variants={fadeUp} className="space-y-4">
           <h3 className="text-sm font-semibold text-primary-800">
             Impact Metrics
@@ -528,6 +596,7 @@ export default function LogImpactPage() {
             </div>
           ))}
         </motion.div>
+        )}
 
         {/* Species tracking (for relevant activity types) */}
         <motion.div variants={fadeUp}>

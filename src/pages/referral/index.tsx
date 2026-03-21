@@ -3,7 +3,6 @@ import { motion, useReducedMotion } from 'framer-motion'
 import {
   Share2,
   Copy,
-  QrCode,
   Users,
   Gift,
   CheckCircle,
@@ -14,14 +13,12 @@ import {
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
-import { Input } from '@/components/input'
-import { Avatar } from '@/components/avatar'
 import { StatCard } from '@/components/stat-card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
-import { useReferralCode, useReferralStats, useReferralLeaderboard, useSendInvite } from '@/hooks/use-referral'
+import { useReferralCode, useReferralStats } from '@/hooks/use-referral'
 
 const stagger = {
   hidden: {},
@@ -51,10 +48,7 @@ export default function ReferralPage() {
   const { toast } = useToast()
   const { data: code, isLoading: codeLoading } = useReferralCode()
   const { data: stats } = useReferralStats()
-  const { data: leaderboard } = useReferralLeaderboard()
-  const sendInvite = useSendInvite()
 
-  const [email, setEmail] = useState('')
   const [copied, setCopied] = useState(false)
 
   const referralLink = code
@@ -78,17 +72,6 @@ export default function ReferralPage() {
       await navigator.share(shareData)
     } else {
       await handleCopy()
-    }
-  }
-
-  const handleSendInvite = async () => {
-    if (!email || !code) return
-    try {
-      await sendInvite.mutateAsync({ email, code })
-      toast.success('Invite sent!')
-      setEmail('')
-    } catch {
-      toast.error('Failed to send invite')
     }
   }
 
@@ -152,11 +135,8 @@ export default function ReferralPage() {
           </div>
         </motion.div>
 
-        {/* Share buttons */}
-        <motion.div
-          variants={fadeUp}
-          className="mt-4 flex gap-2"
-        >
+        {/* Share button */}
+        <motion.div variants={fadeUp} className="mt-4">
           <Button
             variant="primary"
             size="md"
@@ -166,45 +146,6 @@ export default function ReferralPage() {
           >
             Share Invite Link
           </Button>
-          <button
-            type="button"
-            onClick={() => {/* QR modal would go here */}}
-            className="flex items-center justify-center min-h-11 min-w-11 rounded-xl bg-white shadow-sm text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none shrink-0"
-            aria-label="Show QR code"
-          >
-            <QrCode size={20} />
-          </button>
-        </motion.div>
-
-        {/* Send invite by email */}
-        <motion.div
-          variants={fadeUp}
-          className="mt-5"
-        >
-          <h3 className="font-heading text-sm font-semibold text-primary-800 mb-2">
-            Invite by Email
-          </h3>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Input
-                label="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="friend@example.com"
-                type="email"
-              />
-            </div>
-            <Button
-              variant="secondary"
-              size="md"
-              icon={<UserPlus size={16} />}
-              onClick={handleSendInvite}
-              loading={sendInvite.isPending}
-              disabled={!email}
-            >
-              Send
-            </Button>
-          </div>
         </motion.div>
 
         {/* Stats */}
@@ -259,43 +200,6 @@ export default function ReferralPage() {
           </div>
         </motion.section>
 
-        {/* Referral Leaderboard */}
-        {leaderboard && leaderboard.length > 0 && (
-          <motion.section
-            variants={fadeUp}
-            className="mt-6"
-          >
-            <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
-              Top Recruiters
-            </h3>
-            <div className="rounded-xl bg-white shadow-sm overflow-hidden">
-              {leaderboard.slice(0, 10).map((entry, i) => (
-                <div
-                  key={entry.userId}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-2.5',
-                    i > 0 && 'mt-px',
-                  )}
-                >
-                  <span className="w-6 text-sm font-bold text-primary-400 tabular-nums text-center">
-                    {entry.rank}
-                  </span>
-                  <Avatar
-                    src={entry.avatarUrl}
-                    name={entry.displayName}
-                    size="sm"
-                  />
-                  <span className="flex-1 text-sm font-medium text-primary-800 truncate">
-                    {entry.displayName}
-                  </span>
-                  <span className="text-sm font-semibold text-primary-400">
-                    {entry.referrals} invited
-                  </span>
-                </div>
-              ))}
-            </div>
-          </motion.section>
-        )}
       </motion.div>
     </Page>
   )

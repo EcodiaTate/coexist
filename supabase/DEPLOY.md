@@ -39,7 +39,7 @@ psql -h db.<project-ref>.supabase.co -U postgres -d postgres \
   -f supabase/seed.sql
 ```
 
-Seeds: badge definitions, 13 collectives, sample events, merch products, partner offers, feature flags.
+Seeds: 13 collectives, sample events, merch products, partner offers, feature flags.
 
 ## 5. Configure Auth Providers
 
@@ -81,7 +81,6 @@ supabase/migrations/003_storage_buckets.sql
 | `event-images` | Yes | 5 MB | Event cover / gallery |
 | `post-images` | Yes | 5 MB | Community feed images |
 | `collective-images` | Yes | 5 MB | Collective covers |
-| `badges` | Yes | 1 MB | Badge artwork (admin) |
 | `merch-images` | Yes | 5 MB | Product images (admin) |
 | `impact-evidence` | Yes | 10 MB | Impact logging photos/video |
 | `announcements` | Yes | 5 MB | Staff announcement images |

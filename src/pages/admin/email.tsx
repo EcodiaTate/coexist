@@ -1,11 +1,9 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Mail,
   AlertTriangle,
   Ban,
   XCircle,
-  TrendingUp,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -17,7 +15,6 @@ import { TabBar } from '@/components/tab-bar'
 import { supabase } from '@/lib/supabase'
 
 const tabs = [
-  { id: 'overview', label: 'Overview', icon: <TrendingUp size={14} /> },
   { id: 'bounces', label: 'Bounces', icon: <XCircle size={14} /> },
   { id: 'complaints', label: 'Complaints', icon: <AlertTriangle size={14} /> },
 ]
@@ -87,7 +84,7 @@ function useEmailComplaints() {
 
 export default function AdminEmailPage() {
   useAdminHeader('Email & Delivery')
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('bounces')
   const { data: stats, isLoading: statsLoading } = useEmailStats()
   const { data: bounces, isLoading: bouncesLoading } = useEmailBounces()
   const { data: complaints, isLoading: complaintsLoading } = useEmailComplaints()
@@ -106,58 +103,41 @@ export default function AdminEmailPage() {
 
   return (
     <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      {/* Stats (always visible) */}
+      <motion.div variants={fadeUp} className="mb-4">
+        {statsLoading ? (
+          <div className="grid grid-cols-3 gap-3">
+            <Skeleton variant="stat-card" />
+            <Skeleton variant="stat-card" />
+            <Skeleton variant="stat-card" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <StatCard
+              value={stats?.bounces ?? 0}
+              label="Bounces"
+              icon={<XCircle size={20} />}
+              className="from-error-50 to-error-100/50"
+            />
+            <StatCard
+              value={stats?.complaints ?? 0}
+              label="Complaints"
+              icon={<AlertTriangle size={20} />}
+              className="from-warning-50 to-warning-100/50"
+            />
+            <StatCard
+              value={stats?.suppressed ?? 0}
+              label="Suppressed"
+              icon={<Ban size={20} />}
+              className="from-white to-primary-100/50"
+            />
+          </div>
+        )}
+      </motion.div>
+
       <motion.div variants={fadeUp}>
         <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
       </motion.div>
-
-      {/* Overview */}
-      {activeTab === 'overview' && (
-        <motion.div variants={fadeUp} className="space-y-4">
-          {statsLoading ? (
-            <div className="grid grid-cols-3 gap-3">
-              <Skeleton variant="stat-card" />
-              <Skeleton variant="stat-card" />
-              <Skeleton variant="stat-card" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <StatCard
-                value={stats?.bounces ?? 0}
-                label="Total Bounces"
-                icon={<XCircle size={20} />}
-                className="from-error-50 to-error-100/50"
-              />
-              <StatCard
-                value={stats?.complaints ?? 0}
-                label="Spam Complaints"
-                icon={<AlertTriangle size={20} />}
-                className="from-warning-50 to-warning-100/50"
-              />
-              <StatCard
-                value={stats?.suppressed ?? 0}
-                label="Suppressed Addresses"
-                icon={<Ban size={20} />}
-                className="from-white to-primary-100/50"
-              />
-            </div>
-          )}
-
-          <div className="p-4 rounded-xl bg-info-50 shadow-sm">
-            <div className="flex items-start gap-3">
-              <Mail size={18} className="text-info-600 mt-0.5 shrink-0" />
-              <div>
-                <h3 className="text-sm font-semibold text-info-900">
-                  SendGrid Integration
-                </h3>
-                <p className="text-xs text-info-700 mt-1">
-                  Bounced and complained addresses are automatically added to the suppression
-                  list. Emails to suppressed addresses are blocked to protect sender reputation.
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
 
       {/* Bounces */}
       {activeTab === 'bounces' && (

@@ -77,12 +77,6 @@
     "hoursVolunteered": "Hours volunteered",
     "rubbishCollected": "Rubbish collected (kg)"
   },
-  "badges": {
-    "title": "Badges",
-    "unlocked": "Badge Unlocked!",
-    "awesome": "Awesome!",
-    "proximity": "{{count}} events away from {{badge}}!"
-  },
   "profile": {
     "title": "Profile",
     "editProfile": "Edit Profile",

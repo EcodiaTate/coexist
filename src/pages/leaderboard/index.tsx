@@ -83,25 +83,33 @@ export default function LeaderboardPage() {
     <Page header={<Header title="Leaderboard" back />}>
       <PullToRefresh onRefresh={handleRefresh}>
       <div className="pb-8">
-        {/* View Toggle */}
-        <div className="mt-4 mb-3">
+        {/* View + Period row */}
+        <div className="mt-4 mb-3 flex items-center gap-2">
           <TabBar
             tabs={[
-              { id: 'individual', label: 'Individual', icon: <Trophy size={14} /> },
-              { id: 'collective', label: 'Collectives', icon: <Users size={14} /> },
+              { id: 'individual', label: 'Individual' },
+              { id: 'collective', label: 'Collectives' },
             ]}
             activeTab={view}
             onChange={(id) => setView(id as 'individual' | 'collective')}
+            className="flex-1"
           />
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as TimePeriod)}
+            className={cn(
+              'h-9 px-3 rounded-xl text-sm font-medium',
+              'bg-white border border-primary-200 text-primary-700',
+              'focus:outline-none focus:ring-2 focus:ring-primary-400',
+              'cursor-pointer',
+            )}
+            aria-label="Time period"
+          >
+            {PERIOD_TABS.map((t) => (
+              <option key={t.id} value={t.id}>{t.label}</option>
+            ))}
+          </select>
         </div>
-
-        {/* Period filter */}
-        <TabBar
-          tabs={PERIOD_TABS}
-          activeTab={period}
-          onChange={(id) => setPeriod(id as TimePeriod)}
-          className="mb-3"
-        />
 
         {/* Metric filter */}
         <TabBar

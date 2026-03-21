@@ -78,12 +78,15 @@ const typeConfig: Record<
 
 const ToastContext = createContext<ToastContextValue | null>(null)
 
+const noop = () => {}
+const noopToast: ToastContextValue = {
+  toast: { success: noop, error: noop, info: noop, warning: noop },
+}
+
 export function useToast(): ToastContextValue {
   const ctx = useContext(ToastContext)
-  if (!ctx) {
-    throw new Error('useToast must be used within a <ToastProvider>')
-  }
-  return ctx
+  // Return no-op during HMR transitions when context may be temporarily null
+  return ctx ?? noopToast
 }
 
 /* -------------------------------------------------------------------------- */

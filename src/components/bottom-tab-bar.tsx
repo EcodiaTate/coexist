@@ -6,7 +6,6 @@ import {
   Compass,
   CalendarDays,
   Users,
-  LayoutGrid,
   Plus,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -49,13 +48,6 @@ const tabs: Tab[] = [
     path: '/community',
     icon: <Users size={24} strokeWidth={1.5} />,
     activeIcon: <Users size={24} strokeWidth={2.5} fill="currentColor" />,
-  },
-  {
-    key: 'more',
-    label: 'More',
-    path: '/more',
-    icon: <LayoutGrid size={24} strokeWidth={1.5} />,
-    activeIcon: <LayoutGrid size={24} strokeWidth={2.5} fill="currentColor" />,
   },
 ]
 

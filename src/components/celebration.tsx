@@ -17,7 +17,7 @@ interface CelebrationProps {
 
 /**
  * Full-screen celebration overlay for big wins:
- * first event, badge unlock, tier up, milestones.
+ * first event, tier up, milestones.
  */
 export function Celebration({
   open,

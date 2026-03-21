@@ -3,7 +3,6 @@ import { Capacitor } from '@capacitor/core'
 
 type SoundName =
   | 'check-in'
-  | 'badge-unlock'
   | 'send-message'
   | 'message-received'
   | 'error'
@@ -20,7 +19,6 @@ interface UseSoundOptions {
 
 const SOUND_FILES: Record<SoundName, string> = {
   'check-in': '/assets/sounds/check-in.wav',
-  'badge-unlock': '/assets/sounds/badge-unlock.wav',
   'send-message': '/assets/sounds/send-message.wav',
   'message-received': '/assets/sounds/message-received.wav',
   'error': '/assets/sounds/error.wav',

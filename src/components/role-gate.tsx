@@ -15,10 +15,12 @@ const GLOBAL_RANK: Record<UserRole, number> = {
 
 interface RoleGateProps {
   /** Minimum global role OR collective role required */
-  minRole: UserRole | CollectiveRole
+  minRole?: UserRole | CollectiveRole
   /** If provided, checks collective-level role instead of global */
   collectiveId?: string
-  /** Rendered when the user doesn't meet the role requirement */
+  /** Capability key to check (frontend-only gating) */
+  capability?: string
+  /** Rendered when the user doesn't meet the requirement */
   fallback?: ReactNode
   children: ReactNode
 }
@@ -29,13 +31,23 @@ function isCollectiveRole(role: string): role is CollectiveRole {
   return COLLECTIVE_ROLES.includes(role as CollectiveRole)
 }
 
-export function RoleGate({ minRole, collectiveId, fallback = null, children }: RoleGateProps) {
-  const { role: globalRole, isLoading: authLoading } = useAuth()
+export function RoleGate({ minRole, collectiveId, capability, fallback = null, children }: RoleGateProps) {
+  const { role: globalRole, hasCapability, isLoading: authLoading } = useAuth()
   const { hasMinRole, isLoading: collectiveLoading } = useCollectiveRole(
-    collectiveId && isCollectiveRole(minRole) ? collectiveId : undefined,
+    collectiveId && minRole && isCollectiveRole(minRole) ? collectiveId : undefined,
   )
 
   if (authLoading || collectiveLoading) return null
+
+  // Capability check (can be combined with role check)
+  if (capability && !hasCapability(capability)) {
+    return <>{fallback}</>
+  }
+
+  // If no minRole specified (capability-only gate), allow through
+  if (!minRole) {
+    return <>{children}</>
+  }
 
   // Collective-level check
   if (collectiveId && isCollectiveRole(minRole)) {

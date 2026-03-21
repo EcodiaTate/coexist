@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Hand, Calendar, Award, Users, ArrowRight } from 'lucide-react'
+import { Hand, Calendar, Users, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/button'
@@ -31,24 +31,18 @@ export default function WelcomeBackPage() {
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-      const [eventsRes, badgesRes] = await Promise.all([
+      const [eventsRes] = await Promise.all([
         supabase
           .from('events' as any)
           .select('id, title', { count: 'exact' })
           .eq('status', 'completed')
           .gte('date_start', thirtyDaysAgo.toISOString())
           .limit(3),
-        supabase
-          .from('badge_awards' as any)
-          .select('id', { count: 'exact' })
-          .eq('user_id', user.id)
-          .gte('awarded_at', thirtyDaysAgo.toISOString()),
       ])
 
       return {
         missedEventsCount: eventsRes.count ?? 0,
         recentEvents: eventsRes.data ?? [],
-        newBadgesCount: badgesRes.count ?? 0,
       }
     },
     enabled: !!user,
@@ -114,22 +108,6 @@ export default function WelcomeBackPage() {
                 </motion.div>
               )}
 
-              {missedData.newBadgesCount > 0 && (
-                <motion.div
-                  variants={fadeUp}
-                  className="flex items-center gap-4 p-4 rounded-xl bg-white shadow-sm"
-                >
-                  <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
-                    <Award size={20} className="text-primary-400" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm text-primary-800">
-                      {missedData.newBadgesCount} new badge{missedData.newBadgesCount === 1 ? '' : 's'}
-                    </p>
-                    <p className="text-xs text-primary-400">Check your profile to see them.</p>
-                  </div>
-                </motion.div>
-              )}
 
               <motion.div
                 variants={fadeUp}

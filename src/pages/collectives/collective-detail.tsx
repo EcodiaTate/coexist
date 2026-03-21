@@ -218,12 +218,12 @@ export default function CollectiveDetailPage() {
         </div>
       }
     >
-      {/* Cover image hero */}
+      {/* Cover image hero — full-bleed (negate page padding) */}
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.35 }}
-        className="relative aspect-[2.2/1] w-full overflow-hidden bg-primary-100"
+        className="relative aspect-[2.2/1] w-[calc(100%+2rem)] -mx-4 lg:w-[calc(100%+3rem)] lg:-mx-6 overflow-hidden bg-primary-100"
       >
         {collective.cover_image_url ? (
           <img

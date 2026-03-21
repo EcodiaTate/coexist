@@ -168,34 +168,21 @@ function ReportCard({
           </div>
         </div>
 
-        {/* Reason */}
-        <div className="px-4 py-2">
-          <div className="bg-white rounded-xl px-3 py-2.5">
-            <p className="text-xs font-medium text-primary-400 mb-1">Reason</p>
-            <p className="text-sm text-primary-800">{report.reason}</p>
-          </div>
-        </div>
-
-        {/* Reporter */}
+        {/* Reporter + reason */}
         <div className="flex items-center gap-2 px-4 py-2">
           <Avatar
             src={report.reporter?.avatar_url}
             name={report.reporter?.display_name ?? 'Reporter'}
             size="xs"
           />
-          <span className="text-xs text-primary-400">
-            Reported by{' '}
-            <span className="font-medium text-primary-800">
+          <div className="flex-1 min-w-0">
+            <span className="text-xs text-primary-400">
               {report.reporter?.display_name ?? 'Unknown'}
             </span>
-          </span>
-        </div>
-
-        {/* Content ID reference */}
-        <div className="px-4 py-1">
-          <span className="text-xs text-primary-400 font-mono">
-            ID: {report.content_id.slice(0, 8)}...
-          </span>
+            <p className="text-xs text-primary-400 truncate" title={report.reason}>
+              {report.reason}
+            </p>
+          </div>
         </div>
 
         {/* Actions */}

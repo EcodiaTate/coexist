@@ -13,7 +13,6 @@ import {
   PanelLeftOpen,
   Plus,
   TrendingUp,
-  Award,
   Trophy,
   ShoppingBag,
   Heart,
@@ -44,7 +43,6 @@ const mainNav: NavItem[] = [
 const activityNav: NavItem[] = [
   { label: 'Impact', path: '/impact', icon: <TrendingUp size={20} /> },
   { label: 'Leaderboard', path: '/leaderboard', icon: <Trophy size={20} /> },
-  { label: 'Badges', path: '/badges', icon: <Award size={20} /> },
 ]
 
 const secondaryNav: NavItem[] = [

@@ -15,7 +15,6 @@ export type NotificationType =
   | 'event_cancelled'
   | 'event_updated'
   | 'points_earned'
-  | 'badge_unlocked'
   | 'new_event_in_collective'
   | 'event_invite'
   | 'global_announcement'
@@ -30,7 +29,6 @@ export interface NotificationPreferences {
   event_cancelled: boolean
   event_updated: boolean
   points_earned: boolean
-  badge_unlocked: boolean
   new_event_in_collective: boolean
   event_invite: boolean
   global_announcement: boolean
@@ -49,7 +47,6 @@ export const DEFAULT_PREFERENCES: NotificationPreferences = {
   event_cancelled: true,
   event_updated: true,
   points_earned: true,
-  badge_unlocked: true,
   new_event_in_collective: true,
   event_invite: true,
   global_announcement: true,
@@ -90,8 +87,6 @@ export function resolveNotificationRoute(
       return data?.event_id ? `/events/${data.event_id}` : '/events'
     case 'points_earned':
       return '/points'
-    case 'badge_unlocked':
-      return data?.badge_id ? `/badges?badge=${data.badge_id}` : '/badges'
     case 'global_announcement':
       return '/announcements'
     case 'challenge_update':
@@ -127,8 +122,6 @@ export function getNotificationMeta(type: string): { emoji: string; color: strin
       return { emoji: '\u{1F504}', color: 'bg-warning-100' }
     case 'points_earned':
       return { emoji: '\u{2B50}', color: 'bg-warning-100' }
-    case 'badge_unlocked':
-      return { emoji: '\u{1F3C6}', color: 'bg-accent-100' }
     case 'new_event_in_collective':
       return { emoji: '\u{1F331}', color: 'bg-primary-100' }
     case 'event_invite':

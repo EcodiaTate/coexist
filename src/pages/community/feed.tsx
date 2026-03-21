@@ -23,7 +23,6 @@ import { Skeleton } from '@/components/skeleton'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
-import { TabBar } from '@/components/tab-bar'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -572,20 +571,11 @@ function FeedSkeleton() {
 /*  Feed page                                                          */
 /* ------------------------------------------------------------------ */
 
-const feedTabs = [
-  { id: 'all', label: 'All' },
-  { id: 'my-collective', label: 'My Collective' },
-]
-
 export default function FeedPage() {
   const navigate = useNavigate()
   const { user, profile } = useAuth()
-  const [activeTab, setActiveTab] = useState('all')
 
-  // For "my-collective" tab, we'd need user's primary collective
-  // For now, pass undefined for "all" and we'd filter on collective later
-  const collectiveId = activeTab === 'my-collective' ? undefined : undefined
-  const feed = useFeed(collectiveId)
+  const feed = useFeed(undefined)
 
   const posts = feed.data?.pages.flat() ?? []
   const isEmpty = !feed.isLoading && posts.length === 0
@@ -624,15 +614,6 @@ export default function FeedPage() {
         />
       }
     >
-      <div className="pt-3 pb-2">
-        <TabBar
-          tabs={feedTabs}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          aria-label="Feed filter"
-        />
-      </div>
-
       {feed.isLoading ? (
         <FeedSkeleton />
       ) : isEmpty ? (

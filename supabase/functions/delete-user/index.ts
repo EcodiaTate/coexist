@@ -81,7 +81,6 @@ serve(async (req: Request) => {
       supabase.from('post_likes').delete().eq('user_id', userId),
       supabase.from('post_comments').delete().eq('user_id', userId),
       supabase.from('points_ledger').delete().eq('user_id', userId),
-      supabase.from('user_badges').delete().eq('user_id', userId),
       supabase.from('chat_messages').delete().eq('user_id', userId),
       supabase.from('event_registrations').delete().eq('user_id', userId),
       supabase.from('survey_responses').delete().eq('user_id', userId),

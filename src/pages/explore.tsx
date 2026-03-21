@@ -838,88 +838,18 @@ export default function ExplorePage() {
     >
       <div className="flex flex-col flex-1 min-h-0">
         {/* ============================================================ */}
-        {/*  Search bar                                                   */}
+        {/*  Search bar + filter button + view toggle (single row)        */}
         {/* ============================================================ */}
-        <div className="pt-3 pb-2">
+        <div className="flex items-center gap-2 pt-3 pb-2">
           <SearchBar
             ref={searchInputRef}
             value={query}
             onChange={setQuery}
             onSubmit={commitSearch}
             placeholder="Search events, collectives, people..."
-            showSparkle
             aria-label="Search"
+            className="flex-1 min-w-0"
           />
-        </div>
-
-        {/* ============================================================ */}
-        {/*  Filter bar: active chips + filter button + view toggle       */}
-        {/* ============================================================ */}
-        <div className="flex items-center gap-2 pb-2">
-          <div className="flex-1 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
-            {/* Active filter chips */}
-            {filters.activityTypes.map((type) => {
-              const meta = ACTIVITY_META[type] ?? ACTIVITY_META.other
-              return (
-                <Chip
-                  key={type}
-                  label={formatActivityType(type)}
-                  icon={meta.icon}
-                  selected
-                  variant="activity"
-                  onDismiss={() => toggleActivityFilter(type)}
-                />
-              )
-            })}
-            {filters.state && (
-              <Chip
-                label={
-                  AU_STATES.find((s) => s.value === filters.state)?.label ??
-                  filters.state
-                }
-                icon={<MapPin size={14} />}
-                selected
-                onDismiss={() =>
-                  setFilters((f) => ({ ...f, state: null }))
-                }
-              />
-            )}
-            {filters.distanceKm !== 50 && (
-              <Chip
-                label={`${filters.distanceKm} km`}
-                icon={<Compass size={14} />}
-                selected
-                onDismiss={() =>
-                  setFilters((f) => ({ ...f, distanceKm: 50 }))
-                }
-              />
-            )}
-            {(filters.dateFrom || filters.dateTo) && (
-              <Chip
-                label={
-                  filters.dateFrom && filters.dateTo
-                    ? `${filters.dateFrom} – ${filters.dateTo}`
-                    : filters.dateFrom
-                      ? `From ${filters.dateFrom}`
-                      : `Until ${filters.dateTo}`
-                }
-                icon={<CalendarRange size={14} />}
-                selected
-                onDismiss={() =>
-                  setFilters((f) => ({ ...f, dateFrom: null, dateTo: null }))
-                }
-              />
-            )}
-            {activeFilterCount > 0 && (
-              <button
-                type="button"
-                onClick={clearAllFilters}
-                className="text-xs font-medium text-primary-400 hover:text-primary-600 whitespace-nowrap min-h-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none ml-1"
-              >
-                Clear all
-              </button>
-            )}
-          </div>
 
           {/* Filter button */}
           <motion.button
@@ -978,6 +908,74 @@ export default function ExplorePage() {
             </button>
           </div>
         </div>
+
+        {/* ============================================================ */}
+        {/*  Active filter chips                                          */}
+        {/* ============================================================ */}
+        {activeFilterCount > 0 && (
+        <div className="flex items-center gap-1.5 pb-2 overflow-x-auto scrollbar-none">
+            {/* Active filter chips */}
+            {filters.activityTypes.map((type) => {
+              const meta = ACTIVITY_META[type] ?? ACTIVITY_META.other
+              return (
+                <Chip
+                  key={type}
+                  label={formatActivityType(type)}
+                  icon={meta.icon}
+                  selected
+                  variant="activity"
+                  onDismiss={() => toggleActivityFilter(type)}
+                />
+              )
+            })}
+            {filters.state && (
+              <Chip
+                label={
+                  AU_STATES.find((s) => s.value === filters.state)?.label ??
+                  filters.state
+                }
+                icon={<MapPin size={14} />}
+                selected
+                onDismiss={() =>
+                  setFilters((f) => ({ ...f, state: null }))
+                }
+              />
+            )}
+            {filters.distanceKm !== 50 && (
+              <Chip
+                label={`${filters.distanceKm} km`}
+                icon={<Compass size={14} />}
+                selected
+                onDismiss={() =>
+                  setFilters((f) => ({ ...f, distanceKm: 50 }))
+                }
+              />
+            )}
+            {(filters.dateFrom || filters.dateTo) && (
+              <Chip
+                label={
+                  filters.dateFrom && filters.dateTo
+                    ? `${filters.dateFrom} – ${filters.dateTo}`
+                    : filters.dateFrom
+                      ? `From ${filters.dateFrom}`
+                      : `Until ${filters.dateTo}`
+                }
+                icon={<CalendarRange size={14} />}
+                selected
+                onDismiss={() =>
+                  setFilters((f) => ({ ...f, dateFrom: null, dateTo: null }))
+                }
+              />
+            )}
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="text-xs font-medium text-primary-400 hover:text-primary-600 whitespace-nowrap min-h-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none ml-1"
+            >
+              Clear all
+            </button>
+        </div>
+        )}
 
         {/* ============================================================ */}
         {/*  Content area                                                 */}
@@ -1252,14 +1250,6 @@ export default function ExplorePage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                {/* Activity scroller - Stories-style icon row */}
-                <div className="mb-4">
-                  <ActivityScroller
-                    selected={filters.activityTypes}
-                    onToggle={toggleActivityFilter}
-                  />
-                </div>
-
                 {viewMode === 'map' ? (
                   <div>
                     <MapView
@@ -1466,25 +1456,6 @@ export default function ExplorePage() {
 
           {/* Scrollable filter sections */}
           <div className="flex-1 overflow-y-auto -mx-5 px-5">
-            {/* ---- Activity type ---- */}
-            <FilterSection
-              icon={<Leaf size={18} />}
-              title="Activity Type"
-              subtitle={draftActivitySummary}
-            >
-              <div className="space-y-2">
-                {Object.entries(ACTIVITY_TYPE_LABELS).map(([key, label]) => (
-                  <ActivityTile
-                    key={key}
-                    activityKey={key}
-                    label={label}
-                    selected={draftFilters.activityTypes.includes(key)}
-                    onToggle={() => toggleDraftActivityFilter(key)}
-                  />
-                ))}
-              </div>
-            </FilterSection>
-
             {/* ---- Distance ---- */}
             <FilterSection
               icon={<Compass size={18} />}
@@ -1528,6 +1499,25 @@ export default function ExplorePage() {
                   setDraftFilters((f) => ({ ...f, dateFrom: from, dateTo: to }))
                 }
               />
+            </FilterSection>
+
+            {/* ---- Activity type ---- */}
+            <FilterSection
+              icon={<Leaf size={18} />}
+              title="Activity Type"
+              subtitle={draftActivitySummary}
+            >
+              <div className="space-y-2">
+                {Object.entries(ACTIVITY_TYPE_LABELS).map(([key, label]) => (
+                  <ActivityTile
+                    key={key}
+                    activityKey={key}
+                    label={label}
+                    selected={draftFilters.activityTypes.includes(key)}
+                    onToggle={() => toggleDraftActivityFilter(key)}
+                  />
+                ))}
+              </div>
             </FilterSection>
           </div>
 

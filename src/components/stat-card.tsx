@@ -17,7 +17,7 @@ interface StatCardProps {
   'aria-label'?: string
 }
 
-function useCountUp(target: number, duration: number, enabled: boolean) {
+export function useCountUp(target: number, duration: number, enabled: boolean) {
   const [current, setCurrent] = useState(enabled ? 0 : target)
 
   useEffect(() => {

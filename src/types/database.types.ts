@@ -418,88 +418,6 @@ export type Database = {
           }
         ]
       }
-      badges: {
-        Row: {
-          id: string
-          name: string
-          description: string | null
-          icon_url: string | null
-          category: string | null
-          criteria: Json
-          points_value: number
-          tier: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          description?: string | null
-          icon_url?: string | null
-          category?: string | null
-          criteria?: Json
-          points_value?: number
-          tier?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          description?: string | null
-          icon_url?: string | null
-          category?: string | null
-          criteria?: Json
-          points_value?: number
-          tier?: string | null
-          created_at?: string
-        }
-        Relationships: []
-      }
-      user_badges: {
-        Row: {
-          id: string
-          user_id: string
-          badge_id: string
-          earned_at: string
-          event_id: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          badge_id: string
-          earned_at?: string
-          event_id?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          badge_id?: string
-          earned_at?: string
-          event_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'user_badges_user_id_fkey'
-            columns: ['user_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'user_badges_badge_id_fkey'
-            columns: ['badge_id']
-            isOneToOne: false
-            referencedRelation: 'badges'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'user_badges_event_id_fkey'
-            columns: ['event_id']
-            isOneToOne: false
-            referencedRelation: 'events'
-            referencedColumns: ['id']
-          }
-        ]
-      }
       points_ledger: {
         Row: {
           id: string
@@ -1900,10 +1818,6 @@ export type Database = {
         Args: { p_user_id: string; p_amount: number; p_reason: string; p_event_id?: string }
         Returns: undefined
       }
-      check_badge_criteria: {
-        Args: { p_user_id: string }
-        Returns: string[]
-      }
       get_leaderboard: {
         Args: { p_collective_id: string; p_period?: string }
         Returns: {
@@ -2013,8 +1927,6 @@ export type Event = Tables<'events'>
 export type EventRegistration = Tables<'event_registrations'>
 export type EventInvite = Tables<'event_invites'>
 export type EventImpact = Tables<'event_impact'>
-export type Badge = Tables<'badges'>
-export type UserBadge = Tables<'user_badges'>
 export type PointsLedger = Tables<'points_ledger'>
 export type PushToken = Tables<'push_tokens'>
 export type Notification = Tables<'notifications'>

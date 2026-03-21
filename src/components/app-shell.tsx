@@ -6,6 +6,8 @@ import { BottomTabBar } from '@/components/bottom-tab-bar'
 import { SidebarNav } from '@/components/sidebar-nav'
 import { WebFooter } from '@/components/web-footer'
 import { OfflineBanner } from '@/components/offline-banner'
+import { MenuSheet } from '@/components/menu-sheet'
+import { MenuSheetProvider, useMenuSheet } from '@/hooks/use-menu-sheet'
 import { useSyncManager } from '@/hooks/use-sync-manager'
 
 interface AppShellProps {
@@ -15,16 +17,25 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, bare = false }: AppShellProps) {
-  const { isMobile, isWeb, navMode } = useLayout()
-  const location = useLocation()
-  const isAdminRoute = location.pathname.startsWith('/admin')
-
-  // Handles auto-sync on reconnect + toast notifications
-  useSyncManager()
-
   if (bare) {
     return <div className="flex flex-col min-h-dvh">{children}</div>
   }
+
+  return (
+    <MenuSheetProvider>
+      <AppShellInner>{children}</AppShellInner>
+    </MenuSheetProvider>
+  )
+}
+
+function AppShellInner({ children }: { children: ReactNode }) {
+  const { isMobile, isWeb, navMode } = useLayout()
+  const location = useLocation()
+  const isAdminRoute = location.pathname.startsWith('/admin')
+  const { open, closeMenu } = useMenuSheet()
+
+  // Handles auto-sync on reconnect + toast notifications
+  useSyncManager()
 
   const showBottomTabs = navMode === 'bottom-tabs'
   const showSidebar = navMode === 'sidebar'
@@ -57,6 +68,9 @@ export function AppShell({ children, bare = false }: AppShellProps) {
 
       {/* Bottom tab bar (mobile + native) */}
       {showBottomTabs && <BottomTabBar />}
+
+      {/* Menu side sheet (mobile + native) */}
+      {showBottomTabs && <MenuSheet open={open} onClose={closeMenu} />}
     </div>
   )
 }

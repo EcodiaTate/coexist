@@ -3,6 +3,7 @@ import type { User, Session, AuthError } from '@supabase/supabase-js'
 import { Capacitor } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
 import { supabase } from '@/lib/supabase'
+import { resolveCapabilities } from '@/lib/capabilities'
 import type { Database } from '@/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -94,6 +95,8 @@ interface AuthContextValue {
   isLeader: (collectiveId: string) => boolean
   isAssistLeader: (collectiveId: string) => boolean
   isCoLeader: (collectiveId: string) => boolean
+  capabilities: Set<string>
+  hasCapability: (key: string) => boolean
   isStaff: boolean
   isAdmin: boolean
   isSuperAdmin: boolean
@@ -127,6 +130,7 @@ export function useAuthProvider(): AuthContextValue {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [collectiveRoles, setCollectiveRoles] = useState<CollectiveMembership[]>([])
+  const [permissionOverrides, setPermissionOverrides] = useState<Record<string, boolean> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   /* ---- fetch profile ---- */
@@ -144,6 +148,21 @@ export function useAuthProvider(): AuthContextValue {
       return data
     } catch (err) {
       console.error('[auth] fetchProfile exception:', err)
+      return null
+    }
+  }, [])
+
+  /* ---- fetch staff permission overrides ---- */
+  const fetchPermissionOverrides = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('staff_roles' as any)
+        .select('permissions')
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (error) return null
+      return (data as any)?.permissions as Record<string, boolean> | null
+    } catch {
       return null
     }
   }, [])
@@ -170,16 +189,17 @@ export function useAuthProvider(): AuthContextValue {
   /* ---- load user data (profile + collective roles) ---- */
   const loadUserData = useCallback(async (userId: string) => {
     console.log('[auth] loadUserData start', userId)
-    const timeout = new Promise<[null, CollectiveMembership[]]>((resolve) =>
+    const timeout = new Promise<[null, CollectiveMembership[], Record<string, boolean> | null]>((resolve) =>
       setTimeout(() => {
         console.warn('[auth] loadUserData timed out after 8s')
-        resolve([null, []])
+        resolve([null, [], null])
       }, 8000),
     )
-    const [profileData, roles] = await Promise.race([
+    const [profileData, roles, permOverrides] = await Promise.race([
       Promise.all([
         fetchProfile(userId),
         fetchCollectiveRoles(userId),
+        fetchPermissionOverrides(userId),
       ]),
       timeout,
     ])
@@ -194,6 +214,7 @@ export function useAuthProvider(): AuthContextValue {
         console.log('[auth] Profile found on retry')
         setProfile(retried)
         setCollectiveRoles(roles)
+        setPermissionOverrides(permOverrides)
         persistProfile(retried)
         return retried
       }
@@ -218,6 +239,7 @@ export function useAuthProvider(): AuthContextValue {
           console.log('[auth] Profile created successfully')
           setProfile(created)
           setCollectiveRoles(roles)
+          setPermissionOverrides(permOverrides)
           persistProfile(created)
           return created
         }
@@ -256,9 +278,10 @@ export function useAuthProvider(): AuthContextValue {
 
     setProfile(profileData)
     setCollectiveRoles(roles)
+    setPermissionOverrides(permOverrides)
     persistProfile(profileData)
     return profileData
-  }, [fetchProfile, fetchCollectiveRoles])
+  }, [fetchProfile, fetchCollectiveRoles, fetchPermissionOverrides])
 
   /* ---- refresh profile (public) ---- */
   const refreshProfile = useCallback(async () => {
@@ -324,6 +347,7 @@ export function useAuthProvider(): AuthContextValue {
         } else {
           setProfile(null)
           setCollectiveRoles([])
+          setPermissionOverrides(null)
           persistProfile(null)
           setIsLoading(false)
         }
@@ -381,6 +405,17 @@ export function useAuthProvider(): AuthContextValue {
   const isStaff = GLOBAL_ROLE_RANK[role] >= GLOBAL_ROLE_RANK.national_staff
   const isAdmin = GLOBAL_ROLE_RANK[role] >= GLOBAL_ROLE_RANK.national_admin
   const isSuperAdmin = role === 'super_admin'
+
+  /* ---- capabilities (frontend-only gating) ---- */
+  const capabilities = useMemo(
+    () => resolveCapabilities(role, permissionOverrides),
+    [role, permissionOverrides],
+  )
+
+  const hasCapability = useCallback(
+    (key: string) => capabilities.has(key),
+    [capabilities],
+  )
 
   /* ---- suspended / TOS checks ---- */
   const isSuspended = profile?.is_suspended ?? false
@@ -478,6 +513,8 @@ export function useAuthProvider(): AuthContextValue {
       session,
       role,
       collectiveRoles,
+      capabilities,
+      hasCapability,
       isLoading,
       isSuspended,
       suspendedReason,
@@ -501,10 +538,9 @@ export function useAuthProvider(): AuthContextValue {
       acceptTos,
     }),
     [
-      user, profile, session, role, collectiveRoles, isLoading,
-      isSuspended, suspendedReason, suspendedUntil, needsTosAcceptance,
-      isLeader, isAssistLeader, isCoLeader,
-      isStaff, isAdmin, isSuperAdmin,
+      user, profile, session, role, collectiveRoles, capabilities, hasCapability,
+      isLoading, isSuspended, suspendedReason, suspendedUntil, needsTosAcceptance,
+      isLeader, isAssistLeader, isCoLeader, isStaff, isAdmin, isSuperAdmin,
       signUp, signIn, signInWithGoogle, signInWithApple, signInWithMagicLink,
       signOut, resetPassword, updatePassword, refreshProfile, acceptTos,
     ],

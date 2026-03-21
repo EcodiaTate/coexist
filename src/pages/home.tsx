@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   Bell,
+  Menu,
   ChevronRight,
   Calendar,
   Users,
@@ -10,7 +11,6 @@ import {
   Megaphone,
   Target,
   Sparkles,
-  Trophy,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
@@ -23,14 +23,12 @@ import {
   useImpactStats,
   useActiveChallenge,
   useTrendingCollectives,
-  useSuggestedConnections,
   ACTIVITY_TYPE_LABELS,
 } from '@/hooks/use-home-feed'
 import {
   Page,
   PullToRefresh,
   Card,
-  Avatar,
   Badge,
   ProgressBar,
   Skeleton,
@@ -40,6 +38,9 @@ import {
   EasterEgg,
 } from '@/components'
 import { cn } from '@/lib/cn'
+import { useLayout } from '@/hooks/use-layout'
+import { useMenuSheet } from '@/hooks/use-menu-sheet'
+import { ProximityCheckInBanner } from '@/components/proximity-check-in-banner'
 
 /* ------------------------------------------------------------------ */
 /*  Animation helpers                                                  */
@@ -175,6 +176,8 @@ export default function HomePage() {
   const shouldReduceMotion = useReducedMotion()
   const queryClient = useQueryClient()
   const { profile } = useAuth()
+  const { navMode } = useLayout()
+  const { openMenu } = useMenuSheet()
 
   // All data hooks
   const announcement = useLatestAnnouncement()
@@ -184,13 +187,11 @@ export default function HomePage() {
   const impact = useImpactStats()
   const challenge = useActiveChallenge()
   const trending = useTrendingCollectives()
-  const suggestions = useSuggestedConnections()
 
   const firstName = profile?.display_name?.split(' ')[0]
   const eventsAttended = impact.data?.events_attended ?? 0
   const isNewUser = eventsAttended === 0 && !myCollective.data
   const isActiveUser = eventsAttended >= 5
-  const isPowerUser = eventsAttended >= 20
 
   // Pull-to-refresh: invalidate all home queries
   const handleRefresh = useCallback(async () => {
@@ -203,7 +204,7 @@ export default function HomePage() {
         <header
           className={cn(
             'sticky top-0 z-40',
-            'flex items-center justify-end h-14 px-4',
+            'flex items-center justify-end gap-1 h-14 px-4',
             'bg-white/90 backdrop-blur-sm',
           )}
           style={{ paddingTop: 'var(--safe-top)' }}
@@ -222,9 +223,28 @@ export default function HomePage() {
           >
             <Bell size={22} />
           </button>
+          {navMode === 'bottom-tabs' && (
+            <button
+              type="button"
+              onClick={openMenu}
+              className={cn(
+                'flex items-center justify-center min-h-11 min-w-11 rounded-full',
+                'text-primary-600 hover:bg-primary-50',
+                'active:scale-[0.97] transition-all duration-150',
+                'cursor-pointer select-none',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+              )}
+              aria-label="Open menu"
+            >
+              <Menu size={22} />
+            </button>
+          )}
         </header>
       }
     >
+      {/* Proximity check-in banner (geo-based) */}
+      <ProximityCheckInBanner />
+
       {/* Seasonal ambient particles */}
       <SeasonalParticles count={6} />
 

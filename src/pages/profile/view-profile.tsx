@@ -8,7 +8,6 @@ import {
   TreePine,
   Star,
   Users,
-  Award,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -23,7 +22,6 @@ import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import { MapView } from '@/components'
 import { useProfile, useProfileCollectives, useProfileStats, useMutualConnections } from '@/hooks/use-profile'
-import { useBadgesWithStatus } from '@/hooks/use-badges'
 import { usePointsBalance, getTierFromPoints } from '@/hooks/use-points'
 import type { TierName } from '@/hooks/use-points'
 
@@ -59,7 +57,6 @@ export default function ViewProfilePage() {
   const { data: profile, isLoading } = useProfile(userId)
   const { data: collectives } = useProfileCollectives(userId)
   const { data: stats } = useProfileStats(userId)
-  const { data: badges } = useBadgesWithStatus(userId)
   const { data: pointsData } = usePointsBalance(userId)
   const { data: mutualData } = useMutualConnections(userId ?? '')
 
@@ -96,7 +93,6 @@ export default function ViewProfilePage() {
 
   const points = pointsData?.points ?? profile.points ?? 0
   const tier = getTierFromPoints(points)
-  const earnedBadges = badges?.filter((b) => b.earned) ?? []
   const memberSince = new Date(profile.created_at).toLocaleDateString('en-AU', {
     month: 'long',
     year: 'numeric',
@@ -240,36 +236,6 @@ export default function ViewProfilePage() {
           </motion.section>
         )}
 
-        {/* Badges */}
-        {earnedBadges.length > 0 && (
-          <motion.section
-            variants={fadeUp}
-            className="mt-6"
-          >
-            <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
-              Badges
-            </h3>
-            <div className="grid grid-cols-4 gap-3">
-              {earnedBadges.slice(0, 8).map((badge) => (
-                <div
-                  key={badge.id}
-                  className="flex flex-col items-center gap-1.5 p-2"
-                >
-                  <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-                    {badge.icon_url ? (
-                      <img src={badge.icon_url} alt="" className="w-8 h-8" />
-                    ) : (
-                      <Award size={20} className="text-primary-500" />
-                    )}
-                  </div>
-                  <span className="text-[10px] font-medium text-primary-400 text-center line-clamp-2 leading-tight">
-                    {badge.name}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </motion.section>
-        )}
 
         {/* Interests */}
         {profile.interests && profile.interests.length > 0 && (

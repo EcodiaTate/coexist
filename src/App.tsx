@@ -58,7 +58,6 @@ const ProfilePage = lazy(() => import('@/pages/profile/index'))
 const ViewProfilePage = lazy(() => import('@/pages/profile/view-profile'))
 const EditProfilePage = lazy(() => import('@/pages/profile/edit-profile'))
 const ImpactDashboardPage = lazy(() => import('@/pages/impact/index'))
-const BadgesPage = lazy(() => import('@/pages/badges/index'))
 const LeaderboardPage = lazy(() => import('@/pages/leaderboard/index'))
 const PointsPage = lazy(() => import('@/pages/points/index'))
 const ReferralPage = lazy(() => import('@/pages/referral/index'))
@@ -70,6 +69,7 @@ const CreateEventPage = lazy(() => import('@/pages/events/create-event'))
 const CheckInPage = lazy(() => import('@/pages/events/check-in'))
 const EventDayPage = lazy(() => import('@/pages/events/event-day'))
 const LogImpactPage = lazy(() => import('@/pages/events/log-impact'))
+const PostEventSurveyPage = lazy(() => import('@/pages/events/post-event-survey'))
 
 // Community / Feed
 const FeedPage = lazy(() => import('@/pages/community/feed'))
@@ -117,12 +117,14 @@ const AdminEventsPage = lazy(() => import('@/pages/admin/events'))
 const AdminPartnersPage = lazy(() => import('@/pages/admin/partners'))
 const AdminChallengesPage = lazy(() => import('@/pages/admin/challenges'))
 const AdminSurveysPage = lazy(() => import('@/pages/admin/surveys'))
+const AdminCreateSurveyPage = lazy(() => import('@/pages/admin/create-survey'))
 const AdminAuditLogPage = lazy(() => import('@/pages/admin/audit-log'))
 const AdminSystemPage = lazy(() => import('@/pages/admin/system'))
 const AdminEmailPage = lazy(() => import('@/pages/admin/email'))
 const AdminCharityPage = lazy(() => import('@/pages/admin/charity'))
 const AdminExportsPage = lazy(() => import('@/pages/admin/exports'))
 const SuperAdminPage = lazy(() => import('@/pages/admin/super/index'))
+const DevToolsPage = lazy(() => import('@/pages/admin/dev-tools'))
 
 // More (hub page)
 const MorePage = lazy(() => import('@/pages/more'))
@@ -369,6 +371,18 @@ function App() {
           }
         />
         <Route
+          path="/events/:id/survey"
+          element={
+            <RequireAuth>
+              <AppShell>
+                <PageTransition>
+                  <PostEventSurveyPage />
+                </PageTransition>
+              </AppShell>
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/community"
           element={
             <RequireAuth>
@@ -497,18 +511,6 @@ function App() {
               <AppShell>
                 <PageTransition>
                   <ImpactDashboardPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/badges"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <BadgesPage />
                 </PageTransition>
               </AppShell>
             </RequireAuth>
@@ -817,6 +819,7 @@ function App() {
           <Route path="partners" element={<AdminPartnersPage />} />
           <Route path="challenges" element={<AdminChallengesPage />} />
           <Route path="surveys" element={<AdminSurveysPage />} />
+          <Route path="surveys/create" element={<AdminCreateSurveyPage />} />
           <Route path="reports" element={<ReportsPage />} />
           <Route path="national-impact" element={<NationalImpactPage />} />
           <Route path="moderation" element={<ModerationQueuePage />} />
@@ -828,6 +831,7 @@ function App() {
           <Route path="membership" element={<AdminMembershipPage />} />
           <Route path="merch" element={<AdminMerchPage />} />
           <Route path="super" element={<RequireRole minRole="super_admin"><SuperAdminPage /></RequireRole>} />
+          <Route path="dev-tools" element={<DevToolsPage />} />
         </Route>
 
         {/* ---- Legal pages (no auth required) ---- */}

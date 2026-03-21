@@ -65,7 +65,6 @@ export { PageTransition } from './page-transition'
 // Animation & Delight
 export { Confetti } from './confetti'
 export { Celebration } from './celebration'
-export { BadgeUnlock } from './badge-unlock'
 export { PointsFlyUp } from './points-fly-up'
 export { NatureLoader } from './nature-loader'
 export { SeasonalParticles } from './seasonal-particles'

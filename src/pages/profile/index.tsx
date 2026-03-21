@@ -9,16 +9,7 @@ import {
   Calendar,
   Clock,
   TreePine,
-  Trash2,
   Star,
-  ChevronRight,
-  CreditCard,
-  Award,
-  TrendingUp,
-  ShoppingBag,
-  Heart,
-  MessageCircle,
-  Trophy,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -36,7 +27,6 @@ import { cn } from '@/lib/cn'
 import { OfflineIndicator } from '@/components/offline-indicator'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile, useProfileCollectives, useProfileStats } from '@/hooks/use-profile'
-import { useBadgesWithStatus } from '@/hooks/use-badges'
 import { usePointsBalance, getTierProgress, getTierFromPoints } from '@/hooks/use-points'
 import type { TierName } from '@/hooks/use-points'
 
@@ -74,7 +64,6 @@ export default function ProfilePage() {
   const { data: profile, isLoading: profileLoading, dataUpdatedAt: profileUpdatedAt, isFetching: profileFetching } = useProfile()
   const { data: collectives, isLoading: collectivesLoading } = useProfileCollectives()
   const { data: stats, isLoading: statsLoading } = useProfileStats()
-  const { data: badges } = useBadgesWithStatus()
   const { data: pointsData } = usePointsBalance()
 
 
@@ -104,7 +93,6 @@ export default function ProfilePage() {
   const points = pointsData?.points ?? profile.points ?? 0
   const tierProgress = getTierProgress(points)
   const tier = getTierFromPoints(points) as TierName
-  const earnedBadges = badges?.filter((b) => b.earned) ?? []
   const memberSince = new Date(profile.created_at).toLocaleDateString('en-AU', {
     month: 'long',
     year: 'numeric',
@@ -342,55 +330,6 @@ export default function ProfilePage() {
           )}
         </motion.section>
 
-        {/* Badge Showcase */}
-        <motion.section
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="mt-6"
-        >
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-heading text-base font-semibold text-primary-800">
-              Badges
-            </h3>
-            <button
-              onClick={() => navigate('/badges')}
-              className="text-sm font-medium text-primary-400 hover:text-primary-400 transition-colors"
-            >
-              View all
-            </button>
-          </div>
-          {earnedBadges.length > 0 ? (
-            <div className="grid grid-cols-4 gap-3">
-              {earnedBadges.slice(0, 8).map((badge) => (
-                <button
-                  key={badge.id}
-                  onClick={() => navigate(`/badges?badge=${badge.id}`)}
-                  className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-primary-50 transition-colors"
-                >
-                  <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
-                    {badge.icon_url ? (
-                      <img src={badge.icon_url} alt="" className="w-8 h-8" />
-                    ) : (
-                      <Award size={20} className="text-primary-500" />
-                    )}
-                  </div>
-                  <span className="text-[10px] font-medium text-primary-400 text-center line-clamp-2 leading-tight">
-                    {badge.name}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <EmptyState
-              illustration="empty"
-              title="No badges yet"
-              description="Attend events and engage with your collective to earn badges"
-              action={{ label: 'View Badges', to: '/badges' }}
-              className="min-h-[160px]"
-            />
-          )}
-        </motion.section>
 
         {/* Interests */}
         {profile.interests && profile.interests.length > 0 && (

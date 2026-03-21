@@ -10,11 +10,11 @@ import {
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
-import { StatCard } from '@/components/stat-card'
 import { Skeleton } from '@/components/skeleton'
 import { Dropdown } from '@/components/dropdown'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
+import { useCountUp } from '@/components/stat-card'
 
 /* ------------------------------------------------------------------ */
 /*  Date range helpers                                                 */
@@ -166,7 +166,11 @@ function SimpleBarChart({
   color: string
 }) {
   const shouldReduceMotion = useReducedMotion()
-  const max = Math.max(...data.map((d) => d[dataKey] as number), 1)
+  const values = data.map((d) => d[dataKey] as number)
+  const max = Math.max(...values, 1)
+  const mean = values.reduce((a, b) => a + b, 0) / values.length || 1
+  // Scale so the mean sits at ~60% height, but cap at 100%
+  const scale = max > 0 ? Math.max(max, mean * 1.65) : 1
 
   return (
     <div className="bg-white rounded-xl shadow-sm p-4">
@@ -175,14 +179,15 @@ function SimpleBarChart({
       </h3>
       <div className="flex items-end gap-2 h-32">
         {data.map((d, i) => {
-          const height = ((d[dataKey] as number) / max) * 100
+          const val = d[dataKey] as number
+          const height = val > 0 ? Math.max((val / scale) * 100, 8) : 0
           return (
             <div key={d.month} className="flex-1 flex flex-col items-center gap-1">
               <span className="text-[10px] text-primary-400 tabular-nums">
                 {d[dataKey]}
               </span>
               <motion.div
-                className={cn('w-full rounded-t-md min-h-[4px]', color)}
+                className={cn('w-full rounded-t-md', color, height > 0 && 'min-h-[4px]')}
                 initial={shouldReduceMotion ? { height: `${height}%` } : { height: 0 }}
                 animate={{ height: `${height}%` }}
                 transition={{ duration: 0.5, delay: i * 0.08, ease: 'easeOut' }}
@@ -192,6 +197,49 @@ function SimpleBarChart({
           )
         })}
       </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hero stat — big number, no card                                    */
+/* ------------------------------------------------------------------ */
+
+function HeroStat({
+  value,
+  label,
+  icon,
+  sub,
+  accent,
+  reducedMotion,
+}: {
+  value: number
+  label: string
+  icon: React.ReactNode
+  sub?: string
+  accent?: string
+  reducedMotion: boolean
+}) {
+  const display = useCountUp(value, 1200, !reducedMotion)
+
+  return (
+    <div className="py-2 text-center" aria-label={`${label}: ${value}`}>
+      <p
+        style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+        className={cn(
+          'text-4xl lg:text-5xl font-bold tracking-tight tabular-nums',
+          accent ?? 'text-primary-800',
+        )}
+      >
+        {display.toLocaleString()}
+      </p>
+      <div className="mt-1.5 inline-flex items-center gap-1.5 text-primary-400">
+        <span className="shrink-0" aria-hidden="true">{icon}</span>
+        <span className="text-sm font-medium">{label}</span>
+      </div>
+      {sub && (
+        <p className="mt-0.5 text-xs text-accent-600 font-medium">{sub}</p>
+      )}
     </div>
   )
 }
@@ -223,14 +271,15 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <Skeleton variant="stat-card" />
-          <Skeleton variant="stat-card" />
-          <Skeleton variant="stat-card" />
-          <Skeleton variant="stat-card" />
+      <div className="space-y-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="py-2 space-y-2">
+              <Skeleton className="h-12 w-28" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+          ))}
         </div>
-        <Skeleton variant="card" />
         <Skeleton variant="card" />
       </div>
     )
@@ -247,64 +296,59 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <motion.div className="space-y-6" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
-        {/* Primary stats */}
-        <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <StatCard
+    <motion.div className="space-y-8" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+        {/* Primary stats — big & bold */}
+        <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          <HeroStat
             value={data?.totalMembers ?? 0}
-            label="Total Members"
-            icon={<Users size={20} />}
-            trend={
-              data?.periodMembers
-                ? { value: data.periodMembers, direction: 'up' }
-                : undefined
-            }
+            label="Members"
+            icon={<Users size={18} />}
+            sub={data?.periodMembers ? `+${data.periodMembers} this period` : undefined}
+            reducedMotion={!!shouldReduceMotion}
           />
-          <StatCard
+          <HeroStat
             value={data?.totalCollectives ?? 0}
             label="Collectives"
-            icon={<MapPin size={20} />}
+            icon={<MapPin size={18} />}
+            reducedMotion={!!shouldReduceMotion}
           />
-          <StatCard
+          <HeroStat
             value={data?.totalEvents ?? 0}
-            label="Total Events"
-            icon={<CalendarDays size={20} />}
-            trend={
-              data?.periodEvents
-                ? { value: data.periodEvents, direction: 'up' }
-                : undefined
-            }
+            label="Events"
+            icon={<CalendarDays size={18} />}
+            sub={data?.periodEvents ? `+${data.periodEvents} this period` : undefined}
+            reducedMotion={!!shouldReduceMotion}
           />
-          <StatCard
+          <HeroStat
             value={data?.totalHours ?? 0}
             label="Volunteer Hours"
-            icon={<Clock size={20} />}
+            icon={<Clock size={18} />}
+            reducedMotion={!!shouldReduceMotion}
           />
         </motion.div>
 
-        {/* Impact stats */}
-        <motion.div variants={fadeUp} className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-          <StatCard
+        {/* Impact row */}
+        <motion.div variants={fadeUp} className="border-t border-primary-100 pt-6 grid grid-cols-3 gap-6">
+          <HeroStat
             value={data?.totalTrees ?? 0}
             label="Trees Planted"
-            icon={<TreePine size={20} />}
-            className="from-success-50 to-success-100/50"
+            icon={<TreePine size={18} />}
+            accent="text-accent-700"
+            reducedMotion={!!shouldReduceMotion}
           />
-          <StatCard
+          <HeroStat
             value={data?.totalRubbish ?? 0}
-            label="Rubbish Collected (kg)"
-            icon={
-              <span className="text-lg" aria-hidden="true">
-                &#9851;
-              </span>
-            }
-            className="from-info-50 to-info-100/50"
+            label="Rubbish (kg)"
+            icon={<span className="text-base" aria-hidden="true">&#9851;</span>}
+            accent="text-primary-600"
+            reducedMotion={!!shouldReduceMotion}
           />
-          <StatCard
+          <HeroStat
             value={data?.periodEvents ?? 0}
-            label={`Events (${dateRangeOptions.find((o) => o.value === dateRange)?.label})`}
-            icon={<TrendingUp size={20} />}
-            className="from-white to-accent-100/50"
+            label={`Events \u00b7 ${dateRangeOptions.find((o) => o.value === dateRange)?.label}`}
+            icon={<TrendingUp size={18} />}
+            accent="text-primary-500"
+            reducedMotion={!!shouldReduceMotion}
           />
         </motion.div>
 

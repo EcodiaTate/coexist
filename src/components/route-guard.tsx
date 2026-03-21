@@ -110,6 +110,38 @@ interface RequireCollectiveRoleProps {
   children: ReactNode
 }
 
+/* ------------------------------------------------------------------ */
+/*  RequireCapability - check frontend capability                      */
+/* ------------------------------------------------------------------ */
+
+interface RequireCapabilityProps {
+  cap: string
+  children: ReactNode
+}
+
+export function RequireCapability({ cap, children }: RequireCapabilityProps) {
+  const { user, hasCapability, isLoading } = useAuth()
+  const location = useLocation()
+
+  if (isLoading) {
+    return <div className="min-h-dvh bg-white" />
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  if (!hasCapability(cap)) {
+    return <Navigate to="/admin" replace />
+  }
+
+  return <>{children}</>
+}
+
+/* ------------------------------------------------------------------ */
+/*  RequireCollectiveRole - check collective-specific role              */
+/* ------------------------------------------------------------------ */
+
 export function RequireCollectiveRole({
   minRole,
   collectiveId,
