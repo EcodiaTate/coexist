@@ -510,7 +510,7 @@ function CampaignComposer({
       target_all: targetAll,
       target_tag_ids: targetAll ? [] : selectedTagIds,
       target_collective_ids: targetAll ? [] : selectedCollectiveIds,
-      status: andSend ? 'sending' : ('draft' as const),
+      status: andSend ? 'sending' as const : 'draft' as const,
       created_by: user?.id,
     }
 

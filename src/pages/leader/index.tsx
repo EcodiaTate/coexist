@@ -408,8 +408,8 @@ function SectionHeader({
   icon?: React.ReactNode
 }) {
   return (
-    <div className="flex items-center justify-between mb-3">
-      <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-white/60 uppercase tracking-wide">
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-white/50 uppercase tracking-widest">
         {icon && <span className="text-white/50">{icon}</span>}
         {children}
       </h2>
@@ -490,7 +490,7 @@ export default function LeaderDashboardPage() {
     return (
       <Wrapper>
         <div className="py-4 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <Skeleton variant="stat-card" />
             <Skeleton variant="stat-card" />
             <Skeleton variant="stat-card" />
@@ -531,103 +531,58 @@ export default function LeaderDashboardPage() {
       <div className="relative min-h-screen overflow-hidden">
         {/* Layered background — Co-Exist olive green palette */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_70%_-15%,var(--color-primary-400)/0.35,transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_100%_70%_at_10%_110%,var(--color-accent-400)/0.20,transparent)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_40%_40%,var(--color-primary-500)/0.12,transparent_70%)]" />
 
-        {/* ── Big glowing orbs ── */}
-        {/* Top-left warm glow */}
+        {/* ── Bold geometric shapes — clean edges, no blur ── */}
+        {/* Giant top-right circle */}
         <motion.div
-          animate={{ scale: [1, 1.15, 1], x: [0, 20, 0], y: [0, -12, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute -left-28 -top-28 w-[550px] h-[550px] rounded-full bg-primary-400/25 blur-3xl"
+          animate={{ scale: [1, 1.05, 1] }}
+          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -right-[18%] -top-[12%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.07]"
         />
-        {/* Right mid orb */}
+        {/* Concentric inner */}
         <motion.div
-          animate={{ scale: [1, 1.1, 1], x: [0, -15, 0], y: [0, 18, 0] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-          className="absolute -right-32 top-[35%] w-[450px] h-[450px] rounded-full bg-accent-500/18 blur-3xl"
+          animate={{ scale: [1, 1.07, 1] }}
+          transition={{ duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+          className="absolute -right-[12%] -top-[6%] w-[45vw] h-[45vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.05]"
         />
-        {/* Bottom glow */}
+        {/* Bottom-left arc */}
         <motion.div
-          animate={{ scale: [1, 1.12, 1], opacity: [0.18, 0.3, 0.18] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
-          className="absolute right-[10%] -bottom-20 w-[600px] h-[350px] rounded-full bg-primary-500/20 blur-3xl"
+          animate={{ scale: [1, 1.04, 1], y: [0, -10, 0] }}
+          transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+          className="absolute -left-[15%] bottom-[5%] w-[55vw] h-[55vw] max-w-[550px] max-h-[550px] rounded-full border border-white/[0.06]"
         />
-        {/* Small success accent */}
+        {/* Solid accent circle top-left */}
         <motion.div
-          animate={{ scale: [1, 1.25, 1], opacity: [0.12, 0.25, 0.12] }}
-          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute right-[20%] top-[8%] w-[200px] h-[200px] rounded-full bg-success-500/15 blur-2xl"
+          animate={{ scale: [1, 1.08, 1], opacity: [0.07, 0.12, 0.07] }}
+          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          className="absolute left-[5%] top-[3%] w-[220px] h-[220px] rounded-full bg-white/[0.07]"
         />
-        {/* Center-left accent */}
+        {/* Small solid circle mid-left */}
         <motion.div
-          animate={{ scale: [1, 1.1, 1], y: [0, -12, 0] }}
-          transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut', delay: 6 }}
-          className="absolute left-[10%] top-[60%] w-[280px] h-[280px] rounded-full bg-primary-300/15 blur-2xl"
+          animate={{ y: [0, 14, 0], opacity: [0.06, 0.11, 0.06] }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+          className="absolute left-[8%] top-[55%] w-[120px] h-[120px] rounded-full bg-white/[0.05]"
         />
-
-        {/* ── Floating leaf SVGs ── */}
-        <motion.svg
-          animate={{ y: [0, -10, 0], rotate: [0, 10, 0], opacity: [0.1, 0.18, 0.1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute right-[10%] top-[12%] w-14 h-14 text-white/15"
-          viewBox="0 0 24 24" fill="currentColor"
-        >
-          <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.71c.75.75 1.76 1.16 2.84 1.16 3.5 0 7-3.13 7-5.95 0-1.56-.79-2.97-2-3.97A7.84 7.84 0 0017 8z" />
-        </motion.svg>
-        <motion.svg
-          animate={{ y: [0, 12, 0], rotate: [0, -15, 0], opacity: [0.06, 0.13, 0.06] }}
-          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-          className="absolute left-[15%] top-[50%] w-20 h-20 text-white/10"
-          viewBox="0 0 24 24" fill="currentColor"
-        >
-          <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.71c.75.75 1.76 1.16 2.84 1.16 3.5 0 7-3.13 7-5.95 0-1.56-.79-2.97-2-3.97A7.84 7.84 0 0017 8z" />
-        </motion.svg>
-        <motion.svg
-          animate={{ y: [0, -7, 0], rotate: [0, 12, 0], opacity: [0.08, 0.14, 0.08] }}
-          transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 6 }}
-          className="absolute right-[35%] bottom-[10%] w-16 h-16 text-white/8"
-          viewBox="0 0 24 24" fill="currentColor"
-        >
-          <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.71c.75.75 1.76 1.16 2.84 1.16 3.5 0 7-3.13 7-5.95 0-1.56-.79-2.97-2-3.97A7.84 7.84 0 0017 8z" />
-        </motion.svg>
-
-        {/* ── Floating particles ── */}
+        {/* Tiny dots */}
         <motion.div
-          animate={{ y: [0, -10, 0], x: [0, 5, 0], opacity: [0.25, 0.55, 0.25] }}
-          transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute right-[15%] top-[20%] w-2 h-2 rounded-full bg-white/30"
+          animate={{ y: [0, -8, 0], opacity: [0.3, 0.55, 0.3] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute left-[18%] top-[18%] w-2 h-2 rounded-full bg-white/30"
         />
         <motion.div
-          animate={{ y: [0, 8, 0], x: [0, -4, 0], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute left-[10%] top-[30%] w-1.5 h-1.5 rounded-full bg-white/25"
+          animate={{ y: [0, 6, 0], opacity: [0.2, 0.5, 0.2] }}
+          transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+          className="absolute right-[15%] top-[45%] w-1.5 h-1.5 rounded-full bg-white/25"
         />
         <motion.div
-          animate={{ y: [0, -6, 0], opacity: [0.2, 0.45, 0.2] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute right-[30%] top-[55%] w-2.5 h-2.5 rounded-full bg-primary-200/35"
-        />
-        <motion.div
-          animate={{ y: [0, 7, 0], opacity: [0.15, 0.35, 0.15] }}
-          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 3.5 }}
-          className="absolute left-[22%] bottom-[18%] w-2 h-2 rounded-full bg-white/20"
-        />
-        <motion.div
-          animate={{ y: [0, -5, 0], x: [0, 3, 0], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-          className="absolute left-[55%] top-[5%] w-1.5 h-1.5 rounded-full bg-success-300/30"
-        />
-        <motion.div
-          animate={{ y: [0, 10, 0], x: [0, -5, 0], opacity: [0.15, 0.3, 0.15] }}
-          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
-          className="absolute right-[5%] bottom-[40%] w-3 h-3 rounded-full bg-primary-200/20"
+          animate={{ y: [0, -5, 0], opacity: [0.25, 0.45, 0.25] }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+          className="absolute right-[35%] bottom-[12%] w-2 h-2 rounded-full bg-white/20"
         />
 
         {/* Content */}
         <motion.div
-          className="relative z-10 px-6 py-6 space-y-6 pb-12"
+          className="relative z-10 px-6 pt-8 space-y-10 pb-20"
           variants={shouldReduceMotion ? undefined : stagger}
           initial="hidden"
           animate="visible"
@@ -646,7 +601,7 @@ export default function LeaderDashboardPage() {
           </motion.div>
 
           {/* ── Hero stats ── */}
-          <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
+          <motion.div variants={fadeUp} className="grid grid-cols-2 gap-4">
             <HeroStat
               value={data?.activeMembers ?? 0}
               label="Active Members"
@@ -717,7 +672,7 @@ export default function LeaderDashboardPage() {
           {/* ── Quick actions ── */}
           <motion.div variants={fadeUp}>
             <SectionHeader>Quick Actions</SectionHeader>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-4">
               {quickActions.map((action) => (
                 <Link
                   key={action.label}
@@ -846,7 +801,7 @@ export default function LeaderDashboardPage() {
               <SectionHeader>
                 Member Engagement
               </SectionHeader>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-2xl bg-success-500/25 backdrop-blur-md p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-xl bg-success-400/20 flex items-center justify-center">

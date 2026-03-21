@@ -145,7 +145,7 @@ export default function LeaderAnnouncementsPage() {
 
             {/* Body */}
             <p className="text-sm text-primary-600 leading-relaxed line-clamp-4">
-              {a.body}
+              {a.content}
             </p>
 
             {/* Image */}
