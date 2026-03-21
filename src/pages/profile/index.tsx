@@ -221,29 +221,7 @@ export default function ProfilePage() {
             <Button variant="secondary" size="sm" icon={<Share2 size={16} />} onClick={handleShare}>
               Share
             </Button>
-            <Button variant="secondary" size="sm" icon={<Edit3 size={16} />} onClick={() => navigate('/profile/edit')}>
-              Edit
-            </Button>
           </div>
-        </motion.div>
-
-        {/* Membership link */}
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="mt-4"
-        >
-          <button
-            onClick={() => navigate('/membership')}
-            className="w-full flex items-center justify-between rounded-xl bg-gradient-to-r from-primary-50 to-white px-4 py-3 shadow-sm transition-colors hover:from-primary-100"
-          >
-            <span className="flex items-center gap-2 text-sm font-semibold text-primary-700">
-              <CreditCard size={18} />
-              Membership & Perks
-            </span>
-            <ChevronRight size={18} className="text-primary-400" />
-          </button>
         </motion.div>
 
         {/* Tier Progression */}
@@ -433,34 +411,6 @@ export default function ProfilePage() {
           </motion.section>
         )}
 
-        {/* Quick Links */}
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.35 }}
-          className="mt-6 space-y-2"
-        >
-          {[
-            { label: 'Impact Dashboard', icon: <TrendingUp size={18} />, to: '/impact' },
-            { label: 'Points History', icon: <Star size={18} />, to: '/points' },
-            { label: 'Leaderboard', icon: <Trophy size={18} />, to: '/leaderboard' },
-            { label: 'Chat', icon: <MessageCircle size={18} />, to: '/chat' },
-            { label: 'Shop', icon: <ShoppingBag size={18} />, to: '/shop' },
-            { label: 'Membership', icon: <CreditCard size={18} />, to: '/membership' },
-            { label: 'Donate', icon: <Heart size={18} />, to: '/donate' },
-            { label: 'Invite Friends', icon: <Share2 size={18} />, to: '/referral' },
-          ].map(({ label, icon, to }) => (
-            <button
-              key={to}
-              onClick={() => navigate(to)}
-              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 bg-white shadow-sm hover:bg-primary-50 transition-colors"
-            >
-              <span className="flex items-center justify-center text-primary-500">{icon}</span>
-              <span className="flex-1 text-left text-sm font-medium text-primary-800">{label}</span>
-              <ChevronRight size={16} className="text-primary-400" />
-            </button>
-          ))}
-        </motion.div>
       </div>
     </Page>
   )
