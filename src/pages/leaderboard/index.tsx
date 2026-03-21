@@ -99,7 +99,7 @@ export default function LeaderboardPage() {
             onChange={(e) => setPeriod(e.target.value as TimePeriod)}
             className={cn(
               'h-9 px-3 rounded-xl text-sm font-medium',
-              'bg-white border border-primary-200 text-primary-700',
+              'bg-surface-0 border border-primary-200 text-primary-700',
               'focus:outline-none focus:ring-2 focus:ring-primary-400',
               'cursor-pointer',
             )}
@@ -128,7 +128,7 @@ export default function LeaderboardPage() {
               <motion.div
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-4 rounded-xl bg-white shadow-sm px-4 py-3 text-center"
+                className="mb-4 rounded-xl bg-surface-0 shadow-sm px-4 py-3 text-center"
               >
                 <p className="text-sm text-primary-400">
                   Your rank:{' '}
@@ -180,7 +180,7 @@ export default function LeaderboardPage() {
                           isFirst
                             ? 'h-16 bg-warning-100'
                             : entry.rank === 2
-                              ? 'h-12 bg-white'
+                              ? 'h-12 bg-surface-2'
                               : 'h-10 bg-warning-50',
                         )}
                       />
@@ -202,7 +202,7 @@ export default function LeaderboardPage() {
                     onClick={() => navigate(`/profile/${entry.userId}`)}
                     className={cn(
                       'w-full flex items-center justify-center gap-3 rounded-xl px-3 py-2.5 min-h-11 active:scale-[0.97] transition-all duration-150 hover:bg-primary-50 cursor-pointer select-none',
-                      entry.userId === user?.id && 'bg-white shadow-sm',
+                      entry.userId === user?.id && 'bg-surface-0 shadow-sm',
                     )}
                   >
                     <span className="w-8 text-sm font-bold text-primary-400 tabular-nums text-center">
@@ -246,7 +246,7 @@ export default function LeaderboardPage() {
                   initial={shouldReduceMotion ? false : { opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.03 }}
-                  className="flex items-center gap-3 rounded-xl bg-white shadow-sm px-4 py-3"
+                  className="flex items-center gap-3 rounded-xl bg-surface-0 shadow-sm px-4 py-3"
                 >
                   <span className="w-8 text-center">
                     {entry.rank <= 3 ? (

@@ -121,6 +121,9 @@ create policy task_instances_update_staff on task_instances
 create policy task_instances_delete_admin on task_instances
   for delete using (is_admin_or_staff(auth.uid()));
 
+-- Enable moddatetime extension (idempotent)
+create extension if not exists moddatetime with schema extensions;
+
 -- Updated_at trigger for task_templates
 create trigger task_templates_updated_at
   before update on task_templates

@@ -7,6 +7,11 @@ import {
   TreePine,
   TrendingUp,
   Clock,
+  Waves,
+  Leaf,
+  Eye,
+  UserCheck,
+  ClipboardCheck,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -56,10 +61,6 @@ function useAdminOverview(dateRange: DateRange) {
   return useQuery({
     queryKey: ['admin-overview', dateRange],
     queryFn: async () => {
-      const dateFilter = rangeStart
-        ? (query: any) => query.gte('created_at', rangeStart)
-        : (query: any) => query
-
       // All-time counts
       const [
         totalMembersRes,
@@ -72,7 +73,11 @@ function useAdminOverview(dateRange: DateRange) {
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
         supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
-        supabase.from('event_impact').select('trees_planted, hours_total, rubbish_kg').limit(10000),
+        (() => {
+          let q = supabase.from('event_impact').select('trees_planted, hours_total, rubbish_kg, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings')
+          if (rangeStart) q = q.gte('logged_at', rangeStart)
+          return q
+        })(),
         rangeStart
           ? supabase
               .from('profiles')
@@ -88,10 +93,32 @@ function useAdminOverview(dateRange: DateRange) {
           : Promise.resolve({ count: 0 }),
       ])
 
-      const impact = totalImpactRes.data ?? []
-      const totalTrees = impact.reduce((s, r) => s + (r.trees_planted ?? 0), 0)
-      const totalHours = impact.reduce((s, r) => s + (r.hours_total ?? 0), 0)
-      const totalRubbish = impact.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0)
+      const impact = (totalImpactRes.data ?? []) as any[]
+      const totalTrees = impact.reduce((s: number, r: any) => s + (r.trees_planted ?? 0), 0)
+      const totalHours = impact.reduce((s: number, r: any) => s + (r.hours_total ?? 0), 0)
+      const totalRubbish = impact.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0)
+      const totalCoastline = impact.reduce((s: number, r: any) => s + (r.coastline_cleaned_m ?? 0), 0)
+      const totalArea = impact.reduce((s: number, r: any) => s + (r.area_restored_sqm ?? 0), 0)
+      const totalNativePlants = impact.reduce((s: number, r: any) => s + (r.native_plants ?? 0), 0)
+      const totalWildlife = impact.reduce((s: number, r: any) => s + (r.wildlife_sightings ?? 0), 0)
+
+      // Attendance rate (national)
+      const { count: totalRegistered } = await supabase
+        .from('event_registrations')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['registered', 'attended'])
+      const { count: totalAttended } = await supabase
+        .from('event_registrations')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'attended')
+      const attendanceRate = totalRegistered && totalRegistered > 0
+        ? Math.round(((totalAttended ?? 0) / totalRegistered) * 100)
+        : 0
+
+      // Survey responses count
+      const { count: surveyResponses } = await supabase
+        .from('post_event_survey_responses')
+        .select('id', { count: 'exact', head: true })
 
       return {
         totalMembers: totalMembersRes.count ?? 0,
@@ -100,6 +127,12 @@ function useAdminOverview(dateRange: DateRange) {
         totalTrees,
         totalHours: Math.round(totalHours),
         totalRubbish: Math.round(totalRubbish),
+        totalCoastline: Math.round(totalCoastline),
+        totalArea: Math.round(totalArea),
+        totalNativePlants,
+        totalWildlife,
+        attendanceRate,
+        surveyResponses: surveyResponses ?? 0,
         periodMembers: periodMembersRes.count ?? 0,
         periodEvents: periodEventsRes.count ?? 0,
       }
@@ -341,6 +374,56 @@ export default function AdminDashboardPage() {
             label="Rubbish (kg)"
             icon={<span className="text-base" aria-hidden="true">&#9851;</span>}
             accent="text-primary-600"
+            reducedMotion={!!shouldReduceMotion}
+          />
+          {(data?.totalCoastline ?? 0) > 0 && (
+            <HeroStat
+              value={data?.totalCoastline ?? 0}
+              label="Coastline (m)"
+              icon={<Waves size={18} />}
+              accent="text-info-600"
+              reducedMotion={!!shouldReduceMotion}
+            />
+          )}
+          {(data?.totalArea ?? 0) > 0 && (
+            <HeroStat
+              value={data?.totalArea ?? 0}
+              label="Area (sqm)"
+              icon={<MapPin size={18} />}
+              accent="text-primary-500"
+              reducedMotion={!!shouldReduceMotion}
+            />
+          )}
+          {(data?.totalNativePlants ?? 0) > 0 && (
+            <HeroStat
+              value={data?.totalNativePlants ?? 0}
+              label="Native Plants"
+              icon={<Leaf size={18} />}
+              accent="text-success-600"
+              reducedMotion={!!shouldReduceMotion}
+            />
+          )}
+          {(data?.totalWildlife ?? 0) > 0 && (
+            <HeroStat
+              value={data?.totalWildlife ?? 0}
+              label="Wildlife Sightings"
+              icon={<Eye size={18} />}
+              accent="text-warning-600"
+              reducedMotion={!!shouldReduceMotion}
+            />
+          )}
+          <HeroStat
+            value={data?.attendanceRate ?? 0}
+            label="Attendance Rate (%)"
+            icon={<UserCheck size={18} />}
+            accent="text-success-600"
+            reducedMotion={!!shouldReduceMotion}
+          />
+          <HeroStat
+            value={data?.surveyResponses ?? 0}
+            label="Survey Responses"
+            icon={<ClipboardCheck size={18} />}
+            accent="text-info-600"
             reducedMotion={!!shouldReduceMotion}
           />
           <HeroStat

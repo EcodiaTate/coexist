@@ -120,7 +120,7 @@ function MenuRow({
       className={cn(
         'flex items-center w-full min-h-[52px] px-4 py-3 text-left',
         'transition-colors duration-100',
-        'cursor-pointer hover:bg-primary-50 active:bg-primary-50',
+        'cursor-pointer hover:bg-surface-3 active:bg-surface-3',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
         !hideDivider && '',
       )}
@@ -129,7 +129,7 @@ function MenuRow({
       <span
         className={cn(
           'flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mr-3',
-          danger ? 'bg-error-100 text-error-600' : 'bg-white text-primary-400',
+          danger ? 'bg-error-100 text-error-600' : 'bg-surface-2 text-primary-400',
         )}
         aria-hidden="true"
       >
@@ -812,7 +812,7 @@ export default function SettingsPage() {
         {/* ---- Notifications ---- */}
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="Notifications" className="pt-4" />
-        <div className="bg-white">
+        <div className="bg-surface-0 rounded-2xl shadow-sm overflow-hidden">
           <MenuRow
             icon={<Bell size={18} />}
             label="Notification Preferences"
@@ -855,7 +855,7 @@ export default function SettingsPage() {
         {/* ---- Privacy ---- */}
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="Privacy" />
-        <div className="bg-white">
+        <div className="bg-surface-0 rounded-2xl shadow-sm overflow-hidden">
           <MenuRow
             icon={<Eye size={18} />}
             label="Profile Visibility"
@@ -903,7 +903,7 @@ export default function SettingsPage() {
         {/* ---- Account ---- */}
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="Account" />
-        <div className="bg-white">
+        <div className="bg-surface-0 rounded-2xl shadow-sm overflow-hidden">
           <MenuRow
             icon={<Lock size={18} />}
             label="Change Password"
@@ -935,7 +935,7 @@ export default function SettingsPage() {
         {/* ---- About ---- */}
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="About" />
-        <div className="bg-white">
+        <div className="bg-surface-0 rounded-2xl shadow-sm overflow-hidden">
           <MenuRow
             icon={<Heart size={18} />}
             label="About Co-Exist"

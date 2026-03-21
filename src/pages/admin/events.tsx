@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   CalendarDays,
@@ -8,6 +8,8 @@ import {
   ChevronRight,
   Clock,
   Flame,
+  Pencil,
+  ClipboardList,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -31,6 +33,7 @@ interface AdminEvent {
   collective_id: string
   capacity: number | null
   activity_type: string | null
+  status: 'draft' | 'published' | 'cancelled' | 'completed'
   collectives: { name: string; region: string | null; state: string | null } | null
   registrationCount: number
 }
@@ -44,7 +47,7 @@ interface CollectiveGroup {
   totalRegistrations: number
 }
 
-type StatusFilter = 'upcoming' | 'past' | 'all'
+type StatusFilter = 'upcoming' | 'past' | 'all' | 'draft' | 'cancelled'
 
 /* ------------------------------------------------------------------ */
 /*  Activity type styling                                              */
@@ -66,6 +69,13 @@ function activityLabel(type: string | null): string {
     .replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
+const statusBadgeStyles: Record<string, { label: string; className: string }> = {
+  draft: { label: 'Draft', className: 'bg-primary-100 text-primary-600' },
+  published: { label: 'Live', className: 'bg-success-100 text-success-700' },
+  cancelled: { label: 'Cancelled', className: 'bg-error-100 text-error-700' },
+  completed: { label: 'Completed', className: 'bg-info-100 text-info-700' },
+}
+
 /* ------------------------------------------------------------------ */
 /*  Data hooks                                                         */
 /* ------------------------------------------------------------------ */
@@ -80,7 +90,7 @@ function useAdminEventsData() {
       const { data: events, error } = await supabase
         .from('events')
         .select(
-          'id, title, date_start, date_end, address, cover_image_url, collective_id, capacity, activity_type, collectives(name, region, state)' as any,
+          'id, title, date_start, date_end, address, cover_image_url, collective_id, capacity, activity_type, status, collectives(name, region, state)' as any,
         )
         .order('date_start' as any, { ascending: true })
         .limit(200)
@@ -275,9 +285,19 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
 
         {/* Content */}
         <div className="p-3">
-          <h4 className="font-heading text-sm font-semibold text-primary-800 truncate">
-            {event.title}
-          </h4>
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <h4 className="font-heading text-sm font-semibold text-primary-800 truncate flex-1">
+              {event.title}
+            </h4>
+            {event.status !== 'published' && (() => {
+              const badge = statusBadgeStyles[event.status]
+              return badge ? (
+                <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0', badge.className)}>
+                  {badge.label}
+                </span>
+              ) : null
+            })()}
+          </div>
 
           <div className="flex items-center gap-3 mt-1.5 text-xs text-primary-400">
             <span className="flex items-center gap-1">
@@ -297,10 +317,30 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
             </p>
           )}
 
-          {/* Registration count */}
-          <div className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-primary-600">
-            <Users size={12} />
-            <span>{event.registrationCount} registered{event.capacity ? ` / ${event.capacity}` : ''}</span>
+          {/* Registration count + quick actions */}
+          <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary-600">
+              <Users size={12} />
+              <span>{event.registrationCount} registered{event.capacity ? ` / ${event.capacity}` : ''}</span>
+            </div>
+            <div className="flex items-center gap-0.5">
+              <Link
+                to={`/events/${event.id}/day`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 transition-colors cursor-pointer"
+                title="Event Day"
+              >
+                <ClipboardList size={13} />
+              </Link>
+              <Link
+                to={`/events/${event.id}/edit`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 transition-colors cursor-pointer"
+                title="Edit Event"
+              >
+                <Pencil size={13} />
+              </Link>
+            </div>
           </div>
         </div>
       </Link>
@@ -443,6 +483,15 @@ function PastEventRow({ event, index }: { event: AdminEvent; index: number }) {
           </p>
         </div>
 
+        {event.status !== 'published' && (() => {
+          const badge = statusBadgeStyles[event.status]
+          return badge ? (
+            <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0', badge.className)}>
+              {badge.label}
+            </span>
+          ) : null
+        })()}
+
         <div className="flex items-center gap-1 text-xs text-primary-400 shrink-0 tabular-nums">
           <Users size={12} />
           {event.registrationCount}
@@ -477,6 +526,12 @@ export default function AdminEventsPage() {
         break
       case 'past':
         events = [...data.past].reverse() // most recent first
+        break
+      case 'draft':
+        events = data.all.filter((e) => e.status === 'draft')
+        break
+      case 'cancelled':
+        events = data.all.filter((e) => e.status === 'cancelled')
         break
       default:
         events = data.all
@@ -560,7 +615,7 @@ export default function AdminEventsPage() {
         <div className="flex items-center gap-2">
           {/* Status toggle */}
           <div className="flex items-center gap-0.5 rounded-xl shadow-sm bg-white p-0.5">
-            {(['upcoming', 'past', 'all'] as const).map((s) => (
+            {(['upcoming', 'past', 'draft', 'cancelled', 'all'] as const).map((s) => (
               <button
                 key={s}
                 type="button"
@@ -592,7 +647,11 @@ export default function AdminEventsPage() {
               ? 'Try a different search term'
               : statusFilter === 'upcoming'
                 ? 'No upcoming events scheduled'
-                : 'No past events yet'
+                : statusFilter === 'draft'
+                  ? 'No draft events'
+                  : statusFilter === 'cancelled'
+                    ? 'No cancelled events'
+                    : 'No events found'
           }
         />
       ) : statusFilter === 'upcoming' ? (

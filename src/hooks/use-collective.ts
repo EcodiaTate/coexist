@@ -28,7 +28,13 @@ export interface CollectiveStats {
   totalTreesPlanted: number
   totalRubbishKg: number
   totalHours: number
+  totalCoastlineCleaned: number
+  totalAreaRestored: number
+  totalNativePlants: number
+  totalWildlifeSightings: number
   activeMembers: number
+  /** Attendance rate: checked-in / registered (0-1) */
+  attendanceRate: number
 }
 
 /* ------------------------------------------------------------------ */
@@ -205,7 +211,7 @@ export function useCollectiveStats(collectiveId: string | undefined) {
         .eq('collective_id', collectiveId)
         .in('status', ['published', 'completed'])
 
-      // Impact from all events
+      // Impact from all events — all metrics
       const { data: events } = await supabase
         .from('events')
         .select('id')
@@ -215,18 +221,26 @@ export function useCollectiveStats(collectiveId: string | undefined) {
       let totalTreesPlanted = 0
       let totalRubbishKg = 0
       let totalHours = 0
+      let totalCoastlineCleaned = 0
+      let totalAreaRestored = 0
+      let totalNativePlants = 0
+      let totalWildlifeSightings = 0
 
       if (eventIds.length > 0) {
         const { data: impacts } = await supabase
           .from('event_impact')
-          .select('trees_planted, rubbish_kg, hours_total')
+          .select('trees_planted, rubbish_kg, hours_total, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings')
           .in('event_id', eventIds)
 
         if (impacts) {
           for (const i of impacts) {
-            totalTreesPlanted += i.trees_planted
-            totalRubbishKg += i.rubbish_kg
-            totalHours += i.hours_total
+            totalTreesPlanted += i.trees_planted ?? 0
+            totalRubbishKg += i.rubbish_kg ?? 0
+            totalHours += i.hours_total ?? 0
+            totalCoastlineCleaned += i.coastline_cleaned_m ?? 0
+            totalAreaRestored += i.area_restored_sqm ?? 0
+            totalNativePlants += i.native_plants ?? 0
+            totalWildlifeSightings += i.wildlife_sightings ?? 0
           }
         }
       }
@@ -238,12 +252,37 @@ export function useCollectiveStats(collectiveId: string | undefined) {
         .eq('collective_id', collectiveId)
         .eq('status', 'active')
 
+      // Attendance rate across all events
+      let attendanceRate = 0
+      if (eventIds.length > 0) {
+        const { count: totalRegistered } = await supabase
+          .from('event_registrations')
+          .select('id', { count: 'exact', head: true })
+          .in('event_id', eventIds)
+          .in('status', ['registered', 'attended'])
+
+        const { count: totalAttended } = await supabase
+          .from('event_registrations')
+          .select('id', { count: 'exact', head: true })
+          .in('event_id', eventIds)
+          .eq('status', 'attended')
+
+        if (totalRegistered && totalRegistered > 0) {
+          attendanceRate = Math.round(((totalAttended ?? 0) / totalRegistered) * 100) / 100
+        }
+      }
+
       return {
         totalEvents: totalEvents ?? 0,
         totalTreesPlanted,
         totalRubbishKg,
         totalHours,
+        totalCoastlineCleaned,
+        totalAreaRestored,
+        totalNativePlants,
+        totalWildlifeSightings,
         activeMembers: activeMembers ?? 0,
+        attendanceRate,
       } satisfies CollectiveStats
     },
     enabled: !!collectiveId,

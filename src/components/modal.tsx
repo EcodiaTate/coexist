@@ -72,10 +72,12 @@ export function Modal({
       document.body.style.overflow = 'hidden'
 
       requestAnimationFrame(() => {
-        const focusable = contentRef.current?.querySelector<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        const firstInput = contentRef.current?.querySelector<HTMLElement>(
+          'input, select, textarea',
         )
-        focusable?.focus()
+        if (firstInput) {
+          firstInput.focus()
+        }
       })
     }
 
@@ -86,81 +88,55 @@ export function Modal({
     }
   }, [open, handleKeyDown])
 
-  /* ---- Animation variants ---- */
+  /* ---- Animation config ---- */
 
   const instant = { duration: 0 }
-
-  const backdropVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: shouldReduceMotion ? instant : { duration: 0.2, ease: 'easeOut' } },
-    exit: { opacity: 0, transition: shouldReduceMotion ? instant : { duration: 0.15, ease: 'easeIn' } },
-  }
-
-  const contentVariants = {
-    hidden: { opacity: 0, scale: 0.92, y: 8 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      y: 0,
-      transition: shouldReduceMotion
-        ? instant
-        : { type: 'spring', stiffness: 420, damping: 30, mass: 0.8 },
-    },
-    exit: {
-      opacity: 0,
-      scale: 0.95,
-      y: 4,
-      transition: shouldReduceMotion ? instant : { duration: 0.15, ease: [0.4, 0, 1, 1] },
-    },
-  }
-
-  /* ---- Header content stagger ---- */
-
-  const headerVariants = {
-    hidden: { opacity: 0, y: -4 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: shouldReduceMotion
-        ? instant
-        : { delay: 0.05, duration: 0.2, ease: 'easeOut' },
-    },
-    exit: { opacity: 0 },
-  }
-
-  const bodyVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: shouldReduceMotion
-        ? instant
-        : { delay: 0.08, duration: 0.2, ease: 'easeOut' },
-    },
-    exit: { opacity: 0 },
-  }
+  const t = shouldReduceMotion
 
   return createPortal(
     <AnimatePresence>
       {open && (
-        <motion.div
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)', paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 1rem)' }}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
+          style={{
+            paddingTop: 'max(env(safe-area-inset-top, 0px), 1rem)',
+            paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 1rem)',
+          }}
+          onMouseDown={(e) => {
+            // Close only when clicking the backdrop area (this element), not children
+            if (e.target === e.currentTarget) onClose()
+          }}
         >
+          {/* Backdrop — visual only, no pointer events */}
           <motion.div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
-            variants={backdropVariants}
-            onClick={onClose}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: t ? instant : { duration: 0.2, ease: 'easeOut' } }}
+            exit={{ opacity: 0, transition: t ? instant : { duration: 0.15, ease: 'easeIn' } }}
             aria-hidden="true"
           />
 
+          {/* Panel — the only animated motion element */}
           <motion.div
             ref={contentRef}
             role="dialog"
             aria-modal="true"
             aria-label={title}
+            initial={{ opacity: 0, scale: 0.92, y: 8 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              transition: t
+                ? instant
+                : { type: 'spring', stiffness: 420, damping: 30, mass: 0.8 },
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.95,
+              y: 4,
+              transition: t ? instant : { duration: 0.15, ease: [0.4, 0, 1, 1] },
+            }}
             className={cn(
               'relative z-10 w-full bg-white shadow-lg',
               'rounded-2xl',
@@ -168,28 +144,27 @@ export function Modal({
               sizeClasses[size],
               className,
             )}
-            variants={contentVariants}
           >
-            <motion.div
-              className="shrink-0 z-10 flex items-center justify-between border-b border-primary-100 bg-white px-5 py-4 rounded-t-2xl"
-              variants={headerVariants}
-            >
+            {/* Header — plain div, no motion */}
+            <div className="shrink-0 z-10 flex items-center justify-between border-b border-primary-100 bg-white px-5 py-4 rounded-t-2xl">
               <h2 className="font-heading text-lg font-semibold text-primary-800">
                 {title}
               </h2>
               <button
                 onClick={onClose}
-                className="rounded-full p-1.5 text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-400"
+                className="rounded-full p-1.5 text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-400 cursor-pointer"
                 aria-label="Close modal"
               >
                 <X size={20} />
               </button>
-            </motion.div>
-            <motion.div className="p-5 overflow-y-auto overscroll-contain" variants={bodyVariants}>
+            </div>
+
+            {/* Body — plain div, no motion wrapper */}
+            <div className="p-5 overflow-y-auto overscroll-contain">
               {children}
-            </motion.div>
+            </div>
           </motion.div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>,
     document.body,

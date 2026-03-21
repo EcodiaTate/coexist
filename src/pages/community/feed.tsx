@@ -235,7 +235,7 @@ function CommentSection({
                     placeholder="Write a comment..."
                     className={cn(
                       'flex-1 h-9 px-3 rounded-full text-sm',
-                      'bg-white text-primary-800 placeholder:text-primary-400',
+                      'bg-surface-2 text-primary-800 placeholder:text-primary-400',
                       'border-none outline-none',
                       'focus:ring-2 focus:ring-primary-300',
                     )}
@@ -269,7 +269,7 @@ function CommentItem({ comment }: { comment: CommentWithAuthor }) {
         size="xs"
       />
       <div className="flex-1 min-w-0">
-        <div className="bg-white rounded-xl px-3 py-2">
+        <div className="bg-surface-2 rounded-xl px-3 py-2">
           <span className="text-sm font-semibold text-primary-800">
             {comment.author?.display_name ?? 'User'}
           </span>
@@ -337,7 +337,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
       initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="bg-white rounded-2xl shadow-md overflow-hidden"
+      className="bg-surface-0 rounded-2xl shadow-md overflow-hidden"
     >
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
@@ -410,9 +410,9 @@ function PostCard({ post }: { post: PostWithDetails }) {
           onClick={() => navigate(`/events/${post.event!.id}`)}
           className={cn(
             'mx-4 mb-3 flex items-center justify-center gap-2 px-3 py-2 rounded-xl min-h-11',
-            'bg-white shadow-sm',
-            'text-sm text-primary-400 font-medium',
-            'cursor-pointer select-none hover:bg-primary-100 active:scale-[0.97] transition-all duration-150',
+            'bg-surface-2 shadow-sm',
+            'text-sm text-primary-600 font-medium',
+            'cursor-pointer select-none hover:bg-surface-3 active:scale-[0.97] transition-all duration-150',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
           aria-label={`View event: ${post.event.title}`}
@@ -547,19 +547,19 @@ function FeedSkeleton() {
   return (
     <div className="space-y-4 py-4" role="status" aria-label="Loading feed">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-white rounded-2xl shadow-md overflow-hidden animate-pulse">
+        <div key={i} className="bg-surface-0 rounded-2xl shadow-md overflow-hidden animate-pulse">
           <div className="flex items-center gap-3 px-4 pt-4 pb-3">
-            <div className="w-10 h-10 rounded-full bg-white" />
+            <div className="w-10 h-10 rounded-full bg-surface-2" />
             <div className="flex-1 space-y-2">
-              <div className="h-3.5 bg-white rounded w-1/3" />
-              <div className="h-3 bg-white rounded w-1/4" />
+              <div className="h-3.5 bg-surface-2 rounded w-1/3" />
+              <div className="h-3 bg-surface-2 rounded w-1/4" />
             </div>
           </div>
           <div className="px-4 pb-3 space-y-2">
-            <div className="h-3.5 bg-white rounded w-full" />
-            <div className="h-3.5 bg-white rounded w-3/4" />
+            <div className="h-3.5 bg-surface-2 rounded w-full" />
+            <div className="h-3.5 bg-surface-2 rounded w-3/4" />
           </div>
-          <div className="mx-4 mb-3 h-48 bg-white rounded-xl" />
+          <div className="mx-4 mb-3 h-48 bg-surface-2 rounded-xl" />
         </div>
       ))}
       <span className="sr-only">Loading feed</span>

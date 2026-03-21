@@ -34,13 +34,13 @@ function useCard() {
 /* ------------------------------------------------------------------ */
 
 const variantWrapper: Record<CardVariant, string> = {
-  event: 'bg-white',
-  collective: 'bg-primary-50/60',
-  stat: 'bg-gradient-to-br from-white to-primary-100/50',
-  profile: 'bg-primary-50/40',
-  merch: 'bg-white',
+  event: 'bg-surface-0',
+  collective: 'bg-surface-2',
+  stat: 'bg-gradient-to-br from-surface-0 to-primary-100/60',
+  profile: 'bg-surface-2',
+  merch: 'bg-surface-0',
   announcement:
-    'bg-gradient-to-br from-white to-accent-100',
+    'bg-gradient-to-br from-surface-0 to-accent-100',
 }
 
 /* ------------------------------------------------------------------ */
@@ -249,7 +249,7 @@ function CardSkeleton({
       role="status"
       aria-label="Loading card"
       className={cn(
-        'rounded-2xl shadow-md overflow-hidden bg-white animate-pulse',
+        'rounded-2xl shadow-md overflow-hidden bg-surface-0 animate-pulse',
         className,
       )}
     >

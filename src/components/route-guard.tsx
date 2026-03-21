@@ -23,18 +23,19 @@ interface RequireAuthProps {
 }
 
 export function RequireAuth({ children }: RequireAuthProps) {
-  const { user, profile, isLoading, isSuspended, needsTosAcceptance } = useAuth()
+  const { user, profile, isLoading, isSuspended, needsTosAcceptance, onboardingDone } = useAuth()
   const location = useLocation()
 
   // Safety timeout: if we have a user but profile never arrives,
-  // don't hang on a blank screen forever.
+  // don't hang on a blank screen forever — show the app anyway
+  // (onboardingDone flag will prevent false onboarding redirect).
   const [profileTimeout, setProfileTimeout] = useState(false)
   useEffect(() => {
     if (profile || !user) {
       setProfileTimeout(false)
       return
     }
-    const timer = setTimeout(() => setProfileTimeout(true), 12000)
+    const timer = setTimeout(() => setProfileTimeout(true), 8000)
     return () => clearTimeout(timer)
   }, [profile, user])
 
@@ -56,14 +57,17 @@ export function RequireAuth({ children }: RequireAuthProps) {
     return <Navigate to="/accept-terms" replace />
   }
 
-  // Profile not loaded yet  wait rather than flashing onboarding.
-  // After 12s safety timeout, fall through to onboarding redirect.
-  if (!profile && !profileTimeout) {
+  // Profile not loaded yet — wait rather than flashing onboarding.
+  // If we already know onboarding is done (local flag), skip the wait
+  // and render children immediately.
+  if (!profile && !profileTimeout && !onboardingDone) {
     return <div className="min-h-dvh bg-white" />
   }
 
-  // Redirect to onboarding only once we have a profile and it's not completed
-  if ((!profile || !profile.onboarding_completed) && !location.pathname.startsWith('/onboarding')) {
+  // Redirect to onboarding ONLY if:
+  // 1. Profile explicitly says not completed, AND
+  // 2. The persistent local flag is not set (prevents re-onboarding on fetch failures)
+  if (!onboardingDone && (!profile || !profile.onboarding_completed) && !location.pathname.startsWith('/onboarding')) {
     return <Navigate to="/onboarding" replace />
   }
 

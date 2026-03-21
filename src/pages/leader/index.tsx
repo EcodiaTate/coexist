@@ -92,12 +92,51 @@ function useLeaderDashboard(collectiveId: string | undefined) {
         0,
       )
 
+      // Attendance rate: checked-in / registered across all events
+      const { data: allEventIds } = await supabase
+        .from('events')
+        .select('id')
+        .eq('collective_id', collectiveId)
+        .lt('date_start', now.toISOString())
+
+      let attendanceRate = 0
+      let surveyResponseCount = 0
+      const eventIds = (allEventIds ?? []).map((e) => e.id)
+
+      if (eventIds.length > 0) {
+        const { count: totalReg } = await supabase
+          .from('event_registrations')
+          .select('id', { count: 'exact', head: true })
+          .in('event_id', eventIds)
+          .in('status', ['registered', 'attended'])
+
+        const { count: totalAttended } = await supabase
+          .from('event_registrations')
+          .select('id', { count: 'exact', head: true })
+          .in('event_id', eventIds)
+          .eq('status', 'attended')
+
+        if (totalReg && totalReg > 0) {
+          attendanceRate = Math.round(((totalAttended ?? 0) / totalReg) * 100)
+        }
+
+        // Survey responses count
+        const { count: surveyCount } = await supabase
+          .from('post_event_survey_responses')
+          .select('id', { count: 'exact', head: true })
+          .in('event_id', eventIds)
+
+        surveyResponseCount = surveyCount ?? 0
+      }
+
       return {
         activeMembers: membersRes.count ?? 0,
         upcomingEvents: (upcomingEventsRes.data ?? []) as any[],
         eventsThisMonth: monthEventsRes.count ?? 0,
         hoursThisMonth: Math.round(totalHours),
         recentMembers: (recentActivityRes.data ?? []) as any[],
+        attendanceRate,
+        surveyResponseCount,
       }
     },
     enabled: !!collectiveId,
@@ -425,6 +464,20 @@ export default function LeaderDashboardPage() {
             label="Events This Month"
             icon={<CalendarCheck size={20} />}
           />
+          {(data?.attendanceRate ?? 0) > 0 && (
+            <StatCard
+              value={`${data?.attendanceRate}%`}
+              label="Attendance Rate"
+              icon={<CheckCircle2 size={20} />}
+            />
+          )}
+          {(data?.surveyResponseCount ?? 0) > 0 && (
+            <StatCard
+              value={data?.surveyResponseCount ?? 0}
+              label="Survey Responses"
+              icon={<Send size={20} />}
+            />
+          )}
         </motion.div>
 
         {/* Quick actions */}

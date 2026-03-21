@@ -84,7 +84,6 @@ export function useAdminAssignCollectiveRole() {
         )
       if (error) throw error
 
-      // If promoting to leader, also update collectives.leader_id
       if (role === 'leader') {
         await supabase
           .from('collectives')
@@ -92,7 +91,30 @@ export function useAdminAssignCollectiveRole() {
           .eq('id', collectiveId)
       }
     },
-    onSuccess: (_data, variables) => {
+    onMutate: async (variables) => {
+      const key = ['admin-user-collective-roles', variables.userId]
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData<UserCollectiveRole[]>(key)
+
+      queryClient.setQueryData<UserCollectiveRole[]>(key, (old) => {
+        if (!old) return old
+        const idx = old.findIndex((r) => r.collective_id === variables.collectiveId)
+        if (idx >= 0) {
+          const updated = [...old]
+          updated[idx] = { ...updated[idx], role: variables.role, status: 'active' }
+          return updated
+        }
+        return old
+      })
+
+      return { previous }
+    },
+    onError: (_err, variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['admin-user-collective-roles', variables.userId], context.previous)
+      }
+    },
+    onSettled: (_data, _err, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-collective-roles', variables.userId] })
       queryClient.invalidateQueries({ queryKey: ['admin-collective-members'] })
       queryClient.invalidateQueries({ queryKey: ['admin-collective-detail'] })
@@ -121,7 +143,25 @@ export function useAdminRemoveFromCollective() {
         .eq('collective_id', collectiveId)
       if (error) throw error
     },
-    onSuccess: (_data, variables) => {
+    onMutate: async (variables) => {
+      const key = ['admin-user-collective-roles', variables.userId]
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData<UserCollectiveRole[]>(key)
+
+      queryClient.setQueryData<UserCollectiveRole[]>(key, (old) =>
+        old?.map((r) =>
+          r.collective_id === variables.collectiveId ? { ...r, status: 'removed' } : r,
+        ),
+      )
+
+      return { previous }
+    },
+    onError: (_err, variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['admin-user-collective-roles', variables.userId], context.previous)
+      }
+    },
+    onSettled: (_data, _err, variables) => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-collective-roles', variables.userId] })
       queryClient.invalidateQueries({ queryKey: ['admin-collective-members'] })
     },
@@ -142,20 +182,34 @@ export function useAdminUpdateCapabilities() {
       userId: string
       permissions: Record<string, boolean>
     }) => {
-      // Upsert into staff_roles
       const { error } = await supabase
         .from('staff_roles' as any)
         .upsert(
-          {
-            user_id: userId,
-            permissions,
-          },
+          { user_id: userId, permissions },
           { onConflict: 'user_id' },
         )
       if (error) throw error
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['user-capabilities', variables.userId] })
+    onMutate: async (variables) => {
+      const key = ['admin-user-resolved-caps', variables.userId]
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData(key)
+
+      queryClient.setQueryData(key, (old: any) => {
+        if (!old) return old
+        const newCaps = resolveCapabilities(old.role, variables.permissions)
+        return { ...old, overrides: variables.permissions, capabilities: newCaps }
+      })
+
+      return { previous }
+    },
+    onError: (_err, variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['admin-user-resolved-caps', variables.userId], context.previous)
+      }
+    },
+    onSettled: (_data, _err, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-user-resolved-caps', variables.userId] })
       queryClient.invalidateQueries({ queryKey: ['staff-permissions'] })
       queryClient.invalidateQueries({ queryKey: ['admin-staff-directory'] })
     },

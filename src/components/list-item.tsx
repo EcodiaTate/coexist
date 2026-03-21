@@ -66,7 +66,7 @@ export function ListItem({
   const sharedClassName = cn(
     'flex items-center w-full min-h-14 px-4 py-3 text-left',
     'transition-colors duration-100',
-    isInteractive && 'cursor-pointer hover:bg-primary-50 active:bg-primary-50',
+    isInteractive && 'cursor-pointer hover:bg-surface-3 active:bg-surface-3',
     disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
     !hideDivider && 'border-b border-primary-100/40',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',

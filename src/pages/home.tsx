@@ -106,7 +106,7 @@ function HScroll({
   return (
     <div className="relative -mx-4 lg:-mx-6">
       {/* Subtle fade on right edge only  left edge uses padding so first item is fully visible */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 lg:w-8 bg-gradient-to-l from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 lg:w-8 bg-gradient-to-l from-surface-1 to-transparent" />
       <div
         className={cn(
           'flex gap-3 overflow-x-auto px-4 lg:px-6 pb-1',
@@ -205,7 +205,7 @@ export default function HomePage() {
           className={cn(
             'sticky top-0 z-40',
             'flex items-center justify-end gap-1 h-14 px-4',
-            'bg-white/90 backdrop-blur-sm',
+            'bg-surface-1/90 backdrop-blur-sm',
           )}
           style={{ paddingTop: 'var(--safe-top)' }}
         >
@@ -282,7 +282,7 @@ export default function HomePage() {
                 onClick={() => navigate('/announcements')}
                 aria-label={`Announcement: ${announcement.data.title}`}
               >
-                <Card.Content className="flex items-center gap-3 py-3 bg-primary-50/60">
+                <Card.Content className="flex items-center gap-3 py-3 bg-surface-2">
                   <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-200/60 text-primary-600 shrink-0">
                     <Megaphone size={16} />
                   </span>

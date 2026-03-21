@@ -34,6 +34,7 @@ const COLLECTIVE_ROLE_RANK: Record<CollectiveRole, number> = {
 
 const STORAGE_KEY = 'coexist-auth-session'
 const PROFILE_STORAGE_KEY = 'coexist-auth-profile'
+const ONBOARDING_DONE_KEY = 'coexist-onboarding-done'
 
 async function persistSession(session: Session | null) {
   if (!Capacitor.isNativePlatform()) return
@@ -52,6 +53,24 @@ async function restoreSession(): Promise<Session | null> {
     return JSON.parse(value) as Session
   } catch {
     return null
+  }
+}
+
+/** Lightweight flag that survives even when profile fetch fails */
+function markOnboardingDone() {
+  try {
+    localStorage.setItem(ONBOARDING_DONE_KEY, '1')
+  } catch { /* non-critical */ }
+  if (Capacitor.isNativePlatform()) {
+    Preferences.set({ key: ONBOARDING_DONE_KEY, value: '1' }).catch(() => {})
+  }
+}
+
+function getOnboardingDoneSync(): boolean {
+  try {
+    return localStorage.getItem(ONBOARDING_DONE_KEY) === '1'
+  } catch {
+    return false
   }
 }
 
@@ -110,6 +129,8 @@ interface AuthContextValue {
   updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>
   refreshProfile: () => Promise<void>
   acceptTos: (version: string) => Promise<void>
+  onboardingDone: boolean
+  markOnboardingComplete: () => void
 }
 
 const CURRENT_TOS_VERSION = '1.0'
@@ -132,6 +153,7 @@ export function useAuthProvider(): AuthContextValue {
   const [collectiveRoles, setCollectiveRoles] = useState<CollectiveMembership[]>([])
   const [permissionOverrides, setPermissionOverrides] = useState<Record<string, boolean> | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [onboardingDone, setOnboardingDone] = useState(getOnboardingDoneSync)
 
   /* ---- fetch profile ---- */
   const fetchProfile = useCallback(async (userId: string) => {
@@ -216,6 +238,7 @@ export function useAuthProvider(): AuthContextValue {
         setCollectiveRoles(roles)
         setPermissionOverrides(permOverrides)
         persistProfile(retried)
+        if (retried.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
         return retried
       }
 
@@ -241,6 +264,7 @@ export function useAuthProvider(): AuthContextValue {
           setCollectiveRoles(roles)
           setPermissionOverrides(permOverrides)
           persistProfile(created)
+          if (created.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
           return created
         }
       } catch (err) {
@@ -280,6 +304,7 @@ export function useAuthProvider(): AuthContextValue {
     setCollectiveRoles(roles)
     setPermissionOverrides(permOverrides)
     persistProfile(profileData)
+    if (profileData?.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
     return profileData
   }, [fetchProfile, fetchCollectiveRoles, fetchPermissionOverrides])
 
@@ -299,6 +324,7 @@ export function useAuthProvider(): AuthContextValue {
       if (cached && mounted) {
         console.log('[auth] restored cached profile')
         setProfile(cached)
+        if (cached.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
       }
     })
 
@@ -423,6 +449,11 @@ export function useAuthProvider(): AuthContextValue {
   const suspendedUntil = profile?.suspended_until ?? null
   const needsTosAcceptance = !!profile && profile.tos_accepted_version !== CURRENT_TOS_VERSION
 
+  const markOnboardingComplete = useCallback(() => {
+    markOnboardingDone()
+    setOnboardingDone(true)
+  }, [])
+
   const acceptTos = useCallback(async (version: string) => {
     if (!user) return
     // Only allow accepting the current TOS version to prevent future-version bypass
@@ -492,6 +523,12 @@ export function useAuthProvider(): AuthContextValue {
     await supabase.auth.signOut()
     await persistSession(null)
     await persistProfile(null)
+    // Clear onboarding flag so a different user gets a fresh start
+    try { localStorage.removeItem(ONBOARDING_DONE_KEY) } catch { /* */ }
+    if (Capacitor.isNativePlatform()) {
+      Preferences.remove({ key: ONBOARDING_DONE_KEY }).catch(() => {})
+    }
+    setOnboardingDone(false)
   }, [])
 
   const resetPassword = useCallback(async (email: string) => {
@@ -536,6 +573,8 @@ export function useAuthProvider(): AuthContextValue {
       updatePassword,
       refreshProfile,
       acceptTos,
+      onboardingDone,
+      markOnboardingComplete,
     }),
     [
       user, profile, session, role, collectiveRoles, capabilities, hasCapability,
@@ -543,6 +582,7 @@ export function useAuthProvider(): AuthContextValue {
       isLeader, isAssistLeader, isCoLeader, isStaff, isAdmin, isSuperAdmin,
       signUp, signIn, signInWithGoogle, signInWithApple, signInWithMagicLink,
       signOut, resetPassword, updatePassword, refreshProfile, acceptTos,
+      onboardingDone, markOnboardingComplete,
     ],
   )
 }

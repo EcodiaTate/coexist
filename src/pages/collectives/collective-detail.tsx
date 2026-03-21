@@ -9,6 +9,11 @@ import {
   TreePine,
   Clock,
   Trash2,
+  Waves,
+  Ruler,
+  Leaf,
+  Eye,
+  UserCheck,
   MapPin as MapPinIcon,
   ChevronRight,
   Settings,
@@ -338,15 +343,59 @@ export default function CollectiveDetailPage() {
                 icon={<CalendarDays size={18} />}
               />
               <StatCard
-                label="Trees"
-                value={stats.totalTreesPlanted}
-                icon={<TreePine size={18} />}
-              />
-              <StatCard
-                label="Hours"
+                label="Vol. Hours"
                 value={stats.totalHours}
                 icon={<Clock size={18} />}
               />
+              {stats.totalTreesPlanted > 0 && (
+                <StatCard
+                  label="Trees"
+                  value={stats.totalTreesPlanted}
+                  icon={<TreePine size={18} />}
+                />
+              )}
+              {stats.totalRubbishKg > 0 && (
+                <StatCard
+                  label="Rubbish (kg)"
+                  value={stats.totalRubbishKg}
+                  icon={<Trash2 size={18} />}
+                />
+              )}
+              {stats.totalCoastlineCleaned > 0 && (
+                <StatCard
+                  label="Coastline (m)"
+                  value={stats.totalCoastlineCleaned}
+                  icon={<Waves size={18} />}
+                />
+              )}
+              {stats.totalAreaRestored > 0 && (
+                <StatCard
+                  label="Area (sqm)"
+                  value={stats.totalAreaRestored}
+                  icon={<Ruler size={18} />}
+                />
+              )}
+              {stats.totalNativePlants > 0 && (
+                <StatCard
+                  label="Native Plants"
+                  value={stats.totalNativePlants}
+                  icon={<Leaf size={18} />}
+                />
+              )}
+              {stats.totalWildlifeSightings > 0 && (
+                <StatCard
+                  label="Wildlife"
+                  value={stats.totalWildlifeSightings}
+                  icon={<Eye size={18} />}
+                />
+              )}
+              {stats.attendanceRate > 0 && (
+                <StatCard
+                  label="Attendance"
+                  value={`${Math.round(stats.attendanceRate * 100)}%`}
+                  icon={<UserCheck size={18} />}
+                />
+              )}
             </div>
           </motion.section>
         )}

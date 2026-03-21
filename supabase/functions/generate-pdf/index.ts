@@ -115,18 +115,20 @@ async function fetchExportData(
     case 'impact-csv': {
       let query = supabase
         .from('event_impact')
-        .select('event_id, trees_planted, hours_total, rubbish_kg, area_restored_sqm, logged_at, events(title)')
+        .select('event_id, trees_planted, hours_total, rubbish_kg, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings, logged_at, events(title)')
         .order('logged_at', { ascending: false })
       query = applyDateFilter(query, 'logged_at')
       const { data, error } = await query
       if (error) throw error
       return {
         title: 'Environmental Impact Report',
-        headers: ['Event', 'Trees Planted', 'Volunteer Hours', 'Rubbish (kg)', 'Area Restored (m²)', 'Date'],
+        headers: ['Event', 'Trees Planted', 'Volunteer Hours', 'Rubbish (kg)', 'Coastline (m)', 'Area Restored (m²)', 'Native Plants', 'Wildlife Sightings', 'Date'],
         rows: (data ?? []).map((r: any) => [
           r.events?.title ?? r.event_id ?? '', String(r.trees_planted ?? 0),
           String(r.hours_total ?? 0), String(r.rubbish_kg ?? 0),
-          String(r.area_restored_sqm ?? 0), r.logged_at?.slice(0, 10) ?? '',
+          String(r.coastline_cleaned_m ?? 0), String(r.area_restored_sqm ?? 0),
+          String(r.native_plants ?? 0), String(r.wildlife_sightings ?? 0),
+          r.logged_at?.slice(0, 10) ?? '',
         ]),
       }
     }

@@ -10,6 +10,7 @@ import {
   Search,
   UserCheck,
   UserX,
+  UserPlus,
   ChevronRight,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
@@ -18,6 +19,7 @@ import {
   useEventAttendees,
   useCheckIn,
   useBulkCheckIn,
+  usePromoteFromWaitlist,
   formatEventDate,
 } from '@/hooks/use-events'
 import type { AttendeeWithStatus } from '@/hooks/use-events'
@@ -74,11 +76,15 @@ function QrCodeDisplay({ eventId, title }: { eventId: string; title: string }) {
 function AttendeeRow({
   attendee,
   onCheckIn,
+  onPromote,
   isPending,
+  isPromoting,
 }: {
   attendee: AttendeeWithStatus
   onCheckIn: () => void
+  onPromote?: () => void
   isPending: boolean
+  isPromoting?: boolean
 }) {
   const isCheckedIn = attendee.status === 'attended'
   const isWaitlisted = attendee.status === 'waitlisted'
@@ -114,6 +120,16 @@ function AttendeeRow({
         <span className="flex items-center justify-center w-9 h-9 rounded-full bg-success-100 text-success-600">
           <Check size={18} />
         </span>
+      ) : isWaitlisted && onPromote ? (
+        <Button
+          variant="secondary"
+          size="sm"
+          icon={<UserPlus size={14} />}
+          onClick={onPromote}
+          loading={isPromoting}
+        >
+          Promote
+        </Button>
       ) : (
         <Button
           variant="secondary"
@@ -121,9 +137,8 @@ function AttendeeRow({
           icon={<UserCheck size={14} />}
           onClick={onCheckIn}
           loading={isPending}
-          disabled={isWaitlisted}
         >
-          {isWaitlisted ? 'Waitlist' : 'Check In'}
+          Check In
         </Button>
       )}
     </motion.div>
@@ -144,6 +159,7 @@ export default function EventDayPage() {
 
   const checkIn = useCheckIn()
   const bulkCheckIn = useBulkCheckIn()
+  const promote = usePromoteFromWaitlist()
 
   const stagger = {
     hidden: {},
@@ -159,6 +175,7 @@ export default function EventDayPage() {
   const [showQr, setShowQr] = useState(false)
   const [showBulkConfirm, setShowBulkConfirm] = useState(false)
   const [checkingInUserId, setCheckingInUserId] = useState<string | null>(null)
+  const [promotingUserId, setPromotingUserId] = useState<string | null>(null)
 
   const filteredAttendees = useMemo(() => {
     if (!attendees) return []
@@ -195,6 +212,18 @@ export default function EventDayPage() {
     bulkCheckIn.mutate(eventId)
     setShowBulkConfirm(false)
   }, [eventId, bulkCheckIn])
+
+  const handlePromote = useCallback(
+    (userId: string) => {
+      if (!eventId) return
+      setPromotingUserId(userId)
+      promote.mutate(
+        { eventId, userId },
+        { onSettled: () => setPromotingUserId(null) },
+      )
+    },
+    [eventId, promote],
+  )
 
   const isLoading = eventLoading || attendeesLoading
 
@@ -332,7 +361,9 @@ export default function EventDayPage() {
                 key={attendee.user_id}
                 attendee={attendee}
                 onCheckIn={() => handleCheckIn(attendee.user_id)}
+                onPromote={attendee.status === 'waitlisted' ? () => handlePromote(attendee.user_id) : undefined}
                 isPending={checkingInUserId === attendee.user_id}
+                isPromoting={promotingUserId === attendee.user_id}
               />
             ))}
           </div>

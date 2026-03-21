@@ -228,6 +228,7 @@ export function useAdminCollectiveStats(collectiveId: string | undefined) {
         hours_total: number
         area_restored_sqm: number
         native_plants: number
+        wildlife_sightings: number
       }
     },
     enabled: !!collectiveId,

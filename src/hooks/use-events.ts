@@ -721,6 +721,18 @@ export function useCancelEvent() {
     },
     onMutate: async ({ eventId }) => {
       await queryClient.cancelQueries({ queryKey: ['event', eventId] })
+      // Optimistically set status to cancelled
+      const previous = queryClient.getQueryData(['event', eventId])
+      queryClient.setQueriesData<EventDetailData>(
+        { queryKey: ['event', eventId] },
+        (old) => old ? { ...old, status: 'cancelled' } : old,
+      )
+      return { previous, eventId }
+    },
+    onError: (_err, { eventId }, context) => {
+      if (context?.previous) {
+        queryClient.setQueriesData({ queryKey: ['event', eventId] }, () => context.previous)
+      }
     },
     onSettled: (_, __, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
@@ -791,16 +803,36 @@ export function useLogImpact() {
         .select()
         .single()
       if (error) throw error
+
+      // Mark event as completed once impact is logged
+      await supabase
+        .from('events')
+        .update({ status: 'completed' })
+        .eq('id', impactData.event_id)
+        .in('status', ['published']) // Only transition from published, not draft/cancelled
+
       return data as EventImpact
     },
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ['event-impact'] })
+    onMutate: async (impactData) => {
+      const eventId = impactData.event_id
+      await queryClient.cancelQueries({ queryKey: ['event-impact', eventId] })
+      const previous = queryClient.getQueryData<EventImpact | null>(['event-impact', eventId])
+      // Optimistically set the impact data
+      queryClient.setQueryData<EventImpact | null>(['event-impact', eventId], (old) => ({
+        ...(old ?? { id: 'optimistic', logged_by: user?.id ?? '', logged_at: new Date().toISOString() }),
+        ...impactData,
+      } as EventImpact))
+      return { previous, eventId }
     },
-    onSettled: (data) => {
-      if (data) {
-        queryClient.invalidateQueries({ queryKey: ['event-impact', data.event_id] })
-        queryClient.invalidateQueries({ queryKey: ['event', data.event_id] })
+    onError: (_err, _vars, context) => {
+      if (context) {
+        queryClient.setQueryData(['event-impact', context.eventId], context.previous)
       }
+    },
+    onSettled: (data, _err, vars) => {
+      const eventId = data?.event_id ?? vars.event_id
+      queryClient.invalidateQueries({ queryKey: ['event-impact', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['home', 'impact-stats'] })
     },
   })

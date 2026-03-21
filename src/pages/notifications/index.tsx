@@ -94,11 +94,11 @@ function NotificationRow({
         }}
         className={cn(
           'relative flex items-start gap-3 w-full px-4 py-3.5 text-left',
-          'bg-white',
+          'bg-surface-0',
           'cursor-pointer select-none',
           'transition-colors duration-150',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-inset',
-          isUnread && 'bg-white/40',
+          isUnread && 'bg-surface-2',
         )}
         aria-label={`${notification.title}. ${notification.body ?? ''}`}
       >

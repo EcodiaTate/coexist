@@ -29,7 +29,7 @@ const slideVariants = {
 
 export default function OnboardingPage() {
   const navigate = useNavigate()
-  const { user, refreshProfile } = useAuth()
+  const { user, refreshProfile, markOnboardingComplete } = useAuth()
   const shouldReduceMotion = useReducedMotion()
 
   const [step, setStep] = useState(0)
@@ -111,6 +111,7 @@ export default function OnboardingPage() {
       }
     }
 
+    markOnboardingComplete()
     await refreshProfile()
     setShowCelebration(true)
   }

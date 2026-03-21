@@ -199,6 +199,12 @@ html {
   --color-sprout-800: #3d4f2b;
   --color-sprout-900: #354328;
 
+  /* Surface layers — use these for visual hierarchy without borders */
+  --color-surface-0: #ffffff;
+  --color-surface-1: #f8f9f5;
+  --color-surface-2: #f2f4ef;
+  --color-surface-3: #eaede4;
+
   /* Shadows - warm tinted */
   --shadow-sm: 0 1px 2px rgba(74, 74, 66, 0.06);
   --shadow-md: 0 4px 6px -1px rgba(74, 74, 66, 0.08), 0 2px 4px -2px rgba(74, 74, 66, 0.06);
@@ -245,7 +251,7 @@ html {
 body {
   font-family: var(--font-body);
   color: var(--color-neutral-900);
-  background-color: #ffffff;
+  background-color: var(--color-surface-1);
   min-height: 100dvh;
 }
 

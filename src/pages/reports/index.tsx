@@ -54,11 +54,12 @@ const impactMetrics = [
   'Trees planted',
   'Volunteer hours',
   'Rubbish collected (kg)',
-  'Coastline cleaned (km)',
+  'Coastline cleaned (m)',
   'Events held',
   'Members participated',
-  'Species planted',
-  'Area restored (ha)',
+  'Native plants',
+  'Area restored (sqm)',
+  'Wildlife sightings',
 ]
 
 const tabs = [

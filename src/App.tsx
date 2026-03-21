@@ -17,7 +17,7 @@ import SplashPage from '@/pages/splash'
 const PublicEventPage = lazy(() => import('@/pages/public/event'))
 const PublicCollectivePage = lazy(() => import('@/pages/public/collective'))
 const DownloadPage = lazy(() => import('@/pages/public/download'))
-const PublicSharePage = lazy(() => import('@/pages/public/share'))
+
 
 // Legal
 const TermsOfServicePage = lazy(() => import('@/pages/legal/terms'))
@@ -49,6 +49,10 @@ const CollectiveManagePage = lazy(() => import('@/pages/collectives/manage'))
 // Chat
 const ChatListPage = lazy(() => import('@/pages/chat/index'))
 const CollectiveChatPage = lazy(() => import('@/pages/chat/collective-chat'))
+const ChannelChatPage = lazy(() => import('@/pages/chat/channel-chat'))
+
+// Tasks (staff)
+const TasksPage = lazy(() => import('@/pages/tasks/index'))
 
 // Settings
 const SettingsPage = lazy(() => import('@/pages/settings/index'))
@@ -70,6 +74,7 @@ const CheckInPage = lazy(() => import('@/pages/events/check-in'))
 const EventDayPage = lazy(() => import('@/pages/events/event-day'))
 const LogImpactPage = lazy(() => import('@/pages/events/log-impact'))
 const PostEventSurveyPage = lazy(() => import('@/pages/events/post-event-survey'))
+const EditEventPage = lazy(() => import('@/pages/events/edit-event'))
 
 // Community / Feed
 const FeedPage = lazy(() => import('@/pages/community/feed'))
@@ -123,6 +128,7 @@ const AdminSystemPage = lazy(() => import('@/pages/admin/system'))
 const AdminEmailPage = lazy(() => import('@/pages/admin/email'))
 const AdminCharityPage = lazy(() => import('@/pages/admin/charity'))
 const AdminExportsPage = lazy(() => import('@/pages/admin/exports'))
+const AdminWorkflowsPage = lazy(() => import('@/pages/admin/workflows'))
 const SuperAdminPage = lazy(() => import('@/pages/admin/super/index'))
 const DevToolsPage = lazy(() => import('@/pages/admin/dev-tools'))
 
@@ -383,6 +389,18 @@ function App() {
           }
         />
         <Route
+          path="/events/:id/edit"
+          element={
+            <RequireAuth>
+              <AppShell>
+                <PageTransition>
+                  <EditEventPage />
+                </PageTransition>
+              </AppShell>
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/community"
           element={
             <RequireAuth>
@@ -444,6 +462,20 @@ function App() {
           }
         />
 
+        {/* ---- Staff tasks route ---- */}
+        <Route
+          path="/tasks"
+          element={
+            <RequireAuth>
+              <AppShell>
+                <PageTransition>
+                  <TasksPage />
+                </PageTransition>
+              </AppShell>
+            </RequireAuth>
+          }
+        />
+
         {/* ---- Chat routes ---- */}
         <Route
           path="/chat"
@@ -453,6 +485,16 @@ function App() {
                 <PageTransition>
                   <ChatListPage />
                 </PageTransition>
+              </AppShell>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/chat/channel/:channelId"
+          element={
+            <RequireAuth>
+              <AppShell>
+                <ChannelChatPage />
               </AppShell>
             </RequireAuth>
           }
@@ -815,6 +857,7 @@ function App() {
           <Route path="collectives" element={<AdminCollectivesPage />} />
           <Route path="collectives/:collectiveId" element={<AdminCollectiveDetailPage />} />
           <Route path="users" element={<AdminUsersPage />} />
+          <Route path="workflows" element={<AdminWorkflowsPage />} />
           <Route path="events" element={<AdminEventsPage />} />
           <Route path="partners" element={<AdminPartnersPage />} />
           <Route path="challenges" element={<AdminChallengesPage />} />
@@ -866,14 +909,6 @@ function App() {
           element={
             <AppShell bare>
               <PublicCollectivePage />
-            </AppShell>
-          }
-        />
-        <Route
-          path="/share/:type/:id"
-          element={
-            <AppShell bare>
-              <PublicSharePage />
             </AppShell>
           }
         />

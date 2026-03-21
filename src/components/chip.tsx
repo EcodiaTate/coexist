@@ -16,12 +16,12 @@ interface ChipProps {
 
 const variantStyles = {
   default: {
-    selected: 'bg-primary-100 text-primary-400 shadow-sm',
-    unselected: 'bg-primary-50/60 text-primary-400 hover:bg-primary-100/60',
+    selected: 'bg-primary-100 text-primary-800 shadow-sm',
+    unselected: 'bg-surface-2 text-primary-600 hover:bg-primary-100/60 shadow-sm',
   },
   activity: {
     selected: 'bg-accent-100 text-primary-800 shadow-sm',
-    unselected: 'bg-primary-50/60 text-primary-400 hover:bg-primary-100/60',
+    unselected: 'bg-surface-2 text-primary-600 hover:bg-primary-100/60 shadow-sm',
   },
 } as const
 

@@ -20,6 +20,9 @@ import {
   XCircle,
   Mail,
   QrCode,
+  Copy,
+  Ban,
+  Send,
 } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { useAuth } from '@/hooks/use-auth'
@@ -28,6 +31,9 @@ import {
   useEventDetail,
   useRegisterForEvent,
   useCancelRegistration,
+  useCancelEvent,
+  useDuplicateEvent,
+  useInviteCollective,
   formatEventDate,
   formatEventTime,
   getCountdown,
@@ -169,17 +175,22 @@ function InfoRow({
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, isStaff: isGlobalStaff, isAdmin: isGlobalAdmin } = useAuth()
   const shouldReduceMotion = useReducedMotion()
 
   const { data: event, isLoading } = useEventDetail(id)
   const collectiveRole = useCollectiveRole(event?.collective_id)
   const registerMutation = useRegisterForEvent()
   const cancelMutation = useCancelRegistration()
+  const cancelEventMutation = useCancelEvent()
+  const duplicateEventMutation = useDuplicateEvent()
+  const inviteCollectiveMutation = useInviteCollective()
 
   const [showCancelSheet, setShowCancelSheet] = useState(false)
   const [showCalendarSheet, setShowCalendarSheet] = useState(false)
   const [showQrSheet, setShowQrSheet] = useState(false)
+  const [showCancelEventSheet, setShowCancelEventSheet] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
 
   const past = event ? isPastEvent(event) : false
@@ -195,7 +206,8 @@ export default function EventDetailPage() {
     return now >= earlyWindow && now <= end
   })()
   const userStatus = event?.user_registration?.status ?? null
-  const isLeaderOrAbove = collectiveRole.isCoLeader || collectiveRole.isLeader
+  const isLeaderOrAbove = collectiveRole.isCoLeader || collectiveRole.isLeader || isGlobalStaff
+  const isStaff = collectiveRole.isAssistLeader || isGlobalStaff
 
   const capacityText = useMemo(() => {
     if (!event) return ''
@@ -236,6 +248,26 @@ export default function EventDetailPage() {
     if (!event) return
     shareEvent(event.title, `${window.location.origin}/events/${event.id}`)
   }, [event])
+
+  const handleCancelEvent = useCallback(() => {
+    if (!event) return
+    cancelEventMutation.mutate(
+      { eventId: event.id, reason: cancelReason },
+      { onSuccess: () => setShowCancelEventSheet(false) },
+    )
+  }, [event, cancelReason, cancelEventMutation])
+
+  const handleDuplicate = useCallback(() => {
+    if (!event) return
+    duplicateEventMutation.mutate(event.id, {
+      onSuccess: (newEvent) => navigate(`/events/${newEvent.id}/edit`),
+    })
+  }, [event, duplicateEventMutation, navigate])
+
+  const handleInviteCollective = useCallback(() => {
+    if (!event?.collective_id) return
+    inviteCollectiveMutation.mutate({ eventId: event.id, collectiveId: event.collective_id })
+  }, [event, inviteCollectiveMutation])
 
   if (isLoading) return <EventDetailSkeleton />
   if (!event) {
@@ -617,8 +649,8 @@ export default function EventDetailPage() {
           </Button>
         )}
 
-        {/* Leader actions */}
-        {isLeaderOrAbove && (
+        {/* Staff actions (assist_leader and above) */}
+        {isStaff && (
           <div className="space-y-2 pt-2">
             <h3 className="text-sm font-semibold text-primary-800">Leader Tools</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -636,20 +668,58 @@ export default function EventDetailPage() {
               >
                 Show QR
               </Button>
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={() => navigate(`/events/${event.id}/impact`)}
-              >
-                Log Impact
-              </Button>
-              <Button
-                variant="ghost"
-                size="md"
-                onClick={() => navigate(`/events/${event.id}/edit`)}
-              >
-                Edit Event
-              </Button>
+              {isLeaderOrAbove && (
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={() => navigate(`/events/${event.id}/impact`)}
+                >
+                  Log Impact
+                </Button>
+              )}
+              {isLeaderOrAbove && (
+                <Button
+                  variant="ghost"
+                  size="md"
+                  onClick={() => navigate(`/events/${event.id}/edit`)}
+                >
+                  Edit Event
+                </Button>
+              )}
+              {isLeaderOrAbove && (
+                <Button
+                  variant="secondary"
+                  size="md"
+                  icon={<Copy size={14} />}
+                  onClick={handleDuplicate}
+                  loading={duplicateEventMutation.isPending}
+                >
+                  Duplicate
+                </Button>
+              )}
+              {isLeaderOrAbove && !past && event.status !== 'cancelled' && (
+                <Button
+                  variant="secondary"
+                  size="md"
+                  icon={<Send size={14} />}
+                  onClick={handleInviteCollective}
+                  loading={inviteCollectiveMutation.isPending}
+                  disabled={inviteCollectiveMutation.isSuccess}
+                >
+                  {inviteCollectiveMutation.isSuccess ? 'Invited' : 'Invite All'}
+                </Button>
+              )}
+              {isLeaderOrAbove && event.status !== 'cancelled' && (
+                <Button
+                  variant="ghost"
+                  size="md"
+                  icon={<Ban size={14} />}
+                  onClick={() => setShowCancelEventSheet(true)}
+                  className="text-error-600 hover:text-error-700"
+                >
+                  Cancel Event
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -687,6 +757,13 @@ export default function EventDetailPage() {
                   icon={<Clock size={18} />}
                 />
               )}
+              {event.impact.area_restored_sqm > 0 && (
+                <StatCard
+                  label="Area (sqm)"
+                  value={event.impact.area_restored_sqm}
+                  icon={<MapPin size={18} />}
+                />
+              )}
               {event.impact.native_plants > 0 && (
                 <StatCard
                   label="Native Plants"
@@ -712,7 +789,7 @@ export default function EventDetailPage() {
             <p className="text-caption text-primary-400 mt-1">
               Share your feedback to help us improve future events.
             </p>
-            <Button variant="primary" size="sm" className="mt-3">
+            <Button variant="primary" size="sm" className="mt-3" onClick={() => navigate(`/events/${event.id}/survey`)}>
               Give Feedback
             </Button>
           </div>
@@ -799,6 +876,54 @@ export default function EventDetailPage() {
               <p className="text-caption text-primary-400">Opens in your browser</p>
             </div>
           </button>
+        </div>
+      </BottomSheet>
+
+      {/* Cancel event sheet */}
+      <BottomSheet
+        open={showCancelEventSheet}
+        onClose={() => setShowCancelEventSheet(false)}
+        snapPoints={[0.5]}
+      >
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-heading text-base font-semibold text-primary-800">
+              Cancel Event
+            </h3>
+            <p className="text-caption text-primary-400 mt-1">
+              All registered and invited attendees will be notified. This cannot be undone.
+            </p>
+          </div>
+          <textarea
+            placeholder="Reason for cancellation (optional)"
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            rows={3}
+            className={cn(
+              'w-full px-4 py-3 rounded-xl text-sm resize-none',
+              'bg-primary-50 border border-primary-100 text-primary-800',
+              'placeholder:text-primary-300',
+              'focus:outline-none focus:ring-2 focus:ring-error-400 focus:border-transparent',
+              'transition-all duration-150',
+            )}
+          />
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              className="flex-1"
+              onClick={() => setShowCancelEventSheet(false)}
+            >
+              Keep Event
+            </Button>
+            <Button
+              variant="primary"
+              className="flex-1 bg-error-600 hover:bg-error-700"
+              loading={cancelEventMutation.isPending}
+              onClick={handleCancelEvent}
+            >
+              Cancel Event
+            </Button>
+          </div>
         </div>
       </BottomSheet>
     </Page>

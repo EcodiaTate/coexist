@@ -3,10 +3,11 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   Home,
-  Compass,
+  MessageCircle,
   CalendarDays,
   Users,
   Plus,
+  ClipboardCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -20,7 +21,7 @@ interface Tab {
   activeIcon: ReactNode
 }
 
-const tabs: Tab[] = [
+const baseTabs: Tab[] = [
   {
     key: 'home',
     label: 'Home',
@@ -29,11 +30,11 @@ const tabs: Tab[] = [
     activeIcon: <Home size={24} strokeWidth={2.5} fill="currentColor" />,
   },
   {
-    key: 'explore',
-    label: 'Explore',
-    path: '/explore',
-    icon: <Compass size={24} strokeWidth={1.5} />,
-    activeIcon: <Compass size={24} strokeWidth={2.5} fill="currentColor" />,
+    key: 'chat',
+    label: 'Chat',
+    path: '/chat',
+    icon: <MessageCircle size={24} strokeWidth={1.5} />,
+    activeIcon: <MessageCircle size={24} strokeWidth={2.5} fill="currentColor" />,
   },
   {
     key: 'events',
@@ -51,13 +52,21 @@ const tabs: Tab[] = [
   },
 ]
 
+const tasksTab: Tab = {
+  key: 'tasks',
+  label: 'Tasks',
+  path: '/tasks',
+  icon: <ClipboardCheck size={24} strokeWidth={1.5} />,
+  activeIcon: <ClipboardCheck size={24} strokeWidth={2.5} fill="currentColor" />,
+}
+
 interface BottomTabBarProps {
-  /** Badge count for the community tab (unread chat + notifications) */
-  communityBadge?: number
+  /** Badge count for the chat tab (unread messages) */
+  chatBadge?: number
   className?: string
 }
 
-export function BottomTabBar({ communityBadge = 0, className }: BottomTabBarProps) {
+export function BottomTabBar({ chatBadge = 0, className }: BottomTabBarProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
@@ -68,6 +77,13 @@ export function BottomTabBar({ communityBadge = 0, className }: BottomTabBarProp
   const showFab = collectiveRoles.some(
     (m) => ['leader', 'co_leader'].includes(m.role),
   )
+
+  // Show tasks tab for staff (assist_leader+ in any collective)
+  const isCollectiveStaff = collectiveRoles.some(
+    (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
+  )
+
+  const tabs = isCollectiveStaff ? [...baseTabs, tasksTab] : baseTabs
 
   const handleTabPress = async (path: string) => {
     if (haptics) {
@@ -152,8 +168,8 @@ export function BottomTabBar({ communityBadge = 0, className }: BottomTabBarProp
               >
                 {active ? tab.activeIcon : tab.icon}
 
-                {/* Community badge */}
-                {tab.key === 'community' && communityBadge > 0 && (
+                {/* Chat badge */}
+                {tab.key === 'chat' && chatBadge > 0 && (
                   <span
                     className={cn(
                       'absolute -top-1 -right-2',
@@ -162,9 +178,9 @@ export function BottomTabBar({ communityBadge = 0, className }: BottomTabBarProp
                       'rounded-full bg-error text-white',
                       'text-[10px] font-bold leading-none',
                     )}
-                    aria-label={`${communityBadge} unread`}
+                    aria-label={`${chatBadge} unread`}
                   >
-                    {communityBadge > 99 ? '99+' : communityBadge}
+                    {chatBadge > 99 ? '99+' : chatBadge}
                   </span>
                 )}
               </motion.span>

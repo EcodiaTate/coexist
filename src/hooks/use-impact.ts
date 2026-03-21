@@ -197,26 +197,41 @@ export function useStreak(userId?: string) {
         months.add(`${date.getFullYear()}-${date.getMonth()}`)
       }
 
-      const calcStreak = (sortedKeys: string[], isWeek: boolean) => {
+      // Get current week/month keys for "is streak still active" check
+      const now = new Date()
+      const startOfYear = new Date(now.getFullYear(), 0, 1)
+      const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / 86400000)
+      const currentWeekNum = Math.ceil((dayOfYear + startOfYear.getDay() + 1) / 7)
+      const currentWeekKey = `${now.getFullYear()}-W${currentWeekNum}`
+      const currentMonthKey = `${now.getFullYear()}-${now.getMonth()}`
+
+      // Also compute "last week/month" for grace period (streak counts if active this or last period)
+      const lastWeekDate = new Date(now.getTime() - 7 * 86400000)
+      const lStartOfYear = new Date(lastWeekDate.getFullYear(), 0, 1)
+      const lDayOfYear = Math.floor((lastWeekDate.getTime() - lStartOfYear.getTime()) / 86400000)
+      const lastWeekNum = Math.ceil((lDayOfYear + lStartOfYear.getDay() + 1) / 7)
+      const lastWeekKey = `${lastWeekDate.getFullYear()}-W${lastWeekNum}`
+
+      const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      const lastMonthKey = `${lastMonthDate.getFullYear()}-${lastMonthDate.getMonth()}`
+
+      const calcStreak = (sortedKeys: string[], isWeek: boolean, currentKey: string, lastKey: string) => {
         if (sortedKeys.length === 0) return { current: 0, longest: 0 }
 
         let current = 1
         let longest = 1
         for (let i = 1; i < sortedKeys.length; i++) {
-          // Check if this key is consecutive with the previous
           const prev = sortedKeys[i - 1]
           const curr = sortedKeys[i]
           let isConsecutive = false
 
           if (isWeek) {
-            // Parse "YYYY-Wnn" and check if weeks are sequential
             const [prevY, prevW] = prev.split('-W').map(Number)
             const [currY, currW] = curr.split('-W').map(Number)
             isConsecutive =
               (currY === prevY && currW === prevW + 1) ||
               (currY === prevY + 1 && prevW >= 52 && currW === 1)
           } else {
-            // Parse "YYYY-M" and check if months are sequential
             const [prevY, prevM] = prev.split('-').map(Number)
             const [currY, currM] = curr.split('-').map(Number)
             isConsecutive =
@@ -231,13 +246,17 @@ export function useStreak(userId?: string) {
             current = 1
           }
         }
-        return { current, longest }
+
+        // Only count as "current" if the last entry is this period or the previous one
+        const lastEntry = sortedKeys[sortedKeys.length - 1]
+        const isActive = lastEntry === currentKey || lastEntry === lastKey
+        return { current: isActive ? current : 0, longest }
       }
 
       const weekArr = Array.from(weeks).sort()
       const monthArr = Array.from(months).sort()
-      const weekStreak = calcStreak(weekArr, true)
-      const monthStreak = calcStreak(monthArr, false)
+      const weekStreak = calcStreak(weekArr, true, currentWeekKey, lastWeekKey)
+      const monthStreak = calcStreak(monthArr, false, currentMonthKey, lastMonthKey)
 
       return {
         currentWeeks: weekStreak.current,

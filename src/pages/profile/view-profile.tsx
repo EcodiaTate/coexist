@@ -8,6 +8,11 @@ import {
   TreePine,
   Star,
   Users,
+  Trash2,
+  Waves,
+  Sprout,
+  Bird,
+  Ruler,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -210,6 +215,41 @@ export default function ViewProfilePage() {
             label="Trees"
             icon={<TreePine size={20} />}
           />
+          {(stats?.rubbishCollectedKg ?? 0) > 0 && (
+            <StatCard
+              value={stats?.rubbishCollectedKg ?? 0}
+              label="kg Rubbish"
+              icon={<Trash2 size={20} />}
+            />
+          )}
+          {(stats?.coastlineCleanedM ?? 0) > 0 && (
+            <StatCard
+              value={stats?.coastlineCleanedM ?? 0}
+              label="Coastline (m)"
+              icon={<Waves size={20} />}
+            />
+          )}
+          {(stats?.areaRestoredSqm ?? 0) > 0 && (
+            <StatCard
+              value={stats?.areaRestoredSqm ?? 0}
+              label="Area (sqm)"
+              icon={<Ruler size={20} />}
+            />
+          )}
+          {(stats?.nativePlants ?? 0) > 0 && (
+            <StatCard
+              value={stats?.nativePlants ?? 0}
+              label="Native Plants"
+              icon={<Sprout size={20} />}
+            />
+          )}
+          {(stats?.wildlifeSightings ?? 0) > 0 && (
+            <StatCard
+              value={stats?.wildlifeSightings ?? 0}
+              label="Wildlife"
+              icon={<Bird size={20} />}
+            />
+          )}
         </motion.div>
 
         {/* Collectives */}

@@ -76,7 +76,7 @@ export function StatCard({
       aria-label={ariaLabel ?? `${label}: ${value}`}
       className={cn(
         'rounded-xl shadow-sm p-4',
-        'bg-gradient-to-br from-white to-primary-100/50',
+        'bg-gradient-to-br from-surface-0 to-primary-100/60',
         className,
       )}
     >

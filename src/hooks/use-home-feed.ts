@@ -18,6 +18,10 @@ export interface ImpactStats {
   trees_planted: number
   hours_volunteered: number
   rubbish_kg: number
+  coastline_cleaned_m: number
+  area_restored_sqm: number
+  native_plants: number
+  wildlife_sightings: number
 }
 
 export interface CollectiveWithNextEvent extends Collective {
@@ -187,6 +191,10 @@ export function useImpactStats() {
         trees_planted: 0,
         hours_volunteered: 0,
         rubbish_kg: 0,
+        coastline_cleaned_m: 0,
+        area_restored_sqm: 0,
+        native_plants: 0,
+        wildlife_sightings: 0,
       }) as unknown as ImpactStats
     },
     enabled: !!user,

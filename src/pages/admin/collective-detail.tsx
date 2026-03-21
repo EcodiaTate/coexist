@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   ChevronRight,
   ExternalLink,
+  Eye,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -214,6 +215,13 @@ function OverviewTab({ collectiveId }: { collectiveId: string }) {
             value={`${Math.round(stats.coastline_cleaned_m)}m`}
             icon={<MapPin size={16} />}
           />
+          {(stats.wildlife_sightings ?? 0) > 0 && (
+            <StatCard
+              label="Wildlife Sightings"
+              value={stats.wildlife_sightings}
+              icon={<Eye size={16} />}
+            />
+          )}
         </div>
       ) : null}
 

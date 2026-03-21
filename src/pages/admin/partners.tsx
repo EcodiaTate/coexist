@@ -22,11 +22,12 @@ import { EmptyState } from '@/components/empty-state'
 import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { TabBar } from '@/components/tab-bar'
+import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 
 /* ------------------------------------------------------------------ */
-/*  Organisations                                                      */
+/*  Data hooks                                                         */
 /* ------------------------------------------------------------------ */
 
 function useOrganisations() {
@@ -44,10 +45,6 @@ function useOrganisations() {
   })
 }
 
-/* ------------------------------------------------------------------ */
-/*  Partner Offers                                                     */
-/* ------------------------------------------------------------------ */
-
 function usePartnerOffers() {
   return useQuery({
     queryKey: ['admin-partner-offers'],
@@ -62,6 +59,10 @@ function usePartnerOffers() {
     staleTime: 2 * 60 * 1000,
   })
 }
+
+/* ------------------------------------------------------------------ */
+/*  Constants                                                          */
+/* ------------------------------------------------------------------ */
 
 const orgTypeOptions = [
   { value: 'corporate', label: 'Corporate' },
@@ -102,58 +103,159 @@ export default function AdminPartnersPage() {
   })
 
   const queryClient = useQueryClient()
+  const { toast } = useToast()
   const { data: organisations, isLoading: orgsLoading } = useOrganisations()
   const { data: offers, isLoading: offersLoading } = usePartnerOffers()
 
   useAdminHeader('Partners & Sponsors')
 
+  /* ---- Create org (optimistic) ---- */
   const createOrgMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('organisations').insert(orgForm as any)
+    mutationFn: async (form: typeof orgForm) => {
+      const { data, error } = await supabase
+        .from('organisations')
+        .insert(form as any)
+        .select()
+        .single()
       if (error) throw error
+      return data
+    },
+    onMutate: async (form) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-organisations'] })
+      const previous = queryClient.getQueryData<any[]>(['admin-organisations'])
+
+      const optimistic = {
+        id: `temp-${crypto.randomUUID()}`,
+        ...form,
+        logo_url: null,
+        created_at: new Date().toISOString(),
+      }
+
+      queryClient.setQueryData<any[]>(['admin-organisations'], (old = []) =>
+        [...old, optimistic].sort((a, b) => a.name.localeCompare(b.name)),
+      )
+
+      setShowCreateOrg(false)
+      setOrgForm({ name: '', type: 'corporate', website: '', contact_name: '', contact_email: '', description: '' })
+
+      return { previous }
+    },
+    onError: (_err, _form, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['admin-organisations'], context.previous)
+      }
+      toast.error('Failed to add organisation')
     },
     onSuccess: () => {
+      toast.success('Organisation added')
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-organisations'] })
-      setShowCreateOrg(false)
-      setOrgForm({
-        name: '',
-        type: 'corporate',
-        website: '',
-        contact_name: '',
-        contact_email: '',
-        description: '',
-      })
     },
   })
 
+  /* ---- Create offer (optimistic) ---- */
   const createOfferMutation = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase.from('partner_offers').insert({
-        title: offerForm.title,
-        description: offerForm.description,
-        organisation_id: offerForm.organisation_id || null,
-        category: offerForm.category,
-        terms_and_conditions: offerForm.terms,
-      } as any)
+    mutationFn: async (form: typeof offerForm) => {
+      const { data, error } = await supabase
+        .from('partner_offers')
+        .insert({
+          title: form.title,
+          description: form.description,
+          organisation_id: form.organisation_id || null,
+          category: form.category,
+          terms_and_conditions: form.terms,
+        } as any)
+        .select('*, organisations(name, logo_url)')
+        .single()
       if (error) throw error
+      return data
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-partner-offers'] })
+    onMutate: async (form) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-partner-offers'] })
+      const previous = queryClient.getQueryData<any[]>(['admin-partner-offers'])
+
+      const matchedOrg = organisations?.find((o) => o.id === form.organisation_id)
+      const optimistic = {
+        id: `temp-${crypto.randomUUID()}`,
+        title: form.title,
+        description: form.description,
+        organisation_id: form.organisation_id || null,
+        category: form.category,
+        terms_and_conditions: form.terms,
+        organisations: matchedOrg ? { name: matchedOrg.name, logo_url: matchedOrg.logo_url } : null,
+        created_at: new Date().toISOString(),
+      }
+
+      queryClient.setQueryData<any[]>(['admin-partner-offers'], (old = []) =>
+        [optimistic, ...old],
+      )
+
       setShowCreateOffer(false)
       setOfferForm({ title: '', description: '', organisation_id: '', category: '', terms: '' })
+
+      return { previous }
+    },
+    onError: (_err, _form, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['admin-partner-offers'], context.previous)
+      }
+      toast.error('Failed to add offer')
+    },
+    onSuccess: () => {
+      toast.success('Offer added')
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-partner-offers'] })
     },
   })
 
+  /* ---- Delete (optimistic) ---- */
   const deleteMutation = useMutation({
     mutationFn: async ({ id, type }: { id: string; type: string }) => {
       const table = type === 'org' ? 'organisations' : 'partner_offers'
       const { error } = await supabase.from(table).delete().eq('id', id)
       if (error) throw error
     },
-    onSuccess: () => {
+    onMutate: async ({ id, type }) => {
+      const orgKey = ['admin-organisations']
+      const offerKey = ['admin-partner-offers']
+
+      await queryClient.cancelQueries({ queryKey: orgKey })
+      await queryClient.cancelQueries({ queryKey: offerKey })
+
+      const previousOrgs = queryClient.getQueryData<any[]>(orgKey)
+      const previousOffers = queryClient.getQueryData<any[]>(offerKey)
+
+      if (type === 'org') {
+        queryClient.setQueryData<any[]>(orgKey, (old = []) =>
+          old.filter((o) => o.id !== id),
+        )
+      } else {
+        queryClient.setQueryData<any[]>(offerKey, (old = []) =>
+          old.filter((o) => o.id !== id),
+        )
+      }
+
+      setDeleteTarget(null)
+
+      return { previousOrgs, previousOffers }
+    },
+    onError: (_err, { type }, context) => {
+      if (context?.previousOrgs) {
+        queryClient.setQueryData(['admin-organisations'], context.previousOrgs)
+      }
+      if (context?.previousOffers) {
+        queryClient.setQueryData(['admin-partner-offers'], context.previousOffers)
+      }
+      toast.error(`Failed to delete ${type === 'org' ? 'organisation' : 'offer'}`)
+    },
+    onSuccess: (_data, { type }) => {
+      toast.success(`${type === 'org' ? 'Organisation' : 'Offer'} deleted`)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-organisations'] })
       queryClient.invalidateQueries({ queryKey: ['admin-partner-offers'] })
-      setDeleteTarget(null)
     },
   })
 
@@ -208,7 +310,10 @@ export default function AdminPartnersPage() {
               {organisations.map((org) => (
                 <StaggeredItem
                   key={org.id}
-                  className="flex items-center gap-3 p-4 rounded-xl bg-white shadow-sm"
+                  className={cn(
+                    'flex items-center gap-3 p-4 rounded-xl bg-white shadow-sm',
+                    String(org.id).startsWith('temp-') && 'opacity-60',
+                  )}
                 >
                   {org.logo_url ? (
                     <img
@@ -290,7 +395,10 @@ export default function AdminPartnersPage() {
               {offers.map((offer: any) => (
                 <StaggeredItem
                   key={offer.id}
-                  className="p-4 rounded-xl bg-white shadow-sm"
+                  className={cn(
+                    'p-4 rounded-xl bg-white shadow-sm',
+                    String(offer.id).startsWith('temp-') && 'opacity-60',
+                  )}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
@@ -422,7 +530,7 @@ export default function AdminPartnersPage() {
           <Button
             variant="primary"
             fullWidth
-            onClick={() => createOrgMutation.mutate()}
+            onClick={() => createOrgMutation.mutate(orgForm)}
             loading={createOrgMutation.isPending}
             disabled={!orgForm.name.trim()}
           >
@@ -487,7 +595,7 @@ export default function AdminPartnersPage() {
           <Button
             variant="primary"
             fullWidth
-            onClick={() => createOfferMutation.mutate()}
+            onClick={() => createOfferMutation.mutate(offerForm)}
             loading={createOfferMutation.isPending}
             disabled={!offerForm.title.trim()}
           >

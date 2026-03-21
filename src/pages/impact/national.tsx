@@ -11,6 +11,9 @@ import {
   Share2,
   TrendingUp,
   Trophy,
+  Ruler,
+  Leaf,
+  Eye,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
@@ -41,7 +44,7 @@ function useNationalImpact() {
         eventsWithTypeRes,
       ] = await Promise.all([
         supabase.from('event_impact').select(
-          'trees_planted, hours_total, rubbish_kg, coastline_cleaned_m',
+          'trees_planted, hours_total, rubbish_kg, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings',
         ),
         supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
@@ -49,11 +52,14 @@ function useNationalImpact() {
         supabase.from('events').select('activity_type, collectives(state)').lt('date_start', new Date().toISOString()).limit(10000),
       ])
 
-      const logs = impactRes.data ?? []
-      const totalTrees = logs.reduce((s, r) => s + (r.trees_planted ?? 0), 0)
-      const totalHours = logs.reduce((s, r) => s + (r.hours_total ?? 0), 0)
-      const totalRubbish = logs.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0)
-      const totalCoastline = logs.reduce((s, r) => s + (r.coastline_cleaned_m ?? 0), 0)
+      const logs = (impactRes.data ?? []) as any[]
+      const totalTrees = logs.reduce((s: number, r: any) => s + (r.trees_planted ?? 0), 0)
+      const totalHours = logs.reduce((s: number, r: any) => s + (r.hours_total ?? 0), 0)
+      const totalRubbish = logs.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0)
+      const totalCoastline = logs.reduce((s: number, r: any) => s + (r.coastline_cleaned_m ?? 0), 0)
+      const totalArea = logs.reduce((s: number, r: any) => s + (r.area_restored_sqm ?? 0), 0)
+      const totalNativePlants = logs.reduce((s: number, r: any) => s + (r.native_plants ?? 0), 0)
+      const totalWildlife = logs.reduce((s: number, r: any) => s + (r.wildlife_sightings ?? 0), 0)
 
       const byActivity: Record<string, number> = {}
       for (const ev of (eventsWithTypeRes.data ?? []) as any[]) {
@@ -71,7 +77,10 @@ function useNationalImpact() {
         totalTrees,
         totalHours: Math.round(totalHours),
         totalRubbish: Math.round(totalRubbish),
-        totalCoastline: Math.round(totalCoastline * 10) / 10,
+        totalCoastline: Math.round((totalCoastline / 1000) * 10) / 10, // m → km, 1 decimal
+        totalArea: Math.round(totalArea),
+        totalNativePlants,
+        totalWildlife,
         totalEvents: eventsRes.count ?? 0,
         totalMembers: membersRes.count ?? 0,
         totalCollectives: collectivesRes.count ?? 0,
@@ -260,9 +269,14 @@ export default function NationalImpactPage() {
 
   const shareLink = () => {
     if (navigator.share) {
+      const parts: string[] = []
+      if (data?.totalTrees) parts.push(`${data.totalTrees.toLocaleString()} trees planted`)
+      if (data?.totalHours) parts.push(`${data.totalHours.toLocaleString()} hours volunteered`)
+      if (data?.totalRubbish) parts.push(`${data.totalRubbish.toLocaleString()}kg rubbish collected`)
+      if (data?.totalCoastline) parts.push(`${data.totalCoastline}km coastline cleaned`)
       navigator.share({
         title: 'Co-Exist National Impact',
-        text: `${data?.totalTrees.toLocaleString()} trees planted, ${data?.totalHours.toLocaleString()} hours volunteered!`,
+        text: parts.join(', ') + '!',
         url: window.location.href,
       })
     }
@@ -318,12 +332,40 @@ export default function NationalImpactPage() {
             bg="bg-bark-50/60"
             delay={0.15}
           />
+          {(data?.totalArea ?? 0) > 0 && (
+            <NationalStat
+              icon={<Ruler size={22} className="text-plum-500" />}
+              value={data?.totalArea ?? 0}
+              suffix=" sqm"
+              label="Area Restored"
+              bg="bg-plum-50/60"
+              delay={0.2}
+            />
+          )}
+          {(data?.totalNativePlants ?? 0) > 0 && (
+            <NationalStat
+              icon={<Leaf size={22} className="text-moss-500" />}
+              value={data?.totalNativePlants ?? 0}
+              label="Native Plants"
+              bg="bg-moss-50/80"
+              delay={0.22}
+            />
+          )}
+          {(data?.totalWildlife ?? 0) > 0 && (
+            <NationalStat
+              icon={<Eye size={22} className="text-bark-500" />}
+              value={data?.totalWildlife ?? 0}
+              label="Wildlife Sightings"
+              bg="bg-bark-50/60"
+              delay={0.25}
+            />
+          )}
           <NationalStat
             icon={<CalendarDays size={22} className="text-plum-500" />}
             value={data?.totalEvents ?? 0}
             label="Events Held"
             bg="bg-plum-50/60"
-            delay={0.2}
+            delay={0.28}
           />
           <NationalStat
             icon={<Users size={22} className="text-primary-500" />}

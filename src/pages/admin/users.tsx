@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
   Users,
   Shield,
@@ -11,12 +10,13 @@ import {
   Crown,
   ShieldCheck,
   ShieldAlert,
-  MapPin,
   Plus,
   X,
   ChevronDown,
   ChevronUp,
-  Toggle2 as ToggleIcon,
+  CheckCircle,
+  XCircle,
+  Sparkles,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -99,10 +99,10 @@ const roleOptions = [
 ]
 
 const roleBadgeColors: Record<string, string> = {
-  participant: 'bg-white text-primary-400',
-  national_staff: 'bg-info-100 text-info-700',
-  national_admin: 'bg-plum-100 text-plum-700',
-  super_admin: 'bg-error-100 text-error-700',
+  participant: 'bg-primary-100 text-primary-500',
+  national_staff: 'bg-info-200 text-info-800',
+  national_admin: 'bg-plum-200 text-plum-800',
+  super_admin: 'bg-error-200 text-error-800',
 }
 
 const collectiveRoleOptions: { value: CollectiveRole; label: string }[] = [
@@ -120,10 +120,17 @@ const COLLECTIVE_ROLE_ICONS: Record<CollectiveRole, typeof Crown> = {
 }
 
 const COLLECTIVE_ROLE_COLORS: Record<CollectiveRole, string> = {
-  leader: 'bg-warning-100 text-warning-700',
-  co_leader: 'bg-primary-100 text-primary-700',
-  assist_leader: 'bg-info-100 text-info-700',
-  member: 'bg-neutral-100 text-neutral-600',
+  leader: 'bg-warning-200 text-warning-800',
+  co_leader: 'bg-primary-200 text-primary-800',
+  assist_leader: 'bg-info-200 text-info-800',
+  member: 'bg-neutral-200 text-neutral-700',
+}
+
+const COLLECTIVE_ROLE_SURFACE: Record<CollectiveRole, string> = {
+  leader: 'bg-warning-50 ring-1 ring-warning-200/60',
+  co_leader: 'bg-primary-50 ring-1 ring-primary-200/60',
+  assist_leader: 'bg-info-50 ring-1 ring-info-200/60',
+  member: 'bg-white ring-1 ring-primary-100/50',
 }
 
 /* ------------------------------------------------------------------ */
@@ -156,7 +163,6 @@ function UserDetailSheet({
   const [addCollectiveRole, setAddCollectiveRole] = useState<CollectiveRole>('member')
   const [capsExpanded, setCapsExpanded] = useState(false)
 
-  // Collectives the user is NOT already in (for adding)
   const availableCollectives = useMemo(() => {
     if (!allCollectives || !collectiveRoles) return []
     const existing = new Set(collectiveRoles.filter((r) => r.status === 'active').map((r) => r.collective_id))
@@ -166,7 +172,6 @@ function UserDetailSheet({
   const isStaffRole = user?.role === 'national_staff' || user?.role === 'national_admin' || user?.role === 'super_admin'
   const userRole = (user?.role ?? 'participant') as UserRole
 
-  // Group capabilities by category
   const capsByCategory = useMemo(() => {
     const grouped: Record<string, CapabilityDef[]> = {}
     for (const cap of CAPABILITIES) {
@@ -184,14 +189,12 @@ function UserDetailSheet({
       const currentValue = capsData.capabilities.has(capKey)
 
       if (currentValue) {
-        // Currently enabled → disable via override
         if (isDefault) {
           currentOverrides[capKey] = false
         } else {
           delete currentOverrides[capKey]
         }
       } else {
-        // Currently disabled → enable via override
         if (!isDefault) {
           currentOverrides[capKey] = true
         } else {
@@ -202,151 +205,184 @@ function UserDetailSheet({
       updateCaps.mutate(
         { userId: user.id, permissions: currentOverrides },
         {
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['admin-user-resolved-caps', user.id] })
-            toast.success('Permissions updated')
-          },
+          onSuccess: () => toast.success('Permissions updated'),
           onError: () => toast.error('Failed to update permissions'),
         },
       )
     },
-    [capsData, user, userRole, updateCaps, queryClient, toast],
+    [capsData, user, userRole, updateCaps, toast],
   )
 
   if (!user) return null
 
+  const activeRoles = collectiveRoles?.filter((r) => r.status === 'active') ?? []
+  const enabledCapsCount = capsData ? capsData.capabilities.size : 0
+
   return (
-    <BottomSheet open={open} onClose={onClose} title={user.display_name ?? 'User Details'}>
-      <div className="space-y-6 pb-6">
-        {/* User header */}
-        <div className="flex items-center gap-3">
+    <BottomSheet open={open} onClose={onClose} title="">
+      <div className="space-y-5 pb-6">
+        {/* User header — stronger surface */}
+        <div className="flex items-center gap-4 p-4 -mx-1 rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100/60 ring-1 ring-primary-200/40">
           <Avatar src={user.avatar_url} name={user.display_name ?? ''} size="lg" />
           <div className="flex-1 min-w-0">
-            <p className="text-base font-semibold text-primary-800 truncate">{user.display_name}</p>
-            <p className="text-sm text-primary-400 truncate">{user.email}</p>
-            <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full mt-1 inline-block', roleBadgeColors[user.role])}>
-              {user.role?.replace('_', ' ')}
-            </span>
+            <p className="text-lg font-bold text-primary-900 truncate">{user.display_name}</p>
+            <p className="text-sm text-primary-500 truncate">{user.email}</p>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full', roleBadgeColors[user.role])}>
+                {user.role?.replace(/_/g, ' ')}
+              </span>
+              {user.is_suspended && (
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-error-200 text-error-800">
+                  Suspended
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
         {/* Collective Roles Section */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-sm font-semibold text-primary-800">Collective Roles</h3>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-primary-900">Collective Roles</h3>
+              {activeRoles.length > 0 && (
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-200 text-primary-700">
+                  {activeRoles.length}
+                </span>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => setShowAddCollective(!showAddCollective)}
-              className="flex items-center gap-1 text-xs text-primary-400 hover:text-primary-600 cursor-pointer"
+              className={cn(
+                'flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-lg cursor-pointer transition-colors',
+                showAddCollective
+                  ? 'bg-primary-200 text-primary-800'
+                  : 'bg-primary-100 text-primary-600 hover:bg-primary-200',
+              )}
             >
-              <Plus size={14} />
-              Add
+              {showAddCollective ? <X size={13} /> : <Plus size={13} />}
+              {showAddCollective ? 'Cancel' : 'Add'}
             </button>
           </div>
 
           {/* Add to collective form */}
-          {showAddCollective && (
-            <div className="mb-3 p-3 bg-primary-50/50 rounded-xl space-y-2">
-              <Dropdown
-                options={availableCollectives.map((c) => ({ value: c.id, label: `${c.name}${c.state ? ` (${c.state})` : ''}` }))}
-                value={addCollectiveId}
-                onChange={setAddCollectiveId}
-                placeholder="Select collective..."
-              />
-              <Dropdown
-                options={collectiveRoleOptions}
-                value={addCollectiveRole}
-                onChange={(v) => setAddCollectiveRole(v as CollectiveRole)}
-                label="Role"
-              />
-              <div className="flex gap-2">
-                <Button
-                  variant="primary"
-                  size="sm"
-                  disabled={!addCollectiveId}
-                  loading={assignRole.isPending}
-                  onClick={() => {
-                    if (!addCollectiveId) return
-                    assignRole.mutate(
-                      { userId: user.id, collectiveId: addCollectiveId, role: addCollectiveRole },
-                      {
-                        onSuccess: () => {
-                          toast.success('Added to collective')
-                          setShowAddCollective(false)
-                          setAddCollectiveId('')
-                          setAddCollectiveRole('member')
+          <AnimatePresence>
+            {showAddCollective && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="mb-3 p-3.5 bg-primary-50 rounded-xl ring-1 ring-primary-200/50 space-y-2.5">
+                  <Dropdown
+                    options={availableCollectives.map((c) => ({ value: c.id, label: `${c.name}${c.state ? ` (${c.state})` : ''}` }))}
+                    value={addCollectiveId}
+                    onChange={setAddCollectiveId}
+                    placeholder="Select collective..."
+                  />
+                  <Dropdown
+                    options={collectiveRoleOptions}
+                    value={addCollectiveRole}
+                    onChange={(v) => setAddCollectiveRole(v as CollectiveRole)}
+                    label="Role"
+                  />
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    fullWidth
+                    disabled={!addCollectiveId}
+                    loading={assignRole.isPending}
+                    onClick={() => {
+                      if (!addCollectiveId) return
+                      assignRole.mutate(
+                        { userId: user.id, collectiveId: addCollectiveId, role: addCollectiveRole },
+                        {
+                          onSuccess: () => {
+                            toast.success('Added to collective')
+                            setShowAddCollective(false)
+                            setAddCollectiveId('')
+                            setAddCollectiveRole('member')
+                          },
+                          onError: () => toast.error('Failed to add to collective'),
                         },
-                        onError: () => toast.error('Failed to add to collective'),
-                      },
-                    )
-                  }}
-                >
-                  Add
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => setShowAddCollective(false)}>Cancel</Button>
-              </div>
-            </div>
-          )}
+                      )
+                    }}
+                  >
+                    Add to Collective
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {rolesLoading ? (
             <Skeleton variant="list-item" count={2} />
-          ) : !collectiveRoles?.filter((r) => r.status === 'active').length ? (
-            <p className="text-xs text-primary-400 py-2">Not a member of any collective</p>
+          ) : !activeRoles.length ? (
+            <div className="py-4 px-3 rounded-xl bg-neutral-50 ring-1 ring-neutral-200/40 text-center">
+              <Users size={20} className="text-neutral-400 mx-auto mb-1" />
+              <p className="text-xs text-neutral-500">Not a member of any collective</p>
+            </div>
           ) : (
-            <div className="space-y-1.5">
-              {collectiveRoles
-                .filter((r) => r.status === 'active')
-                .map((membership) => {
-                  const Icon = COLLECTIVE_ROLE_ICONS[membership.role]
-                  return (
-                    <div
-                      key={membership.id}
-                      className="flex items-center gap-2.5 p-2.5 rounded-xl bg-white shadow-sm"
-                    >
-                      <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center shrink-0', COLLECTIVE_ROLE_COLORS[membership.role])}>
-                        <Icon size={14} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-primary-800 truncate">{membership.collective.name}</p>
-                        <p className="text-[11px] text-primary-400">
-                          {membership.role.replace('_', ' ')}
-                          {membership.collective.state && ` · ${membership.collective.state}`}
-                        </p>
-                      </div>
-                      {/* Role change dropdown */}
-                      <Dropdown
-                        options={collectiveRoleOptions}
-                        value={membership.role}
-                        onChange={(newRole) => {
-                          assignRole.mutate(
-                            { userId: user.id, collectiveId: membership.collective_id, role: newRole as CollectiveRole },
-                            {
-                              onSuccess: () => toast.success('Role updated'),
-                              onError: () => toast.error('Failed to update role'),
-                            },
-                          )
-                        }}
-                        className="w-32 shrink-0"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          removeFromCollective.mutate(
-                            { userId: user.id, collectiveId: membership.collective_id },
-                            {
-                              onSuccess: () => toast.success('Removed from collective'),
-                              onError: () => toast.error('Failed to remove'),
-                            },
-                          )
-                        }
-                        className="p-1 rounded text-primary-400 hover:text-error-500 cursor-pointer shrink-0"
-                        title="Remove from collective"
-                      >
-                        <X size={14} />
-                      </button>
+            <div className="space-y-2">
+              {activeRoles.map((membership) => {
+                const Icon = COLLECTIVE_ROLE_ICONS[membership.role]
+                return (
+                  <motion.div
+                    key={membership.id}
+                    layout
+                    className={cn(
+                      'flex items-center gap-3 p-3 rounded-xl transition-all duration-200',
+                      COLLECTIVE_ROLE_SURFACE[membership.role],
+                    )}
+                  >
+                    <div className={cn(
+                      'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
+                      COLLECTIVE_ROLE_COLORS[membership.role],
+                    )}>
+                      <Icon size={15} />
                     </div>
-                  )
-                })}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-primary-900 truncate">{membership.collective.name}</p>
+                      <p className="text-[11px] text-primary-500">
+                        {membership.role.replace(/_/g, ' ')}
+                        {membership.collective.state && ` · ${membership.collective.state}`}
+                      </p>
+                    </div>
+                    <Dropdown
+                      options={collectiveRoleOptions}
+                      value={membership.role}
+                      onChange={(newRole) => {
+                        assignRole.mutate(
+                          { userId: user.id, collectiveId: membership.collective_id, role: newRole as CollectiveRole },
+                          {
+                            onSuccess: () => toast.success('Role updated'),
+                            onError: () => toast.error('Failed to update role'),
+                          },
+                        )
+                      }}
+                      className="w-[7.5rem] shrink-0"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeFromCollective.mutate(
+                          { userId: user.id, collectiveId: membership.collective_id },
+                          {
+                            onSuccess: () => toast.success('Removed from collective'),
+                            onError: () => toast.error('Failed to remove'),
+                          },
+                        )
+                      }
+                      className="p-1.5 rounded-lg text-primary-400 hover:bg-error-100 hover:text-error-600 cursor-pointer shrink-0 transition-colors"
+                      title="Remove from collective"
+                    >
+                      <X size={14} />
+                    </button>
+                  </motion.div>
+                )
+              })}
             </div>
           )}
         </div>
@@ -357,63 +393,110 @@ function UserDetailSheet({
             <button
               type="button"
               onClick={() => setCapsExpanded(!capsExpanded)}
-              className="flex items-center justify-between w-full mb-2 cursor-pointer"
+              className={cn(
+                'flex items-center justify-between w-full p-3 rounded-xl cursor-pointer transition-colors',
+                capsExpanded
+                  ? 'bg-plum-100 ring-1 ring-plum-200/60'
+                  : 'bg-plum-50 ring-1 ring-plum-200/40 hover:bg-plum-100',
+              )}
             >
-              <h3 className="text-sm font-semibold text-primary-800">Permissions</h3>
-              {capsExpanded ? <ChevronUp size={16} className="text-primary-400" /> : <ChevronDown size={16} className="text-primary-400" />}
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-plum-200 text-plum-700 flex items-center justify-center">
+                  <Sparkles size={15} />
+                </div>
+                <div className="text-left">
+                  <h3 className="text-sm font-bold text-plum-900">Permissions</h3>
+                  <p className="text-[11px] text-plum-600">
+                    {enabledCapsCount} capabilities active
+                  </p>
+                </div>
+              </div>
+              {capsExpanded
+                ? <ChevronUp size={16} className="text-plum-500" />
+                : <ChevronDown size={16} className="text-plum-500" />
+              }
             </button>
 
-            {capsExpanded && (
-              capsLoading ? (
-                <Skeleton variant="list-item" count={4} />
-              ) : (
-                <div className="space-y-4">
-                  <p className="text-[11px] text-primary-400">
-                    Grey toggles are role defaults for <strong>{userRole.replace('_', ' ')}</strong>.
-                    Override any capability below.
-                  </p>
-                  {Object.entries(capsByCategory).map(([category, caps]) => (
-                    <div key={category}>
-                      <p className="text-[10px] uppercase tracking-wider text-primary-400 mb-1.5">
-                        {CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS]}
-                      </p>
-                      <div className="space-y-1">
-                        {caps.map((cap) => {
-                          const isEnabled = capsData?.capabilities.has(cap.key) ?? false
-                          const isDefault = ROLE_DEFAULT_CAPS[userRole].includes(cap.key)
-                          const isOverridden = capsData?.overrides?.[cap.key] !== undefined
-                          return (
-                            <div
-                              key={cap.key}
-                              className={cn(
-                                'flex items-center justify-between p-2 rounded-lg',
-                                isOverridden ? 'bg-primary-50/50' : 'bg-white',
-                              )}
-                            >
-                              <div className="flex-1 min-w-0 mr-3">
-                                <div className="flex items-center gap-1.5">
-                                  <p className="text-sm text-primary-800">{cap.label}</p>
-                                  {isOverridden && (
-                                    <span className="text-[9px] font-medium px-1 py-0.5 rounded bg-primary-100 text-primary-600">
-                                      override
-                                    </span>
-                                  )}
-                                </div>
-                                <p className="text-[11px] text-primary-400">{cap.description}</p>
-                              </div>
-                              <Toggle
-                                checked={isEnabled}
-                                onChange={() => handleToggleCap(cap.key)}
-                              />
-                            </div>
-                          )
-                        })}
-                      </div>
+            <AnimatePresence>
+              {capsExpanded && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="overflow-hidden"
+                >
+                  {capsLoading ? (
+                    <div className="mt-3">
+                      <Skeleton variant="list-item" count={4} />
                     </div>
-                  ))}
-                </div>
-              )
-            )}
+                  ) : (
+                    <div className="mt-3 space-y-4">
+                      <p className="text-[11px] text-primary-500 px-1">
+                        Defaults from <strong className="text-primary-700">{userRole.replace(/_/g, ' ')}</strong> role.
+                        Toggle to override.
+                      </p>
+                      {Object.entries(capsByCategory).map(([category, caps]) => (
+                        <div key={category}>
+                          <p className="text-[10px] uppercase tracking-wider font-bold text-primary-400 mb-2 px-1">
+                            {CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS]}
+                          </p>
+                          <div className="rounded-xl overflow-hidden ring-1 ring-primary-100/60">
+                            {caps.map((cap, i) => {
+                              const isEnabled = capsData?.capabilities.has(cap.key) ?? false
+                              const isDefault = ROLE_DEFAULT_CAPS[userRole].includes(cap.key)
+                              const isOverridden = capsData?.overrides?.[cap.key] !== undefined
+                              return (
+                                <div
+                                  key={cap.key}
+                                  className={cn(
+                                    'flex items-center justify-between px-3.5 py-2.5',
+                                    i > 0 && 'border-t border-primary-100/40',
+                                    isOverridden
+                                      ? isEnabled ? 'bg-success-50/60' : 'bg-error-50/40'
+                                      : 'bg-white',
+                                  )}
+                                >
+                                  <div className="flex-1 min-w-0 mr-3">
+                                    <div className="flex items-center gap-1.5">
+                                      {isEnabled ? (
+                                        <CheckCircle size={13} className="text-success-500 shrink-0" />
+                                      ) : (
+                                        <XCircle size={13} className="text-neutral-300 shrink-0" />
+                                      )}
+                                      <p className={cn('text-sm', isEnabled ? 'text-primary-800 font-medium' : 'text-primary-500')}>
+                                        {cap.label}
+                                      </p>
+                                      {isOverridden && (
+                                        <span className={cn(
+                                          'text-[9px] font-bold px-1.5 py-0.5 rounded-full',
+                                          isEnabled ? 'bg-success-200 text-success-800' : 'bg-error-200 text-error-700',
+                                        )}>
+                                          {isEnabled ? 'granted' : 'revoked'}
+                                        </span>
+                                      )}
+                                      {!isOverridden && isDefault && (
+                                        <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-500">
+                                          default
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[11px] text-primary-400 ml-[21px]">{cap.description}</p>
+                                  </div>
+                                  <Toggle
+                                    checked={isEnabled}
+                                    onChange={() => handleToggleCap(cap.key)}
+                                  />
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
       </div>
@@ -445,6 +528,7 @@ export default function AdminUsersPage() {
 
   useAdminHeader('User Management')
 
+  /* ---- Optimistic role change ---- */
   const changeRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
       if ((role === 'super_admin' || role === 'national_admin') && !isSuperAdmin) {
@@ -456,15 +540,25 @@ export default function AdminUsersPage() {
         .eq('id', userId)
       if (error) throw error
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueryData<any[]>(['admin-users', search, roleFilter])
+      queryClient.setQueryData(['admin-users', search, roleFilter], (old: any[] | undefined) =>
+        old?.map((u) => u.id === variables.userId ? { ...u, role: variables.role } : u),
+      )
       setShowRoleModal(false)
       setSelectedUser(null)
       toast.success('Role updated')
+      return { previous }
     },
-    onError: () => toast.error('Failed to update role'),
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(['admin-users', search, roleFilter], context.previous)
+      toast.error('Failed to update role')
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
   })
 
+  /* ---- Optimistic suspend ---- */
   const suspendMutation = useMutation({
     mutationFn: async ({ userId, reason }: { userId: string; reason: string }) => {
       const { error } = await supabase
@@ -473,16 +567,26 @@ export default function AdminUsersPage() {
         .eq('id', userId)
       if (error) throw error
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueryData<any[]>(['admin-users', search, roleFilter])
+      queryClient.setQueryData(['admin-users', search, roleFilter], (old: any[] | undefined) =>
+        old?.map((u) => u.id === variables.userId ? { ...u, is_suspended: true } : u),
+      )
       setShowSuspendModal(false)
       setSelectedUser(null)
       setSuspendReason('')
       toast.success('User suspended')
+      return { previous }
     },
-    onError: () => toast.error('Failed to suspend user'),
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(['admin-users', search, roleFilter], context.previous)
+      toast.error('Failed to suspend user')
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
   })
 
+  /* ---- Optimistic unsuspend ---- */
   const unsuspendMutation = useMutation({
     mutationFn: async (userId: string) => {
       const { error } = await supabase
@@ -491,18 +595,25 @@ export default function AdminUsersPage() {
         .eq('id', userId)
       if (error) throw error
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    onMutate: async (userId) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueryData<any[]>(['admin-users', search, roleFilter])
+      queryClient.setQueryData(['admin-users', search, roleFilter], (old: any[] | undefined) =>
+        old?.map((u) => u.id === userId ? { ...u, is_suspended: false } : u),
+      )
       toast.success('User unsuspended')
+      return { previous }
     },
-    onError: () => toast.error('Failed to unsuspend user'),
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(['admin-users', search, roleFilter], context.previous)
+      toast.error('Failed to unsuspend user')
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
   })
 
   const deleteMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase.functions.invoke('delete-user', {
-        body: { userId },
-      })
+      const { error } = await supabase.functions.invoke('delete-user', { body: { userId } })
       if (error) throw error
     },
     onSuccess: () => {
@@ -566,8 +677,8 @@ export default function AdminUsersPage() {
 
       {/* Bulk actions */}
       {selectedUsers.size > 0 && (
-        <motion.div variants={fadeUp} className="flex items-center gap-2 mb-4 p-3 bg-white rounded-lg">
-          <span className="text-sm text-primary-400 font-medium">
+        <motion.div variants={fadeUp} className="flex items-center gap-2 mb-4 p-3 bg-primary-100 rounded-xl ring-1 ring-primary-200/60">
+          <span className="text-sm text-primary-700 font-semibold">
             {selectedUsers.size} selected
           </span>
           <Button
@@ -585,13 +696,7 @@ export default function AdminUsersPage() {
           >
             Suspend All
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSelectedUsers(new Set())}
-          >
-            Clear
-          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setSelectedUsers(new Set())}>Clear</Button>
         </motion.div>
       )}
 
@@ -606,16 +711,17 @@ export default function AdminUsersPage() {
           description={search ? 'Try a different search term' : 'No users match the filter'}
         />
       ) : (
-        <StaggeredList className="space-y-1">
+        <StaggeredList className="space-y-1.5">
           {users.map((user) => (
             <StaggeredItem
               key={user.id}
               className={cn(
                 'flex items-center gap-3 p-3 rounded-xl',
-                'bg-white shadow-sm',
-                'hover:bg-primary-50 transition-colors duration-150',
-                user.is_suspended && 'opacity-60 bg-error-50/50',
-                selectedUsers.has(user.id) && 'ring-2 ring-primary-400',
+                'transition-all duration-200',
+                user.is_suspended
+                  ? 'bg-error-50 ring-1 ring-error-200/50 opacity-70'
+                  : 'bg-white ring-1 ring-primary-100/50 shadow-sm hover:ring-primary-200/60 hover:shadow-md',
+                selectedUsers.has(user.id) && 'ring-2 ring-primary-500 shadow-md',
               )}
             >
               {/* Checkbox */}
@@ -623,7 +729,7 @@ export default function AdminUsersPage() {
                 type="checkbox"
                 checked={selectedUsers.has(user.id)}
                 onChange={() => toggleUserSelection(user.id)}
-                className="w-4 h-4 rounded border-primary-200 text-primary-400 focus:ring-primary-500 cursor-pointer"
+                className="w-4 h-4 rounded border-primary-200 text-primary-600 focus:ring-primary-500 cursor-pointer"
                 aria-label={`Select ${user.display_name}`}
               />
 
@@ -633,46 +739,32 @@ export default function AdminUsersPage() {
                 onClick={() => setDetailUser(user)}
                 className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer"
               >
-                <Avatar
-                  src={user.avatar_url}
-                  name={user.display_name ?? ''}
-                  size="sm"
-                />
+                <Avatar src={user.avatar_url} name={user.display_name ?? ''} size="sm" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-primary-800 truncate">
+                    <p className="text-sm font-semibold text-primary-900 truncate">
                       {user.display_name ?? 'Unknown'}
                     </p>
-                    <span
-                      className={cn(
-                        'text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
-                        roleBadgeColors[user.role] ?? roleBadgeColors.participant,
-                      )}
-                    >
-                      {user.role?.replace('_', ' ')}
+                    <span className={cn('text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0', roleBadgeColors[user.role] ?? roleBadgeColors.participant)}>
+                      {user.role?.replace(/_/g, ' ')}
                     </span>
                     {user.is_suspended && (
-                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-error-100 text-error-700 shrink-0">
+                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-error-200 text-error-800 shrink-0">
                         Suspended
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-primary-400 truncate">{user.email}</p>
+                  <p className="text-xs text-primary-500 truncate">{user.email}</p>
                 </div>
               </button>
 
               {/* Actions */}
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-0.5 shrink-0">
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedUser(user)
-                    setNewRole(user.role)
-                    setShowRoleModal(true)
-                  }}
-                  className="p-1.5 rounded-lg text-primary-400 hover:bg-primary-50 hover:text-primary-400 cursor-pointer"
+                  onClick={() => { setSelectedUser(user); setNewRole(user.role); setShowRoleModal(true) }}
+                  className="p-1.5 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-700 cursor-pointer transition-colors"
                   title="Change global role"
-                  aria-label={`Change role for ${user.display_name}`}
                 >
                   <UserCog size={16} />
                 </button>
@@ -681,22 +773,17 @@ export default function AdminUsersPage() {
                   <button
                     type="button"
                     onClick={() => unsuspendMutation.mutate(user.id)}
-                    className="p-1.5 rounded-lg text-success-500 hover:bg-success-50 cursor-pointer"
+                    className="p-1.5 rounded-lg text-success-500 hover:bg-success-100 cursor-pointer transition-colors"
                     title="Unsuspend"
-                    aria-label={`Unsuspend ${user.display_name}`}
                   >
                     <Shield size={16} />
                   </button>
                 ) : (
                   <button
                     type="button"
-                    onClick={() => {
-                      setSelectedUser(user)
-                      setShowSuspendModal(true)
-                    }}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-warning-50 hover:text-warning-600 cursor-pointer"
+                    onClick={() => { setSelectedUser(user); setShowSuspendModal(true) }}
+                    className="p-1.5 rounded-lg text-primary-400 hover:bg-warning-100 hover:text-warning-700 cursor-pointer transition-colors"
                     title="Suspend"
-                    aria-label={`Suspend ${user.display_name}`}
                   >
                     <Ban size={16} />
                   </button>
@@ -705,9 +792,8 @@ export default function AdminUsersPage() {
                 <button
                   type="button"
                   onClick={() => user.email && resetPasswordMutation.mutate(user.email)}
-                  className="p-1.5 rounded-lg text-primary-400 hover:bg-primary-50 hover:text-primary-400 cursor-pointer"
+                  className="p-1.5 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-700 cursor-pointer transition-colors"
                   title="Reset password"
-                  aria-label={`Reset password for ${user.display_name}`}
                 >
                   <KeyRound size={16} />
                 </button>
@@ -715,13 +801,9 @@ export default function AdminUsersPage() {
                 {isSuperAdmin && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setSelectedUser(user)
-                      setShowDeleteConfirm(true)
-                    }}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
+                    onClick={() => { setSelectedUser(user); setShowDeleteConfirm(true) }}
+                    className="p-1.5 rounded-lg text-primary-400 hover:bg-error-100 hover:text-error-700 cursor-pointer transition-colors"
                     title="Delete user"
-                    aria-label={`Delete ${user.display_name}`}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -733,23 +815,19 @@ export default function AdminUsersPage() {
       )}
       </motion.div>
 
-      {/* User detail sheet with collective roles + permissions */}
-      <UserDetailSheet
-        user={detailUser}
-        open={!!detailUser}
-        onClose={() => setDetailUser(null)}
-      />
+      {/* User detail sheet */}
+      <UserDetailSheet user={detailUser} open={!!detailUser} onClose={() => setDetailUser(null)} />
 
       {/* Change global role modal */}
-      <Modal
-        open={showRoleModal}
-        onClose={() => setShowRoleModal(false)}
-        title="Change User Role"
-      >
+      <Modal open={showRoleModal} onClose={() => setShowRoleModal(false)} title="Change User Role">
         <div className="space-y-4">
-          <p className="text-sm text-primary-400">
-            Changing global role for <strong>{selectedUser?.display_name}</strong>
-          </p>
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-primary-50 ring-1 ring-primary-200/40">
+            <Avatar src={selectedUser?.avatar_url} name={selectedUser?.display_name ?? ''} size="sm" />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-primary-900 truncate">{selectedUser?.display_name}</p>
+              <p className="text-xs text-primary-500 truncate">{selectedUser?.email}</p>
+            </div>
+          </div>
           <Dropdown
             options={roleOptions.filter((o) => o.value !== 'all')}
             value={newRole}
@@ -759,10 +837,7 @@ export default function AdminUsersPage() {
           <Button
             variant="primary"
             fullWidth
-            onClick={() =>
-              selectedUser &&
-              changeRoleMutation.mutate({ userId: selectedUser.id, role: newRole })
-            }
+            onClick={() => selectedUser && changeRoleMutation.mutate({ userId: selectedUser.id, role: newRole })}
             loading={changeRoleMutation.isPending}
           >
             Update Role
@@ -771,16 +846,15 @@ export default function AdminUsersPage() {
       </Modal>
 
       {/* Suspend modal */}
-      <Modal
-        open={showSuspendModal}
-        onClose={() => setShowSuspendModal(false)}
-        title="Suspend User"
-      >
+      <Modal open={showSuspendModal} onClose={() => setShowSuspendModal(false)} title="Suspend User">
         <div className="space-y-4">
-          <p className="text-sm text-primary-400">
-            Suspending <strong>{selectedUser?.display_name}</strong>. They will see the
-            suspension reason and can submit an appeal.
-          </p>
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-error-50 ring-1 ring-error-200/40">
+            <Avatar src={selectedUser?.avatar_url} name={selectedUser?.display_name ?? ''} size="sm" />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-primary-900 truncate">{selectedUser?.display_name}</p>
+              <p className="text-xs text-error-600">Will see the reason and can submit an appeal</p>
+            </div>
+          </div>
           <Input
             type="textarea"
             label="Reason for suspension"
@@ -792,13 +866,7 @@ export default function AdminUsersPage() {
           <Button
             variant="danger"
             fullWidth
-            onClick={() =>
-              selectedUser &&
-              suspendMutation.mutate({
-                userId: selectedUser.id,
-                reason: suspendReason,
-              })
-            }
+            onClick={() => selectedUser && suspendMutation.mutate({ userId: selectedUser.id, reason: suspendReason })}
             loading={suspendMutation.isPending}
             disabled={!suspendReason.trim()}
           >

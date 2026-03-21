@@ -257,15 +257,21 @@ export default function ImpactDashboardPage() {
   }
 
   const handleShare = async () => {
-    const text = `My Co-Exist Impact: ${stats.treesPlanted} trees planted, ${stats.eventsAttended} events attended, ${stats.hoursVolunteered} hours volunteered! Join at coexistaus.org`
+    const parts: string[] = []
+    if (stats.treesPlanted > 0) parts.push(`${stats.treesPlanted} trees planted`)
+    if (stats.eventsAttended > 0) parts.push(`${stats.eventsAttended} events attended`)
+    if (stats.hoursVolunteered > 0) parts.push(`${stats.hoursVolunteered} hours volunteered`)
+    if (stats.rubbishCollectedKg > 0) parts.push(`${stats.rubbishCollectedKg}kg rubbish collected`)
+    if (stats.coastlineCleanedM > 0) parts.push(`${stats.coastlineCleanedM}m coastline cleaned`)
+    if (stats.nativePlants > 0) parts.push(`${stats.nativePlants} native plants`)
+    if (stats.wildlifeSightings > 0) parts.push(`${stats.wildlifeSightings} wildlife sightings`)
+    const text = `My Co-Exist Impact: ${parts.join(', ')}! Join at coexistaus.org`
     if (navigator.share) {
       await navigator.share({ title: 'My Co-Exist Impact', text })
     } else {
       await navigator.clipboard.writeText(text)
     }
   }
-
-  const hasExtras = stats.coastlineCleanedM > 0 || stats.nativePlants > 0 || stats.wildlifeSightings > 0
 
   return (
     <Page
@@ -339,63 +345,39 @@ export default function ImpactDashboardPage() {
               icon={<Trash2 size={22} className="text-primary-500" />}
               bg="bg-moss-50/80"
             />
-            {hasExtras ? (
-              stats.coastlineCleanedM > 0 ? (
-                <BigStat
-                  value={stats.coastlineCleanedM}
-                  label="Coastline (m)"
-                  icon={<Waves size={22} className="text-moss-500" />}
-                  bg="bg-primary-50/60"
-                />
-              ) : stats.nativePlants > 0 ? (
-                <BigStat
-                  value={stats.nativePlants}
-                  label="Native Plants"
-                  icon={<Sprout size={22} className="text-primary-500" />}
-                  bg="bg-primary-50/60"
-                />
-              ) : (
-                <BigStat
-                  value={stats.wildlifeSightings}
-                  label="Wildlife"
-                  icon={<Bird size={22} className="text-bark-500" />}
-                  bg="bg-bark-50/60"
-                />
-              )
-            ) : (
+            {stats.coastlineCleanedM > 0 && (
               <BigStat
-                value={0}
+                value={stats.coastlineCleanedM}
                 label="Coastline (m)"
-                icon={<Waves size={22} className="text-moss-400" />}
-                bg="bg-moss-50/40"
+                icon={<Waves size={22} className="text-moss-500" />}
+                bg="bg-primary-50/60"
+              />
+            )}
+            {stats.areaRestoredSqm > 0 && (
+              <BigStat
+                value={stats.areaRestoredSqm}
+                label="Area (sqm)"
+                icon={<Waves size={22} className="text-primary-500" />}
+                bg="bg-moss-50/60"
+              />
+            )}
+            {stats.nativePlants > 0 && (
+              <BigStat
+                value={stats.nativePlants}
+                label="Native Plants"
+                icon={<Sprout size={22} className="text-primary-500" />}
+                bg="bg-primary-50/60"
+              />
+            )}
+            {stats.wildlifeSightings > 0 && (
+              <BigStat
+                value={stats.wildlifeSightings}
+                label="Wildlife"
+                icon={<Bird size={22} className="text-bark-500" />}
+                bg="bg-bark-50/60"
               />
             )}
           </motion.div>
-
-          {/* ─── Extra Stats (remaining ones not shown above) ─── */}
-          {hasExtras && (
-            <motion.div
-              variants={shouldReduceMotion ? undefined : stagger}
-              initial="hidden"
-              animate="show"
-              className="px-5 mt-4 flex gap-4"
-            >
-              {stats.coastlineCleanedM > 0 && stats.nativePlants > 0 && (
-                <motion.div variants={fadeUp} className="flex-1 flex flex-col items-center rounded-2xl bg-primary-50/50 p-5">
-                  <Sprout size={18} className="text-primary-400 mb-2" />
-                  <p className="font-heading text-2xl font-bold text-primary-800 tabular-nums"><CountUp end={stats.nativePlants} /></p>
-                  <p className="text-[10px] uppercase tracking-widest text-primary-400/60 font-medium mt-1">Native Plants</p>
-                </motion.div>
-              )}
-              {stats.wildlifeSightings > 0 && (stats.coastlineCleanedM > 0 || stats.nativePlants > 0) && (
-                <motion.div variants={fadeUp} className="flex-1 flex flex-col items-center rounded-2xl bg-bark-50/50 p-5">
-                  <Bird size={18} className="text-bark-400 mb-2" />
-                  <p className="font-heading text-2xl font-bold text-primary-800 tabular-nums"><CountUp end={stats.wildlifeSightings} /></p>
-                  <p className="text-[10px] uppercase tracking-widest text-primary-400/60 font-medium mt-1">Wildlife</p>
-                </motion.div>
-              )}
-            </motion.div>
-          )}
 
           {/* ─── Streak ─── */}
           {streak && (streak.currentWeeks > 0 || streak.currentMonths > 0) && (

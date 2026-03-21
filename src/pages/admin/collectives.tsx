@@ -388,6 +388,7 @@ export default function AdminCollectivesPage() {
           })}
         </div>
       )}
+      </motion.div>
 
       {/* Create modal */}
       <CreateCollectiveModal
