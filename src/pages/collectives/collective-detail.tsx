@@ -1,22 +1,22 @@
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
-  MessageCircle,
-  Share2,
-  Users,
-  CalendarDays,
-  TreePine,
-  Clock,
-  Trash2,
-  Waves,
-  Ruler,
-  Leaf,
-  Eye,
-  UserCheck,
-  MapPin as MapPinIcon,
-  ChevronRight,
-  Settings,
+    MessageCircle,
+    Share2,
+    Users,
+    CalendarDays,
+    TreePine,
+    Clock,
+    Trash2,
+    Waves,
+    Ruler,
+    Leaf,
+    Eye,
+    UserCheck,
+    MapPin as MapPinIcon,
+    ChevronRight,
+    Settings,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -29,18 +29,17 @@ import { MapView } from '@/components/map-view'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { WhatsNext } from '@/components/whats-next'
 import { useToast } from '@/components/toast'
-import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import { useAuth } from '@/hooks/use-auth'
 import {
-  useCollective,
-  useCollectiveLeaders,
-  useCollectiveMembers,
-  useCollectiveEvents,
-  useCollectiveStats,
-  useCollectiveMembership,
-  useJoinCollective,
-  useLeaveCollective,
+    useCollective,
+    useCollectiveLeaders,
+    useCollectiveMembers,
+    useCollectiveEvents,
+    useCollectiveStats,
+    useCollectiveMembership,
+    useJoinCollective,
+    useLeaveCollective,
 } from '@/hooks/use-collective'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 
@@ -223,7 +222,7 @@ export default function CollectiveDetailPage() {
         </div>
       }
     >
-      {/* Cover image hero — full-bleed (negate page padding) */}
+      {/* Cover image hero - full-bleed (negate page padding) */}
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}

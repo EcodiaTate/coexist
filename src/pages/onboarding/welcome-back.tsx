@@ -111,7 +111,7 @@ export default function WelcomeBackPage() {
 
               <motion.div
                 variants={fadeUp}
-                className="flex items-center gap-4 p-4 rounded-xl bg-white border border-primary-100"
+                className="flex items-center gap-4 p-4 rounded-xl bg-surface-2 shadow-sm"
               >
                 <div className="w-10 h-10 rounded-lg bg-primary-200 flex items-center justify-center shrink-0">
                   <Users size={20} className="text-primary-400" />

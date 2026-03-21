@@ -282,7 +282,7 @@ export default function MyEventsPage() {
       }
     >
       <div className="pt-3 pb-2">
-        <div className="flex items-center gap-2 bg-white rounded-lg p-1">
+        <div className="flex items-center gap-2 bg-surface-2 rounded-xl p-1">
           <TabBar
             tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon }))}
             activeTab={activeTab}

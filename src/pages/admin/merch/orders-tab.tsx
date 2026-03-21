@@ -1,16 +1,16 @@
 import { useState, useCallback, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Download,
-  Truck,
-  RefreshCw,
-  Package,
-  CheckCircle2,
-  Clock,
-  MapPin,
-  Copy,
-  ExternalLink,
-  StickyNote,
+    Download,
+    Truck,
+    RefreshCw,
+    Package,
+    CheckCircle2,
+    Clock,
+    MapPin,
+    Copy,
+    ExternalLink,
+    StickyNote,
 } from 'lucide-react'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -23,11 +23,11 @@ import { Divider } from '@/components/divider'
 import { Avatar } from '@/components/avatar'
 import { useToast } from '@/components/toast'
 import {
-  useAdminOrders,
-  useUpdateOrderStatus,
-  useRefundOrder,
-  useUpdateOrderNotes,
-  exportOrdersCsv,
+    useAdminOrders,
+    useUpdateOrderStatus,
+    useRefundOrder,
+    useUpdateOrderNotes,
+    exportOrdersCsv,
 } from '@/hooks/use-admin-merch'
 import { formatPrice, type OrderStatus, type Order } from '@/types/merch'
 import { cn } from '@/lib/cn'
@@ -237,7 +237,7 @@ export default function OrdersTab() {
     if (!refundTarget) return
     try {
       await refundOrder.mutateAsync(refundTarget.id)
-      toast.success('Refund initiated — process via Stripe dashboard')
+      toast.success('Refund initiated - process via Stripe dashboard')
     } catch {
       toast.error('Failed to process refund')
     }

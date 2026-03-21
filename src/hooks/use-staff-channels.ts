@@ -20,6 +20,7 @@ export interface StaffChannel {
 export interface ChannelMessageWithSender {
   id: string
   channel_id: string
+  collective_id: string | null
   user_id: string | null
   content: string | null
   image_url: string | null
@@ -29,6 +30,9 @@ export interface ChannelMessageWithSender {
   is_pinned: boolean
   is_deleted: boolean
   created_at: string
+  message_type?: 'text' | 'image' | 'voice' | 'video' | 'poll' | 'announcement' | 'system'
+  poll_id?: string | null
+  announcement_id?: string | null
   profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url'> | null
   reply_message: { id: string; content: string | null; user_id: string | null } | null
   _optimistic?: boolean
@@ -190,7 +194,7 @@ export function useSendChannelMessage() {
       replyToId,
     }: {
       channelId: string
-      collectiveId: string
+      collectiveId?: string | null
       content?: string
       imageUrl?: string
       replyToId?: string
@@ -201,7 +205,7 @@ export function useSendChannelMessage() {
         .from('chat_messages' as any)
         .insert({
           channel_id: channelId,
-          collective_id: collectiveId,
+          collective_id: collectiveId || null,
           user_id: user.id,
           content: content || null,
           image_url: imageUrl || null,
@@ -296,8 +300,8 @@ export function useMarkChannelRead() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ channelId, collectiveId }: { channelId: string; collectiveId: string }) => {
-      if (!user) return
+    mutationFn: async ({ channelId, collectiveId }: { channelId: string; collectiveId?: string | null }) => {
+      if (!user || !collectiveId) return
 
       await supabase
         .from('chat_read_receipts' as any)

@@ -3,59 +3,56 @@ import { QRCodeSVG } from 'qrcode.react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Calendar,
-  Clock,
-  MapPin,
-  Users,
-  Share2,
-  CalendarPlus,
-  ChevronRight,
-  TreePine,
-  Trash2,
-  Waves,
-  Eye,
-  Leaf,
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-  Mail,
-  QrCode,
-  Copy,
-  Ban,
-  Send,
+    Calendar,
+    Clock,
+    MapPin,
+    Users,
+    Share2,
+    CalendarPlus,
+    ChevronRight,
+    TreePine,
+    Trash2,
+    Waves,
+    Eye,
+    Leaf,
+    CheckCircle2,
+    AlertCircle,
+    XCircle,
+    Mail,
+    QrCode,
+    Copy,
+    Ban,
+    Send,
 } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import {
-  useEventDetail,
-  useRegisterForEvent,
-  useCancelRegistration,
-  useCancelEvent,
-  useDuplicateEvent,
-  useInviteCollective,
-  formatEventDate,
-  formatEventTime,
-  getCountdown,
-  getEventDuration,
-  isPastEvent,
-  ACTIVITY_TYPE_LABELS,
-  downloadIcsFile,
-  getGoogleCalendarUrl,
+    useEventDetail,
+    useRegisterForEvent,
+    useCancelRegistration,
+    useCancelEvent,
+    useDuplicateEvent,
+    useInviteCollective,
+    formatEventDate,
+    formatEventTime,
+    getCountdown,
+    getEventDuration,
+    isPastEvent,
+    ACTIVITY_TYPE_LABELS,
+    downloadIcsFile,
+    getGoogleCalendarUrl,
 } from '@/hooks/use-events'
 import {
-  Page,
-  Header,
-  Button,
-  Avatar,
-  Badge,
-  Skeleton,
-  EmptyState,
-  ConfirmationSheet,
-  BottomSheet,
-  CountUp,
-  PhotoGrid,
-  StatCard,
+    Page,
+    Header,
+    Button,
+    Avatar,
+    Badge,
+    Skeleton,
+    EmptyState,
+    ConfirmationSheet,
+    BottomSheet, StatCard
 } from '@/components'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
@@ -327,7 +324,7 @@ export default function EventDetailPage() {
     }
 
     if (userStatus === 'registered') {
-      // Event is active — show check-in CTA
+      // Event is active - show check-in CTA
       if (isEventActive) {
         return (
           <div className="space-y-2">
@@ -351,7 +348,7 @@ export default function EventDetailPage() {
         )
       }
 
-      // Event not active yet — show "You're going"
+      // Event not active yet - show "You're going"
       return (
         <div className="space-y-2">
           <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-surface-0 text-primary-400 text-sm font-semibold">

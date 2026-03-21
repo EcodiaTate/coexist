@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion, type PanInfo } from 'framer-motion'
-import { CheckCheck, Bell } from 'lucide-react'
+import { motion, AnimatePresence, useReducedMotion, type PanInfo, type Variants } from 'framer-motion'
+import { CheckCheck, Bell, Leaf } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -18,6 +18,20 @@ import {
   getNotificationMeta,
 } from '@/hooks/use-notifications'
 import type { Notification } from '@/types/database.types'
+
+/* ------------------------------------------------------------------ */
+/*  Animations                                                         */
+/* ------------------------------------------------------------------ */
+
+const stagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.05 } },
+}
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 26 } },
+}
 
 /* ------------------------------------------------------------------ */
 /*  Time helpers                                                       */
@@ -43,10 +57,12 @@ function NotificationRow({
   notification,
   onTap,
   onSwipeRead,
+  index,
 }: {
   notification: Notification
   onTap: () => void
   onSwipeRead: () => void
+  index: number
 }) {
   const shouldReduceMotion = useReducedMotion()
   const meta = getNotificationMeta(notification.type)
@@ -65,19 +81,19 @@ function NotificationRow({
 
   return (
     <motion.div
-      className="relative overflow-hidden"
-      initial={shouldReduceMotion ? false : { opacity: 0, x: -8 }}
+      className="relative overflow-hidden rounded-2xl"
+      initial={shouldReduceMotion ? false : { opacity: 0, x: -12 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ delay: Math.min(index * 0.03, 0.2), duration: 0.25, ease: 'easeOut' }}
     >
       {/* Swipe background */}
       <div
-        className="absolute inset-y-0 right-0 flex items-center justify-end pr-4 bg-primary-500"
+        className="absolute inset-y-0 right-0 flex items-center justify-end pr-4 rounded-r-2xl bg-gradient-to-l from-primary-500 to-primary-600"
         aria-hidden="true"
         style={{ width: '120px' }}
       >
-        <span className="text-xs font-medium text-white">Mark read</span>
+        <span className="text-xs font-semibold text-white">Mark read</span>
       </div>
 
       {/* Notification card */}
@@ -93,19 +109,21 @@ function NotificationRow({
           setTimeout(() => { dragRef.current = false }, 50)
         }}
         className={cn(
-          'relative flex items-start gap-3 w-full px-4 py-3.5 text-left',
-          'bg-surface-0',
+          'relative flex items-start gap-3.5 w-full px-4 py-4 text-left rounded-2xl',
           'cursor-pointer select-none',
-          'transition-colors duration-150',
+          'transition-all duration-200',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-inset',
-          isUnread && 'bg-surface-2',
+          isUnread
+            ? 'bg-gradient-to-r from-primary-100/70 to-surface-2 shadow-sm'
+            : 'bg-surface-2/60 hover:bg-surface-2',
         )}
         aria-label={`${notification.title}. ${notification.body ?? ''}`}
       >
-        {/* Icon */}
+        {/* Icon with tinted circle */}
         <div
           className={cn(
-            'flex items-center justify-center shrink-0 w-10 h-10 rounded-full text-lg',
+            'flex items-center justify-center shrink-0 w-11 h-11 rounded-xl text-lg shadow-sm',
+            isUnread ? 'bg-primary-200/70' : 'bg-surface-3',
             meta.color,
           )}
           aria-hidden="true"
@@ -119,26 +137,32 @@ function NotificationRow({
             className={cn(
               'text-sm leading-snug',
               isUnread
-                ? 'font-semibold text-primary-800'
-                : 'font-medium text-primary-800',
+                ? 'font-bold text-primary-900'
+                : 'font-medium text-primary-700',
             )}
           >
             {notification.title}
           </p>
           {notification.body && (
-            <p className="text-sm text-primary-400 mt-0.5 line-clamp-2">
+            <p className={cn(
+              'text-[13px] mt-0.5 line-clamp-2',
+              isUnread ? 'text-primary-600' : 'text-primary-400',
+            )}>
               {notification.body}
             </p>
           )}
-          <span className="text-xs text-primary-400 mt-1 block">
+          <span className={cn(
+            'text-xs mt-1.5 block font-medium',
+            isUnread ? 'text-primary-500' : 'text-primary-300',
+          )}>
             {timeAgo(notification.created_at)}
           </span>
         </div>
 
-        {/* Unread dot */}
+        {/* Unread indicator */}
         {isUnread && (
           <span
-            className="shrink-0 w-2.5 h-2.5 rounded-full bg-primary-500 mt-1.5"
+            className="shrink-0 w-2.5 h-2.5 rounded-full bg-primary-500 mt-2 shadow-sm shadow-primary-300/40"
             aria-label="Unread"
           />
         )}
@@ -148,7 +172,7 @@ function NotificationRow({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Celebration state                                                  */
+/*  All caught up celebration                                          */
 /* ------------------------------------------------------------------ */
 
 function AllCaughtUp() {
@@ -156,71 +180,114 @@ function AllCaughtUp() {
 
   return (
     <motion.div
-      initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.4, delay: 0.1 }}
-      className="flex flex-col items-center justify-center px-6 py-16 text-center"
+      transition={{ duration: 0.4, delay: 0.1, type: 'spring', stiffness: 200, damping: 22 }}
+      className="flex flex-col items-center justify-center px-6 py-14 text-center"
     >
-      {/* Nature illustration */}
-      <svg
-        width="120"
-        height="120"
-        viewBox="0 0 120 120"
-        fill="none"
-        aria-hidden="true"
-        className="mb-6"
-      >
-        <circle cx="60" cy="60" r="48" className="fill-primary-50" />
-        <path
-          d="M60 28 C50 40 40 52 40 64 C40 76 48 86 60 86 C72 86 80 76 80 64 C80 52 70 40 60 28Z"
-          className="fill-primary-200"
-        />
-        <path
-          d="M60 50 V76"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          className="text-primary-400"
-        />
-        <path
-          d="M60 58 L50 50"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          className="text-primary-300"
-        />
-        <path
-          d="M60 64 L72 56"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          className="text-primary-300"
-        />
-        <motion.circle
-          cx="40"
-          cy="40"
-          r="3"
-          className="fill-accent-300"
-          animate={shouldReduceMotion ? {} : { y: [-2, 2, -2] }}
+      {/* Illustrated circle */}
+      <div className="relative mb-6">
+        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary-100 to-primary-200/60 flex items-center justify-center">
+          <svg
+            width="64"
+            height="64"
+            viewBox="0 0 120 120"
+            fill="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M60 28 C50 40 40 52 40 64 C40 76 48 86 60 86 C72 86 80 76 80 64 C80 52 70 40 60 28Z"
+              className="fill-primary-300/80"
+            />
+            <path
+              d="M60 50 V76"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              className="text-primary-500"
+            />
+            <path
+              d="M60 58 L50 50"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              className="text-primary-400"
+            />
+            <path
+              d="M60 64 L72 56"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              className="text-primary-400"
+            />
+          </svg>
+        </div>
+        {/* Floating particles */}
+        <motion.div
+          className="absolute top-2 -right-1 w-3 h-3 rounded-full bg-primary-300/60"
+          animate={shouldReduceMotion ? {} : { y: [-3, 3, -3] }}
           transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
         />
-        <motion.circle
-          cx="82"
-          cy="44"
-          r="2.5"
-          className="fill-secondary-300"
-          animate={shouldReduceMotion ? {} : { y: [2, -2, 2] }}
+        <motion.div
+          className="absolute bottom-3 -left-2 w-2.5 h-2.5 rounded-full bg-moss-300/50"
+          animate={shouldReduceMotion ? {} : { y: [2, -3, 2] }}
           transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut', delay: 0.5 }}
         />
-      </svg>
+      </div>
 
-      <h3 className="font-heading text-lg font-semibold text-primary-800">
+      <h3 className="font-heading text-lg font-bold text-primary-800">
         All caught up!
       </h3>
-      <p className="mt-2 text-sm text-primary-400 max-w-xs">
-        No new notifications. Enjoy the peace - or go plant a tree.
+      <p className="mt-2 text-sm text-primary-500 max-w-xs leading-relaxed">
+        No new notifications. Enjoy the peace — or go plant a tree.
       </p>
     </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Notification group                                                 */
+/* ------------------------------------------------------------------ */
+
+function NotificationGroup({
+  group,
+  onTap,
+  onSwipeRead,
+  startIndex,
+}: {
+  group: { date: string; label: string; notifications: Notification[] }
+  onTap: (n: Notification) => void
+  onSwipeRead: (id: string) => void
+  startIndex: number
+}) {
+  return (
+    <motion.section variants={fadeUp}>
+      {/* Date label */}
+      <div className="flex items-center gap-2 px-1 mb-2.5">
+        <span className="text-[11px] font-bold text-primary-500 uppercase tracking-wider">
+          {group.label}
+        </span>
+        <div className="flex-1 h-px bg-gradient-to-r from-primary-200/50 to-transparent" />
+        <span className="text-[10px] font-semibold text-primary-300 tabular-nums">
+          {group.notifications.length}
+        </span>
+      </div>
+
+      {/* Notification cards */}
+      <div className="space-y-2">
+        <AnimatePresence>
+          {group.notifications.map((n, i) => (
+            <NotificationRow
+              key={n.id}
+              notification={n}
+              onTap={() => onTap(n)}
+              onSwipeRead={() => onSwipeRead(n.id)}
+              index={startIndex + i}
+            />
+          ))}
+        </AnimatePresence>
+      </div>
+    </motion.section>
   )
 }
 
@@ -234,9 +301,11 @@ export default function NotificationsPage() {
   const { data: notifications, isLoading, refetch, grouped } = useNotifications()
   const markRead = useMarkRead()
   const markAllRead = useMarkAllRead()
+  const shouldReduceMotion = useReducedMotion()
 
   const allRead = (notifications ?? []).every((n) => n.read_at)
   const hasNotifications = (notifications ?? []).length > 0
+  const unreadCount = (notifications ?? []).filter((n) => !n.read_at).length
 
   const handleRefresh = useCallback(async () => {
     await refetch()
@@ -274,7 +343,7 @@ export default function NotificationsPage() {
                 disabled={markAllRead.isPending}
                 className={cn(
                   'flex items-center justify-center w-9 h-9 rounded-full',
-                  'text-primary-400 hover:bg-primary-50',
+                  'text-primary-500 hover:bg-primary-50',
                   'transition-colors duration-150 cursor-pointer select-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 )}
@@ -288,62 +357,63 @@ export default function NotificationsPage() {
       }
     >
       {isLoading ? (
-        <div className="py-4">
-          <Skeleton variant="list-item" count={6} />
+        <div className="space-y-4 py-6">
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} className="flex items-start gap-3.5 px-4 py-4 rounded-2xl bg-surface-2/60 animate-pulse">
+              <div className="w-11 h-11 rounded-xl bg-primary-100/50 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 bg-primary-100/40 rounded w-3/4" />
+                <div className="h-3 bg-primary-100/30 rounded w-full" />
+                <div className="h-2.5 bg-primary-100/20 rounded w-16" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : !hasNotifications ? (
         <AllCaughtUp />
-      ) : allRead && hasNotifications ? (
-        <PullToRefresh onRefresh={handleRefresh}>
-          <div>
-            {grouped.map((group) => (
-              <div key={group.date}>
-                <div className="sticky top-14 z-10 bg-white/95 backdrop-blur-sm px-4 py-2">
-                  <span className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
-                    {group.label}
-                  </span>
-                </div>
-                <div className="divide-y divide-primary-100">
-                  {group.notifications.map((n) => (
-                    <NotificationRow
-                      key={n.id}
-                      notification={n}
-                      onTap={() => handleTap(n)}
-                      onSwipeRead={() => handleSwipeRead(n.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
-
-            <AllCaughtUp />
-          </div>
-        </PullToRefresh>
       ) : (
         <PullToRefresh onRefresh={handleRefresh}>
-          <div>
-            {grouped.map((group) => (
-              <div key={group.date}>
-                <div className="sticky top-14 z-10 bg-white/95 backdrop-blur-sm px-4 py-2">
-                  <span className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
-                    {group.label}
-                  </span>
+          <motion.div
+            className="py-4 space-y-6"
+            variants={shouldReduceMotion ? undefined : stagger}
+            initial="hidden"
+            animate="visible"
+          >
+            {/* Unread count banner */}
+            {unreadCount > 0 && (
+              <motion.div variants={fadeUp}>
+                <div className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-primary-100/80 to-surface-2 p-3.5 shadow-sm">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary-500 shadow-sm">
+                    <Bell size={16} className="text-white" />
+                  </div>
+                  <p className="text-sm font-semibold text-primary-800">
+                    {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+                  </p>
                 </div>
-                <div className="divide-y divide-primary-100">
-                  <AnimatePresence>
-                    {group.notifications.map((n) => (
-                      <NotificationRow
-                        key={n.id}
-                        notification={n}
-                        onTap={() => handleTap(n)}
-                        onSwipeRead={() => handleSwipeRead(n.id)}
-                      />
-                    ))}
-                  </AnimatePresence>
-                </div>
-              </div>
-            ))}
-          </div>
+              </motion.div>
+            )}
+
+            {/* Grouped notifications */}
+            {(() => {
+              let runningIndex = 0
+              return grouped.map((group) => {
+                const startIndex = runningIndex
+                runningIndex += group.notifications.length
+                return (
+                  <NotificationGroup
+                    key={group.date}
+                    group={group}
+                    onTap={handleTap}
+                    onSwipeRead={handleSwipeRead}
+                    startIndex={startIndex}
+                  />
+                )
+              })
+            })()}
+
+            {/* All caught up footer when everything is read */}
+            {allRead && <AllCaughtUp />}
+          </motion.div>
         </PullToRefresh>
       )}
     </Page>

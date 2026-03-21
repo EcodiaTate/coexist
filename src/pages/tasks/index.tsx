@@ -62,8 +62,8 @@ function TaskCard({ task }: { task: MyTask }) {
       layout={!shouldReduceMotion}
       className={cn(
         'rounded-xl overflow-hidden transition-colors duration-150',
-        isCompleted ? 'bg-success-50/50' : isSkipped ? 'bg-neutral-50' : 'bg-white shadow-sm',
-        isOverdue && 'ring-1 ring-error-200',
+        isCompleted ? 'bg-success-50/50' : isSkipped ? 'bg-surface-3' : 'bg-surface-2 shadow-sm',
+        isOverdue && 'bg-error-50/60 shadow-md',
       )}
     >
       <button

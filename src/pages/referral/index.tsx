@@ -94,10 +94,10 @@ export default function ReferralPage() {
         {/* Hero */}
         <motion.div
           variants={fadeUp}
-          className="mt-4 rounded-2xl bg-gradient-to-br from-white to-white shadow-sm p-5 text-center"
+          className="mt-4 rounded-2xl bg-gradient-to-br from-surface-2 to-primary-100/60 shadow-md p-5 text-center"
         >
-          <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
-            <Gift size={28} className="text-primary-500" />
+          <div className="w-14 h-14 rounded-full bg-primary-200/70 flex items-center justify-center mx-auto mb-3">
+            <Gift size={28} className="text-primary-600" />
           </div>
           <h2 className="font-heading text-lg font-bold text-primary-800">
             Grow the Movement
@@ -116,7 +116,7 @@ export default function ReferralPage() {
             Your Referral Code
           </h3>
           <div className="flex items-center gap-2">
-            <div className="flex-1 rounded-xl bg-white px-4 py-3 text-center font-heading text-lg font-bold text-primary-800 tracking-wider select-all">
+            <div className="flex-1 rounded-xl bg-surface-2 px-4 py-3 text-center font-heading text-lg font-bold text-primary-800 tracking-wider select-all">
               {code}
             </div>
             <button
@@ -125,8 +125,8 @@ export default function ReferralPage() {
               className={cn(
                 'flex items-center justify-center min-h-11 min-w-11 rounded-xl active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 copied
-                  ? 'bg-success-50 shadow-sm text-success-600'
-                  : 'bg-white shadow-sm text-primary-400 hover:bg-primary-50',
+                  ? 'bg-success-100/80 shadow-sm text-success-600'
+                  : 'bg-surface-2 shadow-sm text-primary-500 hover:bg-primary-100/60',
               )}
               aria-label="Copy code"
             >
@@ -188,9 +188,9 @@ export default function ReferralPage() {
             ].map(({ label, points, icon }) => (
               <div
                 key={label}
-                className="flex items-center gap-3 rounded-xl bg-white shadow-sm px-4 py-3"
+                className="flex items-center gap-3 rounded-xl bg-surface-2 shadow-sm px-4 py-3"
               >
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-primary-400">
+                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100/80 text-primary-500">
                   {icon}
                 </span>
                 <span className="flex-1 text-sm text-primary-800">{label}</span>

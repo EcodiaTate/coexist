@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ArrowDown, Lock, X, Reply } from 'lucide-react'
 import { Header } from '@/components/header'
-import { ChatBubble } from '@/components/chat-bubble'
+import { ChatBubble, PollCard, AnnouncementCard } from '@/components/chat-bubble'
 import { MessageInput } from '@/components/message-input'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -18,18 +18,22 @@ import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useLayout } from '@/hooks/use-layout'
 import {
-  useChannelMessages,
-  useSendChannelMessage,
-  useMarkChannelRead,
-  useMyStaffChannels,
-  type ChannelMessageWithSender,
+    useChannelMessages,
+    useSendChannelMessage,
+    useMarkChannelRead,
+    useMyStaffChannels,
+    type ChannelMessageWithSender,
 } from '@/hooks/use-staff-channels'
 import {
-  useCreatePoll,
-  useCreateAnnouncement,
-  useSendBroadcastNotification,
-  useBroadcastLog,
+    useSendBroadcastNotification,
+    useBroadcastLog,
+    usePollDetail,
+    usePollVote,
+    useRemovePollVote,
+    useAnnouncementDetail,
+    useRespondToAnnouncement,
 } from '@/hooks/use-chat'
+import { supabase } from '@/lib/supabase'
 
 /* ------------------------------------------------------------------ */
 /*  Channel type labels + icons                                        */
@@ -87,6 +91,81 @@ function shouldShowDateSeparator(
 }
 
 /* ------------------------------------------------------------------ */
+/*  Inline Poll Renderer                                               */
+/* ------------------------------------------------------------------ */
+
+function InlinePoll({
+  pollId,
+  collectiveId,
+  sent,
+}: {
+  pollId: string
+  collectiveId?: string | null
+  sent: boolean
+}) {
+  const { data: poll } = usePollDetail(pollId)
+  const vote = usePollVote()
+  const removeVote = useRemovePollVote()
+
+  if (!poll) return null
+
+  return (
+    <PollCard
+      question={poll.question}
+      options={poll.options}
+      voteCounts={poll._vote_counts ?? {}}
+      totalVotes={poll._total_votes ?? 0}
+      userVotes={poll._user_votes ?? []}
+      isClosed={poll.is_closed}
+      allowMultiple={poll.allow_multiple}
+      anonymous={poll.anonymous}
+      creatorName={poll.profiles?.display_name ?? undefined}
+      closesAt={poll.closes_at}
+      onVote={(optionId) => vote.mutate({ pollId, optionId, collectiveId: collectiveId ?? '' })}
+      onRemoveVote={(optionId) => removeVote.mutate({ pollId, optionId, collectiveId: collectiveId ?? '' })}
+      sent={sent}
+    />
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Inline Announcement Renderer                                       */
+/* ------------------------------------------------------------------ */
+
+function InlineAnnouncement({
+  announcementId,
+  sent,
+}: {
+  announcementId: string
+  sent: boolean
+}) {
+  const { data: announcement } = useAnnouncementDetail(announcementId)
+  const respond = useRespondToAnnouncement()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  if (!announcement) return null
+
+  const userResponse = announcement.responses?.find((r) => r.user_id === user?.id)?.response ?? null
+
+  return (
+    <AnnouncementCard
+      type={announcement.type}
+      title={announcement.title}
+      body={announcement.body}
+      creatorName={announcement.profiles?.display_name ?? undefined}
+      metadata={announcement.metadata}
+      responses={announcement.responses}
+      userResponse={userResponse}
+      isActive={announcement.is_active}
+      sent={sent}
+      onRespond={(response) => respond.mutate({ announcementId, response })}
+      onViewEvent={(eventId) => navigate(`/events/${eventId}`)}
+    />
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
@@ -112,8 +191,6 @@ export default function ChannelChatPage() {
   const isLeaderOrAbove = isStaff || isAdmin || isSuperAdmin
 
   // Leader features
-  const createPoll = useCreatePoll()
-  const createAnnouncement = useCreateAnnouncement()
   const collectiveId = channel?.collective_id
   const { data: broadcastLog = [] } = useBroadcastLog(isLeaderOrAbove && collectiveId ? collectiveId : undefined)
   const sendBroadcast = useSendBroadcastNotification()
@@ -128,7 +205,7 @@ export default function ChannelChatPage() {
 
   // Mark as read on mount and when new messages arrive
   useEffect(() => {
-    if (channelId && collectiveId && messages.length > 0) {
+    if (channelId && messages.length > 0) {
       markRead.mutate({ channelId, collectiveId })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -156,10 +233,10 @@ export default function ChannelChatPage() {
 
   const handleSend = useCallback(
     (content: string) => {
-      if (!channelId || !collectiveId || !content.trim()) return
+      if (!channelId || !content.trim()) return
       sendMessage.mutate({
         channelId,
-        collectiveId,
+        collectiveId: collectiveId ?? null,
         content: content.trim(),
         replyToId: replyTo?.id,
       })
@@ -169,14 +246,14 @@ export default function ChannelChatPage() {
   )
 
   const handleAttach = useCallback(async () => {
-    if (!channelId || !collectiveId) return
+    if (!channelId) return
     const result = await pickFromGallery()
     if (!result) return
     try {
       const uploaded = await chatUpload.upload(result.blob)
       sendMessage.mutate({
         channelId,
-        collectiveId,
+        collectiveId: collectiveId ?? null,
         content: '',
         imageUrl: uploaded.url,
       })
@@ -185,45 +262,116 @@ export default function ChannelChatPage() {
     }
   }, [channelId, collectiveId, pickFromGallery, chatUpload, sendMessage, toast])
 
-  // Leader action handlers
-  const handleCreatePoll = (data: {
+  // Leader action handlers - create the record then send a channel message
+  // (can't reuse useCreatePoll/useCreateAnnouncement because those send to the
+  //  collective's public chat via useSendMessage, not to the staff channel)
+  const [creatingPoll, setCreatingPoll] = useState(false)
+  const [creatingAnnouncement, setCreatingAnnouncement] = useState(false)
+
+  const handleCreatePoll = async (data: {
     question: string
     options: string[]
     allowMultiple: boolean
     anonymous: boolean
   }) => {
-    if (!collectiveId) return
+    if (!channelId || !user) return
     setShowPollSheet(false)
+    setCreatingPoll(true)
     toast.info('Creating poll...')
-    createPoll.mutate(
-      { collectiveId, ...data },
-      {
-        onSuccess: () => toast.success('Poll posted!'),
-        onError: () => toast.error('Failed to create poll'),
-      },
-    )
+
+    try {
+      const pollOptions = data.options.map((text, i) => ({
+        id: `opt-${Date.now()}-${i}`,
+        text,
+      }))
+
+      const { data: poll, error } = await (supabase as any)
+        .from('chat_polls')
+        .insert({
+          collective_id: collectiveId || null,
+          created_by: user.id,
+          question: data.question,
+          options: pollOptions,
+          allow_multiple: data.allowMultiple,
+          anonymous: data.anonymous,
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Send the poll message into the staff channel
+      await supabase
+        .from('chat_messages' as any)
+        .insert({
+          channel_id: channelId,
+          collective_id: collectiveId || null,
+          user_id: user.id,
+          content: data.question,
+          message_type: 'poll',
+          poll_id: poll.id,
+        })
+
+      toast.success('Poll posted!')
+    } catch {
+      toast.error('Failed to create poll')
+    } finally {
+      setCreatingPoll(false)
+    }
   }
 
-  const handleCreateAnnouncement = (data: {
+  const handleCreateAnnouncement = async (data: {
     type: 'announcement' | 'event_invite' | 'rsvp'
     title: string
     body?: string
     metadata?: Record<string, unknown>
   }) => {
-    if (!collectiveId) return
+    if (!channelId || !user) return
     setShowAnnouncementSheet(false)
+    setCreatingAnnouncement(true)
     toast.info('Posting announcement...')
-    createAnnouncement.mutate(
-      { collectiveId, ...data },
-      {
-        onSuccess: () => toast.success('Announcement posted!'),
-        onError: () => toast.error('Failed to create announcement'),
-      },
-    )
+
+    try {
+      const { data: announcement, error } = await (supabase as any)
+        .from('chat_announcements')
+        .insert({
+          collective_id: collectiveId || null,
+          created_by: user.id,
+          type: data.type,
+          title: data.title,
+          body: data.body ?? null,
+          metadata: data.metadata ?? {},
+        })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      // Send the announcement message into the staff channel
+      await supabase
+        .from('chat_messages' as any)
+        .insert({
+          channel_id: channelId,
+          collective_id: collectiveId || null,
+          user_id: user.id,
+          content: data.title,
+          message_type: 'announcement',
+          announcement_id: announcement.id,
+        })
+
+      toast.success('Announcement posted!')
+    } catch {
+      toast.error('Failed to create announcement')
+    } finally {
+      setCreatingAnnouncement(false)
+    }
   }
 
   const handleBroadcast = (data: { title: string; body: string }) => {
-    if (!collectiveId) return
+    if (!collectiveId) {
+      toast.error('Broadcast notifications require a collective')
+      return
+    }
     setShowBroadcastSheet(false)
     toast.info('Sending notification...')
     sendBroadcast.mutate(
@@ -295,6 +443,8 @@ export default function ChannelChatPage() {
               const showDate = shouldShowDateSeparator(msg, prevMsg)
               const isSent = msg.user_id === user?.id
               const isDeleted = msg.is_deleted
+              const messageType = msg.message_type ?? 'text'
+              const msgCollectiveId = msg.collective_id ?? collectiveId
 
               return (
                 <Fragment key={msg.id}>
@@ -311,6 +461,16 @@ export default function ChannelChatPage() {
                       <div className={cn('flex py-1', isSent ? 'justify-end' : 'justify-start')}>
                         <p className="text-xs italic text-primary-400 font-medium px-3.5 py-2.5 rounded-2xl bg-white/70 ring-1 ring-primary-200/50 shadow-sm">
                           Message removed
+                        </p>
+                      </div>
+                    ) : messageType === 'poll' && msg.poll_id ? (
+                      <InlinePoll pollId={msg.poll_id} collectiveId={msgCollectiveId} sent={isSent} />
+                    ) : messageType === 'announcement' && msg.announcement_id ? (
+                      <InlineAnnouncement announcementId={msg.announcement_id} sent={isSent} />
+                    ) : messageType === 'system' ? (
+                      <div className="flex justify-center py-3">
+                        <p className="text-xs text-primary-500 italic font-medium bg-white/80 px-4 py-2 rounded-full shadow-sm ring-1 ring-primary-200/40">
+                          {msg.content}
                         </p>
                       </div>
                     ) : (
@@ -378,7 +538,7 @@ export default function ChannelChatPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="bg-white/95 px-4 py-2.5 backdrop-blur-sm shadow-md border-t border-primary-100/50"
+            className="bg-surface-1/95 px-4 py-2.5 backdrop-blur-sm shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100">
@@ -412,14 +572,14 @@ export default function ChannelChatPage() {
         </div>
       )}
 
-      {/* Message input — pinned to bottom */}
+      {/* Message input - pinned to bottom */}
       <MessageInput
         onSend={handleSend}
         onAttach={handleAttach}
         placeholder="Message staff..."
         disabled={sendMessage.isPending}
         padForTabBar={hasBottomTabs}
-        isLeader={isLeaderOrAbove && !!collectiveId}
+        isLeader={isLeaderOrAbove}
         onCreatePoll={() => setShowPollSheet(true)}
         onCreateAnnouncement={() => setShowAnnouncementSheet(true)}
         onBroadcastNotification={() => setShowBroadcastSheet(true)}
@@ -430,7 +590,7 @@ export default function ChannelChatPage() {
         open={showPollSheet}
         onClose={() => setShowPollSheet(false)}
         onSubmit={handleCreatePoll}
-        loading={createPoll.isPending}
+        loading={creatingPoll}
       />
 
       {/* Announcement creation sheet */}
@@ -438,7 +598,7 @@ export default function ChannelChatPage() {
         open={showAnnouncementSheet}
         onClose={() => setShowAnnouncementSheet(false)}
         onSubmit={handleCreateAnnouncement}
-        loading={createAnnouncement.isPending}
+        loading={creatingAnnouncement}
       />
 
       {/* Broadcast notification sheet */}

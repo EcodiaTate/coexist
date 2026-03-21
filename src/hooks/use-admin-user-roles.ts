@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { logAudit } from '@/lib/audit'
 import { resolveCapabilities } from '@/lib/capabilities'
 import type { Database } from '@/types/database.types'
 
@@ -90,6 +91,7 @@ export function useAdminAssignCollectiveRole() {
           .update({ leader_id: userId })
           .eq('id', collectiveId)
       }
+      await logAudit({ action: 'member_role_changed', target_type: 'collective_member', target_id: userId, details: { collective_id: collectiveId, new_role: role } })
     },
     onMutate: async (variables) => {
       const key = ['admin-user-collective-roles', variables.userId]
@@ -142,6 +144,7 @@ export function useAdminRemoveFromCollective() {
         .eq('user_id', userId)
         .eq('collective_id', collectiveId)
       if (error) throw error
+      await logAudit({ action: 'member_removed', target_type: 'collective_member', target_id: userId, details: { collective_id: collectiveId } })
     },
     onMutate: async (variables) => {
       const key = ['admin-user-collective-roles', variables.userId]

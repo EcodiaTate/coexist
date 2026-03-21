@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { logAudit } from '@/lib/audit'
 import type {
   Database,
   Collective,
@@ -281,6 +282,8 @@ export function useCreateCollective() {
         })
       }
 
+      await logAudit({ action: 'collective_created', target_type: 'collective', target_id: data?.id, details: { name: input.name } })
+
       return data
     },
     onSuccess: () => {
@@ -331,6 +334,7 @@ export function useArchiveCollective() {
         .update({ is_active: !archive })
         .eq('id', collectiveId)
       if (error) throw error
+      await logAudit({ action: archive ? 'collective_archived' : 'collective_restored', target_type: 'collective', target_id: collectiveId })
     },
     onSuccess: (_, { collectiveId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-collectives'] })
@@ -348,6 +352,7 @@ export function useDeleteCollective() {
 
   return useMutation({
     mutationFn: async (collectiveId: string) => {
+      await logAudit({ action: 'collective_deleted', target_type: 'collective', target_id: collectiveId })
       const { error } = await supabase
         .from('collectives')
         .delete()
@@ -391,6 +396,7 @@ export function useAdminUpdateMemberRole() {
           .update({ leader_id: userId })
           .eq('id', collectiveId)
       }
+      await logAudit({ action: 'member_role_changed', target_type: 'collective_member', target_id: userId, details: { collective_id: collectiveId, new_role: role } })
     },
     onSuccess: (_, { collectiveId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-collective-members', collectiveId] })
@@ -417,6 +423,7 @@ export function useAdminRemoveMember() {
         .eq('collective_id', collectiveId)
         .eq('user_id', userId)
       if (error) throw error
+      await logAudit({ action: 'member_removed', target_type: 'collective_member', target_id: userId, details: { collective_id: collectiveId } })
     },
     onSuccess: (_, { collectiveId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-collective-members', collectiveId] })

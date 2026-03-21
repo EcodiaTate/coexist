@@ -203,7 +203,7 @@ function PinnedMessageBar({
   const hasMultiple = messages.length > 1
 
   return (
-    <div className="bg-white/95 backdrop-blur-sm shadow-md border-b border-primary-100/50">
+    <div className="bg-surface-1/95 backdrop-blur-sm shadow-md">
       {/* Main pinned bar */}
       <div className="flex w-full items-center gap-2.5 px-4 py-2.5 min-h-11">
         <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100 shrink-0">
@@ -933,7 +933,7 @@ export default function CollectiveChatPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="bg-white/95 px-4 py-2.5 backdrop-blur-sm shadow-md border-t border-primary-100/50"
+            className="bg-surface-1/95 px-4 py-2.5 backdrop-blur-sm shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100">
@@ -964,7 +964,7 @@ export default function CollectiveChatPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="bg-warning-100/90 px-4 py-2.5 backdrop-blur-sm shadow-md border-t border-warning-200/50"
+            className="bg-warning-100/90 px-4 py-2.5 backdrop-blur-sm shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-warning-200">

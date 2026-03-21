@@ -1,13 +1,11 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   AlertTriangle,
-  Ban,
   XCircle,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
-import { StatCard } from '@/components/stat-card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
@@ -83,13 +81,39 @@ function useEmailComplaints() {
 }
 
 export default function AdminEmailPage() {
-  useAdminHeader('Email & Delivery')
   const [activeTab, setActiveTab] = useState('bounces')
   const { data: stats, isLoading: statsLoading } = useEmailStats()
   const { data: bounces, isLoading: bouncesLoading } = useEmailBounces()
   const { data: complaints, isLoading: complaintsLoading } = useEmailComplaints()
 
   const shouldReduceMotion = useReducedMotion()
+
+  const heroStats = useMemo(() => (
+    statsLoading ? (
+      <div className="flex items-center gap-3">
+        <Skeleton variant="stat-card" />
+        <Skeleton variant="stat-card" />
+        <Skeleton variant="stat-card" />
+      </div>
+    ) : stats ? (
+      <div className="flex items-center gap-3">
+        <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Bounces</p>
+          <p className="text-xl font-bold text-white tabular-nums">{stats.bounces}</p>
+        </div>
+        <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Complaints</p>
+          <p className="text-xl font-bold text-white tabular-nums">{stats.complaints}</p>
+        </div>
+        <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Suppressed</p>
+          <p className="text-xl font-bold text-white tabular-nums">{stats.suppressed}</p>
+        </div>
+      </div>
+    ) : null
+  ), [stats, statsLoading])
+
+  useAdminHeader('Email & Delivery', { heroContent: heroStats })
 
   const stagger = {
     hidden: {},
@@ -102,46 +126,22 @@ export default function AdminEmailPage() {
   }
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
-      {/* Stats (always visible) */}
-      <motion.div variants={fadeUp} className="mb-4">
-        {statsLoading ? (
-          <div className="grid grid-cols-3 gap-3">
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
-            <Skeleton variant="stat-card" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <StatCard
-              value={stats?.bounces ?? 0}
-              label="Bounces"
-              icon={<XCircle size={20} />}
-              className="from-error-50 to-error-100/50"
-            />
-            <StatCard
-              value={stats?.complaints ?? 0}
-              label="Complaints"
-              icon={<AlertTriangle size={20} />}
-              className="from-warning-50 to-warning-100/50"
-            />
-            <StatCard
-              value={stats?.suppressed ?? 0}
-              label="Suppressed"
-              icon={<Ban size={20} />}
-              className="from-white to-primary-100/50"
-            />
-          </div>
-        )}
-      </motion.div>
-
-      <motion.div variants={fadeUp}>
+    <div>
+      <motion.div
+        initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, delay: 0.2 }}
+      >
         <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
       </motion.div>
 
       {/* Bounces */}
       {activeTab === 'bounces' && (
-        <motion.div variants={fadeUp}>
+        <motion.div
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.25 }}
+        >
           {bouncesLoading ? (
             <Skeleton variant="list-item" count={5} />
           ) : !bounces?.length ? (
@@ -185,7 +185,11 @@ export default function AdminEmailPage() {
 
       {/* Complaints */}
       {activeTab === 'complaints' && (
-        <motion.div variants={fadeUp}>
+        <motion.div
+          initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25, delay: 0.25 }}
+        >
           {complaintsLoading ? (
             <Skeleton variant="list-item" count={5} />
           ) : !complaints?.length ? (
@@ -226,6 +230,6 @@ export default function AdminEmailPage() {
           )}
         </motion.div>
       )}
-    </motion.div>
+    </div>
   )
 }

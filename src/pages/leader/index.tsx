@@ -11,22 +11,24 @@ import {
   Eye,
   TreePine,
   ChevronRight,
+  ChevronLeft,
   Bell,
   BarChart3,
   UserPlus,
   CheckCircle2,
   AlertTriangle,
   Send,
+  TrendingUp,
+  Sparkles,
+  MapPin,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
-import { StatCard } from '@/components/stat-card'
-import { Button } from '@/components/button'
-import { Card } from '@/components/card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { Avatar } from '@/components/avatar'
+import { Button } from '@/components/button'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollective } from '@/hooks/use-collective'
@@ -152,14 +154,26 @@ function useEngagementScores(collectiveId: string | undefined) {
 
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
-      // Members with recent event attendance
-      const { data: activeMembers } = await supabase
-        .from('event_registrations')
-        .select('user_id')
-        .eq('status', 'checked_in' as any)
-        .gte('created_at', thirtyDaysAgo)
+      // Get the collective's events from the last 30 days
+      const { data: recentEvents } = await supabase
+        .from('events' as any)
+        .select('id')
+        .eq('collective_id', collectiveId)
+        .gte('date_start', thirtyDaysAgo)
 
-      const activeUserIds = new Set((activeMembers ?? []).map((r) => r.user_id))
+      const recentEventIds = (recentEvents ?? []).map((e: any) => e.id)
+
+      // Members who attended OR registered for any of those events
+      let activeUserIds = new Set<string>()
+      if (recentEventIds.length > 0) {
+        const { data: activeMembers } = await supabase
+          .from('event_registrations')
+          .select('user_id')
+          .in('event_id', recentEventIds)
+          .in('status', ['attended', 'registered'])
+
+        activeUserIds = new Set((activeMembers ?? []).map((r) => r.user_id))
+      }
 
       const { data: allMembers } = await supabase
         .from('collective_members')
@@ -305,34 +319,34 @@ function MiniCalendar({
   ]
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-heading text-sm font-semibold text-primary-800">
+    <div className="rounded-2xl bg-surface-2 p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-heading text-sm font-bold text-secondary-800">
           {monthNames[month]} {year}
         </h3>
         <div className="flex gap-1">
           <button
             type="button"
             onClick={() => setCurrentMonth(new Date(year, month - 1))}
-            className="flex items-center justify-center min-h-11 min-w-11 rounded-xl hover:bg-primary-50 text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-surface-3 text-primary-600 hover:bg-primary-100 active:scale-95 transition-all duration-150 cursor-pointer select-none"
             aria-label="Previous month"
           >
-            <ChevronRight size={16} className="rotate-180" />
+            <ChevronLeft size={14} />
           </button>
           <button
             type="button"
             onClick={() => setCurrentMonth(new Date(year, month + 1))}
-            className="flex items-center justify-center min-h-11 min-w-11 rounded-xl hover:bg-primary-50 text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-surface-3 text-primary-600 hover:bg-primary-100 active:scale-95 transition-all duration-150 cursor-pointer select-none"
             aria-label="Next month"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={14} />
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-0.5 text-center text-[11px]">
+      <div className="grid grid-cols-7 gap-1 text-center">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-          <div key={i} className="text-primary-400 font-medium py-1">
+          <div key={i} className="text-[10px] font-semibold text-primary-400 uppercase tracking-wider pb-2">
             {d}
           </div>
         ))}
@@ -349,15 +363,14 @@ function MiniCalendar({
             <div
               key={i}
               className={cn(
-                'relative py-1 rounded text-xs',
-                isToday && 'bg-primary-100 font-bold text-primary-400',
-                !isToday && 'text-primary-800',
+                'relative flex items-center justify-center w-8 h-8 mx-auto rounded-lg text-xs transition-colors',
+                hasEvent && 'bg-primary-500 text-white font-bold shadow-sm shadow-primary-500/30',
+                isToday && !hasEvent && 'ring-2 ring-primary-300 text-primary-700 font-semibold',
+                isToday && hasEvent && 'bg-primary-600 text-white font-bold ring-2 ring-primary-300 shadow-sm shadow-primary-500/30',
+                !isToday && !hasEvent && 'text-secondary-600 font-medium',
               )}
             >
               {day}
-              {hasEvent && (
-                <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary-500" />
-              )}
             </div>
           )
         })}
@@ -372,12 +385,71 @@ function MiniCalendar({
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
+  visible: { transition: { staggerChildren: 0.06 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] } },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Section heading                                                    */
+/* ------------------------------------------------------------------ */
+
+function SectionHeader({
+  children,
+  action,
+  icon,
+}: {
+  children: React.ReactNode
+  action?: { label: string; to: string }
+  icon?: React.ReactNode
+}) {
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-secondary-700 uppercase tracking-wide">
+        {icon && <span className="text-primary-500">{icon}</span>}
+        {children}
+      </h2>
+      {action && (
+        <Link
+          to={action.to}
+          className="text-xs text-primary-500 font-semibold hover:text-primary-600 transition-colors"
+        >
+          {action.label}
+        </Link>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hero stat card (big, colorful)                                     */
+/* ------------------------------------------------------------------ */
+
+function HeroStat({
+  value,
+  label,
+  icon,
+  gradient,
+}: {
+  value: number | string
+  label: string
+  icon: React.ReactNode
+  gradient: string
+}) {
+  return (
+    <div className={cn('rounded-2xl p-4 relative overflow-hidden', gradient)}>
+      <div className="absolute top-3 right-3 opacity-15">
+        <span className="[&>svg]:w-10 [&>svg]:h-10">{icon}</span>
+      </div>
+      <p className="font-heading text-3xl font-extrabold text-white tabular-nums leading-none">
+        {value}
+      </p>
+      <p className="mt-1.5 text-xs font-semibold text-white/80">{label}</p>
+    </div>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -434,157 +506,173 @@ export default function LeaderDashboardPage() {
     )
   }
 
+  const quickActions = [
+    { label: 'Create Event', icon: <Plus size={20} />, to: '/events/create', bg: 'bg-primary-500', text: 'text-white' },
+    { label: 'Announcement', icon: <Megaphone size={20} />, to: '/announcements/create', bg: 'bg-secondary-600', text: 'text-white' },
+    { label: 'Members', icon: <Users size={20} />, to: `/collectives/${collectiveSlug}/manage`, bg: 'bg-moss-500', text: 'text-white' },
+    { label: 'Log Impact', icon: <TreePine size={20} />, to: '/impact', bg: 'bg-bark-500', text: 'text-white' },
+    { label: 'Invite', icon: <Send size={20} />, to: `/collectives/${collectiveSlug}`, bg: 'bg-sky-500', text: 'text-white' },
+    { label: 'Reports', icon: <BarChart3 size={20} />, to: '/admin/reports', bg: 'bg-plum-500', text: 'text-white' },
+  ]
+
   return (
     <Page header={<Header title="Leader Dashboard" back />}>
       <motion.div
-        className="py-4 space-y-6 pb-8"
+        className="py-5 space-y-7 pb-10"
         variants={shouldReduceMotion ? undefined : stagger}
         initial="hidden"
         animate="visible"
       >
-        {/* Stat cards */}
+        {/* ── Hero stats ── */}
         <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
-          <StatCard
+          <HeroStat
             value={data?.activeMembers ?? 0}
             label="Active Members"
-            icon={<Users size={20} />}
+            icon={<Users />}
+            gradient="bg-gradient-to-br from-primary-500 to-primary-700"
           />
-          <StatCard
+          <HeroStat
             value={data?.upcomingEvents?.length ?? 0}
             label="Upcoming Events"
-            icon={<CalendarDays size={20} />}
+            icon={<CalendarDays />}
+            gradient="bg-gradient-to-br from-moss-500 to-moss-700"
           />
-          <StatCard
+          <HeroStat
             value={data?.hoursThisMonth ?? 0}
             label="Hours This Month"
-            icon={<Clock size={20} />}
+            icon={<Clock />}
+            gradient="bg-gradient-to-br from-bark-500 to-bark-700"
           />
-          <StatCard
+          <HeroStat
             value={data?.eventsThisMonth ?? 0}
             label="Events This Month"
-            icon={<CalendarCheck size={20} />}
+            icon={<CalendarCheck />}
+            gradient="bg-gradient-to-br from-secondary-500 to-secondary-700"
           />
-          {(data?.attendanceRate ?? 0) > 0 && (
-            <StatCard
-              value={`${data?.attendanceRate}%`}
-              label="Attendance Rate"
-              icon={<CheckCircle2 size={20} />}
-            />
-          )}
-          {(data?.surveyResponseCount ?? 0) > 0 && (
-            <StatCard
-              value={data?.surveyResponseCount ?? 0}
-              label="Survey Responses"
-              icon={<Send size={20} />}
-            />
-          )}
         </motion.div>
 
-        {/* Quick actions */}
+        {/* ── Attendance & survey row ── */}
+        {((data?.attendanceRate ?? 0) > 0 || (data?.surveyResponseCount ?? 0) > 0) && (
+          <motion.div variants={fadeUp} className="flex gap-3">
+            {(data?.attendanceRate ?? 0) > 0 && (
+              <div className="flex-1 rounded-2xl bg-surface-2 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-xl bg-success-100 flex items-center justify-center">
+                    <CheckCircle2 size={16} className="text-success-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-secondary-600">Attendance</span>
+                </div>
+                <p className="font-heading text-2xl font-extrabold text-secondary-800 tabular-nums">
+                  {data?.attendanceRate}%
+                </p>
+                <div className="mt-2 h-1.5 rounded-full bg-surface-3 overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-success-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${data?.attendanceRate}%` }}
+                    transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
+                  />
+                </div>
+              </div>
+            )}
+            {(data?.surveyResponseCount ?? 0) > 0 && (
+              <div className="flex-1 rounded-2xl bg-surface-2 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-xl bg-plum-100 flex items-center justify-center">
+                    <Send size={16} className="text-plum-600" />
+                  </div>
+                  <span className="text-xs font-semibold text-secondary-600">Surveys</span>
+                </div>
+                <p className="font-heading text-2xl font-extrabold text-secondary-800 tabular-nums">
+                  {data?.surveyResponseCount}
+                </p>
+                <p className="mt-1 text-[11px] text-primary-400">responses collected</p>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Quick actions ── */}
         <motion.div variants={fadeUp}>
-          <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
-            Quick Actions
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {[
-              { label: 'Create Event', icon: <Plus size={18} />, to: '/events/create' },
-              { label: 'Send Announcement', icon: <Megaphone size={18} />, to: '/announcements/create' },
-              { label: 'View Members', icon: <Users size={18} />, to: `/collectives/${collectiveSlug}/manage` },
-              { label: 'Log Impact', icon: <TreePine size={18} />, to: '/impact' },
-              { label: 'Invite to Collective', icon: <Send size={18} />, to: `/collectives/${collectiveSlug}` },
-              { label: 'View Reports', icon: <BarChart3 size={18} />, to: '/admin/reports' },
-            ].map((action) => (
+          <SectionHeader>Quick Actions</SectionHeader>
+          <div className="grid grid-cols-3 gap-2.5">
+            {quickActions.map((action) => (
               <Link
                 key={action.label}
                 to={action.to}
-                className={cn(
-                  'flex items-center gap-2 px-3 py-2.5 rounded-xl',
-                  'bg-white shadow-sm',
-                  'text-sm font-medium text-primary-800',
-                  'hover:bg-primary-50 hover:text-primary-400 hover:shadow-md',
-                  'transition-colors duration-150',
-                )}
+                className="group flex flex-col items-center gap-2 rounded-2xl bg-surface-2 p-4 hover:bg-surface-3 active:scale-[0.97] transition-all duration-150"
               >
-                <span className="flex items-center justify-center text-primary-500">
+                <div className={cn(
+                  'flex items-center justify-center w-11 h-11 rounded-xl transition-transform group-hover:scale-105',
+                  action.bg, action.text,
+                )}>
                   {action.icon}
+                </div>
+                <span className="text-[11px] font-semibold text-secondary-700 text-center leading-tight">
+                  {action.label}
                 </span>
-                {action.label}
               </Link>
             ))}
           </div>
         </motion.div>
 
-        {/* Notification centre - pending items */}
+        {/* ── Needs attention ── */}
         {pendingItems.length > 0 && (
           <motion.div variants={fadeUp}>
-            <h2 className="font-heading text-base font-semibold text-primary-800 mb-3 flex items-center gap-2">
-              <Bell size={18} className="text-primary-400" />
+            <SectionHeader icon={<Bell size={14} />}>
               Needs Attention
-              <span className="ml-auto text-xs font-normal bg-accent-100 text-primary-800 px-2 py-0.5 rounded-full">
-                {pendingItems.length}
-              </span>
-            </h2>
-            <div className="space-y-2">
-              {pendingItems.map((item) => (
+            </SectionHeader>
+            <div className="rounded-2xl bg-warning-50 overflow-hidden">
+              {pendingItems.map((item, idx) => (
                 <Link
                   key={item.id}
                   to={`/events/${item.id}/impact`}
                   className={cn(
-                    'flex items-center gap-3 p-3 rounded-xl',
-                    'bg-warning-50 shadow-sm',
-                    'hover:bg-warning-100 transition-colors duration-150',
+                    'flex items-center gap-3 px-4 py-3.5',
+                    'hover:bg-warning-100/60 transition-colors duration-150',
+                    idx > 0 && 'border-t border-warning-100',
                   )}
                 >
-                  <AlertTriangle size={16} className="text-warning-600 shrink-0" />
-                  <span className="text-sm text-warning-900 flex-1">{item.message}</span>
-                  <ChevronRight size={16} className="text-warning-400 shrink-0" />
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-warning-200/60 shrink-0">
+                    <AlertTriangle size={14} className="text-warning-700" />
+                  </div>
+                  <span className="text-sm text-warning-900 flex-1 font-medium">{item.message}</span>
+                  <ChevronRight size={14} className="text-warning-400 shrink-0" />
                 </Link>
               ))}
             </div>
           </motion.div>
         )}
 
-        {/* Upcoming events */}
+        {/* ── Upcoming events ── */}
         <motion.div variants={fadeUp}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-heading text-base font-semibold text-primary-800">
-              Upcoming Events
-            </h2>
-            <Link
-              to="/events"
-              className="text-xs text-primary-400 font-medium hover:underline"
-            >
-              View all
-            </Link>
-          </div>
+          <SectionHeader action={{ label: 'View all', to: '/events' }}>
+            Upcoming Events
+          </SectionHeader>
           {data?.upcomingEvents && data.upcomingEvents.length > 0 ? (
-            <div className="space-y-2">
-              {data.upcomingEvents.map((event) => (
+            <div className="space-y-2.5">
+              {data.upcomingEvents.map((event, idx) => (
                 <Link
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className={cn(
-                    'flex items-center gap-3 p-3 rounded-xl',
-                    'bg-white shadow-sm',
-                    'hover:shadow-md transition-shadow duration-150',
-                  )}
+                  className="flex items-center gap-3.5 p-3 rounded-2xl bg-surface-2 hover:bg-surface-3 active:scale-[0.99] transition-all duration-150"
                 >
                   {event.cover_image_url ? (
                     <img
                       src={event.cover_image_url}
                       alt=""
-                      className="w-12 h-12 rounded-lg object-cover shrink-0"
+                      className="w-14 h-14 rounded-xl object-cover shrink-0"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
-                      <CalendarDays size={20} className="text-primary-500" />
+                    <div className="w-14 h-14 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
+                      <CalendarDays size={22} className="text-primary-500" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="font-heading text-sm font-semibold text-primary-800 truncate">
+                    <p className="font-heading text-sm font-bold text-secondary-800 truncate">
                       {event.title}
                     </p>
-                    <p className="text-xs text-primary-400 mt-0.5">
+                    <p className="text-xs text-primary-500 mt-0.5 font-medium">
                       {new Date(event.date_start).toLocaleDateString('en-AU', {
                         weekday: 'short',
                         day: 'numeric',
@@ -594,7 +682,10 @@ export default function LeaderDashboardPage() {
                       })}
                     </p>
                     {event.address && (
-                      <p className="text-xs text-primary-400 truncate">{event.address}</p>
+                      <p className="text-[11px] text-primary-400 truncate mt-0.5 flex items-center gap-1">
+                        <MapPin size={10} className="shrink-0" />
+                        {event.address}
+                      </p>
                     )}
                   </div>
                   <ChevronRight size={16} className="text-primary-300 shrink-0" />
@@ -602,12 +693,14 @@ export default function LeaderDashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="p-4 rounded-xl bg-white text-center">
-              <p className="text-sm text-primary-400">No upcoming events</p>
+            <div className="p-6 rounded-2xl bg-surface-2 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-primary-100 flex items-center justify-center mx-auto mb-3">
+                <CalendarDays size={24} className="text-primary-500" />
+              </div>
+              <p className="text-sm font-medium text-secondary-600 mb-3">No upcoming events</p>
               <Button
                 variant="primary"
                 size="sm"
-                className="mt-2"
                 onClick={() => navigate('/events/create')}
                 icon={<Plus size={14} />}
               >
@@ -617,42 +710,46 @@ export default function LeaderDashboardPage() {
           )}
         </motion.div>
 
-        {/* Event calendar */}
+        {/* ── Calendar ── */}
         <motion.div variants={fadeUp}>
-          <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
+          <SectionHeader icon={<CalendarCheck size={14} />}>
             Event Calendar
-          </h2>
+          </SectionHeader>
           <MiniCalendar collectiveId={collectiveId} />
         </motion.div>
 
-        {/* Member engagement */}
+        {/* ── Member engagement ── */}
         {engagement && (
           <motion.div variants={fadeUp}>
-            <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
+            <SectionHeader>
               Member Engagement
-            </h2>
+            </SectionHeader>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-xl bg-success-50 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <CheckCircle2 size={16} className="text-success-600" />
-                  <span className="text-xs font-medium text-success-700">Active</span>
+              <div className="rounded-2xl bg-gradient-to-br from-success-50 to-success-100/60 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-xl bg-success-200/60 flex items-center justify-center">
+                    <CheckCircle2 size={14} className="text-success-700" />
+                  </div>
                 </div>
-                <p className="font-heading text-2xl font-bold text-success-900">
+                <p className="font-heading text-3xl font-extrabold text-success-800 leading-none">
                   {engagement.active.length}
                 </p>
-                <p className="text-xs text-success-600 mt-0.5">
-                  Attended event in last 30 days
+                <p className="text-xs font-semibold text-success-700 mt-1.5">Active</p>
+                <p className="text-[10px] text-success-500 mt-0.5">
+                  Last 30 days
                 </p>
               </div>
-              <div className="p-4 rounded-xl bg-warning-50 shadow-sm">
-                <div className="flex items-center gap-2 mb-1">
-                  <AlertTriangle size={16} className="text-warning-600" />
-                  <span className="text-xs font-medium text-warning-700">At Risk</span>
+              <div className="rounded-2xl bg-gradient-to-br from-warning-50 to-warning-100/60 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 rounded-xl bg-warning-200/60 flex items-center justify-center">
+                    <AlertTriangle size={14} className="text-warning-700" />
+                  </div>
                 </div>
-                <p className="font-heading text-2xl font-bold text-warning-900">
+                <p className="font-heading text-3xl font-extrabold text-warning-800 leading-none">
                   {engagement.atRisk.length}
                 </p>
-                <p className="text-xs text-warning-600 mt-0.5">
+                <p className="text-xs font-semibold text-warning-700 mt-1.5">At Risk</p>
+                <p className="text-[10px] text-warning-500 mt-0.5">
                   Inactive 30+ days
                 </p>
               </div>
@@ -660,23 +757,23 @@ export default function LeaderDashboardPage() {
           </motion.div>
         )}
 
-        {/* Recent members */}
+        {/* ── Recent members ── */}
         <motion.div variants={fadeUp}>
-          <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
-            Recent Members
-          </h2>
+          <SectionHeader icon={<UserPlus size={14} />}>
+            New Members
+          </SectionHeader>
           {data?.recentMembers && data.recentMembers.length > 0 ? (
-            <div className="space-y-2">
-              {data.recentMembers.map((member) => {
+            <div className="rounded-2xl bg-surface-2 overflow-hidden">
+              {data.recentMembers.map((member, idx) => {
                 const profile = (member as any).profiles
                 return (
                   <Link
                     key={member.id}
                     to={`/profile/${member.user_id}`}
                     className={cn(
-                      'flex items-center gap-3 p-3 rounded-xl',
-                      'bg-white shadow-sm',
-                      'hover:bg-primary-50 transition-colors duration-150',
+                      'flex items-center gap-3 px-4 py-3',
+                      'hover:bg-surface-3 transition-colors duration-150',
+                      idx > 0 && 'border-t border-surface-3',
                     )}
                   >
                     <Avatar
@@ -685,11 +782,10 @@ export default function LeaderDashboardPage() {
                       size="sm"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-primary-800 truncate">
+                      <p className="text-sm font-semibold text-secondary-800 truncate">
                         {profile?.display_name ?? 'Unknown'}
                       </p>
-                      <p className="text-xs text-primary-400">
-                        <UserPlus size={12} className="inline mr-1" />
+                      <p className="text-[11px] text-primary-400 mt-0.5">
                         Joined{' '}
                         {new Date(member.created_at).toLocaleDateString('en-AU', {
                           day: 'numeric',
@@ -697,63 +793,62 @@ export default function LeaderDashboardPage() {
                         })}
                       </p>
                     </div>
+                    <ChevronRight size={14} className="text-primary-300 shrink-0" />
                   </Link>
                 )
               })}
             </div>
           ) : (
-            <p className="text-sm text-primary-400 p-3">No recent members</p>
+            <p className="text-sm text-primary-400 bg-surface-2 rounded-2xl p-4">No recent members</p>
           )}
         </motion.div>
 
-        {/* Invite stats */}
-        {inviteStats && (
+        {/* ── Invite acceptance ── */}
+        {inviteStats && inviteStats.acceptanceRate > 0 && (
           <motion.div variants={fadeUp}>
-            <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
-              Event Invite Stats
-            </h2>
-            <div className="p-4 rounded-xl bg-white shadow-sm">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-primary-400">Acceptance Rate</span>
-                <span className="font-heading text-lg font-bold text-primary-400">
-                  {inviteStats.acceptanceRate}%
-                </span>
+            <SectionHeader>Invite Acceptance</SectionHeader>
+            <div className="rounded-2xl bg-surface-2 p-5">
+              <div className="flex items-end justify-between mb-3">
+                <div>
+                  <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wide">Rate</p>
+                  <p className="font-heading text-3xl font-extrabold text-secondary-800 tabular-nums leading-none mt-1">
+                    {inviteStats.acceptanceRate}%
+                  </p>
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center">
+                  <TrendingUp size={18} className="text-primary-600" />
+                </div>
               </div>
-              <div className="mt-2 h-2 bg-white rounded-full overflow-hidden">
+              <div className="h-2 rounded-full bg-surface-3 overflow-hidden">
                 <motion.div
-                  className="h-full bg-primary-500 rounded-full"
+                  className="h-full rounded-full bg-gradient-to-r from-primary-400 to-primary-600"
                   initial={{ width: 0 }}
                   animate={{ width: `${inviteStats.acceptanceRate}%` }}
-                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                  transition={{ duration: 1, ease: 'easeOut', delay: 0.4 }}
                 />
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* Charity impact - link to reports */}
+        {/* ── Reports link ── */}
         <motion.div variants={fadeUp}>
           <Link
             to="/admin/reports"
-            className={cn(
-              'flex items-center gap-3 p-4 rounded-xl',
-              'bg-white',
-              'shadow-sm',
-              'hover:shadow-md transition-shadow duration-150',
-            )}
+            className="flex items-center gap-4 p-5 rounded-2xl bg-gradient-to-br from-secondary-600 to-secondary-800 active:scale-[0.99] transition-transform duration-150"
           >
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-100">
-              <BarChart3 size={20} className="text-primary-400" />
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/15">
+              <BarChart3 size={22} className="text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-heading text-sm font-semibold text-primary-800">
-                Charity Impact Reporting
+              <p className="font-heading text-sm font-bold text-white">
+                Impact Reports
               </p>
-              <p className="text-xs text-primary-400 mt-0.5">
-                Generate impact reports for your collective
+              <p className="text-xs text-white/70 mt-0.5">
+                Generate reports for your collective
               </p>
             </div>
-            <ChevronRight size={16} className="text-primary-400 shrink-0" />
+            <ChevronRight size={16} className="text-white/50 shrink-0" />
           </Link>
         </motion.div>
       </motion.div>

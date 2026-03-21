@@ -2,20 +2,19 @@ import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  ChevronDown,
-  MapPin,
-  Users,
-  TreePine,
-  ArrowRight,
-  Navigation,
-  X,
+    MapPin,
+    Users,
+    TreePine,
+    ArrowRight,
+    Navigation,
+    X
 } from 'lucide-react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
-/*  Collective data — hardcoded for now                                */
+/*  Collective data - hardcoded for now                                */
 /* ------------------------------------------------------------------ */
 
 interface Collective {
@@ -38,7 +37,7 @@ const COLLECTIVES: Collective[] = [
     lat: -31.9505,
     lng: 115.8605,
     members: 124,
-    nextEvent: 'Beach Clean — Apr 5',
+    nextEvent: 'Beach Clean - Apr 5',
     description: 'Protecting the stunning coastline and bushlands of Western Australia.',
   },
   {
@@ -48,7 +47,7 @@ const COLLECTIVES: Collective[] = [
     lat: -34.9285,
     lng: 138.6007,
     members: 89,
-    nextEvent: 'River Restoration — Apr 12',
+    nextEvent: 'River Restoration - Apr 12',
     description: 'Restoring native habitats along the Torrens and across Adelaide\'s parks.',
   },
   {
@@ -58,7 +57,7 @@ const COLLECTIVES: Collective[] = [
     lat: -38.1499,
     lng: 144.3617,
     members: 67,
-    nextEvent: 'Dune Planting — Apr 8',
+    nextEvent: 'Dune Planting - Apr 8',
     description: 'Caring for the Bellarine coast and Barwon River corridors.',
   },
   {
@@ -68,7 +67,7 @@ const COLLECTIVES: Collective[] = [
     lat: -38.3833,
     lng: 145.0167,
     members: 53,
-    nextEvent: 'Mangrove Monitoring — Apr 19',
+    nextEvent: 'Mangrove Monitoring - Apr 19',
     description: "Protecting the unique ecosystems of the Peninsula's coastline.",
   },
   {
@@ -78,7 +77,7 @@ const COLLECTIVES: Collective[] = [
     lat: -37.8136,
     lng: 144.9631,
     members: 312,
-    nextEvent: 'Urban Greening — Apr 2',
+    nextEvent: 'Urban Greening - Apr 2',
     description: "Greening Melbourne's inner city through planting, litter removal and advocacy.",
   },
   {
@@ -88,7 +87,7 @@ const COLLECTIVES: Collective[] = [
     lat: -42.8821,
     lng: 147.3272,
     members: 48,
-    nextEvent: 'Habitat Survey — Apr 15',
+    nextEvent: 'Habitat Survey - Apr 15',
     description: "Conserving Tasmania's unique wilderness and waterways.",
   },
   {
@@ -98,8 +97,8 @@ const COLLECTIVES: Collective[] = [
     lat: -33.8688,
     lng: 151.2093,
     members: 287,
-    nextEvent: 'Harbour Clean-up — Apr 6',
-    description: "From the harbour to the Blue Mountains — protecting Sydney's natural heritage.",
+    nextEvent: 'Harbour Clean-up - Apr 6',
+    description: "From the harbour to the Blue Mountains - protecting Sydney's natural heritage.",
   },
   {
     id: 'northern-rivers',
@@ -108,7 +107,7 @@ const COLLECTIVES: Collective[] = [
     lat: -28.8131,
     lng: 153.2760,
     members: 95,
-    nextEvent: 'Rainforest Regen — Apr 20',
+    nextEvent: 'Rainforest Regen - Apr 20',
     description: 'Restoring the lush subtropical rainforests and river systems of the Northern Rivers.',
   },
   {
@@ -118,7 +117,7 @@ const COLLECTIVES: Collective[] = [
     lat: -28.0167,
     lng: 153.4000,
     members: 143,
-    nextEvent: 'Dune Restoration — Apr 10',
+    nextEvent: 'Dune Restoration - Apr 10',
     description: "Protecting the Gold Coast's beaches, hinterland and waterways.",
   },
   {
@@ -128,7 +127,7 @@ const COLLECTIVES: Collective[] = [
     lat: -27.4698,
     lng: 153.0251,
     members: 198,
-    nextEvent: 'Creek Clean — Apr 3',
+    nextEvent: 'Creek Clean - Apr 3',
     description: "Revitalising Brisbane's creeks, parks and urban bushland.",
   },
   {
@@ -138,7 +137,7 @@ const COLLECTIVES: Collective[] = [
     lat: -26.6500,
     lng: 153.0667,
     members: 76,
-    nextEvent: 'Turtle Nesting Watch — Apr 22',
+    nextEvent: 'Turtle Nesting Watch - Apr 22',
     description: "Guardians of the Sunshine Coast's beaches, reefs and hinterland.",
   },
   {
@@ -148,7 +147,7 @@ const COLLECTIVES: Collective[] = [
     lat: -19.2590,
     lng: 146.8169,
     members: 42,
-    nextEvent: 'Reef Monitoring — Apr 18',
+    nextEvent: 'Reef Monitoring - Apr 18',
     description: 'Protecting tropical ecosystems from reef to rainforest in North Queensland.',
   },
   {
@@ -158,8 +157,8 @@ const COLLECTIVES: Collective[] = [
     lat: -16.9186,
     lng: 145.7781,
     members: 61,
-    nextEvent: 'Mangrove Planting — Apr 25',
-    description: 'Where the rainforest meets the reef — conservation in tropical Far North Queensland.',
+    nextEvent: 'Mangrove Planting - Apr 25',
+    description: 'Where the rainforest meets the reef - conservation in tropical Far North Queensland.',
   },
 ]
 
@@ -249,7 +248,7 @@ function injectMapStyles() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Map tile — CartoDB Positron (clean, white ocean, minimal labels)   */
+/*  Map tile - CartoDB Positron (clean, white ocean, minimal labels)   */
 /* ------------------------------------------------------------------ */
 
 const TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png'
@@ -303,7 +302,7 @@ export default function MapPage() {
       subdomains: 'abcd',
     }).addTo(map)
 
-    // Colour overlay — tints the entire map background with brand green
+    // Colour overlay - tints the entire map background with brand green
     const overlay = L.DomUtil.create('div')
     overlay.style.cssText = `
       position: absolute; inset: 0; z-index: 199;
@@ -577,7 +576,6 @@ export default function MapPage() {
                     'px-4 py-2.5 shadow-sm',
                     'text-sm font-medium text-secondary-700',
                     'active:scale-[0.97] transition-transform duration-150',
-                    'border border-primary-100',
                   )}
                 >
                   <div className="h-2.5 w-2.5 rounded-full bg-primary-400" />

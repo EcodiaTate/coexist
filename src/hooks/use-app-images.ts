@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 /** All configurable image slot keys */
 export type AppImageKey =
   | 'home_hero'
+  | 'shop_hero'
   | 'placeholder_event'
   | 'placeholder_merch'
   | 'hero_welcome'
@@ -21,6 +22,7 @@ interface AppImageRow {
 /** Static fallbacks used when no admin image is configured */
 const FALLBACKS: Record<AppImageKey, string> = {
   home_hero: '',
+  shop_hero: '',
   placeholder_event: '/img/placeholder-event.jpg',
   placeholder_merch: '/img/placeholder-merch.jpg',
   hero_welcome: '/img/hero-welcome.jpg',

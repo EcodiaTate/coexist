@@ -1,27 +1,20 @@
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Bug,
-  Calendar,
-  QrCode,
-  ClipboardCheck,
-  TreePine,
-  MapPin,
-  Bell,
-  Users,
-  Trash2,
-  Play,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  Star,
+    Bug,
+    Calendar,
+    QrCode,
+    ClipboardCheck,
+    TreePine,
+    MapPin, Users,
+    Trash2,
+    Play, AlertCircle, Star
 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
-import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
 import { useToast } from '@/components/toast'
 import { useAuth } from '@/hooks/use-auth'
 import { ACTIVITY_TYPE_OPTIONS, ACTIVITY_TYPE_LABELS } from '@/hooks/use-events'
@@ -153,7 +146,7 @@ function useSeedTestEvent() {
           { onConflict: 'id' },
         )
 
-        // Also need auth.users entry — skip if RLS blocks it
+        // Also need auth.users entry - skip if RLS blocks it
         // Register for the event
         const status = i < 6 ? 'registered' : 'waitlisted'
         await supabase.from('event_registrations').upsert(
@@ -561,7 +554,7 @@ function TestEventCard({
           </div>
           <p className="text-sm font-medium text-primary-800 mt-1 truncate">{event.title}</p>
           <p className="text-caption text-primary-400">
-            {event.collective_name} — {event.registration_count} registered
+            {event.collective_name} - {event.registration_count} registered
           </p>
           <p className="text-[10px] text-primary-400 mt-0.5">
             Your role: <span className="font-medium text-primary-600">{event.user_role ?? 'none'}</span>

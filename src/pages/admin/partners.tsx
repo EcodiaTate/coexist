@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   Handshake,
@@ -107,7 +107,20 @@ export default function AdminPartnersPage() {
   const { data: organisations, isLoading: orgsLoading } = useOrganisations()
   const { data: offers, isLoading: offersLoading } = usePartnerOffers()
 
-  useAdminHeader('Partners & Sponsors')
+  const heroStats = useMemo(() => (
+    <div className="flex items-center gap-3">
+      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Organisations</p>
+        <p className="text-xl font-bold text-white tabular-nums">{organisations?.length ?? 0}</p>
+      </div>
+      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Offers</p>
+        <p className="text-xl font-bold text-white tabular-nums">{offers?.length ?? 0}</p>
+      </div>
+    </div>
+  ), [organisations?.length, offers?.length])
+
+  useAdminHeader('Partners & Sponsors', { heroContent: heroStats })
 
   /* ---- Create org (optimistic) ---- */
   const createOrgMutation = useMutation({
@@ -272,15 +285,16 @@ export default function AdminPartnersPage() {
   }
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
-      <motion.div variants={fadeUp}>
-        <TabBar
-          tabs={tabs}
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          className="mb-4"
-        />
-      </motion.div>
+    <div>
+        <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+          <motion.div variants={fadeUp}>
+            <TabBar
+              tabs={tabs}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+              className="mb-4"
+            />
+          </motion.div>
 
       {/* Organisations tab */}
       {activeTab === 'organisations' && (
@@ -613,6 +627,7 @@ export default function AdminPartnersPage() {
         confirmLabel="Delete"
         variant="danger"
       />
-    </motion.div>
+        </motion.div>
+    </div>
   )
 }

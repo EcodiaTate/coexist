@@ -2,17 +2,17 @@ import { useState, useCallback, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  ShoppingBag,
-  Star,
-  ChevronLeft,
-  ChevronRight,
-  Minus,
-  Plus,
-  Truck,
-  ShieldCheck,
-  Leaf,
-  Share2,
-  Check,
+    ShoppingBag,
+    Star,
+    ChevronLeft,
+    ChevronRight,
+    Minus,
+    Plus,
+    Truck,
+    ShieldCheck,
+    Leaf,
+    Share2,
+    Check,
 } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
@@ -205,7 +205,7 @@ function TrustBadges() {
   ]
 
   return (
-    <div className="flex items-center justify-center gap-6 py-4 px-3 rounded-2xl bg-primary-50/50 border border-primary-100/60">
+    <div className="flex items-center justify-center gap-6 py-4 px-3 rounded-2xl bg-primary-50/50 shadow-sm">
       {badges.map(({ icon: Icon, label }) => (
         <div key={label} className="flex flex-col items-center gap-1.5">
           <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm">
@@ -232,7 +232,7 @@ function QuantityStepper({
   max?: number
 }) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-xl bg-surface-0 shadow-sm border border-primary-100/50 p-1">
+    <div className="inline-flex items-center gap-1 rounded-xl bg-surface-2 shadow-sm p-1">
       <button
         type="button"
         onClick={() => onChange(Math.max(1, value - 1))}
@@ -483,7 +483,7 @@ export default function ProductDetailPage() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-error-50 border border-error-100"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-error-50"
               >
                 <div className="w-2 h-2 rounded-full bg-error-400" />
                 <span className="text-sm font-medium text-error-700">Out of stock</span>
@@ -495,11 +495,11 @@ export default function ProductDetailPage() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-warning-50 border border-warning-100"
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-warning-50"
               >
                 <div className="w-2 h-2 rounded-full bg-warning-400 animate-pulse" />
                 <span className="text-sm font-medium text-warning-700">
-                  Only {activeVariant.stock} left — grab yours!
+                  Only {activeVariant.stock} left - grab yours!
                 </span>
               </motion.div>
             )}
@@ -554,8 +554,8 @@ export default function ProductDetailPage() {
                           isSelected
                             ? 'bg-primary-800 text-white shadow-md'
                             : available
-                              ? 'bg-white text-primary-700 shadow-sm border border-primary-100 hover:border-primary-300 hover:shadow-md'
-                              : 'bg-primary-50/40 text-primary-300 cursor-not-allowed line-through border border-transparent',
+                              ? 'bg-surface-2 text-primary-700 shadow-sm hover:shadow-md'
+                              : 'bg-primary-50/40 text-primary-300 cursor-not-allowed line-through',
                         )}
                       >
                         {size}
@@ -597,8 +597,8 @@ export default function ProductDetailPage() {
                           isSelected
                             ? 'bg-primary-800 text-white shadow-md'
                             : available
-                              ? 'bg-white text-primary-700 shadow-sm border border-primary-100 hover:border-primary-300 hover:shadow-md'
-                              : 'bg-primary-50/40 text-primary-300 cursor-not-allowed line-through border border-transparent',
+                              ? 'bg-surface-2 text-primary-700 shadow-sm hover:shadow-md'
+                              : 'bg-primary-50/40 text-primary-300 cursor-not-allowed line-through',
                         )}
                       >
                         {colour}

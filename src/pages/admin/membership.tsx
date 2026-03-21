@@ -205,7 +205,7 @@ export default function AdminMembershipPage() {
   const [tab, setTab] = useState<Tab>('rewards')
   const [editingReward, setEditingReward] = useState<Partial<MembershipReward> | null>(null)
 
-  const headerActions = useMemo(
+  const heroActions = useMemo(
     () =>
       tab === 'rewards' ? (
         <Button
@@ -213,6 +213,7 @@ export default function AdminMembershipPage() {
           size="sm"
           icon={<Plus size={16} />}
           onClick={() => setEditingReward(emptyReward)}
+          className="!bg-white/15 !border-white/10 hover:!bg-white/25 !text-white"
         >
           Add Reward
         </Button>
@@ -220,7 +221,7 @@ export default function AdminMembershipPage() {
     [tab],
   )
 
-  useAdminHeader('Membership', headerActions)
+  useAdminHeader('Membership', { actions: heroActions })
 
   const handleSaveReward = useCallback(
     async (data: Partial<MembershipReward>) => {

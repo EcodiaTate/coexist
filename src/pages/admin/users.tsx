@@ -1,23 +1,23 @@
 import { useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Users,
-  Shield,
-  Ban,
-  Trash2,
-  KeyRound,
-  UserCog,
-  Crown,
-  ShieldCheck,
-  ShieldAlert,
-  Plus,
-  X,
-  ChevronDown,
-  ChevronUp,
-  CheckCircle,
-  XCircle,
-  Sparkles,
-  Settings,
+    Users,
+    Shield,
+    Ban,
+    Trash2,
+    KeyRound,
+    UserCog,
+    Crown,
+    ShieldCheck,
+    ShieldAlert,
+    Plus,
+    X,
+    ChevronDown,
+    ChevronUp,
+    CheckCircle,
+    XCircle,
+    Sparkles,
+    Settings,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -36,18 +36,19 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase'
+import { logAudit } from '@/lib/audit'
 import {
-  useUserCollectiveRoles,
-  useAdminAssignCollectiveRole,
-  useAdminRemoveFromCollective,
-  useAdminUpdateCapabilities,
-  useUserResolvedCapabilities,
+    useUserCollectiveRoles,
+    useAdminAssignCollectiveRole,
+    useAdminRemoveFromCollective,
+    useAdminUpdateCapabilities,
+    useUserResolvedCapabilities,
 } from '@/hooks/use-admin-user-roles'
 import {
-  CAPABILITIES,
-  CATEGORY_LABELS,
-  ROLE_DEFAULT_CAPS,
-  type CapabilityDef,
+    CAPABILITIES,
+    CATEGORY_LABELS,
+    ROLE_DEFAULT_CAPS,
+    type CapabilityDef,
 } from '@/lib/capabilities'
 import type { Database } from '@/types/database.types'
 
@@ -229,6 +230,7 @@ function UserSettingsSheet({
         .update({ role } as any)
         .eq('id', userId)
       if (error) throw error
+      await logAudit({ action: 'role_changed', target_type: 'user', target_id: userId, details: { new_role: role } })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] })
@@ -245,6 +247,7 @@ function UserSettingsSheet({
         .update({ is_suspended: true, suspension_reason: reason })
         .eq('id', userId)
       if (error) throw error
+      await logAudit({ action: 'user_suspended', target_type: 'user', target_id: userId, details: { reason } })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] })
@@ -262,6 +265,7 @@ function UserSettingsSheet({
         .update({ is_suspended: false, suspension_reason: null })
         .eq('id', userId)
       if (error) throw error
+      await logAudit({ action: 'user_unsuspended', target_type: 'user', target_id: userId })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] })
@@ -274,6 +278,7 @@ function UserSettingsSheet({
     mutationFn: async (userId: string) => {
       const { error } = await supabase.functions.invoke('delete-user', { body: { userId } })
       if (error) throw error
+      await logAudit({ action: 'user_deleted', target_type: 'user', target_id: userId })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] })
@@ -321,7 +326,7 @@ function UserSettingsSheet({
             </div>
           </div>
 
-          {/* Quick actions — touch-optimised row */}
+          {/* Quick actions - touch-optimised row */}
           <div className="grid grid-cols-2 gap-2.5">
             <button
               type="button"
@@ -606,7 +611,7 @@ function UserSettingsSheet({
             )}
           </div>
 
-          {/* Capabilities / Permissions Section — super_admin only */}
+          {/* Capabilities / Permissions Section - super_admin only */}
           {isSuperAdmin && isStaffRole && (
             <div>
               <button
@@ -806,6 +811,7 @@ export default function AdminUsersPage() {
             onClick={async () => {
               for (const uid of selectedUsers) {
                 await supabase.from('profiles').update({ is_suspended: true, suspension_reason: 'Bulk suspension by admin' }).eq('id', uid)
+                await logAudit({ action: 'user_suspended', target_type: 'user', target_id: uid, details: { reason: 'Bulk suspension by admin' } })
               }
               queryClient.invalidateQueries({ queryKey: ['admin-users'] })
               toast.success(`${selectedUsers.size} users suspended`)

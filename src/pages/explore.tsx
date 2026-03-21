@@ -25,7 +25,6 @@ import {
   Check,
   ArrowRight,
   Heart,
-  Sparkles,
   TrendingUp,
 } from 'lucide-react'
 import {
@@ -33,10 +32,10 @@ import {
   type SearchFilters,
 } from '@/hooks/use-search'
 import { useNearbyEvents, useNearbyCollectives, useUserLocation, AU_STATES } from '@/hooks/use-nearby'
+import { useNationalImpact } from '@/hooks/use-impact'
 import { ACTIVITY_TYPE_LABELS } from '@/hooks/use-home-feed'
 import {
   Page,
-  Header,
   Card,
   Avatar,
   Chip,
@@ -49,6 +48,7 @@ import {
   CountUp,
 } from '@/components'
 import { SearchBar } from '@/components/search-bar'
+import { CollectiveMap } from '@/components/collective-map'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import type { MapMarker } from '@/components'
@@ -745,7 +745,6 @@ function ActivityScroller({
   const shouldReduceMotion = useReducedMotion()
 
   return (
-    <div className="-mx-4 lg:-mx-6">
     <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
       {Object.entries(ACTIVITY_TYPE_LABELS).map(([key, label]) => {
         const meta = ACTIVITY_META[key] ?? ACTIVITY_META.other
@@ -781,7 +780,6 @@ function ActivityScroller({
           </motion.button>
         )
       })}
-    </div>
     </div>
   )
 }
@@ -846,6 +844,9 @@ export default function ExplorePage() {
     userLocation ?? null,
     filters.distanceKm,
   )
+
+  // National impact stats (for hero)
+  const { data: nationalImpact } = useNationalImpact()
 
   // Filter actions
   const toggleActivityFilter = useCallback(
@@ -928,89 +929,14 @@ export default function ExplorePage() {
   const showDefaultBrowse = !hasQuery
 
   return (
-    <Page
-      header={
-        <Header title="Explore" />
-      }
-    >
+    <Page className="!px-0 !pb-0 bg-white">
       <div className="flex flex-col flex-1 min-h-0">
-        {/* ============================================================ */}
-        {/*  Search bar + filter button + view toggle (single row)        */}
-        {/* ============================================================ */}
-        <div className="flex items-center gap-2 pt-3 pb-2">
-          <SearchBar
-            ref={searchInputRef}
-            value={query}
-            onChange={setQuery}
-            onSubmit={commitSearch}
-            placeholder="Search events, collectives, people..."
-            aria-label="Search"
-            className="flex-1 min-w-0"
-          />
-
-          {/* Filter button */}
-          <motion.button
-            type="button"
-            onClick={openFilters}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
-            className={cn(
-              'relative flex items-center justify-center min-h-11 min-w-11 rounded-xl shrink-0',
-              'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
-              activeFilterCount > 0
-                ? 'bg-primary-50 text-primary-600 shadow-sm'
-                : 'bg-primary-50/60 text-primary-400',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-            )}
-            aria-label={`Filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}
-          >
-            <SlidersHorizontal size={18} />
-            {activeFilterCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary-600 text-[10px] font-bold text-white shadow-sm">
-                {activeFilterCount}
-              </span>
-            )}
-          </motion.button>
-
-          {/* View toggle */}
-          <div className="flex rounded-xl overflow-hidden shrink-0 shadow-sm">
-            <button
-              type="button"
-              onClick={() => setViewMode('map')}
-              className={cn(
-                'flex items-center justify-center min-h-11 min-w-11',
-                'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
-                viewMode === 'map'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-surface-0 text-primary-400 hover:bg-surface-3',
-              )}
-              aria-label="Map view"
-              aria-pressed={viewMode === 'map'}
-            >
-              <MapIcon size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={cn(
-                'flex items-center justify-center min-h-11 min-w-11',
-                'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
-                viewMode === 'list'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-surface-0 text-primary-400 hover:bg-surface-3',
-              )}
-              aria-label="List view"
-              aria-pressed={viewMode === 'list'}
-            >
-              <List size={16} />
-            </button>
-          </div>
-        </div>
 
         {/* ============================================================ */}
         {/*  Active filter chips                                          */}
         {/* ============================================================ */}
         {activeFilterCount > 0 && (
-        <div className="flex items-center gap-1.5 pb-2 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1.5 pb-2 px-4 lg:px-6 overflow-x-auto scrollbar-none">
             {/* Active filter chips */}
             {filters.activityTypes.map((type) => {
               const meta = ACTIVITY_META[type] ?? ACTIVITY_META.other
@@ -1079,63 +1005,60 @@ export default function ExplorePage() {
         {/* ============================================================ */}
         <div className="flex-1 overflow-y-auto">
           <AnimatePresence mode="wait">
-            {/* ---- Suggestions (no query) ---- */}
-            {!hasQuery && !query && (
+            {/* ---- Recent searches (no query, has history) ---- */}
+            {!hasQuery && !query && recentSearches.length > 0 && (
               <motion.div
                 key="suggestions"
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="pb-4"
+                className="pb-4 px-4 lg:px-6"
               >
-                {recentSearches.length > 0 && (
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
-                        Recent
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={clearRecentSearches}
-                        className="text-xs text-primary-400 font-medium hover:text-primary-600 min-h-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                    <div className="space-y-0.5">
-                      {recentSearches.map((term) => (
-                        <button
-                          key={term}
-                          type="button"
-                          onClick={() => handleSearchSubmit(term)}
-                          className={cn(
-                            'flex items-center gap-3 w-full px-3 py-2.5 min-h-11 rounded-xl',
-                            'text-sm text-primary-800 hover:bg-surface-3',
-                            'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none group',
-                          )}
-                        >
-                          <Clock size={14} className="text-primary-300 shrink-0" />
-                          <span className="flex-1 text-left truncate">
-                            {term}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              removeRecentSearch(term)
-                            }}
-                            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-200 hover:text-primary-400 shrink-0 opacity-0 group-hover:opacity-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
-                            aria-label={`Remove ${term}`}
-                          >
-                            <X size={14} />
-                          </button>
-                        </button>
-                      ))}
-                    </div>
+                <div className="mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+                      Recent
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={clearRecentSearches}
+                      className="text-xs text-primary-400 font-medium hover:text-primary-600 min-h-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                    >
+                      Clear
+                    </button>
                   </div>
-                )}
-
+                  <div className="space-y-0.5">
+                    {recentSearches.map((term) => (
+                      <button
+                        key={term}
+                        type="button"
+                        onClick={() => handleSearchSubmit(term)}
+                        className={cn(
+                          'flex items-center gap-3 w-full px-3 py-2.5 min-h-11 rounded-xl',
+                          'text-sm text-primary-800 hover:bg-surface-3',
+                          'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none group',
+                        )}
+                      >
+                        <Clock size={14} className="text-primary-300 shrink-0" />
+                        <span className="flex-1 text-left truncate">
+                          {term}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            removeRecentSearch(term)
+                          }}
+                          className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-200 hover:text-primary-400 shrink-0 opacity-0 group-hover:opacity-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                          aria-label={`Remove ${term}`}
+                        >
+                          <X size={14} />
+                        </button>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -1146,8 +1069,9 @@ export default function ExplorePage() {
                 initial={shouldReduceMotion ? false : { opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                className="px-4 lg:px-6"
               >
-                {/* Result type tabs � edge-to-edge scroll */}
+                {/* Result type tabs - edge-to-edge scroll */}
                 <div className="-mx-4 lg:-mx-6">
                 <div className="flex gap-1.5 mb-3 overflow-x-auto px-4 lg:px-6 scrollbar-none">
                   {RESULT_TABS.map((tab) => {
@@ -1348,7 +1272,72 @@ export default function ExplorePage() {
                 exit={{ opacity: 0 }}
               >
                 {viewMode === 'map' ? (
-                  <div>
+                  <div className="px-4 lg:px-6 pt-4">
+                    {/* Search + filter bar for map mode */}
+                    <div className="flex items-center gap-2 mb-3">
+                      <SearchBar
+                        ref={searchInputRef}
+                        value={query}
+                        onChange={setQuery}
+                        onSubmit={commitSearch}
+                        placeholder="Search events, collectives, people..."
+                        aria-label="Search"
+                        className="flex-1 min-w-0"
+                      />
+                      <motion.button
+                        type="button"
+                        onClick={openFilters}
+                        whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
+                        className={cn(
+                          'relative flex items-center justify-center min-h-11 min-w-11 rounded-xl shrink-0',
+                          'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                          activeFilterCount > 0
+                            ? 'bg-primary-50 text-primary-600 shadow-sm'
+                            : 'bg-primary-50/60 text-primary-400',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                        )}
+                        aria-label={`Filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}
+                      >
+                        <SlidersHorizontal size={18} />
+                        {activeFilterCount > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-primary-600 text-[10px] font-bold text-white shadow-sm">
+                            {activeFilterCount}
+                          </span>
+                        )}
+                      </motion.button>
+                      <div className="flex rounded-xl overflow-hidden shrink-0 shadow-sm">
+                        <button
+                          type="button"
+                          onClick={() => setViewMode('map')}
+                          className={cn(
+                            'flex items-center justify-center min-h-11 min-w-11',
+                            'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                            viewMode === 'map'
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-surface-0 text-primary-400 hover:bg-surface-3',
+                          )}
+                          aria-label="Map view"
+                          aria-pressed={viewMode === 'map'}
+                        >
+                          <MapIcon size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setViewMode('list')}
+                          className={cn(
+                            'flex items-center justify-center min-h-11 min-w-11',
+                            'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                            viewMode === 'list'
+                              ? 'bg-primary-600 text-white'
+                              : 'bg-surface-0 text-primary-400 hover:bg-surface-3',
+                          )}
+                          aria-label="List view"
+                          aria-pressed={viewMode === 'list'}
+                        >
+                          <List size={16} />
+                        </button>
+                      </div>
+                    </div>
                     <MapView
                       center={
                         userLocation ?? { lat: -33.8688, lng: 151.2093 }
@@ -1381,14 +1370,14 @@ export default function ExplorePage() {
                   </div>
                 ) : (
                   <motion.div
-                    className="space-y-0 pb-6"
+                    className="space-y-0"
                     variants={stagger}
                     initial="hidden"
                     animate="visible"
                   >
                     {/* ======== Hero Banner ======== */}
-                    <motion.div variants={fadeUp} className="-mx-4 lg:-mx-6 mb-6">
-                      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-secondary-700">
+                    <motion.div variants={fadeUp} className="mb-6">
+                      <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-secondary-700">
                         {/* Decorative circles */}
                         <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/5" aria-hidden="true" />
                         <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-white/5" aria-hidden="true" />
@@ -1402,35 +1391,31 @@ export default function ExplorePage() {
                           <TreePine size={48} strokeWidth={1} />
                         </div>
 
-                        <div className="relative px-5 pt-6 pb-8 lg:px-8">
+                        <div className="relative px-6 lg:px-10" style={{ paddingTop: 'calc(var(--safe-top) + 2rem)' }}>
                           <motion.div
                             initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1, duration: 0.4 }}
                           >
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-3">
-                              <Sparkles size={12} />
-                              Discover your impact
-                            </span>
-                            <h2 className="text-2xl font-bold text-white leading-tight mb-1.5">
+                            <h2 className="text-[1.75rem] font-bold text-white leading-tight mb-2">
                               Explore. Connect.<br />Protect.
                             </h2>
-                            <p className="text-sm text-white/70 max-w-[280px] leading-relaxed">
+                            <p className="text-[0.9375rem] text-white/70 max-w-[300px] leading-relaxed">
                               Find conservation events, join local collectives, and make a real difference.
                             </p>
                           </motion.div>
 
                           {/* Impact mini-stats */}
                           <motion.div
-                            className="flex gap-4 mt-5"
+                            className="flex gap-5 mt-6"
                             initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.25, duration: 0.4 }}
+                            transition={{ delay: 0.2, duration: 0.4 }}
                           >
                             {[
-                              { value: 5500, label: 'Volunteers', icon: <Users size={14} /> },
-                              { value: 35500, label: 'Trees Planted', icon: <TreePine size={14} /> },
-                              { value: 13, label: 'Collectives', icon: <Heart size={14} /> },
+                              { value: nationalImpact?.totalMembers ?? 0, label: 'Volunteers', icon: <Users size={14} /> },
+                              { value: nationalImpact?.totalTrees ?? 0, label: 'Trees Planted', icon: <TreePine size={14} /> },
+                              { value: nationalImpact?.totalCollectives ?? 0, label: 'Collectives', icon: <Heart size={14} /> },
                             ].map((stat) => (
                               <div key={stat.label} className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5 mb-0.5">
@@ -1445,23 +1430,94 @@ export default function ExplorePage() {
                               </div>
                             ))}
                           </motion.div>
+
+                          {/* Search bar + filter + view toggle inside hero */}
+                          <motion.div
+                            className="flex items-center gap-2.5 mt-7 pb-7"
+                            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.4 }}
+                          >
+                            <SearchBar
+                              ref={searchInputRef}
+                              value={query}
+                              onChange={setQuery}
+                              onSubmit={commitSearch}
+                              placeholder="Search events, collectives, people..."
+                              aria-label="Search"
+                              className="flex-1 min-w-0 [&_input]:bg-white/15 [&_input]:text-white [&_input]:placeholder-white/50 [&_input]:border-white/20 [&_input]:backdrop-blur-sm"
+                            />
+
+                            {/* Filter button */}
+                            <motion.button
+                              type="button"
+                              onClick={openFilters}
+                              whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
+                              className={cn(
+                                'relative flex items-center justify-center min-h-11 min-w-11 rounded-xl shrink-0',
+                                'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                                'bg-white/15 backdrop-blur-sm text-white/80 border border-white/20',
+                                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
+                              )}
+                              aria-label={`Filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}
+                            >
+                              <SlidersHorizontal size={18} />
+                              {activeFilterCount > 0 && (
+                                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-white text-primary-700 text-[10px] font-bold shadow-sm">
+                                  {activeFilterCount}
+                                </span>
+                              )}
+                            </motion.button>
+
+                            {/* View toggle */}
+                            <div className="flex rounded-xl overflow-hidden shrink-0 border border-white/20">
+                              <button
+                                type="button"
+                                onClick={() => setViewMode('map')}
+                                className={cn(
+                                  'flex items-center justify-center min-h-11 min-w-11',
+                                  'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                                  viewMode === 'map'
+                                    ? 'bg-white text-primary-700'
+                                    : 'bg-white/10 text-white/60 backdrop-blur-sm',
+                                )}
+                                aria-label="Map view"
+                                aria-pressed={viewMode === 'map'}
+                              >
+                                <MapIcon size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setViewMode('list')}
+                                className={cn(
+                                  'flex items-center justify-center min-h-11 min-w-11',
+                                  'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                                  viewMode === 'list'
+                                    ? 'bg-white text-primary-700'
+                                    : 'bg-white/10 text-white/60 backdrop-blur-sm',
+                                )}
+                                aria-label="List view"
+                                aria-pressed={viewMode === 'list'}
+                              >
+                                <List size={16} />
+                              </button>
+                            </div>
+                          </motion.div>
                         </div>
                       </div>
                     </motion.div>
 
-                    {/* ======== Activity Scroller (Stories-style) ======== */}
-                    <motion.div variants={fadeUp} className="mb-6">
+                    {/* ======== Collective Map ======== */}
+                    <motion.div variants={fadeUp} className="mb-6 px-4 lg:px-6">
                       <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-3">
-                        Browse by Activity
+                        Find a Collective
                       </h3>
-                      <ActivityScroller
-                        selected={filters.activityTypes}
-                        onToggle={toggleActivityFilter}
-                      />
+                      <CollectiveMap className="h-[72vh] min-h-[480px]" />
                     </motion.div>
 
+
                     {/* ======== Popular Categories Grid ======== */}
-                    <motion.div variants={fadeUp} className="mb-6">
+                    <motion.div variants={fadeUp} className="mb-6 px-4 lg:px-6">
                       <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-3">
                         Popular Categories
                       </h3>
@@ -1511,7 +1567,7 @@ export default function ExplorePage() {
 
                     {/* ======== Featured / Nearby Events ======== */}
                     <motion.div variants={fadeUp} className="mb-6">
-                      <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center justify-between mb-3 px-4 lg:px-6">
                         <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
                           Nearby Events
                         </h3>
@@ -1525,19 +1581,16 @@ export default function ExplorePage() {
                       </div>
 
                       {nearbyEvents.isLoading ? (
-                        <div className="-mx-4 lg:-mx-6">
-                          <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
-                            {[1, 2, 3].map((i) => (
-                              <div key={i} className="w-[260px] shrink-0">
-                                <Card.Skeleton />
-                              </div>
-                            ))}
-                          </div>
+                        <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
+                          {[1, 2, 3].map((i) => (
+                            <div key={i} className="w-[260px] shrink-0">
+                              <Card.Skeleton />
+                            </div>
+                          ))}
                         </div>
                       ) : nearbyEvents.data && nearbyEvents.data.length > 0 ? (
-                        <div className="-mx-4 lg:-mx-6">
-                          <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
-                            {nearbyEvents.data.map((event, idx) => {
+                        <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
+                          {nearbyEvents.data.map((event, idx) => {
                               const meta = ACTIVITY_META[event.activity_type] ?? ACTIVITY_META.other
                               return (
                                 <motion.div
@@ -1615,7 +1668,6 @@ export default function ExplorePage() {
                                 </motion.div>
                               )
                             })}
-                          </div>
                         </div>
                       ) : (
                         <EmptyState
@@ -1623,13 +1675,13 @@ export default function ExplorePage() {
                           title="No nearby events"
                           description="Try expanding your search radius or check back later"
                           action={{ label: 'View All Events', to: '/events' }}
-                          className="min-h-[160px] py-4"
+                          className="min-h-[160px] py-4 px-4 lg:px-6"
                         />
                       )}
                     </motion.div>
 
                     {/* ======== Impact Stats Strip ======== */}
-                    <motion.div variants={fadeUp} className="mb-6 -mx-4 lg:-mx-6">
+                    <motion.div variants={fadeUp} className="mb-6">
                       <div className="bg-gradient-to-r from-primary-50 via-sprout-50 to-sky-50 px-5 py-5 lg:px-8">
                         <div className="flex items-center gap-2 mb-3">
                           <TrendingUp size={14} className="text-primary-500" />
@@ -1638,7 +1690,12 @@ export default function ExplorePage() {
                           </h3>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
-                          {IMPACT_STATS.map((stat, i) => (
+                          {[
+                            { value: nationalImpact?.totalTrees ?? 0, suffix: '+', label: 'Native Plants', icon: <TreePine size={16} />, iconBg: 'bg-success-100', iconColor: 'text-success-600' },
+                            { value: nationalImpact?.totalRubbish ?? 0, suffix: 'kg', label: 'Litter Removed', icon: <Waves size={16} />, iconBg: 'bg-sky-100', iconColor: 'text-sky-600' },
+                            { value: nationalImpact?.totalMembers ?? 0, suffix: '+', label: 'Volunteers', icon: <Users size={16} />, iconBg: 'bg-plum-100', iconColor: 'text-plum-600' },
+                            { value: nationalImpact?.totalCollectives ?? 0, suffix: '', label: 'Collectives', icon: <Heart size={16} />, iconBg: 'bg-coral-100', iconColor: 'text-coral-600' },
+                          ].map((stat, i) => (
                             <motion.div
                               key={stat.label}
                               className="rounded-xl bg-white/80 backdrop-blur-sm p-3 shadow-sm"
@@ -1665,7 +1722,7 @@ export default function ExplorePage() {
                     </motion.div>
 
                     {/* ======== Collectives ======== */}
-                    <motion.div variants={fadeUp} className="mb-6">
+                    <motion.div variants={fadeUp} className="mb-6 px-4 lg:px-6">
                       <div className="flex items-center justify-between mb-3">
                         <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
                           Collectives Near You
@@ -1740,24 +1797,27 @@ export default function ExplorePage() {
                     </motion.div>
 
                     {/* ======== Join the Movement CTA ======== */}
-                    <motion.div variants={fadeUp} className="-mx-4 lg:-mx-6">
-                      <div className="relative overflow-hidden bg-gradient-to-br from-secondary-700 via-primary-700 to-primary-600 px-5 py-6 lg:px-8">
+                    <motion.div variants={fadeUp}>
+                      <div className="relative overflow-hidden bg-gradient-to-br from-secondary-700 via-primary-700 to-primary-600 px-6 pt-10 lg:px-10"
+                        style={{ paddingBottom: 'calc(var(--safe-bottom) + 3.5rem)' }}
+                      >
                         {/* Decorative */}
-                        <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/5" aria-hidden="true" />
-                        <div className="absolute bottom-2 left-4 text-white/8" aria-hidden="true">
-                          <Leaf size={40} strokeWidth={1} />
+                        <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-white/5" aria-hidden="true" />
+                        <div className="absolute top-12 right-10 w-20 h-20 rounded-full bg-sprout-400/10" aria-hidden="true" />
+                        <div className="absolute bottom-6 left-6 text-white/8" aria-hidden="true">
+                          <Leaf size={48} strokeWidth={1} />
                         </div>
 
                         <div className="relative">
-                          <h3 className="text-lg font-bold text-white mb-1">
+                          <h3 className="text-xl font-bold text-white mb-2">
                             Join the Movement
                           </h3>
-                          <p className="text-sm text-white/60 mb-4 max-w-[280px]">
+                          <p className="text-[0.9375rem] text-white/60 mb-6 max-w-[300px] leading-relaxed">
                             5,500+ young Australians are already making a difference. Find your local collective and start today.
                           </p>
                           <Button
                             variant="primary"
-                            size="md"
+                            size="lg"
                             onClick={() => navigate('/collectives')}
                             className="bg-white text-primary-700 hover:bg-white/90 shadow-lg"
                           >

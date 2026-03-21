@@ -246,7 +246,7 @@ function NationalStat({
       transition={{ delay, duration: 0.4, ease: 'easeOut' }}
       className={cn(
         'flex flex-col items-center justify-center text-center rounded-3xl p-6 min-h-[150px]',
-        'bg-gradient-to-br shadow-lg ring-1 ring-black/5',
+        'bg-gradient-to-br shadow-lg shadow-sm',
         cfg.gradient,
       )}
     >
@@ -458,7 +458,7 @@ export default function NationalImpactPage() {
           className="mx-5 mt-10"
         >
           <SectionHeading>Geographic Activity</SectionHeading>
-          <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-5 overflow-hidden">
+          <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-5 overflow-hidden">
             <MapView
               center={{ lat: -28.0, lng: 134.0 }}
               zoom={4}
@@ -476,7 +476,7 @@ export default function NationalImpactPage() {
             className="mx-5 mt-10"
           >
             <SectionHeading>Monthly Volunteer Hours</SectionHeading>
-            <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6">
+            <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6">
               <div className="flex items-end gap-4 h-36">
                 {trends.map((t, i) => {
                   const max = Math.max(...trends.map((tr) => tr.impact), 1)
@@ -506,7 +506,7 @@ export default function NationalImpactPage() {
             className="mx-5 mt-10"
           >
             <SectionHeading>By Activity Type</SectionHeading>
-            <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6 space-y-5">
+            <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6 space-y-5">
               {data.byActivity.map(([type, count]) => {
                 const total = data.byActivity.reduce((s, [, c]) => s + c, 0)
                 const percent = total > 0 ? Math.round((count / total) * 100) : 0
@@ -539,7 +539,7 @@ export default function NationalImpactPage() {
             className="mx-5 mt-10"
           >
             <SectionHeading>By State / Region</SectionHeading>
-            <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6 space-y-1">
+            <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6 space-y-1">
               {data.byState.map(([state, count], i) => {
                 const maxCount = data.byState[0]?.[1] ?? 1
                 const barWidth = Math.max((count / maxCount) * 100, 8)
@@ -577,7 +577,7 @@ export default function NationalImpactPage() {
               <Trophy size={14} strokeWidth={2.5} className="text-warning-500" />
               Top Collectives
             </SectionHeading>
-            <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6 space-y-2">
+            <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6 space-y-2">
               {topCollectives.map((c, i) => (
                 <div
                   key={c.id}

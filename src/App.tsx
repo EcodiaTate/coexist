@@ -1,5 +1,5 @@
-import { Routes, Route } from 'react-router-dom'
-import { lazy, Suspense, useState, useCallback } from 'react'
+import { Routes, Route, useLocation } from 'react-router-dom'
+import { lazy, Suspense, useState, useCallback, useEffect } from 'react'
 import { RequireAuth, RequireRole } from '@/components/route-guard'
 import { AppShell } from '@/components/app-shell'
 import { AdminLayout as AdminLayoutRoute } from '@/components/admin-layout'
@@ -130,7 +130,6 @@ const AdminEmailPage = lazy(() => import('@/pages/admin/email'))
 const AdminCharityPage = lazy(() => import('@/pages/admin/charity'))
 const AdminExportsPage = lazy(() => import('@/pages/admin/exports'))
 const AdminWorkflowsPage = lazy(() => import('@/pages/admin/workflows'))
-const SuperAdminPage = lazy(() => import('@/pages/admin/super/index'))
 const DevToolsPage = lazy(() => import('@/pages/admin/dev-tools'))
 
 // More (hub page)
@@ -176,6 +175,20 @@ const _bareRoutes = [
 ]
 
 /* ------------------------------------------------------------------ */
+/*  Scroll to top on route change                                      */
+/* ------------------------------------------------------------------ */
+
+function ScrollToTop() {
+  const { pathname } = useLocation()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [pathname])
+
+  return null
+}
+
+/* ------------------------------------------------------------------ */
 /*  App                                                                */
 /* ------------------------------------------------------------------ */
 
@@ -195,6 +208,7 @@ function App() {
   return (
     <>
     {showSplash && <SplashPage onReady={handleSplashReady} />}
+    <ScrollToTop />
     <Suspense fallback={<PageFallback />}>
       <Routes>
         {/* ---- Bare routes (no app shell) ---- */}
@@ -888,7 +902,6 @@ function App() {
           <Route path="branding" element={<AdminBrandingPage />} />
           <Route path="membership" element={<AdminMembershipPage />} />
           <Route path="merch" element={<AdminMerchPage />} />
-          <Route path="super" element={<RequireRole minRole="super_admin"><SuperAdminPage /></RequireRole>} />
           <Route path="dev-tools" element={<DevToolsPage />} />
         </Route>
 

@@ -328,10 +328,15 @@ export default function HomePage() {
           {/* 3. Your Collective  hero position */}
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             {myCollective.isLoading ? (
-              <Skeleton variant="card" className="h-40" />
+              <Skeleton variant="card" className="h-52" />
             ) : myCollective.data ? (
               <div
-                className="rounded-2xl bg-gradient-to-br from-primary-800 to-primary-950 p-5 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                className={cn(
+                  'relative overflow-hidden rounded-2xl',
+                  'bg-gradient-to-br from-primary-800 via-primary-900 to-primary-950',
+                  'p-6 sm:p-7',
+                  'active:scale-[0.98] transition-all duration-150 cursor-pointer',
+                )}
                 onClick={() =>
                   navigate(`/collectives/${myCollective.data!.slug}`)
                 }
@@ -339,73 +344,75 @@ export default function HomePage() {
                 tabIndex={0}
                 aria-label={myCollective.data.name}
               >
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-400/20 text-primary-200 shrink-0">
-                    <Users size={22} />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-primary-300 uppercase tracking-wider">
-                      Your Collective
-                    </p>
-                    <h2 className="font-heading text-xl font-bold text-white truncate">
-                      {myCollective.data.name.replace(/\s*Collective$/i, '')}
-                    </h2>
+                {/* Ambient shape */}
+                <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-primary-500/[0.07]" />
+                <div className="absolute -left-8 -bottom-10 w-32 h-32 rounded-full bg-primary-400/[0.04]" />
+
+                <div className="relative z-10">
+                  <p className="text-xs font-semibold text-primary-300/70 uppercase tracking-widest">
+                    Your Collective
+                  </p>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white mt-2 truncate">
+                    {myCollective.data.name.replace(/\s*Collective$/i, '')}
+                  </h2>
+
+                  <div className="flex items-center gap-5 mt-5 text-sm text-primary-200/80">
+                    <span className="flex items-center gap-1.5">
+                      <Users size={15} aria-hidden="true" />
+                      {myCollective.data.member_count}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <Calendar size={15} aria-hidden="true" />
+                      {myCollective.data.events_this_month} this month
+                    </span>
                   </div>
-                  <ChevronRight
-                    size={20}
-                    className="text-primary-300 shrink-0"
-                  />
+
+                  {myCollective.data.next_event && (
+                    <div className="mt-5 pt-5 border-t border-white/[0.08]">
+                      <p className="text-[11px] font-semibold text-primary-300/60 uppercase tracking-widest">
+                        Next up
+                      </p>
+                      <p className="mt-1.5 text-base font-bold text-white">
+                        {myCollective.data.next_event.title}
+                      </p>
+                      <p className="mt-0.5 text-sm text-primary-300/70">
+                        {formatEventDate(
+                          myCollective.data.next_event.date_start,
+                        )}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-4 text-sm text-primary-200">
-                  <span className="flex items-center gap-1.5">
-                    <Users size={14} aria-hidden="true" />
-                    {myCollective.data.member_count} members
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Calendar size={14} aria-hidden="true" />
-                    {myCollective.data.events_this_month} events this month
-                  </span>
-                </div>
-                {myCollective.data.next_event && (
-                  <div className="mt-4 pt-3 border-t border-primary-500/20">
-                    <p className="text-xs font-medium text-primary-300 uppercase tracking-wider">
-                      Next event
-                    </p>
-                    <p className="mt-0.5 text-sm font-semibold text-white">
-                      {myCollective.data.next_event.title}
-                    </p>
-                    <p className="text-xs text-primary-300">
-                      {formatEventDate(
-                        myCollective.data.next_event.date_start,
-                      )}
-                    </p>
-                  </div>
-                )}
               </div>
             ) : (
               <div
-                className="rounded-2xl bg-gradient-to-br from-primary-700 to-primary-900 p-5 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                className={cn(
+                  'relative overflow-hidden rounded-2xl',
+                  'bg-gradient-to-br from-primary-700 via-primary-800 to-primary-900',
+                  'p-6 sm:p-7',
+                  'active:scale-[0.98] transition-all duration-150 cursor-pointer',
+                )}
                 onClick={() => navigate('/explore')}
                 role="button"
                 tabIndex={0}
                 aria-label="Find your collective"
               >
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-400/20 text-primary-200 shrink-0">
-                    <Users size={24} />
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-heading text-lg font-bold text-white">
-                      Find your collective
-                    </p>
-                    <p className="text-sm text-primary-200">
-                      Join a local group and start making an impact
-                    </p>
+                <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-primary-400/[0.06]" />
+
+                <div className="relative z-10">
+                  <p className="text-xs font-semibold text-primary-200/60 uppercase tracking-widest">
+                    Get started
+                  </p>
+                  <h2 className="font-heading text-2xl sm:text-3xl font-bold text-white mt-2">
+                    Find your collective
+                  </h2>
+                  <p className="mt-2 text-sm text-primary-200/60 max-w-xs">
+                    Join a local group and start making an impact
+                  </p>
+                  <div className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-white/80">
+                    Explore
+                    <ChevronRight size={16} />
                   </div>
-                  <ChevronRight
-                    size={20}
-                    className="text-primary-300 shrink-0"
-                  />
                 </div>
               </div>
             )}

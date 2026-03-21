@@ -248,6 +248,7 @@ function NavSection({
           <li key={item.path}>
             <Link
               to={item.path}
+              onClick={() => window.scrollTo({ top: 0 })}
               className={cn(
                 'relative flex items-center gap-3',
                 'rounded-lg',

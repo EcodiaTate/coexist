@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   Clock,
@@ -16,23 +16,41 @@ import { supabase } from '@/lib/supabase'
 
 const actionTypeOptions = [
   { value: 'all', label: 'All Actions' },
-  { value: 'user_updated', label: 'User Updated' },
   { value: 'user_suspended', label: 'User Suspended' },
+  { value: 'user_unsuspended', label: 'User Unsuspended' },
   { value: 'user_deleted', label: 'User Deleted' },
   { value: 'role_changed', label: 'Role Changed' },
   { value: 'collective_created', label: 'Collective Created' },
   { value: 'collective_archived', label: 'Collective Archived' },
-  { value: 'event_created', label: 'Event Created' },
+  { value: 'collective_restored', label: 'Collective Restored' },
+  { value: 'collective_deleted', label: 'Collective Deleted' },
+  { value: 'member_role_changed', label: 'Member Role Changed' },
+  { value: 'member_removed', label: 'Member Removed' },
   { value: 'challenge_created', label: 'Challenge Created' },
-  { value: 'survey_created', label: 'Survey Created' },
+  { value: 'challenge_ended', label: 'Challenge Ended' },
+  { value: 'challenge_deleted', label: 'Challenge Deleted' },
+  { value: 'survey_deleted', label: 'Survey Deleted' },
   { value: 'feature_flag_toggled', label: 'Feature Flag Toggled' },
+  { value: 'feature_flag_added', label: 'Feature Flag Added' },
+  { value: 'feature_flag_deleted', label: 'Feature Flag Deleted' },
+  { value: 'content_auto_flagged', label: 'Content Auto-Flagged' },
+  { value: 'content_removed', label: 'Content Removed' },
   { value: 'impersonation_started', label: 'Impersonation Started' },
 ]
 
 const actionColors: Record<string, string> = {
   user_deleted: 'text-error-600 bg-error-50',
   user_suspended: 'text-warning-600 bg-warning-50',
+  user_unsuspended: 'text-primary-600 bg-primary-50',
   role_changed: 'text-plum-600 bg-plum-50',
+  member_role_changed: 'text-plum-600 bg-plum-50',
+  member_removed: 'text-warning-600 bg-warning-50',
+  collective_deleted: 'text-error-600 bg-error-50',
+  challenge_deleted: 'text-error-600 bg-error-50',
+  survey_deleted: 'text-error-600 bg-error-50',
+  feature_flag_deleted: 'text-error-600 bg-error-50',
+  content_auto_flagged: 'text-warning-600 bg-warning-50',
+  content_removed: 'text-error-600 bg-error-50',
   impersonation_started: 'text-error-600 bg-error-50',
   default: 'text-primary-400 bg-white',
 }
@@ -67,7 +85,6 @@ function useAuditLog(search: string, actionFilter: string, page: number) {
 }
 
 export default function AdminAuditLogPage() {
-  useAdminHeader('Audit Log')
   const [search, setSearch] = useState('')
   const [actionFilter, setActionFilter] = useState('all')
   const [page, setPage] = useState(0)
@@ -77,6 +94,17 @@ export default function AdminAuditLogPage() {
   const totalPages = data ? Math.ceil(data.total / pageSize) : 0
 
   const shouldReduceMotion = useReducedMotion()
+
+  const heroStats = useMemo(() => (
+    <div className="flex items-center gap-3">
+      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Total Entries</p>
+        <p className="text-xl font-bold text-white tabular-nums">{(data?.total ?? 0).toLocaleString()}</p>
+      </div>
+    </div>
+  ), [data?.total])
+
+  useAdminHeader('Audit Log', { heroContent: heroStats })
 
   const stagger = {
     hidden: {},
@@ -89,135 +117,137 @@ export default function AdminAuditLogPage() {
   }
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
-      {/* Filters */}
-      <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-4">
-        <SearchBar
-          value={search}
-          onChange={(v) => {
-            setSearch(v)
-            setPage(0)
-          }}
-          placeholder="Search actions..."
-          compact
-          className="flex-1"
-        />
-        <Dropdown
-          options={actionTypeOptions}
-          value={actionFilter}
-          onChange={(v) => {
-            setActionFilter(v)
-            setPage(0)
-          }}
-          className="sm:w-52"
-        />
-      </motion.div>
+    <div>
+      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+        {/* Filters */}
+        <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-4">
+          <SearchBar
+            value={search}
+            onChange={(v) => {
+              setSearch(v)
+              setPage(0)
+            }}
+            placeholder="Search actions..."
+            compact
+            className="flex-1"
+          />
+          <Dropdown
+            options={actionTypeOptions}
+            value={actionFilter}
+            onChange={(v) => {
+              setActionFilter(v)
+              setPage(0)
+            }}
+            className="sm:w-52"
+          />
+        </motion.div>
 
-      {/* Log list */}
-      <motion.div variants={fadeUp}>
-      {isLoading ? (
-        <Skeleton variant="list-item" count={8} />
-      ) : !data?.logs.length ? (
-        <EmptyState
-          illustration="empty"
-          title="No audit logs"
-          description={search || actionFilter !== 'all' ? 'Try different filters' : 'Admin actions will appear here'}
-        />
-      ) : (
-        <>
-          <StaggeredList className="space-y-1">
-            {data.logs.map((_log) => {
-              const log = _log as any
-              const profile = log.profiles
-              const colorClass =
-                actionColors[log.action] ?? actionColors.default
+        {/* Log list */}
+        <motion.div variants={fadeUp}>
+        {isLoading ? (
+          <Skeleton variant="list-item" count={8} />
+        ) : !data?.logs.length ? (
+          <EmptyState
+            illustration="empty"
+            title="No audit logs"
+            description={search || actionFilter !== 'all' ? 'Try different filters' : 'Admin actions will appear here'}
+          />
+        ) : (
+          <>
+            <StaggeredList className="space-y-1">
+              {data.logs.map((_log) => {
+                const log = _log as any
+                const profile = log.profiles
+                const colorClass =
+                  actionColors[log.action] ?? actionColors.default
 
-              return (
-                <StaggeredItem
-                  key={log.id}
-                  className="flex items-start gap-3 p-3 rounded-xl bg-white shadow-sm"
-                >
-                  <Avatar
-                    src={profile?.avatar_url}
-                    name={profile?.display_name ?? 'System'}
-                    size="sm"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-primary-800">
-                        {profile?.display_name ?? 'System'}
-                      </span>
-                      <span
-                        className={cn(
-                          'text-[10px] font-medium px-1.5 py-0.5 rounded-full',
-                          colorClass,
-                        )}
-                      >
-                        {log.action?.replace(/_/g, ' ')}
-                      </span>
+                return (
+                  <StaggeredItem
+                    key={log.id}
+                    className="flex items-start gap-3 p-3 rounded-xl bg-white shadow-sm"
+                  >
+                    <Avatar
+                      src={profile?.avatar_url}
+                      name={profile?.display_name ?? 'System'}
+                      size="sm"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-medium text-primary-800">
+                          {profile?.display_name ?? 'System'}
+                        </span>
+                        <span
+                          className={cn(
+                            'text-[10px] font-medium px-1.5 py-0.5 rounded-full',
+                            colorClass,
+                          )}
+                        >
+                          {log.action?.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      {log.details && (
+                        <p className="text-xs text-primary-400 mt-0.5 line-clamp-2">
+                          {typeof log.details === 'string' ? log.details : log.details?.message ?? JSON.stringify(log.details)}
+                        </p>
+                      )}
+                      {log.target_type && log.target_id && (
+                        <p className="text-[10px] text-primary-400 mt-0.5">
+                          {log.target_type}: {log.target_id}
+                        </p>
+                      )}
                     </div>
-                    {log.details && (
-                      <p className="text-xs text-primary-400 mt-0.5 line-clamp-2">
-                        {typeof log.details === 'string' ? log.details : log.details?.message ?? JSON.stringify(log.details)}
-                      </p>
-                    )}
-                    {log.target_type && log.target_id && (
-                      <p className="text-[10px] text-primary-400 mt-0.5">
-                        {log.target_type}: {log.target_id}
-                      </p>
-                    )}
-                  </div>
-                  <span className="text-[11px] text-primary-400 shrink-0 flex items-center gap-1">
-                    <Clock size={12} />
-                    {new Date(log.created_at).toLocaleDateString('en-AU', {
-                      day: 'numeric',
-                      month: 'short',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                </StaggeredItem>
-              )
-            })}
-          </StaggeredList>
+                    <span className="text-[11px] text-primary-400 shrink-0 flex items-center gap-1">
+                      <Clock size={12} />
+                      {new Date(log.created_at).toLocaleDateString('en-AU', {
+                        day: 'numeric',
+                        month: 'short',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </StaggeredItem>
+                )
+              })}
+            </StaggeredList>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <button
-                type="button"
-                disabled={page === 0}
-                onClick={() => setPage((p) => p - 1)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer',
-                  page === 0
-                    ? 'text-primary-300 cursor-not-allowed'
-                    : 'text-primary-400 hover:bg-primary-50',
-                )}
-              >
-                Previous
-              </button>
-              <span className="text-sm text-primary-400">
-                {page + 1} / {totalPages}
-              </span>
-              <button
-                type="button"
-                disabled={page >= totalPages - 1}
-                onClick={() => setPage((p) => p + 1)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer',
-                  page >= totalPages - 1
-                    ? 'text-primary-300 cursor-not-allowed'
-                    : 'text-primary-400 hover:bg-primary-50',
-                )}
-              >
-                Next
-              </button>
-            </div>
-          )}
-        </>
-      )}
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <button
+                  type="button"
+                  disabled={page === 0}
+                  onClick={() => setPage((p) => p - 1)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer',
+                    page === 0
+                      ? 'text-primary-300 cursor-not-allowed'
+                      : 'text-primary-400 hover:bg-primary-50',
+                  )}
+                >
+                  Previous
+                </button>
+                <span className="text-sm text-primary-400">
+                  {page + 1} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  disabled={page >= totalPages - 1}
+                  onClick={() => setPage((p) => p + 1)}
+                  className={cn(
+                    'px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer',
+                    page >= totalPages - 1
+                      ? 'text-primary-300 cursor-not-allowed'
+                      : 'text-primary-400 hover:bg-primary-50',
+                  )}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
+        )}
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </div>
   )
 }

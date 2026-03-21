@@ -129,7 +129,7 @@ function MenuRow({
       <span
         className={cn(
           'flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mr-3',
-          danger ? 'bg-error-100 text-error-600' : 'bg-surface-2 text-primary-400',
+          danger ? 'bg-error-100 text-error-600' : 'bg-primary-100/70 text-primary-500',
         )}
         aria-hidden="true"
       >
@@ -468,7 +468,7 @@ function AboutSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
             href={WEBSITE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 text-sm font-medium text-primary-400 hover:bg-primary-100 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2 px-4 py-2 text-sm font-medium text-primary-500 hover:bg-primary-100 transition-colors"
           >
             Website
           </a>
@@ -476,7 +476,7 @@ function AboutSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
             href={INSTAGRAM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 text-sm font-medium text-primary-400 hover:bg-primary-100 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2 px-4 py-2 text-sm font-medium text-primary-500 hover:bg-primary-100 transition-colors"
           >
             Instagram
           </a>
@@ -484,7 +484,7 @@ function AboutSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
             href={FACEBOOK_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white px-4 py-2 text-sm font-medium text-primary-400 hover:bg-primary-100 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-surface-2 px-4 py-2 text-sm font-medium text-primary-500 hover:bg-primary-100 transition-colors"
           >
             Facebook
           </a>
@@ -747,7 +747,26 @@ export default function SettingsPage() {
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [leaderboardOptIn, setLeaderboardOptIn] = useState(true)
   const [profileVisible, setProfileVisible] = useState(true)
-  const [marketingOptIn, setMarketingOptIn] = useState(true)
+  const [marketingOptIn, setMarketingOptIn] = useState(
+    profile?.marketing_opt_in !== false,
+  )
+
+  const handleMarketingToggle = useCallback(
+    (value: boolean) => {
+      setMarketingOptIn(value)
+      supabase
+        .from('profiles')
+        .update({ marketing_opt_in: value } as any)
+        .eq('id', user?.id ?? '')
+        .then(({ error }) => {
+          if (error) {
+            console.error('Failed to save marketing opt-in:', error)
+            setMarketingOptIn(!value) // revert on failure
+          }
+        })
+    },
+    [user?.id],
+  )
 
   const updatePref = useCallback(
     (key: keyof NotificationPreferences, value: boolean | string) => {
@@ -812,7 +831,7 @@ export default function SettingsPage() {
         {/* ---- Notifications ---- */}
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="Notifications" className="pt-4" />
-        <div className="bg-surface-0 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface-2 rounded-2xl shadow-sm overflow-hidden">
           <MenuRow
             icon={<Bell size={18} />}
             label="Notification Preferences"
@@ -855,7 +874,7 @@ export default function SettingsPage() {
         {/* ---- Privacy ---- */}
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="Privacy" />
-        <div className="bg-surface-0 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface-2 rounded-2xl shadow-sm overflow-hidden">
           <MenuRow
             icon={<Eye size={18} />}
             label="Profile Visibility"
@@ -889,11 +908,11 @@ export default function SettingsPage() {
             rightContent={
               <Toggle
                 checked={marketingOptIn}
-                onChange={setMarketingOptIn}
+                onChange={handleMarketingToggle}
                 size="sm"
               />
             }
-            onClick={() => setMarketingOptIn(!marketingOptIn)}
+            onClick={() => handleMarketingToggle(!marketingOptIn)}
             hideDivider
           />
         </div>
@@ -903,7 +922,7 @@ export default function SettingsPage() {
         {/* ---- Account ---- */}
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="Account" />
-        <div className="bg-surface-0 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface-2 rounded-2xl shadow-sm overflow-hidden">
           <MenuRow
             icon={<Lock size={18} />}
             label="Change Password"
@@ -935,7 +954,7 @@ export default function SettingsPage() {
         {/* ---- About ---- */}
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
         <SectionHeader label="About" />
-        <div className="bg-surface-0 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-surface-2 rounded-2xl shadow-sm overflow-hidden">
           <MenuRow
             icon={<Heart size={18} />}
             label="About Co-Exist"

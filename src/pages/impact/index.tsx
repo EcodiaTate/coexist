@@ -138,7 +138,7 @@ function BigStat({
       variants={fadeUp}
       className={cn(
         'flex flex-col items-center justify-center text-center rounded-3xl p-6 min-h-[150px]',
-        'bg-gradient-to-br shadow-lg ring-1 ring-black/5',
+        'bg-gradient-to-br shadow-lg shadow-sm',
         `${style.gradient}`,
       )}
     >
@@ -450,7 +450,7 @@ export default function ImpactDashboardPage() {
               initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 22 }}
-              className="mx-5 mt-8 flex items-center gap-5 rounded-3xl bg-gradient-to-r from-warning-100/80 via-warning-50 to-coral-100/60 shadow-lg ring-1 ring-warning-200/40 p-6"
+              className="mx-5 mt-8 flex items-center gap-5 rounded-3xl bg-gradient-to-r from-warning-100/80 via-warning-50 to-coral-100/60 shadow-lg shadow-sm p-6"
             >
               <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-warning-500 to-coral-500 shadow-lg shadow-warning-200/50">
                 <Flame size={26} strokeWidth={2.5} className="text-white" />
@@ -483,7 +483,7 @@ export default function ImpactDashboardPage() {
               className="mx-5 mt-10"
             >
               <SectionHeading>Monthly Activity</SectionHeading>
-              <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6">
+              <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6">
                 <ActivitySparkline data={monthly} />
               </div>
             </motion.section>
@@ -498,7 +498,7 @@ export default function ImpactDashboardPage() {
               className="mx-5 mt-10"
             >
               <SectionHeading>Impact Breakdown</SectionHeading>
-              <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6">
+              <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6">
                 <ImpactRing data={byCategory} />
               </div>
             </motion.section>
@@ -531,7 +531,7 @@ export default function ImpactDashboardPage() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 22 }}
-            className="mx-5 mt-8 rounded-3xl bg-gradient-to-br from-bark-100/60 to-bark-200/40 shadow-lg ring-1 ring-bark-200/40 p-6"
+            className="mx-5 mt-8 rounded-3xl bg-gradient-to-br from-bark-100/60 to-bark-200/40 shadow-lg shadow-sm p-6"
           >
             <p className="text-sm text-primary-700 font-semibold leading-relaxed">
               {stats.treesPlanted > 10

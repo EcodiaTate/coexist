@@ -513,7 +513,25 @@ export default function AdminEventsPage() {
 
   const { data, isLoading, isError } = useAdminEventsData()
 
-  useAdminHeader('Events')
+  const heroStats = useMemo(() => (
+    data?.stats ? (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[
+          { label: 'Upcoming', value: data.stats.upcoming },
+          { label: 'Total Events', value: data.stats.total },
+          { label: 'Registrations', value: data.stats.totalRegistrations },
+          { label: 'Active Collectives', value: data.stats.activeCollectives },
+        ].map((s) => (
+          <div key={s.label} className="rounded-xl bg-white/10 backdrop-blur-sm p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-1">{s.label}</p>
+            <p className="text-xl font-bold text-white tabular-nums">{s.value.toLocaleString()}</p>
+          </div>
+        ))}
+      </div>
+    ) : null
+  ), [data?.stats])
+
+  useAdminHeader('Events', { heroContent: heroStats })
 
   // Filter events based on current filters
   const filteredEvents = useMemo(() => {
@@ -556,6 +574,19 @@ export default function AdminEventsPage() {
     [filteredEvents, statusFilter],
   )
 
+  const shouldReduceMotion2 = useReducedMotion()
+  const rm = !!shouldReduceMotion2
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.04 } },
+  }
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -583,117 +614,107 @@ export default function AdminEventsPage() {
 
   const stats = data?.stats
 
-  const shouldReduceMotion2 = useReducedMotion()
-
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
-
   return (
-    <motion.div className="space-y-6" variants={shouldReduceMotion2 ? undefined : stagger} initial="hidden" animate="visible">
-      {/* ── Hottest event spotlight ── */}
-      {stats?.hottestEvent && stats.hottestEvent.registrationCount > 0 && (
-        <motion.div variants={fadeUp}><HottestEventSpotlight event={stats.hottestEvent} /></motion.div>
-      )}
+    <div>
+        <motion.div className="space-y-6" variants={rm ? undefined : stagger} initial="hidden" animate="visible">
+          {/* ── Hottest event spotlight ── */}
+          {stats?.hottestEvent && stats.hottestEvent.registrationCount > 0 && (
+            <motion.div variants={fadeUp}><HottestEventSpotlight event={stats.hottestEvent} /></motion.div>
+          )}
 
-      {/* ── Filters ── */}
-      <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        <SearchBar
-          value={search}
-          onChange={setSearch}
-          placeholder="Event name, collective, location..."
-          compact
-          className="flex-1"
-        />
+          {/* ── Filters ── */}
+          <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <SearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Event name, collective, location..."
+              compact
+              className="flex-1"
+            />
 
-        <div className="flex items-center gap-2">
-          {/* Status toggle */}
-          <div className="flex items-center gap-0.5 rounded-xl shadow-sm bg-white p-0.5">
-            {(['upcoming', 'past', 'draft', 'cancelled', 'all'] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setStatusFilter(s)}
-                className={cn(
-                  'px-3 py-1.5 rounded-lg text-xs font-semibold capitalize',
-                  'transition-colors duration-150 cursor-pointer select-none',
-                  statusFilter === s
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-primary-400 hover:text-primary-600',
-                )}
-              >
-                {s}
-              </button>
-            ))}
-          </div>
+            <div className="flex items-center gap-2">
+              {/* Status toggle */}
+              <div className="flex items-center gap-0.5 rounded-xl shadow-sm bg-white p-0.5">
+                {(['upcoming', 'past', 'draft', 'cancelled', 'all'] as const).map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setStatusFilter(s)}
+                    className={cn(
+                      'px-3 py-1.5 rounded-lg text-xs font-semibold capitalize',
+                      'transition-colors duration-150 cursor-pointer select-none',
+                      statusFilter === s
+                        ? 'bg-primary-100 text-primary-800'
+                        : 'text-primary-400 hover:text-primary-600',
+                    )}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
 
-        </div>
-      </motion.div>
+            </div>
+          </motion.div>
 
-      {/* ── Event list ── */}
-      <motion.div variants={fadeUp}>
-      {!filteredEvents.length ? (
-        <EmptyState
-          illustration="empty"
-          title="No events found"
-          description={
-            search
-              ? 'Try a different search term'
-              : statusFilter === 'upcoming'
-                ? 'No upcoming events scheduled'
-                : statusFilter === 'draft'
-                  ? 'No draft events'
-                  : statusFilter === 'cancelled'
-                    ? 'No cancelled events'
-                    : 'No events found'
-          }
-        />
-      ) : statusFilter === 'upcoming' ? (
-        /* Grouped by collective */
-        <div className="space-y-8">
-          {collectiveGroups.map((group) => {
-            const idx = collectiveGroups
-              .slice(0, collectiveGroups.indexOf(group))
-              .reduce((sum, g) => sum + g.events.length, 0)
-            return (
-              <CollectiveSection
-                key={group.collectiveId}
-                group={group}
-                startIndex={idx}
-              />
-            )
-          })}
-        </div>
-      ) : statusFilter === 'past' ? (
-        /* Past events - compact rows */
-        <div className="space-y-1.5">
-          {filteredEvents.map((event, i) => (
-            <PastEventRow key={event.id} event={event} index={i} />
-          ))}
-        </div>
-      ) : (
-        /* All / ungrouped - card grid */
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filteredEvents.map((event, i) => (
-            <EventCard key={event.id} event={event} index={i} />
-          ))}
-        </div>
-      )}
+          {/* ── Event list ── */}
+          <motion.div variants={fadeUp}>
+          {!filteredEvents.length ? (
+            <EmptyState
+              illustration="empty"
+              title="No events found"
+              description={
+                search
+                  ? 'Try a different search term'
+                  : statusFilter === 'upcoming'
+                    ? 'No upcoming events scheduled'
+                    : statusFilter === 'draft'
+                      ? 'No draft events'
+                      : statusFilter === 'cancelled'
+                        ? 'No cancelled events'
+                        : 'No events found'
+              }
+            />
+          ) : statusFilter === 'upcoming' ? (
+            /* Grouped by collective */
+            <div className="space-y-8">
+              {collectiveGroups.map((group) => {
+                const idx = collectiveGroups
+                  .slice(0, collectiveGroups.indexOf(group))
+                  .reduce((sum, g) => sum + g.events.length, 0)
+                return (
+                  <CollectiveSection
+                    key={group.collectiveId}
+                    group={group}
+                    startIndex={idx}
+                  />
+                )
+              })}
+            </div>
+          ) : statusFilter === 'past' ? (
+            /* Past events - compact rows */
+            <div className="space-y-1.5">
+              {filteredEvents.map((event, i) => (
+                <PastEventRow key={event.id} event={event} index={i} />
+              ))}
+            </div>
+          ) : (
+            /* All / ungrouped - card grid */
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {filteredEvents.map((event, i) => (
+                <EventCard key={event.id} event={event} index={i} />
+              ))}
+            </div>
+          )}
 
-      </motion.div>
+          </motion.div>
 
-      {/* ── Summary footer ── */}
-      <motion.div variants={fadeUp} className="text-center py-4">
-        <p className="text-xs text-primary-300">
-          {stats?.total ?? 0} total events &middot; {stats?.totalRegistrations ?? 0} total registrations
-        </p>
-      </motion.div>
-    </motion.div>
+          {/* ── Summary footer ── */}
+          <motion.div variants={fadeUp} className="text-center py-4">
+            <p className="text-xs text-primary-300">
+              {stats?.total ?? 0} total events &middot; {stats?.totalRegistrations ?? 0} total registrations
+            </p>
+          </motion.div>
+        </motion.div>
+    </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -20,6 +20,7 @@ import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
+import { logAudit } from '@/lib/audit'
 
 /* ------------------------------------------------------------------ */
 /*  Templates (shared with create page via index param)                */
@@ -90,7 +91,6 @@ const tabs = [
 ]
 
 export default function AdminSurveysPage() {
-  useAdminHeader('Surveys')
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('surveys')
   const [selectedSurvey, setSelectedSurvey] = useState<string | null>(null)
@@ -101,8 +101,24 @@ export default function AdminSurveysPage() {
   const { data: surveys, isLoading } = useSurveys()
   const { data: results } = useSurveyResults(selectedSurvey)
 
+  const heroStats = useMemo(() => (
+    <div className="flex items-center gap-3">
+      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Surveys</p>
+        <p className="text-xl font-bold text-white tabular-nums">{surveys?.length ?? 0}</p>
+      </div>
+      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Templates</p>
+        <p className="text-xl font-bold text-white tabular-nums">{TEMPLATES.length}</p>
+      </div>
+    </div>
+  ), [surveys?.length])
+
+  useAdminHeader('Surveys', { heroContent: heroStats })
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      await logAudit({ action: 'survey_deleted', target_type: 'survey', target_id: id })
       const { error } = await supabase.from('surveys').delete().eq('id', id)
       if (error) throw error
     },
@@ -141,10 +157,11 @@ export default function AdminSurveysPage() {
   }
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
-      <motion.div variants={fadeUp}>
-        <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
-      </motion.div>
+    <div>
+        <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+          <motion.div variants={fadeUp}>
+            <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
+          </motion.div>
 
       {/* Surveys list */}
       {activeTab === 'surveys' && (
@@ -315,6 +332,7 @@ export default function AdminSurveysPage() {
         confirmLabel="Delete"
         variant="danger"
       />
-    </motion.div>
+        </motion.div>
+    </div>
   )
 }

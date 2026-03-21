@@ -107,7 +107,7 @@ export function Modal({
             if (e.target === e.currentTarget) onClose()
           }}
         >
-          {/* Backdrop — visual only, no pointer events */}
+          {/* Backdrop - visual only, no pointer events */}
           <motion.div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm pointer-events-none"
             initial={{ opacity: 0 }}
@@ -116,7 +116,7 @@ export function Modal({
             aria-hidden="true"
           />
 
-          {/* Panel — the only animated motion element */}
+          {/* Panel - the only animated motion element */}
           <motion.div
             ref={contentRef}
             role="dialog"
@@ -145,7 +145,7 @@ export function Modal({
               className,
             )}
           >
-            {/* Header — plain div, no motion */}
+            {/* Header - plain div, no motion */}
             <div className="shrink-0 z-10 flex items-center justify-between border-b border-primary-100 bg-white px-5 py-4 rounded-t-2xl">
               <h2 className="font-heading text-lg font-semibold text-primary-800">
                 {title}
@@ -159,7 +159,7 @@ export function Modal({
               </button>
             </div>
 
-            {/* Body — plain div, no motion wrapper */}
+            {/* Body - plain div, no motion wrapper */}
             <div className="p-5 overflow-y-auto overscroll-contain">
               {children}
             </div>

@@ -85,9 +85,9 @@ function AnnouncementCard({
         'rounded-2xl shadow-md overflow-hidden cursor-pointer',
         'transition-colors duration-150',
         isUrgent
-          ? 'bg-gradient-to-br from-white to-accent-100 border border-accent-200'
-          : 'bg-surface-0',
-        isUnread && !isUrgent && 'ring-2 ring-primary-200',
+          ? 'bg-gradient-to-br from-warning-50/80 to-primary-100/60'
+          : 'bg-surface-2',
+        isUnread && !isUrgent && 'shadow-md bg-gradient-to-br from-surface-2 to-primary-50',
       )}
       role="article"
       aria-label={announcement.title}
@@ -139,7 +139,7 @@ function AnnouncementCard({
         </p>
 
         {/* Author + timestamp */}
-        <div className="flex items-center gap-2.5 mt-3 pt-3 border-t border-primary-100/60">
+        <div className="flex items-center gap-2.5 mt-3 pt-3">
           <Avatar
             src={announcement.author?.avatar_url}
             name={announcement.author?.display_name ?? 'Staff'}

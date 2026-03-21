@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
 import {
   Heart,
   MessageCircle,
@@ -41,11 +41,25 @@ import {
 /*  Post type config                                                   */
 /* ------------------------------------------------------------------ */
 
-const postTypeConfig: Record<string, { icon: typeof Heart; label: string; color: string }> = {
-  photo: { icon: Users, label: 'Post', color: 'text-primary-400' },
-  milestone: { icon: Award, label: 'Milestone', color: 'text-primary-400' },
-  event_recap: { icon: Calendar, label: 'Event Recap', color: 'text-primary-400' },
-  announcement: { icon: Leaf, label: 'Announcement', color: 'text-primary-400' },
+const postTypeConfig: Record<string, { icon: typeof Heart; label: string; bg: string; color: string }> = {
+  photo: { icon: Users, label: 'Post', bg: 'bg-primary-100/60', color: 'text-primary-500' },
+  milestone: { icon: Award, label: 'Milestone', bg: 'bg-warning-100/60', color: 'text-warning-600' },
+  event_recap: { icon: Calendar, label: 'Event Recap', bg: 'bg-moss-100/60', color: 'text-moss-600' },
+  announcement: { icon: Leaf, label: 'Announcement', bg: 'bg-bark-100/60', color: 'text-bark-600' },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Animations                                                         */
+/* ------------------------------------------------------------------ */
+
+const stagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+}
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 26 } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -93,12 +107,12 @@ function LikeButton({
       type="button"
       onClick={handleClick}
       className={cn(
-        'relative flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl min-h-11',
-        'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+        'relative flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl min-h-11',
+        'active:scale-[0.95] transition-all duration-150 cursor-pointer select-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
         isLiked
-          ? 'text-error-500'
-          : 'text-primary-400 hover:text-primary-800',
+          ? 'text-error-500 bg-error-50/60'
+          : 'text-primary-500 hover:bg-primary-50 hover:text-primary-700',
       )}
       aria-label={isLiked ? 'Unlike post' : 'Like post'}
       aria-pressed={isLiked}
@@ -119,7 +133,7 @@ function LikeButton({
                 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="absolute left-2 top-1.5 w-1.5 h-1.5 rounded-full bg-error-400"
+                className="absolute left-3 top-2 w-1.5 h-1.5 rounded-full bg-error-400"
                 aria-hidden="true"
               />
             ))}
@@ -140,7 +154,7 @@ function LikeButton({
       </motion.span>
 
       {count > 0 && (
-        <span className="text-sm font-medium">{count}</span>
+        <span className="text-sm font-semibold">{count}</span>
       )}
     </button>
   )
@@ -190,9 +204,9 @@ function CommentSection({
           }
         }}
         className={cn(
-          'flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-xl min-h-11',
-          'text-primary-400 hover:text-primary-800',
-          'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+          'flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl min-h-11',
+          'text-primary-500 hover:bg-primary-50 hover:text-primary-700',
+          'active:scale-[0.95] transition-all duration-150 cursor-pointer select-none',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
         )}
         aria-label={`${commentCount} comments`}
@@ -200,7 +214,7 @@ function CommentSection({
       >
         <MessageCircle size={18} aria-hidden="true" />
         {commentCount > 0 && (
-          <span className="text-sm font-medium">{commentCount}</span>
+          <span className="text-sm font-semibold">{commentCount}</span>
         )}
       </button>
 
@@ -210,10 +224,10 @@ function CommentSection({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
             className="overflow-hidden"
           >
-            <div className="pt-3 mt-2 space-y-3">
+            <div className="pt-3 mt-2 space-y-3 px-4 pb-1">
               {isLoading ? (
                 <Skeleton variant="list-item" count={2} />
               ) : (
@@ -234,10 +248,11 @@ function CommentSection({
                     }}
                     placeholder="Write a comment..."
                     className={cn(
-                      'flex-1 h-9 px-3 rounded-full text-sm',
-                      'bg-surface-2 text-primary-800 placeholder:text-primary-400',
+                      'flex-1 h-9 px-3.5 rounded-full text-sm',
+                      'bg-surface-3 text-primary-800 placeholder:text-primary-400',
                       'border-none outline-none',
-                      'focus:ring-2 focus:ring-primary-300',
+                      'focus:ring-2 focus:ring-primary-300 focus:bg-surface-2',
+                      'transition-colors duration-200',
                     )}
                     aria-label="Write a comment"
                   />
@@ -269,13 +284,13 @@ function CommentItem({ comment }: { comment: CommentWithAuthor }) {
         size="xs"
       />
       <div className="flex-1 min-w-0">
-        <div className="bg-surface-2 rounded-xl px-3 py-2">
-          <span className="text-sm font-semibold text-primary-800">
+        <div className="bg-surface-3/80 rounded-2xl px-3.5 py-2.5">
+          <span className="text-sm font-bold text-primary-800">
             {comment.author?.display_name ?? 'User'}
           </span>
-          <p className="text-sm text-primary-800 mt-0.5">{comment.content}</p>
+          <p className="text-sm text-primary-700 mt-0.5 leading-relaxed">{comment.content}</p>
         </div>
-        <span className="text-xs text-primary-400 ml-3 mt-0.5">
+        <span className="text-xs text-primary-400 font-medium ml-3 mt-1 block">
           {timeAgo(comment.created_at)}
         </span>
       </div>
@@ -296,10 +311,8 @@ function PostCard({ post }: { post: PostWithDetails }) {
   const [showMenu, setShowMenu] = useState(false)
   const [showReport, setShowReport] = useState(false)
   const [reportReason, setReportReason] = useState('')
-  const shouldReduceMotion = useReducedMotion()
 
   const config = postTypeConfig[post.type] ?? postTypeConfig.photo
-  const TypeIcon = config.icon
 
   const handleLike = () => {
     toggleLike.mutate({ postId: post.id, isLiked: post.is_liked })
@@ -334,13 +347,11 @@ function PostCard({ post }: { post: PostWithDetails }) {
 
   return (
     <motion.article
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className="bg-surface-0 rounded-2xl shadow-md overflow-hidden"
+      variants={fadeUp}
+      className="rounded-3xl bg-surface-2 shadow-md overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-2">
+      <div className="flex items-center gap-3 px-5 pt-5 pb-2.5">
         <button
           type="button"
           onClick={handleAvatarTap}
@@ -355,26 +366,30 @@ function PostCard({ post }: { post: PostWithDetails }) {
         </button>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleAvatarTap}
-              className="flex items-center min-h-11 font-heading font-semibold text-sm text-primary-800 truncate cursor-pointer select-none hover:underline active:scale-[0.97] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-xl"
+              className="flex items-center min-h-11 font-heading font-bold text-sm text-primary-900 truncate cursor-pointer select-none hover:underline active:scale-[0.97] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded-xl"
             >
               {post.author?.display_name ?? 'User'}
             </button>
             {post.type !== 'photo' && (
-              <span className={cn('inline-flex items-center gap-0.5 text-xs font-medium', config.color)}>
-                <TypeIcon size={12} aria-hidden="true" />
+              <span className={cn(
+                'inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full',
+                config.bg,
+                config.color,
+              )}>
+                <config.icon size={10} aria-hidden="true" />
                 {config.label}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1.5 text-xs text-primary-400">
+          <div className="flex items-center gap-1.5 text-xs text-primary-400 font-medium">
             <span>{timeAgo(post.created_at)}</span>
             {post.collective && (
               <>
-                <span aria-hidden="true">·</span>
+                <span aria-hidden="true" className="text-primary-300">·</span>
                 <span className="truncate">{post.collective.name}</span>
               </>
             )}
@@ -385,9 +400,9 @@ function PostCard({ post }: { post: PostWithDetails }) {
           type="button"
           onClick={() => setShowMenu(true)}
           className={cn(
-            'flex items-center justify-center w-8 h-8 min-h-11 min-w-11 rounded-full',
-            'text-primary-400 hover:bg-primary-50 hover:text-primary-400',
-            'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+            'flex items-center justify-center w-9 h-9 min-h-11 min-w-11 rounded-xl',
+            'text-primary-400 hover:bg-surface-3 hover:text-primary-600',
+            'active:scale-[0.95] transition-all duration-150 cursor-pointer select-none',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
           aria-label="Post options"
@@ -398,7 +413,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
 
       {/* Content */}
       {post.content && (
-        <p className="px-4 pb-3 text-sm text-primary-800 leading-relaxed whitespace-pre-wrap">
+        <p className="px-5 pb-3 text-sm text-primary-800 leading-relaxed whitespace-pre-wrap">
           {post.content}
         </p>
       )}
@@ -409,10 +424,10 @@ function PostCard({ post }: { post: PostWithDetails }) {
           type="button"
           onClick={() => navigate(`/events/${post.event!.id}`)}
           className={cn(
-            'mx-4 mb-3 flex items-center justify-center gap-2 px-3 py-2 rounded-xl min-h-11',
-            'bg-surface-2 shadow-sm',
-            'text-sm text-primary-600 font-medium',
-            'cursor-pointer select-none hover:bg-surface-3 active:scale-[0.97] transition-all duration-150',
+            'mx-5 mb-3 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl min-h-11',
+            'bg-primary-100/60 shadow-sm',
+            'text-sm text-primary-700 font-semibold',
+            'cursor-pointer select-none hover:bg-primary-100 active:scale-[0.97] transition-all duration-150',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
           aria-label={`View event: ${post.event.title}`}
@@ -424,9 +439,9 @@ function PostCard({ post }: { post: PostWithDetails }) {
 
       {/* Images */}
       {post.images.length > 0 && (
-        <div className="px-4 pb-3">
+        <div className="px-5 pb-3">
           {post.images.length === 1 ? (
-            <div className="rounded-xl overflow-hidden">
+            <div className="rounded-2xl overflow-hidden shadow-sm">
               <img
                 src={post.images[0]}
                 alt="Post image"
@@ -447,8 +462,8 @@ function PostCard({ post }: { post: PostWithDetails }) {
         </div>
       )}
 
-      {/* Actions */}
-      <div className="flex items-center gap-1 px-2 pb-3 pt-1">
+      {/* Actions bar */}
+      <div className="flex items-center gap-1 px-3 pb-3 pt-1">
         <LikeButton
           isLiked={post.is_liked}
           count={post.like_count}
@@ -460,9 +475,9 @@ function PostCard({ post }: { post: PostWithDetails }) {
           type="button"
           onClick={handleShare}
           className={cn(
-            'flex items-center justify-center w-8 h-8 min-h-11 min-w-11 rounded-xl',
-            'text-primary-400 hover:text-primary-800',
-            'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+            'flex items-center justify-center w-9 h-9 min-h-11 min-w-11 rounded-xl',
+            'text-primary-500 hover:bg-primary-50 hover:text-primary-700',
+            'active:scale-[0.95] transition-all duration-150 cursor-pointer select-none',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
           aria-label="Share post"
@@ -514,11 +529,11 @@ function PostCard({ post }: { post: PostWithDetails }) {
               type="button"
               onClick={() => setReportReason(reason)}
               className={cn(
-                'w-full text-left px-3 py-2.5 rounded-xl text-sm min-h-11 flex items-center',
+                'w-full text-left px-3.5 py-2.5 rounded-xl text-sm min-h-11 flex items-center',
                 'cursor-pointer select-none active:scale-[0.97] transition-all duration-150',
                 reportReason === reason
-                  ? 'bg-error-50 text-error-700 font-medium border border-error-200'
-                  : 'text-primary-800 hover:bg-primary-50 border border-transparent',
+                  ? 'bg-error-50 text-error-700 font-semibold'
+                  : 'text-primary-800 hover:bg-primary-50',
               )}
             >
               {reason}
@@ -545,21 +560,21 @@ function PostCard({ post }: { post: PostWithDetails }) {
 
 function FeedSkeleton() {
   return (
-    <div className="space-y-4 py-4" role="status" aria-label="Loading feed">
+    <div className="space-y-5 py-4" role="status" aria-label="Loading feed">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-surface-0 rounded-2xl shadow-md overflow-hidden animate-pulse">
-          <div className="flex items-center gap-3 px-4 pt-4 pb-3">
-            <div className="w-10 h-10 rounded-full bg-surface-2" />
+        <div key={i} className="rounded-3xl bg-surface-2 shadow-md overflow-hidden animate-pulse">
+          <div className="flex items-center gap-3 px-5 pt-5 pb-3">
+            <div className="w-10 h-10 rounded-full bg-primary-100/50" />
             <div className="flex-1 space-y-2">
-              <div className="h-3.5 bg-surface-2 rounded w-1/3" />
-              <div className="h-3 bg-surface-2 rounded w-1/4" />
+              <div className="h-3.5 bg-primary-100/40 rounded w-1/3" />
+              <div className="h-3 bg-primary-100/30 rounded w-1/4" />
             </div>
           </div>
-          <div className="px-4 pb-3 space-y-2">
-            <div className="h-3.5 bg-surface-2 rounded w-full" />
-            <div className="h-3.5 bg-surface-2 rounded w-3/4" />
+          <div className="px-5 pb-3 space-y-2">
+            <div className="h-3.5 bg-primary-100/30 rounded w-full" />
+            <div className="h-3.5 bg-primary-100/20 rounded w-3/4" />
           </div>
-          <div className="mx-4 mb-3 h-48 bg-surface-2 rounded-xl" />
+          <div className="mx-5 mb-4 h-48 bg-primary-100/20 rounded-2xl" />
         </div>
       ))}
       <span className="sr-only">Loading feed</span>
@@ -574,6 +589,7 @@ function FeedSkeleton() {
 export default function FeedPage() {
   const navigate = useNavigate()
   const { user, profile } = useAuth()
+  const shouldReduceMotion = useReducedMotion()
 
   const feed = useFeed(undefined)
 
@@ -603,7 +619,7 @@ export default function FeedPage() {
                 'flex items-center justify-center w-9 h-9 min-h-11 min-w-11 rounded-full',
                 'bg-primary-800 text-white',
                 'cursor-pointer select-none',
-                'hover:bg-primary-950 active:scale-[0.97] transition-all duration-150',
+                'hover:bg-primary-950 active:scale-[0.95] transition-all duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
               )}
               aria-label="Create post"
@@ -628,8 +644,13 @@ export default function FeedPage() {
         />
       ) : (
         <PullToRefresh onRefresh={handleRefresh}>
-          <div className="space-y-4 py-4">
-            {posts.map((post, index) => (
+          <motion.div
+            className="space-y-5 py-4"
+            variants={shouldReduceMotion ? undefined : stagger}
+            initial="hidden"
+            animate="visible"
+          >
+            {posts.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
 
@@ -648,11 +669,11 @@ export default function FeedPage() {
             )}
 
             {!feed.hasNextPage && posts.length > 0 && (
-              <p className="text-center text-xs text-primary-400 py-4">
+              <p className="text-center text-xs text-primary-400 font-medium py-6">
                 You're all caught up
               </p>
             )}
-          </div>
+          </motion.div>
         </PullToRefresh>
       )}
     </Page>

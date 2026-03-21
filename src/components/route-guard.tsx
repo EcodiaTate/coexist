@@ -27,7 +27,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
   const location = useLocation()
 
   // Safety timeout: if we have a user but profile never arrives,
-  // don't hang on a blank screen forever — show the app anyway
+  // don't hang on a blank screen forever - show the app anyway
   // (onboardingDone flag will prevent false onboarding redirect).
   const [profileTimeout, setProfileTimeout] = useState(false)
   useEffect(() => {
@@ -57,7 +57,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
     return <Navigate to="/accept-terms" replace />
   }
 
-  // Profile not loaded yet — wait rather than flashing onboarding.
+  // Profile not loaded yet - wait rather than flashing onboarding.
   // If we already know onboarding is done (local flag), skip the wait
   // and render children immediately.
   if (!profile && !profileTimeout && !onboardingDone) {

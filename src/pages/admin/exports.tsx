@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   Download,
@@ -132,10 +132,6 @@ const scopeOptions = [
 ]
 
 /* ------------------------------------------------------------------ */
-/*  Page                                                               */
-/* ------------------------------------------------------------------ */
-
-/* ------------------------------------------------------------------ */
 /*  CSV helpers                                                        */
 /* ------------------------------------------------------------------ */
 
@@ -165,12 +161,22 @@ function downloadCsv(csv: string, filename: string) {
 /* ------------------------------------------------------------------ */
 
 export default function AdminExportsPage() {
-  useAdminHeader('Export Centre')
   const [dateStart, setDateStart] = useState('')
   const [dateEnd, setDateEnd] = useState('')
   const [scope, setScope] = useState('national')
   const [generating, setGenerating] = useState<string | null>(null)
   const { toast } = useToast()
+
+  const heroStats = useMemo(() => (
+    <div className="flex items-center gap-3">
+      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Available Exports</p>
+        <p className="text-xl font-bold text-white tabular-nums">{exportTypes.length}</p>
+      </div>
+    </div>
+  ), [])
+
+  useAdminHeader('Export Centre', { heroContent: heroStats })
 
   const handleExport = async (exportId: string, format: 'csv' | 'pdf') => {
     setGenerating(exportId)
@@ -365,7 +371,8 @@ export default function AdminExportsPage() {
   }
 
   return (
-    <motion.div className="space-y-6" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+    <div>
+      <motion.div className="space-y-6" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
         {/* Filters */}
         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 p-4 bg-white rounded-xl shadow-sm">
           <div className="flex items-center gap-2 text-sm text-primary-400 shrink-0">
@@ -444,6 +451,7 @@ export default function AdminExportsPage() {
           ))}
         </StaggeredList>
         </motion.div>
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }

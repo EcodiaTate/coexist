@@ -86,7 +86,7 @@ function MenuSection({
               'active:bg-surface-3',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
               'cursor-pointer select-none',
-              idx > 0 && 'border-t border-primary-100/40',
+              idx > 0 && 'border-t border-primary-100/20',
             )}
           >
             <span

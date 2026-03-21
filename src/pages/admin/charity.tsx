@@ -102,7 +102,8 @@ export default function AdminCharityPage() {
   }
 
   return (
-    <motion.div
+    <div>
+      <motion.div
         className="max-w-xl space-y-6"
         variants={shouldReduceMotion ? undefined : stagger}
         initial="hidden"
@@ -177,15 +178,16 @@ export default function AdminCharityPage() {
 
         {/* Save */}
         <motion.div variants={fadeUp}>
-        <Button
-          variant="primary"
-          icon={saved ? <CheckCircle size={16} /> : <Save size={16} />}
-          onClick={() => saveMutation.mutate()}
-          loading={saveMutation.isPending}
-        >
-          {saved ? 'Saved!' : 'Save Settings'}
-        </Button>
+          <Button
+            variant="primary"
+            icon={saved ? <CheckCircle size={16} /> : <Save size={16} />}
+            onClick={() => saveMutation.mutate()}
+            loading={saveMutation.isPending}
+          >
+            {saved ? 'Saved!' : 'Save Settings'}
+          </Button>
         </motion.div>
-    </motion.div>
+      </motion.div>
+    </div>
   )
 }

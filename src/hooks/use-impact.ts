@@ -2,6 +2,60 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 
+/* ------------------------------------------------------------------ */
+/*  National (aggregate) impact                                        */
+/* ------------------------------------------------------------------ */
+
+export interface NationalImpact {
+  totalTrees: number
+  totalHours: number
+  totalRubbish: number
+  totalCoastline: number
+  totalArea: number
+  totalNativePlants: number
+  totalWildlife: number
+  totalEvents: number
+  totalMembers: number
+  totalCollectives: number
+}
+
+export function useNationalImpact() {
+  return useQuery({
+    queryKey: ['national-impact'],
+    queryFn: async (): Promise<NationalImpact> => {
+      const [impactRes, eventsRes, membersRes, collectivesRes] = await Promise.all([
+        supabase
+          .from('event_impact')
+          .select('trees_planted, hours_total, rubbish_kg, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings'),
+        supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('collectives').select('id', { count: 'exact', head: true }),
+      ])
+
+      const logs = (impactRes.data ?? []) as Record<string, number>[]
+      const sum = (key: string) => logs.reduce((s, r) => s + (r[key] ?? 0), 0)
+
+      return {
+        totalTrees: sum('trees_planted'),
+        totalHours: Math.round(sum('hours_total')),
+        totalRubbish: Math.round(sum('rubbish_kg')),
+        totalCoastline: Math.round((sum('coastline_cleaned_m') / 1000) * 10) / 10,
+        totalArea: Math.round(sum('area_restored_sqm')),
+        totalNativePlants: sum('native_plants'),
+        totalWildlife: sum('wildlife_sightings'),
+        totalEvents: eventsRes.count ?? 0,
+        totalMembers: membersRes.count ?? 0,
+        totalCollectives: collectivesRes.count ?? 0,
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Per-user impact                                                    */
+/* ------------------------------------------------------------------ */
+
 interface ImpactStats {
   treesPlanted: number
   hoursVolunteered: number

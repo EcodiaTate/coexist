@@ -74,7 +74,7 @@ function RewardCard({ reward }: { reward: MembershipReward }) {
   }, [reward.discount_code, toast])
 
   return (
-    <div className="rounded-2xl bg-white shadow-sm p-4 space-y-3">
+    <div className="rounded-2xl bg-surface-2 shadow-sm p-4 space-y-3">
       <div className="flex items-start gap-3">
         {reward.partner_logo_url ? (
           <img
@@ -280,7 +280,7 @@ export default function MembershipPage() {
                     return (
                       <div
                         key={plan.id}
-                        className="rounded-2xl bg-white shadow-sm p-5 hover:shadow-md transition-shadow"
+                        className="rounded-2xl bg-surface-2 shadow-sm p-5 hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div>
@@ -325,7 +325,7 @@ export default function MembershipPage() {
           )}
 
           {/* ---- Divider ---- */}
-          <div className="h-px bg-primary-100" />
+          <div className="h-px bg-gradient-to-r from-transparent via-primary-200/60 to-transparent" />
 
           {/* ---- Member rewards & perks ---- */}
           <motion.section variants={fadeUp}>

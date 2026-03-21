@@ -438,13 +438,14 @@ export default function AdminWorkflowsPage() {
     ...(collectives ?? []).map((c: any) => ({ value: c.id, label: c.name })),
   ], [collectives])
 
-  const headerActions = useMemo(() =>
+  const heroActions = useMemo(() =>
     activeTab === 'templates' ? (
       <Button
         variant="primary"
         size="sm"
         icon={<Plus size={16} />}
         onClick={() => setShowCreate(true)}
+        className="!bg-white/15 !border-white/10 hover:!bg-white/25 !text-white"
       >
         Create Template
       </Button>
@@ -452,7 +453,7 @@ export default function AdminWorkflowsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   [activeTab])
 
-  useAdminHeader('Workflows', headerActions)
+  useAdminHeader('Workflows', { actions: heroActions })
 
   const stagger = {
     hidden: {},
