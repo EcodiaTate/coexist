@@ -82,11 +82,14 @@ export function useChannelMessages(channelId: string | undefined) {
   const query = useInfiniteQuery({
     queryKey: ['channel-messages', channelId],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
-      if (!channelId) return { messages: [], nextCursor: null }
+      if (!channelId) return []
 
       let q = supabase
         .from('chat_messages' as any)
-        .select('*, profiles(id, display_name, avatar_url)')
+        .select(`
+          *,
+          profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
+        `)
         .eq('channel_id', channelId)
         .order('created_at', { ascending: false })
         .limit(PAGE_SIZE)
@@ -98,13 +101,36 @@ export function useChannelMessages(channelId: string | undefined) {
       const { data, error } = await q
       if (error) throw error
 
-      const messages = (data ?? []) as ChannelMessageWithSender[]
-      const nextCursor = messages.length === PAGE_SIZE ? messages[messages.length - 1]?.created_at : null
+      const messages = (data ?? []) as unknown as ChannelMessageWithSender[]
 
-      return { messages, nextCursor }
+      // Resolve reply_message client-side (self-referencing FK not in PostgREST cache)
+      const replyIds = messages
+        .map((m) => (m as any).reply_to_id)
+        .filter((id: unknown): id is string => !!id)
+
+      if (replyIds.length > 0) {
+        const { data: replies } = await supabase
+          .from('chat_messages' as any)
+          .select('id, content, user_id')
+          .in('id', replyIds)
+
+        const replyMap = new Map((replies ?? []).map((r: any) => [r.id, r]))
+        for (const msg of messages) {
+          msg.reply_message = (msg as any).reply_to_id ? (replyMap.get((msg as any).reply_to_id) ?? null) : null
+        }
+      } else {
+        for (const msg of messages) {
+          msg.reply_message = null
+        }
+      }
+
+      return messages
     },
     initialPageParam: null as string | null,
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.length < PAGE_SIZE) return undefined
+      return lastPage[lastPage.length - 1]?.created_at
+    },
     enabled: !!channelId && !!user,
     staleTime: 10 * 1000,
   })
@@ -135,9 +161,9 @@ export function useChannelMessages(channelId: string | undefined) {
     }
   }, [channelId, queryClient])
 
-  // Flatten pages into a single array
+  // Flatten pages into a single array (pages are newest-first, reverse for display)
   const messages = useMemo(
-    () => query.data?.pages.flatMap((p) => p.messages).reverse() ?? [],
+    () => query.data?.pages.flat().reverse() ?? [],
     [query.data],
   )
 
@@ -158,11 +184,13 @@ export function useSendChannelMessage() {
   return useMutation({
     mutationFn: async ({
       channelId,
+      collectiveId,
       content,
       imageUrl,
       replyToId,
     }: {
       channelId: string
+      collectiveId: string
       content?: string
       imageUrl?: string
       replyToId?: string
@@ -173,6 +201,7 @@ export function useSendChannelMessage() {
         .from('chat_messages' as any)
         .insert({
           channel_id: channelId,
+          collective_id: collectiveId,
           user_id: user.id,
           content: content || null,
           image_url: imageUrl || null,
@@ -200,31 +229,38 @@ export function useChannelUnreadCounts() {
     queryFn: async () => {
       if (!user) return {}
 
-      // Get user's channel memberships
+      // Get user's channel memberships with collective_id
       const { data: memberships } = await supabase
         .from('chat_channel_members' as any)
-        .select('channel_id')
+        .select('channel_id, chat_channels(collective_id)')
         .eq('user_id', user.id)
 
       if (!memberships?.length) return {}
 
-      // Get read receipts for channels
-      const channelIds = memberships.map((m: any) => m.channel_id)
+      // Build channel → collectiveId map
+      const channelToCollective = new Map<string, string>()
+      for (const m of memberships as any[]) {
+        const cid = m.chat_channels?.collective_id
+        if (cid) channelToCollective.set(m.channel_id, cid)
+      }
+
+      // Get read receipts by collective_id (that's the unique key on chat_read_receipts)
+      const collectiveIds = [...new Set(channelToCollective.values())]
       const { data: receipts } = await supabase
         .from('chat_read_receipts' as any)
-        .select('channel_id, last_read_at')
+        .select('collective_id, last_read_at')
         .eq('user_id', user.id)
-        .in('channel_id', channelIds)
+        .in('collective_id', collectiveIds)
 
       const receiptMap = new Map<string, string>()
       for (const r of receipts ?? []) {
-        receiptMap.set((r as any).channel_id, (r as any).last_read_at)
+        receiptMap.set((r as any).collective_id, (r as any).last_read_at)
       }
 
       // Count unread messages per channel
       const counts: Record<string, number> = {}
-      for (const channelId of channelIds) {
-        const lastRead = receiptMap.get(channelId)
+      for (const [channelId, collectiveId] of channelToCollective) {
+        const lastRead = receiptMap.get(collectiveId)
         let q = supabase
           .from('chat_messages' as any)
           .select('id', { count: 'exact', head: true })
@@ -260,16 +296,16 @@ export function useMarkChannelRead() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (channelId: string) => {
+    mutationFn: async ({ channelId, collectiveId }: { channelId: string; collectiveId: string }) => {
       if (!user) return
 
       await supabase
         .from('chat_read_receipts' as any)
         .upsert({
-          channel_id: channelId,
+          collective_id: collectiveId,
           user_id: user.id,
           last_read_at: new Date().toISOString(),
-        }, { onConflict: 'channel_id,user_id' })
+        }, { onConflict: 'collective_id,user_id' })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['channel-unread'] })

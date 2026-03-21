@@ -1,7 +1,20 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
-import { ShoppingBag, Star, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import {
+  ShoppingBag,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+  Minus,
+  Plus,
+  Truck,
+  ShieldCheck,
+  Leaf,
+  Share2,
+  Check,
+} from 'lucide-react'
+import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -12,8 +25,27 @@ import { Avatar } from '@/components/avatar'
 import { useToast } from '@/components/toast'
 import { useProduct, useRelatedProducts, useProductReviews } from '@/hooks/use-merch'
 import { useCart } from '@/hooks/use-cart'
-import { formatPrice, variantLabel, type ProductVariant } from '@/types/merch'
+import { formatPrice, type ProductVariant } from '@/types/merch'
 import { cn } from '@/lib/cn'
+
+/* ------------------------------------------------------------------ */
+/*  Animation variants                                                 */
+/* ------------------------------------------------------------------ */
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 28 } },
+}
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.92 },
+  visible: { opacity: 1, scale: 1, transition: { type: 'spring' as const, stiffness: 300, damping: 25 } },
+}
 
 /* ------------------------------------------------------------------ */
 /*  Swipeable image gallery                                            */
@@ -39,14 +71,19 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
 
   if (images.length === 0) {
     return (
-      <div className="w-full aspect-square bg-white flex items-center justify-center">
-        <ShoppingBag size={48} className="text-primary-300" />
+      <div className="w-full aspect-[4/5] sm:aspect-square bg-gradient-to-br from-primary-50 to-primary-100/60 flex items-center justify-center rounded-b-3xl">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-20 h-20 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+            <ShoppingBag size={32} className="text-primary-300" />
+          </div>
+          <span className="text-sm text-primary-300 font-medium">No image available</span>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="relative -mx-4 lg:-mx-6">
+    <div className="relative -mx-4 lg:mx-0 lg:rounded-2xl lg:overflow-hidden">
       <div
         ref={scrollRef}
         onScroll={handleScroll}
@@ -54,18 +91,22 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
       >
         {images.map((src, i) => (
           <div key={i} className="snap-center shrink-0 w-full">
-            <img
-              src={src}
-              alt={`${alt} image ${i + 1}`}
-              className="w-full aspect-square object-cover"
-              loading={i === 0 ? 'eager' : 'lazy'}
-            />
+            <div className="relative">
+              <img
+                src={src}
+                alt={`${alt} image ${i + 1}`}
+                className="w-full aspect-[4/5] sm:aspect-square object-cover"
+                loading={i === 0 ? 'eager' : 'lazy'}
+              />
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
+            </div>
           </div>
         ))}
       </div>
-      {/* Dots */}
+
+      {/* Pill dots */}
       {images.length > 1 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-sm">
           {images.map((_, i) => (
             <button
               key={i}
@@ -73,33 +114,57 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
               onClick={() => scrollTo(i)}
               aria-label={`Image ${i + 1}`}
               className={cn(
-                'w-2 h-2 rounded-full p-2.5 bg-clip-content transition-all duration-150 cursor-pointer select-none active:scale-[0.97]',
-                i === currentIndex ? 'bg-white' : 'bg-white/50',
+                'rounded-full transition-all duration-200 cursor-pointer select-none active:scale-[0.9]',
+                i === currentIndex
+                  ? 'w-6 h-2 bg-white'
+                  : 'w-2 h-2 bg-white/50 hover:bg-white/70',
               )}
             />
           ))}
         </div>
       )}
+
       {/* Arrow buttons (desktop) */}
       {images.length > 1 && (
         <>
           <button
             type="button"
             onClick={() => scrollTo(Math.max(0, currentIndex - 1))}
-            className="hidden sm:flex absolute left-2 top-1/2 -translate-y-1/2 items-center justify-center min-w-11 min-h-11 rounded-full bg-white/80 shadow-sm cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+            className={cn(
+              'hidden lg:flex absolute left-3 top-1/2 -translate-y-1/2',
+              'items-center justify-center w-10 h-10 rounded-full',
+              'bg-white/90 shadow-md backdrop-blur-sm',
+              'cursor-pointer select-none active:scale-[0.95] transition-all duration-150',
+              'hover:bg-white hover:shadow-lg',
+              currentIndex === 0 && 'opacity-0 pointer-events-none',
+            )}
             aria-label="Previous image"
           >
-            <ChevronLeft size={18} />
+            <ChevronLeft size={18} className="text-primary-800" />
           </button>
           <button
             type="button"
             onClick={() => scrollTo(Math.min(images.length - 1, currentIndex + 1))}
-            className="hidden sm:flex absolute right-2 top-1/2 -translate-y-1/2 items-center justify-center min-w-11 min-h-11 rounded-full bg-white/80 shadow-sm cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+            className={cn(
+              'hidden lg:flex absolute right-3 top-1/2 -translate-y-1/2',
+              'items-center justify-center w-10 h-10 rounded-full',
+              'bg-white/90 shadow-md backdrop-blur-sm',
+              'cursor-pointer select-none active:scale-[0.95] transition-all duration-150',
+              'hover:bg-white hover:shadow-lg',
+              currentIndex === images.length - 1 && 'opacity-0 pointer-events-none',
+            )}
             aria-label="Next image"
           >
-            <ChevronRight size={18} />
+            <ChevronRight size={18} className="text-primary-800" />
           </button>
         </>
+      )}
+
+      {/* Image counter badge */}
+      {images.length > 1 && (
+        <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-sm text-white text-xs font-medium tabular-nums">
+          {currentIndex + 1}/{images.length}
+        </span>
       )}
     </div>
   )
@@ -109,19 +174,150 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
 /*  Star rating display                                                */
 /* ------------------------------------------------------------------ */
 
-function Stars({ rating }: { rating: number }) {
+function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
   return (
     <div className="flex items-center gap-0.5" aria-label={`${rating} out of 5 stars`}>
       {Array.from({ length: 5 }).map((_, i) => (
         <Star
           key={i}
-          size={14}
+          size={size}
           className={cn(
-            i < Math.round(rating) ? 'text-warning-400 fill-warning-400' : 'text-primary-300',
+            'transition-colors duration-150',
+            i < Math.round(rating)
+              ? 'text-warning-400 fill-warning-400'
+              : 'text-primary-200',
           )}
         />
       ))}
     </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Trust badges row                                                   */
+/* ------------------------------------------------------------------ */
+
+function TrustBadges() {
+  const badges = [
+    { icon: Leaf, label: 'Eco-friendly' },
+    { icon: Truck, label: 'AU shipping' },
+    { icon: ShieldCheck, label: 'Secure checkout' },
+  ]
+
+  return (
+    <div className="flex items-center justify-center gap-6 py-4 px-3 rounded-2xl bg-primary-50/50 border border-primary-100/60">
+      {badges.map(({ icon: Icon, label }) => (
+        <div key={label} className="flex flex-col items-center gap-1.5">
+          <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm">
+            <Icon size={16} className="text-primary-500" />
+          </div>
+          <span className="text-[11px] font-medium text-primary-500">{label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Quantity stepper                                                    */
+/* ------------------------------------------------------------------ */
+
+function QuantityStepper({
+  value,
+  onChange,
+  max,
+}: {
+  value: number
+  onChange: (v: number) => void
+  max?: number
+}) {
+  return (
+    <div className="inline-flex items-center gap-1 rounded-xl bg-surface-0 shadow-sm border border-primary-100/50 p-1">
+      <button
+        type="button"
+        onClick={() => onChange(Math.max(1, value - 1))}
+        disabled={value <= 1}
+        className={cn(
+          'flex items-center justify-center w-10 h-10 rounded-lg',
+          'cursor-pointer select-none active:scale-[0.93] transition-all duration-150',
+          value <= 1
+            ? 'text-primary-200 cursor-not-allowed'
+            : 'text-primary-600 hover:bg-primary-50',
+        )}
+        aria-label="Decrease quantity"
+      >
+        <Minus size={16} strokeWidth={2.5} />
+      </button>
+      <span className="font-heading font-bold text-primary-800 min-w-[3ch] text-center tabular-nums text-lg">
+        {value}
+      </span>
+      <button
+        type="button"
+        onClick={() => onChange(max ? Math.min(max, value + 1) : value + 1)}
+        disabled={max !== undefined && value >= max}
+        className={cn(
+          'flex items-center justify-center w-10 h-10 rounded-lg',
+          'cursor-pointer select-none active:scale-[0.93] transition-all duration-150',
+          max !== undefined && value >= max
+            ? 'text-primary-200 cursor-not-allowed'
+            : 'text-primary-600 hover:bg-primary-50',
+        )}
+        aria-label="Increase quantity"
+      >
+        <Plus size={16} strokeWidth={2.5} />
+      </button>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Section divider                                                    */
+/* ------------------------------------------------------------------ */
+
+function Divider() {
+  return <div className="h-px bg-gradient-to-r from-transparent via-primary-100 to-transparent" />
+}
+
+/* ------------------------------------------------------------------ */
+/*  Share helper                                                       */
+/* ------------------------------------------------------------------ */
+
+async function shareProduct(name: string, slug: string) {
+  const url = `${window.location.origin}/shop/${slug}`
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: name, text: `Check out this Co-Exist merch: ${name}`, url })
+    } catch {
+      // User cancelled
+    }
+  } else {
+    await navigator.clipboard.writeText(url)
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Loading skeleton                                                   */
+/* ------------------------------------------------------------------ */
+
+function ProductDetailSkeleton() {
+  return (
+    <Page header={<Header title="" back />}>
+      <div className="-mx-4 lg:mx-0">
+        <Skeleton variant="image" className="rounded-none lg:rounded-2xl aspect-[4/5] sm:aspect-square" />
+      </div>
+      <div className="py-6 space-y-5">
+        <div className="space-y-3">
+          <Skeleton variant="title" className="w-2/3" />
+          <Skeleton variant="text" className="w-1/3" />
+        </div>
+        <div className="flex gap-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} variant="text" className="w-16 h-11 rounded-xl" />
+          ))}
+        </div>
+        <Skeleton variant="text" count={3} />
+      </div>
+    </Page>
   )
 }
 
@@ -134,46 +330,51 @@ export default function ProductDetailPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { toast } = useToast()
+  const placeholderMerch = useAppImage('placeholder_merch')
 
   const { data: product, isLoading } = useProduct(slug)
   const { data: reviews } = useProductReviews(product?.id)
-  const { data: related } = useRelatedProducts(product?.id, product?.category ?? null)
+  const { data: related } = useRelatedProducts(product?.id)
   const addItem = useCart((s) => s.addItem)
-
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
   const [quantity, setQuantity] = useState(1)
+  const [addedToCart, setAddedToCart] = useState(false)
 
   // Auto-select first in-stock variant when product loads
   const activeVariant = selectedVariant ?? product?.variants.find((v) => v.stock > 0 && v.is_active) ?? product?.variants[0] ?? null
   const inStock = activeVariant ? activeVariant.stock > 0 : false
 
+  const sizes = useMemo(
+    () => product ? [...new Set(product.variants.map((v) => v.size).filter(Boolean))] as string[] : [],
+    [product],
+  )
+  const colours = useMemo(
+    () => product ? [...new Set(product.variants.map((v) => v.colour).filter(Boolean))] as string[] : [],
+    [product],
+  )
+
+  const ratingDisplay = useMemo(() => {
+    if (!reviews || reviews.length === 0) return null
+    const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+    return { avg: Math.round(avg * 10) / 10, count: reviews.length }
+  }, [reviews])
+
   const handleAddToCart = useCallback(() => {
     if (!product || !activeVariant) return
     addItem(product, activeVariant, quantity)
+    setAddedToCart(true)
     toast.success(`${product.name} added to cart`)
+    setTimeout(() => setAddedToCart(false), 2000)
   }, [product, activeVariant, quantity, addItem, toast])
 
-  if (isLoading) {
-    return (
-      <Page header={<Header title="Product" back />}>
-        <Skeleton variant="card" className="rounded-none" />
-        <div className="py-4 space-y-3">
-          <Skeleton variant="title" />
-          <Skeleton variant="text" count={3} />
-        </div>
-      </Page>
-    )
-  }
+  const handleShare = useCallback(() => {
+    if (!product) return
+    shareProduct(product.name, product.slug)
+    toast.success('Link copied!')
+  }, [product, toast])
+
+  if (isLoading) return <ProductDetailSkeleton />
 
   if (!product) {
     return (
@@ -181,240 +382,352 @@ export default function ProductDetailPage() {
         <EmptyState
           illustration="error"
           title="Product not found"
-          description="This product may have been removed"
+          description="This product may have been removed or the link is incorrect"
           action={{ label: 'Back to shop', to: '/shop' }}
         />
       </Page>
     )
   }
 
-  // Group unique sizes and colours
-  const sizes = [...new Set(product.variants.map((v) => v.size).filter(Boolean))] as string[]
-  const colours = [...new Set(product.variants.map((v) => v.colour).filter(Boolean))] as string[]
-
   return (
     <Page
-      header={<Header title={product.name} back />}
+      header={
+        <Header
+          title={product.name}
+          back
+          rightActions={
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex items-center justify-center min-w-11 min-h-11 rounded-full text-primary-600 hover:bg-surface-2 cursor-pointer select-none active:scale-[0.95] transition-all duration-150"
+              aria-label="Share product"
+            >
+              <Share2 size={18} />
+            </button>
+          }
+        />
+      }
       footer={
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          icon={<ShoppingBag size={18} />}
-          disabled={!inStock}
-          onClick={handleAddToCart}
-        >
-          {inStock ? `Add to cart - ${formatPrice(activeVariant!.price_cents * quantity)}` : 'Sold out'}
-        </Button>
+        <div className="space-y-0">
+          {/* Price summary + quantity in sticky footer */}
+          <div className="flex items-center justify-between px-1 pb-2">
+            <div>
+              <span className="text-xs text-primary-400">Total</span>
+              <p className="font-heading text-xl font-bold text-primary-800">
+                {formatPrice((activeVariant?.price_cents ?? product.base_price_cents) * quantity)}
+              </p>
+            </div>
+            <QuantityStepper
+              value={quantity}
+              onChange={setQuantity}
+              max={activeVariant?.stock}
+            />
+          </div>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            icon={addedToCart ? <Check size={18} /> : <ShoppingBag size={18} />}
+            disabled={!inStock}
+            onClick={handleAddToCart}
+          >
+            {addedToCart ? 'Added!' : inStock ? 'Add to Cart' : 'Sold Out'}
+          </Button>
+        </div>
       }
     >
-      {/* Image gallery */}
+      {/* Hero image gallery */}
       <ImageGallery images={product.images} alt={product.name} />
 
       <motion.div
         variants={shouldReduceMotion ? undefined : stagger}
         initial="hidden"
         animate="visible"
-        className="py-5 space-y-5"
+        className="py-6 space-y-6"
       >
-        {/* Name + price */}
-        <motion.div variants={fadeUp}>
-          <h1 className="font-heading text-xl font-bold text-primary-800">
+        {/* ---- Name, price, rating ---- */}
+        <motion.div variants={fadeUp} className="space-y-3">
+          {product.category && (
+            <span className="inline-block px-3 py-1 rounded-full bg-primary-100/70 text-primary-600 text-xs font-semibold uppercase tracking-wider">
+              {product.category}
+            </span>
+          )}
+
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-primary-800 leading-tight">
             {product.name}
           </h1>
-          <div className="flex items-center gap-3 mt-2">
-            <span className="font-heading text-lg font-bold text-primary-400">
+
+          <div className="flex items-center flex-wrap gap-3">
+            <span className="font-heading text-2xl font-bold text-primary-500">
               {formatPrice(activeVariant?.price_cents ?? product.base_price_cents)}
             </span>
-            {product.avg_rating !== null && product.review_count > 0 && (
-              <div className="flex items-center gap-1.5">
-                <Stars rating={product.avg_rating} />
-                <span className="text-sm text-primary-400">
-                  ({product.review_count})
+
+            {ratingDisplay && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-warning-50/80">
+                <Stars rating={ratingDisplay.avg} size={13} />
+                <span className="text-sm font-semibold text-warning-700">
+                  {ratingDisplay.avg}
+                </span>
+                <span className="text-xs text-primary-400">
+                  ({ratingDisplay.count})
                 </span>
               </div>
             )}
           </div>
-          {activeVariant && !inStock && (
-            <p className="mt-1 text-sm font-medium text-error">Out of stock</p>
-          )}
-          {activeVariant && activeVariant.stock > 0 && activeVariant.stock <= 5 && (
-            <p className="mt-1 text-sm font-medium text-warning-600">
-              Only {activeVariant.stock} left
-            </p>
-          )}
+
+          {/* Stock status badges */}
+          <AnimatePresence mode="wait">
+            {activeVariant && !inStock && (
+              <motion.div
+                key="oos"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-error-50 border border-error-100"
+              >
+                <div className="w-2 h-2 rounded-full bg-error-400" />
+                <span className="text-sm font-medium text-error-700">Out of stock</span>
+              </motion.div>
+            )}
+            {activeVariant && activeVariant.stock > 0 && activeVariant.stock <= 5 && (
+              <motion.div
+                key="low"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-warning-50 border border-warning-100"
+              >
+                <div className="w-2 h-2 rounded-full bg-warning-400 animate-pulse" />
+                <span className="text-sm font-medium text-warning-700">
+                  Only {activeVariant.stock} left — grab yours!
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
-        {/* Description */}
+        <Divider />
+
+        {/* ---- Description ---- */}
         <motion.div variants={fadeUp}>
-        <p className="text-sm text-primary-400 leading-relaxed">
-          {product.description}
-        </p>
+          <h2 className="text-sm font-semibold text-primary-800 uppercase tracking-wider mb-3">
+            About this product
+          </h2>
+          <p className="text-[15px] text-primary-600 leading-relaxed">
+            {product.description}
+          </p>
         </motion.div>
 
-        {/* Variant selector: sizes */}
-        {sizes.length > 0 && (
-          <motion.div variants={fadeUp}>
-            <h3 className="text-sm font-semibold text-primary-800 mb-2">Size</h3>
-            <div className="flex flex-wrap gap-2">
-              {sizes.map((size) => {
-                const variant = product.variants.find(
-                  (v) => v.size === size && (activeVariant?.colour ? v.colour === activeVariant.colour : true),
-                )
-                const isSelected = activeVariant?.size === size
-                const available = variant && variant.stock > 0
+        {/* ---- Variant selectors ---- */}
+        {(sizes.length > 0 || colours.length > 0) && (
+          <>
+            <Divider />
 
-                return (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => variant && setSelectedVariant(variant)}
-                    disabled={!available}
-                    className={cn(
-                      'px-4 py-2 min-h-11 rounded-xl text-sm font-medium cursor-pointer select-none',
-                      'active:scale-[0.97] transition-all duration-150',
-                      isSelected
-                        ? 'bg-primary-100 text-primary-800 shadow-sm ring-2 ring-primary-500'
-                        : available
-                          ? 'bg-primary-50/60 text-primary-800 hover:bg-primary-100/60'
-                          : 'bg-primary-50/30 text-primary-300 cursor-not-allowed line-through',
-                    )}
-                  >
-                    {size}
-                  </button>
-                )
-              })}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Variant selector: colours */}
-        {colours.length > 0 && (
-          <motion.div variants={fadeUp}>
-            <h3 className="text-sm font-semibold text-primary-800 mb-2">Colour</h3>
-            <div className="flex flex-wrap gap-2">
-              {colours.map((colour) => {
-                const variant = product.variants.find(
-                  (v) => v.colour === colour && (activeVariant?.size ? v.size === activeVariant.size : true),
-                )
-                const isSelected = activeVariant?.colour === colour
-                const available = variant && variant.stock > 0
-
-                return (
-                  <button
-                    key={colour}
-                    type="button"
-                    onClick={() => variant && setSelectedVariant(variant)}
-                    disabled={!available}
-                    className={cn(
-                      'px-4 py-2 min-h-11 rounded-xl text-sm font-medium cursor-pointer select-none',
-                      'active:scale-[0.97] transition-all duration-150',
-                      isSelected
-                        ? 'bg-primary-100 text-primary-800 shadow-sm ring-2 ring-primary-500'
-                        : available
-                          ? 'bg-primary-50/60 text-primary-800 hover:bg-primary-100/60'
-                          : 'bg-primary-50/30 text-primary-300 cursor-not-allowed line-through',
-                    )}
-                  >
-                    {colour}
-                  </button>
-                )
-              })}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Quantity */}
-        <motion.div variants={fadeUp}>
-          <h3 className="text-sm font-semibold text-primary-800 mb-2">Quantity</h3>
-          <div className="inline-flex items-center gap-3 bg-white rounded-lg p-1">
-            <button
-              type="button"
-              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              className="flex items-center justify-center min-w-11 min-h-11 rounded-xl text-primary-400 hover:bg-primary-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
-              aria-label="Decrease quantity"
-            >
-              <Minus size={16} />
-            </button>
-            <span className="font-heading font-semibold text-primary-800 min-w-[2ch] text-center tabular-nums">
-              {quantity}
-            </span>
-            <button
-              type="button"
-              onClick={() => setQuantity((q) => q + 1)}
-              className="flex items-center justify-center min-w-11 min-h-11 rounded-xl text-primary-400 hover:bg-primary-50 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
-              aria-label="Increase quantity"
-            >
-              <Plus size={16} />
-            </button>
-          </div>
-        </motion.div>
-
-        {/* Reviews */}
-        {reviews && reviews.length > 0 && (
-          <motion.div variants={fadeUp}>
-            <h3 className="font-heading font-semibold text-primary-800 mb-3">
-              Reviews ({reviews.length})
-            </h3>
-            <div className="space-y-3">
-              {reviews.slice(0, 5).map((review) => (
-                <div
-                  key={review.id}
-                  className="p-3 rounded-xl bg-primary-50/40"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Avatar
-                      src={review.profiles?.avatar_url}
-                      name={review.profiles?.display_name ?? 'Anonymous'}
-                      size="xs"
-                    />
-                    <span className="text-sm font-medium text-primary-800">
-                      {review.profiles?.display_name ?? 'Anonymous'}
-                    </span>
-                    <Stars rating={review.rating} />
-                  </div>
-                  {review.text && (
-                    <p className="text-sm text-primary-400">{review.text}</p>
+            {sizes.length > 0 && (
+              <motion.div variants={fadeUp}>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-semibold text-primary-800 uppercase tracking-wider">
+                    Size
+                  </h2>
+                  {activeVariant?.size && (
+                    <span className="text-sm text-primary-400">{activeVariant.size}</span>
                   )}
                 </div>
-              ))}
-            </div>
-          </motion.div>
+                <div className="flex flex-wrap gap-2">
+                  {sizes.map((size) => {
+                    const variant = product.variants.find(
+                      (v) => v.size === size && (activeVariant?.colour ? v.colour === activeVariant.colour : true),
+                    )
+                    const isSelected = activeVariant?.size === size
+                    const available = variant && variant.stock > 0
+
+                    return (
+                      <motion.button
+                        key={size}
+                        type="button"
+                        onClick={() => variant && setSelectedVariant(variant)}
+                        disabled={!available}
+                        whileTap={available ? { scale: 0.93 } : undefined}
+                        className={cn(
+                          'relative px-5 py-2.5 min-h-11 min-w-[3.5rem] rounded-xl text-sm font-semibold',
+                          'transition-all duration-200 cursor-pointer select-none',
+                          isSelected
+                            ? 'bg-primary-800 text-white shadow-md'
+                            : available
+                              ? 'bg-white text-primary-700 shadow-sm border border-primary-100 hover:border-primary-300 hover:shadow-md'
+                              : 'bg-primary-50/40 text-primary-300 cursor-not-allowed line-through border border-transparent',
+                        )}
+                      >
+                        {size}
+                      </motion.button>
+                    )
+                  })}
+                </div>
+              </motion.div>
+            )}
+
+            {colours.length > 0 && (
+              <motion.div variants={fadeUp}>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-semibold text-primary-800 uppercase tracking-wider">
+                    Colour
+                  </h2>
+                  {activeVariant?.colour && (
+                    <span className="text-sm text-primary-400">{activeVariant.colour}</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {colours.map((colour) => {
+                    const variant = product.variants.find(
+                      (v) => v.colour === colour && (activeVariant?.size ? v.size === activeVariant.size : true),
+                    )
+                    const isSelected = activeVariant?.colour === colour
+                    const available = variant && variant.stock > 0
+
+                    return (
+                      <motion.button
+                        key={colour}
+                        type="button"
+                        onClick={() => variant && setSelectedVariant(variant)}
+                        disabled={!available}
+                        whileTap={available ? { scale: 0.93 } : undefined}
+                        className={cn(
+                          'relative px-5 py-2.5 min-h-11 rounded-xl text-sm font-semibold',
+                          'transition-all duration-200 cursor-pointer select-none',
+                          isSelected
+                            ? 'bg-primary-800 text-white shadow-md'
+                            : available
+                              ? 'bg-white text-primary-700 shadow-sm border border-primary-100 hover:border-primary-300 hover:shadow-md'
+                              : 'bg-primary-50/40 text-primary-300 cursor-not-allowed line-through border border-transparent',
+                        )}
+                      >
+                        {colour}
+                      </motion.button>
+                    )
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </>
         )}
 
-        {/* Related products */}
+        <Divider />
+
+        {/* ---- Trust badges ---- */}
+        <motion.div variants={fadeUp}>
+          <TrustBadges />
+        </motion.div>
+
+        {/* ---- Reviews ---- */}
+        {reviews && reviews.length > 0 && (
+          <>
+            <Divider />
+
+            <motion.div variants={fadeUp}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="font-heading text-lg font-bold text-primary-800">
+                  Reviews
+                </h2>
+                {ratingDisplay && (
+                  <div className="flex items-center gap-2">
+                    <Stars rating={ratingDisplay.avg} size={16} />
+                    <span className="font-heading font-bold text-primary-800">
+                      {ratingDisplay.avg}
+                    </span>
+                    <span className="text-sm text-primary-400">
+                      ({ratingDisplay.count})
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                {reviews.slice(0, 5).map((review) => (
+                  <motion.div
+                    key={review.id}
+                    variants={scaleIn}
+                    className="p-4 rounded-2xl bg-surface-0 shadow-sm border border-primary-50"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <Avatar
+                        src={review.profiles?.avatar_url}
+                        name={review.profiles?.display_name ?? 'Anonymous'}
+                        size="sm"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-primary-800 truncate">
+                          {review.profiles?.display_name ?? 'Anonymous'}
+                        </p>
+                        <Stars rating={review.rating} size={12} />
+                      </div>
+                      <time className="text-xs text-primary-300 shrink-0">
+                        {new Date(review.created_at).toLocaleDateString('en-AU', {
+                          month: 'short',
+                          day: 'numeric',
+                        })}
+                      </time>
+                    </div>
+                    {review.text && (
+                      <p className="text-sm text-primary-500 leading-relaxed">{review.text}</p>
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+
+        {/* ---- Related products ---- */}
         {related && related.length > 0 && (
-          <motion.div variants={fadeUp}>
-            <h3 className="font-heading font-semibold text-primary-800 mb-3">
-              You might also like
-            </h3>
-            <div className="-mx-4 lg:-mx-6">
-            <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
-              {related.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => navigate(`/shop/${p.slug}`)}
-                  className="shrink-0 w-36 min-h-11 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
-                >
-                  <Card variant="merch">
-                    <Card.Image
-                      src={p.images[0] ?? '/img/placeholder-merch.jpg'}
-                      alt={p.name}
-                      aspectRatio="1/1"
-                    />
-                    <Card.Content className="pb-2">
-                      <Card.Title className="text-xs line-clamp-1">{p.name}</Card.Title>
-                      <p className="text-xs font-semibold text-primary-400 mt-0.5">
-                        {formatPrice(p.base_price_cents)}
-                      </p>
-                    </Card.Content>
-                  </Card>
-                </button>
-              ))}
-            </div>
-            </div>
-          </motion.div>
+          <>
+            <Divider />
+
+            <motion.div variants={fadeUp}>
+              <h2 className="font-heading text-lg font-bold text-primary-800 mb-4">
+                You might also like
+              </h2>
+              <div className="-mx-4 lg:-mx-0">
+                <div className="flex gap-3 overflow-x-auto px-4 lg:px-0 scrollbar-none pb-2">
+                  {related.map((p, i) => (
+                    <motion.button
+                      key={p.id}
+                      type="button"
+                      onClick={() => navigate(`/shop/${p.slug}`)}
+                      initial={shouldReduceMotion ? undefined : { opacity: 0, x: 20 }}
+                      animate={shouldReduceMotion ? undefined : { opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.08, type: 'spring' as const, stiffness: 300, damping: 25 }}
+                      className="shrink-0 w-40 cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
+                    >
+                      <Card variant="merch">
+                        <div className="relative">
+                          <Card.Image
+                            src={p.images[0] ?? placeholderMerch}
+                            alt={p.name}
+                            aspectRatio="1/1"
+                          />
+                          {p.variants.every((v) => v.stock === 0) && (
+                            <div className="absolute inset-0 bg-primary-950/40 flex items-center justify-center">
+                              <span className="px-2.5 py-1 bg-white/90 rounded-full text-xs font-semibold text-primary-800">
+                                Sold out
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <Card.Content className="pb-3">
+                          <Card.Title className="text-xs line-clamp-1">
+                            {p.name}
+                          </Card.Title>
+                          <p className="text-xs font-bold text-primary-500 mt-1">
+                            {formatPrice(p.base_price_cents)}
+                          </p>
+                        </Card.Content>
+                      </Card>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </>
         )}
       </motion.div>
     </Page>

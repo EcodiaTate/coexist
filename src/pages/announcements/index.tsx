@@ -86,7 +86,7 @@ function AnnouncementCard({
         'transition-colors duration-150',
         isUrgent
           ? 'bg-gradient-to-br from-white to-accent-100 border border-accent-200'
-          : 'bg-white',
+          : 'bg-surface-0',
         isUnread && !isUrgent && 'ring-2 ring-primary-200',
       )}
       role="article"

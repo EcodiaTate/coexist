@@ -147,7 +147,7 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start gap-3 py-2.5">
-      <span className="flex items-center justify-center w-8 h-8 rounded-full bg-white text-primary-400 shrink-0" aria-hidden="true">
+      <span className="flex items-center justify-center w-8 h-8 rounded-full bg-surface-0 text-primary-400 shrink-0" aria-hidden="true">
         {icon}
       </span>
       <div className="flex-1 min-w-0">
@@ -206,8 +206,10 @@ export default function EventDetailPage() {
     return now >= earlyWindow && now <= end
   })()
   const userStatus = event?.user_registration?.status ?? null
-  const isLeaderOrAbove = collectiveRole.isCoLeader || collectiveRole.isLeader || isGlobalStaff
-  const isStaff = collectiveRole.isAssistLeader || isGlobalStaff
+  // Only show leader tools if user has a role in THIS event's collective (or is global staff)
+  const belongsToCollective = collectiveRole.role !== null
+  const isLeaderOrAbove = (belongsToCollective && (collectiveRole.isCoLeader || collectiveRole.isLeader)) || isGlobalStaff
+  const isStaff = (belongsToCollective && collectiveRole.isAssistLeader) || isGlobalStaff
 
   const capacityText = useMemo(() => {
     if (!event) return ''
@@ -352,7 +354,7 @@ export default function EventDetailPage() {
       // Event not active yet — show "You're going"
       return (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-white text-primary-400 text-sm font-semibold">
+          <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-surface-0 text-primary-400 text-sm font-semibold">
             <CheckCircle2 size={18} />
             You're going!
           </div>
@@ -433,7 +435,7 @@ export default function EventDetailPage() {
                 className={cn(
                   'flex items-center justify-center min-h-11 min-w-11 rounded-full cursor-pointer select-none',
                   'active:scale-[0.97] transition-all duration-150',
-                  event.cover_image_url ? 'text-white/90 hover:bg-white/20' : 'text-primary-400 hover:bg-primary-50',
+                  event.cover_image_url ? 'text-white/90 hover:bg-white/20' : 'text-primary-400 hover:bg-surface-3',
                 )}
                 aria-label="Share event"
               >
@@ -546,7 +548,7 @@ export default function EventDetailPage() {
         {event.collectives && (
           <Link
             to={`/collectives/${event.collectives.slug ?? event.collectives.id}`}
-            className="flex items-center gap-3 p-3 rounded-xl bg-white hover:bg-primary-50 transition-colors duration-150"
+            className="flex items-center gap-3 p-3 rounded-xl bg-surface-0 hover:bg-surface-3 transition-colors duration-150"
           >
             <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-400 shrink-0">
               <Users size={20} />
@@ -575,7 +577,7 @@ export default function EventDetailPage() {
             )}
           </div>
           {event.capacity && (
-            <div className="h-2 rounded-full bg-white overflow-hidden">
+            <div className="h-2 rounded-full bg-surface-2 overflow-hidden">
               <motion.div
                 className={cn(
                   'h-full rounded-full',
@@ -649,8 +651,8 @@ export default function EventDetailPage() {
           </Button>
         )}
 
-        {/* Staff actions (assist_leader and above) */}
-        {isStaff && (
+        {/* Staff actions (assist_leader and above, only for this event's collective) */}
+        {isStaff && !collectiveRole.isLoading && (
           <div className="space-y-2 pt-2">
             <h3 className="text-sm font-semibold text-primary-800">Leader Tools</h3>
             <div className="grid grid-cols-2 gap-2">

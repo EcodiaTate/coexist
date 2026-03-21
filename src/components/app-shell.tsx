@@ -44,7 +44,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
   return (
     <div className={cn(
-      'flex flex-col bg-white',
+      'flex flex-col bg-surface-1',
       // Chat pages need fixed viewport height to prevent scroll bleed
       // Other pages can grow beyond viewport for natural page scrolling
       isChatRoute ? 'h-dvh overflow-hidden' : 'min-h-dvh',

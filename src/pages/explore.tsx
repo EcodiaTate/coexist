@@ -23,6 +23,10 @@ import {
   CalendarRange,
   Compass,
   Check,
+  ArrowRight,
+  Heart,
+  Sparkles,
+  TrendingUp,
 } from 'lucide-react'
 import {
   useSearch,
@@ -42,6 +46,7 @@ import {
   EmptyState,
   Button,
   BottomSheet,
+  CountUp,
 } from '@/components'
 import { SearchBar } from '@/components/search-bar'
 import { cn } from '@/lib/cn'
@@ -206,6 +211,98 @@ function getDatePresets() {
     { label: 'Next 3 months', from: yyyy(today), to: yyyy(quarter) },
   ]
 }
+
+/* ------------------------------------------------------------------ */
+/*  Animation variants                                                 */
+/* ------------------------------------------------------------------ */
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Category cards data                                                */
+/* ------------------------------------------------------------------ */
+
+const CATEGORY_CARDS = [
+  {
+    key: 'tree_planting',
+    label: 'Tree Planting',
+    description: 'Plant native species',
+    icon: <TreePine size={18} />,
+    decorIcon: <TreePine size={56} strokeWidth={1} />,
+    gradient: 'from-success-500 to-primary-600',
+  },
+  {
+    key: 'beach_cleanup',
+    label: 'Beach Cleanup',
+    description: 'Protect our coastlines',
+    icon: <Waves size={18} />,
+    decorIcon: <Waves size={56} strokeWidth={1} />,
+    gradient: 'from-sky-500 to-moss-600',
+  },
+  {
+    key: 'wildlife_survey',
+    label: 'Wildlife Survey',
+    description: 'Monitor & protect',
+    icon: <Bird size={18} />,
+    decorIcon: <Bird size={56} strokeWidth={1} />,
+    gradient: 'from-bark-500 to-warning-600',
+  },
+  {
+    key: 'habitat_restoration',
+    label: 'Habitat Restoration',
+    description: 'Restore ecosystems',
+    icon: <Flower2 size={18} />,
+    decorIcon: <Flower2 size={56} strokeWidth={1} />,
+    gradient: 'from-primary-500 to-moss-600',
+  },
+]
+
+/* ------------------------------------------------------------------ */
+/*  Impact stats data                                                  */
+/* ------------------------------------------------------------------ */
+
+const IMPACT_STATS = [
+  {
+    value: 35500,
+    suffix: '+',
+    label: 'Native Plants',
+    icon: <TreePine size={16} />,
+    iconBg: 'bg-success-100',
+    iconColor: 'text-success-600',
+  },
+  {
+    value: 4900,
+    suffix: 'kg',
+    label: 'Litter Removed',
+    icon: <Waves size={16} />,
+    iconBg: 'bg-sky-100',
+    iconColor: 'text-sky-600',
+  },
+  {
+    value: 5500,
+    suffix: '+',
+    label: 'Volunteers',
+    icon: <Users size={16} />,
+    iconBg: 'bg-plum-100',
+    iconColor: 'text-plum-600',
+  },
+  {
+    value: 13,
+    suffix: '',
+    label: 'Collectives',
+    icon: <Heart size={16} />,
+    iconBg: 'bg-coral-100',
+    iconColor: 'text-coral-600',
+  },
+]
 
 /* ------------------------------------------------------------------ */
 /*  Format helpers                                                     */
@@ -884,7 +981,7 @@ export default function ExplorePage() {
                 'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 viewMode === 'map'
                   ? 'bg-primary-600 text-white'
-                  : 'bg-white text-primary-400 hover:bg-primary-50',
+                  : 'bg-surface-0 text-primary-400 hover:bg-surface-3',
               )}
               aria-label="Map view"
               aria-pressed={viewMode === 'map'}
@@ -899,7 +996,7 @@ export default function ExplorePage() {
                 'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 viewMode === 'list'
                   ? 'bg-primary-600 text-white'
-                  : 'bg-white text-primary-400 hover:bg-primary-50',
+                  : 'bg-surface-0 text-primary-400 hover:bg-surface-3',
               )}
               aria-label="List view"
               aria-pressed={viewMode === 'list'}
@@ -1014,7 +1111,7 @@ export default function ExplorePage() {
                           onClick={() => handleSearchSubmit(term)}
                           className={cn(
                             'flex items-center gap-3 w-full px-3 py-2.5 min-h-11 rounded-xl',
-                            'text-sm text-primary-800 hover:bg-white',
+                            'text-sm text-primary-800 hover:bg-surface-3',
                             'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none group',
                           )}
                         >
@@ -1209,7 +1306,7 @@ export default function ExplorePage() {
                                 }
                                 className={cn(
                                   'flex items-center gap-3 w-full px-3 py-2.5 min-h-11 rounded-xl',
-                                  'hover:bg-white active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                                  'hover:bg-surface-3 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                                 )}
                               >
                                 <Avatar
@@ -1283,71 +1380,242 @@ export default function ExplorePage() {
                     />
                   </div>
                 ) : (
-                  <div className="space-y-6 pb-6">
-                    {/* Nearby events */}
-                    <div>
-                      <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-2">
-                        Nearby Events
-                      </h3>
-                      {nearbyEvents.isLoading ? (
-                        <div className="space-y-3">
-                          {[1, 2, 3].map((i) => (
-                            <Card.Skeleton key={i} />
-                          ))}
+                  <motion.div
+                    className="space-y-0 pb-6"
+                    variants={stagger}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {/* ======== Hero Banner ======== */}
+                    <motion.div variants={fadeUp} className="-mx-4 lg:-mx-6 mb-6">
+                      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-secondary-700">
+                        {/* Decorative circles */}
+                        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/5" aria-hidden="true" />
+                        <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-white/5" aria-hidden="true" />
+                        <div className="absolute top-8 right-16 w-16 h-16 rounded-full bg-sprout-400/15" aria-hidden="true" />
+
+                        {/* Leaf decorations */}
+                        <div className="absolute top-4 right-8 text-white/10" aria-hidden="true">
+                          <Leaf size={64} strokeWidth={1} />
                         </div>
-                      ) : nearbyEvents.data &&
-                        nearbyEvents.data.length > 0 ? (
-                        <div className="space-y-3">
-                          {nearbyEvents.data.map((event) => (
-                            <Card.Root
-                              key={event.id}
-                              variant="event"
-                              onClick={() =>
-                                navigate(`/events/${event.id}`)
-                              }
-                              aria-label={event.title}
-                            >
-                              {event.cover_image_url && (
-                                <Card.Image
-                                  src={event.cover_image_url}
-                                  alt={event.title}
-                                  aspectRatio="21/9"
-                                />
-                              )}
-                              <Card.Content>
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex-1 min-w-0">
-                                    <Card.Title className="text-sm">
-                                      {event.title}
-                                    </Card.Title>
-                                    <Card.Meta className="text-xs flex items-center gap-1 mt-0.5">
-                                      <Calendar
-                                        size={12}
-                                        aria-hidden="true"
-                                      />
-                                      {formatEventDate(event.date_start)}
-                                      {event.collectives && (
-                                        <span className="ml-1">
-                                          &middot; {event.collectives.name}
-                                        </span>
-                                      )}
-                                    </Card.Meta>
-                                  </div>
-                                  <Badge
-                                    variant="activity"
-                                    activity={
-                                      activityTypeToBadge[
-                                        event.activity_type
-                                      ] ?? 'restoration'
-                                    }
-                                    size="sm"
-                                  >
-                                    {formatActivityType(event.activity_type)}
-                                  </Badge>
+                        <div className="absolute bottom-6 left-6 text-white/8 rotate-45" aria-hidden="true">
+                          <TreePine size={48} strokeWidth={1} />
+                        </div>
+
+                        <div className="relative px-5 pt-6 pb-8 lg:px-8">
+                          <motion.div
+                            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1, duration: 0.4 }}
+                          >
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-[11px] font-semibold text-white/90 uppercase tracking-wider mb-3">
+                              <Sparkles size={12} />
+                              Discover your impact
+                            </span>
+                            <h2 className="text-2xl font-bold text-white leading-tight mb-1.5">
+                              Explore. Connect.<br />Protect.
+                            </h2>
+                            <p className="text-sm text-white/70 max-w-[280px] leading-relaxed">
+                              Find conservation events, join local collectives, and make a real difference.
+                            </p>
+                          </motion.div>
+
+                          {/* Impact mini-stats */}
+                          <motion.div
+                            className="flex gap-4 mt-5"
+                            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.25, duration: 0.4 }}
+                          >
+                            {[
+                              { value: 5500, label: 'Volunteers', icon: <Users size={14} /> },
+                              { value: 35500, label: 'Trees Planted', icon: <TreePine size={14} /> },
+                              { value: 13, label: 'Collectives', icon: <Heart size={14} /> },
+                            ].map((stat) => (
+                              <div key={stat.label} className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-0.5">
+                                  <span className="text-sprout-300">{stat.icon}</span>
+                                  <span className="text-lg font-bold text-white tabular-nums">
+                                    <CountUp end={stat.value} duration={1200} />
+                                  </span>
                                 </div>
-                              </Card.Content>
-                            </Card.Root>
-                          ))}
+                                <span className="text-[10px] font-medium text-white/50 uppercase tracking-wider">
+                                  {stat.label}
+                                </span>
+                              </div>
+                            ))}
+                          </motion.div>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* ======== Activity Scroller (Stories-style) ======== */}
+                    <motion.div variants={fadeUp} className="mb-6">
+                      <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-3">
+                        Browse by Activity
+                      </h3>
+                      <ActivityScroller
+                        selected={filters.activityTypes}
+                        onToggle={toggleActivityFilter}
+                      />
+                    </motion.div>
+
+                    {/* ======== Popular Categories Grid ======== */}
+                    <motion.div variants={fadeUp} className="mb-6">
+                      <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-3">
+                        Popular Categories
+                      </h3>
+                      <div className="grid grid-cols-2 gap-3">
+                        {CATEGORY_CARDS.map((cat, i) => (
+                          <motion.button
+                            key={cat.key}
+                            type="button"
+                            onClick={() => toggleActivityFilter(cat.key)}
+                            whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
+                            className={cn(
+                              'relative overflow-hidden rounded-2xl p-4 text-left min-h-[100px]',
+                              'cursor-pointer select-none transition-shadow duration-200',
+                              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                              filters.activityTypes.includes(cat.key)
+                                ? 'ring-2 ring-primary-400 shadow-lg'
+                                : 'shadow-md',
+                            )}
+                            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 + i * 0.05, duration: 0.3 }}
+                            aria-label={cat.label}
+                            aria-pressed={filters.activityTypes.includes(cat.key)}
+                          >
+                            {/* Gradient background */}
+                            <div className={cn('absolute inset-0 bg-gradient-to-br', cat.gradient)} aria-hidden="true" />
+                            {/* Decorative icon */}
+                            <div className="absolute -bottom-2 -right-2 text-white/15" aria-hidden="true">
+                              {cat.decorIcon}
+                            </div>
+                            {/* Content */}
+                            <div className="relative">
+                              <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm text-white mb-2">
+                                {cat.icon}
+                              </span>
+                              <span className="text-sm font-semibold text-white block leading-tight">
+                                {cat.label}
+                              </span>
+                              <span className="text-[10px] font-medium text-white/60 mt-0.5 block">
+                                {cat.description}
+                              </span>
+                            </div>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </motion.div>
+
+                    {/* ======== Featured / Nearby Events ======== */}
+                    <motion.div variants={fadeUp} className="mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+                          Nearby Events
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => navigate('/events')}
+                          className="flex items-center gap-1 text-xs font-semibold text-primary-500 min-h-11 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                        >
+                          View all <ArrowRight size={12} />
+                        </button>
+                      </div>
+
+                      {nearbyEvents.isLoading ? (
+                        <div className="-mx-4 lg:-mx-6">
+                          <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
+                            {[1, 2, 3].map((i) => (
+                              <div key={i} className="w-[260px] shrink-0">
+                                <Card.Skeleton />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : nearbyEvents.data && nearbyEvents.data.length > 0 ? (
+                        <div className="-mx-4 lg:-mx-6">
+                          <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
+                            {nearbyEvents.data.map((event, idx) => {
+                              const meta = ACTIVITY_META[event.activity_type] ?? ACTIVITY_META.other
+                              return (
+                                <motion.div
+                                  key={event.id}
+                                  className="w-[260px] shrink-0"
+                                  initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.06, duration: 0.3 }}
+                                >
+                                  <Card.Root
+                                    variant="event"
+                                    onClick={() => navigate(`/events/${event.id}`)}
+                                    aria-label={event.title}
+                                    className="h-full"
+                                  >
+                                    {/* Image or gradient placeholder */}
+                                    {event.cover_image_url ? (
+                                      <div className="relative">
+                                        <Card.Image
+                                          src={event.cover_image_url}
+                                          alt={event.title}
+                                          aspectRatio="16/10"
+                                        />
+                                        {/* Activity badge overlapping image */}
+                                        <div className="absolute bottom-2 left-3">
+                                          <Badge
+                                            variant="activity"
+                                            activity={activityTypeToBadge[event.activity_type] ?? 'restoration'}
+                                            size="sm"
+                                          >
+                                            {formatActivityType(event.activity_type)}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className={cn(
+                                        'relative w-full flex items-center justify-center bg-gradient-to-br',
+                                        meta.gradient,
+                                      )} style={{ aspectRatio: '16/10' }}>
+                                        <span className="text-white/30">{meta.iconLg}</span>
+                                        <div className="absolute bottom-2 left-3">
+                                          <Badge
+                                            variant="activity"
+                                            activity={activityTypeToBadge[event.activity_type] ?? 'restoration'}
+                                            size="sm"
+                                          >
+                                            {formatActivityType(event.activity_type)}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                    )}
+
+                                    <Card.Content className="p-3">
+                                      <Card.Title className="text-sm line-clamp-2">
+                                        {event.title}
+                                      </Card.Title>
+                                      <Card.Meta className="text-xs flex items-center gap-1.5 mt-1">
+                                        <Calendar size={12} aria-hidden="true" />
+                                        {formatEventDate(event.date_start)}
+                                      </Card.Meta>
+                                      {event.collectives && (
+                                        <Card.Meta className="text-xs flex items-center gap-1.5 mt-0.5">
+                                          <Users size={12} aria-hidden="true" />
+                                          {event.collectives.name}
+                                        </Card.Meta>
+                                      )}
+                                    </Card.Content>
+
+                                    {/* Bottom accent bar */}
+                                    <div className={cn(
+                                      'h-1 w-full bg-gradient-to-r',
+                                      meta.gradient,
+                                    )} aria-hidden="true" />
+                                  </Card.Root>
+                                </motion.div>
+                              )
+                            })}
+                          </div>
                         </div>
                       ) : (
                         <EmptyState
@@ -1358,44 +1626,106 @@ export default function ExplorePage() {
                           className="min-h-[160px] py-4"
                         />
                       )}
-                    </div>
+                    </motion.div>
 
-                    {/* Nearby collectives */}
-                    <div>
-                      <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-2">
-                        Collectives
-                      </h3>
+                    {/* ======== Impact Stats Strip ======== */}
+                    <motion.div variants={fadeUp} className="mb-6 -mx-4 lg:-mx-6">
+                      <div className="bg-gradient-to-r from-primary-50 via-sprout-50 to-sky-50 px-5 py-5 lg:px-8">
+                        <div className="flex items-center gap-2 mb-3">
+                          <TrendingUp size={14} className="text-primary-500" />
+                          <h3 className="text-xs font-semibold text-primary-500 uppercase tracking-wider">
+                            Our Collective Impact
+                          </h3>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          {IMPACT_STATS.map((stat, i) => (
+                            <motion.div
+                              key={stat.label}
+                              className="rounded-xl bg-white/80 backdrop-blur-sm p-3 shadow-sm"
+                              initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: 0.2 + i * 0.08, duration: 0.3 }}
+                            >
+                              <div className={cn(
+                                'flex items-center justify-center w-8 h-8 rounded-lg mb-1.5',
+                                stat.iconBg,
+                              )}>
+                                <span className={stat.iconColor}>{stat.icon}</span>
+                              </div>
+                              <span className="text-lg font-bold text-primary-800 tabular-nums block">
+                                <CountUp end={stat.value} duration={1400} />{stat.suffix}
+                              </span>
+                              <span className="text-[10px] font-medium text-primary-400 uppercase tracking-wider">
+                                {stat.label}
+                              </span>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* ======== Collectives ======== */}
+                    <motion.div variants={fadeUp} className="mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+                          Collectives Near You
+                        </h3>
+                        <button
+                          type="button"
+                          onClick={() => navigate('/collectives')}
+                          className="flex items-center gap-1 text-xs font-semibold text-primary-500 min-h-11 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                        >
+                          View all <ArrowRight size={12} />
+                        </button>
+                      </div>
+
                       {nearbyCollectives.isLoading ? (
                         <Skeleton variant="list-item" count={3} />
-                      ) : nearbyCollectives.data &&
-                        nearbyCollectives.data.length > 0 ? (
+                      ) : nearbyCollectives.data && nearbyCollectives.data.length > 0 ? (
                         <div className="space-y-3">
-                          {nearbyCollectives.data.map((c) => (
-                            <Card.Root
+                          {nearbyCollectives.data.map((c, idx) => (
+                            <motion.div
                               key={c.id}
-                              variant="collective"
-                              onClick={() =>
-                                navigate(`/collectives/${c.slug}`)
-                              }
-                              aria-label={c.name}
+                              initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: idx * 0.06, duration: 0.25 }}
                             >
-                              <Card.Content className="flex items-center gap-3">
-                                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-100 text-primary-400 shrink-0">
-                                  <TreePine size={18} />
+                              <Card.Root
+                                variant="collective"
+                                onClick={() => navigate(`/collectives/${c.slug}`)}
+                                aria-label={c.name}
+                                className="overflow-hidden"
+                              >
+                                <div className="flex items-stretch">
+                                  {/* Gradient accent side bar */}
+                                  <div className="w-1.5 bg-gradient-to-b from-primary-400 via-sprout-400 to-moss-400 shrink-0" aria-hidden="true" />
+                                  <Card.Content className="flex items-center gap-3 flex-1 min-w-0 p-3">
+                                    {/* Icon with gradient bg */}
+                                    <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-primary-100 to-sprout-100 text-primary-500 shrink-0 shadow-sm">
+                                      <TreePine size={20} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-semibold text-primary-800 truncate">
+                                        {c.name}
+                                      </p>
+                                      <p className="text-xs text-primary-400 flex items-center gap-1">
+                                        <MapPin size={10} aria-hidden="true" />
+                                        {[c.region, c.state]
+                                          .filter(Boolean)
+                                          .join(', ')}
+                                      </p>
+                                    </div>
+                                    {/* Member count pill */}
+                                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-50 shrink-0">
+                                      <Users size={12} className="text-primary-400" />
+                                      <span className="text-xs font-semibold text-primary-600 tabular-nums">
+                                        {c.member_count}
+                                      </span>
+                                    </div>
+                                  </Card.Content>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-semibold text-primary-800 truncate">
-                                    {c.name}
-                                  </p>
-                                  <p className="text-xs text-primary-400">
-                                    {[c.region, c.state]
-                                      .filter(Boolean)
-                                      .join(', ')}{' '}
-                                    &middot; {c.member_count} members
-                                  </p>
-                                </div>
-                              </Card.Content>
-                            </Card.Root>
+                              </Card.Root>
+                            </motion.div>
                           ))}
                         </div>
                       ) : (
@@ -1407,8 +1737,36 @@ export default function ExplorePage() {
                           className="min-h-[160px] py-4"
                         />
                       )}
-                    </div>
-                  </div>
+                    </motion.div>
+
+                    {/* ======== Join the Movement CTA ======== */}
+                    <motion.div variants={fadeUp} className="-mx-4 lg:-mx-6">
+                      <div className="relative overflow-hidden bg-gradient-to-br from-secondary-700 via-primary-700 to-primary-600 px-5 py-6 lg:px-8">
+                        {/* Decorative */}
+                        <div className="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/5" aria-hidden="true" />
+                        <div className="absolute bottom-2 left-4 text-white/8" aria-hidden="true">
+                          <Leaf size={40} strokeWidth={1} />
+                        </div>
+
+                        <div className="relative">
+                          <h3 className="text-lg font-bold text-white mb-1">
+                            Join the Movement
+                          </h3>
+                          <p className="text-sm text-white/60 mb-4 max-w-[280px]">
+                            5,500+ young Australians are already making a difference. Find your local collective and start today.
+                          </p>
+                          <Button
+                            variant="primary"
+                            size="md"
+                            onClick={() => navigate('/collectives')}
+                            className="bg-white text-primary-700 hover:bg-white/90 shadow-lg"
+                          >
+                            Find a Collective
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
                 )}
               </motion.div>
             )}

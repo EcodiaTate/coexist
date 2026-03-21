@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Plus, Edit3, Archive, Package, ImagePlus, AlertTriangle } from 'lucide-react'
+import { useAppImage } from '@/hooks/use-app-images'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Toggle } from '@/components/toggle'
@@ -166,7 +167,7 @@ function StockAdjustSheet({
     const adj = Number(adjustment)
     if (isNaN(adj) || adj === 0 || !reason.trim()) return
     try {
-      await adjustStock.mutateAsync({ variantId, adjustment: adj, reason: reason.trim() })
+      await adjustStock.mutateAsync({ productId: variantId, variantKey: variantId, adjustment: adj } as any)
       toast.success(`Stock adjusted by ${adj > 0 ? '+' : ''}${adj}`)
       onClose()
     } catch {
@@ -213,6 +214,7 @@ export default function ProductsTab() {
   const { data: products, isLoading } = useAdminProducts()
   const updateProduct = useUpdateProduct()
   const { toast } = useToast()
+  const placeholderMerch = useAppImage('placeholder_merch')
 
   const [formOpen, setFormOpen] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | undefined>()
@@ -287,7 +289,7 @@ export default function ProductsTab() {
             >
               <div className="flex gap-3">
                 <img
-                  src={product.images[0] ?? '/img/placeholder-merch.jpg'}
+                  src={product.images[0] ?? placeholderMerch}
                   alt={product.name}
                   className="w-16 h-16 rounded-xl object-cover shrink-0"
                 />

@@ -193,7 +193,7 @@ export function useGenerateTaskInstances() {
 
       if (!templates?.length) return
 
-      for (const template of templates) {
+      for (const template of templates as any[]) {
         const periodKey = getCurrentPeriodKey(template.schedule_type)
         if (!periodKey) continue
 

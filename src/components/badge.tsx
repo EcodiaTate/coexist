@@ -38,6 +38,8 @@ type TierVariant = keyof typeof tierStyles
 type BadgeVariantProps =
   | { variant: 'activity'; activity: ActivityVariant; tier?: never }
   | { variant: 'tier'; tier: TierVariant; activity?: never }
+  | { variant: 'default'; activity?: never; tier?: never }
+  | { variant: 'success'; activity?: never; tier?: never }
 
 interface BadgeBaseProps {
   size?: 'sm' | 'md'
@@ -75,7 +77,11 @@ export function Badge({
   const colorClass =
     variant === 'activity'
       ? activityStyles[activity]
-      : tierStyles[tier]
+      : variant === 'tier'
+        ? tierStyles[tier]
+        : variant === 'success'
+          ? 'bg-success-100 text-success-800'
+          : 'bg-primary-100 text-primary-700'
 
   return (
     <span

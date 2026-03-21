@@ -116,7 +116,7 @@ function useAdminOverview(dateRange: DateRange) {
         : 0
 
       // Survey responses count
-      const { count: surveyResponses } = await supabase
+      const { count: surveyResponses } = await (supabase as any)
         .from('post_event_survey_responses')
         .select('id', { count: 'exact', head: true })
 

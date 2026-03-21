@@ -189,6 +189,35 @@ const fadeUp = {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Section heading                                                    */
+/* ------------------------------------------------------------------ */
+
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] uppercase tracking-[0.18em] text-primary-600 font-extrabold mb-5 flex items-center gap-2">
+      <span className="h-0.5 w-4 rounded-full bg-primary-400/50" />
+      {children}
+    </p>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Stat card configs                                                  */
+/* ------------------------------------------------------------------ */
+
+const STAT_STYLES: Record<string, { gradient: string; iconBg: string }> = {
+  hours:       { gradient: 'from-primary-100/90 to-primary-200/50', iconBg: 'bg-primary-600' },
+  rubbish:     { gradient: 'from-moss-100/90 to-moss-200/50', iconBg: 'bg-moss-600' },
+  coastline:   { gradient: 'from-bark-100/90 to-bark-200/50', iconBg: 'bg-bark-600' },
+  area:        { gradient: 'from-plum-100/90 to-plum-200/50', iconBg: 'bg-plum-600' },
+  plants:      { gradient: 'from-moss-100/90 to-moss-200/50', iconBg: 'bg-moss-600' },
+  wildlife:    { gradient: 'from-bark-100/90 to-bark-200/50', iconBg: 'bg-bark-600' },
+  events:      { gradient: 'from-plum-100/90 to-plum-200/50', iconBg: 'bg-plum-600' },
+  members:     { gradient: 'from-primary-50/90 to-primary-100/50', iconBg: 'bg-primary-600' },
+  collectives: { gradient: 'from-bark-50/90 to-bark-100/50', iconBg: 'bg-bark-600' },
+}
+
+/* ------------------------------------------------------------------ */
 /*  Big counter                                                        */
 /* ------------------------------------------------------------------ */
 
@@ -197,17 +226,18 @@ function NationalStat({
   value,
   suffix,
   label,
-  bg,
+  style,
   delay,
 }: {
   icon: React.ReactNode
   value: number
   suffix?: string
   label: string
-  bg: string
+  style: string
   delay: number
 }) {
   const shouldReduceMotion = useReducedMotion()
+  const cfg = STAT_STYLES[style] ?? STAT_STYLES.hours
 
   return (
     <motion.div
@@ -215,20 +245,48 @@ function NationalStat({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4, ease: 'easeOut' }}
       className={cn(
-        'flex flex-col items-center justify-center text-center rounded-3xl p-6 min-h-[140px]',
-        bg,
+        'flex flex-col items-center justify-center text-center rounded-3xl p-6 min-h-[150px]',
+        'bg-gradient-to-br shadow-lg ring-1 ring-black/5',
+        cfg.gradient,
       )}
     >
-      <div className="mb-3 opacity-50" aria-hidden="true">
+      <div className={cn('mb-4 flex items-center justify-center w-11 h-11 rounded-2xl shadow-md text-white', cfg.iconBg)} aria-hidden="true">
         {icon}
       </div>
-      <div className="font-heading text-4xl font-bold text-primary-800 tabular-nums leading-none">
+      <div className="font-heading text-4xl font-extrabold text-primary-900 tabular-nums leading-none">
         <CountUp end={value} duration={2000} suffix={suffix} />
       </div>
-      <p className="text-[11px] uppercase tracking-[0.15em] text-primary-500 font-medium mt-2">{label}</p>
+      <p className="text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold mt-2.5">{label}</p>
     </motion.div>
   )
 }
+
+/* ------------------------------------------------------------------ */
+/*  Activity type colors                                               */
+/* ------------------------------------------------------------------ */
+
+const ACTIVITY_BAR_COLORS: Record<string, string> = {
+  tree_planting: 'bg-primary-600',
+  beach_cleanup: 'bg-sky-500',
+  habitat_restoration: 'bg-moss-600',
+  nature_walk: 'bg-primary-500',
+  education: 'bg-plum-500',
+  wildlife_survey: 'bg-bark-500',
+  seed_collecting: 'bg-moss-500',
+  weed_removal: 'bg-bark-400',
+  waterway_cleanup: 'bg-sky-600',
+  community_garden: 'bg-plum-400',
+}
+
+/* ------------------------------------------------------------------ */
+/*  Podium medal colors                                                */
+/* ------------------------------------------------------------------ */
+
+const MEDAL_STYLES = [
+  'bg-gradient-to-br from-warning-400 to-warning-600 text-white shadow-lg shadow-warning-200/50',
+  'bg-gradient-to-br from-gray-300 to-gray-400 text-white shadow-md',
+  'bg-gradient-to-br from-bark-300 to-bark-500 text-white shadow-md',
+]
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
@@ -293,92 +351,103 @@ export default function NationalImpactPage() {
         {/* ─── Hero headline ─── */}
         <motion.div
           variants={fadeUp}
-          className="px-5 pt-8 pb-2"
+          className="px-5 pt-6 pb-2"
         >
-          <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium">
-            Australia-Wide
-          </p>
-          <p className="font-heading text-7xl font-bold text-primary-800 tabular-nums leading-none tracking-tight mt-4">
-            <CountUp end={data?.totalTrees ?? 0} duration={2000} />
-          </p>
-          <p className="text-base text-primary-400 font-medium mt-2">trees planted nationally</p>
+          <div className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-7 shadow-2xl overflow-hidden">
+            {/* Decorative bg elements */}
+            <div className="absolute top-0 right-0 w-44 h-44 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
+            <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
+
+            <div className="relative">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-sm">
+                  <TreePine size={20} strokeWidth={2.5} className="text-white" />
+                </div>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 font-bold">
+                  Australia-Wide
+                </p>
+              </div>
+
+              <p className="font-heading text-7xl font-extrabold text-white tabular-nums leading-none tracking-tight">
+                <CountUp end={data?.totalTrees ?? 0} duration={2000} />
+              </p>
+              <p className="text-lg text-white/70 font-semibold mt-3">trees planted nationally</p>
+            </div>
+          </div>
         </motion.div>
 
-        {/* ─── Divider ─── */}
-        <div className="mx-5 h-px bg-primary-100/60 my-6" />
-
         {/* ─── Stats Grid ─── */}
-        <motion.div variants={fadeUp} className="px-5 grid grid-cols-2 gap-4">
+        <motion.div variants={fadeUp} className="px-5 mt-6 grid grid-cols-2 gap-4">
           <NationalStat
-            icon={<Clock size={22} className="text-primary-500" />}
+            icon={<Clock size={20} strokeWidth={2.5} />}
             value={data?.totalHours ?? 0}
             label="Hours Volunteered"
-            bg="bg-primary-50/80"
+            style="hours"
             delay={0.05}
           />
           <NationalStat
-            icon={<RubbishIcon size={22} className="text-primary-500" />}
+            icon={<RubbishIcon size={20} strokeWidth={2.5} />}
             value={data?.totalRubbish ?? 0}
             suffix=" kg"
             label="Rubbish Collected"
-            bg="bg-moss-50/80"
+            style="rubbish"
             delay={0.1}
           />
           <NationalStat
-            icon={<Waves size={22} className="text-moss-500" />}
+            icon={<Waves size={20} strokeWidth={2.5} />}
             value={data?.totalCoastline ?? 0}
             suffix=" km"
             label="Coastline Cleaned"
-            bg="bg-bark-50/60"
+            style="coastline"
             delay={0.15}
           />
           {(data?.totalArea ?? 0) > 0 && (
             <NationalStat
-              icon={<Ruler size={22} className="text-plum-500" />}
+              icon={<Ruler size={20} strokeWidth={2.5} />}
               value={data?.totalArea ?? 0}
               suffix=" sqm"
               label="Area Restored"
-              bg="bg-plum-50/60"
+              style="area"
               delay={0.2}
             />
           )}
           {(data?.totalNativePlants ?? 0) > 0 && (
             <NationalStat
-              icon={<Leaf size={22} className="text-moss-500" />}
+              icon={<Leaf size={20} strokeWidth={2.5} />}
               value={data?.totalNativePlants ?? 0}
               label="Native Plants"
-              bg="bg-moss-50/80"
+              style="plants"
               delay={0.22}
             />
           )}
           {(data?.totalWildlife ?? 0) > 0 && (
             <NationalStat
-              icon={<Eye size={22} className="text-bark-500" />}
+              icon={<Eye size={20} strokeWidth={2.5} />}
               value={data?.totalWildlife ?? 0}
               label="Wildlife Sightings"
-              bg="bg-bark-50/60"
+              style="wildlife"
               delay={0.25}
             />
           )}
           <NationalStat
-            icon={<CalendarDays size={22} className="text-plum-500" />}
+            icon={<CalendarDays size={20} strokeWidth={2.5} />}
             value={data?.totalEvents ?? 0}
             label="Events Held"
-            bg="bg-plum-50/60"
+            style="events"
             delay={0.28}
           />
           <NationalStat
-            icon={<Users size={22} className="text-primary-500" />}
+            icon={<Users size={20} strokeWidth={2.5} />}
             value={data?.totalMembers ?? 0}
             label="Active Members"
-            bg="bg-white shadow-sm"
+            style="members"
             delay={0.25}
           />
           <NationalStat
-            icon={<MapPin size={22} className="text-bark-500" />}
+            icon={<MapPin size={20} strokeWidth={2.5} />}
             value={data?.totalCollectives ?? 0}
             label="Collectives"
-            bg="bg-white shadow-sm"
+            style="collectives"
             delay={0.3}
           />
         </motion.div>
@@ -388,10 +457,8 @@ export default function NationalImpactPage() {
           variants={fadeUp}
           className="mx-5 mt-10"
         >
-          <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
-            Geographic Activity
-          </p>
-          <div className="rounded-3xl bg-white shadow-sm p-5 overflow-hidden">
+          <SectionHeading>Geographic Activity</SectionHeading>
+          <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-5 overflow-hidden">
             <MapView
               center={{ lat: -28.0, lng: 134.0 }}
               zoom={4}
@@ -408,24 +475,22 @@ export default function NationalImpactPage() {
             variants={fadeUp}
             className="mx-5 mt-10"
           >
-            <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
-              Monthly Volunteer Hours
-            </p>
-            <div className="rounded-3xl bg-white shadow-sm p-6">
-              <div className="flex items-end gap-4 h-32">
+            <SectionHeading>Monthly Volunteer Hours</SectionHeading>
+            <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6">
+              <div className="flex items-end gap-4 h-36">
                 {trends.map((t, i) => {
                   const max = Math.max(...trends.map((tr) => tr.impact), 1)
                   const height = (t.impact / max) * 100
                   return (
                     <div key={t.month} className="flex-1 flex flex-col items-center gap-2">
-                      <span className="text-[10px] text-primary-400/60 tabular-nums font-medium">{t.impact}</span>
+                      <span className="text-[10px] text-primary-600 tabular-nums font-bold">{t.impact}</span>
                       <motion.div
-                        className="w-full rounded-full bg-gradient-to-t from-primary-600 to-primary-300 min-h-[4px]"
+                        className="w-full rounded-xl bg-gradient-to-t from-primary-700 via-primary-500 to-primary-300 min-h-[6px] shadow-sm"
                         initial={shouldReduceMotion ? { height: `${height}%` } : { height: 0 }}
                         animate={{ height: `${height}%` }}
                         transition={{ duration: 0.5, delay: i * 0.08, ease: 'easeOut' }}
                       />
-                      <span className="text-[10px] text-primary-400/60 font-medium">{t.month}</span>
+                      <span className="text-[10px] text-primary-500 font-bold">{t.month}</span>
                     </div>
                   )
                 })}
@@ -440,22 +505,21 @@ export default function NationalImpactPage() {
             variants={fadeUp}
             className="mx-5 mt-10"
           >
-            <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
-              By Activity Type
-            </p>
-            <div className="rounded-3xl bg-white shadow-sm p-6 space-y-4">
+            <SectionHeading>By Activity Type</SectionHeading>
+            <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6 space-y-5">
               {data.byActivity.map(([type, count]) => {
                 const total = data.byActivity.reduce((s, [, c]) => s + c, 0)
                 const percent = total > 0 ? Math.round((count / total) * 100) : 0
+                const barColor = ACTIVITY_BAR_COLORS[type] ?? 'bg-primary-500'
                 return (
                   <div key={type}>
                     <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-primary-700 font-medium capitalize">{type.replace(/_/g, ' ')}</span>
-                      <span className="text-primary-400/70 tabular-nums text-xs">{count} ({percent}%)</span>
+                      <span className="text-primary-800 font-bold capitalize">{type.replace(/_/g, ' ')}</span>
+                      <span className="text-primary-500 tabular-nums text-xs font-bold">{count} ({percent}%)</span>
                     </div>
-                    <div className="h-2 bg-primary-100/40 rounded-full overflow-hidden">
+                    <div className="h-3 bg-primary-100/50 rounded-full overflow-hidden">
                       <motion.div
-                        className="h-full bg-primary-400 rounded-full"
+                        className={cn('h-full rounded-full shadow-sm', barColor)}
                         initial={shouldReduceMotion ? { width: `${percent}%` } : { width: 0 }}
                         animate={{ width: `${percent}%` }}
                         transition={{ duration: 0.6, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -474,21 +538,31 @@ export default function NationalImpactPage() {
             variants={fadeUp}
             className="mx-5 mt-10"
           >
-            <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
-              By State / Region
-            </p>
-            <div className="rounded-3xl bg-white shadow-sm p-6 space-y-1">
-              {data.byState.map(([state, count]) => (
-                <div
-                  key={state}
-                  className="flex items-center justify-between py-3 "
-                >
-                  <span className="text-sm text-primary-700 font-medium">{state}</span>
-                  <span className="text-sm font-bold text-primary-800 tabular-nums">
-                    {count}
-                  </span>
-                </div>
-              ))}
+            <SectionHeading>By State / Region</SectionHeading>
+            <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6 space-y-1">
+              {data.byState.map(([state, count], i) => {
+                const maxCount = data.byState[0]?.[1] ?? 1
+                const barWidth = Math.max((count / maxCount) * 100, 8)
+                return (
+                  <div
+                    key={state}
+                    className="flex items-center gap-4 py-3.5"
+                  >
+                    <span className="text-sm text-primary-800 font-bold w-16 shrink-0">{state}</span>
+                    <div className="flex-1 h-3 bg-primary-100/50 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-400 shadow-sm"
+                        initial={shouldReduceMotion ? { width: `${barWidth}%` } : { width: 0 }}
+                        animate={{ width: `${barWidth}%` }}
+                        transition={{ duration: 0.5, delay: 0.3 + i * 0.05, ease: 'easeOut' }}
+                      />
+                    </div>
+                    <span className="text-sm font-extrabold text-primary-900 tabular-nums w-10 text-right shrink-0">
+                      {count}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </motion.section>
         )}
@@ -499,30 +573,33 @@ export default function NationalImpactPage() {
             variants={fadeUp}
             className="mx-5 mt-10"
           >
-            <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4 flex items-center gap-2">
-              <Trophy size={14} className="text-primary-400/50" />
+            <SectionHeading>
+              <Trophy size={14} strokeWidth={2.5} className="text-warning-500" />
               Top Collectives
-            </p>
-            <div className="rounded-3xl bg-white shadow-sm p-6 space-y-1">
+            </SectionHeading>
+            <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6 space-y-2">
               {topCollectives.map((c, i) => (
                 <div
                   key={c.id}
-                  className="flex items-center gap-4 py-3 "
+                  className={cn(
+                    'flex items-center gap-4 py-3.5 rounded-2xl px-3 transition-all',
+                    i === 0 && 'bg-gradient-to-r from-warning-50/80 to-transparent',
+                  )}
                 >
                   <span
                     className={cn(
-                      'flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold shrink-0',
-                      i === 0
-                        ? 'bg-bark-100 text-bark-700'
-                        : 'bg-primary-50 text-primary-500',
+                      'flex items-center justify-center w-9 h-9 rounded-xl text-sm font-extrabold shrink-0',
+                      i < 3
+                        ? MEDAL_STYLES[i]
+                        : 'bg-primary-100 text-primary-600 shadow-sm',
                     )}
                   >
                     {i + 1}
                   </span>
-                  <p className="flex-1 min-w-0 text-sm font-medium text-primary-800 truncate">
+                  <p className="flex-1 min-w-0 text-sm font-bold text-primary-900 truncate">
                     {c.name}
                   </p>
-                  <span className="text-xs text-primary-400/70 tabular-nums shrink-0">
+                  <span className="text-xs text-primary-500 tabular-nums shrink-0 font-bold">
                     {c.eventCount} events
                   </span>
                 </div>
@@ -563,10 +640,10 @@ export default function NationalImpactPage() {
             <button
               type="button"
               onClick={shareLink}
-              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               aria-label="Share"
             >
-              <Share2 size={18} />
+              <Share2 size={18} strokeWidth={2.5} />
             </button>
           }
         />

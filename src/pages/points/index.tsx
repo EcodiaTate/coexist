@@ -122,13 +122,13 @@ export default function PointsPage() {
           <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
             How to Earn Points
           </h3>
-          <div className="rounded-xl bg-white shadow-sm overflow-hidden">
+          <div className="rounded-xl bg-surface-0 shadow-sm overflow-hidden">
             {Object.entries(POINT_VALUES).map(([key, value], i) => (
               <div
                 key={key}
                 className={cn(
                   'flex items-center justify-between px-4 py-2.5',
-                  i > 0 && 'bg-primary-50/30 even:bg-white',
+                  i > 0 && 'bg-primary-50/30 even:bg-surface-0',
                 )}
               >
                 <span className="text-sm text-primary-400">
@@ -159,7 +159,7 @@ export default function PointsPage() {
                     <Calendar size={12} />
                     {date}
                   </p>
-                  <div className="rounded-xl bg-white shadow-sm overflow-hidden">
+                  <div className="rounded-xl bg-surface-0 shadow-sm overflow-hidden">
                     {entries!.map((entry, i) => (
                       <div
                         key={entry.id}

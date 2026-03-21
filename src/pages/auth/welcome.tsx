@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Leaf, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/button'
 import { APP_NAME, TAGLINE } from '@/lib/constants'
+import { useAppImage } from '@/hooks/use-app-images'
 import { cn } from '@/lib/cn'
 
 const floatingLeaves = [
@@ -16,13 +17,14 @@ const floatingLeaves = [
 export default function WelcomePage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const heroWelcome = useAppImage('hero_welcome')
 
   return (
     <div className="relative min-h-dvh flex flex-col overflow-hidden bg-white">
       {/* Nature background photo */}
       <div className="absolute inset-0" aria-hidden="true">
         <img
-          src="/img/hero-welcome.jpg"
+          src={heroWelcome}
           alt=""
           className="h-full w-full object-cover"
         />

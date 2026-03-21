@@ -885,7 +885,7 @@ export function useInviteCollective() {
           .upsert(registrations, { onConflict: 'event_id,user_id', ignoreDuplicates: true })
         if (error) throw error
 
-        // Send invite emails to each member
+        // Send invite emails, push notifications, and in-app notifications
         const { data: event } = await supabase
           .from('events')
           .select('title, date_start')
@@ -899,6 +899,13 @@ export function useInviteCollective() {
             .eq('id', user.id)
             .single()
 
+          const inviterName = inviterProfile?.display_name ?? 'A collective leader'
+          const eventDate = new Date(event.date_start).toLocaleString('en-AU', {
+            weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+            hour: 'numeric', minute: '2-digit',
+          })
+
+          // Send invite emails
           for (const reg of registrations) {
             supabase.functions.invoke('send-email', {
               body: {
@@ -906,17 +913,42 @@ export function useInviteCollective() {
                 userId: reg.user_id,
                 data: {
                   name: '', // resolved by edge function via userId lookup if needed
-                  inviter_name: inviterProfile?.display_name ?? 'A collective leader',
+                  inviter_name: inviterName,
                   event_title: event.title,
-                  event_date: new Date(event.date_start).toLocaleString('en-AU', {
-                    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-                    hour: 'numeric', minute: '2-digit',
-                  }),
+                  event_date: eventDate,
                   event_url: `https://app.coexistaus.org/events/${eventId}`,
                 },
               },
             }).catch(console.error)
           }
+
+          // Send push notifications to all invited members
+          const invitedUserIds = registrations.map((r) => r.user_id)
+          supabase.functions.invoke('send-push', {
+            body: {
+              userIds: invitedUserIds,
+              title: `You're invited!`,
+              body: `${inviterName} invited you to ${event.title} on ${eventDate}`,
+              data: { type: 'event_invite', event_id: eventId },
+            },
+          }).catch(console.error)
+
+          // Create in-app notifications
+          const notifications = invitedUserIds.map((uid) => ({
+            user_id: uid,
+            type: 'event_invite',
+            title: `You're invited to ${event.title}`,
+            body: `${inviterName} invited your collective to ${event.title} on ${eventDate}`,
+            data: { event_id: eventId },
+            read: false,
+          }))
+
+          supabase
+            .from('notifications')
+            .insert(notifications)
+            .then(({ error: notifErr }) => {
+              if (notifErr) console.error('[invite-all] notification insert error:', notifErr)
+            })
         }
       }
     },

@@ -74,7 +74,7 @@ function MenuSection({
       <h3 className="text-[11px] font-semibold uppercase tracking-wider text-primary-400/70 mb-1.5 px-1">
         {title}
       </h3>
-      <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-primary-100/60 shadow-sm overflow-hidden">
+      <div className="rounded-2xl bg-surface-0 shadow-sm overflow-hidden">
         {items.map(({ label, to, icon, iconBg, iconColor, description }, idx) => (
           <button
             key={to}
@@ -83,7 +83,7 @@ function MenuSection({
             className={cn(
               'w-full flex items-center gap-3.5 px-4 py-3',
               'text-left transition-all duration-150',
-              'active:bg-primary-100/60',
+              'active:bg-surface-3',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
               'cursor-pointer select-none',
               idx > 0 && 'border-t border-primary-100/40',
@@ -170,7 +170,7 @@ export default function MorePage() {
           </h1>
         </header>
       }
-      className="bg-primary-50/40"
+      className="bg-surface-1"
     >
       <motion.div
         className="space-y-6 pb-10"

@@ -203,12 +203,14 @@ function PinnedMessageBar({
   const hasMultiple = messages.length > 1
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm shadow-sm">
+    <div className="bg-white/95 backdrop-blur-sm shadow-md border-b border-primary-100/50">
       {/* Main pinned bar */}
-      <div className="flex w-full items-center gap-2 px-4 py-2 min-h-11">
-        <Pin size={14} className="text-primary-400 shrink-0" />
+      <div className="flex w-full items-center gap-2.5 px-4 py-2.5 min-h-11">
+        <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100 shrink-0">
+          <Pin size={13} className="text-primary-600" />
+        </div>
         <p className="text-xs text-primary-800 truncate flex-1 text-left">
-          <span className="font-semibold">Pinned: </span>
+          <span className="font-bold">Pinned: </span>
           {latest.content ?? 'Image'}
         </p>
 
@@ -325,21 +327,21 @@ function ChatSearchOverlay({
         ) : (
           <div className="space-y-2">
             {results.map((msg) => (
-              <div key={msg.id} className="rounded-xl bg-white p-3">
-                <div className="flex items-center gap-2 mb-1">
+              <div key={msg.id} className="rounded-2xl bg-white p-4 shadow-md ring-1 ring-primary-100/60">
+                <div className="flex items-center gap-2.5 mb-1.5">
                   <Avatar
                     src={msg.profiles?.avatar_url}
                     name={msg.profiles?.display_name}
                     size="xs"
                   />
-                  <span className="text-xs font-semibold text-primary-800">
+                  <span className="text-[13px] font-bold text-primary-800">
                     {msg.profiles?.display_name}
                   </span>
-                  <span className="text-[10px] text-primary-400 ml-auto">
+                  <span className="text-[10px] font-medium text-primary-400 ml-auto">
                     {relativeTime(msg.created_at)}
                   </span>
                 </div>
-                <p className="text-sm text-primary-400">{msg.content}</p>
+                <p className="text-sm text-primary-600 leading-relaxed">{msg.content}</p>
               </div>
             ))}
           </div>
@@ -732,7 +734,7 @@ export default function CollectiveChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden relative bg-primary-50/50">
+    <div className="flex flex-col h-full overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40">
       {/* Header */}
       <motion.div
         variants={shouldReduceMotion ? undefined : fadeUp}
@@ -797,11 +799,11 @@ export default function CollectiveChatPage() {
           messageGroups.map((group) => (
             <Fragment key={group.date}>
               {/* Date separator */}
-              <div className="flex items-center justify-center py-4">
+              <div className="flex items-center justify-center py-5">
                 <motion.span
                   initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-full bg-white/80 px-3.5 py-1 text-[11px] font-semibold text-primary-500 shadow-sm ring-1 ring-primary-100/50 backdrop-blur-sm"
+                  className="rounded-full bg-white px-4 py-1.5 text-[11px] font-bold text-primary-600 shadow-md ring-1 ring-primary-200/60 backdrop-blur-sm"
                 >
                   {dateHeader(group.date)}
                 </motion.span>
@@ -825,7 +827,7 @@ export default function CollectiveChatPage() {
                   >
                     {isDeleted ? (
                       <div className={cn('flex py-1', isSent ? 'justify-end' : 'justify-start')}>
-                        <p className="text-xs italic text-primary-400 px-3 py-2 rounded-2xl bg-white/60 ring-1 ring-primary-100/40">
+                        <p className="text-xs italic text-primary-400 font-medium px-3.5 py-2.5 rounded-2xl bg-white/70 ring-1 ring-primary-200/50 shadow-sm">
                           Message removed
                         </p>
                       </div>
@@ -834,8 +836,8 @@ export default function CollectiveChatPage() {
                     ) : messageType === 'announcement' && msg.announcement_id ? (
                       <InlineAnnouncement announcementId={msg.announcement_id} sent={isSent} />
                     ) : messageType === 'system' ? (
-                      <div className="flex justify-center py-2">
-                        <p className="text-xs text-primary-400 italic bg-white/60 px-3 py-1.5 rounded-full">
+                      <div className="flex justify-center py-3">
+                        <p className="text-xs text-primary-500 italic font-medium bg-white/80 px-4 py-2 rounded-full shadow-sm ring-1 ring-primary-200/40">
                           {msg.content}
                         </p>
                       </div>
@@ -871,7 +873,7 @@ export default function CollectiveChatPage() {
                           }
                         />
 
-                        {msg.updated_at && msg.updated_at !== msg.created_at && (
+                        {(msg as any).updated_at && (msg as any).updated_at !== msg.created_at && (
                           <p className={cn(
                             'text-[10px] text-primary-400 mt-0.5',
                             isSent ? 'text-right pr-2' : 'pl-10',
@@ -899,14 +901,14 @@ export default function CollectiveChatPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="px-4 pb-1 bg-white/60"
+            className="px-4 pb-1.5 bg-white/70 backdrop-blur-sm"
           >
-            <div className="flex items-center gap-1.5">
-              <div className="flex gap-0.5">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1">
                 {[0, 1, 2].map((i) => (
                   <motion.div
                     key={i}
-                    className="h-1.5 w-1.5 rounded-full bg-primary-400"
+                    className="h-2 w-2 rounded-full bg-primary-500"
                     animate={{ y: [0, -3, 0] }}
                     transition={{
                       duration: 0.6,
@@ -917,7 +919,7 @@ export default function CollectiveChatPage() {
                   />
                 ))}
               </div>
-              <p className="text-xs text-primary-500 italic">{typingText}</p>
+              <p className="text-xs text-primary-600 italic font-medium">{typingText}</p>
             </div>
           </motion.div>
         )}
@@ -931,13 +933,15 @@ export default function CollectiveChatPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="bg-white/95 px-4 py-2 backdrop-blur-sm shadow-sm"
+            className="bg-white/95 px-4 py-2.5 backdrop-blur-sm shadow-md border-t border-primary-100/50"
           >
-            <div className="flex items-center gap-2">
-              <Reply size={14} className="text-primary-500 shrink-0" />
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100">
+                <Reply size={14} className="text-primary-600 shrink-0" />
+              </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-semibold text-primary-400">{replyTo.profiles?.display_name}</p>
-                <p className="text-xs text-primary-400 truncate">{replyTo.content ?? 'Image'}</p>
+                <p className="text-xs font-bold text-primary-600">{replyTo.profiles?.display_name}</p>
+                <p className="text-xs text-primary-500 truncate">{replyTo.content ?? 'Image'}</p>
               </div>
               <button
                 type="button"
@@ -960,11 +964,13 @@ export default function CollectiveChatPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="bg-warning-50/90 px-4 py-2 backdrop-blur-sm shadow-sm"
+            className="bg-warning-100/90 px-4 py-2.5 backdrop-blur-sm shadow-md border-t border-warning-200/50"
           >
-            <div className="flex items-center gap-2">
-              <Pencil size={14} className="text-warning-600 shrink-0" />
-              <p className="text-xs font-semibold text-warning-700 flex-1">Editing message</p>
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-warning-200">
+                <Pencil size={14} className="text-warning-700 shrink-0" />
+              </div>
+              <p className="text-xs font-bold text-warning-800 flex-1">Editing message</p>
               <button
                 type="button"
                 onClick={() => { setEditingMessage(null); setEditText('') }}
@@ -989,7 +995,7 @@ export default function CollectiveChatPage() {
             onClick={scrollToBottom}
             aria-label="Scroll to latest messages"
             className={cn(
-              'absolute right-4 z-20 flex min-h-11 min-w-11 items-center justify-center rounded-full bg-white shadow-md ring-1 ring-primary-100/50 text-primary-500 hover:bg-primary-50 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none',
+              'absolute right-4 z-20 flex min-h-12 min-w-12 items-center justify-center rounded-full bg-white shadow-lg ring-2 ring-primary-200/60 text-primary-600 hover:bg-primary-50 active:scale-[0.93] transition-all duration-150 cursor-pointer select-none',
               hasBottomTabs ? 'bottom-32' : 'bottom-20',
             )}
           >
@@ -1044,10 +1050,6 @@ export default function CollectiveChatPage() {
           onCreatePoll={() => setShowPollSheet(true)}
           onCreateAnnouncement={() => {
             setAnnouncementType('announcement')
-            setShowAnnouncementSheet(true)
-          }}
-          onCreateEventInvite={() => {
-            setAnnouncementType('event_invite')
             setShowAnnouncementSheet(true)
           }}
           onBroadcastNotification={() => setShowBroadcastSheet(true)}

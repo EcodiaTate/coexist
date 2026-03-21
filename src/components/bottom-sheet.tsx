@@ -234,7 +234,7 @@ export function BottomSheet({
                 aria-modal="true"
                 aria-label="Dialog"
                 className={cn(
-                  'relative w-full max-w-md bg-white rounded-2xl shadow-lg pointer-events-auto',
+                  'relative w-full max-w-md bg-surface-0 rounded-2xl shadow-lg pointer-events-auto',
                   className,
                 )}
                 initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95, y: 16 }}
@@ -262,7 +262,7 @@ export function BottomSheet({
               aria-modal="true"
               aria-label="Bottom sheet"
               className={cn(
-                'fixed inset-x-0 bottom-0 z-10 bg-white rounded-t-2xl shadow-lg',
+                'fixed inset-x-0 bottom-0 z-10 bg-surface-0 rounded-t-2xl shadow-lg',
                 'touch-none',
                 className,
               )}

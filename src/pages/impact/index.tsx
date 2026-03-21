@@ -80,31 +80,78 @@ function ImpactSkeleton() {
   )
 }
 
+/* ─── stat card configs ─── */
+const STAT_CONFIGS: Record<string, { gradient: string; iconBg: string; iconColor: string }> = {
+  events: {
+    gradient: 'from-primary-100/90 to-primary-200/50',
+    iconBg: 'bg-primary-600',
+    iconColor: 'text-white',
+  },
+  hours: {
+    gradient: 'from-bark-100/90 to-bark-200/50',
+    iconBg: 'bg-bark-600',
+    iconColor: 'text-white',
+  },
+  rubbish: {
+    gradient: 'from-moss-100/90 to-moss-200/50',
+    iconBg: 'bg-moss-600',
+    iconColor: 'text-white',
+  },
+  coastline: {
+    gradient: 'from-sky-100/90 to-sky-200/50',
+    iconBg: 'bg-sky-600',
+    iconColor: 'text-white',
+  },
+  area: {
+    gradient: 'from-plum-100/90 to-plum-200/50',
+    iconBg: 'bg-plum-600',
+    iconColor: 'text-white',
+  },
+  plants: {
+    gradient: 'from-sprout-100/90 to-sprout-200/50',
+    iconBg: 'bg-sprout-600',
+    iconColor: 'text-white',
+  },
+  wildlife: {
+    gradient: 'from-bark-100/90 to-bark-200/50',
+    iconBg: 'bg-bark-600',
+    iconColor: 'text-white',
+  },
+}
+
 /* ─── big stat block ─── */
 function BigStat({
   value,
   label,
   icon,
-  bg,
+  config,
 }: {
   value: number
   label: string
   icon: React.ReactNode
-  bg: string
+  config: string
 }) {
+  const style = STAT_CONFIGS[config] ?? STAT_CONFIGS.events
+
   return (
     <motion.div
       variants={fadeUp}
       className={cn(
-        'flex flex-col items-center justify-center text-center rounded-3xl p-6 min-h-[140px]',
-        bg,
+        'flex flex-col items-center justify-center text-center rounded-3xl p-6 min-h-[150px]',
+        'bg-gradient-to-br shadow-lg ring-1 ring-black/5',
+        `${style.gradient}`,
       )}
     >
-      <span className="mb-3 opacity-60" aria-hidden="true">{icon}</span>
-      <p className="font-heading text-4xl font-bold text-primary-800 tabular-nums leading-none">
+      <div className={cn(
+        'mb-4 flex items-center justify-center w-11 h-11 rounded-2xl shadow-md',
+        style.iconBg,
+      )} aria-hidden="true">
+        <span className={style.iconColor}>{icon}</span>
+      </div>
+      <p className="font-heading text-4xl font-extrabold text-primary-900 tabular-nums leading-none">
         <CountUp end={value} />
       </p>
-      <p className="text-[11px] uppercase tracking-[0.15em] text-primary-500 font-medium mt-2">
+      <p className="text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold mt-2.5">
         {label}
       </p>
     </motion.div>
@@ -120,7 +167,7 @@ function ActivitySparkline({ data }: { data: { month: string; count: number }[] 
   const maxCount = Math.max(...recent.map((d) => d.count), 1)
 
   return (
-    <div className="flex items-end gap-[6px] h-28">
+    <div className="flex items-end gap-[6px] h-32">
       {recent.map((item, i) => {
         const height = Math.max((item.count / maxCount) * 100, 6)
         const label = new Date(item.month + '-01').toLocaleDateString('en-AU', { month: 'short' })
@@ -134,9 +181,9 @@ function ActivitySparkline({ data }: { data: { month: string; count: number }[] 
                   ? { duration: 0 }
                   : { type: 'spring', stiffness: 100, damping: 16, delay: i * 0.04 }
               }
-              className="w-full rounded-full bg-gradient-to-t from-primary-600 to-primary-300 min-h-[4px]"
+              className="w-full rounded-xl bg-gradient-to-t from-primary-700 via-primary-500 to-primary-300 min-h-[6px] shadow-sm"
             />
-            <span className="text-[9px] text-primary-400/60 font-medium">{label}</span>
+            <span className="text-[10px] text-primary-500 font-bold">{label}</span>
           </div>
         )
       })}
@@ -156,9 +203,9 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
 
   return (
     <div className="flex items-center gap-8">
-      <div className="relative w-36 h-36 shrink-0">
+      <div className="relative w-40 h-40 shrink-0">
         <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-          <circle cx="50" cy="50" r={radius} fill="none" strokeWidth="10" className="stroke-primary-100/40" />
+          <circle cx="50" cy="50" r={radius} fill="none" strokeWidth="11" className="stroke-primary-100/50" />
           {data.map((item) => {
             const pct = item.count / total
             const dashLen = pct * circumference
@@ -171,7 +218,7 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
                 cy="50"
                 r={radius}
                 fill="none"
-                strokeWidth="10"
+                strokeWidth="11"
                 strokeLinecap="round"
                 stroke={CATEGORY_COLORS[item.category] ?? '#879e62'}
                 strokeDasharray={`${dashLen} ${circumference - dashLen}`}
@@ -185,28 +232,28 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <p className="font-heading text-3xl font-bold text-primary-800 leading-none">
+            <p className="font-heading text-3xl font-extrabold text-primary-900 leading-none">
               <CountUp end={total} />
             </p>
-            <p className="text-[10px] text-primary-400/60 uppercase tracking-widest mt-1">events</p>
+            <p className="text-[10px] text-primary-500 uppercase tracking-widest mt-1 font-bold">events</p>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 space-y-3">
+      <div className="flex-1 space-y-3.5">
         {data.slice(0, 5).map((item) => {
           const pct = Math.round((item.count / total) * 100)
           return (
-            <div key={item.category} className="space-y-1">
+            <div key={item.category} className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-primary-600 font-medium">
+                <span className="text-xs text-primary-700 font-bold">
                   {CATEGORY_LABELS[item.category] ?? item.category}
                 </span>
-                <span className="text-xs text-primary-400 tabular-nums">{pct}%</span>
+                <span className="text-xs text-primary-500 font-bold tabular-nums">{pct}%</span>
               </div>
-              <div className="h-2 rounded-full bg-primary-100/40 overflow-hidden">
+              <div className="h-2.5 rounded-full bg-primary-100/50 overflow-hidden">
                 <motion.div
-                  className="h-full rounded-full"
+                  className="h-full rounded-full shadow-sm"
                   style={{ backgroundColor: CATEGORY_COLORS[item.category] ?? '#879e62' }}
                   initial={shouldReduceMotion ? { width: `${pct}%` } : { width: 0 }}
                   animate={{ width: `${pct}%` }}
@@ -218,6 +265,16 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
         })}
       </div>
     </div>
+  )
+}
+
+/* ─── section heading ─── */
+function SectionHeading({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[11px] uppercase tracking-[0.18em] text-primary-600 font-extrabold mb-5 flex items-center gap-2">
+      <span className="h-0.5 w-4 rounded-full bg-primary-400/50" />
+      {children}
+    </p>
   )
 }
 
@@ -283,10 +340,10 @@ export default function ImpactDashboardPage() {
             <button
               type="button"
               onClick={handleShare}
-              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               aria-label="Share impact"
             >
-              <Share2 size={20} />
+              <Share2 size={20} strokeWidth={2.5} />
             </button>
           }
         />
@@ -300,81 +357,89 @@ export default function ImpactDashboardPage() {
             variants={shouldReduceMotion ? undefined : stagger}
             initial="hidden"
             animate="show"
-            className="px-5 pt-8 pb-2"
+            className="px-5 pt-6 pb-2"
           >
-            <motion.p
+            <motion.div
               variants={fadeUp}
-              className="text-[11px] uppercase tracking-[0.2em] text-primary-400/50 font-medium"
+              className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-7 shadow-2xl overflow-hidden"
             >
-              Your Conservation Footprint
-            </motion.p>
+              {/* Decorative background circles */}
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
 
-            <motion.div variants={fadeUp} className="mt-6 mb-2">
-              <span className="font-heading text-7xl font-bold text-primary-800 tabular-nums leading-none tracking-tight">
-                <CountUp end={stats.treesPlanted} />
-              </span>
-              <p className="text-base text-primary-400 font-medium mt-2">trees planted</p>
+              <div className="relative">
+                <div className="flex items-center gap-2 mb-5">
+                  <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-sm">
+                    <TreePine size={20} strokeWidth={2.5} className="text-white" />
+                  </div>
+                  <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 font-bold">
+                    Your Conservation Footprint
+                  </p>
+                </div>
+
+                <span className="font-heading text-7xl font-extrabold text-white tabular-nums leading-none tracking-tight">
+                  <CountUp end={stats.treesPlanted} />
+                </span>
+                <p className="text-lg text-white/70 font-semibold mt-3">trees planted</p>
+              </div>
             </motion.div>
           </motion.div>
-
-          {/* ─── Divider ─── */}
-          <div className="mx-5 h-px bg-primary-100/60 my-6" />
 
           {/* ─── Core Stats Grid ─── */}
           <motion.div
             variants={shouldReduceMotion ? undefined : stagger}
             initial="hidden"
             animate="show"
-            className="px-5 grid grid-cols-2 gap-4"
+            className="px-5 mt-6 grid grid-cols-2 gap-4"
           >
             <BigStat
               value={stats.eventsAttended}
               label="Events"
-              icon={<Calendar size={22} className="text-primary-500" />}
-              bg="bg-primary-50/80"
+              icon={<Calendar size={20} strokeWidth={2.5} />}
+              config="events"
             />
             <BigStat
               value={stats.hoursVolunteered}
               label="Hours"
-              icon={<Clock size={22} className="text-primary-500" />}
-              bg="bg-bark-50/80"
+              icon={<Clock size={20} strokeWidth={2.5} />}
+              config="hours"
             />
             <BigStat
               value={stats.rubbishCollectedKg}
               label="kg Rubbish"
-              icon={<Trash2 size={22} className="text-primary-500" />}
-              bg="bg-moss-50/80"
+              icon={<Trash2 size={20} strokeWidth={2.5} />}
+              config="rubbish"
             />
             {stats.coastlineCleanedM > 0 && (
               <BigStat
                 value={stats.coastlineCleanedM}
                 label="Coastline (m)"
-                icon={<Waves size={22} className="text-moss-500" />}
-                bg="bg-primary-50/60"
+                icon={<Waves size={20} strokeWidth={2.5} />}
+                config="coastline"
               />
             )}
             {stats.areaRestoredSqm > 0 && (
               <BigStat
                 value={stats.areaRestoredSqm}
                 label="Area (sqm)"
-                icon={<Waves size={22} className="text-primary-500" />}
-                bg="bg-moss-50/60"
+                icon={<Waves size={20} strokeWidth={2.5} />}
+                config="area"
               />
             )}
             {stats.nativePlants > 0 && (
               <BigStat
                 value={stats.nativePlants}
                 label="Native Plants"
-                icon={<Sprout size={22} className="text-primary-500" />}
-                bg="bg-primary-50/60"
+                icon={<Sprout size={20} strokeWidth={2.5} />}
+                config="plants"
               />
             )}
             {stats.wildlifeSightings > 0 && (
               <BigStat
                 value={stats.wildlifeSightings}
                 label="Wildlife"
-                icon={<Bird size={22} className="text-bark-500" />}
-                bg="bg-bark-50/60"
+                icon={<Bird size={20} strokeWidth={2.5} />}
+                config="wildlife"
               />
             )}
           </motion.div>
@@ -385,24 +450,24 @@ export default function ImpactDashboardPage() {
               initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 22 }}
-              className="mx-5 mt-8 flex items-center gap-5 rounded-3xl bg-white shadow-sm p-6"
+              className="mx-5 mt-8 flex items-center gap-5 rounded-3xl bg-gradient-to-r from-warning-100/80 via-warning-50 to-coral-100/60 shadow-lg ring-1 ring-warning-200/40 p-6"
             >
-              <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-50">
-                <Flame size={24} className="text-primary-500" />
+              <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-warning-500 to-coral-500 shadow-lg shadow-warning-200/50">
+                <Flame size={26} strokeWidth={2.5} className="text-white" />
               </div>
               <div className="flex-1">
-                <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-2">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-warning-700 font-extrabold mb-2.5">
                   Active Streak
                 </p>
                 <div className="flex items-baseline gap-4">
-                  <p className="font-heading text-3xl font-bold text-primary-800 tabular-nums">
+                  <p className="font-heading text-3xl font-extrabold text-primary-900 tabular-nums">
                     <CountUp end={streak.currentWeeks} />
-                    <span className="text-sm font-medium text-primary-400 ml-1">wks</span>
+                    <span className="text-sm font-bold text-primary-500 ml-1">wks</span>
                   </p>
-                  <span className="w-px h-6 bg-primary-200/60" />
-                  <p className="font-heading text-3xl font-bold text-primary-800 tabular-nums">
+                  <span className="w-0.5 h-7 bg-primary-300/50 rounded-full" />
+                  <p className="font-heading text-3xl font-extrabold text-primary-900 tabular-nums">
                     <CountUp end={streak.currentMonths} />
-                    <span className="text-sm font-medium text-primary-400 ml-1">mos</span>
+                    <span className="text-sm font-bold text-primary-500 ml-1">mos</span>
                   </p>
                 </div>
               </div>
@@ -417,10 +482,8 @@ export default function ImpactDashboardPage() {
               transition={{ delay: 0.25, type: 'spring', stiffness: 200, damping: 22 }}
               className="mx-5 mt-10"
             >
-              <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
-                Monthly Activity
-              </p>
-              <div className="rounded-3xl bg-white shadow-sm p-6">
+              <SectionHeading>Monthly Activity</SectionHeading>
+              <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6">
                 <ActivitySparkline data={monthly} />
               </div>
             </motion.section>
@@ -434,10 +497,8 @@ export default function ImpactDashboardPage() {
               transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 22 }}
               className="mx-5 mt-10"
             >
-              <p className="text-[10px] uppercase tracking-[0.2em] text-primary-400/50 font-medium mb-4">
-                Impact Breakdown
-              </p>
-              <div className="rounded-3xl bg-white shadow-sm p-6">
+              <SectionHeading>Impact Breakdown</SectionHeading>
+              <div className="rounded-3xl bg-white shadow-lg ring-1 ring-primary-100/60 p-6">
                 <ImpactRing data={byCategory} />
               </div>
             </motion.section>
@@ -448,20 +509,21 @@ export default function ImpactDashboardPage() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35, type: 'spring', stiffness: 200, damping: 22 }}
-            whileTap={{ scale: 0.98 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => navigate('/impact/national')}
-            className="mx-5 mt-10 w-[calc(100%-2.5rem)] flex items-center gap-5 rounded-3xl bg-primary-50/60 shadow-sm p-6 min-h-11 text-left active:scale-[0.97] transition-all duration-150 hover:shadow-md cursor-pointer select-none"
+            className="mx-5 mt-10 w-[calc(100%-2.5rem)] flex items-center gap-5 rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-xl shadow-primary-300/30 p-6 min-h-11 text-left active:scale-[0.97] transition-all duration-150 hover:shadow-2xl cursor-pointer select-none overflow-hidden relative"
           >
-            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-primary-400/10">
-              <Globe size={22} className="text-primary-500" />
+            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
+            <div className="relative flex items-center justify-center w-13 h-13 rounded-2xl bg-white/15 backdrop-blur-sm">
+              <Globe size={24} strokeWidth={2.5} className="text-white" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-heading text-base font-semibold text-primary-800">National Impact</p>
-              <p className="text-xs text-primary-400/70 mt-1">
+            <div className="relative flex-1 min-w-0">
+              <p className="font-heading text-base font-bold text-white">National Impact</p>
+              <p className="text-sm text-white/60 font-medium mt-1">
                 See how the whole community is making a difference
               </p>
             </div>
-            <ArrowRight size={18} className="text-primary-300 shrink-0" />
+            <ArrowRight size={20} strokeWidth={2.5} className="text-white/50 shrink-0 relative" />
           </motion.button>
 
           {/* ─── Comparison ─── */}
@@ -469,9 +531,9 @@ export default function ImpactDashboardPage() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 22 }}
-            className="mx-5 mt-8 rounded-3xl bg-bark-50/40 shadow-sm p-6"
+            className="mx-5 mt-8 rounded-3xl bg-gradient-to-br from-bark-100/60 to-bark-200/40 shadow-lg ring-1 ring-bark-200/40 p-6"
           >
-            <p className="text-sm text-primary-600 font-medium leading-relaxed">
+            <p className="text-sm text-primary-700 font-semibold leading-relaxed">
               {stats.treesPlanted > 10
                 ? `You've planted ${Math.round(stats.treesPlanted / 3)}x more trees than the average Co-Exist member. Keep it up!`
                 : 'Keep attending events to grow your impact and see how you compare!'}

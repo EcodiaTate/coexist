@@ -123,7 +123,7 @@ export function Page({
         <div
           className={cn(
             'sticky bottom-0 z-30',
-            'bg-white/95 backdrop-blur-md',
+            'bg-surface-0/95 backdrop-blur-md',
             'border-t border-primary-100',
             'px-4 py-3',
           )}

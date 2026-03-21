@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Trash2, Minus, Plus, Tag, ArrowRight } from 'lucide-react'
+import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -18,6 +19,7 @@ export default function CartPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { toast } = useToast()
+  const placeholderMerch = useAppImage('placeholder_merch')
 
   const items = useCart((s) => s.items)
   const removeItem = useCart((s) => s.removeItem)
@@ -103,7 +105,7 @@ export default function CartPage() {
             >
               {/* Image */}
               <img
-                src={item.product.images[0] ?? '/img/placeholder-merch.jpg'}
+                src={item.product.images[0] ?? placeholderMerch}
                 alt={item.product.name}
                 className="w-20 h-20 object-cover rounded-xl shrink-0"
                 loading="lazy"

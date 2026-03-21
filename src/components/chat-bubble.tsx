@@ -27,9 +27,9 @@ interface ChatBubbleProps {
 }
 
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
-  Leader: { bg: 'bg-primary-600', text: 'text-white' },
-  'Co-Leader': { bg: 'bg-primary-200', text: 'text-primary-800' },
-  'Assist Leader': { bg: 'bg-primary-100', text: 'text-primary-700' },
+  Leader: { bg: 'bg-primary-700', text: 'text-white' },
+  'Co-Leader': { bg: 'bg-primary-300', text: 'text-primary-900' },
+  'Assist Leader': { bg: 'bg-primary-200', text: 'text-primary-800' },
 }
 
 function formatTime(date: Date): string {
@@ -114,11 +114,11 @@ export function ChatBubble({
             <img
               src={senderAvatar}
               alt=""
-              className="h-9 w-9 rounded-full object-cover ring-2 ring-white shadow-sm"
+              className="h-10 w-10 rounded-full object-cover ring-[2.5px] ring-white shadow-md"
             />
           ) : (
             <div
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-primary-100 to-primary-200 text-xs font-bold text-primary-600 ring-2 ring-white shadow-sm"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-xs font-extrabold text-white ring-[2.5px] ring-white shadow-md"
               aria-hidden="true"
             >
               {senderName?.charAt(0)?.toUpperCase() ?? '?'}
@@ -130,23 +130,23 @@ export function ChatBubble({
       {/* Bubble content */}
       <div
         className={cn(
-          'flex max-w-[75%] flex-col gap-0.5',
+          'flex max-w-[78%] flex-col gap-0.5',
           sent ? 'items-end' : 'items-start',
         )}
       >
         {/* Sender name + role badge (received only) */}
         {!sent && senderName && (
-          <div className="flex items-center gap-1.5 px-1 mb-0.5">
+          <div className="flex items-center gap-2 px-1 mb-1">
             <button
               type="button"
-              className="text-xs font-semibold text-primary-600 hover:text-primary-700 min-h-[28px] flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+              className="text-[13px] font-bold text-primary-700 hover:text-primary-800 min-h-[28px] flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
               onClick={() => senderId && onSenderTap?.(senderId)}
             >
               {senderName}
             </button>
             {roleBadge && roleStyle && (
               <span className={cn(
-                'inline-flex items-center rounded-full px-1.5 py-px text-[10px] font-bold leading-tight',
+                'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold leading-tight shadow-sm',
                 roleStyle.bg,
                 roleStyle.text,
               )}>
@@ -159,34 +159,34 @@ export function ChatBubble({
         {/* Bubble */}
         <div
           className={cn(
-            'rounded-2xl px-3.5 py-2.5 shadow-sm transition-all duration-150',
+            'rounded-2xl px-4 py-3 transition-all duration-150',
             sent
-              ? 'rounded-br-md bg-primary-700 text-white'
-              : 'rounded-bl-md bg-white text-primary-900 ring-1 ring-primary-100/60',
+              ? 'rounded-br-md bg-gradient-to-br from-primary-600 to-primary-800 text-white shadow-lg shadow-primary-300/30'
+              : 'rounded-bl-md bg-white text-primary-900 ring-1 ring-primary-200/70 shadow-md',
           )}
         >
           {/* Reply quote */}
           {replyTo && (
             <div
               className={cn(
-                'mb-2 rounded-lg border-l-[3px] px-2.5 py-1.5',
+                'mb-2.5 rounded-xl border-l-[3px] px-3 py-2',
                 sent
-                  ? 'border-white/50 bg-white/15'
-                  : 'border-primary-300 bg-primary-50/80',
+                  ? 'border-white/60 bg-white/20'
+                  : 'border-primary-400 bg-primary-50',
               )}
             >
               <p
                 className={cn(
-                  'text-[11px] font-bold',
-                  sent ? 'text-white/85' : 'text-primary-600',
+                  'text-[11px] font-extrabold',
+                  sent ? 'text-white/90' : 'text-primary-700',
                 )}
               >
                 {replyTo.senderName}
               </p>
               <p
                 className={cn(
-                  'line-clamp-2 text-xs',
-                  sent ? 'text-white/65' : 'text-primary-500',
+                  'line-clamp-2 text-xs mt-0.5',
+                  sent ? 'text-white/70' : 'text-primary-500',
                 )}
               >
                 {replyTo.message}
@@ -200,13 +200,13 @@ export function ChatBubble({
               src={photo}
               alt="Shared image"
               loading="lazy"
-              className="mb-2 max-w-full rounded-xl"
+              className="mb-2.5 max-w-full rounded-xl shadow-sm"
             />
           )}
 
           {/* Message text */}
           {message && (
-            <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+            <p className="whitespace-pre-wrap break-words text-[14px] leading-relaxed">
               {message}
             </p>
           )}
@@ -214,7 +214,7 @@ export function ChatBubble({
           {/* Timestamp */}
           <p
             className={cn(
-              'mt-1 text-[10px] tabular-nums',
+              'mt-1.5 text-[10px] font-medium tabular-nums',
               sent ? 'text-white/50 text-right' : 'text-primary-400',
             )}
           >
@@ -277,24 +277,25 @@ export function PollCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={cn(
-        'w-full max-w-[85%] rounded-2xl p-4 shadow-sm',
-        'bg-gradient-to-br from-primary-100 to-primary-200/70',
+        'w-full max-w-[85%] rounded-2xl p-5 shadow-lg',
+        'bg-gradient-to-br from-primary-200 via-primary-100 to-primary-200/60',
+        'ring-1 ring-primary-300/40',
         sent ? 'ml-auto' : 'mr-auto',
       )}
     >
       {/* Poll icon + question */}
-      <div className="flex items-start gap-2 mb-3">
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary-200/80 text-primary-700">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <div className="flex items-start gap-3 mb-4">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary-600 text-white shadow-md">
+          <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <rect x="1" y="8" width="3" height="6" rx="1" fill="currentColor" opacity="0.6" />
             <rect x="6" y="4" width="3" height="10" rx="1" fill="currentColor" opacity="0.8" />
             <rect x="11" y="2" width="3" height="12" rx="1" fill="currentColor" />
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-primary-900 leading-snug">{question}</p>
+          <p className="text-[15px] font-extrabold text-primary-950 leading-snug">{question}</p>
           {creatorName && (
-            <p className="text-[11px] text-primary-400 mt-0.5">by {creatorName}</p>
+            <p className="text-[11px] font-medium text-primary-500 mt-0.5">by {creatorName}</p>
           )}
         </div>
       </div>
@@ -319,13 +320,13 @@ export function PollCard({
                 }
               }}
               className={cn(
-                'relative w-full overflow-hidden rounded-xl px-3 py-2.5 text-left transition-all duration-200',
+                'relative w-full overflow-hidden rounded-xl px-3.5 py-3 text-left transition-all duration-200',
                 'min-h-11 cursor-pointer select-none',
                 isSelected
-                  ? 'bg-primary-600/15 shadow-sm'
-                  : 'bg-white/70 hover:bg-white',
+                  ? 'bg-primary-600/20 shadow-md ring-2 ring-primary-400/40'
+                  : 'bg-white/80 hover:bg-white shadow-sm',
                 isClosed && 'cursor-default opacity-80',
-                'active:scale-[0.98]',
+                'active:scale-[0.97]',
               )}
             >
               {/* Progress bar background */}
@@ -396,10 +397,10 @@ interface AnnouncementCardProps {
 }
 
 const TYPE_META: Record<string, { icon: typeof Megaphone; label: string; gradient: string; iconBg: string; iconColor: string; labelColor: string }> = {
-  announcement: { icon: Megaphone, label: 'Announcement', gradient: 'from-accent-100 to-accent-200', iconBg: 'bg-accent-300/50', iconColor: 'text-accent-800', labelColor: 'text-accent-600' },
-  event_invite: { icon: CalendarPlus, label: 'Event Invite', gradient: 'from-info-100 to-info-200', iconBg: 'bg-info-300/50', iconColor: 'text-info-800', labelColor: 'text-info-600' },
-  rsvp: { icon: ClipboardCheck, label: 'RSVP', gradient: 'from-success-100 to-success-200', iconBg: 'bg-success-300/50', iconColor: 'text-success-800', labelColor: 'text-success-600' },
-  checklist: { icon: ListChecks, label: 'Checklist', gradient: 'from-warning-100 to-warning-200', iconBg: 'bg-warning-300/50', iconColor: 'text-warning-800', labelColor: 'text-warning-600' },
+  announcement: { icon: Megaphone, label: 'Announcement', gradient: 'from-accent-200 via-accent-100 to-accent-200/60', iconBg: 'bg-accent-600', iconColor: 'text-white', labelColor: 'text-accent-700' },
+  event_invite: { icon: CalendarPlus, label: 'Event Invite', gradient: 'from-info-200 via-info-100 to-info-200/60', iconBg: 'bg-info-600', iconColor: 'text-white', labelColor: 'text-info-700' },
+  rsvp: { icon: ClipboardCheck, label: 'RSVP', gradient: 'from-success-200 via-success-100 to-success-200/60', iconBg: 'bg-success-600', iconColor: 'text-white', labelColor: 'text-success-700' },
+  checklist: { icon: ListChecks, label: 'Checklist', gradient: 'from-warning-200 via-warning-100 to-warning-200/60', iconBg: 'bg-warning-600', iconColor: 'text-white', labelColor: 'text-warning-700' },
 }
 
 export function AnnouncementCard({
@@ -434,32 +435,33 @@ export function AnnouncementCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={cn(
-        'w-full max-w-[85%] rounded-2xl p-4 shadow-sm',
+        'w-full max-w-[85%] rounded-2xl p-5 shadow-lg',
         `bg-gradient-to-br ${typeInfo.gradient}`,
+        'ring-1 ring-black/5',
         sent ? 'ml-auto' : 'mr-auto',
       )}
     >
       {/* Header */}
-      <div className="flex items-center gap-2.5 mb-2">
-        <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl', typeInfo.iconBg, typeInfo.iconColor)}>
-          <IconComponent size={18} />
+      <div className="flex items-center gap-3 mb-3">
+        <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-md', typeInfo.iconBg, typeInfo.iconColor)}>
+          <IconComponent size={20} strokeWidth={2.5} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className={cn('text-[10px] font-bold uppercase tracking-wider', typeInfo.labelColor)}>{typeInfo.label}</p>
+          <p className={cn('text-[11px] font-extrabold uppercase tracking-wider', typeInfo.labelColor)}>{typeInfo.label}</p>
           {creatorName && (
-            <p className="text-[11px] text-primary-400">from {creatorName}</p>
+            <p className="text-[11px] font-medium text-primary-500">from {creatorName}</p>
           )}
         </div>
       </div>
 
       {/* Content */}
-      <h4 className="text-sm font-bold text-primary-900 mb-1">{title}</h4>
+      <h4 className="text-[15px] font-extrabold text-primary-950 mb-1.5">{title}</h4>
       {body && (
-        <p className="text-sm text-primary-600 leading-relaxed mb-3">{body}</p>
+        <p className="text-sm text-primary-700 leading-relaxed mb-3">{body}</p>
       )}
 
       {/* Event invite CTA */}
-      {type === 'event_invite' && metadata?.event_id && onViewEvent && (
+      {type === 'event_invite' && !!metadata?.event_id && onViewEvent && (
         <button
           type="button"
           onClick={() => onViewEvent(metadata.event_id as string)}

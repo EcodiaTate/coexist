@@ -40,6 +40,7 @@ import {
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
 import { useMenuSheet } from '@/hooks/use-menu-sheet'
+import { useAppImages } from '@/hooks/use-app-images'
 import { ProximityCheckInBanner } from '@/components/proximity-check-in-banner'
 
 /* ------------------------------------------------------------------ */
@@ -179,6 +180,9 @@ export default function HomePage() {
   const { navMode } = useLayout()
   const { openMenu } = useMenuSheet()
 
+  // App images (admin-configurable)
+  const { data: appImages } = useAppImages()
+
   // All data hooks
   const announcement = useLatestAnnouncement()
   const featured = useFeaturedEvents()
@@ -199,52 +203,7 @@ export default function HomePage() {
   }, [queryClient])
 
   return (
-    <Page
-      header={
-        <header
-          className={cn(
-            'sticky top-0 z-40',
-            'flex items-center justify-end gap-1 h-14 px-4',
-            'bg-surface-1/90 backdrop-blur-sm',
-          )}
-          style={{ paddingTop: 'var(--safe-top)' }}
-        >
-          <button
-            type="button"
-            onClick={() => navigate('/notifications')}
-            className={cn(
-              'flex items-center justify-center min-h-11 min-w-11 rounded-full',
-              'text-primary-400 hover:bg-primary-50',
-              'active:scale-[0.97] transition-all duration-150',
-              'cursor-pointer select-none',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-            )}
-            aria-label="Notifications"
-          >
-            <Bell size={22} />
-          </button>
-          {navMode === 'bottom-tabs' && (
-            <button
-              type="button"
-              onClick={openMenu}
-              className={cn(
-                'flex items-center justify-center min-h-11 min-w-11 rounded-full',
-                'text-primary-600 hover:bg-primary-50',
-                'active:scale-[0.97] transition-all duration-150',
-                'cursor-pointer select-none',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-              )}
-              aria-label="Open menu"
-            >
-              <Menu size={22} />
-            </button>
-          )}
-        </header>
-      }
-    >
-      {/* Proximity check-in banner (geo-based) */}
-      <ProximityCheckInBanner />
-
+    <Page className="!px-0">
       {/* Seasonal ambient particles */}
       <SeasonalParticles count={6} />
 
@@ -255,20 +214,83 @@ export default function HomePage() {
           animate="visible"
           variants={shouldReduceMotion ? undefined : stagger}
         >
-          {/* 1. Greeting */}
+          {/* 1. Full-bleed hero with greeting overlay */}
           <motion.div
-            className="pt-4"
             variants={shouldReduceMotion ? undefined : fadeUp}
+            className=""
           >
-            <EasterEgg>
-              <p className="font-heading text-2xl font-bold text-primary-800">
-                {getGreeting(firstName)}
-              </p>
-            </EasterEgg>
-            <p className="mt-0.5 text-sm text-primary-400">
-              Here&apos;s what&apos;s happening in your world
-            </p>
+            <div className="relative w-full min-h-[280px] sm:min-h-[340px]">
+              {appImages?.home_hero ? (
+                <img
+                  src={appImages.home_hero}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-800 to-primary-950" />
+              )}
+              {/* Dark overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/10" />
+              {/* Header buttons over hero */}
+              <div
+                className="absolute top-0 left-0 right-0 z-40 flex items-center justify-end gap-1 h-14 px-4"
+                style={{ paddingTop: 'var(--safe-top)' }}
+              >
+                <button
+                  type="button"
+                  onClick={() => navigate('/notifications')}
+                  className={cn(
+                    'flex items-center justify-center min-h-11 min-w-11 rounded-full',
+                    'text-white/90 hover:bg-white/10',
+                    'active:scale-[0.97] transition-all duration-150',
+                    'cursor-pointer select-none',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+                    'drop-shadow-md',
+                  )}
+                  aria-label="Notifications"
+                >
+                  <Bell size={22} />
+                </button>
+                {navMode === 'bottom-tabs' && (
+                  <button
+                    type="button"
+                    onClick={openMenu}
+                    className={cn(
+                      'flex items-center justify-center min-h-11 min-w-11 rounded-full',
+                      'text-white/90 hover:bg-white/10',
+                      'active:scale-[0.97] transition-all duration-150',
+                      'cursor-pointer select-none',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
+                      'drop-shadow-md',
+                    )}
+                    aria-label="Open menu"
+                  >
+                    <Menu size={22} />
+                  </button>
+                )}
+              </div>
+              {/* Greeting text over hero */}
+              <div
+                className="relative z-10 flex flex-col justify-end h-full min-h-[280px] sm:min-h-[340px] px-4 lg:px-6 pb-6"
+                style={{ paddingTop: 'calc(var(--safe-top) + 3.5rem)' }}
+              >
+                <EasterEgg>
+                  <p className="font-heading text-2xl font-bold text-white drop-shadow-md">
+                    {getGreeting(firstName)}
+                  </p>
+                </EasterEgg>
+                <p className="mt-0.5 text-sm text-white/80 drop-shadow-sm">
+                  Here&apos;s what&apos;s happening in your world
+                </p>
+              </div>
+            </div>
           </motion.div>
+
+          {/* Rest of content with side padding restored */}
+          <div className="px-4 lg:px-6 space-y-6">
+
+          {/* Proximity check-in banner (geo-based) */}
+          <ProximityCheckInBanner />
 
           {/* 2. Announcement banner */}
           {announcement.isLoading ? (
@@ -326,7 +348,7 @@ export default function HomePage() {
                       Your Collective
                     </p>
                     <h2 className="font-heading text-xl font-bold text-white truncate">
-                      {myCollective.data.name}
+                      {myCollective.data.name.replace(/\s*Collective$/i, '')}
                     </h2>
                   </div>
                   <ChevronRight
@@ -407,7 +429,7 @@ export default function HomePage() {
                       <Card.Image
                         src={
                           event.cover_image_url ??
-                          '/img/placeholder-event.jpg'
+                          (appImages?.placeholder_event || '/img/placeholder-event.jpg')
                         }
                         alt={event.title}
                         aspectRatio="16/9"
@@ -425,7 +447,7 @@ export default function HomePage() {
                         </Badge>
                       </Card.Badge>
                     </div>
-                    <Card.Content className="bg-primary-50/40">
+                    <Card.Content className="bg-surface-2">
                       <Card.Title>{event.title}</Card.Title>
                       <Card.Meta>
                         <span className="flex items-center gap-1">
@@ -473,12 +495,12 @@ export default function HomePage() {
                       <Card.Image
                         src={
                           event.cover_image_url ??
-                          '/img/placeholder-event.jpg'
+                          (appImages?.placeholder_event || '/img/placeholder-event.jpg')
                         }
                         alt={event.title}
                         aspectRatio="4/3"
                       />
-                      <Card.Content className="p-3 bg-primary-50/30">
+                      <Card.Content className="p-3 bg-surface-2">
                         <Card.Title className="text-sm">
                           {event.title}
                         </Card.Title>
@@ -506,7 +528,7 @@ export default function HomePage() {
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <Link
                 to="/impact"
-                className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary-100 to-primary-50 shadow-sm p-5 active:scale-[0.98] transition-all duration-150"
+                className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary-100 to-surface-2 shadow-sm p-5 active:scale-[0.98] transition-all duration-150"
               >
                 <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-400/15 shrink-0">
                   <TreePine size={22} className="text-primary-600" />
@@ -531,7 +553,7 @@ export default function HomePage() {
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <Section title="National Challenge">
                 <Card.Root variant="stat" aria-label={challenge.data.title}>
-                    <Card.Content className="bg-primary-50/50">
+                    <Card.Content className="bg-surface-2">
                       <div className="flex items-start gap-3">
                         <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary-200/60 text-primary-600 shrink-0">
                           <Target size={20} />
@@ -592,7 +614,7 @@ export default function HomePage() {
                         className="shrink-0 w-44 snap-start"
                         aria-label={c.name}
                       >
-                        <Card.Content className="p-3 bg-primary-50/40">
+                        <Card.Content className="p-3 bg-surface-2">
                           <p className="font-heading text-sm font-semibold text-primary-800 truncate">
                             {c.name}
                           </p>
@@ -617,7 +639,7 @@ export default function HomePage() {
               variants={shouldReduceMotion ? undefined : fadeUp}
             >
               <Card.Root variant="stat">
-                <Card.Content className="text-center py-6 bg-gradient-to-b from-primary-50 to-primary-100/40">
+                <Card.Content className="text-center py-6 bg-gradient-to-b from-surface-2 to-primary-100/50">
                   <span className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-primary-200/60 text-primary-600 mb-3">
                     <Sparkles size={24} />
                   </span>
@@ -648,6 +670,7 @@ export default function HomePage() {
               </Card.Root>
             </motion.div>
           )}
+          </div>
         </motion.div>
       </PullToRefresh>
     </Page>

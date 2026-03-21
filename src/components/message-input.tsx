@@ -11,7 +11,6 @@ import {
   Plus,
   BarChart3,
   Megaphone,
-  CalendarPlus,
   Bell,
   X,
 } from 'lucide-react'
@@ -112,16 +111,15 @@ export function MessageInput({
   )
 
   const leaderActions = [
-    { icon: BarChart3, label: 'Create Poll', onClick: onCreatePoll, color: 'text-primary-600 bg-primary-50' },
-    { icon: Megaphone, label: 'Announcement', onClick: onCreateAnnouncement, color: 'text-accent-600 bg-accent-50' },
-    { icon: CalendarPlus, label: 'Event Invite', onClick: onCreateEventInvite, color: 'text-info-600 bg-info-50' },
-    { icon: Bell, label: 'Push Notification', onClick: onBroadcastNotification, color: 'text-warning-600 bg-warning-50' },
+    { icon: BarChart3, label: 'Poll', onClick: onCreatePoll, color: 'text-white bg-primary-600 shadow-md' },
+    { icon: Megaphone, label: 'Announce', onClick: onCreateAnnouncement, color: 'text-white bg-accent-600 shadow-md' },
+    { icon: Bell, label: 'Push Alert', onClick: onBroadcastNotification, color: 'text-white bg-warning-600 shadow-md' },
   ]
 
   return (
     <div
       className={cn(
-        'z-10 bg-white/95 backdrop-blur-md shadow-[0_-1px_3px_0_rgb(0_0_0/0.05)]',
+        'z-10 bg-white/95 backdrop-blur-md shadow-[0_-2px_12px_0_rgb(0_0_0/0.08)] border-t border-primary-100/50',
         className,
       )}
       style={{
@@ -138,10 +136,10 @@ export function MessageInput({
             animate={{ opacity: 1, height: 'auto' }}
             exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="bg-primary-50/30 px-3 py-2"
+            className="bg-primary-50/60 px-3 py-3"
           >
             <div className="flex items-center gap-1.5 mb-1.5">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-primary-400 flex-1">
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-primary-600 flex-1">
                 Leader Actions
               </p>
               <button
@@ -188,9 +186,10 @@ export function MessageInput({
           role="toolbar"
           aria-label={ariaLabel}
           className={cn(
-            'flex items-end gap-2 rounded-2xl bg-primary-50/40 px-3 py-2',
-            'transition-all duration-150',
-            'focus-within:bg-white focus-within:shadow-sm focus-within:ring-1 focus-within:ring-primary-300',
+            'flex items-end gap-2 rounded-2xl bg-primary-50/60 px-3.5 py-2.5',
+            'transition-all duration-200',
+            'ring-1 ring-primary-200/50',
+            'focus-within:bg-white focus-within:shadow-md focus-within:ring-2 focus-within:ring-primary-400/70',
             disabled && 'opacity-50',
           )}
         >
@@ -246,8 +245,8 @@ export function MessageInput({
             maxLength={maxLength}
             aria-label="Message text"
             className={cn(
-              'flex-1 resize-none bg-transparent text-sm text-primary-800',
-              'placeholder:text-primary-400',
+              'flex-1 resize-none bg-transparent text-[14px] font-medium text-primary-900',
+              'placeholder:text-primary-400 placeholder:font-normal',
               'outline-none',
               'disabled:cursor-not-allowed',
               'leading-6',
@@ -268,14 +267,15 @@ export function MessageInput({
                 exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.5 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 className={cn(
-                  'flex-shrink-0 rounded-full bg-primary-600 p-2 text-white',
-                  'transition-colors duration-150',
-                  'hover:bg-primary-700',
+                  'flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 p-2.5 text-white',
+                  'transition-all duration-150',
+                  'hover:from-primary-600 hover:to-primary-800',
+                  'shadow-lg shadow-primary-300/40',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1',
                   'disabled:pointer-events-none disabled:opacity-50',
                 )}
               >
-                <SendHorizontal size={18} aria-hidden="true" />
+                <SendHorizontal size={19} strokeWidth={2.5} aria-hidden="true" />
               </motion.button>
             )}
           </AnimatePresence>

@@ -15,7 +15,8 @@ type InputType = 'text' | 'email' | 'password' | 'search' | 'textarea' | 'date' 
 
 export interface InputProps {
   type?: InputType
-  label: string
+  label?: string
+  compact?: boolean
   value?: string
   defaultValue?: string
   onChange?: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>

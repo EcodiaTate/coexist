@@ -125,7 +125,7 @@ export default function ProfilePage() {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => navigate('/settings')}
-                className="flex items-center justify-center w-9 h-9 rounded-full text-primary-400 hover:bg-primary-50 transition-colors"
+                className="flex items-center justify-center w-9 h-9 rounded-full text-primary-400 hover:bg-surface-3 transition-colors"
                 aria-label="Settings"
               >
                 <Settings size={20} />
@@ -152,7 +152,7 @@ export default function ProfilePage() {
             />
             <button
               onClick={() => navigate('/profile/edit')}
-              className="absolute -bottom-1 -right-1 flex items-center justify-center w-8 h-8 rounded-full bg-white shadow-md text-primary-400 hover:bg-primary-50 transition-colors"
+              className="absolute -bottom-1 -right-1 flex items-center justify-center w-8 h-8 rounded-full bg-surface-0 shadow-md text-primary-400 hover:bg-surface-3 transition-colors"
               aria-label="Edit profile"
             >
               <Edit3 size={14} />

@@ -170,7 +170,7 @@ export default function ViewProfilePage() {
         {mutualData && (mutualData.sharedCollectives.length > 0 || mutualData.sharedEventCount > 0) && (
           <motion.div
             variants={fadeUp}
-            className="mt-2 rounded-xl bg-white shadow-sm px-4 py-3"
+            className="mt-2 rounded-xl bg-surface-0 shadow-sm px-4 py-3"
           >
             <div className="flex items-center gap-2 text-sm text-primary-400">
               <Users size={16} />

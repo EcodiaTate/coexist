@@ -125,6 +125,7 @@ const AdminSurveysPage = lazy(() => import('@/pages/admin/surveys'))
 const AdminCreateSurveyPage = lazy(() => import('@/pages/admin/create-survey'))
 const AdminAuditLogPage = lazy(() => import('@/pages/admin/audit-log'))
 const AdminSystemPage = lazy(() => import('@/pages/admin/system'))
+const AdminBrandingPage = lazy(() => import('@/pages/admin/branding'))
 const AdminEmailPage = lazy(() => import('@/pages/admin/email'))
 const AdminCharityPage = lazy(() => import('@/pages/admin/charity'))
 const AdminExportsPage = lazy(() => import('@/pages/admin/exports'))
@@ -141,6 +142,9 @@ const LeaderDashboardPage = lazy(() => import('@/pages/leader/index'))
 // Reports & National Impact
 const ReportsPage = lazy(() => import('@/pages/reports/index'))
 const NationalImpactPage = lazy(() => import('@/pages/impact/national'))
+
+// Temp map page
+const MapPage = lazy(() => import('@/pages/map'))
 
 /* ------------------------------------------------------------------ */
 /*  Loading fallback                                                   */
@@ -300,6 +304,16 @@ function App() {
                 <PageTransition>
                   <ExplorePage />
                 </PageTransition>
+              </AppShell>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/map"
+          element={
+            <RequireAuth>
+              <AppShell bare>
+                <MapPage />
               </AppShell>
             </RequireAuth>
           }
@@ -871,6 +885,7 @@ function App() {
           <Route path="exports" element={<AdminExportsPage />} />
           <Route path="audit-log" element={<AdminAuditLogPage />} />
           <Route path="system" element={<AdminSystemPage />} />
+          <Route path="branding" element={<AdminBrandingPage />} />
           <Route path="membership" element={<AdminMembershipPage />} />
           <Route path="merch" element={<AdminMerchPage />} />
           <Route path="super" element={<RequireRole minRole="super_admin"><SuperAdminPage /></RequireRole>} />

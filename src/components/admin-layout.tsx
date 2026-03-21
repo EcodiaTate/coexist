@@ -24,6 +24,7 @@ import {
     Menu,
     X,
     Bug,
+    Image,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -86,6 +87,7 @@ const adminNavItems: AdminNavItem[] = [
   { label: 'Charity', path: '/admin/charity', icon: <Heart size={18} />, capability: 'manage_charity' },
   { label: 'Exports', path: '/admin/exports', icon: <Download size={18} />, capability: 'manage_exports' },
   { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={18} />, capability: 'view_audit_log' },
+  { label: 'Branding', path: '/admin/branding', icon: <Image size={18} />, capability: 'manage_system' },
   { label: 'System', path: '/admin/system', icon: <Settings size={18} />, capability: 'manage_system' },
 ]
 

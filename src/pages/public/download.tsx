@@ -4,6 +4,7 @@ import { cn } from '@/lib/cn'
 import { Button } from '@/components/button'
 import { OGMeta } from '@/components/og-meta'
 import { APP_NAME, TAGLINE, WEBSITE_URL, INSTAGRAM_URL } from '@/lib/constants'
+import { useAppImage } from '@/hooks/use-app-images'
 import { WebFooter } from '@/components/web-footer'
 
 // Placeholder store URLs - replace with real ones when published
@@ -30,6 +31,7 @@ const fadeUp = {
 
 export default function DownloadPage() {
   const shouldReduceMotion = useReducedMotion()
+  const heroDownload = useAppImage('hero_download')
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
@@ -43,7 +45,7 @@ export default function DownloadPage() {
         {/* Background hero photo */}
         <div className="absolute inset-0" aria-hidden="true">
           <img
-            src="/img/hero-download.jpg"
+            src={heroDownload}
             alt=""
             className="h-full w-full object-cover"
           />

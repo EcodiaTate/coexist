@@ -46,7 +46,7 @@ function useSurveyQuestions(activityType: string | undefined) {
     queryKey: ['post-event-survey-template', activityType],
     queryFn: async () => {
       if (!activityType) return []
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('post_event_survey_templates')
         .select('*')
         .eq('activity_type', activityType)
@@ -65,7 +65,7 @@ function useExistingResponse(eventId: string | undefined) {
     queryKey: ['post-event-survey-response', eventId, user?.id],
     queryFn: async () => {
       if (!eventId || !user) return null
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from('post_event_survey_responses')
         .select('*')
         .eq('event_id', eventId)
@@ -84,7 +84,7 @@ function useSubmitSurvey() {
   return useMutation({
     mutationFn: async ({ eventId, answers }: { eventId: string; answers: Record<string, unknown> }) => {
       if (!user) throw new Error('Not authenticated')
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('post_event_survey_responses')
         .upsert(
           {
@@ -206,8 +206,8 @@ export default function PostEventSurveyPage() {
 
   // Pre-fill from existing response
   useMemo(() => {
-    if (existingResponse?.answers && Object.keys(answers).length === 0) {
-      setAnswers(existingResponse.answers as Record<string, unknown>)
+    if ((existingResponse as any)?.answers && Object.keys(answers).length === 0) {
+      setAnswers((existingResponse as any).answers as Record<string, unknown>)
     }
   }, [existingResponse])
 
@@ -291,7 +291,7 @@ export default function PostEventSurveyPage() {
             </motion.div>
 
             <WhatsNext
-              items={[
+              suggestions={[
                 { label: 'View Event', to: `/events/${eventId}` },
                 { label: 'My Events', to: '/events' },
                 { label: 'Home', to: '/' },
@@ -363,7 +363,7 @@ export default function PostEventSurveyPage() {
                 <div className="flex items-center gap-2">
                   <Input
                     type="number"
-                    min={0}
+                    min="0"
                     placeholder="0"
                     value={String(answers[q.question_key] ?? '')}
                     onChange={(e) => setAnswer(q.question_key, e.target.value ? Number(e.target.value) : '')}

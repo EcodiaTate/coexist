@@ -686,7 +686,7 @@ export function useCreatePoll() {
         text,
       }))
 
-      const { data: poll, error } = await supabase
+      const { data: poll, error } = await (supabase as any)
         .from('chat_polls')
         .insert({
           collective_id: collectiveId,
@@ -707,7 +707,7 @@ export function useCreatePoll() {
         collectiveId,
         content: question,
         messageType: 'poll',
-        pollId: poll.id,
+        pollId: (poll as any).id,
       })
 
       return poll
@@ -726,7 +726,7 @@ export function usePollVote() {
     mutationFn: async ({ pollId, optionId, collectiveId }: { pollId: string; optionId: string; collectiveId: string }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('chat_poll_votes')
         .upsert({
           poll_id: pollId,
@@ -752,7 +752,7 @@ export function useRemovePollVote() {
     mutationFn: async ({ pollId, optionId, collectiveId }: { pollId: string; optionId: string; collectiveId: string }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('chat_poll_votes')
         .delete()
         .eq('poll_id', pollId)
@@ -777,7 +777,7 @@ export function usePollDetail(pollId: string | undefined) {
     queryFn: async () => {
       if (!pollId) throw new Error('No poll ID')
 
-      const { data: poll, error } = await supabase
+      const { data: poll, error } = await (supabase as any)
         .from('chat_polls')
         .select(`
           *,
@@ -789,7 +789,7 @@ export function usePollDetail(pollId: string | undefined) {
       if (error) throw error
 
       // Get vote counts
-      const { data: votes } = await supabase
+      const { data: votes } = await (supabase as any)
         .from('chat_poll_votes')
         .select('option_id, user_id')
         .eq('poll_id', pollId)
@@ -811,7 +811,7 @@ export function usePollDetail(pollId: string | undefined) {
         _vote_counts: voteCounts,
         _total_votes: totalVoters.size,
         _user_votes: userVotes,
-      } as ChatPoll
+      } as unknown as ChatPoll
     },
     enabled: !!pollId,
     staleTime: 10 * 1000,
@@ -845,7 +845,7 @@ export function useCreateAnnouncement() {
     }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { data: announcement, error } = await supabase
+      const { data: announcement, error } = await (supabase as any)
         .from('chat_announcements')
         .insert({
           collective_id: collectiveId,
@@ -885,7 +885,7 @@ export function useAnnouncementDetail(announcementId: string | undefined) {
     queryFn: async () => {
       if (!announcementId) throw new Error('No announcement ID')
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('chat_announcements')
         .select(`
           *,
@@ -897,12 +897,12 @@ export function useAnnouncementDetail(announcementId: string | undefined) {
       if (error) throw error
 
       // Get responses
-      const { data: responses } = await supabase
+      const { data: responses } = await (supabase as any)
         .from('chat_announcement_responses')
         .select('*')
         .eq('announcement_id', announcementId)
 
-      return { ...data, responses: responses ?? [] } as ChatAnnouncement
+      return { ...data, responses: responses ?? [] } as unknown as ChatAnnouncement
     },
     enabled: !!announcementId,
     staleTime: 15 * 1000,
@@ -924,13 +924,13 @@ export function useRespondToAnnouncement() {
       if (!user) throw new Error('Not authenticated')
 
       // Remove existing response first (single-choice)
-      await supabase
+      await (supabase as any)
         .from('chat_announcement_responses')
         .delete()
         .eq('announcement_id', announcementId)
         .eq('user_id', user.id)
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('chat_announcement_responses')
         .insert({
           announcement_id: announcementId,
@@ -956,7 +956,7 @@ export function useBroadcastLog(collectiveId: string | undefined) {
     queryFn: async () => {
       if (!collectiveId) throw new Error('No collective ID')
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('chat_broadcast_log')
         .select(`
           *,
@@ -967,7 +967,7 @@ export function useBroadcastLog(collectiveId: string | undefined) {
         .limit(20)
 
       if (error) throw error
-      return (data ?? []) as BroadcastLogEntry[]
+      return (data ?? []) as unknown as BroadcastLogEntry[]
     },
     enabled: !!collectiveId,
     staleTime: 30 * 1000,
@@ -1008,7 +1008,7 @@ export function useSendBroadcastNotification() {
       })
 
       // Log the broadcast for dedup visibility
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('chat_broadcast_log')
         .insert({
           collective_id: collectiveId,

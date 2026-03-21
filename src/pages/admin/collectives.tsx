@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
+import { Input } from '@/components/input'
 import { SearchBar } from '@/components/search-bar'
 import { Avatar } from '@/components/avatar'
 import { Skeleton } from '@/components/skeleton'

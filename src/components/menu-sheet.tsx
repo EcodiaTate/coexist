@@ -61,7 +61,7 @@ const listVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, x: 16 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] } },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.2, ease: [0.25, 0.1, 0.25, 1] as const } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -272,7 +272,7 @@ export function MenuSheet({ open, onClose }: MenuSheetProps) {
             className={cn(
               'fixed top-0 right-0 bottom-0',
               'w-[min(82vw,340px)]',
-              'bg-white',
+              'bg-surface-0',
               'shadow-[-8px_0_30px_-12px_rgba(0,0,0,0.12)]',
               'flex flex-col',
               'outline-none',

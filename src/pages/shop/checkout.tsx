@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { MapPin, CreditCard } from 'lucide-react'
+import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -41,6 +42,7 @@ export default function CheckoutPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { toast } = useToast()
+  const placeholderMerch = useAppImage('placeholder_merch')
 
   const items = useCart((s) => s.items)
   const subtotalCents = useCart((s) => s.subtotalCents())
@@ -241,7 +243,7 @@ export default function CheckoutPage() {
             {items.map((item) => (
               <div key={item.variant.id} className="flex items-center gap-3">
                 <img
-                  src={item.product.images[0] ?? '/img/placeholder-merch.jpg'}
+                  src={item.product.images[0] ?? placeholderMerch}
                   alt={item.product.name}
                   className="w-12 h-12 object-cover rounded-lg shrink-0"
                 />

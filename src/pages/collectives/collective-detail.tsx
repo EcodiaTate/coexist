@@ -169,7 +169,7 @@ export default function CollectiveDetailPage() {
                   type="button"
                   onClick={() => navigate(`/collectives/${slug}/manage`)}
                   aria-label="Manage collective"
-                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-surface-3 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
                 >
                   <Settings size={20} />
                 </button>
@@ -178,7 +178,7 @@ export default function CollectiveDetailPage() {
                 type="button"
                 onClick={handleShare}
                 aria-label="Share collective"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-surface-3 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               >
                 <Share2 size={20} />
               </button>
@@ -309,7 +309,7 @@ export default function CollectiveDetailPage() {
                 <Link
                   key={leader.id}
                   to={`/profile/${leader.user_id}`}
-                  className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 transition-colors duration-150 hover:bg-primary-50"
+                  className="flex items-center gap-2 rounded-xl bg-surface-0 px-3 py-2 transition-colors duration-150 hover:bg-surface-3"
                 >
                   <Avatar
                     src={leader.profiles?.avatar_url}
@@ -422,7 +422,7 @@ export default function CollectiveDetailPage() {
               </Link>
             ))}
             {members.length > 24 && (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-semibold text-primary-400">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-0 text-xs font-semibold text-primary-400">
                 +{members.length - 24}
               </div>
             )}
@@ -462,7 +462,7 @@ export default function CollectiveDetailPage() {
                 <Link
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className="flex items-center gap-3 rounded-xl bg-white p-3 transition-colors duration-150 hover:bg-primary-50"
+                  className="flex items-center gap-3 rounded-xl bg-surface-0 p-3 transition-colors duration-150 hover:bg-surface-3"
                 >
                   <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-primary-100 text-primary-400">
                     <span className="text-[10px] font-semibold uppercase">
@@ -500,9 +500,9 @@ export default function CollectiveDetailPage() {
                 <Link
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className="flex items-center gap-3 rounded-xl bg-white p-3 transition-colors duration-150 hover:bg-primary-50"
+                  className="flex items-center gap-3 rounded-xl bg-surface-0 p-3 transition-colors duration-150 hover:bg-surface-3"
                 >
-                  <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-white text-primary-400">
+                  <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-surface-2 text-primary-400">
                     <span className="text-[10px] font-semibold uppercase">
                       {new Date(event.date_start).toLocaleDateString('en-AU', { month: 'short' })}
                     </span>

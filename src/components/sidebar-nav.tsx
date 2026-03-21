@@ -88,7 +88,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
       className={cn(
         'sticky top-0 self-start max-h-dvh z-50',
         'flex flex-col',
-        'bg-white shadow-2xl',
+        'bg-surface-0 shadow-2xl',
         'transition-[width] duration-250 ease-in-out',
         collapsed ? 'w-16' : 'w-64',
         className,

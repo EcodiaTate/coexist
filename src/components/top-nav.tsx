@@ -55,7 +55,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
     <header
       className={cn(
         'sticky top-0 z-50',
-        'bg-white/95 backdrop-blur-md',
+        'bg-surface-0/95 backdrop-blur-md',
         'shadow-sm',
         className,
       )}

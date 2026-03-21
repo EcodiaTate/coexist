@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useAdminHeader } from '@/components/admin-layout'
 import { TabBar } from '@/components/tab-bar'
-import { Package, ShoppingCart, BarChart3, Star, Settings } from 'lucide-react'
+import { Package, ShoppingCart, BarChart3, Star, Settings, Warehouse } from 'lucide-react'
 
 import ProductsTab from './products-tab'
 import OrdersTab from './orders-tab'
+import InventoryTab from './inventory-tab'
 import AnalyticsTab from './analytics-tab'
 import PromosTab from './promos-tab'
 import ReturnsTab from './returns-tab'
@@ -46,6 +47,7 @@ function OperationsTab() {
 const TABS = [
   { id: 'products', label: 'Products', icon: <Package size={14} /> },
   { id: 'orders', label: 'Orders', icon: <ShoppingCart size={14} /> },
+  { id: 'inventory', label: 'Inventory', icon: <Warehouse size={14} /> },
   { id: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
   { id: 'operations', label: 'Operations', icon: <Settings size={14} /> },
   { id: 'feedback', label: 'Feedback', icon: <Star size={14} /> },
@@ -54,6 +56,7 @@ const TABS = [
 const TAB_COMPONENTS: Record<string, React.ComponentType> = {
   products: ProductsTab,
   orders: OrdersTab,
+  inventory: InventoryTab,
   analytics: AnalyticsTab,
   operations: OperationsTab,
   feedback: FeedbackTab,

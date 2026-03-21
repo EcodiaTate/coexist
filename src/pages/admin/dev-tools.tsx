@@ -52,7 +52,7 @@ interface TestEvent {
 function useSeedTestEvent() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const toast = useToast()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async (activityType: string) => {
@@ -111,7 +111,7 @@ function useSeedTestEvent() {
           created_by: user.id,
           title,
           description: `Dev test event for ${label}. This event is happening right now for testing day-of flows.`,
-          activity_type: activityType,
+          activity_type: activityType as any,
           date_start: start.toISOString(),
           date_end: end.toISOString(),
           capacity: 30,
@@ -261,7 +261,7 @@ function useTestEvents() {
 function useCleanupTests() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const toast = useToast()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async () => {
@@ -308,7 +308,7 @@ function useCleanupTests() {
 /* ------------------------------------------------------------------ */
 
 export default function DevToolsPage() {
-  useAdminHeader({ title: 'Dev Tools', icon: Bug })
+  useAdminHeader('Dev Tools')
 
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
@@ -320,10 +320,10 @@ export default function DevToolsPage() {
   const [selectedActivity, setSelectedActivity] = useState('beach_cleanup')
 
   const stagger = shouldReduceMotion
-    ? {}
+    ? undefined
     : { hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }
   const fadeUp = shouldReduceMotion
-    ? {}
+    ? undefined
     : { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.25 } } }
 
   if (!import.meta.env.DEV && profile?.role !== 'super_admin') {

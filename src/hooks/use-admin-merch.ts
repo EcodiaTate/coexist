@@ -38,7 +38,7 @@ export function useCreateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (product: Omit<Product, 'id' | 'variants' | 'avg_rating' | 'review_count' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase.from('merch_products').insert(product).select().single()
+      const { data, error } = await supabase.from('merch_products').insert(product as any).select().single()
       if (error) throw error
       return data
     },
@@ -50,7 +50,7 @@ export function useUpdateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Product> & { id: string }) => {
-      const { error } = await supabase.from('merch_products').update(updates).eq('id', id)
+      const { error } = await supabase.from('merch_products').update(updates as any).eq('id', id)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-products'] }),
@@ -74,14 +74,14 @@ export function useAdjustStock() {
       adjustment: number
     }) => {
       if (adjustment > 0) {
-        const { error } = await supabase.rpc('increment_stock', {
+        const { error } = await (supabase as any).rpc('increment_stock', {
           p_product_id: productId,
           p_variant_key: variantKey,
           p_quantity: adjustment,
         })
         if (error) throw error
       } else if (adjustment < 0) {
-        const { error } = await supabase.rpc('decrement_stock', {
+        const { error } = await (supabase as any).rpc('decrement_stock', {
           p_product_id: productId,
           p_variant_key: variantKey,
           p_quantity: Math.abs(adjustment),
@@ -190,6 +190,95 @@ export function useUpdateOrderStatus() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Refund order                                                       */
+/* ------------------------------------------------------------------ */
+
+export function useRefundOrder() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      // Mark order as refunded — actual Stripe refund should be processed
+      // via Stripe dashboard. The charge.refunded webhook handles inventory
+      // restoration automatically.
+      const { error } = await supabase
+        .from('merch_orders')
+        .update({ status: 'refunded', updated_at: new Date().toISOString() })
+        .eq('id', orderId)
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Variant upsert (add/update product variants via JSONB)             */
+/* ------------------------------------------------------------------ */
+
+export function useUpsertVariant() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      productId,
+      variant,
+    }: {
+      productId: string
+      variant: Omit<ProductVariant, 'product_id'> & { id?: string }
+    }) => {
+      // Fetch current product to get existing variants
+      const { data: product, error: fetchErr } = await supabase
+        .from('merch_products')
+        .select('variants')
+        .eq('id', productId)
+        .single()
+      if (fetchErr) throw fetchErr
+
+      const existing = (product?.variants ?? []) as unknown as ProductVariant[]
+      let updated: ProductVariant[]
+
+      if (variant.id) {
+        // Update existing variant
+        updated = existing.map((v) =>
+          v.id === variant.id ? { ...v, ...variant, product_id: productId } : v,
+        )
+      } else {
+        // Add new variant with generated id
+        const newVariant = {
+          ...variant,
+          id: crypto.randomUUID(),
+          product_id: productId,
+        } as ProductVariant
+        updated = [...existing, newVariant]
+      }
+
+      const { error } = await supabase
+        .from('merch_products')
+        .update({ variants: updated as any })
+        .eq('id', productId)
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-products'] }),
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Order admin notes                                                  */
+/* ------------------------------------------------------------------ */
+
+export function useUpdateOrderNotes() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: async ({ orderId, notes }: { orderId: string; notes: string }) => {
+      const { error } = await supabase
+        .from('merch_orders')
+        .update({ admin_notes: notes, updated_at: new Date().toISOString() } as any)
+        .eq('id', orderId)
+      if (error) throw error
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
+  })
+}
+
+/* ------------------------------------------------------------------ */
 /*  Promo code management                                              */
 /* ------------------------------------------------------------------ */
 
@@ -212,7 +301,7 @@ export function useUpsertPromoCode() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (promo: Partial<PromoCode> & { code: string }) => {
-      const { error } = await supabase.from('promo_codes').upsert(promo)
+      const { error } = await supabase.from('promo_codes').upsert(promo as any)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-promo-codes'] }),
@@ -368,19 +457,42 @@ export function useSalesAnalytics(period: 'week' | 'month' | 'year') {
         .from('merch_orders')
         .select('total_cents, items, created_at')
         .gte('created_at', rangeStart.toISOString())
-        .in('status', ['completed', 'shipped', 'processing'])
+        .in('status', ['delivered', 'shipped', 'processing'])
 
       if (error) throw error
 
       const orders = (data ?? []) as any[]
-      const total_revenue_cents = orders.reduce((sum, o) => sum + (o.total_cents ?? 0), 0)
+      const total_revenue_cents = orders.reduce((sum: number, o: any) => sum + (o.total_cents ?? 0), 0)
       const total_orders = orders.length
-      const total_units_sold = orders.reduce((sum, o) => {
+      const total_units_sold = orders.reduce((sum: number, o: any) => {
         if (!Array.isArray(o.items)) return sum
         return sum + o.items.reduce((s: number, i: any) => s + (i.quantity ?? 1), 0)
       }, 0)
 
-      return { total_revenue_cents, total_orders, total_units_sold }
+      const productMap = new Map<string, { product_id: string; product_name: string; units: number; revenue_cents: number }>()
+      for (const o of orders) {
+        if (!Array.isArray(o.items)) continue
+        for (const item of o.items) {
+          const key = item.product_id ?? item.product_name ?? 'unknown'
+          const existing = productMap.get(key) ?? { product_id: key, product_name: item.product_name ?? key, units: 0, revenue_cents: 0 }
+          existing.units += item.quantity ?? 1
+          existing.revenue_cents += (item.price_cents ?? 0) * (item.quantity ?? 1)
+          productMap.set(key, existing)
+        }
+      }
+      const by_product = Array.from(productMap.values()).sort((a, b) => b.revenue_cents - a.revenue_cents)
+
+      const dateMap = new Map<string, { date: string; orders: number; revenue_cents: number }>()
+      for (const o of orders) {
+        const date = o.created_at?.slice(0, 10) ?? 'unknown'
+        const existing = dateMap.get(date) ?? { date, orders: 0, revenue_cents: 0 }
+        existing.orders++
+        existing.revenue_cents += o.total_cents ?? 0
+        dateMap.set(date, existing)
+      }
+      const by_period = Array.from(dateMap.values()).sort((a, b) => a.date.localeCompare(b.date))
+
+      return { total_revenue_cents, total_orders, total_units_sold, by_product, by_period }
     },
     staleTime: 2 * 60 * 1000,
   })

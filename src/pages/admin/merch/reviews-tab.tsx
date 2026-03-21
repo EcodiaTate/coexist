@@ -18,7 +18,7 @@ export default function ReviewsTab() {
   const handleModerate = useCallback(
     async (reviewId: string, status: 'approved' | 'removed') => {
       try {
-        await moderate.mutateAsync({ reviewId, status })
+        await moderate.mutateAsync({ reviewId, approved: status === 'approved' })
         toast.success(`Review ${status}`)
       } catch {
         toast.error('Failed to moderate review')

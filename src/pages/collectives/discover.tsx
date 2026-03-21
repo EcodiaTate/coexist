@@ -46,7 +46,7 @@ function CollectiveCard({ collective }: { collective: CollectiveWithLeader }) {
     >
       <Link
         to={`/collectives/${collective.slug}`}
-        className="flex gap-3 rounded-2xl bg-white p-3 shadow-sm transition-all duration-150 hover:shadow-md active:scale-[0.98]"
+        className="flex gap-3 rounded-2xl bg-surface-0 p-3 shadow-sm transition-all duration-150 hover:shadow-md active:scale-[0.98]"
       >
         {/* Cover thumbnail */}
         <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-primary-100">
@@ -123,7 +123,7 @@ export default function DiscoverCollectivesPage() {
               type="button"
               onClick={() => setView(view === 'list' ? 'map' : 'list')}
               aria-label={view === 'list' ? 'Switch to map view' : 'Switch to list view'}
-              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-surface-3 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
             >
               {view === 'list' ? <Map size={20} /> : <List size={20} />}
             </button>
@@ -150,7 +150,7 @@ export default function DiscoverCollectivesPage() {
               'shrink-0 rounded-full px-3 py-1.5 min-h-11 text-xs font-semibold active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
               selectedState === null
                 ? 'bg-primary-800 text-white'
-                : 'bg-white text-primary-400 hover:bg-primary-50',
+                : 'bg-surface-0 text-primary-400 hover:bg-surface-3',
             )}
           >
             All
@@ -164,7 +164,7 @@ export default function DiscoverCollectivesPage() {
                 'shrink-0 rounded-full px-3 py-1.5 min-h-11 text-xs font-semibold active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                 selectedState === state
                   ? 'bg-primary-800 text-white'
-                  : 'bg-white text-primary-400 hover:bg-primary-50',
+                  : 'bg-surface-0 text-primary-400 hover:bg-surface-3',
               )}
             >
               {state}

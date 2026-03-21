@@ -121,7 +121,7 @@ function useLeaderDashboard(collectiveId: string | undefined) {
         }
 
         // Survey responses count
-        const { count: surveyCount } = await supabase
+        const { count: surveyCount } = await (supabase as any)
           .from('post_event_survey_responses')
           .select('id', { count: 'exact', head: true })
           .in('event_id', eventIds)

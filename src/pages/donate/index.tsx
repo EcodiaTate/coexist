@@ -314,7 +314,7 @@ export default function DonatePage() {
                 />
 
                 <div>
-                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-white shadow-sm">
+                  <div className="flex items-center gap-3 p-4 rounded-2xl bg-surface-0 shadow-sm">
                     <Users size={18} className="text-primary-400 shrink-0" />
                     <Toggle
                       label="On behalf of an organisation"
@@ -343,7 +343,7 @@ export default function DonatePage() {
                   </AnimatePresence>
                 </div>
 
-                <div className="flex items-center gap-3 p-4 rounded-2xl bg-white shadow-sm">
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-surface-0 shadow-sm">
                   <Sparkles size={18} className="text-primary-400 shrink-0" />
                   <Toggle
                     label="Show on donor wall"

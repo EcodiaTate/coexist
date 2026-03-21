@@ -48,7 +48,7 @@ export function Header({
         'px-4',
         transparent
           ? 'bg-transparent'
-          : 'bg-white/90 backdrop-blur-sm',
+          : 'bg-surface-1/90 backdrop-blur-sm',
         className,
       )}
       style={{

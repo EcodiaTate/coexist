@@ -27,15 +27,15 @@ export function useProducts() {
 /*  Single product detail                                              */
 /* ------------------------------------------------------------------ */
 
-export function useProduct(productId: string | undefined) {
+export function useProduct(slug: string | undefined) {
   return useQuery({
-    queryKey: ['product', productId],
-    enabled: !!productId,
+    queryKey: ['product', slug],
+    enabled: !!slug,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('merch_products')
         .select('*')
-        .eq('id', productId!)
+        .eq('slug', slug!)
         .single()
       if (error) throw error
       return data as unknown as Product

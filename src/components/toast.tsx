@@ -50,7 +50,7 @@ const typeConfig: Record<
     icon: CheckCircle,
     iconClass: 'text-primary-400',
     barClass: 'bg-primary-500',
-    bgClass: 'bg-white',
+    bgClass: 'bg-surface-0',
   },
   error: {
     icon: XCircle,
