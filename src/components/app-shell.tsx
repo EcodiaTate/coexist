@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react'
 import { useLocation } from 'react-router-dom'
+import { Menu } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar } from '@/components/bottom-tab-bar'
@@ -32,7 +33,8 @@ function AppShellInner({ children }: { children: ReactNode }) {
   const { isMobile, isWeb, navMode } = useLayout()
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
-  const { open, closeMenu } = useMenuSheet()
+  const isLeaderRoute = location.pathname.startsWith('/leader')
+  const { open, openMenu, closeMenu } = useMenuSheet()
 
   // Handles auto-sync on reconnect + toast notifications
   useSyncManager()
@@ -54,8 +56,8 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
       {/* Sidebar + content row */}
       <div className="flex flex-1 min-h-0">
-        {/* Sidebar - hidden on admin pages (AdminLayout has its own) */}
-        {showSidebar && !isAdminRoute && <SidebarNav />}
+        {/* Sidebar - hidden on admin/leader pages (they have their own) */}
+        {showSidebar && !isAdminRoute && !isLeaderRoute && <SidebarNav />}
 
         {/* Content */}
         <main className="flex-1 flex flex-col min-w-0 min-h-0">
@@ -66,11 +68,27 @@ function AppShellInner({ children }: { children: ReactNode }) {
       {/* Web footer - full width, below the sidebar row so sidebar unsticks at footer */}
       {isWeb && !isMobile && !isChatRoute && <WebFooter />}
 
-      {/* Bottom tab bar (mobile + native) */}
-      {showBottomTabs && <BottomTabBar />}
+      {/* Bottom tab bar (mobile + native) — hidden on admin/leader pages */}
+      {showBottomTabs && !isAdminRoute && !isLeaderRoute && <BottomTabBar />}
 
-      {/* Menu side sheet (mobile + native) */}
-      {showBottomTabs && <MenuSheet open={open} onClose={closeMenu} />}
+      {/* Fixed hamburger (mobile + native) — always visible, top-right, white, no background */}
+      {showBottomTabs && !isAdminRoute && !isLeaderRoute && (
+        <button
+          type="button"
+          onClick={openMenu}
+          className="fixed right-1 z-40 flex items-center justify-center w-11 h-11 text-white cursor-pointer select-none"
+          style={{
+            top: 'calc(var(--safe-top, 0px) + 0.25rem)',
+            filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.4)) drop-shadow(0 0 8px rgba(0,0,0,0.15))',
+          }}
+          aria-label="Open menu"
+        >
+          <Menu size={22} />
+        </button>
+      )}
+
+      {/* Menu side sheet (mobile + native) — hidden on admin/leader pages */}
+      {showBottomTabs && !isAdminRoute && !isLeaderRoute && <MenuSheet open={open} onClose={closeMenu} />}
     </div>
   )
 }

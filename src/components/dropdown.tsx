@@ -131,17 +131,16 @@ export function Dropdown({
       aria-describedby={error ? errorId : undefined}
       aria-label={!label ? placeholder : undefined}
       className={cn(
-        'flex items-center justify-between w-full h-11 rounded-full bg-primary-50/60 px-4',
+        'flex items-center justify-between w-full h-11 rounded-full bg-white px-4',
         'text-[16px] sm:text-sm leading-normal text-left',
         'cursor-pointer select-none',
         'transition-all duration-150',
-        'shadow-sm hover:shadow-md',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         error
           ? 'ring-2 ring-error'
           : open
-            ? 'ring-2 ring-primary-500 bg-white'
+            ? 'ring-2 ring-primary-500'
             : '',
       )}
     >

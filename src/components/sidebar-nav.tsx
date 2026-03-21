@@ -11,7 +11,6 @@ import {
   Shield,
   PanelLeftClose,
   PanelLeftOpen,
-  Plus,
   TrendingUp,
   Trophy,
   ShoppingBag,
@@ -55,7 +54,6 @@ const secondaryNav: NavItem[] = [
 
 const leaderNav: NavItem[] = [
   { label: 'Leader Dashboard', path: '/leader', icon: <BarChart3 size={20} /> },
-  { label: 'Create Event', path: '/events/create', icon: <Plus size={20} /> },
 ]
 
 const adminNav: NavItem[] = [
@@ -148,27 +146,20 @@ export function SidebarNav({ className }: SidebarNavProps) {
         {collapsed && <div className="my-3 bg-primary-50/30" />}
         <NavSection items={secondaryNav} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
 
-        {isAnyLeader && (
+        {(isAnyLeader || isStaff) && (
           <>
             {!collapsed && (
               <p className="text-overline text-primary-400 px-3 mt-5 mb-2">
-                Leader Tools
+                Management
               </p>
             )}
             {collapsed && <div className="my-3 bg-primary-50/30" />}
-            <NavSection items={leaderNav} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
-          </>
-        )}
-
-        {(isStaff || isAnyLeader) && (
-          <>
-            {!collapsed && (
-              <p className="text-overline text-primary-400 px-3 mt-5 mb-2">
-                Admin
-              </p>
+            {isAnyLeader && (
+              <NavSection items={leaderNav} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
             )}
-            {collapsed && <div className="my-3 bg-primary-50/30" />}
-            <NavSection items={isStaff ? adminNav : [adminNav[0]]} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
+            {isStaff && (
+              <NavSection items={adminNav} collapsed={collapsed} isActive={isActive} shouldReduceMotion={shouldReduceMotion} />
+            )}
           </>
         )}
       </nav>

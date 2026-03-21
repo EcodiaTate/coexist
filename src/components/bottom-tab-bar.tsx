@@ -4,10 +4,8 @@ import { motion, useReducedMotion } from 'framer-motion'
 import {
   Home,
   MessageCircle,
-  CalendarDays,
   Users,
-  Plus,
-  ClipboardCheck,
+  BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -37,13 +35,6 @@ const baseTabs: Tab[] = [
     activeIcon: <MessageCircle size={24} strokeWidth={2.5} fill="currentColor" />,
   },
   {
-    key: 'events',
-    label: 'My Events',
-    path: '/events',
-    icon: <CalendarDays size={24} strokeWidth={1.5} />,
-    activeIcon: <CalendarDays size={24} strokeWidth={2.5} fill="currentColor" />,
-  },
-  {
     key: 'community',
     label: 'Community',
     path: '/community',
@@ -52,12 +43,12 @@ const baseTabs: Tab[] = [
   },
 ]
 
-const tasksTab: Tab = {
-  key: 'tasks',
-  label: 'Tasks',
-  path: '/tasks',
-  icon: <ClipboardCheck size={24} strokeWidth={1.5} />,
-  activeIcon: <ClipboardCheck size={24} strokeWidth={2.5} fill="currentColor" />,
+const leaderDashboardTab: Tab = {
+  key: 'leader',
+  label: 'Dashboard',
+  path: '/leader',
+  icon: <BarChart3 size={24} strokeWidth={1.5} />,
+  activeIcon: <BarChart3 size={24} strokeWidth={2.5} fill="currentColor" />,
 }
 
 interface BottomTabBarProps {
@@ -73,17 +64,15 @@ export function BottomTabBar({ chatBadge = 0, className }: BottomTabBarProps) {
   const { collectiveRoles } = useAuth()
   const { haptics } = usePlatform()
 
-  // Check if user is a leader in any collective (leader or co_leader can create events)
-  const showFab = collectiveRoles.some(
-    (m) => ['leader', 'co_leader'].includes(m.role),
-  )
-
-  // Show tasks tab for staff (assist_leader+ in any collective)
-  const isCollectiveStaff = collectiveRoles.some(
+  // Show leader dashboard tab for any leader role
+  const isAnyLeader = collectiveRoles.some(
     (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
   )
 
-  const tabs = isCollectiveStaff ? [...baseTabs, tasksTab] : baseTabs
+  // Insert leader dashboard in the middle (after Chat, before Community)
+  const tabs = isAnyLeader
+    ? [baseTabs[0], baseTabs[1], leaderDashboardTab, baseTabs[2]]
+    : baseTabs
 
   const handleTabPress = async (path: string) => {
     if (haptics) {
@@ -116,27 +105,6 @@ export function BottomTabBar({ chatBadge = 0, className }: BottomTabBarProps) {
       aria-label="Main navigation"
       role="tablist"
     >
-      {/* Leader FAB */}
-      {showFab && (
-        <motion.button
-          type="button"
-          onClick={() => navigate('/events/create')}
-          whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
-          className={cn(
-            'absolute -top-7 left-1/2 -translate-x-1/2',
-            'flex items-center justify-center',
-            'w-14 h-14 rounded-full',
-            'bg-primary-800 text-white',
-            'shadow-lg',
-            'cursor-pointer select-none',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
-          )}
-          aria-label="Create event"
-        >
-          <Plus size={28} strokeWidth={2.5} />
-        </motion.button>
-      )}
-
       <div className="flex items-center justify-around h-14">
         {tabs.map((tab) => {
           const active = isActive(tab.path)

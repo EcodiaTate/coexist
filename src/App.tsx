@@ -3,6 +3,7 @@ import { lazy, Suspense, useState, useCallback, useEffect } from 'react'
 import { RequireAuth, RequireRole } from '@/components/route-guard'
 import { AppShell } from '@/components/app-shell'
 import { AdminLayout as AdminLayoutRoute } from '@/components/admin-layout'
+import { LeaderLayout as LeaderLayoutRoute } from '@/components/leader-layout'
 import { PageTransition } from '@/components/page-transition'
 import { MaintenanceMode } from '@/components/maintenance-mode'
 import { useAppUpdate } from '@/hooks/use-app-update'
@@ -135,8 +136,15 @@ const DevToolsPage = lazy(() => import('@/pages/admin/dev-tools'))
 // More (hub page)
 const MorePage = lazy(() => import('@/pages/more'))
 
-// Leader Dashboard
+// Leader Dashboard & sub-pages
 const LeaderDashboardPage = lazy(() => import('@/pages/leader/index'))
+const LeaderEventsPage = lazy(() => import('@/pages/leader/events'))
+const LeaderMembersPage = lazy(() => import('@/pages/leader/members'))
+const LeaderTasksPage = lazy(() => import('@/pages/leader/tasks'))
+const LeaderAnnouncementsPage = lazy(() => import('@/pages/leader/announcements'))
+const LeaderImpactPage = lazy(() => import('@/pages/leader/impact'))
+const LeaderReportsPage = lazy(() => import('@/pages/reports/index'))
+const LeaderInvitePage = lazy(() => import('@/pages/leader/invite'))
 
 // Reports & National Impact
 const ReportsPage = lazy(() => import('@/pages/reports/index'))
@@ -825,19 +833,27 @@ function App() {
           }
         />
 
-        {/* ---- Leader Dashboard ---- */}
+        {/* ---- Leader Dashboard & sub-pages ---- */}
         <Route
           path="/leader"
           element={
             <RequireAuth>
               <AppShell>
-                <PageTransition>
-                  <LeaderDashboardPage />
-                </PageTransition>
+                <LeaderLayoutRoute />
               </AppShell>
             </RequireAuth>
           }
-        />
+        >
+          <Route index element={<LeaderDashboardPage />} />
+          <Route path="events" element={<LeaderEventsPage />} />
+          <Route path="events/create" element={<CreateEventPage />} />
+          <Route path="members" element={<LeaderMembersPage />} />
+          <Route path="tasks" element={<LeaderTasksPage />} />
+          <Route path="announcements" element={<LeaderAnnouncementsPage />} />
+          <Route path="impact" element={<LeaderImpactPage />} />
+          <Route path="reports" element={<LeaderReportsPage />} />
+          <Route path="invite" element={<LeaderInvitePage />} />
+        </Route>
 
         {/* ---- Reports (accessible to leaders + staff) ---- */}
         <Route

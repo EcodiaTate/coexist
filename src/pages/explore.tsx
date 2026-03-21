@@ -1271,7 +1271,7 @@ export default function ExplorePage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
               >
-                {viewMode === 'map' ? (
+                {(viewMode as ViewMode) === 'map' ? (
                   <div className="px-4 lg:px-6 pt-4">
                     {/* Search + filter bar for map mode */}
                     <div className="flex items-center gap-2 mb-3">

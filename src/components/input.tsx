@@ -127,7 +127,7 @@ export const Input = forwardRef<
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type
 
   const sharedClasses = cn(
-    'peer w-full rounded-lg bg-primary-50/50 px-4 pt-5 pb-2',
+    'peer w-full rounded-lg bg-white px-4 pt-5 pb-2',
     'text-[16px] leading-normal text-primary-800',
     'outline-none transition-all duration-150',
     'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -135,7 +135,7 @@ export const Input = forwardRef<
     isPassword && 'pr-12',
     error
       ? 'ring-2 ring-error focus:ring-error'
-      : 'focus:ring-2 focus:ring-primary-500 focus:bg-white',
+      : 'focus:ring-2 focus:ring-primary-500',
   )
 
   const labelMotion = {

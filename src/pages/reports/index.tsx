@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { useAdminHeader, useIsAdminLayout } from '@/components/admin-layout'
+import { useLeaderHeader, useIsLeaderLayout } from '@/components/leader-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -117,7 +118,9 @@ function useReportHistory() {
 
 export default function ReportsPage() {
   const isAdmin = useIsAdminLayout()
+  const isLeader = useIsLeaderLayout()
   useAdminHeader('Reports')
+  useLeaderHeader('Reports')
   const shouldReduceMotion = useReducedMotion()
   const [activeTab, setActiveTab] = useState('builder')
   const [reportType, setReportType] = useState<ReportType>('collective')
@@ -375,7 +378,7 @@ export default function ReportsPage() {
       </motion.div>
   )
 
-  if (isAdmin) return content
+  if (isAdmin || isLeader) return content
 
   return (
     <Page header={<Header title="Impact Reports" back />}>

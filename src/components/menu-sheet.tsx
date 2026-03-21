@@ -16,7 +16,6 @@ import {
   Users,
   MapPin,
   BarChart3,
-  Plus,
   Shield,
   Gift,
   X,
@@ -229,11 +228,10 @@ export function MenuSheet({ open, onClose }: MenuSheetProps) {
 
   const leaderItems: MenuItem[] = [
     { label: 'Leader Dashboard', to: '/leader', icon: <BarChart3 size={18} strokeWidth={1.5} /> },
-    { label: 'Create Event', to: '/events/create', icon: <Plus size={18} strokeWidth={1.5} /> },
   ]
 
   const adminItems: MenuItem[] = [
-    { label: 'Admin', to: '/admin', icon: <Shield size={18} strokeWidth={1.5} /> },
+    { label: 'Admin Dashboard', to: '/admin', icon: <Shield size={18} strokeWidth={1.5} /> },
   ]
 
   /* ---------------------------------------------------------------- */
@@ -366,12 +364,11 @@ export function MenuSheet({ open, onClose }: MenuSheetProps) {
               <MenuSection title="Community" items={communityItems} onNavigate={handleNavigate} />
               <MenuSection title="Support" items={supportItems} onNavigate={handleNavigate} />
 
-              {isAnyLeader && (
-                <MenuSection title="Leader" items={leaderItems} onNavigate={handleNavigate} />
-              )}
-
-              {isStaff && (
-                <MenuSection title="Admin" items={adminItems} onNavigate={handleNavigate} />
+              {(isAnyLeader || isStaff) && (
+                <MenuSection title="Management" items={[
+                  ...(isAnyLeader ? leaderItems : []),
+                  ...(isStaff ? adminItems : []),
+                ]} onNavigate={handleNavigate} />
               )}
             </motion.div>
           </motion.div>

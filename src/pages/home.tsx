@@ -3,7 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   Bell,
-  Menu,
   ChevronRight,
   Calendar,
   Users,
@@ -38,8 +37,6 @@ import {
   EasterEgg,
 } from '@/components'
 import { cn } from '@/lib/cn'
-import { useLayout } from '@/hooks/use-layout'
-import { useMenuSheet } from '@/hooks/use-menu-sheet'
 import { useAppImages } from '@/hooks/use-app-images'
 import { ProximityCheckInBanner } from '@/components/proximity-check-in-banner'
 
@@ -177,8 +174,6 @@ export default function HomePage() {
   const shouldReduceMotion = useReducedMotion()
   const queryClient = useQueryClient()
   const { profile } = useAuth()
-  const { navMode } = useLayout()
-  const { openMenu } = useMenuSheet()
 
   // App images (admin-configurable)
   const { data: appImages } = useAppImages()
@@ -219,7 +214,7 @@ export default function HomePage() {
             variants={shouldReduceMotion ? undefined : fadeUp}
             className=""
           >
-            <div className="relative w-full min-h-[280px] sm:min-h-[340px]">
+            <div className="relative w-full h-dvh">
               {appImages?.home_hero ? (
                 <img
                   src={appImages.home_hero}
@@ -233,7 +228,7 @@ export default function HomePage() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-black/10" />
               {/* Header buttons over hero */}
               <div
-                className="absolute top-0 left-0 right-0 z-40 flex items-center justify-end gap-1 h-14 px-4"
+                className="absolute top-0 left-0 right-0 z-30 flex items-center justify-end gap-1 h-14 px-4 pr-14"
                 style={{ paddingTop: 'var(--safe-top)' }}
               >
                 <button
@@ -251,27 +246,10 @@ export default function HomePage() {
                 >
                   <Bell size={22} />
                 </button>
-                {navMode === 'bottom-tabs' && (
-                  <button
-                    type="button"
-                    onClick={openMenu}
-                    className={cn(
-                      'flex items-center justify-center min-h-11 min-w-11 rounded-full',
-                      'text-white/90 hover:bg-white/10',
-                      'active:scale-[0.97] transition-all duration-150',
-                      'cursor-pointer select-none',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
-                      'drop-shadow-md',
-                    )}
-                    aria-label="Open menu"
-                  >
-                    <Menu size={22} />
-                  </button>
-                )}
               </div>
               {/* Greeting text over hero */}
               <div
-                className="relative z-10 flex flex-col justify-end h-full min-h-[280px] sm:min-h-[340px] px-4 lg:px-6 pb-6"
+                className="relative z-10 flex flex-col items-center justify-center h-full px-4 lg:px-6 text-center"
                 style={{ paddingTop: 'calc(var(--safe-top) + 3.5rem)' }}
               >
                 <EasterEgg>

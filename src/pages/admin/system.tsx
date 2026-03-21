@@ -51,13 +51,13 @@ function useSystemStats() {
     queryFn: async () => {
       // Use SECURITY DEFINER RPC to get real counts bypassing RLS
       const [rpcRes, storageRes] = await Promise.all([
-        supabase.rpc('get_admin_system_stats'),
+        supabase.rpc('get_admin_system_stats' as any),
         supabase.storage.listBuckets(),
       ])
 
       if (rpcRes.error) throw rpcRes.error
 
-      const counts = rpcRes.data as Record<string, number>
+      const counts = rpcRes.data as unknown as Record<string, number>
       const totalRows = Object.values(counts).reduce((sum, n) => sum + n, 0)
 
       // Count files across all storage buckets
@@ -75,6 +75,7 @@ function useSystemStats() {
       return {
         counts,
         totalRows,
+        authUsers: (counts as any).auth_users ?? (counts as any).profiles ?? 0,
         storageBuckets: storageRes.data?.length ?? 0,
         storageFiles: totalFiles,
       }

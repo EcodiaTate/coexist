@@ -1,18 +1,14 @@
 import { type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowLeft, Menu } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { useLayout } from '@/hooks/use-layout'
-import { useMenuSheet } from '@/hooks/use-menu-sheet'
 
 interface HeaderProps {
   title: string
   back?: boolean
   onBack?: () => void
   rightActions?: ReactNode
-  /** Hide the hamburger menu button (e.g. on pages that don't need it) */
-  hideMenu?: boolean
   transparent?: boolean
   className?: string
 }
@@ -22,16 +18,11 @@ export function Header({
   back = false,
   onBack,
   rightActions,
-  hideMenu = false,
   transparent = false,
   className,
 }: HeaderProps) {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
-  const { navMode } = useLayout()
-  const { openMenu } = useMenuSheet()
-
-  const showMenuButton = navMode === 'bottom-tabs' && !hideMenu
 
   const handleBack = () => {
     if (onBack) {
@@ -92,30 +83,9 @@ export function Header({
         </h1>
       </div>
 
-      {/* Right zone: actions + menu */}
-      <div className="flex items-center shrink-0 gap-1 justify-end">
+      {/* Right zone: actions */}
+      <div className="flex items-center shrink-0 gap-1 justify-end w-10">
         {rightActions}
-        {showMenuButton && (
-          <motion.button
-            type="button"
-            onClick={openMenu}
-            whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className={cn(
-              'flex items-center justify-center',
-              'w-9 h-9 rounded-full',
-              'cursor-pointer select-none',
-              'transition-colors duration-150',
-              transparent
-                ? 'text-white/90 hover:bg-white/10'
-                : 'text-primary-600 hover:bg-primary-50',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-            )}
-            aria-label="Open menu"
-          >
-            <Menu size={22} />
-          </motion.button>
-        )}
       </div>
       </div>
     </header>

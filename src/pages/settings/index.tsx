@@ -748,7 +748,7 @@ export default function SettingsPage() {
   const [leaderboardOptIn, setLeaderboardOptIn] = useState(true)
   const [profileVisible, setProfileVisible] = useState(true)
   const [marketingOptIn, setMarketingOptIn] = useState(
-    profile?.marketing_opt_in !== false,
+    (profile as any)?.marketing_opt_in !== false,
   )
 
   const handleMarketingToggle = useCallback(
