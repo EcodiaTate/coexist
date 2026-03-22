@@ -227,12 +227,13 @@ function NationalStatsStrip() {
             s.gradient,
           )}
         >
-          <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-white/10" />
-          <div className="relative w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+          <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-white/8" />
+          <div className="absolute bottom-0 left-0 w-12 h-12 rounded-full bg-white/5 -translate-x-1/3 translate-y-1/3" />
+          <div className="relative w-8 h-8 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/10">
             {s.icon}
           </div>
-          <span className="relative font-heading font-bold text-lg tabular-nums">{s.value}</span>
-          <span className="relative text-[10px] text-white/70 text-center leading-tight font-medium uppercase tracking-wider">{s.label}</span>
+          <span className="relative font-heading font-bold text-lg tabular-nums drop-shadow-sm">{s.value}</span>
+          <span className="relative text-[10px] text-white/60 text-center leading-tight font-semibold uppercase tracking-wider">{s.label}</span>
         </div>
       ))}
     </div>
@@ -477,22 +478,8 @@ export default function DonatePage() {
 
   return (
     <Page
+      noBackground
       className="!px-0 !bg-transparent"
-      footer={
-        <div className="max-w-2xl mx-auto w-full">
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            icon={<Heart size={18} />}
-            loading={createDonation.isPending}
-            disabled={!isValid}
-            onClick={handleDonate}
-          >
-            Donate{effectiveAmount > 0 ? ` $${effectiveAmount}` : ''}
-          </Button>
-        </div>
-      }
     >
       <div className="relative min-h-full">
         {/* ── Rich layered background ── */}
@@ -533,7 +520,7 @@ export default function DonatePage() {
               {/*  HERO CARD                                         */}
               {/* ═══════════════════════════════════════════════════ */}
               <motion.div variants={fadeUp}>
-                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-moss-700 p-6 pb-5 shadow-2xl shadow-primary-800/15">
+                <div className="relative rounded-[22px] overflow-hidden bg-gradient-to-br from-secondary-700 via-primary-700 to-moss-800 p-6 pb-5 shadow-[0_8px_40px_-8px_rgba(45,56,38,0.35),0_2px_8px_rgba(45,56,38,0.10)]">
                   {/* Dot grid texture */}
                   <div className="absolute inset-0 opacity-[0.06]">
                     <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -677,10 +664,10 @@ export default function DonatePage() {
               {/* ═══════════════════════════════════════════════════ */}
               {loadingProjects ? (
                 <motion.div variants={fadeUp}>
-                  <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-moss-50/40 to-transparent">
+                  <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-[#e4ddd0]/50 to-transparent">
                     <div className="absolute top-0 left-0 right-0 -translate-y-[calc(100%-1px)]">
                       <svg viewBox="0 0 1440 40" preserveAspectRatio="none" className="w-full h-5 block" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M0,40 C480,0 960,30 1440,10 L1440,40 Z" className="fill-moss-50/40" />
+                        <path d="M0,40 C480,0 960,30 1440,10 L1440,40 Z" className="fill-[#e4ddd0]/50" />
                       </svg>
                     </div>
                     <SectionHeader icon={TreePine} title="Support a project" badge="Optional" />
@@ -692,10 +679,10 @@ export default function DonatePage() {
                 </motion.div>
               ) : projects && projects.length > 0 ? (
                 <motion.div variants={fadeUp}>
-                  <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-moss-50/40 to-transparent">
+                  <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-[#e4ddd0]/50 to-transparent">
                     <div className="absolute top-0 left-0 right-0 -translate-y-[calc(100%-1px)]">
                       <svg viewBox="0 0 1440 40" preserveAspectRatio="none" className="w-full h-5 block" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M0,40 C480,0 960,30 1440,10 L1440,40 Z" className="fill-moss-50/40" />
+                        <path d="M0,40 C480,0 960,30 1440,10 L1440,40 Z" className="fill-[#e4ddd0]/50" />
                       </svg>
                     </div>
                     <SectionHeader icon={TreePine} title="Support a project" badge="Optional" />
@@ -781,8 +768,29 @@ export default function DonatePage() {
                 <TrustBadges />
               </motion.div>
 
-              <div className="h-2" />
+              <div className="h-20" />
             </motion.div>
+          </div>
+        </div>
+
+        {/* Sticky donate button — no background panel */}
+        <div
+          className="sticky bottom-0 z-30 px-5 lg:px-6 pb-3 pt-3"
+          style={{ paddingBottom: 'calc(var(--safe-bottom) + 0.75rem)' }}
+        >
+          <div className="max-w-2xl mx-auto w-full">
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              icon={<Heart size={18} />}
+              loading={createDonation.isPending}
+              disabled={!isValid}
+              onClick={handleDonate}
+              className="shadow-[0_-4px_24px_-4px_rgba(61,77,51,0.20),0_4px_16px_-4px_rgba(61,77,51,0.15)]"
+            >
+              Donate{effectiveAmount > 0 ? ` $${effectiveAmount}` : ''}
+            </Button>
           </div>
         </div>
       </div>

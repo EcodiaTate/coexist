@@ -42,7 +42,7 @@ const config: CapacitorConfig = {
     // Status Bar
     StatusBar: {
       style: 'LIGHT', // dark text on light bg
-      backgroundColor: '#FFFFFF',
+      backgroundColor: '#f8f9f5',
     },
 
     // Keyboard
@@ -57,7 +57,7 @@ const config: CapacitorConfig = {
     // Content inset for safe areas
     contentInset: 'automatic',
     // Background modes for silent push
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f8f9f5',
     scheme: 'coexist',
     // Info.plist permissions are declared in Xcode:
     // - NSCameraUsageDescription
@@ -70,7 +70,7 @@ const config: CapacitorConfig = {
 
   // ---- Android specific ----
   android: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#f8f9f5',
     allowMixedContent: false,
     // Permission declarations are in AndroidManifest.xml:
     // - android.permission.CAMERA

@@ -196,7 +196,7 @@ function BigStat({
         <span className={style.iconColor}>{icon}</span>
       </div>
       <div className="relative">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 50%)' }} />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 70%)' }} />
         <p className="relative font-heading text-4xl font-extrabold text-primary-900 tabular-nums leading-none">
           <CountUp end={value} />
         </p>

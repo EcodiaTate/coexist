@@ -215,7 +215,7 @@ export default function AdminCollectivesPage() {
           <Fragment key={s.label}>
             {i > 0 && <div className="w-px self-stretch bg-white/[0.1] shrink-0 my-2" />}
             <div className="relative flex-1 p-3 text-center">
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
               <div className="relative flex items-center justify-center gap-1.5 text-white/50 mb-1">
                 {s.icon}
                 <span className="text-[11px] font-semibold uppercase tracking-wider">{s.label}</span>

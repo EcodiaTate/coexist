@@ -696,7 +696,7 @@ function ImpactStrip() {
                 <Fragment key={label}>
                   {i > 0 && <div className="w-px self-stretch bg-white/[0.1] shrink-0" />}
                   <div className="relative flex-1 px-3 py-3.5 text-center">
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 65%)' }} />
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
                     <Icon size={16} className="relative text-sprout-300 mx-auto mb-1.5" />
                     <p className="relative font-heading text-lg font-extrabold text-white leading-none">{value}</p>
                     <p className="relative text-[10px] text-white/50 mt-1 leading-tight">{label}</p>

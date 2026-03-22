@@ -265,7 +265,6 @@ function HeroStatCard({
   label,
   icon,
   sub,
-  variant = 'default',
   reducedMotion,
   delay = 0,
 }: {
@@ -273,7 +272,7 @@ function HeroStatCard({
   label: string
   icon: React.ReactNode
   sub?: string
-  variant?: 'primary' | 'dark' | 'accent' | 'default'
+  variant?: string
   reducedMotion: boolean
   delay?: number
 }) {
@@ -288,33 +287,28 @@ function HeroStatCard({
         delay: reducedMotion ? 0 : 1.5 + delay * 3,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
-      className="relative rounded-2xl p-5 sm:p-6 pb-7"
+      className="relative flex flex-col items-center text-center py-5 px-3"
       aria-label={`${label}: ${value}`}
     >
-      <div className="flex items-center justify-between mb-3">
-        <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/10 text-white/80" aria-hidden="true">
-          {icon}
-        </span>
-        {sub && (
-          <span className="inline-flex items-center gap-0.5 text-xs font-semibold rounded-full px-2 py-0.5 bg-white/10 text-success-300">
-            <ArrowUpRight size={12} />
-            {sub}
-          </span>
-        )}
-      </div>
-
-      <div className="relative text-center">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+      <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/10 text-white/80 mb-3" aria-hidden="true">
+        {icon}
+      </span>
+      <div className="relative">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
         <p
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           className="relative text-3xl sm:text-4xl font-bold tracking-tight tabular-nums text-white"
         >
           {display.toLocaleString()}
         </p>
-        <p className="relative mt-1 text-sm font-medium text-white/55">
-          {label}
-        </p>
       </div>
+      <p className="mt-1 text-xs font-medium text-white/55">{label}</p>
+      {sub && (
+        <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold mt-1.5 text-success-300">
+          <ArrowUpRight size={10} />
+          {sub}
+        </span>
+      )}
     </motion.div>
   )
 }
@@ -345,22 +339,22 @@ function ImpactPill({
       initial={reducedMotion ? { opacity: 1 } : { opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: reducedMotion ? 0 : delay }}
-      className="relative flex flex-col items-center text-center rounded-xl px-4 py-4 active:scale-[0.98] transition-transform duration-150"
+      className="relative flex flex-col items-center text-center py-4 px-3"
       aria-label={`${label}: ${value}`}
     >
-      <span className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0 bg-white/10 mb-2" aria-hidden="true">
+      <span className="flex items-center justify-center w-9 h-9 rounded-xl shrink-0 bg-white/10 mb-2.5" aria-hidden="true">
         {icon}
       </span>
       <div className="relative">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
         <p
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           className="relative text-xl sm:text-2xl font-bold text-white tabular-nums"
         >
           {display.toLocaleString()}
         </p>
-        <p className="relative text-xs text-white/50 font-medium">{label}</p>
       </div>
+      <p className="text-[11px] text-white/50 font-medium mt-1">{label}</p>
     </motion.div>
   )
 }
@@ -663,7 +657,11 @@ export default function AdminDashboardPage() {
         >
 
         {/* ── Primary stats ── */}
-        <div className="grid grid-cols-[1fr_1px_1fr] lg:grid-cols-[1fr_1px_1fr_1px_1fr_1px_1fr] gap-y-3">
+        <div className="relative grid grid-cols-2 lg:grid-cols-4 divide-x divide-white/[0.08]">
+          {/* SVG light glare */}
+          <svg className="absolute -top-4 right-8 w-32 h-12 opacity-[0.04] pointer-events-none" viewBox="0 0 128 48" fill="none">
+            <ellipse cx="64" cy="24" rx="64" ry="24" fill="white" />
+          </svg>
           <HeroStatCard
             value={data?.totalMembers ?? 0}
             label="Members"
@@ -673,7 +671,6 @@ export default function AdminDashboardPage() {
             reducedMotion={rm}
             delay={0.05}
           />
-          <div className="bg-white/[0.1] self-stretch my-4" />
           <HeroStatCard
             value={data?.totalCollectives ?? 0}
             label="Collectives"
@@ -682,7 +679,6 @@ export default function AdminDashboardPage() {
             reducedMotion={rm}
             delay={0.1}
           />
-          <div className="hidden lg:block bg-white/[0.1] self-stretch my-4" />
           <HeroStatCard
             value={data?.totalEvents ?? 0}
             label="Events Run"
@@ -692,7 +688,6 @@ export default function AdminDashboardPage() {
             reducedMotion={rm}
             delay={0.15}
           />
-          <div className="bg-white/[0.1] self-stretch my-4" />
           <HeroStatCard
             value={data?.totalHours ?? 0}
             label="Volunteer Hours"
@@ -717,20 +712,21 @@ export default function AdminDashboardPage() {
               {dateRangeOptions.find((o) => o.value === dateRange)?.label}
             </span>
           </div>
-          <div className="grid grid-cols-[1fr_1px_1fr] lg:grid-cols-[1fr_1px_1fr_1px_1fr_1px_1fr] gap-y-2">
+          <div className="relative grid grid-cols-2 lg:grid-cols-4 divide-x divide-white/[0.08]">
+            {/* SVG light glare */}
+            <svg className="absolute -bottom-2 left-12 w-20 h-10 opacity-[0.04] pointer-events-none" viewBox="0 0 80 40" fill="none">
+              <ellipse cx="40" cy="20" rx="40" ry="20" fill="white" />
+            </svg>
             {impactItems.map((item, i) => (
-              <Fragment key={item.label}>
-                {i > 0 && i % 2 !== 0 && <div className="bg-white/[0.1] self-stretch my-3 sm:block" />}
-                {i > 0 && i % 2 === 0 && <div className="hidden lg:block bg-white/[0.1] self-stretch my-3" />}
-                <ImpactPill
-                  value={item.value}
-                  label={item.label}
-                  icon={item.icon}
-                  color={item.color}
-                  reducedMotion={rm}
-                  delay={0.3 + i * 0.04}
-                />
-              </Fragment>
+              <ImpactPill
+                key={item.label}
+                value={item.value}
+                label={item.label}
+                icon={item.icon}
+                color={item.color}
+                reducedMotion={rm}
+                delay={0.3 + i * 0.04}
+              />
             ))}
           </div>
         </motion.div>
@@ -753,25 +749,23 @@ export default function AdminDashboardPage() {
               {dateRangeOptions.find((o) => o.value === dateRange)?.label} at a Glance
             </h3>
           </div>
-          <div className="flex items-center">
-            <div className="relative flex-1 py-3 text-center">
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+          <div className="grid grid-cols-3 divide-x divide-white/[0.08]">
+            <div className="relative py-3 text-center">
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
               <p className="relative text-2xl sm:text-3xl font-bold text-white tabular-nums">
                 {(data?.periodMembers ?? 0).toLocaleString()}
               </p>
               <p className="relative text-xs text-white/40 font-medium mt-0.5">New Members</p>
             </div>
-            <div className="w-px self-stretch bg-white/[0.1] shrink-0" />
-            <div className="relative flex-1 py-3 text-center">
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+            <div className="relative py-3 text-center">
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
               <p className="relative text-2xl sm:text-3xl font-bold text-white tabular-nums">
                 {(data?.periodEvents ?? 0).toLocaleString()}
               </p>
               <p className="relative text-xs text-white/40 font-medium mt-0.5">Events</p>
             </div>
-            <div className="w-px self-stretch bg-white/[0.1] shrink-0" />
-            <div className="relative flex-1 py-3 text-center">
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+            <div className="relative py-3 text-center">
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
               <p className="relative text-2xl sm:text-3xl font-bold text-success-300 tabular-nums">
                 {(data?.attendanceRate ?? 0)}%
               </p>

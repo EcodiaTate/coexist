@@ -442,7 +442,7 @@ function HeroStat({
   return (
     <div className="relative rounded-2xl p-4 pb-6 min-h-[88px] flex flex-col items-center justify-center text-center">
       <div className="relative">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
         <p className="relative font-heading text-3xl font-extrabold text-white tabular-nums leading-none">
           {value}
         </p>
@@ -742,7 +742,7 @@ export default function LeaderDashboardPage() {
                     <span className="text-xs font-semibold text-white/70">Attendance</span>
                   </div>
                   <div className="relative">
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
                     <p className="relative font-heading text-2xl font-extrabold text-white tabular-nums">
                       {data?.attendanceRate}%
                     </p>
@@ -769,7 +769,7 @@ export default function LeaderDashboardPage() {
                     <span className="text-xs font-semibold text-white/70">Surveys</span>
                   </div>
                   <div className="relative">
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
                     <p className="relative font-heading text-2xl font-extrabold text-white tabular-nums">
                       {data?.surveyResponseCount}
                     </p>
