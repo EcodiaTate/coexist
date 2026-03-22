@@ -221,7 +221,6 @@ function ShopHero({
   )
 
   const textY = useTransform(scrollY, [0, 600], [0, 150])
-  const textOpacity = useTransform(scrollY, [0, 400], [1, 0])
 
   return (
     <div className="relative">
@@ -294,9 +293,9 @@ function ShopHero({
         {/* Hero text — behind the people so they pass in front */}
         <motion.div
           className="absolute inset-x-0 top-[12%] z-[2] flex justify-center"
-          style={rm ? undefined : { y: textY, opacity: textOpacity }}
+          style={rm ? undefined : { y: textY }}
         >
-          <h1 className="font-heading text-7xl sm:text-8xl md:text-9xl lg:text-[12rem] font-bold text-white tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+          <h1 className="font-heading text-8xl sm:text-9xl md:text-[11rem] lg:text-[16rem] xl:text-[20rem] font-bold text-[#fff] tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
             Shop
           </h1>
         </motion.div>

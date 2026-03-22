@@ -54,8 +54,8 @@ const config: CapacitorConfig = {
 
   // ---- iOS specific ----
   ios: {
-    // Content inset for safe areas
-    contentInset: 'automatic',
+    // Let the WebView extend edge-to-edge; CSS env(safe-area-inset-*) handles the rest
+    contentInset: 'never',
     // Background modes for silent push
     backgroundColor: '#f8f9f5',
     scheme: 'coexist',
