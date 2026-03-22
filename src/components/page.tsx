@@ -107,7 +107,7 @@ export function Page({
           'relative flex-1',
           // On mobile/native, use inner scroll container for tab-bar offset + scroll restore
           // On desktop, clip overflow so sticky bg doesn't paint over the web footer
-          isDesktopNav ? 'overflow-clip' : 'overflow-y-auto overflow-x-hidden overscroll-contain',
+          isDesktopNav ? 'overflow-clip' : 'overflow-y-auto overflow-x-hidden overscroll-none',
           // Base gradient painted on element itself so first paint has colour (no flash)
           !noBackground && 'bg-gradient-to-b from-primary-50/50 via-white to-moss-50/20',
           // Side padding for all page content
@@ -130,12 +130,12 @@ export function Page({
             <div className="absolute -top-20 -right-20 w-[340px] h-[340px] rounded-full border-2 border-moss-200/25" />
             {/* Concentric inner ring */}
             <div className="absolute -top-6 -right-6 w-[220px] h-[220px] rounded-full border border-primary-200/15" />
-            {/* Blurred glow - bottom left */}
-            <div className="absolute -bottom-20 -left-16 w-[300px] h-[300px] rounded-full bg-moss-100/30 blur-3xl" />
+            {/* Soft glow - bottom left */}
+            <div className="absolute -bottom-20 -left-16 w-[300px] h-[300px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/25 to-transparent" />
             {/* Small ring - mid left */}
             <div className="absolute top-[45%] -left-8 w-[100px] h-[100px] rounded-full border border-primary-100/25" />
             {/* Warm glow - center right */}
-            <div className="absolute top-[20%] -right-10 w-[200px] h-[200px] rounded-full bg-primary-50/20 blur-3xl" />
+            <div className="absolute top-[20%] -right-10 w-[200px] h-[200px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-50/18 to-transparent" />
             {/* Small filled accent - lower right */}
             <div className="absolute bottom-[15%] right-[8%] w-[60px] h-[60px] rounded-full bg-moss-100/20" />
             {/* Dots */}

@@ -353,7 +353,7 @@ function StatusBadge({ status }: { status: string }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-full',
+        'inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-full',
         config.bg,
         config.text,
       )}
@@ -390,7 +390,7 @@ function TagPill({ tag, size = 'sm' }: { tag: EmailTag; size?: 'sm' | 'xs' }) {
     <span
       className={cn(
         'inline-flex items-center rounded-full font-medium',
-        size === 'sm' ? 'text-xs px-2.5 py-0.5' : 'text-[10px] px-2 py-0.5',
+        size === 'sm' ? 'text-xs px-2.5 py-0.5' : 'text-[11px] px-2 py-0.5',
       )}
       style={{
         backgroundColor: `${tag.colour}20`,
@@ -1433,7 +1433,7 @@ function CampaignDetailSheet({
         </div>
 
         {campaign.status === 'sent' && (
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {[
               { label: 'Recipients', value: campaign.total_recipients, icon: <Users size={12} /> },
               { label: 'Delivered', value: `${campaign.total_delivered} (${rate(campaign.total_delivered)})`, icon: <CheckCircle2 size={12} /> },
@@ -1445,7 +1445,7 @@ function CampaignDetailSheet({
               <div key={label} className="rounded-xl bg-primary-50/50 p-3">
                 <div className="flex items-center gap-1 mb-0.5">
                   <span className="text-primary-400">{icon}</span>
-                  <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-400">{label}</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400">{label}</p>
                 </div>
                 <p className="text-sm font-bold text-primary-800 tabular-nums">{value}</p>
               </div>
@@ -1730,10 +1730,10 @@ function TemplatesTab() {
                   <p className="text-sm font-semibold text-primary-800 truncate">{tpl.name}</p>
                   <p className="text-xs text-primary-400 truncate mt-0.5">{tpl.subject}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-primary-100 text-primary-500 capitalize">
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary-100 text-primary-500 capitalize">
                       {tpl.category}
                     </span>
-                    <span className="text-[10px] text-primary-400">Updated {formatDate(tpl.updated_at)}</span>
+                    <span className="text-[11px] text-primary-400">Updated {formatDate(tpl.updated_at)}</span>
                   </div>
                 </div>
                 <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
@@ -1853,11 +1853,11 @@ function SubscribersTab() {
 
       <div className="flex gap-2 mb-4">
         <div className="flex-1 rounded-xl bg-success-50 p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-success-600">Opted In</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-success-600">Opted In</p>
           <p className="text-lg font-bold text-success-700 tabular-nums">{optedIn.length}</p>
         </div>
         <div className="flex-1 rounded-xl bg-primary-50 p-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-400">Opted Out</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400">Opted Out</p>
           <p className="text-lg font-bold text-primary-600 tabular-nums">{optedOut.length}</p>
         </div>
       </div>
@@ -1887,17 +1887,17 @@ function SubscribersTab() {
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                   {sub.location && (
-                    <span className="flex items-center gap-0.5 text-[10px] text-primary-400">
+                    <span className="flex items-center gap-0.5 text-[11px] text-primary-400">
                       <MapPin size={9} />{sub.location}
                     </span>
                   )}
                   {sub.membership_level && sub.membership_level !== 'New' && (
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-success-50 text-success-600">
+                    <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-success-50 text-success-600">
                       {sub.membership_level}
                     </span>
                   )}
                   {sub.marketing_opt_in === false && (
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-500">
+                    <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-500">
                       Opted out
                     </span>
                   )}
@@ -2004,7 +2004,7 @@ function TagsTab() {
                   <p className="text-sm font-semibold text-primary-800">{tag.name}</p>
                 </div>
                 {tag.description && <p className="text-xs text-primary-400 mt-0.5">{tag.description}</p>}
-                <p className="text-[10px] text-primary-400 mt-1.5">Created {formatDate(tag.created_at)}</p>
+                <p className="text-[11px] text-primary-400 mt-1.5">Created {formatDate(tag.created_at)}</p>
               </div>
               <button
                 onClick={() => setDeletingId(tag.id)}
@@ -2085,7 +2085,7 @@ function DeliveryTab() {
                       {event.reason ?? 'Hard bounce'} &middot; {formatDate(event.created_at)}
                     </p>
                   </div>
-                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-error-100 text-error-700 shrink-0">Suppressed</span>
+                  <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-error-100 text-error-700 shrink-0">Suppressed</span>
                 </StaggeredItem>
               ))}
             </StaggeredList>
@@ -2110,7 +2110,7 @@ function DeliveryTab() {
                     <p className="text-sm font-medium text-primary-800 truncate">{event.email}</p>
                     <p className="text-xs text-primary-400 mt-0.5">Spam complaint &middot; {formatDate(event.created_at)}</p>
                   </div>
-                  <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-warning-100 text-warning-700 shrink-0">Suppressed</span>
+                  <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-warning-100 text-warning-700 shrink-0">Suppressed</span>
                 </StaggeredItem>
               ))}
             </StaggeredList>
@@ -2133,21 +2133,28 @@ export default function AdminEmailPage() {
 
   const heroStats = useMemo(
     () =>
-      showStatsLoading ? (
+      showStatsLoading || statsLoading ? (
         <div className="flex items-center gap-2 sm:gap-3">
           <Skeleton variant="stat-card" />
           <Skeleton variant="stat-card" />
           <Skeleton variant="stat-card" />
           <Skeleton variant="stat-card" />
         </div>
-      ) : statsLoading ? null : stats ? (
+      ) : stats ? (
         <div className="flex items-center gap-2 sm:gap-3">
           <StatCard label="Subscribers" value={stats.subscribers} icon={<Users size={12} />} />
           <StatCard label="Campaigns Sent" value={stats.campaignsSent} icon={<Send size={12} />} />
           <StatCard label="Bounces" value={stats.bounces} icon={<XCircle size={12} />} />
           <StatCard label="Suppressed" value={stats.suppressed} icon={<AlertTriangle size={12} />} />
         </div>
-      ) : null,
+      ) : (
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Skeleton variant="stat-card" />
+          <Skeleton variant="stat-card" />
+          <Skeleton variant="stat-card" />
+          <Skeleton variant="stat-card" />
+        </div>
+      ),
     [stats, statsLoading, showStatsLoading],
   )
 

@@ -74,7 +74,7 @@ const TAB_COMPONENTS: Record<string, React.ComponentType> = {
 }
 
 export default function AdminMerchPage() {
-  useAdminHeader('Shop')
+  useAdminHeader('Shop', { fullBleed: true })
   const [activeTab, setActiveTab] = useState('products')
   const shouldReduceMotion = useReducedMotion()
   const ActiveComponent = TAB_COMPONENTS[activeTab]
@@ -83,7 +83,7 @@ export default function AdminMerchPage() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="min-h-full">
-      <motion.div variants={fadeUp} className="px-4 pt-3 sticky top-0 z-20 bg-gradient-to-b from-white via-white to-white/0 pb-2">
+      <motion.div variants={fadeUp} className="px-3 sm:px-4 pt-1 sticky top-0 z-20 bg-gradient-to-b from-surface-1 via-surface-1 to-surface-1/0 pb-1">
         <TabBar
           tabs={TABS}
           activeTab={activeTab}
@@ -96,7 +96,7 @@ export default function AdminMerchPage() {
         initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="px-4 py-5"
+        className="px-3 sm:px-4 pt-2 pb-4 sm:pb-6"
       >
         <ActiveComponent />
       </motion.div>

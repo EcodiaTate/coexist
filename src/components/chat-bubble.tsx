@@ -114,6 +114,7 @@ export function ChatBubble({
             <img
               src={senderAvatar}
               alt=""
+              loading="lazy"
               className="h-10 w-10 rounded-full object-cover ring-[2.5px] ring-white shadow-md"
             />
           ) : (
@@ -139,14 +140,14 @@ export function ChatBubble({
           <div className="flex items-center gap-2 px-1 mb-1">
             <button
               type="button"
-              className="text-[13px] font-bold text-primary-700 hover:text-primary-800 min-h-[28px] flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+              className="text-[13px] font-bold text-primary-700 hover:text-primary-800 min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
               onClick={() => senderId && onSenderTap?.(senderId)}
             >
               {senderName}
             </button>
             {roleBadge && roleStyle && (
               <span className={cn(
-                'inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-extrabold leading-tight shadow-sm',
+                'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-extrabold leading-tight shadow-sm',
                 roleStyle.bg,
                 roleStyle.text,
               )}>
@@ -214,7 +215,7 @@ export function ChatBubble({
           {/* Timestamp */}
           <p
             className={cn(
-              'mt-1.5 text-[10px] font-medium tabular-nums',
+              'mt-1.5 text-[11px] font-medium tabular-nums',
               sent ? 'text-white/50 text-right' : 'text-primary-400',
             )}
           >
@@ -495,7 +496,7 @@ export function AnnouncementCard({
                 {label}
                 {count > 0 && (
                   <span className={cn(
-                    'ml-1 text-[10px]',
+                    'ml-1 text-[11px]',
                     isSelected ? 'text-white/70' : 'text-primary-400',
                   )}>
                     ({count})

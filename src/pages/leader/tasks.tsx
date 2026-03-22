@@ -223,7 +223,7 @@ function TaskCard({ task }: { task: MyTask }) {
                     <p className="text-xs font-medium text-primary-700 truncate">
                       {task.template.attachment_label || 'View Attachment'}
                     </p>
-                    <p className="text-[10px] text-primary-400">Tap to open</p>
+                    <p className="text-[11px] text-primary-400">Tap to open</p>
                   </div>
                 </a>
               )}
@@ -308,12 +308,12 @@ function CollectiveGroup({
         <p className="text-xs font-bold text-primary-700 uppercase tracking-wider">{name}</p>
         <div className="flex-1 h-px bg-primary-100" />
         {overdueCount > 0 && (
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-error-50 text-error-600 flex items-center gap-1">
+          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-error-50 text-error-600 flex items-center gap-1">
             <Flame size={10} /> {overdueCount}
           </span>
         )}
         {pendingCount > 0 && overdueCount === 0 && (
-          <span className="text-[10px] font-semibold text-primary-400">{pendingCount} to do</span>
+          <span className="text-[11px] font-semibold text-primary-400">{pendingCount} to do</span>
         )}
       </div>
 
@@ -390,10 +390,10 @@ export default function LeaderTasksPage() {
   /* ---- Loading skeleton ---- */
   if (showLoading) {
     return (
-      <div className="relative min-h-screen overflow-x-hidden">
+      <div className="relative min-h-dvh overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
         <div className="relative z-10 px-6 pt-14 space-y-5 pb-20">
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <Skeleton className="h-20 rounded-2xl" />
             <Skeleton className="h-20 rounded-2xl" />
             <Skeleton className="h-20 rounded-2xl" />
@@ -407,13 +407,13 @@ export default function LeaderTasksPage() {
   /* ---- Empty state ---- */
   if (!groups.length) {
     return (
-      <div className="relative min-h-screen overflow-x-hidden">
+      <div className="relative min-h-dvh overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
 
         {/* Decorative shapes — CSS-only */}
-        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full border border-amber-200/35 will-change-transform animate-[gentleSpin_50s_linear_infinite]" />
-        <div className="absolute top-32 -left-8 w-24 h-24 rounded-full bg-amber-100/25 will-change-transform animate-[floatDown_6s_ease-in-out_infinite]" />
-        <div className="absolute top-52 right-8 w-3 h-3 rounded-full bg-amber-300/30 will-change-transform animate-[float_4s_ease-in-out_infinite]" />
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full border border-amber-200/35 animate-[gentleSpin_50s_linear_infinite]" />
+        <div className="absolute top-32 -left-8 w-24 h-24 rounded-full bg-amber-100/25 animate-[floatDown_6s_ease-in-out_infinite]" />
+        <div className="absolute top-52 right-8 w-3 h-3 rounded-full bg-amber-300/30 animate-[float_4s_ease-in-out_infinite]" />
 
         <div className="relative z-10 flex flex-col items-center justify-center py-16 px-6">
           <motion.div
@@ -436,19 +436,19 @@ export default function LeaderTasksPage() {
   const progressPct = total > 0 ? Math.round((totalCompleted / total) * 100) : 0
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-dvh overflow-x-hidden">
       {/* Full-bleed gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
 
       {/* Decorative shapes — CSS-only for GPU compositing */}
-      <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full border border-amber-200/35 will-change-transform animate-[gentleSpin_50s_linear_infinite]" />
-      <div className="absolute top-20 -left-12 w-32 h-32 rounded-full border border-amber-200/35 will-change-transform animate-[gentleSpin_60s_linear_infinite] [animation-direction:reverse]" />
-      <div className="absolute top-40 -right-6 w-20 h-20 rounded-full bg-amber-100/25 will-change-transform animate-[floatDown_7s_ease-in-out_infinite]" />
-      <div className="absolute top-72 -left-4 w-16 h-16 rounded-full bg-moss-100/20 will-change-transform animate-[float_5s_ease-in-out_infinite]" />
+      <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full border border-amber-200/35 animate-[gentleSpin_50s_linear_infinite]" />
+      <div className="absolute top-20 -left-12 w-32 h-32 rounded-full border border-amber-200/35 animate-[gentleSpin_60s_linear_infinite] [animation-direction:reverse]" />
+      <div className="absolute top-40 -right-6 w-20 h-20 rounded-full bg-amber-100/25 animate-[floatDown_7s_ease-in-out_infinite]" />
+      <div className="absolute top-72 -left-4 w-16 h-16 rounded-full bg-moss-100/20 animate-[float_5s_ease-in-out_infinite]" />
       {/* Floating dots — CSS-only */}
-      <div className="absolute top-28 right-12 w-2.5 h-2.5 rounded-full bg-amber-300/30 will-change-transform animate-[float_4s_ease-in-out_infinite]" />
-      <div className="absolute top-56 left-10 w-2 h-2 rounded-full bg-moss-300/25 will-change-transform animate-[floatDown_5s_ease-in-out_1s_infinite]" />
-      <div className="absolute top-96 right-20 w-3 h-3 rounded-full bg-amber-300/30 will-change-transform animate-[float_6s_ease-in-out_2s_infinite]" />
+      <div className="absolute top-28 right-12 w-2.5 h-2.5 rounded-full bg-amber-300/30 animate-[float_4s_ease-in-out_infinite]" />
+      <div className="absolute top-56 left-10 w-2 h-2 rounded-full bg-moss-300/25 animate-[floatDown_5s_ease-in-out_1s_infinite]" />
+      <div className="absolute top-96 right-20 w-3 h-3 rounded-full bg-amber-300/30 animate-[float_6s_ease-in-out_2s_infinite]" />
 
       {/* Main content */}
       <motion.div
@@ -469,7 +469,7 @@ export default function LeaderTasksPage() {
         {/* Momentum dashboard */}
         <motion.div
           variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
-          className="grid grid-cols-3 gap-3"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
         >
           {/* Progress */}
           <div className="rounded-2xl bg-white shadow-sm p-4 flex flex-col items-center justify-center text-center">
@@ -489,7 +489,7 @@ export default function LeaderTasksPage() {
                 {progressPct}%
               </span>
             </div>
-            <p className="text-[10px] font-semibold text-primary-400 uppercase tracking-wider">Done</p>
+            <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Done</p>
           </div>
 
           {/* Overdue */}
@@ -505,7 +505,7 @@ export default function LeaderTasksPage() {
             )}>
               {totalOverdue}
             </p>
-            <p className="text-[10px] font-semibold text-primary-400 uppercase tracking-wider mt-1.5">Overdue</p>
+            <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider mt-1.5">Overdue</p>
           </div>
 
           {/* Streak */}
@@ -524,7 +524,7 @@ export default function LeaderTasksPage() {
                 {streak}
               </p>
             </div>
-            <p className="text-[10px] font-semibold text-primary-400 uppercase tracking-wider mt-1.5">Streak</p>
+            <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider mt-1.5">Streak</p>
           </div>
         </motion.div>
 

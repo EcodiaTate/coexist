@@ -254,40 +254,38 @@ export default function AdminCollectivesPage() {
   const rm = !!shouldReduceMotion
 
   const heroStats = useMemo(() => (
-    stats ? (
-      <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-white/[0.06]">
-          <HeroStatCard
-            value={stats.total}
-            label="Total"
-            icon={<MapPin size={20} />}
-            reducedMotion={rm}
-            delay={0}
-          />
-          <HeroStatCard
-            value={stats.active}
-            label="Active"
-            icon={<Users size={20} />}
-            reducedMotion={rm}
-            delay={0.1}
-          />
-          <HeroStatCard
-            value={stats.totalMembers}
-            label="Members"
-            icon={<Users size={20} />}
-            reducedMotion={rm}
-            delay={0.2}
-          />
-          <HeroStatCard
-            value={stats.totalEvents}
-            label="Events"
-            icon={<CalendarDays size={20} />}
-            reducedMotion={rm}
-            delay={0.3}
-          />
-        </div>
+    <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
+      <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-white/[0.06]">
+        <HeroStatCard
+          value={stats?.total ?? 0}
+          label="Total"
+          icon={<MapPin size={20} />}
+          reducedMotion={rm}
+          delay={0}
+        />
+        <HeroStatCard
+          value={stats?.active ?? 0}
+          label="Active"
+          icon={<Users size={20} />}
+          reducedMotion={rm}
+          delay={0.1}
+        />
+        <HeroStatCard
+          value={stats?.totalMembers ?? 0}
+          label="Members"
+          icon={<Users size={20} />}
+          reducedMotion={rm}
+          delay={0.2}
+        />
+        <HeroStatCard
+          value={stats?.totalEvents ?? 0}
+          label="Events"
+          icon={<CalendarDays size={20} />}
+          reducedMotion={rm}
+          delay={0.3}
+        />
       </div>
-    ) : null
+    </div>
   ), [stats, rm])
 
   useAdminHeader('Collectives', { actions: heroActions, heroContent: heroStats })
@@ -387,14 +385,14 @@ export default function AdminCollectivesPage() {
                           </p>
                           <span
                             className={cn(
-                              'text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0',
+                              'text-[11px] font-semibold px-1.5 py-0.5 rounded-full shrink-0',
                               healthCfg.color,
                             )}
                           >
                             {healthCfg.label}
                           </span>
                           {!c.is_active && (
-                            <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-500 shrink-0">
+                            <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-500 shrink-0">
                               Archived
                             </span>
                           )}

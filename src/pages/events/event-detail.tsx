@@ -841,7 +841,7 @@ export default function EventDetailPage() {
             Show this to participants to scan
           </p>
           <div className="mt-3 px-4 py-2 rounded-lg bg-white">
-            <p className="text-[10px] uppercase tracking-wider text-primary-400 text-center">Manual code</p>
+            <p className="text-[11px] uppercase tracking-wider text-primary-400 text-center">Manual code</p>
             <p className="text-lg font-heading font-bold text-primary-800 tracking-[0.3em] text-center">
               {event.id.replace(/-/g, '').slice(0, 6).toUpperCase()}
             </p>

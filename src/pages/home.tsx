@@ -183,13 +183,13 @@ export default function HomePage() {
 
   return (
     <Page noBackground className="!px-0 bg-primary-950">
-      <PullToRefresh onRefresh={handleRefresh} dark>
-        <div className="relative min-h-full bg-primary-950">
-          {/* ── Background — sticky keeps it viewport-pinned, negative margin collapses it ── */}
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        dark
+        className="min-h-full"
+        background={
           <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-primary-600 via-secondary-700 to-primary-950" />
-
-            {/* ── Background geometric shapes ── */}
             <motion.div
               initial={rm ? {} : { scale: 0.6, opacity: 0 }}
               animate={{ scale: [1, 1.04, 1], opacity: 1 }}
@@ -214,7 +214,6 @@ export default function HomePage() {
               transition={{ duration: 1.2, delay: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="absolute left-[6%] top-[35%] w-[90px] h-[90px] rounded-full bg-white/[0.04]"
             />
-            {/* Floating dots */}
             <motion.div
               initial={rm ? {} : { opacity: 0 }}
               animate={{ y: [0, -7, 0], opacity: [0.3, 0.55, 0.3] }}
@@ -228,7 +227,8 @@ export default function HomePage() {
               className="absolute right-[10%] bottom-[30%] w-1.5 h-1.5 rounded-full bg-white/25"
             />
           </div>
-
+        }
+      >
           {/* ── Content ── */}
           <div className="relative z-10">
             {/* Hero greeting */}
@@ -431,7 +431,7 @@ export default function HomePage() {
                               isToday ? 'bg-success-500/25' : isSoon ? 'bg-warning-500/15' : 'bg-white/[0.08]',
                             )}>
                               <span className={cn(
-                                'text-[10px] font-bold uppercase tracking-wider',
+                                'text-[11px] font-bold uppercase tracking-wider',
                                 isToday ? 'text-success-300' : isTomorrow ? 'text-warning-300' : 'text-white/40',
                               )}>
                                 {isToday ? 'Today' : isTomorrow ? 'Tmrw' : new Date(event.date_start).toLocaleDateString('en-AU', { weekday: 'short' })}
@@ -551,6 +551,7 @@ export default function HomePage() {
                                 <img
                                   src={post.author.avatar_url}
                                   alt=""
+                                  loading="lazy"
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
@@ -565,7 +566,7 @@ export default function HomePage() {
                                 <p className="text-sm font-semibold text-white truncate">
                                   {post.author?.display_name ?? 'Member'}
                                 </p>
-                                <span className="text-[10px] text-white/25 shrink-0">
+                                <span className="text-[11px] text-white/25 shrink-0">
                                   {formatRelativeTime(post.created_at)}
                                 </span>
                               </div>
@@ -743,7 +744,6 @@ export default function HomePage() {
               )}
             </motion.div>
           </div>
-        </div>
       </PullToRefresh>
     </Page>
   )

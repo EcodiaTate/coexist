@@ -333,7 +333,7 @@ export default function AdminSystemPage() {
                     </code>
                     <span
                       className={cn(
-                        'text-[10px] font-medium px-1.5 py-0.5 rounded-full',
+                        'text-[11px] font-medium px-1.5 py-0.5 rounded-full',
                         flag.enabled
                           ? 'bg-success-100 text-success-700'
                           : 'bg-white text-primary-400',
@@ -360,7 +360,7 @@ export default function AdminSystemPage() {
                 <button
                   type="button"
                   onClick={() => deleteFlagMutation.mutate(flag.id)}
-                  className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
+                  className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                   aria-label={`Delete ${flag.key}`}
                 >
                   <Trash2 size={14} />

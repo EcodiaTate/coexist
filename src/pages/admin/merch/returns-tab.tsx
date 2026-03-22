@@ -76,7 +76,7 @@ export default function ReturnsTab() {
             </div>
             <span
               className={cn(
-                'px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize',
+                'px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize',
                 STATUS_COLORS[ret.status],
               )}
             >

@@ -341,7 +341,7 @@ export default function AdminPartnersPage() {
                       <p className="text-sm font-semibold text-primary-800 truncate">
                         {org.name}
                       </p>
-                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-white text-primary-400 shrink-0">
+                      <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-white text-primary-400 shrink-0">
                         {org.type}
                       </span>
                     </div>
@@ -364,7 +364,7 @@ export default function AdminPartnersPage() {
                   <button
                     type="button"
                     onClick={() => setDeleteTarget({ id: org.id, type: 'org' })}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
+                    className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                     aria-label={`Delete ${org.name}`}
                   >
                     <Trash2 size={16} />
@@ -435,7 +435,7 @@ export default function AdminPartnersPage() {
                     </p>
                   )}
                   {offer.category && (
-                    <span className="inline-flex items-center gap-1 mt-2 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary-50/60 shadow-sm text-primary-800">
+                    <span className="inline-flex items-center gap-1 mt-2 text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-primary-50/60 shadow-sm text-primary-800">
                       <Tag size={10} />
                       {offer.category}
                     </span>
@@ -511,7 +511,7 @@ export default function AdminPartnersPage() {
             onChange={(e) => setOrgForm((p) => ({ ...p, website: e.target.value }))}
             placeholder="https://..."
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="Contact Name"
               value={orgForm.contact_name}

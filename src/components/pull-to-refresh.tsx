@@ -14,6 +14,10 @@ interface PullToRefreshProps {
   className?: string
   /** Set to true on dark backgrounds so the indicator text/icon is white */
   dark?: boolean
+  /** Stationary background layer — rendered behind the content and never moves.
+   *  Move your decorative / sticky background here so pull-to-refresh only
+   *  translates the foreground content, keeping backgrounds 100 % locked. */
+  background?: ReactNode
   'aria-label'?: string
 }
 
@@ -25,6 +29,7 @@ export function PullToRefresh({
   children,
   className,
   dark = false,
+  background,
   'aria-label': ariaLabel = 'Pull to refresh',
 }: PullToRefreshProps) {
   const shouldReduceMotion = useReducedMotion()
@@ -115,10 +120,11 @@ export function PullToRefresh({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       className={cn('relative', className)}
-      style={{ clipPath: 'inset(0 -100vw -200px -100vw)' }}
     >
-      {/* Pull indicator — absolutely positioned, revealed as content slides down.
-          z-20 sits between the background (z-0/-z-10) and content (z-10/z-30). */}
+      {/* Background layer — completely stationary, never translated */}
+      {background}
+
+      {/* Pull indicator — absolutely positioned, revealed as content slides down */}
       {active && (
         <div
           aria-hidden="true"
@@ -159,9 +165,7 @@ export function PullToRefresh({
         </div>
       )}
 
-      {/* Content — slides down via translateY. overflow-clip on the container
-          prevents revealing any surface behind. The gap shows the page's own
-          background (which paints on <main> or is sticky-positioned inside). */}
+      {/* Content — only this translates down, background stays locked */}
       <motion.div
         className="relative will-change-transform"
         animate={{ y: currentPull }}

@@ -73,11 +73,11 @@ function AppShellInner({ children }: { children: ReactNode }) {
       {/* Web footer - full width, below the sidebar row so sidebar unsticks at footer */}
       {isWeb && !isMobile && !isChatRoute && <WebFooter />}
 
-      {/* Bottom tab bar (mobile + native) - hidden on admin/leader pages */}
+      {/* Bottom tab bar (mobile + native) - hidden on admin/leader pages (they have their own) */}
       {showBottomTabs && !isAdminRoute && !isLeaderRoute && <BottomTabBar />}
 
       {/* Fixed hamburger (mobile + native) - always visible, top-right, white, no background */}
-      {showBottomTabs && !isAdminRoute && !isLeaderRoute && (
+      {showBottomTabs && (
         <button
           type="button"
           onClick={openMenu}
@@ -91,8 +91,8 @@ function AppShellInner({ children }: { children: ReactNode }) {
         </button>
       )}
 
-      {/* Unified sidebar — mobile: slide-in overlay from right (replaces MenuSheet) */}
-      {showBottomTabs && !isAdminRoute && !isLeaderRoute && (
+      {/* Unified sidebar — mobile: slide-in overlay from right with suite switcher */}
+      {showBottomTabs && (
         <UnifiedSidebar mobileOpen={open} onMobileClose={closeMenu} />
       )}
     </div>

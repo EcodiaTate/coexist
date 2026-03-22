@@ -336,7 +336,7 @@ function UserSettingsSheet({
           </div>
 
           {/* Quick actions - touch-optimised row */}
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <button
               type="button"
               onClick={() => { setNewRole(user.role); setShowRoleChange(!showRoleChange) }}
@@ -481,7 +481,7 @@ function UserSettingsSheet({
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-primary-900">Collective Roles</h3>
                 {activeRoles.length > 0 && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary-200 text-primary-700">
+                  <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-primary-200 text-primary-700">
                     {activeRoles.length}
                   </span>
                 )}
@@ -646,7 +646,7 @@ function UserSettingsSheet({
                     </div>
                   </div>
                   <span className={cn(
-                    'text-[10px] font-semibold px-2 py-0.5 rounded-full',
+                    'text-[11px] font-semibold px-2 py-0.5 rounded-full',
                     userMembership.status === 'active' && 'bg-success-200 text-success-800',
                     userMembership.status === 'trialing' && 'bg-info-200 text-info-800',
                     userMembership.status === 'past_due' && 'bg-warning-200 text-warning-800',
@@ -740,7 +740,7 @@ function UserSettingsSheet({
                         </p>
                         {Object.entries(capsByCategory).map(([category, caps]) => (
                           <div key={category}>
-                            <p className="text-[10px] uppercase tracking-wider font-bold text-primary-400 mb-2 px-1">
+                            <p className="text-[11px] uppercase tracking-wider font-bold text-primary-400 mb-2 px-1">
                               {CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS]}
                             </p>
                             <div className="rounded-xl overflow-hidden ring-1 ring-primary-100/60">
@@ -938,16 +938,16 @@ export default function AdminUsersPage() {
                     <p className="text-sm font-semibold text-primary-900 truncate">
                       {user.display_name ?? 'Unknown'}
                     </p>
-                    <span className={cn('text-[10px] font-semibold px-1.5 py-0.5 rounded-full shrink-0', roleBadgeColors[user.role] ?? roleBadgeColors.participant)}>
+                    <span className={cn('text-[11px] font-semibold px-1.5 py-0.5 rounded-full shrink-0', roleBadgeColors[user.role] ?? roleBadgeColors.participant)}>
                       {user.role?.replace(/_/g, ' ')}
                     </span>
                     {memberUserIds?.has(user.id) && (
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-200 text-primary-700 shrink-0">
+                      <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-200 text-primary-700 shrink-0">
                         Member
                       </span>
                     )}
                     {user.is_suspended && (
-                      <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-error-200 text-error-800 shrink-0">
+                      <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-error-200 text-error-800 shrink-0">
                         Suspended
                       </span>
                     )}

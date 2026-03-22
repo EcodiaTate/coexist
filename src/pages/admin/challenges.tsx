@@ -193,7 +193,7 @@ export default function AdminChallengesPage() {
                             </h3>
                             <span
                               className={cn(
-                                'text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
+                                'text-[11px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
                                 isActive
                                   ? 'bg-success-100 text-success-700'
                                   : 'bg-white text-primary-400',
@@ -240,7 +240,7 @@ export default function AdminChallengesPage() {
                         <button
                           type="button"
                           onClick={() => setDeleteTarget(challenge.id)}
-                          className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
+                          className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                           aria-label="Delete challenge"
                         >
                           <Trash2 size={16} />
@@ -276,7 +276,7 @@ export default function AdminChallengesPage() {
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
                 placeholder="Describe the challenge..."
               />
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Dropdown
                   options={[
                     { value: 'events', label: 'Events' },
@@ -298,7 +298,7 @@ export default function AdminChallengesPage() {
                   placeholder="e.g. 100"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Input
                   label="Start Date"
                   value={form.start_date}

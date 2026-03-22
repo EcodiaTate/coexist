@@ -196,7 +196,7 @@ function DynamicTimelineBuilder({
         <div className="flex items-start gap-2.5">
           <Sparkles size={15} className="text-primary-500 mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-medium text-primary-400 uppercase tracking-wider mb-0.5">Auto-calculated deadline</p>
+            <p className="text-[11px] font-medium text-primary-400 uppercase tracking-wider mb-0.5">Auto-calculated deadline</p>
             <p className="text-sm font-semibold text-primary-800">{previewLabel}</p>
             <p className="text-[11px] text-primary-400 mt-1">
               Each collective gets a personalised due date based on their own events
@@ -465,7 +465,7 @@ function TemplateModal({
           onChange={setCollectiveId}
           label="Scope"
         />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Dropdown
             options={TASK_CATEGORIES}
             value={category}
@@ -499,7 +499,7 @@ function TemplateModal({
                 <p className={cn('text-sm font-medium', assignmentMode === 'collective' ? 'text-primary-700' : 'text-primary-500')}>
                   Collective
                 </p>
-                <p className="text-[10px] text-primary-400">Anyone can tick it off</p>
+                <p className="text-[11px] text-primary-400">Anyone can tick it off</p>
               </div>
             </button>
             <button
@@ -517,7 +517,7 @@ function TemplateModal({
                 <p className={cn('text-sm font-medium', assignmentMode === 'individual' ? 'text-primary-700' : 'text-primary-500')}>
                   Individual
                 </p>
-                <p className="text-[10px] text-primary-400">Each person completes it</p>
+                <p className="text-[11px] text-primary-400">Each person completes it</p>
               </div>
             </button>
           </div>
@@ -623,7 +623,7 @@ function TemplateModal({
               <FileText size={18} className="text-primary-500 shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-primary-700 truncate">{attachmentLabel || 'Attachment'}</p>
-                <p className="text-[10px] text-primary-400 truncate">{attachmentUrl}</p>
+                <p className="text-[11px] text-primary-400 truncate">{attachmentUrl}</p>
               </div>
               <button
                 type="button"
@@ -948,7 +948,7 @@ export default function AdminWorkflowsPage() {
                             <p className="text-sm font-semibold text-primary-800 truncate">
                               {template.title}
                             </p>
-                            <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0', CATEGORY_COLORS[template.category])}>
+                            <span className={cn('text-[11px] font-medium px-1.5 py-0.5 rounded-full shrink-0', CATEGORY_COLORS[template.category])}>
                               {template.category.replace('_', ' ')}
                             </span>
                           </div>
@@ -1006,7 +1006,7 @@ export default function AdminWorkflowsPage() {
                           <button
                             type="button"
                             onClick={() => setEditTemplate(template)}
-                            className="p-1.5 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
+                            className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
                             title="Edit"
                           >
                             <Pencil size={14} />
@@ -1014,7 +1014,7 @@ export default function AdminWorkflowsPage() {
                           <button
                             type="button"
                             onClick={() => setDeleteTarget(template.id)}
-                            className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
+                            className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 size={14} />

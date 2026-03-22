@@ -37,7 +37,7 @@ function StatusTimeline({ current }: { current: OrderStatus }) {
                   isCancelled && 'bg-error border-error',
                 )}
               />
-              <span className="text-[10px] mt-1 text-primary-400 capitalize">
+              <span className="text-[11px] mt-1 text-primary-400 capitalize">
                 {step}
               </span>
             </div>

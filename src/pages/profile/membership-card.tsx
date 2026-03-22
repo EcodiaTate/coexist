@@ -72,7 +72,7 @@ export default function MembershipCard({
           <p className="text-xs font-semibold uppercase tracking-widest opacity-80">
             {APP_NAME}
           </p>
-          <p className="text-[10px] opacity-60 mt-0.5">{TAGLINE}</p>
+          <p className="text-[11px] opacity-60 mt-0.5">{TAGLINE}</p>
         </div>
         <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider backdrop-blur-sm">
           {tierLabels[tier]}
@@ -96,7 +96,7 @@ export default function MembershipCard({
       {/* Member ID + QR */}
       <div className="relative mt-4 flex items-end justify-between">
         <div>
-          <p className="text-[10px] uppercase tracking-wider opacity-60">Member ID</p>
+          <p className="text-[11px] uppercase tracking-wider opacity-60">Member ID</p>
           <p className="font-heading text-sm font-bold tracking-widest">{memberId}</p>
         </div>
         <div className="flex items-center justify-center w-14 h-14 rounded-lg bg-white p-1.5">

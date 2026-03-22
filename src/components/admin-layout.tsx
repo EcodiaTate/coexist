@@ -59,15 +59,18 @@ export function useAdminHeader(
   opts?: { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean } | ReactNode,
 ) {
   const ctx = useContext(AdminHeaderContext)
+
+  // Extract individual values so the effect only re-fires when they actually change,
+  // not when a new wrapper object is created each render.
+  const isOptsObject = opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any) || 'fullBleed' in (opts as any))
+  const subtitle = isOptsObject ? (opts as any).subtitle : undefined
+  const actions = isOptsObject ? (opts as any).actions : (opts as ReactNode)
+  const heroContent = isOptsObject ? (opts as any).heroContent : undefined
+  const fullBleed = isOptsObject ? (opts as any).fullBleed : undefined
+
   useEffect(() => {
-    // Support legacy (title, actions) signature
-    if (opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any) || 'fullBleed' in (opts as any))) {
-      const o = opts as { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }
-      ctx?.setHeader({ title, ...o })
-    } else {
-      ctx?.setHeader({ title, actions: opts as ReactNode })
-    }
-  }, [ctx, title, opts])
+    ctx?.setHeader({ title, subtitle, actions, heroContent, fullBleed })
+  }, [ctx, title, subtitle, actions, heroContent, fullBleed])
 }
 
 /* ------------------------------------------------------------------ */
@@ -289,7 +292,7 @@ export function AdminLayout() {
                 <div className="flex items-center justify-between px-4 py-3">
                   <Link
                     to="/"
-                    className="flex items-center justify-center w-8 h-8 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-primary-50/50 transition-colors"
+                    className="flex items-center justify-center w-11 h-11 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-primary-50/50 transition-colors"
                     aria-label="Back to app"
                   >
                     <ArrowLeft size={15} strokeWidth={1.5} />
@@ -302,7 +305,7 @@ export function AdminLayout() {
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}
-                    className="p-1.5 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-colors"
+                    className="flex items-center justify-center min-w-11 min-h-11 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-colors"
                     aria-label="Close menu"
                   >
                     <X size={16} strokeWidth={1.5} />
@@ -316,7 +319,7 @@ export function AdminLayout() {
                       <Shield size={14} className="text-white" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-[0.08em] leading-none">Admin</p>
+                      <p className="text-[11px] font-semibold text-primary-500 uppercase tracking-[0.08em] leading-none">Admin</p>
                       <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">Co-Exist</p>
                     </div>
                   </div>
@@ -331,7 +334,7 @@ export function AdminLayout() {
                     return (
                       <div key={cat.label}>
                         {showLabel && (
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-3 mt-4 mb-1.5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-3 mt-4 mb-1.5">
                             {cat.label}
                           </p>
                         )}
@@ -342,7 +345,7 @@ export function AdminLayout() {
                               key={item.path}
                               to={item.path}
                               className={cn(
-                                'relative flex items-center gap-2.5 px-3 h-10',
+                                'relative flex items-center gap-2.5 px-3 min-h-11',
                                 'rounded-xl text-[13px]',
                                 'transition-colors duration-200',
                                 'cursor-pointer select-none',
@@ -389,7 +392,7 @@ export function AdminLayout() {
         {/* Main content */}
         <div ref={scrollRef} className={cn(
           'flex-1 flex flex-col min-w-0 min-h-0 bg-surface-1',
-          showBottomTabs && 'overflow-y-auto overscroll-contain',
+          showBottomTabs && 'overflow-y-auto overscroll-none',
         )}>
           {/* ── Shared hero bar - only for non-fullBleed pages ── */}
           {!header.fullBleed && header.title && header.title !== 'Dashboard' ? (() => {
@@ -398,13 +401,20 @@ export function AdminLayout() {
             return (
               <div
                 className={cn(
-                  'relative overflow-hidden',
+                  'relative overflow-hidden shrink-0',
                   'bg-gradient-to-br transition-[background] duration-700 ease-in-out',
                   cfg.hue,
                   cfg.tall
-                    ? 'px-6 pt-12 pb-14 sm:px-8 sm:pt-16 sm:pb-16'
-                    : 'px-6 pt-5 pb-10 sm:px-8 sm:pt-8 sm:pb-12',
+                    ? 'px-6 pb-14 sm:px-8 sm:pb-16'
+                    : 'px-6 pb-10 sm:px-8 sm:pb-12',
+                  // Extend the gradient above the hero so overscroll never exposes the surface bg
+                  'before:absolute before:inset-x-0 before:bottom-full before:h-[200px] before:bg-inherit',
                 )}
+                style={{
+                  paddingTop: cfg.tall
+                    ? 'calc(var(--safe-top, 0px) + 3.5rem)'
+                    : 'calc(var(--safe-top, 0px) + 2rem)',
+                }}
               >
                 {/* Decorative ambient circles */}
                 <div className={cn('pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full blur-2xl', cfg.tall ? 'bg-white/[0.07]' : 'bg-white/[0.04]')} />

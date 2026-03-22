@@ -66,7 +66,7 @@ const slideInRight: Variants = {
  */
 function ShopBackground({ rm }: { rm: boolean }) {
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div className="sticky top-0 h-[100dvh] -mb-[100dvh] pointer-events-none overflow-hidden">
       {/* Base gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#f0f4ec] via-[#f4f6f1] to-[#eef3e9]" />
 
@@ -85,8 +85,8 @@ function ShopBackground({ rm }: { rm: boolean }) {
       </svg>
 
       {/* Soft blurred orbs - depth without clutter */}
-      <div className="absolute top-[25%] -left-20 w-80 h-80 rounded-full bg-primary-200/10 blur-[120px]" />
-      <div className="absolute top-[60%] -right-16 w-72 h-72 rounded-full bg-moss-200/8 blur-[120px]" />
+      <div className="absolute top-[25%] -left-20 w-80 h-80 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-200/8 to-transparent" />
+      <div className="absolute top-[60%] -right-16 w-72 h-72 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-200/6 to-transparent" />
 
       {/* Single breathing ring */}
       <motion.div
@@ -374,13 +374,13 @@ function ProductCard({ product, onClick, index }: { product: Product; onClick: (
           )}
 
           {lowStock && inStock && (
-            <span className="absolute top-3 right-3 px-2.5 py-1 bg-amber-500 text-white text-[10px] font-bold rounded-xl shadow-sm uppercase tracking-wider">
+            <span className="absolute top-3 right-3 px-2.5 py-1 bg-amber-500 text-white text-[11px] font-bold rounded-xl shadow-sm uppercase tracking-wider">
               Low Stock
             </span>
           )}
 
           {inStock && isNewProduct(product.created_at) && (
-            <span className="absolute top-3 left-3 px-2.5 py-1 bg-gradient-to-r from-sprout-500 to-moss-500 text-white text-[10px] font-bold rounded-xl shadow-sm uppercase tracking-wider">
+            <span className="absolute top-3 left-3 px-2.5 py-1 bg-gradient-to-r from-sprout-500 to-moss-500 text-white text-[11px] font-bold rounded-xl shadow-sm uppercase tracking-wider">
               New
             </span>
           )}
@@ -524,7 +524,7 @@ function ImpactStrip() {
                 <div key={label} className="py-3 text-center">
                   <Icon size={16} className="text-sprout-300 mx-auto mb-1.5" />
                   <p className="font-heading text-lg font-extrabold text-white leading-none">{value}</p>
-                  <p className="text-[10px] text-white/40 mt-1 leading-tight">{label}</p>
+                  <p className="text-[11px] text-white/40 mt-1 leading-tight">{label}</p>
                 </div>
               ))}
             </div>
@@ -598,7 +598,7 @@ function PerkCard({ perk, isMember }: { perk: PartnerPerk; isMember: boolean }) 
                 </div>
               )}
               {perk.points_cost && perk.points_cost > 0 && (
-                <p className="text-[10px] text-primary-400 mt-1.5 font-medium">{perk.points_cost} points to redeem</p>
+                <p className="text-[11px] text-primary-400 mt-1.5 font-medium">{perk.points_cost} points to redeem</p>
               )}
             </>
           ) : (
@@ -610,7 +610,7 @@ function PerkCard({ perk, isMember }: { perk: PartnerPerk; isMember: boolean }) 
         </div>
 
         {perk.category && (
-          <span className="inline-block mt-2.5 px-2.5 py-0.5 rounded-full bg-moss-100/50 text-[10px] font-semibold text-moss-700 capitalize border border-moss-200/30">
+          <span className="inline-block mt-2.5 px-2.5 py-0.5 rounded-full bg-moss-100/50 text-[11px] font-semibold text-moss-700 capitalize border border-moss-200/30">
             {perk.category}
           </span>
         )}
@@ -815,12 +815,9 @@ export default function ShopPage() {
   }, [queryClient])
 
   return (
-    <Page className="!px-0 !bg-transparent">
-      <PullToRefresh onRefresh={handleRefresh}>
-        <div className="relative min-h-screen">
-          {/* Rich layered background */}
-          <ShopBackground rm={rm} />
-
+    <Page className="!px-0 bg-[#f0f4ec]">
+      <PullToRefresh onRefresh={handleRefresh} background={<ShopBackground rm={rm} />}>
+        <div className="relative min-h-dvh">
           {/* Main content */}
           <div className="relative z-10">
             {showLoading ? (

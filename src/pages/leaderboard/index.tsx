@@ -85,51 +85,27 @@ function BackgroundShapes({ reduced }: { reduced: boolean }) {
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-moss-50/15 to-warning-50/15" />
 
       {/* Concentrated hero glow - top center */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-warning-200/30 via-secondary-200/20 to-transparent blur-[60px]" />
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-warning-200/25 via-secondary-200/12 to-transparent" />
 
       {/* Warm accent - top right */}
-      <div className="absolute -top-16 -right-16 w-[280px] h-[260px] rounded-full bg-gradient-to-bl from-warning-200/22 to-transparent blur-[50px]" />
+      <div className="absolute -top-16 -right-16 w-[280px] h-[260px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-warning-200/18 to-transparent" />
 
       {reduced ? null : (
         <>
           {/* Large breathing ring - top right */}
-          <motion.div
-            className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-warning-300/22"
-            animate={{ scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
-            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          />
+          <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-warning-300/18 opacity-65" />
           {/* Concentric inner ring */}
-          <motion.div
-            className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-secondary-200/18"
-            animate={{ scale: [1, 1.04, 1], opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          />
+          <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-secondary-200/15 opacity-45" />
 
           {/* Left ring cluster */}
-          <motion.div
-            className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/22"
-            animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
-            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          />
+          <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/18 opacity-55" />
 
           {/* Bottom right ring */}
-          <motion.div
-            className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-warning-300/18"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
-          />
+          <div className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-warning-300/15" />
 
           {/* Deep warm glows */}
-          <motion.div
-            className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-moss-100/18 blur-[50px]"
-            animate={{ scale: [1, 1.14, 1], opacity: [0.2, 0.38, 0.2] }}
-            transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          />
-          <motion.div
-            className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-warning-100/18 blur-[55px]"
-            animate={{ scale: [1, 1.08, 1], opacity: [0.2, 0.35, 0.2] }}
-            transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-          />
+          <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/15 to-transparent opacity-30" />
+          <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-warning-100/15 to-transparent opacity-28" />
 
           {/* Floating particles */}
           <motion.div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-warning-400/18"
@@ -201,7 +177,7 @@ export default function LeaderboardPage() {
   }, [queryClient])
 
   return (
-    <Page noBackground className="!px-0">
+    <Page noBackground className="!px-0 bg-surface-1">
       <div className="relative min-h-full">
         {/* ─── Animated decorative background ─── */}
         <BackgroundShapes reduced={!!shouldReduceMotion} />
@@ -350,7 +326,7 @@ export default function LeaderboardPage() {
                             <p className="text-xs font-bold text-primary-800 truncate max-w-[80px]">
                               {entry.displayName}
                             </p>
-                            <p className="text-[10px] font-bold text-primary-500 tabular-nums">
+                            <p className="text-[11px] font-bold text-primary-500 tabular-nums">
                               {formatMetricValue(entry.value, metric)}
                             </p>
                             {/* Podium bar */}
@@ -457,6 +433,7 @@ export default function LeaderboardPage() {
                               <img
                                 src={entry.coverImageUrl}
                                 alt=""
+                                loading="lazy"
                                 className="w-full h-full object-cover"
                               />
                             ) : (

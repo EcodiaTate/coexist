@@ -82,7 +82,7 @@ export default function ReviewsTab() {
           <div className="flex items-center justify-between">
             <span
               className={cn(
-                'px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize',
+                'px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize',
                 review.status === 'approved' && 'bg-success-100 text-success-800',
                 review.status === 'pending' && 'bg-warning-100 text-warning-800',
                 review.status === 'removed' && 'bg-error-100 text-error-700',

@@ -512,7 +512,7 @@ function DistanceSelector({
               <span className="text-lg font-bold text-primary-800 tabular-nums leading-none">
                 {value}
               </span>
-              <span className="text-[10px] font-medium text-primary-400 uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-primary-400 uppercase tracking-wider">
                 km
               </span>
             </div>
@@ -772,7 +772,7 @@ function ActivityScroller({
             </span>
             {/* Label */}
             <span className={cn(
-              'text-[10px] font-medium leading-tight text-center max-w-[60px] truncate',
+              'text-[11px] font-medium leading-tight text-center max-w-[60px] truncate',
               'transition-colors duration-150',
               isSelected ? 'text-primary-800 font-semibold' : 'text-primary-400',
             )}>
@@ -1428,7 +1428,7 @@ export default function ExplorePage() {
                                     <CountUp end={stat.value} duration={1200} />
                                   </span>
                                 </div>
-                                <span className="text-[10px] font-medium text-white/50 uppercase tracking-wider">
+                                <span className="text-[11px] font-medium text-white/50 uppercase tracking-wider">
                                   {stat.label}
                                 </span>
                               </div>
@@ -1525,7 +1525,7 @@ export default function ExplorePage() {
                       <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-3">
                         Popular Categories
                       </h3>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {CATEGORY_CARDS.map((cat, i) => (
                           <motion.button
                             key={cat.key}
@@ -1560,7 +1560,7 @@ export default function ExplorePage() {
                               <span className="text-sm font-semibold text-white block leading-tight">
                                 {cat.label}
                               </span>
-                              <span className="text-[10px] font-medium text-white/60 mt-0.5 block">
+                              <span className="text-[11px] font-medium text-white/60 mt-0.5 block">
                                 {cat.description}
                               </span>
                             </div>
@@ -1587,7 +1587,7 @@ export default function ExplorePage() {
                       {nearbyEvents.isLoading && showLoading ? (
                         <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
                           {[1, 2, 3].map((i) => (
-                            <div key={i} className="w-[260px] shrink-0">
+                            <div key={i} className="w-[75vw] max-w-[260px] shrink-0">
                               <Card.Skeleton />
                             </div>
                           ))}
@@ -1599,7 +1599,7 @@ export default function ExplorePage() {
                               return (
                                 <motion.div
                                   key={event.id}
-                                  className="w-[260px] shrink-0"
+                                  className="w-[75vw] max-w-[260px] shrink-0"
                                   initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
                                   animate={{ opacity: 1, x: 0 }}
                                   transition={{ delay: idx * 0.06, duration: 0.3 }}
@@ -1716,7 +1716,7 @@ export default function ExplorePage() {
                               <span className="text-lg font-bold text-primary-800 tabular-nums block">
                                 <CountUp end={stat.value} duration={1400} />{stat.suffix}
                               </span>
-                              <span className="text-[10px] font-medium text-primary-400 uppercase tracking-wider">
+                              <span className="text-[11px] font-medium text-primary-400 uppercase tracking-wider">
                                 {stat.label}
                               </span>
                             </motion.div>

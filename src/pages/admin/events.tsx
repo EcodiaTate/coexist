@@ -213,21 +213,21 @@ function CountdownBadge({ dateStr }: { dateStr: string }) {
   if (days < 0) return null
   if (days === 0) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-success-100 text-success-700 animate-pulse">
+      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-success-100 text-success-700 animate-pulse">
         <Flame size={10} /> Today
       </span>
     )
   }
   if (days <= 3) {
     return (
-      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-warning-100 text-warning-700">
+      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-warning-100 text-warning-700">
         <Clock size={10} /> {days}d away
       </span>
     )
   }
   if (days <= 14) {
     return (
-      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-500">
+      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-500">
         {days}d away
       </span>
     )
@@ -278,7 +278,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
 
           {/* Badges overlapping image bottom */}
           <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
-            <span className={cn('text-[10px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm', actColor)}>
+            <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm', actColor)}>
               {activityLabel(event.activity_type)}
             </span>
             <CountdownBadge dateStr={event.date_start} />
@@ -417,7 +417,7 @@ function HottestEventSpotlight({ event }: { event: AdminEvent }) {
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-primary-500 mb-1 block">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-primary-500 mb-1 block">
             Biggest Event
           </span>
           <h3 className="font-heading text-lg font-bold text-primary-900 truncate">
@@ -517,21 +517,31 @@ export default function AdminEventsPage() {
   const showLoading = useDelayedLoading(isLoading)
 
   const heroStats = useMemo(() => (
-    data?.stats ? (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: 'Upcoming', value: data.stats.upcoming },
-          { label: 'Total Events', value: data.stats.total },
-          { label: 'Registrations', value: data.stats.totalRegistrations },
-          { label: 'Active Collectives', value: data.stats.activeCollectives },
-        ].map((s) => (
-          <div key={s.label} className="rounded-xl bg-white/10 backdrop-blur-sm p-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-1">{s.label}</p>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {(data?.stats
+        ? [
+            { label: 'Upcoming', value: data.stats.upcoming },
+            { label: 'Total Events', value: data.stats.total },
+            { label: 'Registrations', value: data.stats.totalRegistrations },
+            { label: 'Active Collectives', value: data.stats.activeCollectives },
+          ]
+        : [
+            { label: 'Upcoming', value: null },
+            { label: 'Total Events', value: null },
+            { label: 'Registrations', value: null },
+            { label: 'Active Collectives', value: null },
+          ]
+      ).map((s) => (
+        <div key={s.label} className="rounded-xl bg-white/10 backdrop-blur-sm p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-1">{s.label}</p>
+          {s.value !== null ? (
             <p className="text-xl font-bold text-white tabular-nums">{s.value.toLocaleString()}</p>
-          </div>
-        ))}
-      </div>
-    ) : null
+          ) : (
+            <div className="h-7 w-12 rounded-lg bg-white/[0.08] animate-pulse" />
+          )}
+        </div>
+      ))}
+    </div>
   ), [data?.stats])
 
   useAdminHeader('Events', { heroContent: heroStats })

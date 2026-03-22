@@ -349,7 +349,7 @@ function SuiteSwitcher({
             {active.icon}
           </div>
           <div className="min-w-0">
-            <p className={cn('text-[10px] font-semibold uppercase tracking-[0.08em] leading-none', active.labelColor)}>
+            <p className={cn('text-[11px] font-semibold uppercase tracking-[0.08em] leading-none', active.labelColor)}>
               {active.label}
             </p>
             <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">
@@ -481,7 +481,7 @@ function SuiteSwitcher({
                   transition={{ duration: 0.25, ease: EASE }}
                   className="absolute inset-0 flex flex-col justify-center"
                 >
-                  <p className={cn('text-[10px] font-semibold uppercase tracking-[0.08em] leading-none', active.labelColor)}>
+                  <p className={cn('text-[11px] font-semibold uppercase tracking-[0.08em] leading-none', active.labelColor)}>
                     {active.label}
                   </p>
                   <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">
@@ -576,7 +576,7 @@ function SidebarNavList({
               {showLabel && (
                 <div>
                   {!collapsed && (
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-2.5 mt-4 mb-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-2.5 mt-4 mb-1.5">
                       {cat.label}
                     </p>
                   )}

@@ -94,7 +94,7 @@ function RewardForm({
         </h3>
         <button
           onClick={onClose}
-          className="p-1.5 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
+          className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
           aria-label="Close"
         >
           <X size={18} />
@@ -115,7 +115,7 @@ function RewardForm({
         rows={2}
         placeholder="What the member gets"
       />
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input
           label="Partner name"
           value={form.partner_name ?? ''}
@@ -129,7 +129,7 @@ function RewardForm({
           placeholder="https://..."
         />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Input
           label="Discount code"
           value={form.discount_code ?? ''}
@@ -338,14 +338,14 @@ export default function AdminMembershipPage() {
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       onClick={() => handleToggleRewardActive(reward)}
-                      className="p-1.5 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
+                      className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
                       aria-label={reward.is_active ? 'Deactivate' : 'Activate'}
                     >
                       {reward.is_active ? <ToggleRight size={18} /> : <ToggleLeft size={18} />}
                     </button>
                     <button
                       onClick={() => setEditingReward(reward)}
-                      className="p-1.5 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
+                      className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
                       aria-label="Edit reward"
                     >
                       <Edit3 size={16} />

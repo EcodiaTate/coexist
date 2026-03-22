@@ -444,7 +444,7 @@ export default function CollectiveDetailPage() {
                   className="flex items-center gap-3 rounded-xl bg-surface-0 p-3 transition-colors duration-150 hover:bg-surface-3"
                 >
                   <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-primary-100 text-primary-400">
-                    <span className="text-[10px] font-semibold uppercase">
+                    <span className="text-[11px] font-semibold uppercase">
                       {new Date(event.date_start).toLocaleDateString('en-AU', { month: 'short' })}
                     </span>
                     <span className="font-heading text-lg font-bold leading-tight">
@@ -482,7 +482,7 @@ export default function CollectiveDetailPage() {
                   className="flex items-center gap-3 rounded-xl bg-surface-0 p-3 transition-colors duration-150 hover:bg-surface-3"
                 >
                   <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-surface-2 text-primary-400">
-                    <span className="text-[10px] font-semibold uppercase">
+                    <span className="text-[11px] font-semibold uppercase">
                       {new Date(event.date_start).toLocaleDateString('en-AU', { month: 'short' })}
                     </span>
                     <span className="font-heading text-lg font-bold leading-tight">

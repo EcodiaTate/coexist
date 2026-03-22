@@ -140,7 +140,7 @@ export function ShareableCard({
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.3 }}
         className={cn(
-          'relative w-[340px] overflow-hidden rounded-2xl',
+          'relative w-full max-w-[340px] overflow-hidden rounded-2xl',
           'bg-gradient-to-br',
           config.gradient,
           'p-6 text-white shadow-xl',

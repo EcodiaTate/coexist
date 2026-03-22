@@ -198,7 +198,7 @@ export default function AdminSurveysPage() {
                       </p>
                       <span
                         className={cn(
-                          'text-[10px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
+                          'text-[11px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
                           (survey as any).status === 'active' || survey.is_active
                             ? 'bg-success-100 text-success-700'
                             : 'bg-white text-primary-400',
@@ -231,7 +231,7 @@ export default function AdminSurveysPage() {
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(survey.id)}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
+                    className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                     aria-label="Delete survey"
                   >
                     <Trash2 size={16} />

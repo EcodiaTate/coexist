@@ -134,13 +134,13 @@ function SummaryCards({ items }: { items: FlatVariant[] }) {
   ]
 
   return (
-    <div className="grid grid-cols-4 gap-2 mb-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
       {cards.map((c) => (
         <div key={c.label} className="p-3 rounded-xl bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 shadow-sm text-center">
           <p className={cn('font-heading text-xl font-bold tabular-nums', c.color)}>
             {c.value}
           </p>
-          <p className="text-[10px] text-primary-500 font-semibold mt-0.5">{c.label}</p>
+          <p className="text-[11px] text-primary-500 font-semibold mt-0.5">{c.label}</p>
         </div>
       ))}
     </div>
@@ -221,7 +221,7 @@ export default function InventoryTab() {
   if (showLoading) {
     return (
       <div className="space-y-3">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} variant="stat-card" />
           ))}
@@ -345,7 +345,7 @@ export default function InventoryTab() {
                     </span>
                     <span
                       className={cn(
-                        'text-[10px] font-medium px-1.5 py-0.5 rounded-full mt-0.5',
+                        'text-[11px] font-medium px-1.5 py-0.5 rounded-full mt-0.5',
                         isOOS
                           ? 'bg-error-100 text-error-700'
                           : isLow

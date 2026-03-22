@@ -228,7 +228,7 @@ function PhotoUploadSection({
           aria-label="Add photo"
         >
           <Camera size={20} />
-          <span className="text-[10px] mt-0.5">Add</span>
+          <span className="text-[11px] mt-0.5">Add</span>
         </button>
       </div>
       </div>
@@ -623,7 +623,7 @@ export default function LogImpactPage() {
         </motion.div>
 
         {/* Before/After photos */}
-        <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
+        <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <PhotoUploadSection
             photos={beforePhotos}
             onAdd={() => handleAddPhoto(setBeforePhotos, beforeUpload)}

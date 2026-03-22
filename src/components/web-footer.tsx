@@ -134,7 +134,7 @@ export function WebFooter({ className }: WebFooterProps) {
               >
                 <AppleIcon />
                 <div>
-                  <p className="text-[10px] text-white/50 leading-tight">
+                  <p className="text-[11px] text-white/50 leading-tight">
                     Download on the
                   </p>
                   <p className="text-sm font-semibold text-white leading-tight">
@@ -156,7 +156,7 @@ export function WebFooter({ className }: WebFooterProps) {
               >
                 <PlayStoreIcon />
                 <div>
-                  <p className="text-[10px] text-white/50 leading-tight">
+                  <p className="text-[11px] text-white/50 leading-tight">
                     Get it on
                   </p>
                   <p className="text-sm font-semibold text-white leading-tight">

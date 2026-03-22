@@ -150,10 +150,10 @@ export default function LeaderEventsPage() {
   /* Loading skeleton */
   if (showLoading) {
     return (
-      <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-moss-50 via-white to-primary-50/30">
+      <div className="relative min-h-dvh overflow-x-hidden bg-gradient-to-b from-moss-50 via-white to-primary-50/30">
         {/* Decorative shapes */}
         <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-moss-200/40" />
-        <div className="absolute -left-20 bottom-[10%] w-[280px] h-[280px] rounded-full bg-moss-100/30 blur-2xl" />
+        <div className="absolute -left-20 bottom-[10%] w-[280px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/25 to-transparent opacity-30" />
         <div className="relative z-10 px-6 pt-14 space-y-6">
           <div className="flex flex-col items-center gap-2 pb-2">
             <div className="h-3 w-16 rounded-full bg-moss-200/40 animate-pulse" />
@@ -176,21 +176,21 @@ export default function LeaderEventsPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-dvh overflow-x-hidden">
       {/* ── Bright airy background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-moss-50 via-white to-primary-50/30" />
 
       {/* ── Decorative geometric shapes — CSS-only for GPU compositing ── */}
-      <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-moss-200/40 will-change-transform animate-[breathe_20s_ease-in-out_infinite]" />
-      <div className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-moss-200/25 will-change-transform animate-[breathe_22s_ease-in-out_0.5s_infinite]" />
-      <div className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-moss-100/40 blur-2xl will-change-transform animate-[breathe_18s_ease-in-out_1s_infinite]" />
+      <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-moss-200/40 animate-[breathe_20s_ease-in-out_infinite]" />
+      <div className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-moss-200/25 animate-[breathe_22s_ease-in-out_0.5s_infinite]" />
+      <div className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/34 to-transparent opacity-30" />
       <div className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-200/35" />
-      <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-moss-100/25 blur-3xl" />
+      <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/21 to-transparent opacity-30" />
       <div className="absolute bottom-[15%] right-[10%] w-[60px] h-[60px] rounded-full bg-primary-100/30" />
       {/* Floating dots — CSS-only */}
-      <div className="absolute left-[15%] top-[16%] w-2 h-2 rounded-full bg-moss-300/40 will-change-transform animate-[float_4.5s_ease-in-out_infinite]" />
-      <div className="absolute right-[14%] top-[35%] w-1.5 h-1.5 rounded-full bg-primary-300/30 will-change-transform animate-[floatDown_5.5s_ease-in-out_1.5s_infinite]" />
-      <div className="absolute left-[35%] bottom-[20%] w-2.5 h-2.5 rounded-full bg-moss-300/25 will-change-transform animate-[float_6s_ease-in-out_3s_infinite]" />
+      <div className="absolute left-[15%] top-[16%] w-2 h-2 rounded-full bg-moss-300/40 animate-[float_4.5s_ease-in-out_infinite]" />
+      <div className="absolute right-[14%] top-[35%] w-1.5 h-1.5 rounded-full bg-primary-300/30 animate-[floatDown_5.5s_ease-in-out_1.5s_infinite]" />
+      <div className="absolute left-[35%] bottom-[20%] w-2.5 h-2.5 rounded-full bg-moss-300/25 animate-[float_6s_ease-in-out_3s_infinite]" />
 
       {/* ── Content ── */}
       <motion.div
@@ -204,7 +204,7 @@ export default function LeaderEventsPage() {
           variants={rm ? undefined : fadeUp}
           className="flex flex-col items-center justify-center text-center pb-2"
         >
-          <p className="text-[10px] font-semibold text-moss-500 uppercase tracking-[0.2em]">
+          <p className="text-[11px] font-semibold text-moss-500 uppercase tracking-[0.2em]">
             Manage
           </p>
           <h1 className="font-heading text-3xl sm:text-4xl font-bold text-primary-900 mt-1.5">
@@ -221,7 +221,7 @@ export default function LeaderEventsPage() {
           ].map((s) => (
             <div key={s.label} className="flex flex-col items-center rounded-2xl bg-white shadow-sm border border-moss-100/50 px-5 py-3 min-w-[80px]">
               <span className={cn('font-heading text-2xl font-extrabold tabular-nums', s.color)}>{s.value}</span>
-              <span className="text-[10px] font-semibold text-primary-400 uppercase tracking-wider mt-0.5">{s.label}</span>
+              <span className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider mt-0.5">{s.label}</span>
             </div>
           ))}
         </motion.div>

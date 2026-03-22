@@ -676,7 +676,7 @@ function PushTestSuite() {
           <button
             type="button"
             onClick={() => refetchTokens()}
-            className="text-[10px] text-primary-400 hover:text-primary-600 flex items-center gap-1"
+            className="text-[11px] text-primary-400 hover:text-primary-600 flex items-center gap-1"
           >
             <RefreshCw size={10} /> Refresh
           </button>
@@ -698,7 +698,7 @@ function PushTestSuite() {
               const stale = ageMins > 60 * 24 * 7
               return (
                 <span key={i} className={cn(
-                  'inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-medium border',
+                  'inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium border',
                   stale ? 'bg-warning-50 border-warning-200 text-warning-700' : 'bg-success-50/50 border-success-200 text-success-700',
                 )}>
                   <span className="uppercase font-bold">{t.platform}</span>
@@ -731,7 +731,7 @@ function PushTestSuite() {
               </span>
             ))}
           </div>
-          <div className="flex gap-3 text-[10px] text-primary-400">
+          <div className="flex gap-3 text-[11px] text-primary-400">
             <span className="flex items-center gap-1">
               <Moon size={10} />
               Quiet: {prefs.quiet_hours_enabled ? `${prefs.quiet_hours_start}-${prefs.quiet_hours_end}` : 'Off'}
@@ -751,7 +751,7 @@ function PushTestSuite() {
             <p className="text-xs font-medium text-primary-500">Push Types to Send</p>
             <button
               type="button"
-              className="text-[10px] text-primary-400 hover:text-primary-600"
+              className="text-[11px] text-primary-400 hover:text-primary-600"
               onClick={() => setSelectedTypes(selectedTypes.length === ALL_TYPES.length ? [] : [...ALL_TYPES])}
             >
               {selectedTypes.length === ALL_TYPES.length ? 'None' : 'All'}
@@ -764,7 +764,7 @@ function PushTestSuite() {
                 type="button"
                 onClick={() => toggleType(type)}
                 className={cn(
-                  'px-2 py-0.5 rounded text-[10px] font-medium transition-[color,background-color,box-shadow,transform] duration-150 active:scale-[0.97] cursor-pointer',
+                  'px-2 py-0.5 rounded text-[11px] font-medium transition-[color,background-color,box-shadow,transform] duration-150 active:scale-[0.97] cursor-pointer',
                   selectedTypes.includes(type) ? 'bg-primary-600 text-white' : 'bg-primary-50 text-primary-500',
                 )}
               >
@@ -818,7 +818,7 @@ function PushTestSuite() {
               {failed > 0 && <> / <span className="text-error-600">{failed} fail</span></>}
               <span className="text-primary-400 font-normal"> / {results.length}</span>
             </p>
-            {!running && <button type="button" onClick={clear} className="text-[10px] text-primary-400 hover:text-primary-600">Clear</button>}
+            {!running && <button type="button" onClick={clear} className="text-[11px] text-primary-400 hover:text-primary-600">Clear</button>}
           </div>
 
           {/* Group: Infrastructure */}
@@ -844,7 +844,7 @@ function PushTestSuite() {
 function ResultGroup({ label, results }: { label: string; results: PushTestResult[] }) {
   return (
     <div className="space-y-1">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-primary-400">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400">{label}</p>
       {results.map((r) => (
         <div
           key={r.id}
@@ -868,7 +868,7 @@ function ResultGroup({ label, results }: { label: string; results: PushTestResul
               )}
             </div>
             {r.detail && (
-              <p className={cn('text-[10px] mt-0.5', r.status === 'fail' ? 'text-error-600' : 'text-primary-500')}>
+              <p className={cn('text-[11px] mt-0.5', r.status === 'fail' ? 'text-error-600' : 'text-primary-500')}>
                 {r.detail}
               </p>
             )}
@@ -976,7 +976,7 @@ export default function DevToolsPage() {
             Seed "{ACTIVITY_TYPE_LABELS[selectedActivity]}" Event
           </Button>
 
-          <p className="text-[10px] text-primary-400">
+          <p className="text-[11px] text-primary-400">
             Creates a published event (started 30m ago, ends in 2.5h) with you as leader + 8 fake attendees.
           </p>
         </div>
@@ -1030,7 +1030,7 @@ export default function DevToolsPage() {
             </div>
             <div>
               <h3 className="text-sm font-semibold text-primary-800">Push Notification Tests</h3>
-              <p className="text-[10px] text-primary-400">
+              <p className="text-[11px] text-primary-400">
                 Registration, delivery, preferences, quiet hours, batching, latency.
               </p>
             </div>
@@ -1046,7 +1046,7 @@ export default function DevToolsPage() {
           <p className="text-xs text-primary-400 mb-2">
             Jump directly to any day-of page. Use a test event ID from above.
           </p>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Button variant="secondary" size="sm" icon={<QrCode size={14} />}
               onClick={() => { const first = testEvents?.[0]; if (first) navigate(`/events/${first.id}/check-in`); else alert('Create a test event first') }}>
               Check-In (QR)
@@ -1100,12 +1100,12 @@ function TestEventCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className={cn(
-              'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider',
+              'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider',
               isActive ? 'bg-success-100 text-success-700' : isPast ? 'bg-primary-100 text-primary-500' : 'bg-info-100 text-info-600',
             )}>
               {isActive ? 'LIVE' : isPast ? 'ENDED' : 'UPCOMING'}
             </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary-100 text-primary-600">
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary-100 text-primary-600">
               {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
             </span>
           </div>
@@ -1113,38 +1113,38 @@ function TestEventCard({
           <p className="text-caption text-primary-400">
             {event.collective_name} - {event.registration_count} registered
           </p>
-          <p className="text-[10px] text-primary-400 mt-0.5">
+          <p className="text-[11px] text-primary-400 mt-0.5">
             Your role: <span className="font-medium text-primary-600">{event.user_role ?? 'none'}</span>
             {' '} | Status: <span className="font-medium text-primary-600">{event.user_status ?? 'not registered'}</span>
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-1.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
         <button type="button" onClick={() => navigate(`/events/${event.id}/day`)}
           className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
           <ClipboardCheck size={16} className="text-primary-500" />
-          <span className="text-[10px] font-medium text-primary-600">Day</span>
+          <span className="text-[11px] font-medium text-primary-600">Day</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/check-in`)}
           className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
           <QrCode size={16} className="text-success-500" />
-          <span className="text-[10px] font-medium text-primary-600">Check-In</span>
+          <span className="text-[11px] font-medium text-primary-600">Check-In</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/impact`)}
           className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
           <TreePine size={16} className="text-success-600" />
-          <span className="text-[10px] font-medium text-primary-600">Impact</span>
+          <span className="text-[11px] font-medium text-primary-600">Impact</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/survey`)}
           className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
           <Star size={16} className="text-warning-500" />
-          <span className="text-[10px] font-medium text-primary-600">Survey</span>
+          <span className="text-[11px] font-medium text-primary-600">Survey</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}`)}
           className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
           <MapPin size={16} className="text-info-500" />
-          <span className="text-[10px] font-medium text-primary-600">Detail</span>
+          <span className="text-[11px] font-medium text-primary-600">Detail</span>
         </button>
       </div>
     </div>

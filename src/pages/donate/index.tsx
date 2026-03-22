@@ -133,11 +133,11 @@ function PageDepthElements({ rm }: { rm: boolean }) {
         animate={rm ? undefined : { y: [-3, 3, -3], x: [1, -1, 1] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }} />
 
       {/* Rich blurred orbs - golden amber warmth */}
-      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-warning-200/25 via-bark-100/15 to-transparent blur-[60px]" />
-      <div className="absolute -top-12 -left-16 w-[300px] h-[280px] rounded-full bg-gradient-to-br from-bark-200/22 to-transparent blur-[50px]" />
-      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-bark-100/18 blur-[50px]" />
-      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-moss-200/15 blur-[55px]" />
-      <div className="absolute bottom-[12%] right-[8%] w-48 h-48 rounded-full bg-warning-100/15 blur-[50px]" />
+      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-warning-200/20 via-bark-100/10 to-transparent" />
+      <div className="absolute -top-12 -left-16 w-[300px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-200/18 to-transparent" />
+      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-100/15 to-transparent" />
+      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-200/12 to-transparent" />
+      <div className="absolute bottom-[12%] right-[8%] w-48 h-48 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-warning-100/12 to-transparent" />
     </div>
   )
 }
@@ -165,7 +165,7 @@ function ImpactBadge({ amount }: { amount: number }) {
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-[10px] font-bold text-sprout-600 uppercase tracking-[0.15em] mb-0.5">
+        <p className="text-[11px] font-bold text-sprout-600 uppercase tracking-[0.15em] mb-0.5">
           Your impact
         </p>
         <p className="text-sm font-semibold text-secondary-800">{message}</p>
@@ -234,7 +234,7 @@ function NationalStatsStrip() {
             {s.icon}
           </div>
           <span className="relative font-heading font-bold text-lg tabular-nums drop-shadow-sm">{s.value}</span>
-          <span className="relative text-[10px] text-white/60 text-center leading-tight font-semibold uppercase tracking-wider">{s.label}</span>
+          <span className="relative text-[11px] text-white/60 text-center leading-tight font-semibold uppercase tracking-wider">{s.label}</span>
         </div>
       ))}
     </div>
@@ -343,7 +343,7 @@ function AmountPill({
     >
       <span className="text-xl">${amount}</span>
       <span className={cn(
-        'text-[10px] font-medium leading-none',
+        'text-[11px] font-medium leading-none',
         selected ? 'text-white/60' : 'text-primary-400',
       )}>
         {amount === 5 && '2 plants'}
@@ -411,7 +411,7 @@ function SectionHeader({
         <h2 className="font-heading font-extrabold text-secondary-900 text-lg">{title}</h2>
       </div>
       {badge && (
-        <span className="text-[10px] font-semibold text-primary-400 uppercase tracking-wider">
+        <span className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">
           {badge}
         </span>
       )}
@@ -602,7 +602,7 @@ export default function DonatePage() {
               <motion.div variants={fadeUp}>
                 <SectionHeader icon={Heart} title="Choose an amount" badge="AUD" />
                 <div className="rounded-[20px] bg-gradient-to-b from-[#f5f0e5] via-[#f2ece0] to-[#eee7d9] shadow-[0_4px_20px_-4px_rgba(93,77,51,0.12),0_1px_4px_rgba(93,77,51,0.05)] border border-bark-200/25 p-5">
-                  <div className="grid grid-cols-4 gap-2.5 mb-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
                     {PRESET_AMOUNTS.map((amount) => (
                       <AmountPill
                         key={amount}

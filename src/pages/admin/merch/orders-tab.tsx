@@ -165,11 +165,11 @@ function OrderCounts({ orders }: { orders: OrderWithProfile[] }) {
   ]
 
   return (
-    <div className="grid grid-cols-4 gap-2.5 mb-5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-5">
       {cards.map((c) => (
         <div key={c.label} className={cn('p-3 rounded-2xl text-center shadow-sm border border-primary-100/15', c.color)}>
           <p className="font-heading text-lg font-bold tabular-nums">{c.count}</p>
-          <p className="text-[10px] font-semibold mt-0.5">{c.label}</p>
+          <p className="text-[11px] font-semibold mt-0.5">{c.label}</p>
         </div>
       ))}
     </div>
@@ -278,7 +278,7 @@ export default function OrdersTab() {
   if (showLoading && !orders) {
     return (
       <div className="space-y-3">
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} variant="stat-card" />
           ))}
@@ -356,7 +356,7 @@ export default function OrdersTab() {
                   </div>
                   <span
                     className={cn(
-                      'px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize',
+                      'px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize',
                       STATUS_COLORS[order.status],
                     )}
                   >

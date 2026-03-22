@@ -224,7 +224,7 @@ function PinnedMessageBar({
             aria-label={expanded ? 'Collapse pinned messages' : 'Show all pinned messages'}
           >
             <ChevronDown size={16} className={cn('transition-transform duration-200', expanded && 'rotate-180')} />
-            <span className="text-[10px] font-semibold ml-0.5">{messages.length}</span>
+            <span className="text-[11px] font-semibold ml-0.5">{messages.length}</span>
           </button>
         )}
 
@@ -261,7 +261,7 @@ function PinnedMessageBar({
                   <p className="text-xs text-primary-700 truncate flex-1">
                     {msg.content ?? 'Image'}
                   </p>
-                  <span className="text-[10px] text-primary-400 shrink-0">
+                  <span className="text-[11px] text-primary-400 shrink-0">
                     {msg.profiles?.display_name}
                   </span>
                   {isStaff && (
@@ -339,7 +339,7 @@ function ChatSearchOverlay({
                   <span className="text-[13px] font-bold text-primary-800">
                     {msg.profiles?.display_name}
                   </span>
-                  <span className="text-[10px] font-medium text-primary-400 ml-auto">
+                  <span className="text-[11px] font-medium text-primary-400 ml-auto">
                     {relativeTime(msg.created_at)}
                   </span>
                 </div>
@@ -877,7 +877,7 @@ export default function CollectiveChatPage() {
 
                         {(msg as any).updated_at && (msg as any).updated_at !== msg.created_at && (
                           <p className={cn(
-                            'text-[10px] text-primary-400 mt-0.5',
+                            'text-[11px] text-primary-400 mt-0.5',
                             isSent ? 'text-right pr-2' : 'pl-10',
                           )}>
                             (edited)

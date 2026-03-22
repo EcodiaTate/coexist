@@ -152,7 +152,7 @@ export function Modal({
               </h2>
               <button
                 onClick={onClose}
-                className="rounded-full p-1.5 text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-400 cursor-pointer"
+                className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 transition-colors hover:bg-primary-50 hover:text-primary-400 cursor-pointer"
                 aria-label="Close modal"
               >
                 <X size={20} />

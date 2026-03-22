@@ -74,15 +74,15 @@ function Shapes() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
       {/* Large ring — CSS breathe */}
-      <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full border-[3px] border-primary-200/40 will-change-transform animate-[breatheWide_7s_ease-in-out_infinite]" />
+      <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full border-[3px] border-primary-200/40 animate-[breatheWide_7s_ease-in-out_infinite]" />
       {/* Filled glow - bottom-left */}
-      <div className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-bark-100/30 blur-2xl will-change-transform animate-[breatheWide_9s_ease-in-out_infinite]" />
+      <div className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-100/25 to-transparent opacity-30" />
       {/* Small ring - mid-left */}
-      <div className="absolute top-1/3 -left-8 h-24 w-24 rounded-full border-2 border-primary-100/25 will-change-transform animate-[breatheWide_6s_ease-in-out_infinite]" />
+      <div className="absolute top-1/3 -left-8 h-24 w-24 rounded-full border-2 border-primary-100/25 animate-[breatheWide_6s_ease-in-out_infinite]" />
       {/* Floating dots — CSS-only */}
-      <div className="absolute top-28 right-12 h-2.5 w-2.5 rounded-full bg-primary-200/50 will-change-transform animate-[float_4s_ease-in-out_infinite]" />
-      <div className="absolute top-1/2 right-1/4 h-2 w-2 rounded-full bg-bark-200/40 will-change-transform animate-[floatDown_5s_ease-in-out_1s_infinite]" />
-      <div className="absolute bottom-40 left-16 h-1.5 w-1.5 rounded-full bg-primary-300/30 will-change-transform animate-[float_4.5s_ease-in-out_2s_infinite]" />
+      <div className="absolute top-28 right-12 h-2.5 w-2.5 rounded-full bg-primary-200/50 animate-[float_4s_ease-in-out_infinite]" />
+      <div className="absolute top-1/2 right-1/4 h-2 w-2 rounded-full bg-bark-200/40 animate-[floatDown_5s_ease-in-out_1s_infinite]" />
+      <div className="absolute bottom-40 left-16 h-1.5 w-1.5 rounded-full bg-primary-300/30 animate-[float_4.5s_ease-in-out_2s_infinite]" />
     </div>
   )
 }
@@ -114,12 +114,12 @@ export default function LeaderMembersPage() {
 
   if (showLoading) {
     return (
-      <div className="relative min-h-screen bg-gradient-to-b from-primary-50/80 via-white to-bark-50/20">
+      <div className="relative min-h-dvh bg-gradient-to-b from-primary-50/80 via-white to-bark-50/20">
         <Shapes />
         <div className="relative z-10 px-4 pt-14 pb-10 space-y-4">
           <Skeleton className="h-8 w-40 mx-auto rounded-xl" />
           <Skeleton className="h-5 w-24 mx-auto rounded-lg" />
-          <div className="grid grid-cols-3 gap-3 pt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-4">
             <Skeleton className="h-20 rounded-2xl" />
             <Skeleton className="h-20 rounded-2xl" />
             <Skeleton className="h-20 rounded-2xl" />
@@ -132,7 +132,7 @@ export default function LeaderMembersPage() {
   }
 
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-primary-50/80 via-white to-bark-50/20">
+    <div className="relative min-h-dvh bg-gradient-to-b from-primary-50/80 via-white to-bark-50/20">
       <Shapes />
 
       <div className="relative z-10 px-4 pt-14 pb-10">
@@ -153,7 +153,7 @@ export default function LeaderMembersPage() {
           </motion.div>
 
           {/* Stats row */}
-          <motion.div variants={rm ? undefined : fadeUp} className="grid grid-cols-3 gap-3">
+          <motion.div variants={rm ? undefined : fadeUp} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div className="rounded-2xl bg-white/90 backdrop-blur-sm p-3.5 shadow-sm border border-white/60 text-center">
               <p className="font-heading text-2xl font-extrabold text-primary-800 tabular-nums">
                 {members?.length ?? 0}
@@ -195,7 +195,7 @@ export default function LeaderMembersPage() {
           {/* Leadership team */}
           {leaders.length > 0 && (
             <motion.div variants={rm ? undefined : fadeUp}>
-              <p className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2 px-1">
+              <p className="text-[11px] uppercase tracking-wider text-primary-400 font-semibold mb-2 px-1">
                 Leadership Team
               </p>
               <motion.div
@@ -228,7 +228,7 @@ export default function LeaderMembersPage() {
                           </p>
                         </div>
                         <span className={cn(
-                          'flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0',
+                          'flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0',
                           roleConfig.className,
                         )}>
                           {roleConfig.icon}
@@ -245,7 +245,7 @@ export default function LeaderMembersPage() {
 
           {/* Regular members */}
           <motion.div variants={rm ? undefined : fadeUp}>
-            <p className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2 px-1">
+            <p className="text-[11px] uppercase tracking-wider text-primary-400 font-semibold mb-2 px-1">
               Members ({regularMembers.length})
             </p>
             {regularMembers.length === 0 ? (

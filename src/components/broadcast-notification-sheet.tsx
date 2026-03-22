@@ -89,14 +89,14 @@ export function BroadcastNotificationSheet({
                     <p className="text-[11px] font-semibold text-warning-800 truncate">
                       {b.profiles?.display_name ?? 'Staff'}: {b.title}
                     </p>
-                    <p className="text-[10px] text-warning-500">
+                    <p className="text-[11px] text-warning-500">
                       {relativeTime(b.created_at)} &middot; sent to {b.recipient_count} member{b.recipient_count !== 1 ? 's' : ''}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
-            <p className="text-[10px] text-warning-500 mt-2 italic">
+            <p className="text-[11px] text-warning-500 mt-2 italic">
               Check above to avoid sending duplicate notifications
             </p>
           </div>
@@ -132,7 +132,7 @@ export function BroadcastNotificationSheet({
             maxLength={300}
             className="w-full rounded-xl bg-primary-50/50 px-3.5 py-2.5 text-sm text-primary-800 placeholder:text-primary-400 outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white resize-none"
           />
-          <p className="text-[10px] text-primary-400 mt-1 text-right">
+          <p className="text-[11px] text-primary-400 mt-1 text-right">
             {body.length}/300
           </p>
         </div>

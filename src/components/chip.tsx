@@ -48,7 +48,7 @@ export function Chip({
       whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full px-3 py-1.5',
+        'inline-flex items-center gap-1.5 rounded-full px-3 min-h-11',
         'text-sm font-medium cursor-pointer select-none',
         'transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1',
@@ -80,11 +80,11 @@ export function Chip({
           }}
           className={cn(
             'flex items-center justify-center rounded-full',
-            '-mr-0.5 ml-0.5 p-0.5',
+            '-mr-1 ml-0.5 min-w-[28px] min-h-[28px] p-1',
             'hover:bg-black/10 transition-colors duration-100',
           )}
         >
-          <X className="w-3.5 h-3.5" aria-hidden="true" />
+          <X className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
         </span>
       )}
     </motion.button>

@@ -42,7 +42,7 @@ function StatPill({ icon: Icon, value, label }: { icon: typeof Users; value: str
     <div className="flex items-center gap-2 rounded-full bg-white/10 backdrop-blur-sm px-3 py-1.5">
       <Icon size={13} className="text-white/60" />
       <span className="text-xs font-semibold text-white">{value}</span>
-      <span className="text-[10px] text-white/50">{label}</span>
+      <span className="text-[11px] text-white/50">{label}</span>
     </div>
   )
 }
@@ -95,19 +95,19 @@ export default function LeaderInvitePage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-dvh overflow-x-hidden">
       {/* ── Rich gradient background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-moss-800 via-moss-700 to-primary-900" />
 
       {/* Decorative ambient shapes — CSS-only for GPU compositing */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/[0.04] blur-3xl will-change-transform animate-[breathe_8s_ease-in-out_infinite]" />
-        <div className="absolute top-1/3 -left-24 w-64 h-64 rounded-full bg-moss-400/[0.06] blur-3xl will-change-transform animate-[breathe_10s_ease-in-out_2s_infinite]" />
-        <div className="absolute bottom-20 right-10 w-48 h-48 rounded-full bg-sky-400/[0.05] blur-3xl will-change-transform animate-[breathe_7s_ease-in-out_1s_infinite]" />
+        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/[0.03] to-transparent opacity-30" />
+        <div className="absolute top-1/3 -left-24 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-400/[0.05] to-transparent opacity-30" />
+        <div className="absolute bottom-20 right-10 w-48 h-48 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sky-400/[0.04] to-transparent opacity-30" />
         {/* Floating particles — CSS-only */}
-        <div className="absolute top-28 left-1/4 w-1.5 h-1.5 rounded-full bg-white/20 will-change-transform animate-[float_4s_ease-in-out_infinite]" />
-        <div className="absolute top-48 right-1/3 w-2 h-2 rounded-full bg-moss-300/15 will-change-transform animate-[floatDown_5s_ease-in-out_1.5s_infinite]" />
-        <div className="absolute top-72 left-[15%] w-1 h-1 rounded-full bg-white/25 will-change-transform animate-[float_3.5s_ease-in-out_0.8s_infinite]" />
+        <div className="absolute top-28 left-1/4 w-1.5 h-1.5 rounded-full bg-white/20 animate-[float_4s_ease-in-out_infinite]" />
+        <div className="absolute top-48 right-1/3 w-2 h-2 rounded-full bg-moss-300/15 animate-[floatDown_5s_ease-in-out_1.5s_infinite]" />
+        <div className="absolute top-72 left-[15%] w-1 h-1 rounded-full bg-white/25 animate-[float_3.5s_ease-in-out_0.8s_infinite]" />
       </div>
 
       {/* ── Content ── */}
@@ -156,7 +156,7 @@ export default function LeaderInvitePage() {
             <div className="absolute bottom-2.5 left-3 right-3">
               <p className="font-heading text-base font-bold text-white drop-shadow-md truncate">{collectiveName}</p>
               {collective?.region && (
-                <p className="flex items-center gap-1 text-[10px] text-white/80 mt-0.5">
+                <p className="flex items-center gap-1 text-[11px] text-white/80 mt-0.5">
                   <MapPin size={9} />
                   {collective.region}{collective?.state ? `, ${collective.state}` : ''}
                 </p>
@@ -191,7 +191,7 @@ export default function LeaderInvitePage() {
           {/* Preview label */}
           <div className="bg-primary-50/60 px-4 py-2 flex items-center justify-center gap-1.5 border-t border-primary-100/50">
             <Eye size={12} className="text-primary-400" />
-            <span className="text-[10px] font-medium text-primary-400">Preview - this is what visitors will see</span>
+            <span className="text-[11px] font-medium text-primary-400">Preview - this is what visitors will see</span>
           </div>
         </motion.div>
 
@@ -200,7 +200,7 @@ export default function LeaderInvitePage() {
           variants={fadeUp}
           className="w-full mt-5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 p-4"
         >
-          <p className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mb-2.5">Your invite link</p>
+          <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wider mb-2.5">Your invite link</p>
           <div className="flex items-center gap-2 bg-white/8 rounded-xl px-3 py-2.5 border border-white/5">
             <LinkIcon size={13} className="text-white/40 shrink-0" />
             <p className="text-sm text-white/80 truncate flex-1 font-mono">{inviteUrl}</p>
@@ -208,7 +208,7 @@ export default function LeaderInvitePage() {
         </motion.div>
 
         {/* ── Action buttons ── */}
-        <motion.div variants={fadeUp} className="w-full grid grid-cols-3 gap-2.5 mt-4">
+        <motion.div variants={fadeUp} className="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mt-4">
           <button
             type="button"
             onClick={handleCopy}
@@ -281,7 +281,7 @@ export default function LeaderInvitePage() {
 
         {/* ── Tips section ── */}
         <motion.div variants={fadeUp} className="w-full mt-5">
-          <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wider mb-3 px-1">Sharing tips</p>
+          <p className="text-[11px] font-semibold text-white/30 uppercase tracking-wider mb-3 px-1">Sharing tips</p>
           <div className="space-y-2">
             {[
               { text: "Post the link in your collective's social media bio", icon: "\u{1F517}" },

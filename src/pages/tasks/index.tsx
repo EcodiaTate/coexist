@@ -262,12 +262,12 @@ function CollectiveGroup({
         )}
         <p className="text-sm font-semibold text-primary-800">{name}</p>
         {pendingCount > 0 && (
-          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-600">
+          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-600">
             {pendingCount}
           </span>
         )}
         {overdueCount > 0 && (
-          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-error-100 text-error-700">
+          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-error-100 text-error-700">
             {overdueCount} overdue
           </span>
         )}

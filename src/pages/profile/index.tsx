@@ -72,10 +72,8 @@ function DecoShapes({ rm }: { rm: boolean }) {
       />
 
       {/* Blurred glow - bottom left */}
-      <motion.div
-        className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-moss-100/40 blur-3xl"
-        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.3, 0.45, 0.3] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      <div
+        className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/34 to-transparent"
       />
 
       {/* Small ring - mid left */}
@@ -211,7 +209,7 @@ export default function ProfilePage() {
       }
     >
       {/* Full-bleed background + decorative layer inside Page content */}
-      <div className="relative min-h-screen overflow-x-hidden">
+      <div className="relative min-h-dvh overflow-x-hidden">
         {/* Gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary-50/60 via-white to-moss-50/20" />
 

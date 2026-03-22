@@ -78,7 +78,7 @@ function AppStoreBadge({ className, onClick }: { className?: string; onClick?: (
         <path d="M16.52 12.46c-.03-2.85 2.33-4.22 2.44-4.29-1.33-1.94-3.4-2.21-4.13-2.24-1.76-.18-3.43 1.04-4.33 1.04-.89 0-2.27-1.01-3.73-.99-1.92.03-3.69 1.12-4.68 2.84-1.99 3.46-.51 8.59 1.43 11.4.95 1.37 2.08 2.92 3.57 2.86 1.43-.06 1.97-.93 3.7-.93 1.73 0 2.22.93 3.73.9 1.54-.03 2.52-1.4 3.46-2.78 1.09-1.59 1.54-3.13 1.57-3.21-.03-.01-3.01-1.16-3.04-4.6zm-2.85-8.46c.79-.96 1.32-2.29 1.18-3.62-1.14.05-2.52.76-3.34 1.72-.73.85-1.37 2.2-1.2 3.5 1.27.1 2.57-.65 3.36-1.6z" />
       </svg>
       <div className="text-left">
-        <p className="text-[10px] leading-tight opacity-70">Download on the</p>
+        <p className="text-[11px] leading-tight opacity-70">Download on the</p>
         <p className="text-[17px] font-semibold leading-tight -mt-0.5">App Store</p>
       </div>
     </button>
@@ -109,7 +109,7 @@ function PlayStoreBadge({ className, onClick }: { className?: string; onClick?: 
         <path d="M15 7.74L2.99.9c-.71-.4-1.32-.35-1.7.05L11.5 11.34 15 7.74z" fill="#34A853" />
       </svg>
       <div className="text-left">
-        <p className="text-[10px] leading-tight opacity-70">Get it on</p>
+        <p className="text-[11px] leading-tight opacity-70">Get it on</p>
         <p className="text-[17px] font-semibold leading-tight -mt-0.5">Google Play</p>
       </div>
     </button>
@@ -215,15 +215,11 @@ export default function DownloadPage() {
 
         {/* Ambient decorations */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-          <motion.div
-            className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-moss-400/10 blur-3xl"
-            animate={rm ? undefined : { scale: [1, 1.15, 1] }}
-            transition={rm ? undefined : { duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          <div
+            className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-400/8 to-transparent"
           />
-          <motion.div
-            className="absolute bottom-0 -left-12 w-48 h-48 rounded-full bg-white/5 blur-3xl"
-            animate={rm ? undefined : { scale: [1, 1.1, 1] }}
-            transition={rm ? undefined : { duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+          <div
+            className="absolute bottom-0 -left-12 w-48 h-48 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/4 to-transparent"
           />
         </div>
 
@@ -372,7 +368,7 @@ export default function DownloadPage() {
           <p className="text-sm text-primary-400 mt-1">Everything to be part of the movement</p>
         </motion.div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <motion.div variants={fadeUp}>
             <FeatureCard
               icon={Calendar}
@@ -421,8 +417,8 @@ export default function DownloadPage() {
         <div className="rounded-2xl bg-gradient-to-br from-primary-800 via-primary-900 to-moss-900 p-6 text-center relative overflow-hidden">
           {/* Decorative */}
           <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-moss-400/[0.06] blur-3xl" />
-            <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-white/[0.03] blur-2xl" />
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-400/[0.05] to-transparent" />
+            <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/[0.025] to-transparent" />
           </div>
 
           <div className="relative z-10">

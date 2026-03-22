@@ -244,7 +244,7 @@ export function SidebarShell({
               {showLabel && (
                 <motion.div variants={itemV}>
                   {!collapsed && (
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-2.5 mt-4 mb-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-2.5 mt-4 mb-1.5">
                       {cat.label}
                     </p>
                   )}

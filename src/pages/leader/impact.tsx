@@ -113,22 +113,22 @@ function DecoShapes() {
   return (
     <>
       {/* Large breathing ring — CSS-only GPU compositing */}
-      <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-moss-300/25 will-change-transform animate-[breatheWide_8s_ease-in-out_infinite]" />
+      <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-moss-300/25 animate-[breatheWide_8s_ease-in-out_infinite]" />
       {/* Concentric inner ring */}
-      <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-primary-200/18 will-change-transform animate-[breatheWide_6s_ease-in-out_1s_infinite]" />
+      <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-primary-200/18 animate-[breatheWide_6s_ease-in-out_1s_infinite]" />
       {/* Medium ring - left side */}
-      <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-sprout-300/22 will-change-transform animate-[breatheWide_7s_ease-in-out_2s_infinite]" />
+      <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-sprout-300/22 animate-[breatheWide_7s_ease-in-out_2s_infinite]" />
       {/* Small ring - bottom right — gentle spin */}
-      <div className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-moss-300/18 will-change-transform animate-[gentleSpin_50s_linear_infinite]" />
+      <div className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-moss-300/18 animate-[gentleSpin_50s_linear_infinite]" />
       {/* Deep warm glow — static blur, CSS breathe on wrapper */}
-      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/22 blur-[50px] will-change-transform animate-[breatheWide_9s_ease-in-out_1s_infinite]" />
+      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-100/18 to-transparent opacity-30" />
       {/* Bottom gradient pool */}
-      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-moss-200/20 blur-[55px] will-change-transform animate-[breatheWide_11s_ease-in-out_3s_infinite]" />
+      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-200/17 to-transparent opacity-30" />
       {/* Floating particles — CSS-only */}
-      <div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-moss-400/18 will-change-transform animate-[float_5s_ease-in-out_infinite]" />
-      <div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-sprout-400/15 will-change-transform animate-[floatDown_4.5s_ease-in-out_1.5s_infinite]" />
-      <div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-moss-400/15 will-change-transform animate-[float_4s_ease-in-out_0.5s_infinite]" />
-      <div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-primary-400/12 will-change-transform animate-[floatDown_5.5s_ease-in-out_2.5s_infinite]" />
+      <div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-moss-400/18 animate-[float_5s_ease-in-out_infinite]" />
+      <div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-sprout-400/15 animate-[floatDown_4.5s_ease-in-out_1.5s_infinite]" />
+      <div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-moss-400/15 animate-[float_4s_ease-in-out_0.5s_infinite]" />
+      <div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-primary-400/12 animate-[floatDown_5.5s_ease-in-out_2.5s_infinite]" />
     </>
   )
 }
@@ -216,7 +216,7 @@ export default function LeaderImpactPage() {
 
   if (showLoading) {
     return (
-      <div className="relative min-h-screen overflow-x-hidden">
+      <div className="relative min-h-dvh overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
         <DecoShapes />
         <div className="relative z-10 px-6 pt-14 space-y-5 pb-20">
@@ -225,7 +225,7 @@ export default function LeaderImpactPage() {
             <Skeleton className="h-3 w-28 mx-auto mb-2" />
             <Skeleton className="h-8 w-24 mx-auto" />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {Array.from({ length: 8 }, (_, i) => (
               <Skeleton key={i} variant="stat-card" />
             ))}
@@ -237,7 +237,7 @@ export default function LeaderImpactPage() {
 
   if (!stats) {
     return (
-      <div className="relative min-h-screen overflow-x-hidden">
+      <div className="relative min-h-dvh overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
         <DecoShapes />
         <div className="relative z-10 px-6 pt-14 pb-20">
@@ -265,7 +265,7 @@ export default function LeaderImpactPage() {
   const hasAnyImpact = impactCards.length > 0
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-dvh overflow-x-hidden">
       {/* Full-bleed gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
 
@@ -273,7 +273,7 @@ export default function LeaderImpactPage() {
       <DecoShapes />
 
       {/* Top hero glow */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/28 via-primary-200/18 to-transparent blur-[60px]" />
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-300/24 via-primary-200/15 to-transparent opacity-30" />
 
       {/* Content */}
       <motion.div
@@ -287,7 +287,7 @@ export default function LeaderImpactPage() {
           variants={rm ? undefined : fadeUp}
           className="flex flex-col items-center justify-center text-center pb-2"
         >
-          <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-[0.2em]">
+          <p className="text-[11px] font-semibold text-primary-500 uppercase tracking-[0.2em]">
             Your Collective
           </p>
           <h1 className="font-heading text-3xl sm:text-4xl font-bold text-primary-900 mt-1.5">
@@ -299,11 +299,11 @@ export default function LeaderImpactPage() {
         <div>
           <motion.p
             variants={fadeUp}
-            className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2.5 px-1"
+            className="text-[11px] uppercase tracking-wider text-primary-400 font-semibold mb-2.5 px-1"
           >
             Collective Overview
           </motion.p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <StatRow
               value={stats.totalMembers}
               label="Members"
@@ -336,11 +336,11 @@ export default function LeaderImpactPage() {
           <div>
             <motion.p
               variants={fadeUp}
-              className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2.5 px-1"
+              className="text-[11px] uppercase tracking-wider text-primary-400 font-semibold mb-2.5 px-1"
             >
               Environmental Impact
             </motion.p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {impactCards.map((card) => (
                 <ImpactCard
                   key={card.label}

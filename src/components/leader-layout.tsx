@@ -51,14 +51,21 @@ export function useLeaderHeader(
   opts?: { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean } | ReactNode,
 ) {
   const ctx = useContext(LeaderHeaderContext)
+  // Destructure opts to get stable primitive deps — avoids re-firing on every render
+  // when callers pass an inline object literal like { fullBleed: true }
+  const isOptsObject = opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any) || 'fullBleed' in (opts as any))
+  const subtitle = isOptsObject ? (opts as any).subtitle : undefined
+  const actions = isOptsObject ? (opts as any).actions : (!isOptsObject ? opts as ReactNode : undefined)
+  const heroContent = isOptsObject ? (opts as any).heroContent : undefined
+  const fullBleed = isOptsObject ? (opts as any).fullBleed : undefined
+
   useEffect(() => {
-    if (opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any) || 'fullBleed' in (opts as any))) {
-      const o = opts as { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }
-      ctx?.setHeader({ title, ...o })
+    if (isOptsObject) {
+      ctx?.setHeader({ title, subtitle, actions, heroContent, fullBleed })
     } else {
-      ctx?.setHeader({ title, actions: opts as ReactNode })
+      ctx?.setHeader({ title, actions })
     }
-  }, [ctx, title, opts])
+  }, [ctx, title, isOptsObject, subtitle, actions, heroContent, fullBleed])
 }
 
 /** Access the leader's collective context from any leader sub-page */
@@ -209,7 +216,17 @@ export function LeaderLayout() {
   }, [location.pathname])
 
   const setHeader = useCallback((opts: LeaderHeaderState) => {
-    setHeaderState(opts)
+    setHeaderState((prev) => {
+      // Skip state update if nothing changed — prevents cascading re-renders
+      if (
+        prev.title === opts.title &&
+        prev.subtitle === opts.subtitle &&
+        prev.fullBleed === opts.fullBleed &&
+        prev.actions === opts.actions &&
+        prev.heroContent === opts.heroContent
+      ) return prev
+      return opts
+    })
   }, [])
 
   const headerCtx = useMemo(() => ({ setHeader, collectiveId, collectiveSlug }), [setHeader, collectiveId, collectiveSlug])
@@ -254,7 +271,7 @@ export function LeaderLayout() {
                 <div className="flex items-center justify-between px-4 py-3">
                   <Link
                     to="/"
-                    className="flex items-center justify-center w-8 h-8 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-moss-50/50 transition-colors duration-150"
+                    className="flex items-center justify-center w-11 h-11 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-moss-50/50 transition-colors duration-150"
                     aria-label="Back to app"
                   >
                     <ArrowLeft size={15} strokeWidth={1.5} />
@@ -267,7 +284,7 @@ export function LeaderLayout() {
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}
-                    className="p-1.5 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-colors duration-150"
+                    className="flex items-center justify-center min-w-11 min-h-11 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-colors duration-150"
                     aria-label="Close menu"
                   >
                     <X size={16} strokeWidth={1.5} />
@@ -281,7 +298,7 @@ export function LeaderLayout() {
                       <TreePine size={14} className="text-white" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[10px] font-semibold text-moss-500 uppercase tracking-[0.08em] leading-none">Leader</p>
+                      <p className="text-[11px] font-semibold text-moss-500 uppercase tracking-[0.08em] leading-none">Leader</p>
                       <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">{collectiveName}</p>
                     </div>
                   </div>
@@ -293,7 +310,7 @@ export function LeaderLayout() {
                     return (
                       <div key={cat.label}>
                         {showLabel && (
-                          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-3 mt-4 mb-1.5">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-3 mt-4 mb-1.5">
                             {cat.label}
                           </p>
                         )}
@@ -304,7 +321,7 @@ export function LeaderLayout() {
                               key={item.path}
                               to={item.path}
                               className={cn(
-                                'relative flex items-center gap-2.5 px-3 h-10',
+                                'relative flex items-center gap-2.5 px-3 min-h-11',
                                 'rounded-xl text-[13px]',
                                 'transition-colors duration-150',
                                 'cursor-pointer select-none',
@@ -348,7 +365,7 @@ export function LeaderLayout() {
         {/* ── Main content ── */}
         <div ref={scrollRef} className={cn(
           'flex-1 flex flex-col min-w-0 min-h-0 bg-surface-1',
-          showBottomTabs && 'overflow-y-auto overscroll-contain',
+          showBottomTabs && 'overflow-y-auto overscroll-none',
         )}>
           {/* Shared hero bar - only for non-fullBleed pages */}
           {!header.fullBleed && header.title ? (() => {
@@ -361,6 +378,7 @@ export function LeaderLayout() {
                   'bg-gradient-to-br',
                   cfg.hue,
                   'px-6 pt-12 pb-10 sm:px-8 sm:pt-16 sm:pb-12',
+                  'before:absolute before:inset-x-0 before:bottom-full before:h-[200px] before:bg-inherit',
                 )}
               >
                 {/* Decorative ambient - leaf-like circles */}

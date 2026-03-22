@@ -59,11 +59,8 @@ function FullBleedBackground({ rm }: { rm: boolean }) {
         className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-amber-200/35"
       />
       {/* Filled glow - bottom left */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.6, opacity: 0 }}
-        animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-        transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 1 }, opacity: { duration: 1.5, delay: 0.5, ease: 'easeOut' } }}
-        className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-amber-100/25 blur-2xl"
+      <div
+        className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-100/21 to-transparent"
       />
       {/* Small ring - mid left */}
       <motion.div
@@ -73,7 +70,7 @@ function FullBleedBackground({ rm }: { rm: boolean }) {
         className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-amber-200/35"
       />
       {/* Warm glow - center right */}
-      <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-amber-100/25 blur-3xl" />
+      <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-100/21 to-transparent" />
       {/* Small filled circle - bottom right */}
       <motion.div
         initial={rm ? {} : { scale: 0, opacity: 0 }}
@@ -144,7 +141,7 @@ export default function PointsPage() {
 
   if (showLoading) {
     return (
-      <Page className="!px-0" noBackground>
+      <Page className="!px-0 bg-surface-1" noBackground>
         <div className="px-4">
           <PointsSkeleton />
         </div>
@@ -168,7 +165,7 @@ export default function PointsPage() {
   }
 
   return (
-    <Page className="!px-0" noBackground>
+    <Page className="!px-0 bg-surface-1" noBackground>
       <div className="relative min-h-full overflow-hidden">
         {/* Decorative background */}
         <FullBleedBackground rm={!!shouldReduceMotion} />

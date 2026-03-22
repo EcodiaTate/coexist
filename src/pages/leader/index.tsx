@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -20,7 +20,7 @@ import {
   TrendingUp,
   MapPin,
 } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { EmptyState } from '@/components/empty-state'
 import { Avatar } from '@/components/avatar'
@@ -32,6 +32,7 @@ import { useLeaderHeader, useLeaderContext, useIsLeaderLayout } from '@/componen
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { supabase } from '@/lib/supabase'
+import { PullToRefresh } from '@/components/pull-to-refresh'
 
 /* ------------------------------------------------------------------ */
 /*  Data hooks                                                         */
@@ -330,7 +331,7 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
 
       <div className="grid grid-cols-7 gap-1 text-center">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-          <div key={i} className="text-[10px] font-semibold text-white/40 uppercase tracking-wider pb-2">
+          <div key={i} className="text-[11px] font-semibold text-white/40 uppercase tracking-wider pb-2">
             {d}
           </div>
         ))}
@@ -418,6 +419,7 @@ export default function LeaderDashboardPage() {
   const { collectiveRoles } = useAuth()
   const isInLeaderLayout = useIsLeaderLayout()
   const leaderCtx = useLeaderContext()
+  const queryClient = useQueryClient()
 
   const collectiveId = leaderCtx.collectiveId ?? useMemo(() => {
     const membership = collectiveRoles.find(
@@ -427,6 +429,10 @@ export default function LeaderDashboardPage() {
   }, [collectiveRoles])
 
   const { data, isLoading } = useLeaderDashboard(collectiveId)
+
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['leader-dashboard', collectiveId] })
+  }, [queryClient, collectiveId])
   const showLoading = useDelayedLoading(isLoading)
   const { data: collectiveDetail } = useCollective(collectiveId)
   const collectiveSlug = leaderCtx.collectiveSlug ?? collectiveDetail?.slug ?? collectiveId
@@ -434,28 +440,34 @@ export default function LeaderDashboardPage() {
   const { data: pendingItems = [] } = usePendingItems(collectiveId)
   const { data: inviteStats } = useEventInviteStats(collectiveId)
 
-  useLeaderHeader('Dashboard', { fullBleed: true })
+  // Stable ref so useLeaderHeader doesn't re-fire on every render
+  const fullBleedOpts = useRef({ fullBleed: true as const }).current
+  useLeaderHeader('Dashboard', fullBleedOpts)
 
-  const Wrapper = isInLeaderLayout
-    ? ({ children }: { children: React.ReactNode }) => <>{children}</>
-    : ({ children }: { children: React.ReactNode }) => <Page header={<Header title="Leader Dashboard" back />}>{children}</Page>
+  // Stable Wrapper — useMemo keeps the same component identity across renders
+  const Wrapper = useMemo(() => {
+    if (isInLeaderLayout) {
+      return ({ children }: { children: React.ReactNode }) => <>{children}</>
+    }
+    return ({ children }: { children: React.ReactNode }) => <Page header={<Header title="Leader Dashboard" back />}>{children}</Page>
+  }, [isInLeaderLayout])
 
   if (showLoading) {
     return (
       <Wrapper>
-        <div className="relative min-h-screen overflow-x-hidden">
+        <div className="relative min-h-dvh overflow-x-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
           <div className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06]" />
           <div className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08]" />
 
-          <div className="relative z-10 px-6 pt-14 space-y-6 pb-20">
+          <div className="relative z-10 px-6 space-y-6 pb-20" style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}>
             <div className="flex flex-col items-center pb-2 space-y-2 animate-pulse">
               <div className="h-3 w-28 rounded-full bg-white/[0.06]" />
               <div className="h-8 w-48 rounded-xl bg-white/[0.08]" />
             </div>
 
             <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-              <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.06]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 divide-x divide-y divide-white/[0.06]">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="p-5 flex flex-col items-center gap-2 animate-pulse" style={{ animationDelay: `${i * 100}ms` }}>
                     <div className="w-10 h-10 rounded-xl bg-white/[0.06]" />
@@ -466,7 +478,7 @@ export default function LeaderDashboardPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="flex flex-col items-center gap-2 rounded-xl bg-white/[0.05] p-4 animate-pulse" style={{ animationDelay: `${i * 60}ms` }}>
                   <div className="w-10 h-10 rounded-lg bg-white/[0.06]" />
@@ -516,42 +528,28 @@ export default function LeaderDashboardPage() {
 
   return (
     <Wrapper>
-      <div className="relative min-h-screen">
-        {/* ── Background — sticky keeps it viewport-pinned ── */}
-        <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
-
-          {/* ── Background geometric shapes — CSS-only infinite animations for GPU compositing ── */}
-          <div
-            className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06] will-change-transform animate-[breathe_16s_ease-in-out_infinite]"
-          />
-          <div
-            className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08] will-change-transform animate-[breathe_20s_ease-in-out_infinite]"
-          />
-          <div
-            className="absolute -right-[12%] bottom-[8%] w-[45vw] h-[45vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.06] will-change-transform animate-[breathe_20s_ease-in-out_0.5s_infinite]"
-          />
-          <div
-            className="absolute -right-[5%] -top-[12%] w-[40vw] h-[40vw] max-w-[380px] max-h-[380px] rounded-full border border-white/[0.05] will-change-transform animate-[breathe_18s_ease-in-out_2s_infinite]"
-          />
-          <div
-            className="absolute right-[5%] top-[40%] w-[80px] h-[80px] rounded-full bg-white/[0.04]"
-          />
-          {/* Floating dots — CSS-only float animation */}
-          <div
-            className="absolute left-[20%] top-[15%] w-2 h-2 rounded-full bg-white/30 will-change-transform animate-[float_4s_ease-in-out_infinite]"
-          />
-          <div
-            className="absolute right-[22%] top-[25%] w-1.5 h-1.5 rounded-full bg-white/25 will-change-transform animate-[floatDown_5s_ease-in-out_2s_infinite]"
-          />
-          <div
-            className="absolute left-[45%] bottom-[18%] w-2 h-2 rounded-full bg-white/20 will-change-transform animate-[float_6s_ease-in-out_3s_infinite]"
-          />
-        </div>
-
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        dark
+        className="min-h-dvh"
+        background={
+          <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
+            <div className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06] animate-[breathe_16s_ease-in-out_infinite]" />
+            <div className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08] animate-[breathe_20s_ease-in-out_infinite]" />
+            <div className="absolute -right-[12%] bottom-[8%] w-[45vw] h-[45vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.06] animate-[breathe_20s_ease-in-out_0.5s_infinite]" />
+            <div className="absolute -right-[5%] -top-[12%] w-[40vw] h-[40vw] max-w-[380px] max-h-[380px] rounded-full border border-white/[0.05] animate-[breathe_18s_ease-in-out_2s_infinite]" />
+            <div className="absolute right-[5%] top-[40%] w-[80px] h-[80px] rounded-full bg-white/[0.04]" />
+            <div className="absolute left-[20%] top-[15%] w-2 h-2 rounded-full bg-white/30 animate-[float_4s_ease-in-out_infinite]" />
+            <div className="absolute right-[22%] top-[25%] w-1.5 h-1.5 rounded-full bg-white/25 animate-[floatDown_5s_ease-in-out_2s_infinite]" />
+            <div className="absolute left-[45%] bottom-[18%] w-2 h-2 rounded-full bg-white/20 animate-[float_6s_ease-in-out_3s_infinite]" />
+          </div>
+        }
+      >
         {/* ── Content ── */}
         <motion.div
-          className="relative z-10 px-6 pt-14 space-y-6 pb-20"
+          className="relative z-10 px-6 space-y-6 pb-20"
+          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}
           variants={shouldReduceMotion ? undefined : stagger}
           initial="hidden"
           animate="visible"
@@ -572,7 +570,7 @@ export default function LeaderDashboardPage() {
           {/* ── Hero stats ── */}
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-              <div className="grid grid-cols-2 divide-x divide-y divide-white/[0.06]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 divide-x divide-y divide-white/[0.06]">
                 <div className="flex flex-col items-center text-center py-5 px-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-2.5">
                     <Users size={20} />
@@ -580,7 +578,7 @@ export default function LeaderDashboardPage() {
                   <p className="text-3xl font-bold text-white tabular-nums leading-none">
                     {data?.activeMembers ?? 0}
                   </p>
-                  <p className="mt-1.5 text-[10px] font-semibold text-white/45 uppercase tracking-wider">Active Members</p>
+                  <p className="mt-1.5 text-[11px] font-semibold text-white/45 uppercase tracking-wider">Active Members</p>
                 </div>
                 <div className="flex flex-col items-center text-center py-5 px-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-2.5">
@@ -589,7 +587,7 @@ export default function LeaderDashboardPage() {
                   <p className="text-3xl font-bold text-white tabular-nums leading-none">
                     {data?.upcomingEvents?.length ?? 0}
                   </p>
-                  <p className="mt-1.5 text-[10px] font-semibold text-white/45 uppercase tracking-wider">Upcoming Events</p>
+                  <p className="mt-1.5 text-[11px] font-semibold text-white/45 uppercase tracking-wider">Upcoming Events</p>
                 </div>
                 <div className="flex flex-col items-center text-center py-5 px-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-2.5">
@@ -598,7 +596,7 @@ export default function LeaderDashboardPage() {
                   <p className="text-3xl font-bold text-white tabular-nums leading-none">
                     {data?.hoursThisMonth ?? 0}
                   </p>
-                  <p className="mt-1.5 text-[10px] font-semibold text-white/45 uppercase tracking-wider">Hours This Month</p>
+                  <p className="mt-1.5 text-[11px] font-semibold text-white/45 uppercase tracking-wider">Hours This Month</p>
                 </div>
                 <div className="flex flex-col items-center text-center py-5 px-3">
                   <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-2.5">
@@ -607,7 +605,7 @@ export default function LeaderDashboardPage() {
                   <p className="text-3xl font-bold text-white tabular-nums leading-none">
                     {data?.eventsThisMonth ?? 0}
                   </p>
-                  <p className="mt-1.5 text-[10px] font-semibold text-white/45 uppercase tracking-wider">Events This Month</p>
+                  <p className="mt-1.5 text-[11px] font-semibold text-white/45 uppercase tracking-wider">Events This Month</p>
                 </div>
               </div>
             </div>
@@ -620,7 +618,7 @@ export default function LeaderDashboardPage() {
                 <div className={cn(
                   'grid divide-x divide-white/[0.06]',
                   (data?.attendanceRate ?? 0) > 0 && (data?.surveyResponseCount ?? 0) > 0
-                    ? 'grid-cols-2'
+                    ? 'grid-cols-1 sm:grid-cols-2'
                     : 'grid-cols-1',
                 )}>
                   {(data?.attendanceRate ?? 0) > 0 && (
@@ -666,7 +664,7 @@ export default function LeaderDashboardPage() {
           {/* ── Quick actions ── */}
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <SectionHeader>Quick Actions</SectionHeader>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               {quickActions.map((action) => (
                 <Link
                   key={action.label}
@@ -679,7 +677,7 @@ export default function LeaderDashboardPage() {
                   )}>
                     {action.icon}
                   </div>
-                  <span className="text-[10px] font-semibold text-white/70 text-center leading-tight">
+                  <span className="text-[11px] font-semibold text-white/70 text-center leading-tight">
                     {action.label}
                   </span>
                 </Link>
@@ -793,7 +791,7 @@ export default function LeaderDashboardPage() {
           {engagement && (
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
               <SectionHeader>Member Engagement</SectionHeader>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-success-500/15 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-8 h-8 rounded-lg bg-success-400/20 flex items-center justify-center">
@@ -804,7 +802,7 @@ export default function LeaderDashboardPage() {
                     {engagement.active.length}
                   </p>
                   <p className="text-xs font-semibold text-success-300 mt-1.5">Active</p>
-                  <p className="text-[10px] text-white/35 mt-0.5">Last 30 days</p>
+                  <p className="text-[11px] text-white/35 mt-0.5">Last 30 days</p>
                 </div>
                 <div className="rounded-2xl bg-warning-500/15 p-4">
                   <div className="flex items-center gap-2 mb-3">
@@ -816,7 +814,7 @@ export default function LeaderDashboardPage() {
                     {engagement.atRisk.length}
                   </p>
                   <p className="text-xs font-semibold text-warning-300 mt-1.5">At Risk</p>
-                  <p className="text-[10px] text-white/35 mt-0.5">Inactive 30+ days</p>
+                  <p className="text-[11px] text-white/35 mt-0.5">Inactive 30+ days</p>
                 </div>
               </div>
             </motion.div>
@@ -917,7 +915,7 @@ export default function LeaderDashboardPage() {
             </Link>
           </motion.div>
         </motion.div>
-      </div>
+      </PullToRefresh>
     </Wrapper>
   )
 }

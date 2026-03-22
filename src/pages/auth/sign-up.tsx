@@ -111,8 +111,8 @@ export default function SignUpPage() {
       />
       {/* Subtle background accents */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-32 -left-28 w-80 h-80 rounded-full bg-primary-200/30 blur-[80px]" />
-        <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-primary-300/15 blur-[60px]" />
+        <div className="absolute -top-32 -left-28 w-80 h-80 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-200/26 to-transparent" />
+        <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-300/13 to-transparent" />
         <div className="absolute top-36 right-8 text-primary-200/20 hidden sm:block">
           <Leaf size={44} strokeWidth={1} style={{ transform: 'rotate(45deg)' }} />
         </div>

@@ -559,7 +559,7 @@ export default function CollectiveManagePage() {
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className={cn(
-                        'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
+                        'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-semibold',
                         ROLE_COLORS[member.role],
                       )}>
                         <Icon size={10} />

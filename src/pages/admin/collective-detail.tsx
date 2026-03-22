@@ -389,7 +389,7 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
                       )}
                       <span
                         className={cn(
-                          'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold mt-1.5',
+                          'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold mt-1.5',
                           ROLE_COLORS[m.role],
                         )}
                       >
@@ -458,7 +458,7 @@ function EventRow({ event, reducedMotion, delay = 0 }: { event: AdminCollectiveE
     >
       {/* Date block */}
       <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/60 border border-primary-100/60 shrink-0">
-        <span className="text-[10px] font-bold text-primary-500 uppercase leading-none">
+        <span className="text-[11px] font-bold text-primary-500 uppercase leading-none">
           {date.toLocaleDateString('en-AU', { month: 'short' })}
         </span>
         <span className="text-base font-bold text-primary-800 leading-tight">
@@ -485,7 +485,7 @@ function EventRow({ event, reducedMotion, delay = 0 }: { event: AdminCollectiveE
       {/* Status badge */}
       <span
         className={cn(
-          'inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-1 rounded-full capitalize shrink-0',
+          'inline-flex items-center gap-1.5 text-[11px] font-semibold px-2 py-1 rounded-full capitalize shrink-0',
           status.bg,
           status.text,
         )}
@@ -670,7 +670,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                   <div className="flex items-center gap-2 mt-0.5">
                     <span
                       className={cn(
-                        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
                         ROLE_COLORS[member.role],
                       )}
                     >
@@ -683,7 +683,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                       </span>
                     )}
                     {isInactive && (
-                      <span className="text-[10px] font-semibold text-error-500 capitalize">
+                      <span className="text-[11px] font-semibold text-error-500 capitalize">
                         {member.status}
                       </span>
                     )}

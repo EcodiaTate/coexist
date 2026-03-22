@@ -88,17 +88,13 @@ function DecorativeShapes({ reduced }: { reduced: boolean }) {
       />
 
       {/* Soft glow - top left */}
-      <motion.div
-        className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-primary-100/20 blur-3xl"
-        animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.35, 0.2] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      <div
+        className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-100/17 to-transparent"
       />
 
       {/* Soft glow - bottom right */}
-      <motion.div
-        className="absolute -bottom-16 -right-8 w-56 h-56 rounded-full bg-primary-100/15 blur-3xl"
-        animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.3, 0.15] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      <div
+        className="absolute -bottom-16 -right-8 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-100/13 to-transparent"
       />
 
       {/* Small floating dot cluster - top center */}

@@ -79,7 +79,7 @@ const fadeUp = {
 
 function DecorativeBackground() {
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden" aria-hidden="true">
       {/* Multi-stop gradient - deep teal-plum forest feel */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/65 via-plum-100/30 via-30% to-primary-100/25 to-65%" />
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-secondary-100/20 to-plum-50/20" />
@@ -247,6 +247,7 @@ function CollectiveChatRow({
               <img
                 src={collective.cover_image_url}
                 alt=""
+                loading="lazy"
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -347,7 +348,7 @@ export default function ChatListPage() {
 
   if (showLoading) {
     return (
-      <Page noBackground className="!px-0">
+      <Page noBackground className="!px-0 bg-surface-1">
         <div className="relative min-h-full">
           <DecorativeBackground />
           <div className="relative z-10 px-4 lg:px-6 pt-14 pb-4 space-y-4">
@@ -376,7 +377,7 @@ export default function ChatListPage() {
 
   if (!myCollectives?.length && !hasStaffChannels) {
     return (
-      <Page noBackground className="!px-0">
+      <Page noBackground className="!px-0 bg-surface-1">
         <div className="relative min-h-full">
           <DecorativeBackground />
           <div className="relative z-10 px-4 lg:px-6 pt-14">
@@ -402,7 +403,7 @@ export default function ChatListPage() {
   }
 
   return (
-    <Page noBackground className="!px-0">
+    <Page noBackground className="!px-0 bg-surface-1">
       <div className="relative min-h-full">
         <DecorativeBackground />
 

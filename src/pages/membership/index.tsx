@@ -193,7 +193,7 @@ export default function MembershipPage() {
   if (showLoading) {
     return (
       <Page className="!px-0 !pb-0 !bg-transparent">
-        <div className="relative min-h-screen overflow-clip">
+        <div className="relative min-h-dvh overflow-clip">
           <div className="absolute inset-0 bg-gradient-to-br from-secondary-600 via-primary-800 to-secondary-900" />
           {/* Shapes for loading state */}
           <div className="absolute -right-[15%] -top-[12%] w-[55vw] h-[55vw] max-w-[500px] max-h-[500px] rounded-full bg-white/[0.05]" />
@@ -237,7 +237,7 @@ export default function MembershipPage() {
 
   return (
     <Page className="!px-0 !pb-0 !bg-transparent">
-      <div className="relative min-h-screen">
+      <div className="relative min-h-dvh">
         {/* ── Background — sticky keeps it viewport-pinned, negative margin collapses it ── */}
         <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-secondary-600 via-primary-800 to-secondary-900" />

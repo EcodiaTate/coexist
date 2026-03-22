@@ -173,7 +173,7 @@ export default function AdminAuditLogPage() {
                         </span>
                         <span
                           className={cn(
-                            'text-[10px] font-medium px-1.5 py-0.5 rounded-full',
+                            'text-[11px] font-medium px-1.5 py-0.5 rounded-full',
                             colorClass,
                           )}
                         >
@@ -186,7 +186,7 @@ export default function AdminAuditLogPage() {
                         </p>
                       )}
                       {log.target_type && log.target_id && (
-                        <p className="text-[10px] text-primary-400 mt-0.5">
+                        <p className="text-[11px] text-primary-400 mt-0.5">
                           {log.target_type}: {log.target_id}
                         </p>
                       )}

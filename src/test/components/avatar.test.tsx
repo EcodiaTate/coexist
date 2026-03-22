@@ -3,21 +3,6 @@ import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Avatar } from '@/components/avatar'
 
-// Mock framer-motion
-vi.mock('framer-motion', async () => {
-  const actual = await vi.importActual<typeof import('framer-motion')>('framer-motion')
-  return {
-    ...actual,
-    motion: {
-      ...actual.motion,
-      div: ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-        <div {...props}>{children}</div>
-      ),
-    },
-    useReducedMotion: () => false,
-  }
-})
-
 describe('Avatar', () => {
   it('renders with image when src provided', () => {
     render(<Avatar src="/avatar.jpg" name="Jane Doe" />)

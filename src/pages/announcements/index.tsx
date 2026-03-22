@@ -53,77 +53,28 @@ function formatDate(dateStr: string): string {
 /* ------------------------------------------------------------------ */
 
 function DecorativeBackground() {
-  const r = useReducedMotion()
-
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Multi-stop gradient - warm olive-moss canopy */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/60 via-primary-100/35 via-25% to-moss-50/20 to-60%" />
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-sprout-50/15 to-bark-50/15" />
 
-      {/* Concentrated hero glow - top center */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/30 via-primary-200/20 to-transparent blur-[60px]" />
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-300/25 via-primary-200/12 to-transparent" />
+      <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-200/18 to-transparent" />
 
-      {/* Warm accent - top right */}
-      <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-gradient-to-bl from-bark-200/20 to-transparent blur-[50px]" />
+      <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/18 opacity-60" />
+      <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-bark-200/14 opacity-40" />
+      <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/18 opacity-50" />
+      <div className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-bark-200/12" />
+      <div className="absolute bottom-[16%] right-2 w-36 h-36 rounded-full border-2 border-secondary-200/14" />
 
-      {/* Large breathing ring - top right */}
-      <motion.div
-        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/22"
-        animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
-      />
-      {/* Concentric inner ring */}
-      <motion.div
-        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-bark-200/18"
-        animate={r ? {} : { scale: [1, 1.04, 1], opacity: [0.3, 0.6, 0.3] }}
-        transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
-      />
+      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-100/18 to-transparent opacity-30" />
+      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-100/16 to-transparent opacity-28" />
 
-      {/* Medium ring - left side */}
-      <motion.div
-        className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/22"
-        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
-        transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 2 }}
-      />
-      <motion.div
-        className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-bark-200/15"
-        animate={r ? {} : { rotate: -360 }}
-        transition={{ repeat: Infinity, duration: 50, ease: 'linear' }}
-      />
-
-      {/* Bottom right ring */}
-      <motion.div
-        className="absolute bottom-[16%] right-2 w-36 h-36 rounded-full border-2 border-secondary-200/18"
-        animate={r ? {} : { rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 55, ease: 'linear' }}
-      />
-
-      {/* Deep warm glow - mid left */}
-      <motion.div
-        className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/20 blur-[50px]"
-        animate={r ? {} : { scale: [1, 1.14, 1], opacity: [0.22, 0.4, 0.22] }}
-        transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut', delay: 1 }}
-      />
-
-      {/* Bottom gradient pool */}
-      <motion.div
-        className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-bark-100/18 blur-[55px]"
-        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.2, 0.35, 0.2] }}
-        transition={{ repeat: Infinity, duration: 11, ease: 'easeInOut', delay: 3 }}
-      />
-
-      {/* Floating particles */}
-      <motion.div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-primary-400/18"
-        animate={r ? {} : { y: [-5, 5, -5], x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }} />
-      <motion.div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-bark-400/15"
-        animate={r ? {} : { y: [3, -5, 3] }} transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 1.5 }} />
-      <motion.div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-sprout-400/15"
-        animate={r ? {} : { y: [-3, 4, -3], x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} />
-      <motion.div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-secondary-400/12"
-        animate={r ? {} : { y: [2, -3, 2] }} transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut', delay: 2.5 }} />
-      <motion.div className="absolute top-[35%] right-[28%] w-1.5 h-1.5 rounded-full bg-moss-300/15"
-        animate={r ? {} : { y: [-2, 3, -2], x: [1, -1, 1] }} transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 3.5 }} />
+      <div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-primary-400/15" />
+      <div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-bark-400/12" />
+      <div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-sprout-400/12" />
+      <div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-secondary-400/10" />
+      <div className="absolute top-[35%] right-[28%] w-1.5 h-1.5 rounded-full bg-moss-300/12" />
     </div>
   )
 }
@@ -293,7 +244,7 @@ export default function AnnouncementsPage() {
     : regular
 
   return (
-    <Page noBackground className="!px-0 !bg-transparent">
+    <Page noBackground className="!px-0 bg-surface-1">
       <div className="relative min-h-full">
         <DecorativeBackground />
 

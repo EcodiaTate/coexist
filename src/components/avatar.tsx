@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -25,7 +24,7 @@ export interface AvatarProps {
 /* ------------------------------------------------------------------ */
 
 const sizeMap: Record<AvatarSize, { px: number; text: string; dot: string; ring: string }> = {
-  xs: { px: 24, text: 'text-[10px]', dot: 'w-2 h-2 ring-1', ring: 'ring-2' },
+  xs: { px: 24, text: 'text-[11px]', dot: 'w-2 h-2 ring-1', ring: 'ring-2' },
   sm: { px: 32, text: 'text-xs', dot: 'w-2.5 h-2.5 ring-[1.5px]', ring: 'ring-2' },
   md: { px: 40, text: 'text-sm', dot: 'w-3 h-3 ring-2', ring: 'ring-2' },
   lg: { px: 56, text: 'text-base', dot: 'w-3.5 h-3.5 ring-2', ring: 'ring-[3px]' },
@@ -69,7 +68,6 @@ export function Avatar({
   className,
   'aria-label': ariaLabel,
 }: AvatarProps) {
-  const shouldReduceMotion = useReducedMotion()
   const [imgError, setImgError] = useState(false)
   const s = sizeMap[size]
   const showImage = src && !imgError
@@ -92,15 +90,11 @@ export function Avatar({
       className={cn('relative inline-flex shrink-0', className)}
       style={{ width: s.px, height: s.px }}
     >
-      <motion.div
-        initial={shouldReduceMotion ? undefined : { scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.2 }}
+      <div
         aria-label={ariaLabel ?? name ?? undefined}
         role="img"
         className={cn(
           'w-full h-full rounded-full overflow-hidden',
-          // tier ring removed by design
           !showImage && 'bg-primary-200',
         )}
       >
@@ -108,6 +102,7 @@ export function Avatar({
           <img
             src={src}
             alt={name ?? undefined}
+            loading="lazy"
             onError={() => setImgError(true)}
             className="w-full h-full object-cover"
           />
@@ -123,7 +118,7 @@ export function Avatar({
             {initials}
           </span>
         )}
-      </motion.div>
+      </div>
 
       {/* Online indicator */}
       {online !== undefined && online && (

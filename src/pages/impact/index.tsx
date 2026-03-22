@@ -82,9 +82,9 @@ function DecoShapes({ reduced }: { reduced: boolean }) {
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
       {/* Blurred glow - bottom-left */}
-      <div className="absolute bottom-24 -left-10 w-48 h-48 rounded-full bg-sprout-100/30 blur-2xl pointer-events-none" />
+      <div className="absolute bottom-24 -left-10 w-48 h-48 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-100/26 to-transparent pointer-events-none" />
       {/* Soft glow - top-right */}
-      <div className="absolute -top-10 right-8 w-56 h-56 rounded-full bg-moss-100/20 blur-3xl pointer-events-none" />
+      <div className="absolute -top-10 right-8 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/17 to-transparent pointer-events-none" />
       {/* Floating dot 1 */}
       <motion.div
         className="absolute top-28 right-10 w-3 h-3 rounded-full bg-moss-300/30 pointer-events-none"
@@ -234,7 +234,7 @@ function ActivitySparkline({ data }: { data: { month: string; count: number }[] 
               }
               className="w-full rounded-xl bg-gradient-to-t from-primary-700 via-primary-500 to-primary-300 min-h-[6px] shadow-sm"
             />
-            <span className="text-[10px] text-primary-500 font-bold">{label}</span>
+            <span className="text-[11px] text-primary-500 font-bold">{label}</span>
           </div>
         )
       })}
@@ -286,7 +286,7 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
             <p className="font-heading text-3xl font-extrabold text-primary-900 leading-none">
               <CountUp end={total} />
             </p>
-            <p className="text-[10px] text-primary-500 uppercase tracking-widest mt-1 font-bold">events</p>
+            <p className="text-[11px] text-primary-500 uppercase tracking-widest mt-1 font-bold">events</p>
           </div>
         </div>
       </div>
@@ -346,7 +346,7 @@ export default function ImpactDashboardPage() {
 
   if (showLoading) {
     return (
-      <Page noBackground className="!px-0 !bg-transparent">
+      <Page noBackground className="!px-0 bg-white">
         <div className="relative min-h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
           <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
@@ -363,7 +363,7 @@ export default function ImpactDashboardPage() {
 
   if (!stats) {
     return (
-      <Page noBackground className="!px-0 !bg-transparent">
+      <Page noBackground className="!px-0 bg-white">
         <div className="relative min-h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
           <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
@@ -400,15 +400,17 @@ export default function ImpactDashboardPage() {
   }
 
   return (
-    <Page noBackground className="!px-0 !bg-transparent">
-      <PullToRefresh onRefresh={handleRefresh}>
+    <Page noBackground className="!px-0 bg-white">
+      <PullToRefresh
+        onRefresh={handleRefresh}
+        background={
+          <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
+            <DecoShapes reduced={!!shouldReduceMotion} />
+          </div>
+        }
+      >
         <div className="relative min-h-full">
-          {/* ─── Full-bleed background gradient ─── */}
-          <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
-
-          {/* ─── Decorative animated shapes ─── */}
-          <DecoShapes reduced={!!shouldReduceMotion} />
-
           {/* ─── Back button ─── */}
           <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
             <div className="h-14 flex items-center">

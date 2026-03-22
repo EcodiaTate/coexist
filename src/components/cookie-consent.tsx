@@ -126,7 +126,7 @@ export function CookieConsentBanner({ className }: { className?: string }) {
               </div>
               <button
                 onClick={handleRejectNonEssential}
-                className="flex items-center justify-center w-7 h-7 rounded-full text-primary-400 hover:bg-primary-50 transition-colors shrink-0"
+                className="flex items-center justify-center w-11 h-11 rounded-full text-primary-400 hover:bg-primary-50 transition-colors shrink-0"
                 aria-label="Reject non-essential cookies"
               >
                 <X size={16} />
@@ -146,14 +146,14 @@ export function CookieConsentBanner({ className }: { className?: string }) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs font-medium text-primary-800">Essential</p>
-                        <p className="text-[10px] text-primary-400">Required for the site to work</p>
+                        <p className="text-[11px] text-primary-400">Required for the site to work</p>
                       </div>
                       <Toggle checked disabled onChange={() => {}} size="sm" />
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs font-medium text-primary-800">Analytics</p>
-                        <p className="text-[10px] text-primary-400">Help us improve the experience</p>
+                        <p className="text-[11px] text-primary-400">Help us improve the experience</p>
                       </div>
                       <Toggle
                         checked={consent.analytics}
@@ -164,7 +164,7 @@ export function CookieConsentBanner({ className }: { className?: string }) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-xs font-medium text-primary-800">Marketing</p>
-                        <p className="text-[10px] text-primary-400">Personalised content and campaigns</p>
+                        <p className="text-[11px] text-primary-400">Personalised content and campaigns</p>
                       </div>
                       <Toggle
                         checked={consent.marketing}

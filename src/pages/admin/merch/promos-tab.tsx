@@ -206,7 +206,7 @@ export default function PromosTab() {
                     {promo.code}
                   </span>
                   <span className={cn(
-                    'px-2 py-0.5 rounded-lg text-[10px] font-bold',
+                    'px-2 py-0.5 rounded-lg text-[11px] font-bold',
                     promo.type === 'percentage' && 'bg-info-100 text-info-700',
                     promo.type === 'flat' && 'bg-success-100 text-success-700',
                     promo.type === 'free_shipping' && 'bg-plum-100 text-plum-700',
@@ -216,7 +216,7 @@ export default function PromosTab() {
                     {promo.type === 'free_shipping' && 'Free ship'}
                   </span>
                   {!promo.is_active && (
-                    <span className="px-2 py-0.5 bg-error-50 text-error-600 text-[10px] rounded-lg font-bold">
+                    <span className="px-2 py-0.5 bg-error-50 text-error-600 text-[11px] rounded-lg font-bold">
                       Inactive
                     </span>
                   )}

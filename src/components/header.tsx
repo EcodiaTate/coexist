@@ -58,7 +58,7 @@ export function Header({
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               className={cn(
                 'flex items-center justify-center',
-                'w-9 h-9 -ml-1 rounded-full',
+                'w-11 h-11 -ml-1 rounded-full',
                 'text-primary-800 hover:bg-primary-50/80',
                 'cursor-pointer select-none',
                 'transition-colors duration-150',

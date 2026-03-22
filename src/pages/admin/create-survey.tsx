@@ -267,7 +267,7 @@ export default function CreateSurveyPage() {
                 <button
                   type="button"
                   onClick={() => removeQuestion(q.id)}
-                  className="p-1.5 rounded-lg text-primary-300 opacity-0 group-hover:opacity-100 hover:bg-error-50 hover:text-error-500 cursor-pointer transition-[color,background-color,opacity] duration-150 shrink-0"
+                  className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-300 opacity-0 group-hover:opacity-100 hover:bg-error-50 hover:text-error-500 cursor-pointer transition-[color,background-color,opacity] duration-150 shrink-0"
                   aria-label="Remove question"
                 >
                   <Trash2 size={15} />

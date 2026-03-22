@@ -208,7 +208,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
                   'text-primary-400 hover:text-primary-600',
                   'hover:bg-primary-100/60 active:bg-primary-200/60',
                   'transition-colors duration-150',
-                  compact ? 'w-7 h-7 mr-1.5' : 'w-8 h-8 mr-2',
+                  compact ? 'w-11 h-11 mr-0.5' : 'w-11 h-11 mr-0.5',
                 )}
                 initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.5, rotate: -90 }}
                 animate={{ opacity: 1, scale: 1, rotate: 0 }}

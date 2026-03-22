@@ -60,7 +60,7 @@ export default function AnalyticsTab() {
       </motion.div>
 
       {/* Stat cards */}
-      <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
+      <motion.div variants={fadeUp} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <StatCard
           value={formatPrice(analytics.total_revenue_cents)}
           label="Revenue"

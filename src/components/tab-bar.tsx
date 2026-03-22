@@ -67,7 +67,7 @@ export function TabBar({
             onClick={() => onChange(tab.id)}
             className={cn(
               'relative flex items-center justify-center gap-1.5',
-              'whitespace-nowrap px-4 py-2.5 text-sm font-medium',
+              'whitespace-nowrap px-4 min-h-11 text-sm font-medium',
               'cursor-pointer select-none shrink-0',
               'transition-colors duration-200',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1',

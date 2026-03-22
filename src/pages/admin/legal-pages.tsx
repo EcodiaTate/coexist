@@ -190,12 +190,12 @@ function PageCard({
               {page.title}
             </h3>
             {page.is_published ? (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-[10px] font-semibold uppercase tracking-wide shrink-0">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-[11px] font-semibold uppercase tracking-wide shrink-0">
                 <Globe size={10} />
                 Live
               </span>
             ) : (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-50 text-primary-400 text-[10px] font-semibold uppercase tracking-wide shrink-0">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-50 text-primary-400 text-[11px] font-semibold uppercase tracking-wide shrink-0">
                 Draft
               </span>
             )}
@@ -203,7 +203,7 @@ function PageCard({
           {page.summary && (
             <p className="text-xs text-primary-400 mt-1 line-clamp-1">{page.summary}</p>
           )}
-          <div className="flex items-center gap-1 mt-2 text-[10px] text-primary-300">
+          <div className="flex items-center gap-1 mt-2 text-[11px] text-primary-300">
             <Clock size={10} />
             Updated {new Date(page.updated_at).toLocaleDateString('en-AU', {
               day: 'numeric',
@@ -351,7 +351,7 @@ export default function AdminLegalPagesPage() {
 
           {/* Slug badge */}
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-primary-300">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-primary-300">
               Slug
             </span>
             <code className="text-xs text-primary-500 bg-primary-50 px-2 py-0.5 rounded-lg">

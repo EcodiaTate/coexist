@@ -145,7 +145,7 @@ export function MessageInput({
               <button
                 type="button"
                 onClick={() => setShowLeaderActions(false)}
-                className="flex items-center justify-center min-h-8 min-w-8 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none"
                 aria-label="Close actions"
               >
                 <X size={14} />
@@ -170,7 +170,7 @@ export function MessageInput({
                   )}
                 >
                   <action.icon size={18} />
-                  <span className="text-[10px] font-semibold leading-tight text-center">
+                  <span className="text-[11px] font-semibold leading-tight text-center">
                     {action.label}
                   </span>
                 </button>
@@ -201,7 +201,7 @@ export function MessageInput({
               disabled={disabled}
               aria-label="Leader actions"
               className={cn(
-                'flex-shrink-0 rounded-full p-1.5',
+                'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center',
                 'transition-all duration-200',
                 showLeaderActions
                   ? 'bg-primary-600 text-white rotate-45'
@@ -222,7 +222,7 @@ export function MessageInput({
               disabled={disabled}
               aria-label="Attach file"
               className={cn(
-                'flex-shrink-0 rounded-full p-1.5 text-primary-400',
+                'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center text-primary-400',
                 'transition-colors duration-150',
                 'hover:bg-primary-100 hover:text-primary-600',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
@@ -267,7 +267,7 @@ export function MessageInput({
                 exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.5 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 className={cn(
-                  'flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 p-2.5 text-white',
+                  'flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 min-w-11 min-h-11 flex items-center justify-center text-white',
                   'transition-all duration-150',
                   'hover:from-primary-600 hover:to-primary-800',
                   'shadow-lg shadow-primary-300/40',
@@ -282,7 +282,7 @@ export function MessageInput({
         </div>
 
         {/* Safety note */}
-        <p className="text-center text-[10px] text-primary-400 mt-1.5 select-none leading-relaxed">
+        <p className="text-center text-[11px] text-primary-400 mt-1.5 select-none leading-relaxed">
           Messages are visible to all collective members.
           {' '}Need private support? <a href="mailto:hello@coexistaus.org" className="underline hover:text-primary-600">hello@coexistaus.org</a>
         </p>

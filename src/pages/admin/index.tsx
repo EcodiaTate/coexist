@@ -226,7 +226,7 @@ function TrendChart({
           const height = val > 0 ? Math.max((val / scale) * 100, 6) : 0
           return (
             <div key={d.month} className="flex-1 flex flex-col items-center gap-1.5">
-              <span className="text-[10px] sm:text-xs font-medium text-white/60 tabular-nums">
+              <span className="text-[11px] sm:text-xs font-medium text-white/60 tabular-nums">
                 {val > 0 ? val : ''}
               </span>
               <div className="w-full flex flex-col justify-end" style={{ height: `${height}%`, minHeight: height > 0 ? 4 : 0 }}>
@@ -238,7 +238,7 @@ function TrendChart({
                   style={{ height: '100%', transformOrigin: 'bottom', willChange: 'transform' }}
                 />
               </div>
-              <span className="text-[10px] sm:text-[11px] text-white/40 font-medium">{d.month}</span>
+              <span className="text-[11px] sm:text-[11px] text-white/40 font-medium">{d.month}</span>
             </div>
           )
         })}
@@ -292,7 +292,7 @@ function HeroStatCard({
       </p>
       <p className="mt-1.5 text-xs font-medium text-white/45 tracking-wide uppercase">{label}</p>
       {sub && (
-        <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold mt-1.5 text-success-300">
+        <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold mt-1.5 text-success-300">
           <ArrowUpRight size={10} />
           {sub}
         </span>
@@ -375,12 +375,12 @@ export default function AdminDashboardPage() {
 
   if (showLoading) {
     return (
-      <div className="relative min-h-screen overflow-x-hidden">
+      <div className="relative min-h-dvh overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary-700 via-primary-800 to-primary-950" />
 
         <div className="relative z-10">
           {/* Hero wordmark area */}
-          <div className="flex flex-col items-center justify-center min-h-[220px] sm:min-h-[280px] lg:min-h-[320px] pt-10">
+          <div className="flex flex-col items-center justify-center min-h-[220px] sm:min-h-[280px] lg:min-h-[320px]" style={{ paddingTop: 'calc(var(--safe-top, 0px) + 2.5rem)' }}>
             <div className="h-20 sm:h-28 lg:h-36 w-44 sm:w-56 lg:w-72 rounded-2xl bg-white/[0.06] animate-pulse" />
             <div className="mt-4 h-3 w-32 rounded-full bg-white/[0.04] animate-pulse" />
           </div>
@@ -516,7 +516,7 @@ export default function AdminDashboardPage() {
   ]
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-dvh">
       {/* ── Background — sticky keeps it viewport-pinned ── */}
       <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary-700 via-primary-800 to-primary-950" />
@@ -578,7 +578,7 @@ export default function AdminDashboardPage() {
           initial={rm ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="flex flex-col items-center justify-center min-h-[220px] sm:min-h-[280px] lg:min-h-[320px] pt-10"
+          className="flex flex-col items-center justify-center min-h-[220px] sm:min-h-[280px] lg:min-h-[320px]" style={{ paddingTop: 'calc(var(--safe-top, 0px) + 2.5rem)' }}
         >
           <div className="flex flex-col items-center text-center px-6">
             <motion.img
@@ -673,7 +673,7 @@ export default function AdminDashboardPage() {
             Period Snapshot
           </SectionHeading>
           <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-            <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-x divide-white/[0.06]">
               <div className="py-5 text-center">
                 <p className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
                   {(data?.periodMembers ?? 0).toLocaleString()}

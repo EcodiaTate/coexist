@@ -62,7 +62,7 @@ export function ProximityCheckInBanner() {
               <button
                 type="button"
                 onClick={() => setDismissed((prev) => new Set([...prev, nearbyEvent.id]))}
-                className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
+                className="flex items-center justify-center w-11 h-11 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
                 aria-label="Dismiss"
               >
                 <X size={16} className="text-white/70" />

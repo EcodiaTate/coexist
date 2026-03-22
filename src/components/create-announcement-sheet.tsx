@@ -83,7 +83,7 @@ export function CreateAnnouncementSheet({
                 )}
               >
                 <opt.icon size={16} className="mx-auto mb-0.5" />
-                <span className="text-[10px] font-semibold block">{opt.label}</span>
+                <span className="text-[11px] font-semibold block">{opt.label}</span>
               </button>
             ))}
           </div>

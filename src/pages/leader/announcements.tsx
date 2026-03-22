@@ -60,21 +60,21 @@ function FullBleedBackground() {
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-50/50 via-white to-primary-50/20" />
 
       {/* Large ring - top right — CSS-only breathe */}
-      <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-secondary-200/30 will-change-transform animate-[breathe_20s_ease-in-out_infinite]" />
+      <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-secondary-200/30 animate-[breathe_20s_ease-in-out_infinite]" />
       {/* Concentric inner ring */}
-      <div className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-secondary-200/25 will-change-transform animate-[breathe_22s_ease-in-out_0.5s_infinite]" />
+      <div className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-secondary-200/25 animate-[breathe_22s_ease-in-out_0.5s_infinite]" />
       {/* Filled glow - bottom left — static blur, CSS scale */}
-      <div className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-secondary-100/25 blur-2xl will-change-transform animate-[breathe_18s_ease-in-out_1s_infinite]" />
+      <div className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary-100/21 to-transparent opacity-30" />
       {/* Small ring - mid left */}
       <div className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-100/20" />
       {/* Warm glow - center right */}
-      <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-secondary-100/25 blur-3xl" />
+      <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary-100/21 to-transparent opacity-30" />
       {/* Small filled circle - bottom right */}
       <div className="absolute bottom-[15%] right-[10%] w-[60px] h-[60px] rounded-full bg-primary-100/20" />
       {/* Floating dots — CSS-only */}
-      <div className="absolute top-[28%] left-[15%] w-2 h-2 rounded-full bg-secondary-300/25 will-change-transform animate-[float_5s_ease-in-out_infinite]" />
-      <div className="absolute top-[55%] right-[20%] w-1.5 h-1.5 rounded-full bg-primary-300/20 will-change-transform animate-[floatDown_6s_ease-in-out_1s_infinite]" />
-      <div className="absolute top-[70%] left-[25%] w-1.5 h-1.5 rounded-full bg-secondary-300/25 will-change-transform animate-[float_4.5s_ease-in-out_0.5s_infinite]" />
+      <div className="absolute top-[28%] left-[15%] w-2 h-2 rounded-full bg-secondary-300/25 animate-[float_5s_ease-in-out_infinite]" />
+      <div className="absolute top-[55%] right-[20%] w-1.5 h-1.5 rounded-full bg-primary-300/20 animate-[floatDown_6s_ease-in-out_1s_infinite]" />
+      <div className="absolute top-[70%] left-[25%] w-1.5 h-1.5 rounded-full bg-secondary-300/25 animate-[float_4.5s_ease-in-out_0.5s_infinite]" />
     </>
   )
 }
@@ -96,10 +96,10 @@ export default function LeaderAnnouncementsPage() {
   /* Loading skeleton */
   if (showLoading) {
     return (
-      <div className="relative min-h-screen overflow-x-hidden">
+      <div className="relative min-h-dvh overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-secondary-50/50 via-white to-primary-50/20" />
         <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-secondary-200/30" />
-        <div className="absolute -left-20 bottom-[10%] w-[280px] h-[280px] rounded-full bg-secondary-100/25 blur-2xl" />
+        <div className="absolute -left-20 bottom-[10%] w-[280px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary-100/21 to-transparent opacity-30" />
         <div className="relative z-10 px-6 pt-14 space-y-6">
           <div className="flex flex-col items-center gap-2 pb-2">
             <div className="h-3 w-20 rounded-full bg-secondary-200/40 animate-pulse" />
@@ -121,7 +121,7 @@ export default function LeaderAnnouncementsPage() {
   /* Empty state */
   if (!announcements || announcements.length === 0) {
     return (
-      <div className="relative min-h-screen overflow-x-hidden">
+      <div className="relative min-h-dvh overflow-x-hidden">
         <FullBleedBackground />
         <div className="relative z-10 px-6 pt-14">
           <EmptyState
@@ -136,7 +136,7 @@ export default function LeaderAnnouncementsPage() {
   }
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden">
+    <div className="relative min-h-dvh overflow-x-hidden">
       <FullBleedBackground />
 
       <PullToRefresh onRefresh={() => queryClient.invalidateQueries({ queryKey: ['announcements'] })}>
@@ -195,7 +195,7 @@ export default function LeaderAnnouncementsPage() {
                       {formatDate(a.created_at)}
                     </span>
                     {a.is_pinned && (
-                      <span className="text-[10px] font-semibold text-moss-600 flex items-center gap-0.5">
+                      <span className="text-[11px] font-semibold text-moss-600 flex items-center gap-0.5">
                         <Pin size={10} />
                         Pinned
                       </span>
