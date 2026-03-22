@@ -303,8 +303,8 @@ function HeroStatCard({
         )}
       </div>
 
-      <div className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+      <div className="relative text-center">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
         <p
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           className="relative text-3xl sm:text-4xl font-bold tracking-tight tabular-nums text-white"
@@ -345,21 +345,21 @@ function ImpactPill({
       initial={reducedMotion ? { opacity: 1 } : { opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: reducedMotion ? 0 : delay }}
-      className="relative flex items-center gap-3 rounded-xl px-4 py-4 active:scale-[0.98] transition-transform duration-150"
+      className="relative flex flex-col items-center text-center rounded-xl px-4 py-4 active:scale-[0.98] transition-transform duration-150"
       aria-label={`${label}: ${value}`}
     >
-      <span className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0 bg-white/10" aria-hidden="true">
+      <span className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0 bg-white/10 mb-2" aria-hidden="true">
         {icon}
       </span>
-      <div className="relative min-w-0">
-        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+      <div className="relative">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
         <p
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           className="relative text-xl sm:text-2xl font-bold text-white tabular-nums"
         >
           {display.toLocaleString()}
         </p>
-        <p className="relative text-xs text-white/50 font-medium truncate">{label}</p>
+        <p className="relative text-xs text-white/50 font-medium">{label}</p>
       </div>
     </motion.div>
   )

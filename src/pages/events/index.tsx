@@ -49,7 +49,7 @@ const stagger = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 22 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 24 } },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 280, damping: 24 } },
 }
 
 /* ------------------------------------------------------------------ */

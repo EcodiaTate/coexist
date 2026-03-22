@@ -87,53 +87,56 @@ const IMPACT_ICONS: Record<number, React.ReactNode> = {
 function PageDepthElements({ rm }: { rm: boolean }) {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* Large ring — upper right, slow breathing */}
+      {/* Large ring — upper right */}
       <motion.div
-        className="absolute -top-16 -right-16 w-64 h-64 rounded-full border-2 border-primary-300/20"
-        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.2, 0.35, 0.2] }}
+        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-bark-300/22"
+        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       />
-
-      {/* Medium ring — left side, offset breathing */}
+      {/* Concentric inner */}
       <motion.div
-        className="absolute top-[38%] -left-20 w-48 h-48 rounded-full border-[1.5px] border-moss-300/15"
-        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.15, 0.3, 0.15] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-warning-200/18"
+        animate={rm ? undefined : { scale: [1, 1.04, 1], opacity: [0.3, 0.55, 0.3] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Small ring — bottom right */}
+      {/* Left ring cluster */}
       <motion.div
-        className="absolute bottom-[25%] right-4 w-24 h-24 rounded-full border border-sprout-300/20"
-        animate={rm ? undefined : { scale: [1, 1.1, 1], opacity: [0.2, 0.35, 0.2] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+        className="absolute top-[32%] -left-16 w-56 h-56 rounded-full border-[2.5px] border-bark-200/20"
+        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.35, 0.65, 0.35] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+      <motion.div
+        className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-moss-200/15"
+        animate={rm ? undefined : { rotate: -360 }}
+        transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
       />
 
-      {/* Floating dot cluster */}
+      {/* Bottom right ring */}
       <motion.div
-        className="absolute top-[22%] right-[18%] w-2 h-2 rounded-full bg-primary-300/30"
-        animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.25, 0.5, 0.25] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-[50%] left-[12%] w-1.5 h-1.5 rounded-full bg-sprout-400/25"
-        animate={rm ? undefined : { y: [0, -6, 0], opacity: [0.2, 0.4, 0.2] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-      />
-      <motion.div
-        className="absolute top-[72%] right-[28%] w-2.5 h-2.5 rounded-full bg-bark-300/20"
-        animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.15, 0.35, 0.15] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-      />
-      <motion.div
-        className="absolute bottom-[40%] left-[30%] w-1.5 h-1.5 rounded-full bg-moss-400/20"
-        animate={rm ? undefined : { y: [0, 6, 0], opacity: [0.2, 0.4, 0.2] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+        className="absolute bottom-[18%] right-2 w-36 h-36 rounded-full border-2 border-bark-200/18"
+        animate={rm ? undefined : { rotate: 360 }}
+        transition={{ duration: 55, repeat: Infinity, ease: 'linear' }}
       />
 
-      {/* Soft blurred color orbs */}
-      <div className="absolute top-[12%] -right-16 w-72 h-72 rounded-full bg-sprout-200/20 blur-[100px]" />
-      <div className="absolute top-[50%] -left-20 w-64 h-64 rounded-full bg-moss-200/15 blur-[100px]" />
-      <div className="absolute bottom-[8%] right-[5%] w-56 h-56 rounded-full bg-bark-200/12 blur-[100px]" />
+      {/* Floating particles — golden & earthy */}
+      <motion.div className="absolute top-[18%] right-[16%] w-3.5 h-3.5 rounded-full bg-warning-400/18"
+        animate={rm ? undefined : { y: [-6, 6, -6], x: [0, 4, 0] }} transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }} />
+      <motion.div className="absolute top-[45%] left-[10%] w-3 h-3 rounded-full bg-bark-400/15"
+        animate={rm ? undefined : { y: [4, -5, 4] }} transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }} />
+      <motion.div className="absolute top-[68%] right-[24%] w-2.5 h-2.5 rounded-full bg-sprout-400/15"
+        animate={rm ? undefined : { y: [-4, 5, -4], x: [0, -3, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 3 }} />
+      <motion.div className="absolute bottom-[35%] left-[28%] w-2 h-2 rounded-full bg-moss-400/15"
+        animate={rm ? undefined : { y: [3, -4, 3] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }} />
+      <motion.div className="absolute top-[55%] right-8 w-2 h-2 rounded-full bg-warning-300/15"
+        animate={rm ? undefined : { y: [-3, 3, -3], x: [1, -1, 1] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }} />
+
+      {/* Rich blurred orbs — golden amber warmth */}
+      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-warning-200/25 via-bark-100/15 to-transparent blur-[60px]" />
+      <div className="absolute -top-12 -left-16 w-[300px] h-[280px] rounded-full bg-gradient-to-br from-bark-200/22 to-transparent blur-[50px]" />
+      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-bark-100/18 blur-[50px]" />
+      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-moss-200/15 blur-[55px]" />
+      <div className="absolute bottom-[12%] right-[8%] w-48 h-48 rounded-full bg-warning-100/15 blur-[50px]" />
     </div>
   )
 }
@@ -155,9 +158,9 @@ function ImpactBadge({ amount }: { amount: number }) {
       initial={{ opacity: 0, y: 8, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.95 }}
-      className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-sprout-50 to-primary-50 border border-sprout-200/50"
+      className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[#e4ebd4] via-[#dfe6cd] to-[#d8e0c4] border border-sprout-200/40 shadow-sm shadow-sprout-200/15"
     >
-      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sprout-500 to-primary-600 flex items-center justify-center shrink-0 shadow-sm">
+      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sprout-500 to-primary-700 flex items-center justify-center shrink-0 shadow-md shadow-sprout-500/25">
         {icon}
       </div>
       <div className="min-w-0">
@@ -260,10 +263,10 @@ function ProjectThermometer({
       whileTap={{ scale: 0.97 }}
       variants={scaleIn}
       className={cn(
-        'w-full rounded-2xl text-left transition-all duration-200 overflow-hidden',
+        'w-full rounded-[20px] text-left transition-all duration-200 overflow-hidden',
         selected
-          ? 'shadow-md ring-2 ring-primary-400 bg-white'
-          : 'bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5',
+          ? 'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.18)] ring-2 ring-primary-400 bg-gradient-to-b from-[#f5f0e5] to-[#ede6d8]'
+          : 'bg-gradient-to-b from-[#f7f3eb] to-[#f0ead9] border border-bark-200/25 shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10)] hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.16)] hover:-translate-y-0.5',
       )}
     >
       {project.image_url && (
@@ -332,8 +335,8 @@ function AmountPill({
         'relative h-[4.5rem] rounded-2xl font-heading font-bold',
         'transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-1',
         selected
-          ? 'bg-gradient-to-br from-primary-600 to-moss-600 text-white shadow-lg shadow-primary-600/20'
-          : 'bg-white text-secondary-800 hover:bg-primary-50 border border-primary-100/60 shadow-sm',
+          ? 'bg-gradient-to-br from-primary-600 via-primary-700 to-moss-700 text-white shadow-lg shadow-primary-700/25 border border-primary-500/30'
+          : 'bg-gradient-to-b from-[#faf7f0] to-[#f3ede2] text-secondary-800 hover:from-[#f7f3ea] hover:to-[#efe8db] border border-bark-200/35 shadow-sm',
       )}
     >
       <span className="text-xl">${amount}</span>
@@ -365,20 +368,20 @@ function AmountPill({
 
 function TrustBadges() {
   return (
-    <div className="flex items-center justify-center gap-4 py-3 px-4 rounded-2xl bg-white shadow-sm border border-primary-100/40">
-      <div className="flex items-center gap-1.5 text-primary-500">
+    <div className="flex items-center justify-center gap-4 py-3.5 px-4 rounded-[18px] bg-gradient-to-r from-[#ede6da] to-[#e8e0d3] border border-bark-200/25 shadow-sm shadow-bark-200/10">
+      <div className="flex items-center gap-1.5 text-bark-600">
         <ShieldCheck size={14} />
-        <span className="text-[11px] font-semibold">Secure</span>
+        <span className="text-[11px] font-bold">Secure</span>
       </div>
-      <div className="w-px h-3.5 bg-primary-200/60" />
-      <div className="flex items-center gap-1.5 text-primary-500">
+      <div className="w-px h-3.5 bg-bark-300/30" />
+      <div className="flex items-center gap-1.5 text-bark-600">
         <Zap size={14} />
-        <span className="text-[11px] font-semibold">Instant receipt</span>
+        <span className="text-[11px] font-bold">Instant receipt</span>
       </div>
-      <div className="w-px h-3.5 bg-primary-200/60" />
-      <div className="flex items-center gap-1.5 text-primary-500">
+      <div className="w-px h-3.5 bg-bark-300/30" />
+      <div className="flex items-center gap-1.5 text-bark-600">
         <TrendingUp size={14} />
-        <span className="text-[11px] font-semibold">Tax deductible</span>
+        <span className="text-[11px] font-bold">Tax deductible</span>
       </div>
     </div>
   )
@@ -400,10 +403,10 @@ function SectionHeader({
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2.5">
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-moss-500 shadow-sm">
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-bark-500 to-moss-600 shadow-md shadow-bark-400/20">
           <Icon size={14} className="text-white" />
         </div>
-        <h2 className="font-heading font-extrabold text-secondary-800 text-lg">{title}</h2>
+        <h2 className="font-heading font-extrabold text-secondary-900 text-lg">{title}</h2>
       </div>
       {badge && (
         <span className="text-[10px] font-semibold text-primary-400 uppercase tracking-wider">
@@ -494,8 +497,9 @@ export default function DonatePage() {
       <div className="relative min-h-full">
         {/* ── Rich layered background ── */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Base warm sage gradient */}
-          <div className="absolute inset-0 bg-gradient-to-b from-[#f0f4ec] via-[#f4f6f1] to-[#eef3e9]" />
+          {/* Rich golden-amber base gradient */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#f2ece0] via-[#f0ead9] via-30% to-[#eae5d4] to-65%" />
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-bark-50/12 to-moss-50/15" />
 
           {/* Topographic contour lines — earthy bushland feel */}
           <svg className="absolute inset-0 w-full h-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
@@ -580,20 +584,26 @@ export default function DonatePage() {
               <motion.div variants={fadeUp}>
                 <Link
                   to="/donate/donors"
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-white shadow-sm border border-primary-100/40 transition-all hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] duration-200"
+                  className={cn(
+                    'flex items-center gap-3 p-4 rounded-[20px]',
+                    'bg-gradient-to-br from-[#ede6da] via-[#e9e1d4] to-[#e4dccf]',
+                    'border border-bark-200/30',
+                    'shadow-[0_4px_20px_-4px_rgba(93,77,51,0.14),0_1px_4px_rgba(93,77,51,0.05)]',
+                    'transition-all hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.18)] hover:-translate-y-0.5 active:scale-[0.98] duration-200',
+                  )}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-moss-500 flex items-center justify-center shrink-0 shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-bark-500 to-moss-600 flex items-center justify-center shrink-0 shadow-md shadow-bark-400/25">
                     <Users size={18} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-heading text-sm font-bold text-secondary-800">
                       View donor wall
                     </p>
-                    <p className="text-xs text-primary-400 mt-0.5">
+                    <p className="text-xs text-bark-500 mt-0.5">
                       See who&apos;s making a difference
                     </p>
                   </div>
-                  <ChevronRight size={18} className="text-primary-300 shrink-0" />
+                  <ChevronRight size={18} className="text-bark-400 shrink-0" />
                 </Link>
               </motion.div>
 
@@ -602,7 +612,7 @@ export default function DonatePage() {
               {/* ═══════════════════════════════════════════════════ */}
               <motion.div variants={fadeUp}>
                 <SectionHeader icon={Heart} title="Choose an amount" badge="AUD" />
-                <div className="rounded-2xl bg-white shadow-sm border border-primary-100/40 p-5">
+                <div className="rounded-[20px] bg-gradient-to-b from-[#f5f0e5] via-[#f2ece0] to-[#eee7d9] shadow-[0_4px_20px_-4px_rgba(93,77,51,0.12),0_1px_4px_rgba(93,77,51,0.05)] border border-bark-200/25 p-5">
                   <div className="grid grid-cols-4 gap-2.5 mb-4">
                     {PRESET_AMOUNTS.map((amount) => (
                       <AmountPill
@@ -638,7 +648,13 @@ export default function DonatePage() {
               <motion.div variants={fadeUp}>
                 <Link
                   to="/membership"
-                  className="relative flex items-center gap-4 p-5 rounded-3xl bg-gradient-to-r from-bark-100/80 via-bark-50 to-amber-50/60 shadow-sm border border-bark-200/40 transition-all hover:shadow-md active:scale-[0.98] duration-200 overflow-hidden"
+                  className={cn(
+                    'relative flex items-center gap-4 p-5 rounded-[22px] overflow-hidden',
+                    'bg-gradient-to-r from-[#ede3d2] via-[#e9deca] to-[#e4d8c0]',
+                    'border border-bark-300/30',
+                    'shadow-[0_4px_24px_-6px_rgba(93,77,51,0.16),0_2px_6px_rgba(93,77,51,0.06)]',
+                    'transition-all hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.20)] active:scale-[0.98] duration-200',
+                  )}
                 >
                   <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-amber-200/20 blur-2xl" />
                   <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-bark-500 flex items-center justify-center shrink-0 shadow-md shadow-amber-200/40">
@@ -709,7 +725,7 @@ export default function DonatePage() {
               {/* ═══════════════════════════════════════════════════ */}
               <motion.div variants={fadeUp}>
                 <SectionHeader icon={Sparkles} title="Personal touches" badge="Optional" />
-                <div className="rounded-2xl bg-white shadow-sm border border-primary-100/40 p-5 space-y-4">
+                <div className="rounded-[20px] bg-gradient-to-b from-[#f5f0e5] to-[#eee7d9] shadow-[0_4px_20px_-4px_rgba(93,77,51,0.12),0_1px_4px_rgba(93,77,51,0.05)] border border-bark-200/25 p-5 space-y-4">
                   <Input
                     type="textarea"
                     label="Leave a message"
@@ -719,7 +735,7 @@ export default function DonatePage() {
                   />
 
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-100 to-moss-100 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#e0dace] to-[#d6cec0] border border-bark-200/20 flex items-center justify-center shrink-0">
                       <Users size={16} className="text-primary-600" />
                     </div>
                     <Toggle
@@ -747,7 +763,7 @@ export default function DonatePage() {
                   </AnimatePresence>
 
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-100 to-moss-100 flex items-center justify-center shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#e0dace] to-[#d6cec0] border border-bark-200/20 flex items-center justify-center shrink-0">
                       <Sparkles size={16} className="text-primary-600" />
                     </div>
                     <Toggle
