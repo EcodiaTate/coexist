@@ -247,12 +247,20 @@ html {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   background-color: var(--color-surface-1);
+  /* Fill the entire viewport including safe areas on native */
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 body {
   font-family: var(--font-body);
   color: var(--color-neutral-900);
   background-color: var(--color-surface-1);
+  min-height: 100dvh;
+}
+
+/* Ensure #root fills the viewport so no white gap shows at the bottom */
+#root {
   min-height: 100dvh;
 }
 

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { Fragment, useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -205,20 +205,24 @@ export default function AdminCollectivesPage() {
 
   const heroStats = useMemo(() => (
     stats ? (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="flex items-center">
         {[
           { label: 'Total', value: stats.total, icon: <MapPin size={16} /> },
           { label: 'Active', value: stats.active, icon: <Users size={16} /> },
           { label: 'Members', value: stats.totalMembers, icon: <Users size={16} /> },
           { label: 'Events', value: stats.totalEvents, icon: <CalendarDays size={16} /> },
-        ].map((s) => (
-          <div key={s.label} className="rounded-xl bg-white/10 backdrop-blur-sm p-3">
-            <div className="flex items-center gap-2 text-white/50 mb-1">
-              {s.icon}
-              <span className="text-[11px] font-semibold uppercase tracking-wider">{s.label}</span>
+        ].map((s, i) => (
+          <Fragment key={s.label}>
+            {i > 0 && <div className="w-px self-stretch bg-white/[0.1] shrink-0 my-2" />}
+            <div className="relative flex-1 p-3 text-center">
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+              <div className="relative flex items-center justify-center gap-1.5 text-white/50 mb-1">
+                {s.icon}
+                <span className="text-[11px] font-semibold uppercase tracking-wider">{s.label}</span>
+              </div>
+              <p className="relative text-xl font-bold text-white tabular-nums">{s.value.toLocaleString()}</p>
             </div>
-            <p className="text-xl font-bold text-white tabular-nums">{s.value.toLocaleString()}</p>
-          </div>
+          </Fragment>
         ))}
       </div>
     ) : null

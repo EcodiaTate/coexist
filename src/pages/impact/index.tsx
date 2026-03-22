@@ -179,22 +179,29 @@ function BigStat({
     <motion.div
       variants={fadeUp}
       className={cn(
-        'flex flex-col items-center justify-center text-center rounded-3xl p-6 min-h-[150px]',
-        'bg-white shadow-sm border border-moss-50/60',
+        'relative flex flex-col items-center justify-center text-center rounded-3xl p-6 pb-8 min-h-[150px]',
         'bg-gradient-to-br',
         `${style.gradient}`,
       )}
     >
+      {/* SVG glare */}
+      <svg className="absolute top-1 right-3 w-16 h-12 opacity-[0.3] pointer-events-none" viewBox="0 0 64 48" fill="none">
+        <ellipse cx="32" cy="12" rx="32" ry="18" fill="white" />
+      </svg>
+
       <div className={cn(
         'mb-4 flex items-center justify-center w-11 h-11 rounded-2xl shadow-md',
         style.iconBg,
       )} aria-hidden="true">
         <span className={style.iconColor}>{icon}</span>
       </div>
-      <p className="font-heading text-4xl font-extrabold text-primary-900 tabular-nums leading-none">
-        <CountUp end={value} />
-      </p>
-      <p className="text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold mt-2.5">
+      <div className="relative">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 50%)' }} />
+        <p className="relative font-heading text-4xl font-extrabold text-primary-900 tabular-nums leading-none">
+          <CountUp end={value} />
+        </p>
+      </div>
+      <p className="relative text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold mt-2.5">
         {label}
       </p>
     </motion.div>

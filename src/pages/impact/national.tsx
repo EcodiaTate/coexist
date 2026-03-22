@@ -245,18 +245,26 @@ function NationalStat({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4, ease: 'easeOut' }}
       className={cn(
-        'flex flex-col items-center justify-center text-center rounded-3xl p-6 min-h-[150px]',
-        'bg-gradient-to-br shadow-lg shadow-sm',
+        'relative flex flex-col items-center justify-center text-center rounded-3xl p-6 pb-8 min-h-[150px]',
+        'bg-gradient-to-br',
         cfg.gradient,
       )}
     >
+      {/* SVG glare */}
+      <svg className="absolute top-1 left-4 w-14 h-10 opacity-[0.3] pointer-events-none" viewBox="0 0 56 40" fill="none">
+        <ellipse cx="28" cy="10" rx="28" ry="16" fill="white" />
+      </svg>
+
       <div className={cn('mb-4 flex items-center justify-center w-11 h-11 rounded-2xl shadow-md text-white', cfg.iconBg)} aria-hidden="true">
         {icon}
       </div>
-      <div className="font-heading text-4xl font-extrabold text-primary-900 tabular-nums leading-none">
-        <CountUp end={value} duration={2000} suffix={suffix} />
+      <div className="relative">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 50%)' }} />
+        <div className="relative font-heading text-4xl font-extrabold text-primary-900 tabular-nums leading-none">
+          <CountUp end={value} duration={2000} suffix={suffix} />
+        </div>
       </div>
-      <p className="text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold mt-2.5">{label}</p>
+      <p className="relative text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold mt-2.5">{label}</p>
     </motion.div>
   )
 }

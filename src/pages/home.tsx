@@ -180,9 +180,9 @@ export default function HomePage() {
   }, [queryClient])
 
   return (
-    <Page className="!px-0 !pb-0 bg-primary-600">
+    <Page noBackground className="!px-0 bg-primary-950">
       <PullToRefresh onRefresh={handleRefresh} dark>
-        <div className="relative min-h-full overflow-clip">
+        <div className="relative min-h-full overflow-clip bg-primary-950">
           {/* ── Full-page branded background ── */}
           <div className="absolute inset-0 bg-gradient-to-b from-primary-600 via-secondary-700 to-primary-950" />
 
@@ -275,7 +275,7 @@ export default function HomePage() {
               ) : announcement.data ? (
                 <motion.div variants={rm ? undefined : fadeUp}>
                   <div
-                    className="flex items-center gap-3 rounded-2xl bg-white/[0.12] backdrop-blur-md p-4 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                    className="flex items-center gap-3 rounded-2xl p-4 active:scale-[0.98] transition-all duration-150 cursor-pointer"
                     onClick={() => navigate('/announcements')}
                     role="button"
                     tabIndex={0}
@@ -311,8 +311,7 @@ export default function HomePage() {
                 ) : myCollective.data ? (
                   <div
                     className={cn(
-                      'relative overflow-hidden rounded-3xl',
-                      'bg-white/[0.12] backdrop-blur-md',
+                      'relative rounded-3xl',
                       'p-7 sm:p-9',
                       'active:scale-[0.98] transition-all duration-200 cursor-pointer',
                     )}
@@ -361,8 +360,7 @@ export default function HomePage() {
                 ) : (
                   <div
                     className={cn(
-                      'relative overflow-hidden rounded-3xl',
-                      'bg-white/[0.12] backdrop-blur-md',
+                      'relative rounded-3xl',
                       'p-7 sm:p-9',
                       'active:scale-[0.98] transition-all duration-200 cursor-pointer',
                     )}
@@ -502,7 +500,7 @@ export default function HomePage() {
               {tierProgress.data && (
                 <motion.div variants={rm ? undefined : fadeUp}>
                   <div
-                    className="rounded-2xl bg-white/[0.12] backdrop-blur-md p-6 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+                    className="rounded-2xl p-6 active:scale-[0.98] transition-all duration-200 cursor-pointer"
                     onClick={() => navigate('/points')}
                     role="button"
                     tabIndex={0}
@@ -549,7 +547,7 @@ export default function HomePage() {
                       {recentPosts.data.map((post) => (
                         <div
                           key={post.id}
-                          className="rounded-2xl bg-white/[0.12] backdrop-blur-md p-5 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+                          className="rounded-2xl p-5 active:scale-[0.98] transition-all duration-200 cursor-pointer"
                           onClick={() => navigate('/community')}
                           role="button"
                           tabIndex={0}

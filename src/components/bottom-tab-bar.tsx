@@ -128,15 +128,12 @@ export function BottomTabBar({
         'pointer-events-none',
         className,
       )}
-      style={{
-        paddingBottom: 'var(--safe-bottom)',
-      }}
     >
       {/* Floating pill container */}
       <nav
         className={cn(
           'pointer-events-auto',
-          'mx-3 mb-2 rounded-2xl',
+          'mx-3 mb-[max(0.375rem,var(--safe-bottom))] rounded-2xl',
           'bg-white/80 backdrop-blur-xl backdrop-saturate-150',
           'border border-white/60',
           'shadow-[0_4px_24px_-4px_rgba(51,63,43,0.12),0_1px_3px_rgba(51,63,43,0.06)]',

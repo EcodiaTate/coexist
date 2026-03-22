@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
     Users,
@@ -210,14 +210,12 @@ function TrendChart({
       initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className={cn(
-        'relative overflow-hidden rounded-2xl p-5 sm:p-6',
-        gradient,
-      )}
+      className="relative rounded-2xl p-5 sm:p-6"
     >
-      {/* Decorative background circle */}
-      <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/[0.06]" />
-      <div className="absolute -right-4 -bottom-12 w-24 h-24 rounded-full bg-white/[0.04]" />
+      {/* SVG light glare */}
+      <svg className="absolute top-2 left-6 w-28 h-16 opacity-[0.06] pointer-events-none" viewBox="0 0 112 64" fill="none">
+        <ellipse cx="56" cy="16" rx="56" ry="28" fill="white" />
+      </svg>
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-5">
@@ -293,11 +291,6 @@ function HeroStatCard({
       className="relative rounded-2xl p-5 sm:p-6 pb-7"
       aria-label={`${label}: ${value}`}
     >
-      {/* SVG light glare */}
-      <svg className="absolute top-0 right-0 w-20 h-20 opacity-[0.07] pointer-events-none" viewBox="0 0 80 80" fill="none">
-        <ellipse cx="60" cy="20" rx="40" ry="30" fill="white" />
-      </svg>
-
       <div className="flex items-center justify-between mb-3">
         <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/10 text-white/80" aria-hidden="true">
           {icon}
@@ -311,7 +304,7 @@ function HeroStatCard({
       </div>
 
       <div className="relative">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
         <p
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
           className="relative text-3xl sm:text-4xl font-bold tracking-tight tabular-nums text-white"
@@ -352,24 +345,21 @@ function ImpactPill({
       initial={reducedMotion ? { opacity: 1 } : { opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, delay: reducedMotion ? 0 : delay }}
-      className={cn(
-        'flex items-center gap-3 rounded-xl px-4 py-3.5',
-        'bg-white/[0.18] backdrop-blur-md',
-        'active:scale-[0.98] transition-transform duration-150',
-      )}
+      className="relative flex items-center gap-3 rounded-xl px-4 py-4 active:scale-[0.98] transition-transform duration-150"
       aria-label={`${label}: ${value}`}
     >
       <span className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0 bg-white/10" aria-hidden="true">
         {icon}
       </span>
-      <div className="min-w-0">
+      <div className="relative min-w-0">
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
         <p
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-          className="text-xl sm:text-2xl font-bold text-white tabular-nums"
+          className="relative text-xl sm:text-2xl font-bold text-white tabular-nums"
         >
           {display.toLocaleString()}
         </p>
-        <p className="text-xs text-white/50 font-medium truncate">{label}</p>
+        <p className="relative text-xs text-white/50 font-medium truncate">{label}</p>
       </div>
     </motion.div>
   )
@@ -672,8 +662,8 @@ export default function AdminDashboardPage() {
           className="px-6 sm:px-8 space-y-10 sm:space-y-14 pb-20"
         >
 
-        {/* ── Primary stats grid ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* ── Primary stats ── */}
+        <div className="grid grid-cols-[1fr_1px_1fr] lg:grid-cols-[1fr_1px_1fr_1px_1fr_1px_1fr] gap-y-3">
           <HeroStatCard
             value={data?.totalMembers ?? 0}
             label="Members"
@@ -683,6 +673,7 @@ export default function AdminDashboardPage() {
             reducedMotion={rm}
             delay={0.05}
           />
+          <div className="bg-white/[0.1] self-stretch my-4" />
           <HeroStatCard
             value={data?.totalCollectives ?? 0}
             label="Collectives"
@@ -691,6 +682,7 @@ export default function AdminDashboardPage() {
             reducedMotion={rm}
             delay={0.1}
           />
+          <div className="hidden lg:block bg-white/[0.1] self-stretch my-4" />
           <HeroStatCard
             value={data?.totalEvents ?? 0}
             label="Events Run"
@@ -700,6 +692,7 @@ export default function AdminDashboardPage() {
             reducedMotion={rm}
             delay={0.15}
           />
+          <div className="bg-white/[0.1] self-stretch my-4" />
           <HeroStatCard
             value={data?.totalHours ?? 0}
             label="Volunteer Hours"
@@ -724,17 +717,20 @@ export default function AdminDashboardPage() {
               {dateRangeOptions.find((o) => o.value === dateRange)?.label}
             </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-[1fr_1px_1fr] lg:grid-cols-[1fr_1px_1fr_1px_1fr_1px_1fr] gap-y-2">
             {impactItems.map((item, i) => (
-              <ImpactPill
-                key={item.label}
-                value={item.value}
-                label={item.label}
-                icon={item.icon}
-                color={item.color}
-                reducedMotion={rm}
-                delay={0.3 + i * 0.04}
-              />
+              <Fragment key={item.label}>
+                {i > 0 && i % 2 !== 0 && <div className="bg-white/[0.1] self-stretch my-3 sm:block" />}
+                {i > 0 && i % 2 === 0 && <div className="hidden lg:block bg-white/[0.1] self-stretch my-3" />}
+                <ImpactPill
+                  value={item.value}
+                  label={item.label}
+                  icon={item.icon}
+                  color={item.color}
+                  reducedMotion={rm}
+                  delay={0.3 + i * 0.04}
+                />
+              </Fragment>
             ))}
           </div>
         </motion.div>
@@ -744,36 +740,42 @@ export default function AdminDashboardPage() {
           initial={rm ? { opacity: 1 } : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.35 }}
-          className={cn(
-            'rounded-2xl overflow-hidden',
-            'bg-white/[0.15] backdrop-blur-md',
-            'p-4 sm:p-5',
-          )}
+          className="relative rounded-2xl p-4 sm:p-5 pb-7"
         >
+          {/* SVG glare */}
+          <svg className="absolute bottom-0 left-4 w-24 h-16 opacity-[0.05] pointer-events-none" viewBox="0 0 96 64" fill="none">
+            <ellipse cx="48" cy="48" rx="48" ry="24" fill="white" />
+          </svg>
+
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp size={16} className="text-white/60" />
             <h3 className="font-heading text-sm font-semibold text-white/80">
               {dateRangeOptions.find((o) => o.value === dateRange)?.label} at a Glance
             </h3>
           </div>
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
-            <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
+          <div className="flex items-center">
+            <div className="relative flex-1 py-3 text-center">
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+              <p className="relative text-2xl sm:text-3xl font-bold text-white tabular-nums">
                 {(data?.periodMembers ?? 0).toLocaleString()}
               </p>
-              <p className="text-xs text-white/40 font-medium mt-0.5">New Members</p>
+              <p className="relative text-xs text-white/40 font-medium mt-0.5">New Members</p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
+            <div className="w-px self-stretch bg-white/[0.1] shrink-0" />
+            <div className="relative flex-1 py-3 text-center">
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+              <p className="relative text-2xl sm:text-3xl font-bold text-white tabular-nums">
                 {(data?.periodEvents ?? 0).toLocaleString()}
               </p>
-              <p className="text-xs text-white/40 font-medium mt-0.5">Events</p>
+              <p className="relative text-xs text-white/40 font-medium mt-0.5">Events</p>
             </div>
-            <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-bold text-success-300 tabular-nums">
+            <div className="w-px self-stretch bg-white/[0.1] shrink-0" />
+            <div className="relative flex-1 py-3 text-center">
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+              <p className="relative text-2xl sm:text-3xl font-bold text-success-300 tabular-nums">
                 {(data?.attendanceRate ?? 0)}%
               </p>
-              <p className="text-xs text-white/40 font-medium mt-0.5">Attendance</p>
+              <p className="relative text-xs text-white/40 font-medium mt-0.5">Attendance</p>
             </div>
           </div>
         </motion.div>
@@ -812,12 +814,10 @@ export default function AdminDashboardPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
           className={cn(
-            'relative overflow-hidden rounded-2xl',
-            'bg-white/[0.15] backdrop-blur-md',
+            'relative rounded-2xl',
             'p-6 sm:p-8',
           )}
         >
-          <div className="absolute right-0 bottom-0 w-48 h-48 rounded-full bg-white/[0.03] translate-x-1/4 translate-y-1/4" />
           <div className="relative z-10">
             <div className="flex items-center gap-2.5 mb-4">
               <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/10 text-white/70">

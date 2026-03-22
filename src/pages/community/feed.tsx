@@ -12,7 +12,7 @@ import {
   Calendar,
   Users,
   PenSquare,
-  Sparkles,
+  TreePine,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Button } from '@/components/button'
@@ -41,11 +41,11 @@ import {
 /*  Post type config                                                   */
 /* ------------------------------------------------------------------ */
 
-const postTypeConfig: Record<string, { icon: typeof Heart; label: string; bg: string; color: string; border: string }> = {
-  photo: { icon: Users, label: 'Post', bg: 'bg-primary-100/70', color: 'text-primary-600', border: 'border-primary-200/40' },
-  milestone: { icon: Award, label: 'Milestone', bg: 'bg-warning-100/70', color: 'text-warning-700', border: 'border-warning-200/40' },
-  event_recap: { icon: Calendar, label: 'Event Recap', bg: 'bg-moss-100/70', color: 'text-moss-700', border: 'border-moss-200/40' },
-  announcement: { icon: Leaf, label: 'Announcement', bg: 'bg-bark-100/70', color: 'text-bark-700', border: 'border-bark-200/40' },
+const postTypeConfig: Record<string, { icon: typeof Heart; label: string; bg: string; color: string; border: string; glow: string }> = {
+  photo: { icon: Users, label: 'Post', bg: 'bg-primary-100/80', color: 'text-primary-700', border: 'border-primary-200/50', glow: 'shadow-primary-200/20' },
+  milestone: { icon: Award, label: 'Milestone', bg: 'bg-gradient-to-r from-warning-100/80 to-warning-50/60', color: 'text-warning-700', border: 'border-warning-200/50', glow: 'shadow-warning-200/20' },
+  event_recap: { icon: Calendar, label: 'Event Recap', bg: 'bg-gradient-to-r from-moss-100/80 to-moss-50/60', color: 'text-moss-700', border: 'border-moss-200/50', glow: 'shadow-moss-200/20' },
+  announcement: { icon: Leaf, label: 'Announcement', bg: 'bg-gradient-to-r from-bark-100/80 to-bark-50/60', color: 'text-bark-700', border: 'border-bark-200/50', glow: 'shadow-bark-200/20' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -54,12 +54,12 @@ const postTypeConfig: Record<string, { icon: typeof Heart; label: string; bg: st
 
 const stagger: Variants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.12 } },
 }
 
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 24 } },
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 22 } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -83,72 +83,72 @@ function timeAgo(dateStr: string): string {
 /* ------------------------------------------------------------------ */
 
 function DecorativeBackground() {
-  const shouldReduceMotion = useReducedMotion()
+  const r = useReducedMotion()
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Rich gradient base — deep greens fading to warm neutrals */}
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary-100/60 via-primary-50/30 via-40% to-moss-50/20" />
+      {/* Multi-stop gradient — deep forest canopy feel */}
+      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/65 via-secondary-100/40 via-20% to-primary-100/25 to-60%" />
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-moss-50/15 to-sprout-50/25" />
 
-      {/* Hero glow — warm emerald wash at top */}
-      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[500px] h-[300px] rounded-full bg-gradient-to-b from-primary-200/40 to-transparent blur-3xl" />
+      {/* Concentrated hero glow — top center */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/35 via-primary-200/25 to-transparent blur-[60px]" />
+
+      {/* Secondary warm glow — top left corner */}
+      <div className="absolute -top-16 -left-16 w-[300px] h-[300px] rounded-full bg-gradient-to-br from-sprout-200/30 to-transparent blur-[50px]" />
 
       {/* Large breathing ring — top right */}
       <motion.div
-        className="absolute -top-24 -right-24 w-72 h-72 rounded-full border-[3px] border-secondary-200/30"
-        animate={shouldReduceMotion ? {} : { scale: [1, 1.06, 1], opacity: [0.6, 0.9, 0.6] }}
+        className="absolute -top-28 -right-28 w-80 h-80 rounded-full border-[3px] border-secondary-300/25"
+        animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.85, 0.5] }}
         transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
+      />
+      {/* Concentric inner ring */}
+      <motion.div
+        className="absolute -top-12 -right-12 w-52 h-52 rounded-full border-[2px] border-primary-200/20"
+        animate={r ? {} : { scale: [1, 1.04, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
       />
 
       {/* Medium ring — left side */}
       <motion.div
-        className="absolute top-[30%] -left-14 w-48 h-48 rounded-full border-[2.5px] border-moss-200/30"
-        animate={shouldReduceMotion ? {} : { scale: [1, 1.08, 1], opacity: [0.5, 0.8, 0.5] }}
+        className="absolute top-[28%] -left-16 w-52 h-52 rounded-full border-[2.5px] border-moss-300/25"
+        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.75, 0.4] }}
         transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 2 }}
       />
 
-      {/* Small ring — bottom right */}
+      {/* Small ring — bottom right, slowly rotating */}
       <motion.div
-        className="absolute bottom-[20%] right-4 w-28 h-28 rounded-full border-2 border-primary-200/25"
-        animate={shouldReduceMotion ? {} : { rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 40, ease: 'linear' }}
+        className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-primary-300/20"
+        animate={r ? {} : { rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 45, ease: 'linear' }}
       />
 
-      {/* Warm glow — mid left */}
+      {/* Deep warm glow — mid left */}
       <motion.div
-        className="absolute top-[45%] -left-10 w-56 h-56 rounded-full bg-sprout-100/20 blur-3xl"
-        animate={shouldReduceMotion ? {} : { scale: [1, 1.12, 1], opacity: [0.3, 0.5, 0.3] }}
+        className="absolute top-[42%] -left-12 w-64 h-64 rounded-full bg-sprout-100/20 blur-[50px]"
+        animate={r ? {} : { scale: [1, 1.15, 1], opacity: [0.25, 0.45, 0.25] }}
         transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Deep glow — bottom */}
+      {/* Bottom gradient pool */}
       <motion.div
-        className="absolute -bottom-16 right-1/4 w-64 h-64 rounded-full bg-moss-100/25 blur-3xl"
-        animate={shouldReduceMotion ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.6, 0.4] }}
-        transition={{ repeat: Infinity, duration: 10, ease: 'easeInOut', delay: 3 }}
+        className="absolute -bottom-20 left-1/3 w-72 h-72 rounded-full bg-moss-200/20 blur-[60px]"
+        animate={r ? {} : { scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ repeat: Infinity, duration: 11, ease: 'easeInOut', delay: 3 }}
       />
 
-      {/* Floating dots */}
-      <motion.div
-        className="absolute top-28 right-12 w-3 h-3 rounded-full bg-primary-300/30"
-        animate={shouldReduceMotion ? {} : { y: [-5, 5, -5], x: [0, 3, 0] }}
-        transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-[55%] left-8 w-2.5 h-2.5 rounded-full bg-moss-300/25"
-        animate={shouldReduceMotion ? {} : { y: [3, -4, 3] }}
-        transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 1.5 }}
-      />
-      <motion.div
-        className="absolute bottom-[30%] right-[15%] w-2 h-2 rounded-full bg-sprout-300/25"
-        animate={shouldReduceMotion ? {} : { y: [-3, 4, -3], x: [0, -2, 0] }}
-        transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut', delay: 0.5 }}
-      />
-      <motion.div
-        className="absolute top-[40%] right-[30%] w-1.5 h-1.5 rounded-full bg-secondary-300/20"
-        animate={shouldReduceMotion ? {} : { y: [2, -3, 2] }}
-        transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 2.5 }}
-      />
+      {/* Floating particles */}
+      <motion.div className="absolute top-24 right-14 w-3.5 h-3.5 rounded-full bg-primary-400/20"
+        animate={r ? {} : { y: [-6, 6, -6], x: [0, 4, 0] }} transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut' }} />
+      <motion.div className="absolute top-[50%] left-6 w-3 h-3 rounded-full bg-moss-400/18"
+        animate={r ? {} : { y: [4, -5, 4] }} transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 1.5 }} />
+      <motion.div className="absolute bottom-[28%] right-[18%] w-2.5 h-2.5 rounded-full bg-sprout-400/18"
+        animate={r ? {} : { y: [-4, 5, -4], x: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} />
+      <motion.div className="absolute top-[38%] right-[28%] w-2 h-2 rounded-full bg-secondary-400/15"
+        animate={r ? {} : { y: [3, -4, 3] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 2.5 }} />
+      <motion.div className="absolute top-[65%] left-[20%] w-2 h-2 rounded-full bg-primary-400/15"
+        animate={r ? {} : { y: [-3, 3, -3], x: [2, -2, 2] }} transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 3.5 }} />
     </div>
   )
 }
@@ -171,15 +171,17 @@ function HeroHeader({
 
   return (
     <motion.div
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-      className="pb-2"
+      transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="pb-1"
     >
-      {/* Greeting */}
-      <div className="flex items-center gap-2 mb-4">
-        <Sparkles size={16} className="text-secondary-400" />
-        <h1 className="font-heading text-xl font-bold text-secondary-800">
+      {/* Title row */}
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-secondary-500 to-primary-600 shadow-sm">
+          <TreePine size={15} className="text-white" />
+        </div>
+        <h1 className="font-heading text-[22px] font-bold text-secondary-900 tracking-tight">
           Community
         </h1>
       </div>
@@ -189,28 +191,32 @@ function HeroHeader({
         type="button"
         onClick={onCreatePost}
         className={cn(
-          'flex items-center gap-3.5 w-full p-4 rounded-2xl text-left',
-          'bg-white/90 backdrop-blur-sm',
-          'border border-primary-100/60',
-          'shadow-[0_2px_12px_-2px_rgba(61,77,51,0.10)]',
-          'hover:shadow-[0_4px_20px_-4px_rgba(61,77,51,0.15)] hover:bg-white',
+          'flex items-center gap-3.5 w-full p-4 rounded-[20px] text-left',
+          'bg-gradient-to-br from-[#f0f4ea] via-[#edf1e6] to-[#e8ede1]',
+          'border border-primary-200/40',
+          'shadow-[0_4px_24px_-6px_rgba(61,77,51,0.16),0_2px_6px_rgba(61,77,51,0.06)]',
+          'hover:shadow-[0_8px_32px_-8px_rgba(61,77,51,0.22)] hover:from-[#f2f6ec] hover:to-[#eaf0e4]',
           'active:scale-[0.98]',
-          'transition-all duration-200 cursor-pointer select-none',
+          'transition-all duration-250 cursor-pointer select-none',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
         )}
       >
-        <Avatar
-          src={avatarUrl}
-          name={displayName}
-          size="md"
-        />
+        <div className="relative">
+          <Avatar src={avatarUrl} name={displayName} size="md" />
+          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-gradient-to-br from-sprout-400 to-primary-500 border-2 border-white flex items-center justify-center">
+            <PenSquare size={8} className="text-white" />
+          </div>
+        </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-primary-400 font-medium">
+          <p className="text-[13px] text-primary-400 font-medium leading-snug">
             What's happening, {firstName}?
           </p>
+          <p className="text-[11px] text-primary-300 mt-0.5">
+            Share a photo, milestone, or update
+          </p>
         </div>
-        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 shadow-sm">
-          <PenSquare size={16} className="text-white" />
+        <div className="flex items-center justify-center w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-500 via-primary-600 to-secondary-700 shadow-md shadow-primary-500/25">
+          <PenSquare size={17} className="text-white" />
         </div>
       </button>
     </motion.div>
@@ -246,11 +252,11 @@ function LikeButton({
       type="button"
       onClick={handleClick}
       className={cn(
-        'relative flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl min-h-11',
-        'active:scale-[0.95] transition-all duration-150 cursor-pointer select-none',
+        'relative flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl min-h-11',
+        'active:scale-[0.93] transition-all duration-150 cursor-pointer select-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
         isLiked
-          ? 'text-error-500 bg-error-50/80'
+          ? 'text-error-600 bg-error-50/80 shadow-sm shadow-error-200/30'
           : 'text-primary-500 hover:bg-primary-50/80 hover:text-primary-700',
       )}
       aria-label={isLiked ? 'Unlike post' : 'Like post'}
@@ -260,18 +266,18 @@ function LikeButton({
       <AnimatePresence>
         {burst && !shouldReduceMotion && (
           <>
-            {[...Array(6)].map((_, i) => (
+            {[...Array(8)].map((_, i) => (
               <motion.span
                 key={i}
                 initial={{ opacity: 1, scale: 0 }}
                 animate={{
                   opacity: 0,
                   scale: 1,
-                  x: Math.cos((i * Math.PI * 2) / 6) * 16,
-                  y: Math.sin((i * Math.PI * 2) / 6) * 16,
+                  x: Math.cos((i * Math.PI * 2) / 8) * 20,
+                  y: Math.sin((i * Math.PI * 2) / 8) * 20,
                 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
+                transition={{ duration: 0.55, ease: 'easeOut' }}
                 className="absolute left-3 top-2 w-1.5 h-1.5 rounded-full bg-error-400"
                 aria-hidden="true"
               />
@@ -281,8 +287,8 @@ function LikeButton({
       </AnimatePresence>
 
       <motion.span
-        animate={isLiked ? { scale: [1, 1.3, 1] } : { scale: 1 }}
-        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.3 }}
+        animate={isLiked ? { scale: [1, 1.35, 1] } : { scale: 1 }}
+        transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.35 }}
         className="flex items-center"
       >
         <Heart
@@ -293,7 +299,7 @@ function LikeButton({
       </motion.span>
 
       {count > 0 && (
-        <span className="text-sm font-semibold">{count}</span>
+        <span className="text-sm font-bold tabular-nums">{count}</span>
       )}
     </button>
   )
@@ -343,9 +349,9 @@ function CommentSection({
           }
         }}
         className={cn(
-          'flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl min-h-11',
+          'flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl min-h-11',
           'text-primary-500 hover:bg-primary-50/80 hover:text-primary-700',
-          'active:scale-[0.95] transition-all duration-150 cursor-pointer select-none',
+          'active:scale-[0.93] transition-all duration-150 cursor-pointer select-none',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
         )}
         aria-label={`${commentCount} comments`}
@@ -353,7 +359,7 @@ function CommentSection({
       >
         <MessageCircle size={18} aria-hidden="true" />
         {commentCount > 0 && (
-          <span className="text-sm font-semibold">{commentCount}</span>
+          <span className="text-sm font-bold tabular-nums">{commentCount}</span>
         )}
       </button>
 
@@ -366,7 +372,7 @@ function CommentSection({
             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
             className="overflow-hidden"
           >
-            <div className="pt-3 mt-2 space-y-3 px-4 pb-1 border-t border-primary-100/40">
+            <div className="pt-3 mt-2 space-y-3 px-5 pb-2 border-t border-primary-100/30">
               {isLoading ? (
                 <Skeleton variant="list-item" count={2} />
               ) : (
@@ -388,10 +394,10 @@ function CommentSection({
                     placeholder="Write a comment..."
                     className={cn(
                       'flex-1 h-9 px-3.5 rounded-full text-sm',
-                      'bg-surface-3 text-primary-800 placeholder:text-primary-400',
-                      'border-none outline-none',
-                      'focus:ring-2 focus:ring-primary-300 focus:bg-surface-2',
-                      'transition-colors duration-200',
+                      'bg-primary-50/80 text-primary-800 placeholder:text-primary-400',
+                      'border border-primary-200/35 outline-none',
+                      'focus:ring-2 focus:ring-primary-300 focus:bg-primary-50/40 focus:border-primary-300/50',
+                      'transition-all duration-200',
                     )}
                     aria-label="Write a comment"
                   />
@@ -423,8 +429,8 @@ function CommentItem({ comment }: { comment: CommentWithAuthor }) {
         size="xs"
       />
       <div className="flex-1 min-w-0">
-        <div className="bg-surface-3/80 rounded-2xl px-3.5 py-2.5">
-          <span className="text-sm font-bold text-primary-800">
+        <div className="bg-gradient-to-br from-primary-50/70 to-primary-100/40 border border-primary-200/25 rounded-2xl px-3.5 py-2.5">
+          <span className="text-sm font-bold text-secondary-800">
             {comment.author?.display_name ?? 'User'}
           </span>
           <p className="text-sm text-primary-700 mt-0.5 leading-relaxed">{comment.content}</p>
@@ -490,10 +496,10 @@ function PostCard({ post }: { post: PostWithDetails }) {
     <motion.article
       variants={fadeUp}
       className={cn(
-        'rounded-3xl overflow-hidden',
-        'bg-white/95 backdrop-blur-sm',
-        'border border-primary-100/50',
-        'shadow-[0_2px_16px_-4px_rgba(61,77,51,0.12)]',
+        'rounded-[22px] overflow-hidden',
+        'bg-gradient-to-b from-[#f6f8f2] via-[#f3f6ee] to-[#eef2e8]',
+        'border border-primary-200/35',
+        'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.16),0_2px_6px_rgba(61,77,51,0.06)]',
       )}
     >
       {/* Header */}
@@ -522,10 +528,11 @@ function PostCard({ post }: { post: PostWithDetails }) {
             </button>
             {post.type !== 'photo' && (
               <span className={cn(
-                'inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border',
+                'inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full border shadow-sm',
                 config.bg,
                 config.color,
                 config.border,
+                config.glow,
               )}>
                 <config.icon size={10} aria-hidden="true" />
                 {config.label}
@@ -536,8 +543,8 @@ function PostCard({ post }: { post: PostWithDetails }) {
             <span>{timeAgo(post.created_at)}</span>
             {post.collective && (
               <>
-                <span aria-hidden="true" className="text-primary-300">·</span>
-                <span className="truncate text-moss-500">{post.collective.name}</span>
+                <span aria-hidden="true" className="text-primary-200">·</span>
+                <span className="truncate font-semibold text-moss-600">{post.collective.name}</span>
               </>
             )}
           </div>
@@ -548,7 +555,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
           onClick={() => setShowMenu(true)}
           className={cn(
             'flex items-center justify-center w-9 h-9 min-h-11 min-w-11 rounded-xl',
-            'text-primary-400 hover:bg-primary-50/80 hover:text-primary-600',
+            'text-primary-300 hover:bg-primary-50/80 hover:text-primary-500',
             'active:scale-[0.95] transition-all duration-150 cursor-pointer select-none',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
@@ -571,12 +578,12 @@ function PostCard({ post }: { post: PostWithDetails }) {
           type="button"
           onClick={() => navigate(`/events/${post.event!.id}`)}
           className={cn(
-            'mx-5 mb-3 flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl min-h-11',
-            'bg-gradient-to-r from-moss-50/80 to-primary-50/60',
-            'border border-moss-200/40',
-            'shadow-sm',
+            'mx-5 mb-3 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl min-h-11',
+            'bg-gradient-to-r from-moss-50/90 via-moss-50/70 to-primary-50/60',
+            'border border-moss-200/50',
+            'shadow-sm shadow-moss-200/15',
             'text-sm text-moss-700 font-semibold',
-            'cursor-pointer select-none hover:from-moss-50 hover:to-primary-50 active:scale-[0.97] transition-all duration-150',
+            'cursor-pointer select-none hover:from-moss-100/90 hover:to-primary-50/80 active:scale-[0.97] transition-all duration-150',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
           aria-label={`View event: ${post.event.title}`}
@@ -586,7 +593,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
         </button>
       )}
 
-      {/* Images — edge-to-edge when it's the hero visual */}
+      {/* Images — edge-to-edge for single, padded for grid */}
       {hasImages && (
         <div className={cn(post.images.length === 1 ? 'px-0' : 'px-5', 'pb-0')}>
           {post.images.length === 1 ? (
@@ -615,8 +622,9 @@ function PostCard({ post }: { post: PostWithDetails }) {
 
       {/* Actions bar */}
       <div className={cn(
-        'flex items-center gap-1 px-3 pb-3',
-        hasImages ? 'pt-2.5' : 'pt-1',
+        'flex items-center gap-1 px-3 pb-3 mx-3 rounded-xl',
+        hasImages ? 'pt-3 mt-1' : 'pt-1',
+        'bg-primary-50/40',
       )}>
         <LikeButton
           isLiked={post.is_liked}
@@ -630,8 +638,8 @@ function PostCard({ post }: { post: PostWithDetails }) {
           onClick={handleShare}
           className={cn(
             'flex items-center justify-center w-9 h-9 min-h-11 min-w-11 rounded-xl',
-            'text-primary-500 hover:bg-primary-50/80 hover:text-primary-700',
-            'active:scale-[0.95] transition-all duration-150 cursor-pointer select-none',
+            'text-primary-400 hover:bg-primary-50/80 hover:text-primary-600',
+            'active:scale-[0.93] transition-all duration-150 cursor-pointer select-none',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
           aria-label="Share post"
@@ -716,26 +724,29 @@ function FeedSkeleton() {
   return (
     <div className="space-y-5 pt-6 pb-4" role="status" aria-label="Loading feed">
       {/* Create post skeleton */}
-      <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-white/80 border border-primary-100/40 animate-pulse">
-        <div className="w-10 h-10 rounded-full bg-primary-100/50" />
-        <div className="flex-1 h-4 bg-primary-100/30 rounded w-2/3" />
-        <div className="w-10 h-10 rounded-xl bg-primary-200/40" />
+      <div className="flex items-center gap-3.5 p-4 rounded-[20px] bg-gradient-to-br from-[#f0f4ea] to-[#e8ede1] border border-primary-200/30 shadow-sm animate-pulse">
+        <div className="w-10 h-10 rounded-full bg-primary-200/40" />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-3.5 bg-primary-200/30 rounded w-2/3" />
+          <div className="h-2.5 bg-primary-200/20 rounded w-1/3" />
+        </div>
+        <div className="w-11 h-11 rounded-2xl bg-primary-300/25" />
       </div>
 
       {[1, 2, 3].map((i) => (
-        <div key={i} className="rounded-3xl bg-white/80 border border-primary-100/40 shadow-sm overflow-hidden animate-pulse">
+        <div key={i} className="rounded-[22px] bg-gradient-to-b from-[#f6f8f2] to-[#eef2e8] border border-primary-200/30 shadow-sm overflow-hidden animate-pulse">
           <div className="flex items-center gap-3 px-5 pt-5 pb-3">
-            <div className="w-10 h-10 rounded-full bg-primary-100/50" />
+            <div className="w-10 h-10 rounded-full bg-primary-200/40" />
             <div className="flex-1 space-y-2">
-              <div className="h-3.5 bg-primary-100/40 rounded w-1/3" />
-              <div className="h-3 bg-primary-100/30 rounded w-1/4" />
+              <div className="h-3.5 bg-primary-200/35 rounded w-1/3" />
+              <div className="h-3 bg-primary-200/25 rounded w-1/4" />
             </div>
           </div>
           <div className="px-5 pb-3 space-y-2">
-            <div className="h-3.5 bg-primary-100/30 rounded w-full" />
-            <div className="h-3.5 bg-primary-100/20 rounded w-3/4" />
+            <div className="h-3.5 bg-primary-200/25 rounded w-full" />
+            <div className="h-3.5 bg-primary-200/15 rounded w-3/4" />
           </div>
-          <div className="mx-5 mb-4 h-48 bg-primary-100/15 rounded-2xl" />
+          <div className="mx-0 mb-0 h-52 bg-primary-100/20" />
         </div>
       ))}
       <span className="sr-only">Loading feed</span>
@@ -834,13 +845,21 @@ export default function FeedPage() {
                 )}
 
                 {!feed.hasNextPage && posts.length > 0 && (
-                  <motion.div variants={fadeUp} className="flex flex-col items-center py-8 gap-2">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-100/60 to-moss-100/40 flex items-center justify-center">
-                      <Leaf size={16} className="text-primary-400" />
+                  <motion.div variants={fadeUp} className="flex flex-col items-center py-10 gap-3">
+                    <div className="relative">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#e4ebd8] via-[#dbe5cf] to-[#d0dbc2] flex items-center justify-center shadow-md shadow-primary-300/20 border border-primary-200/30">
+                        <Leaf size={20} className="text-primary-600" />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-sprout-400 to-primary-500 border-2 border-[#f3f6ee]" />
                     </div>
-                    <p className="text-xs text-primary-400 font-semibold">
-                      You're all caught up
-                    </p>
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-secondary-700">
+                        You're all caught up
+                      </p>
+                      <p className="text-xs text-primary-500 mt-0.5">
+                        Check back later for new posts
+                      </p>
+                    </div>
                   </motion.div>
                 )}
               </motion.div>

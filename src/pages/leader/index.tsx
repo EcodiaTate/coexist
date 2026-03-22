@@ -433,24 +433,25 @@ function HeroStat({
   value,
   label,
   icon,
-  gradient,
 }: {
   value: number | string
   label: string
   icon: React.ReactNode
-  gradient: string
+  gradient?: string
 }) {
   return (
-    <div className={cn('rounded-2xl p-4 relative overflow-hidden min-h-[88px] flex flex-col justify-end', gradient)}>
+    <div className="relative rounded-2xl p-4 pb-6 min-h-[88px] flex flex-col justify-end">
       {/* Background icon */}
       <div className="absolute top-1.5 right-1.5 opacity-[0.08]">
         <span className="[&>svg]:w-12 [&>svg]:h-12">{icon}</span>
       </div>
-      <div className="absolute -bottom-3 -left-3 w-20 h-20 rounded-full bg-white/[0.06]" />
-      <p className="font-heading text-3xl font-extrabold text-white tabular-nums leading-none relative z-10">
-        {value}
-      </p>
-      <p className="mt-1.5 text-[10px] font-semibold text-white/70 uppercase tracking-wider relative z-10">{label}</p>
+      <div className="relative">
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 w-32 h-32 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+        <p className="relative font-heading text-3xl font-extrabold text-white tabular-nums leading-none">
+          {value}
+        </p>
+        <p className="relative mt-1.5 text-[10px] font-semibold text-white/70 uppercase tracking-wider">{label}</p>
+      </div>
     </div>
   )
 }
@@ -708,47 +709,48 @@ export default function LeaderDashboardPage() {
           </motion.div>
 
           {/* ── Hero stats ── */}
-          <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
+          <motion.div variants={fadeUp} className="grid grid-cols-[1fr_1px_1fr] gap-y-3">
             <HeroStat
               value={data?.activeMembers ?? 0}
               label="Active Members"
               icon={<Users />}
-              gradient="bg-white/[0.14] backdrop-blur-md"
             />
+            <div className="bg-white/[0.1] self-stretch my-4" />
             <HeroStat
               value={data?.upcomingEvents?.length ?? 0}
               label="Upcoming Events"
               icon={<CalendarDays />}
-              gradient="bg-white/[0.14] backdrop-blur-md"
             />
             <HeroStat
               value={data?.hoursThisMonth ?? 0}
               label="Hours This Month"
               icon={<Clock />}
-              gradient="bg-white/[0.14] backdrop-blur-md"
             />
+            <div className="bg-white/[0.1] self-stretch my-4" />
             <HeroStat
               value={data?.eventsThisMonth ?? 0}
               label="Events This Month"
               icon={<CalendarCheck />}
-              gradient="bg-white/[0.14] backdrop-blur-md"
             />
           </motion.div>
 
           {/* ── Attendance & survey row ── */}
           {((data?.attendanceRate ?? 0) > 0 || (data?.surveyResponseCount ?? 0) > 0) && (
-            <motion.div variants={fadeUp} className="flex gap-3">
+            <motion.div variants={fadeUp} className="flex items-center">
               {(data?.attendanceRate ?? 0) > 0 && (
-                <div className="flex-1 rounded-2xl bg-white/[0.12] backdrop-blur-md p-4">
+                <div className="relative flex-1 p-4 pb-6">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
                       <CheckCircle2 size={16} className="text-success-300" />
                     </div>
                     <span className="text-xs font-semibold text-white/70">Attendance</span>
                   </div>
-                  <p className="font-heading text-2xl font-extrabold text-white tabular-nums">
-                    {data?.attendanceRate}%
-                  </p>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+                    <p className="relative font-heading text-2xl font-extrabold text-white tabular-nums">
+                      {data?.attendanceRate}%
+                    </p>
+                  </div>
                   <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
                     <motion.div
                       className="h-full rounded-full bg-success-400"
@@ -759,17 +761,23 @@ export default function LeaderDashboardPage() {
                   </div>
                 </div>
               )}
+              {(data?.attendanceRate ?? 0) > 0 && (data?.surveyResponseCount ?? 0) > 0 && (
+                <div className="w-px self-stretch bg-white/[0.1] shrink-0 my-3" />
+              )}
               {(data?.surveyResponseCount ?? 0) > 0 && (
-                <div className="flex-1 rounded-2xl bg-white/[0.12] backdrop-blur-md p-4">
+                <div className="relative flex-1 p-4 pb-6">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
                       <Send size={16} className="text-white/80" />
                     </div>
                     <span className="text-xs font-semibold text-white/70">Surveys</span>
                   </div>
-                  <p className="font-heading text-2xl font-extrabold text-white tabular-nums">
-                    {data?.surveyResponseCount}
-                  </p>
+                  <div className="relative">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
+                    <p className="relative font-heading text-2xl font-extrabold text-white tabular-nums">
+                      {data?.surveyResponseCount}
+                    </p>
+                  </div>
                   <p className="mt-1 text-[11px] text-white/50">responses collected</p>
                 </div>
               )}
