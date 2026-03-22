@@ -1,35 +1,26 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  CheckCircle,
-  Circle,
-  Clock,
-  AlertTriangle,
-  ChevronDown,
-  ChevronRight,
-  Calendar,
-  SkipForward,
-  Zap,
-  Flame,
-  Trophy,
-  Sparkles,
+    CheckCircle, Clock,
+    AlertTriangle, ChevronRight,
+    Calendar,
+    SkipForward, Flame, Sparkles
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLeaderHeader } from '@/components/leader-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Skeleton } from '@/components/skeleton'
-import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import {
-  useMyTasks,
-  useCompleteTask,
-  useSkipTask,
-  useGenerateTaskInstances,
-  useGroupedTasks,
-  type MyTask,
+    useMyTasks,
+    useCompleteTask,
+    useSkipTask,
+    useGenerateTaskInstances,
+    useGroupedTasks,
+    type MyTask,
 } from '@/hooks/use-tasks'
 import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 
@@ -64,7 +55,7 @@ function getStreak(tasks: MyTask[]): number {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Task card — reimagined                                             */
+/*  Task card - reimagined                                             */
 /* ------------------------------------------------------------------ */
 
 function TaskCard({ task }: { task: MyTask }) {

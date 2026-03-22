@@ -1,28 +1,131 @@
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
-import { MapPin, Users, Calendar, ExternalLink, Download } from 'lucide-react'
+import { MapPin, Users, TreePine, Heart, Shield, ArrowRight } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/cn'
-import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { OGMeta, SITE_URL } from '@/components/og-meta'
-import { APP_NAME } from '@/lib/constants'
+import { APP_NAME, TAGLINE } from '@/lib/constants'
 import { WebFooter } from '@/components/web-footer'
+
+/* ------------------------------------------------------------------ */
+/*  Platform detection                                                 */
+/* ------------------------------------------------------------------ */
+
+function getDevicePlatform(): 'ios' | 'android' | 'web' {
+  if (Capacitor.isNativePlatform()) {
+    return Capacitor.getPlatform() as 'ios' | 'android'
+  }
+  const ua = navigator.userAgent.toLowerCase()
+  if (/iphone|ipad|ipod/.test(ua)) return 'ios'
+  if (/android/.test(ua)) return 'android'
+  return 'web'
+}
+
+// Placeholder store URLs - replace with real ones when published
+const APP_STORE_URL = '#'
+const PLAY_STORE_URL = '#'
+
+/* ------------------------------------------------------------------ */
+/*  Animation                                                          */
+/* ------------------------------------------------------------------ */
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 }
+
+/* ------------------------------------------------------------------ */
+/*  Store badge components (real badge styling)                        */
+/* ------------------------------------------------------------------ */
+
+function AppStoreBadge({ className, onClick }: { className?: string; onClick?: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-2.5 px-5 py-3',
+        'rounded-xl bg-black text-white',
+        'hover:bg-gray-900 active:scale-[0.97]',
+        'transition-all duration-150',
+        'cursor-pointer select-none',
+        'shadow-lg shadow-black/15',
+        className,
+      )}
+      aria-label="Download on the App Store"
+    >
+      <svg width="22" height="26" viewBox="0 0 20 24" fill="currentColor" aria-hidden="true">
+        <path d="M16.52 12.46c-.03-2.85 2.33-4.22 2.44-4.29-1.33-1.94-3.4-2.21-4.13-2.24-1.76-.18-3.43 1.04-4.33 1.04-.89 0-2.27-1.01-3.73-.99-1.92.03-3.69 1.12-4.68 2.84-1.99 3.46-.51 8.59 1.43 11.4.95 1.37 2.08 2.92 3.57 2.86 1.43-.06 1.97-.93 3.7-.93 1.73 0 2.22.93 3.73.9 1.54-.03 2.52-1.4 3.46-2.78 1.09-1.59 1.54-3.13 1.57-3.21-.03-.01-3.01-1.16-3.04-4.6zm-2.85-8.46c.79-.96 1.32-2.29 1.18-3.62-1.14.05-2.52.76-3.34 1.72-.73.85-1.37 2.2-1.2 3.5 1.27.1 2.57-.65 3.36-1.6z" />
+      </svg>
+      <div className="text-left">
+        <p className="text-[10px] leading-tight opacity-70">Download on the</p>
+        <p className="text-[15px] font-semibold leading-tight">App Store</p>
+      </div>
+    </button>
+  )
+}
+
+function PlayStoreBadge({ className, onClick }: { className?: string; onClick?: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        'inline-flex items-center gap-2.5 px-5 py-3',
+        'rounded-xl bg-black text-white',
+        'hover:bg-gray-900 active:scale-[0.97]',
+        'transition-all duration-150',
+        'cursor-pointer select-none',
+        'shadow-lg shadow-black/15',
+        className,
+      )}
+      aria-label="Get it on Google Play"
+    >
+      {/* Google Play triangle icon */}
+      <svg width="22" height="24" viewBox="0 0 20 22" fill="currentColor" aria-hidden="true">
+        <path d="M1.22.52C.93.83.75 1.3.75 1.89v18.22c0 .59.18 1.06.47 1.37l.07.07L11.5 11.34v-.25L1.29.45l-.07.07z" fill="#4285F4" />
+        <path d="M14.9 14.73l-3.4-3.39v-.25l3.4-3.39.08.04 4.02 2.29c1.15.65 1.15 1.72 0 2.37l-4.02 2.29-.08.04z" fill="#FBBC04" />
+        <path d="M15 14.69L11.5 11.1 1.29 21.48c.38.4.99.45 1.7.05L15 14.69z" fill="#EA4335" />
+        <path d="M15 7.74L2.99.9c-.71-.4-1.32-.35-1.7.05L11.5 11.34 15 7.74z" fill="#34A853" />
+      </svg>
+      <div className="text-left">
+        <p className="text-[10px] leading-tight opacity-70">Get it on</p>
+        <p className="text-[15px] font-semibold leading-tight">Google Play</p>
+      </div>
+    </button>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Trust signal pill                                                  */
+/* ------------------------------------------------------------------ */
+
+function TrustPill({ icon: Icon, text }: { icon: typeof Shield; text: string }) {
+  return (
+    <div className="flex items-center gap-1.5 rounded-full bg-moss-50 border border-moss-100/50 px-3 py-1.5">
+      <Icon size={12} className="text-moss-500" />
+      <span className="text-[11px] font-medium text-moss-700">{text}</span>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
 export default function PublicCollectivePage() {
   const { slug } = useParams<{ slug: string }>()
   const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
+  const platform = typeof window !== 'undefined' ? getDevicePlatform() : 'web'
 
   const { data: collective, isLoading, error } = useQuery({
     queryKey: ['public-collective', slug],
@@ -57,10 +160,11 @@ export default function PublicCollectivePage() {
     enabled: !!collective?.id,
   })
 
+  /* ── Loading ── */
   if (isLoading) {
     return (
       <div className="min-h-dvh bg-white">
-        <div className="h-48 animate-pulse bg-white" />
+        <div className="h-56 animate-pulse bg-gradient-to-br from-primary-100 to-moss-100" />
         <div className="mx-auto max-w-2xl p-6 space-y-4">
           <Skeleton variant="title" />
           <Skeleton variant="text" count={3} />
@@ -69,15 +173,23 @@ export default function PublicCollectivePage() {
     )
   }
 
+  /* ── Error ── */
   if (error || !collective) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-white p-6">
+      <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-moss-50 to-white p-6 text-center">
         <OGMeta title="Collective Not Found" description="This collective doesn't exist or is no longer active." />
+        <div className="w-16 h-16 rounded-2xl bg-primary-100 flex items-center justify-center mb-4">
+          <Users size={28} className="text-primary-400" />
+        </div>
         <h1 className="font-heading text-2xl font-bold text-primary-800">Collective not found</h1>
-        <p className="mt-2 text-primary-400">This collective doesn't exist or is no longer active.</p>
-        <Button variant="primary" className="mt-6" onClick={() => window.location.href = '/download'}>
+        <p className="mt-2 text-primary-400 max-w-xs">This collective doesn't exist or is no longer active.</p>
+        <button
+          type="button"
+          onClick={() => window.location.href = '/download'}
+          className="mt-6 px-6 py-3 rounded-xl bg-primary-800 text-white font-heading font-semibold hover:bg-primary-900 active:scale-[0.97] transition-all cursor-pointer"
+        >
           Get the {APP_NAME} App
-        </Button>
+        </button>
       </div>
     )
   }
@@ -86,7 +198,7 @@ export default function PublicCollectivePage() {
   const locationStr = [collective.region, collective.state].filter(Boolean).join(', ')
   const metaDescription = collective.description
     ? collective.description.slice(0, 155) + (collective.description.length > 155 ? '...' : '')
-    : `Join ${collective.name}${locationStr ? ` in ${locationStr}` : ''} — a Co-Exist conservation collective organising volunteer events across Australia.`
+    : `Join ${collective.name}${locationStr ? ` in ${locationStr}` : ''} - a Co-Exist conservation collective organising volunteer events across Australia.`
 
   const collectiveJsonLd: Record<string, unknown> = {
     '@context': 'https://schema.org',
@@ -113,8 +225,25 @@ export default function PublicCollectivePage() {
     }),
   }
 
+  const handleOpenInApp = () => {
+    window.location.href = `coexist://collectives/${collective.id}`
+    setTimeout(() => {
+      window.location.href = '/download'
+    }, 1500)
+  }
+
+  const handleDownload = () => {
+    if (platform === 'ios') {
+      window.open(APP_STORE_URL, '_blank')
+    } else if (platform === 'android') {
+      window.open(PLAY_STORE_URL, '_blank')
+    } else {
+      window.location.href = '/download'
+    }
+  }
+
   return (
-    <div className="min-h-dvh bg-white">
+    <div className="min-h-dvh bg-white flex flex-col">
       <OGMeta
         title={collective.name}
         description={metaDescription}
@@ -124,59 +253,103 @@ export default function PublicCollectivePage() {
         jsonLd={collectiveJsonLd}
       />
 
-      {/* Hero */}
-      <div className="relative h-48 sm:h-64 bg-primary-800 overflow-hidden">
-        {collective.cover_image_url ? (
-          <img
-            src={collective.cover_image_url}
-            alt={collective.name}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-primary-600 to-primary-800">
-            <Users size={56} className="text-primary-200" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4">
-          <h1 className="font-heading text-2xl font-bold text-white sm:text-3xl drop-shadow-md">
-            {collective.name}
-          </h1>
-          {collective.region && (
-            <p className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
-              <MapPin size={14} />
-              {collective.region}{collective.state ? `, ${collective.state}` : ''}
-            </p>
+      {/* ════════════════════════════════════════════════════════════ */}
+      {/*  HERO                                                       */}
+      {/* ════════════════════════════════════════════════════════════ */}
+      <div className="relative overflow-hidden">
+        {/* Background image or gradient */}
+        <div className="absolute inset-0">
+          {collective.cover_image_url ? (
+            <img
+              src={collective.cover_image_url}
+              alt=""
+              className="h-full w-full object-cover"
+              aria-hidden="true"
+            />
+          ) : (
+            <div className="h-full w-full bg-gradient-to-br from-moss-600 via-primary-700 to-primary-900" />
           )}
+          {/* Gradient overlays */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
         </div>
+
+        {/* Decorative blobs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+          <div className="absolute -bottom-8 -right-8 w-40 h-40 rounded-full bg-moss-400/10 blur-3xl" />
+          <div className="absolute top-8 -left-8 w-32 h-32 rounded-full bg-white/5 blur-2xl" />
+        </div>
+
+        {/* Hero content */}
+        <motion.div
+          className="relative z-10 px-5 pt-12 pb-8 sm:px-8 sm:pt-16 sm:pb-12 max-w-2xl mx-auto"
+          variants={rm ? undefined : stagger}
+          initial="hidden"
+          animate="visible"
+        >
+          {/* App badge */}
+          <motion.div variants={fadeUp}>
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1.5 mb-4">
+              <img src="/logos/icon-white.webp" alt="" className="w-4 h-4 rounded" aria-hidden="true" />
+              <span className="text-[11px] font-semibold text-white/80">{APP_NAME}</span>
+              <span className="text-[11px] text-white/40">|</span>
+              <span className="text-[11px] text-white/60">{TAGLINE}</span>
+            </div>
+          </motion.div>
+
+          {/* Collective name */}
+          <motion.h1
+            variants={fadeUp}
+            className="font-heading text-3xl sm:text-4xl font-bold text-white tracking-tight drop-shadow-lg"
+          >
+            {collective.name}
+          </motion.h1>
+
+          {/* Location */}
+          {locationStr && (
+            <motion.p variants={fadeUp} className="mt-2 flex items-center gap-1.5 text-sm text-white/80">
+              <MapPin size={14} className="text-white/60" />
+              {locationStr}
+            </motion.p>
+          )}
+
+          {/* Stats row */}
+          <motion.div variants={fadeUp} className="flex gap-5 mt-5">
+            <div>
+              <p className="font-heading text-2xl font-bold text-white">{collective.member_count ?? 0}</p>
+              <p className="text-xs text-white/50">Members</p>
+            </div>
+            {upcomingEvents && (
+              <div>
+                <p className="font-heading text-2xl font-bold text-white">{upcomingEvents.length}</p>
+                <p className="text-xs text-white/50">Upcoming</p>
+              </div>
+            )}
+          </motion.div>
+        </motion.div>
       </div>
 
-      {/* Content */}
+      {/* ════════════════════════════════════════════════════════════ */}
+      {/*  BODY                                                       */}
+      {/* ════════════════════════════════════════════════════════════ */}
       <motion.div
-        className="mx-auto max-w-2xl px-4 py-6 sm:px-6"
-        variants={shouldReduceMotion ? undefined : stagger}
+        className="flex-1 mx-auto max-w-2xl w-full px-5 py-6 sm:px-8"
+        variants={rm ? undefined : stagger}
         initial="hidden"
         animate="visible"
       >
-        {/* Stats */}
-        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="flex gap-6">
-          <div>
-            <p className="font-heading text-2xl font-bold text-primary-800">{collective.member_count ?? 0}</p>
-            <p className="text-sm text-primary-400">Members</p>
-          </div>
-          {upcomingEvents && (
-            <div>
-              <p className="font-heading text-2xl font-bold text-primary-800">{upcomingEvents.length}</p>
-              <p className="text-sm text-primary-400">Upcoming events</p>
-            </div>
-          )}
+        {/* Trust signals */}
+        <motion.div variants={fadeUp} className="flex flex-wrap gap-2 mb-6">
+          <TrustPill icon={Shield} text="Registered charity" />
+          <TrustPill icon={Heart} text="Free to join" />
+          <TrustPill icon={TreePine} text="Real conservation" />
         </motion.div>
 
         {/* Description */}
         {collective.description && (
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-6">
-            <h2 className="font-heading text-lg font-semibold text-primary-800">About</h2>
-            <p className="mt-2 whitespace-pre-line text-primary-400 leading-relaxed">
+          <motion.div variants={fadeUp} className="mb-6">
+            <h2 className="font-heading text-lg font-semibold text-primary-800 mb-2">About</h2>
+            <p className="whitespace-pre-line text-primary-500 leading-relaxed text-[15px]">
               {collective.description}
             </p>
           </motion.div>
@@ -184,73 +357,164 @@ export default function PublicCollectivePage() {
 
         {/* Upcoming events */}
         {upcomingEvents && upcomingEvents.length > 0 && (
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-8">
-            <h2 className="font-heading text-lg font-semibold text-primary-800">Upcoming Events</h2>
-            <div className="mt-3 space-y-3">
-              {upcomingEvents.map((evt) => (
-                <a
-                  key={evt.id}
-                  href={`/event/${evt.id}`}
-                  className={cn(
-                    'flex items-center gap-3 rounded-xl bg-white p-4',
-                    'shadow-sm',
-                    'hover:shadow-md transition-shadow duration-150',
-                  )}
-                >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-white text-primary-400">
-                    <Calendar size={20} />
+          <motion.div variants={fadeUp} className="mb-8">
+            <h2 className="font-heading text-lg font-semibold text-primary-800 mb-3">Upcoming Events</h2>
+            <div className="space-y-2.5">
+              {upcomingEvents.map((evt) => {
+                const d = new Date(evt.date_start)
+                return (
+                  <div
+                    key={evt.id}
+                    className={cn(
+                      'flex items-center gap-3.5 rounded-xl p-3.5',
+                      'bg-gradient-to-r from-moss-50/60 to-white',
+                      'border border-moss-100/50',
+                    )}
+                  >
+                    {/* Date badge */}
+                    <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-white border border-moss-100/50 shrink-0">
+                      <span className="text-[10px] font-semibold text-moss-500 uppercase leading-none">
+                        {d.toLocaleDateString('en-AU', { month: 'short' })}
+                      </span>
+                      <span className="text-lg font-bold text-primary-800 leading-tight">
+                        {d.getDate()}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-primary-800 truncate text-[15px]">{evt.title}</p>
+                      <p className="text-xs text-primary-400 mt-0.5 truncate">
+                        {d.toLocaleDateString('en-AU', { weekday: 'short' })}
+                        {evt.address ? ` · ${evt.address}` : ''}
+                      </p>
+                    </div>
+                    <ArrowRight size={16} className="text-primary-300 shrink-0" />
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-primary-800 truncate">{evt.title}</p>
-                    <p className="text-sm text-primary-400">
-                      {new Date(evt.date_start).toLocaleDateString('en-AU', {
-                        day: 'numeric',
-                        month: 'short',
-                      })}
-                      {evt.address ? ` · ${evt.address}` : ''}
-                    </p>
-                  </div>
-                </a>
-              ))}
+                )
+              })}
             </div>
           </motion.div>
         )}
 
-        {/* CTAs */}
+        {/* ── Join CTA section ── */}
         <motion.div
-          variants={shouldReduceMotion ? undefined : fadeUp}
-          className={cn(
-            'mt-8 flex flex-col gap-3',
-            'sticky bottom-4 rounded-2xl bg-white/95 p-4 shadow-lg backdrop-blur-sm',
-            'sm:relative sm:bottom-auto sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none',
-          )}
+          variants={fadeUp}
+          className="rounded-2xl bg-gradient-to-br from-moss-600 via-moss-700 to-primary-800 p-6 text-center relative overflow-hidden"
         >
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            icon={<ExternalLink size={18} />}
-            onClick={() => {
-              window.location.href = `coexist://collectives/${collective.id}`
-              setTimeout(() => {
-                window.location.href = '/download'
-              }, 1500)
-            }}
-          >
-            Open in App
-          </Button>
-          <Button
-            variant="secondary"
-            size="lg"
-            fullWidth
-            icon={<Download size={18} />}
-            onClick={() => window.location.href = '/download'}
-          >
-            Download {APP_NAME}
-          </Button>
+          {/* Decorative */}
+          <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+            <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/[0.04] blur-2xl" />
+            <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-white/[0.03] blur-2xl" />
+          </div>
+
+          <div className="relative z-10">
+            <div className="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center mx-auto mb-3">
+              <TreePine size={26} className="text-white" />
+            </div>
+            <h2 className="font-heading text-xl font-bold text-white mb-1.5">
+              Join {collective.name}
+            </h2>
+            <p className="text-sm text-white/60 mb-5 max-w-xs mx-auto">
+              Download the free {APP_NAME} app to join this collective, attend events, and track your impact.
+            </p>
+
+            {/* Platform-aware CTAs */}
+            <div className="space-y-3">
+              {/* Primary: Open in app (for users who already have it) */}
+              <button
+                type="button"
+                onClick={handleOpenInApp}
+                className={cn(
+                  'w-full flex items-center justify-center gap-2 px-6 py-3.5',
+                  'rounded-xl bg-white text-primary-800',
+                  'font-heading font-semibold',
+                  'hover:bg-white/90 active:scale-[0.97]',
+                  'transition-all duration-150',
+                  'cursor-pointer select-none',
+                  'shadow-lg shadow-black/10',
+                )}
+              >
+                <img src="/logos/icon.webp" alt="" className="w-5 h-5 rounded" aria-hidden="true" />
+                Open in {APP_NAME}
+              </button>
+
+              {/* Platform-specific store badge */}
+              {platform === 'ios' && (
+                <AppStoreBadge className="w-full justify-center" onClick={() => window.open(APP_STORE_URL, '_blank')} />
+              )}
+              {platform === 'android' && (
+                <PlayStoreBadge className="w-full justify-center" onClick={() => window.open(PLAY_STORE_URL, '_blank')} />
+              )}
+              {platform === 'web' && (
+                <div className="flex gap-2.5">
+                  <AppStoreBadge className="flex-1 justify-center" onClick={() => window.open(APP_STORE_URL, '_blank')} />
+                  <PlayStoreBadge className="flex-1 justify-center" onClick={() => window.open(PLAY_STORE_URL, '_blank')} />
+                </div>
+              )}
+
+              {/* Web fallback */}
+              <button
+                type="button"
+                onClick={() => window.location.href = '/'}
+                className={cn(
+                  'w-full px-6 py-3',
+                  'rounded-xl bg-white/10 text-white/80',
+                  'text-sm font-medium',
+                  'hover:bg-white/15 active:scale-[0.97]',
+                  'transition-all duration-150',
+                  'cursor-pointer select-none',
+                )}
+              >
+                Continue on Web
+              </button>
+            </div>
+          </div>
         </motion.div>
 
+        {/* What is Co-Exist */}
+        <motion.div variants={fadeUp} className="mt-8 mb-4 text-center">
+          <p className="text-xs text-primary-400">
+            <span className="font-semibold">{APP_NAME}</span> is Australia's youth conservation movement.
+            {' '}Join 5,500+ volunteers planting native trees, cleaning beaches, and restoring habitats.
+          </p>
+        </motion.div>
       </motion.div>
+
+      {/* Sticky bottom CTA - mobile only, visible on scroll */}
+      <div className={cn(
+        'sticky bottom-0 z-30 sm:hidden',
+        'bg-white/95 backdrop-blur-md border-t border-primary-100/50',
+        'px-4 py-3',
+        'safe-bottom',
+      )}>
+        <div className="flex gap-2.5">
+          <button
+            type="button"
+            onClick={handleOpenInApp}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 py-3',
+              'rounded-xl bg-primary-800 text-white',
+              'font-heading font-semibold text-sm',
+              'active:scale-[0.97] transition-all',
+              'cursor-pointer select-none',
+            )}
+          >
+            Open in App
+          </button>
+          <button
+            type="button"
+            onClick={handleDownload}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-2 py-3',
+              'rounded-xl bg-moss-100 text-moss-800',
+              'font-heading font-semibold text-sm',
+              'active:scale-[0.97] transition-all',
+              'cursor-pointer select-none',
+            )}
+          >
+            Download
+          </button>
+        </div>
+      </div>
 
       <WebFooter />
     </div>

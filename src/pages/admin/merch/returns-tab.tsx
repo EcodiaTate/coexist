@@ -22,6 +22,7 @@ export default function ReturnsTab() {
   const { data: returns, isLoading } = useAdminReturns()
   const updateReturn = useUpdateReturnStatus()
   const { toast } = useToast()
+  const shouldReduceMotion = useReducedMotion()
 
   const handleUpdate = useCallback(
     async (returnId: string, status: 'approved' | 'denied') => {
@@ -49,8 +50,6 @@ export default function ReturnsTab() {
     )
   }
 
-  const shouldReduceMotion = useReducedMotion()
-
   const stagger = {
     hidden: {},
     visible: { transition: { staggerChildren: 0.04 } },
@@ -68,7 +67,7 @@ export default function ReturnsTab() {
       {returns.map((ret) => (
         <StaggeredItem
           key={ret.id}
-          className="p-4 bg-white rounded-2xl shadow-sm"
+          className="p-4 bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf] border border-primary-200/25 rounded-[20px] shadow-[0_4px_20px_-4px_rgba(61,77,51,0.10),0_1px_4px_rgba(61,77,51,0.04)]"
         >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">

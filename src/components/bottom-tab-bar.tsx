@@ -2,11 +2,11 @@ import { type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Home,
-  MessageCircle,
-  Users,
-  BarChart3,
-  Shield,
+    Home,
+    MessageCircle,
+    Users,
+    BarChart3,
+    Shield,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -28,22 +28,22 @@ const baseTabs: Tab[] = [
     label: 'Home',
     path: '/',
     exact: true,
-    icon: <Home size={22} strokeWidth={1.5} />,
-    activeIcon: <Home size={22} strokeWidth={2} fill="currentColor" />,
+    icon: <Home size={21} strokeWidth={1.5} />,
+    activeIcon: <Home size={21} strokeWidth={2.2} />,
   },
   {
     key: 'chat',
     label: 'Chat',
     path: '/chat',
-    icon: <MessageCircle size={22} strokeWidth={1.5} />,
-    activeIcon: <MessageCircle size={22} strokeWidth={2} fill="currentColor" />,
+    icon: <MessageCircle size={21} strokeWidth={1.5} />,
+    activeIcon: <MessageCircle size={21} strokeWidth={2.2} />,
   },
   {
     key: 'community',
     label: 'Community',
     path: '/community',
-    icon: <Users size={22} strokeWidth={1.5} />,
-    activeIcon: <Users size={22} strokeWidth={2} fill="currentColor" />,
+    icon: <Users size={21} strokeWidth={1.5} />,
+    activeIcon: <Users size={21} strokeWidth={2.2} />,
   },
 ]
 
@@ -51,16 +51,16 @@ const leaderDashboardTab: Tab = {
   key: 'leader',
   label: 'Leader',
   path: '/leader',
-  icon: <BarChart3 size={22} strokeWidth={1.5} />,
-  activeIcon: <BarChart3 size={22} strokeWidth={2} fill="currentColor" />,
+  icon: <BarChart3 size={21} strokeWidth={1.5} />,
+  activeIcon: <BarChart3 size={21} strokeWidth={2.2} />,
 }
 
 const adminDashboardTab: Tab = {
   key: 'admin',
   label: 'Admin',
   path: '/admin',
-  icon: <Shield size={22} strokeWidth={1.5} />,
-  activeIcon: <Shield size={22} strokeWidth={2} fill="currentColor" />,
+  icon: <Shield size={21} strokeWidth={1.5} />,
+  activeIcon: <Shield size={21} strokeWidth={2.2} />,
 }
 
 interface BottomTabBarProps {
@@ -68,7 +68,7 @@ interface BottomTabBarProps {
   chatBadge?: number
   /** Override tab set (for leader/admin layouts) */
   tabs?: Tab[]
-  /** layoutId prefix for animations — use unique value per tab bar instance */
+  /** layoutId prefix for animations - use unique value per tab bar instance */
   layoutPrefix?: string
   /** Accent color for active states */
   accent?: 'primary' | 'moss'
@@ -117,9 +117,9 @@ export function BottomTabBar({
     return location.pathname.startsWith(tab.path)
   }
 
-  const activeBg = accent === 'moss' ? 'bg-moss-50/70' : 'bg-primary-50/70'
-  const activeText = accent === 'moss' ? 'text-moss-700' : 'text-primary-700'
-  const activeDot = accent === 'moss' ? 'bg-moss-500' : 'bg-primary-600'
+  const activeText = accent === 'moss' ? 'text-moss-700' : 'text-primary-800'
+  const inactiveText = accent === 'moss' ? 'text-moss-400/70' : 'text-primary-400/70'
+  const activePill = accent === 'moss' ? 'bg-moss-100/80' : 'bg-primary-100/80'
 
   return (
     <div
@@ -129,19 +129,17 @@ export function BottomTabBar({
         className,
       )}
     >
-      {/* Floating pill container */}
       <nav
         className={cn(
           'pointer-events-auto',
-          'mx-3 mb-[max(0.375rem,var(--safe-bottom))] rounded-2xl',
-          'bg-white/80 backdrop-blur-xl backdrop-saturate-150',
-          'border border-white/60',
-          'shadow-[0_4px_24px_-4px_rgba(51,63,43,0.12),0_1px_3px_rgba(51,63,43,0.06)]',
+          'mx-4 mb-[max(0.5rem,var(--safe-bottom))] rounded-[20px]',
+          'bg-white/90 backdrop-blur-2xl backdrop-saturate-[1.8]',
+          'shadow-[0_2px_20px_-4px_rgba(30,40,25,0.10),0_0_0_1px_rgba(30,40,25,0.04)]',
         )}
         aria-label="Navigation"
         role="tablist"
       >
-        <div className="flex items-center justify-around h-[60px] px-1">
+        <div className="flex items-center justify-around h-[56px] px-1">
           {tabs.map((tab) => {
             const active = isActive(tab)
 
@@ -157,28 +155,22 @@ export function BottomTabBar({
                   'relative flex flex-col items-center justify-center',
                   'flex-1 h-full',
                   'cursor-pointer select-none',
-                  'transition-colors duration-200',
-                  active ? activeText : 'text-primary-300',
+                  'transition-colors duration-150',
+                  active ? activeText : inactiveText,
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
                 )}
               >
-                {/* Active background glow */}
+                {/* Active pill background */}
                 {active && (
                   <motion.span
-                    layoutId={shouldReduceMotion ? undefined : `${layoutPrefix}-active-bg`}
-                    className={cn('absolute inset-x-2 inset-y-1.5 rounded-xl', activeBg)}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    layoutId={shouldReduceMotion ? undefined : `${layoutPrefix}-pill`}
+                    className={cn('absolute inset-x-1.5 inset-y-1 rounded-2xl', activePill)}
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                   />
                 )}
 
                 {/* Icon */}
-                <motion.span
-                  key={active ? 'active' : 'inactive'}
-                  className="relative flex items-center justify-center z-10"
-                  initial={shouldReduceMotion ? false : { scale: 0.85, y: 2 }}
-                  animate={{ scale: 1, y: 0 }}
-                  transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                >
+                <span className="relative flex items-center justify-center z-10">
                   {active ? tab.activeIcon : tab.icon}
 
                   {/* Chat badge */}
@@ -187,36 +179,27 @@ export function BottomTabBar({
                       className={cn(
                         'absolute -top-1.5 -right-2.5',
                         'flex items-center justify-center',
-                        'min-w-[18px] h-[18px] px-1',
+                        'min-w-[17px] h-[17px] px-1',
                         'rounded-full bg-error text-white',
-                        'text-[10px] font-bold leading-none',
-                        'ring-2 ring-white/80',
+                        'text-[9px] font-bold leading-none',
+                        'ring-2 ring-white/90',
                       )}
                       aria-label={`${chatBadge} unread`}
                     >
                       {chatBadge > 99 ? '99+' : chatBadge}
                     </span>
                   )}
-                </motion.span>
+                </span>
 
                 {/* Label */}
                 <span
                   className={cn(
-                    'relative z-10 text-[10px] mt-0.5 leading-tight transition-all duration-200',
-                    active ? 'font-semibold' : 'font-medium opacity-70',
+                    'relative z-10 text-[10px] mt-0.5 leading-none',
+                    active ? 'font-bold' : 'font-medium',
                   )}
                 >
                   {tab.label}
                 </span>
-
-                {/* Active dot indicator */}
-                {active && (
-                  <motion.span
-                    layoutId={shouldReduceMotion ? undefined : `${layoutPrefix}-active-dot`}
-                    className={cn('absolute -bottom-0.5 w-1 h-1 rounded-full', activeDot)}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  />
-                )}
               </button>
             )
           })}

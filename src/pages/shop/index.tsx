@@ -1,22 +1,22 @@
-import { Fragment, useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion'
 import {
-  ShoppingBag,
-  Star,
-  Sparkles,
-  Lock,
-  Tag,
-  ChevronRight,
-  TrendingUp,
-  Package,
-  Heart,
-  TreePine,
-  Users,
-  Clock,
+    ShoppingBag,
+    Star,
+    Sparkles,
+    Lock,
+    Tag,
+    ChevronRight,
+    TrendingUp,
+    Package,
+    Heart,
+    TreePine,
+    Users,
+    Clock,
 } from 'lucide-react'
-import { useAppImage, useAppImages } from '@/hooks/use-app-images'
+import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
@@ -50,7 +50,7 @@ const slideInRight: Variants = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Layered background — fills the entire page behind content          */
+/*  Layered background - fills the entire page behind content          */
 /* ------------------------------------------------------------------ */
 
 /**
@@ -68,7 +68,7 @@ function ShopBackground({ rm }: { rm: boolean }) {
       {/* Base gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#f0f4ec] via-[#f4f6f1] to-[#eef3e9]" />
 
-      {/* Topographic contour lines — subtle nature map feel */}
+      {/* Topographic contour lines - subtle nature map feel */}
       <svg className="absolute inset-0 w-full h-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="shop-topo" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
@@ -82,65 +82,27 @@ function ShopBackground({ rm }: { rm: boolean }) {
         <rect width="100%" height="100%" fill="url(#shop-topo)" className="text-primary-900" />
       </svg>
 
-      {/* Breathing blurred orbs — gentle depth */}
+      {/* Soft blurred orbs - depth without clutter */}
+      <div className="absolute top-[25%] -left-20 w-80 h-80 rounded-full bg-primary-200/10 blur-[120px]" />
+      <div className="absolute top-[60%] -right-16 w-72 h-72 rounded-full bg-moss-200/8 blur-[120px]" />
+
+      {/* Single breathing ring */}
       <motion.div
-        className="absolute top-[30%] -left-16 w-72 h-72 rounded-full bg-primary-200/15 blur-[100px]"
-        animate={rm ? undefined : { scale: [1, 1.15, 1], opacity: [0.15, 0.22, 0.15] }}
-        transition={rm ? undefined : { duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-[60%] -right-20 w-64 h-64 rounded-full bg-moss-200/12 blur-[100px]"
-        animate={rm ? undefined : { scale: [1, 1.12, 1], opacity: [0.12, 0.18, 0.12] }}
-        transition={rm ? undefined : { duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-      />
-      <motion.div
-        className="absolute top-[85%] left-[25%] w-56 h-56 rounded-full bg-bark-200/10 blur-[90px]"
-        animate={rm ? undefined : { scale: [1, 1.1, 1], opacity: [0.1, 0.16, 0.1] }}
-        transition={rm ? undefined : { duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+        className="absolute top-[40%] -right-16 w-56 h-56 rounded-full border border-primary-300/10"
+        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.1, 0.18, 0.1] }}
+        transition={rm ? undefined : { duration: 12, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Breathing rings — large, thin, slow pulse */}
+      {/* Floating dots - restrained */}
       <motion.div
-        className="absolute top-[25%] -right-20 w-64 h-64 rounded-full border-[1.5px] border-primary-300/15"
-        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.15, 0.25, 0.15] }}
-        transition={rm ? undefined : { duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-[55%] -left-12 w-48 h-48 rounded-full border-[1.5px] border-moss-300/12"
-        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.12, 0.2, 0.12] }}
-        transition={rm ? undefined : { duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      />
-      <motion.div
-        className="absolute top-[78%] right-[15%] w-36 h-36 rounded-full border-[1.5px] border-bark-300/10"
-        animate={rm ? undefined : { scale: [1, 1.1, 1], opacity: [0.1, 0.18, 0.1] }}
-        transition={rm ? undefined : { duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
-      />
-
-      {/* Floating dots — tiny, drifting vertically */}
-      <motion.div
-        className="absolute top-[35%] left-[15%] w-2.5 h-2.5 rounded-full bg-primary-400/15"
-        animate={rm ? undefined : { y: [0, -14, 0], opacity: [0.15, 0.3, 0.15] }}
+        className="absolute top-[35%] left-[15%] w-2 h-2 rounded-full bg-primary-400/12"
+        animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.12, 0.24, 0.12] }}
         transition={rm ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="absolute top-[50%] right-[22%] w-2 h-2 rounded-full bg-moss-400/12"
-        animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.12, 0.25, 0.12] }}
-        transition={rm ? undefined : { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-      />
-      <motion.div
-        className="absolute top-[70%] left-[40%] w-3 h-3 rounded-full bg-bark-300/10"
-        animate={rm ? undefined : { y: [0, -12, 0], opacity: [0.1, 0.22, 0.1] }}
-        transition={rm ? undefined : { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-      />
-      <motion.div
-        className="absolute top-[42%] right-[45%] w-2 h-2 rounded-full bg-primary-300/12"
-        animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.12, 0.2, 0.12] }}
-        transition={rm ? undefined : { duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      />
-      <motion.div
-        className="absolute top-[88%] left-[65%] w-2.5 h-2.5 rounded-full bg-moss-300/10"
-        animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.1, 0.2, 0.1] }}
-        transition={rm ? undefined : { duration: 6.5, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+        className="absolute top-[65%] right-[20%] w-1.5 h-1.5 rounded-full bg-moss-400/10"
+        animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.1, 0.2, 0.1] }}
+        transition={rm ? undefined : { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
       />
     </div>
   )
@@ -216,87 +178,11 @@ function CategoryPills({
 }
 
 /* ------------------------------------------------------------------ */
-/*  SVG landscape layers — mountains, hills, trees                     */
+/*  (SVG landscape layers removed - replaced with photo parallax)      */
 /* ------------------------------------------------------------------ */
 
-/** Far mountain range — broad peaks with smooth slopes, lightest tone */
-function MountainsFar({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 1440 320" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M0,320 L0,240
-           C40,235 70,200 120,170 C150,150 170,140 200,120
-           C220,108 240,130 280,160
-           C310,180 340,170 380,140 C410,115 430,90 460,80
-           C490,70 510,100 540,140
-           C570,175 600,180 640,155 C680,130 700,100 740,85
-           C770,72 790,110 820,145
-           C850,175 880,170 920,140 C950,115 980,95 1010,80
-           C1040,65 1060,90 1090,130
-           C1120,165 1150,175 1190,150 C1220,130 1250,110 1280,100
-           C1310,90 1340,120 1370,150
-           C1400,175 1420,180 1440,170
-           L1440,320 Z"
-        className="fill-primary-800/30"
-      />
-    </svg>
-  )
-}
-
-/** Near hills — rounder, rolling, darker */
-function MountainsNear({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 1440 260" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M0,260 L0,200
-           C60,195 100,170 160,150
-           C200,138 240,155 300,170
-           C340,180 380,160 420,135
-           C460,110 500,120 540,145
-           C580,165 620,170 660,150
-           C700,130 730,110 780,105
-           C820,100 860,130 900,155
-           C940,175 980,165 1020,140
-           C1060,118 1100,125 1140,148
-           C1180,168 1220,170 1260,152
-           C1300,135 1340,140 1380,155
-           C1410,165 1430,160 1440,155
-           L1440,260 Z"
-        className="fill-primary-900/40"
-      />
-    </svg>
-  )
-}
-
-/** Eucalyptus tree line — rounded bushy canopies, Australian silhouette */
-function TreeLine({ className }: { className?: string }) {
-  // Gum trees: wide rounded crowns on thin trunks, varying heights
-  // Mix of tall and short, some overlapping — natural bush feel
-  return (
-    <svg viewBox="0 0 1440 160" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M0,160 L0,125
-           C10,124 15,120 20,115 C25,95 30,75 45,65 C60,55 75,58 85,68 C95,78 98,100 100,110 C102,115 108,118 115,120
-           C120,118 125,112 130,105 C138,85 148,60 165,50 C182,40 198,48 208,62 C218,76 222,100 224,112 C226,118 232,122 240,124
-           C248,122 252,115 258,108 C265,90 275,68 290,55 C305,42 318,50 328,65 C338,80 342,105 344,115 C346,120 352,124 360,125
-           C365,124 370,118 375,110 C382,92 392,72 408,60 C424,48 438,55 448,70 C458,85 460,108 462,118 C464,122 470,125 478,126
-           C485,124 490,116 496,106 C504,85 515,58 535,45 C555,32 572,42 582,60 C592,78 594,105 596,116 C598,122 605,126 615,127
-           C622,125 628,118 634,108 C642,88 652,65 668,52 C684,40 698,48 708,65 C718,80 720,106 722,116 C724,122 730,126 740,127
-           C748,125 754,118 760,108 C768,88 778,62 795,48 C812,35 828,45 838,62 C848,78 850,106 852,116 C854,122 860,126 870,127
-           C878,125 882,116 888,105 C896,82 908,55 928,42 C948,30 965,42 975,60 C985,78 988,108 990,118 C992,124 998,127 1008,128
-           C1015,126 1020,118 1026,108 C1034,88 1045,62 1062,48 C1080,35 1095,45 1105,62 C1115,78 1118,106 1120,116 C1122,122 1128,126 1138,127
-           C1145,125 1150,116 1156,105 C1164,82 1175,55 1195,42 C1215,30 1232,42 1242,60 C1252,78 1254,108 1256,118 C1258,124 1265,127 1275,128
-           C1282,126 1288,118 1294,108 C1302,88 1312,65 1328,52 C1344,40 1358,48 1368,65 C1378,80 1380,106 1382,116 C1384,122 1390,126 1400,127
-           C1408,125 1415,118 1422,108 C1428,95 1434,82 1440,78
-           L1440,160 Z"
-        className="fill-secondary-900/60"
-      />
-    </svg>
-  )
-}
-
 /* ------------------------------------------------------------------ */
-/*  Hero section — parallax mountain landscape                         */
+/*  Hero section - two-layer photo parallax                            */
 /* ------------------------------------------------------------------ */
 
 function ShopHero({
@@ -310,85 +196,91 @@ function ShopHero({
   onBack: () => void
   rm: boolean
 }) {
-  const { data: appImages } = useAppImages()
-  // Admin-configurable hero image — set via app_images table key "shop_hero"
-  const heroUrl = appImages?.shop_hero
+  /*
+   * On mobile the Page component uses an inner <main id="main-content">
+   * as the scroll container (overflow-y-auto) - window.scrollY stays 0.
+   * We detect that container and pass it to useScroll so parallax works
+   * on both mobile and desktop.
+   */
+  const scrollContainerRef = useRef<HTMLElement | null>(null)
+  useEffect(() => {
+    const el = document.getElementById('main-content')
+    if (el && el.scrollHeight > el.clientHeight) {
+      scrollContainerRef.current = el
+    }
+  }, [])
 
-  const { scrollY } = useScroll()
-  // Parallax: each layer moves at a different speed
-  const bgY = useTransform(scrollY, [0, 400], [0, 60])
-  const farY = useTransform(scrollY, [0, 400], [0, 40])
-  const nearY = useTransform(scrollY, [0, 400], [0, 20])
-  const treeY = useTransform(scrollY, [0, 400], [0, 8])
-  const textY = useTransform(scrollY, [0, 300], [0, 50])
-  const textOpacity = useTransform(scrollY, [0, 200], [1, 0])
+  const { scrollY } = useScroll({
+    container: scrollContainerRef as React.RefObject<HTMLElement>,
+  })
+
+  // Foreground (people) scrolls DOWN faster than background - sells the depth
+  const bgY = useTransform(scrollY, [0, 600], [0, 50])
+  const bgScale = useTransform(scrollY, [0, 600], [1, 1.05])
+  const fgY = useTransform(scrollY, [0, 600], [0, 130])
+  const textY = useTransform(scrollY, [0, 350], [0, 70])
+  const textOpacity = useTransform(scrollY, [0, 280], [1, 0])
+  // Dark gradient extends down with the people so it doesn't cut off
+  const gradY = useTransform(scrollY, [0, 600], [0, 130])
 
   return (
-    <div className="relative overflow-hidden">
-      <div className="relative w-full h-[320px] sm:h-[380px]">
+    <div className="relative">
+      {/*
+       * NO overflow-hidden on the outer wrapper — the bg image and gradient
+       * need to bleed down behind the rocky SVG transition below.
+       */}
+      <div className="relative w-full h-[480px] sm:h-[520px] md:h-[560px]">
 
-        {/* Layer 0: Sky / admin image — slowest parallax */}
+        {/* ── Layer 0: Background landscape — slowest parallax ── */}
+        {/*
+         * Extends well below the container so as it parallaxes down
+         * it's still visible behind the rocky transition SVG.
+         */}
         <motion.div
-          className="absolute inset-0"
-          style={rm ? undefined : { y: bgY }}
+          className="absolute inset-x-0 top-0 will-change-transform"
+          style={{
+            height: '160%',
+            ...(rm ? {} : { y: bgY, scale: bgScale }),
+          }}
         >
-          {heroUrl ? (
-            <img
-              src={heroUrl}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-b from-secondary-900 via-primary-900 to-primary-800">
-              {/* Stars — tiny dots scattered across the sky */}
-              <div className="absolute inset-0 overflow-hidden">
-                {/* Star field */}
-                <div className="absolute top-[12%] left-[8%] w-1 h-1 rounded-full bg-white/40" />
-                <div className="absolute top-[8%] left-[25%] w-1.5 h-1.5 rounded-full bg-white/25" />
-                <div className="absolute top-[18%] left-[42%] w-1 h-1 rounded-full bg-white/35" />
-                <div className="absolute top-[6%] left-[58%] w-1 h-1 rounded-full bg-white/30" />
-                <div className="absolute top-[15%] left-[72%] w-1.5 h-1.5 rounded-full bg-white/20" />
-                <div className="absolute top-[10%] left-[88%] w-1 h-1 rounded-full bg-white/40" />
-                <div className="absolute top-[22%] left-[15%] w-1 h-1 rounded-full bg-white/20" />
-                <div className="absolute top-[5%] left-[35%] w-1 h-1 rounded-full bg-white/35" />
-                <div className="absolute top-[20%] left-[65%] w-1 h-1 rounded-full bg-white/25" />
-                <div className="absolute top-[25%] left-[50%] w-1.5 h-1.5 rounded-full bg-white/15" />
-                {/* Moon glow — warm amber */}
-                <div className="absolute top-[8%] right-[18%] w-20 h-20 rounded-full bg-amber-200/10 blur-2xl" />
-              </div>
-            </div>
-          )}
+          <img
+            src="/img/merch-hero-1.png"
+            alt="Australian landscape"
+            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+          />
+          {/* Dark gradient — sits on top of the bg, extends the full
+              oversized height so it covers everything the bg covers */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         </motion.div>
 
-        {/* Gradient overlay — darkens bottom for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 z-[1]" />
+        {/* Warm colour wash for cohesion */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary-900/10 via-transparent to-primary-900/15 z-[1]" />
 
-        {/* Layer 1: Far mountains — medium parallax */}
+        {/* ── Layer 1: Foreground people ── */}
+        {/*
+         * Natural size, centered horizontally, bottom-aligned with the bg.
+         * Both layers start flush at the bottom; the different parallax
+         * rates make the people drift down faster → depth.
+         */}
         <motion.div
-          className="absolute inset-0 z-[2]"
-          style={rm ? undefined : { y: farY }}
+          className="absolute bottom-0 left-1/2 z-[3] will-change-transform"
+          style={{
+            transform: 'translateX(-50%)',
+            ...(rm ? {} : { y: fgY }),
+          }}
         >
-          <MountainsFar className="h-[65%]" />
+          <img
+            src="/img/merch-hero-2.png"
+            alt="Co-Exist members"
+            className="h-[420px] sm:h-[460px] md:h-[500px] w-auto max-w-none block"
+          />
         </motion.div>
 
-        {/* Layer 2: Near mountains — faster parallax */}
-        <motion.div
-          className="absolute inset-0 z-[3]"
-          style={rm ? undefined : { y: nearY }}
-        >
-          <MountainsNear className="h-[55%]" />
-        </motion.div>
-
-        {/* Layer 3: Tree line — barely moves, closest to viewer */}
-        <motion.div
-          className="absolute inset-0 z-[4]"
-          style={rm ? undefined : { y: treeY }}
-        >
-          <TreeLine className="h-[40%]" />
-        </motion.div>
-
-        {/* Ground — solid band at very bottom merging into content */}
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-secondary-950/80 to-transparent z-[5]" />
+        {/* Vignette — photographic depth */}
+        <div
+          className="absolute inset-0 z-[4] pointer-events-none"
+          style={{ boxShadow: 'inset 0 0 140px 50px rgba(0,0,0,0.3)' }}
+        />
 
         {/* Top bar: back + cart */}
         <div
@@ -428,7 +320,7 @@ function ShopHero({
 
         {/* Hero text — parallaxes away as you scroll */}
         <motion.div
-          className="absolute inset-x-0 bottom-0 z-[6] px-5 pb-6"
+          className="absolute inset-x-0 bottom-0 z-[5] px-5 pb-6"
           style={rm ? undefined : { y: textY, opacity: textOpacity }}
         >
           <h1 className="font-heading text-[1.75rem] sm:text-3xl font-bold text-white leading-tight tracking-tight drop-shadow-lg">
@@ -440,8 +332,8 @@ function ShopHero({
         </motion.div>
       </div>
 
-      {/* Transition into content — rolling hills with occasional rocky crags */}
-      <div className="relative -mt-1 z-20">
+      {/* Smooth transition into content — sits on top of the overflowing bg */}
+      <div className="relative z-20">
         <svg
           viewBox="0 0 1440 70"
           preserveAspectRatio="none"
@@ -475,7 +367,7 @@ function ShopHero({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Product card — with colored accent & hover depth                   */
+/*  Product card - with colored accent & hover depth                   */
 /* ------------------------------------------------------------------ */
 
 const ACCENT_COLORS = [
@@ -575,7 +467,7 @@ function isNewProduct(createdAt: string): boolean {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Featured product — bold gradient overlay card                      */
+/*  Featured product - bold gradient overlay card                      */
 /* ------------------------------------------------------------------ */
 
 function FeaturedProduct({ product, onClick }: { product: Product; onClick: () => void }) {
@@ -635,11 +527,11 @@ function FeaturedProduct({ product, onClick }: { product: Product; onClick: () =
 }
 
 /* ------------------------------------------------------------------ */
-/*  Impact banner — gradient card, not white                           */
+/*  Impact banner - gradient card, not white                           */
 /* ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ */
-/*  Impact strip — live community stats, every purchase contributes    */
+/*  Impact strip - live community stats, every purchase contributes    */
 /* ------------------------------------------------------------------ */
 
 function formatStat(n: number): string {
@@ -661,60 +553,38 @@ function ImpactStrip() {
 
   return (
     <motion.div variants={fadeUp}>
-      <div className="relative rounded-3xl overflow-visible bg-gradient-to-br from-primary-700 via-primary-600 to-moss-700 shadow-lg shadow-primary-800/15">
-        {/* Dot pattern texture */}
-        <div className="absolute inset-0 rounded-3xl overflow-hidden opacity-[0.06]">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <pattern id="impact-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                <circle cx="2" cy="2" r="1" fill="white" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#impact-dots)" />
-          </svg>
-        </div>
-
-        <div className="absolute top-0 right-0 w-28 h-28 rounded-full bg-sprout-300/15 blur-2xl" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-moss-300/10 blur-2xl" />
-
-        <div className="relative p-5 pb-7">
+      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-moss-700 shadow-lg shadow-primary-800/15">
+        <div className="p-5 pb-6">
           {/* Header */}
           <div className="flex items-center gap-2.5 mb-4">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/15 border border-white/10">
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/10">
               <Heart size={16} className="text-coral-300" />
             </div>
             <div>
               <p className="text-sm font-bold text-white leading-tight">Your purchases fund real impact</p>
-              <p className="text-[11px] text-white/50 mt-0.5">Community totals so far</p>
+              <p className="text-[11px] text-white/45 mt-0.5">Community totals so far</p>
             </div>
           </div>
 
           {/* Live stats row */}
           {stats ? (
-            <div className="flex items-center">
-              {stats.map(({ icon: Icon, value, label }, i) => (
-                <Fragment key={label}>
-                  {i > 0 && <div className="w-px self-stretch bg-white/[0.1] shrink-0" />}
-                  <div className="relative flex-1 px-3 py-3.5 text-center">
-                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
-                    <Icon size={16} className="relative text-sprout-300 mx-auto mb-1.5" />
-                    <p className="relative font-heading text-lg font-extrabold text-white leading-none">{value}</p>
-                    <p className="relative text-[10px] text-white/50 mt-1 leading-tight">{label}</p>
-                  </div>
-                </Fragment>
+            <div className="grid grid-cols-3 divide-x divide-white/[0.08]">
+              {stats.map(({ icon: Icon, value, label }) => (
+                <div key={label} className="py-3 text-center">
+                  <Icon size={16} className="text-sprout-300 mx-auto mb-1.5" />
+                  <p className="font-heading text-lg font-extrabold text-white leading-none">{value}</p>
+                  <p className="text-[10px] text-white/40 mt-1 leading-tight">{label}</p>
+                </div>
               ))}
             </div>
           ) : (
-            <div className="flex items-center">
+            <div className="grid grid-cols-3 divide-x divide-white/[0.08]">
               {[1, 2, 3].map((i) => (
-                <Fragment key={i}>
-                  {i > 1 && <div className="w-px self-stretch bg-white/[0.1] shrink-0" />}
-                  <div className="flex-1 px-3 py-3.5">
-                    <div className="w-4 h-4 rounded bg-white/10 mx-auto mb-1.5" />
-                    <div className="w-10 h-5 rounded bg-white/10 mx-auto" />
-                    <div className="w-14 h-2.5 rounded bg-white/10 mx-auto mt-1" />
-                  </div>
-                </Fragment>
+                <div key={i} className="py-3 text-center">
+                  <div className="w-4 h-4 rounded bg-white/10 mx-auto mb-1.5" />
+                  <div className="w-10 h-5 rounded bg-white/10 mx-auto" />
+                  <div className="w-14 h-2.5 rounded bg-white/10 mx-auto mt-1" />
+                </div>
               ))}
             </div>
           )}
@@ -725,14 +595,14 @@ function ImpactStrip() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Partner perk card — glassmorphism style                            */
+/*  Partner perk card - glassmorphism style                            */
 /* ------------------------------------------------------------------ */
 
 function PerkCard({ perk, isMember }: { perk: PartnerPerk; isMember: boolean }) {
   return (
-    <div className="shrink-0 w-64 snap-start rounded-3xl bg-white/80 backdrop-blur-sm shadow-sm border border-primary-100/40 overflow-hidden">
+    <div className="shrink-0 w-64 snap-start rounded-2xl bg-white/80 backdrop-blur-sm shadow-sm border border-primary-100/40 overflow-hidden">
       {/* Top gradient accent */}
-      <div className="h-1.5 bg-gradient-to-r from-moss-400 via-primary-400 to-sprout-400" />
+      <div className="h-1 bg-gradient-to-r from-moss-400 via-primary-400 to-sprout-400" />
 
       <div className="p-4">
         <div className="flex items-start gap-3">
@@ -856,7 +726,7 @@ function PartnerPerksSection({ rm }: { rm: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Section header — with gradient icon badge                          */
+/*  Section header - with gradient icon badge                          */
 /* ------------------------------------------------------------------ */
 
 function SectionHeader({
@@ -1009,7 +879,7 @@ export default function ShopPage() {
                 variants={rm ? undefined : stagger}
                 className="pb-8"
               >
-                {/* Hero — full bleed with wave transition */}
+                {/* Hero - full bleed with wave transition */}
                 <motion.div variants={rm ? undefined : fadeUp}>
                   <ShopHero
                     cartCount={cartCount}
@@ -1019,9 +889,9 @@ export default function ShopPage() {
                   />
                 </motion.div>
 
-                {/* Content below hero — padded */}
+                {/* Content below hero - padded */}
                 <div className="px-5 lg:px-6 space-y-6 -mt-1">
-                  {/* Search — elevated with subtle shadow */}
+                  {/* Search - elevated with subtle shadow */}
                   <motion.div variants={rm ? undefined : fadeUp}>
                     <div className="relative">
                       <SearchBar
@@ -1047,7 +917,7 @@ export default function ShopPage() {
                     </motion.div>
                   )}
 
-                  {/* Impact banner — now a gradient card */}
+                  {/* Impact banner - now a gradient card */}
                   {!search && activeCategory === CATEGORY_ALL && <ImpactStrip />}
 
                   {/* Featured product */}
@@ -1061,7 +931,7 @@ export default function ShopPage() {
                     </motion.div>
                   )}
 
-                  {/* Product grid — on a lightly tinted panel */}
+                  {/* Product grid - on a lightly tinted panel */}
                   {!gridProducts || gridProducts.length === 0 ? (
                     <EmptyState
                       illustration="search"
@@ -1096,7 +966,7 @@ export default function ShopPage() {
                     </div>
                   )}
 
-                  {/* Partner perks — on tinted panel */}
+                  {/* Partner perks - on tinted panel */}
                   <PartnerPerksSection rm={rm} />
                 </div>
               </motion.div>

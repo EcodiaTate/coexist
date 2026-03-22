@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { DollarSign, ShoppingBag, TrendingUp } from 'lucide-react'
+import { TabBar } from '@/components/tab-bar'
 import { StatCard } from '@/components/stat-card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -52,22 +53,13 @@ export default function AnalyticsTab() {
   return (
     <motion.div className="space-y-4" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
       {/* Period selector */}
-      <motion.div variants={fadeUp} className="flex gap-2">
-        {PERIODS.map((p) => (
-          <button
-            key={p.value}
-            type="button"
-            onClick={() => setPeriod(p.value)}
-            className={cn(
-              'px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors',
-              period === p.value
-                ? 'ring-2 ring-primary-500 bg-white text-primary-400 shadow-sm'
-                : 'bg-primary-50/60 text-primary-400',
-            )}
-          >
-            {p.label}
-          </button>
-        ))}
+      <motion.div variants={fadeUp}>
+        <TabBar
+          tabs={PERIODS.map((p) => ({ id: p.value, label: p.label }))}
+          activeTab={period}
+          onChange={(id) => setPeriod(id as 'week' | 'month' | 'year')}
+          aria-label="Analytics period"
+        />
       </motion.div>
 
       {/* Stat cards */}
@@ -97,7 +89,7 @@ export default function AnalyticsTab() {
             {analytics.by_product.map((row) => (
               <div
                 key={row.product_id}
-                className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm"
+                className="flex items-center justify-between p-3.5 bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 rounded-2xl shadow-sm"
               >
                 <div>
                   <p className="text-sm font-medium text-primary-800">{row.product_name}</p>
@@ -120,7 +112,7 @@ export default function AnalyticsTab() {
             {analytics.by_period.map((row) => (
               <div
                 key={row.date}
-                className="flex items-center justify-between px-3 py-2 bg-white rounded-lg text-sm"
+                className="flex items-center justify-between px-3.5 py-2.5 bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/20 rounded-xl text-sm"
               >
                 <span className="text-primary-400">{row.date}</span>
                 <div className="flex gap-3">

@@ -12,6 +12,7 @@ export default function ShippingTab() {
   const updateConfig = useUpdateShippingConfig()
   const { toast } = useToast()
 
+  const shouldReduceMotion = useReducedMotion()
   const [flatRate, setFlatRate] = useState('')
   const [freeThreshold, setFreeThreshold] = useState('')
 
@@ -43,8 +44,6 @@ export default function ShippingTab() {
   if (isLoading) {
     return <Skeleton variant="text" count={3} />
   }
-
-  const shouldReduceMotion = useReducedMotion()
 
   const stagger = {
     hidden: {},

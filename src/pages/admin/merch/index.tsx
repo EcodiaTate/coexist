@@ -14,15 +14,25 @@ import ReviewsTab from './reviews-tab'
 import ShippingTab from './shipping-tab'
 
 /* Combined tab components */
+function SectionHeader({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-200/40 to-transparent" />
+      <span className="text-[11px] font-bold text-primary-500 uppercase tracking-[0.12em]">{label}</span>
+      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-200/40 to-transparent" />
+    </div>
+  )
+}
+
 function FeedbackTab() {
   return (
     <div className="space-y-8">
       <section>
-        <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">Returns</h3>
+        <SectionHeader label="Returns" />
         <ReturnsTab />
       </section>
       <section>
-        <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">Reviews</h3>
+        <SectionHeader label="Reviews" />
         <ReviewsTab />
       </section>
     </div>
@@ -33,11 +43,11 @@ function OperationsTab() {
   return (
     <div className="space-y-8">
       <section>
-        <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">Promotions</h3>
+        <SectionHeader label="Promotions" />
         <PromosTab />
       </section>
       <section>
-        <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">Shipping</h3>
+        <SectionHeader label="Shipping" />
         <ShippingTab />
       </section>
     </div>
@@ -79,8 +89,8 @@ export default function AdminMerchPage() {
   }
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
-      <motion.div variants={fadeUp} className="px-4 pt-3">
+    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="min-h-full">
+      <motion.div variants={fadeUp} className="px-4 pt-3 sticky top-0 z-20 bg-gradient-to-b from-white via-white to-white/0 pb-2">
         <TabBar
           tabs={TABS}
           activeTab={activeTab}
@@ -89,11 +99,10 @@ export default function AdminMerchPage() {
         />
       </motion.div>
       <motion.div
-        variants={fadeUp}
         key={activeTab}
-        initial={shouldReduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.15 }}
+        initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
         className="px-4 py-4"
       >
         <ActiveComponent />

@@ -1,23 +1,21 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
-  MapPin as MapPinIcon,
-  List,
-  Map,
-  Users,
-  ChevronRight,
+    MapPin as MapPinIcon,
+    List,
+    Map,
+    Users,
+    ChevronRight,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { SearchBar } from '@/components/search-bar'
-import { Avatar } from '@/components/avatar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { MapView } from '@/components/map-view'
-import { Chip } from '@/components/chip'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import type { MapMarker } from '@/components'
@@ -176,14 +174,14 @@ export default function DiscoverCollectivesPage() {
 
           {/* ── Animated decorative shapes ── */}
 
-          {/* Large breathing ring — top right */}
+          {/* Large breathing ring - top right */}
           <BreathingRing
             className="-top-16 -right-16"
             size={180}
             reducedMotion={rm}
             duration={7}
           />
-          {/* Concentric inner ring — offset from the large one */}
+          {/* Concentric inner ring - offset from the large one */}
           <BreathingRing
             className="-top-6 -right-6"
             size={120}
@@ -192,7 +190,7 @@ export default function DiscoverCollectivesPage() {
             delay={0.5}
           />
 
-          {/* Small breathing ring — bottom left */}
+          {/* Small breathing ring - bottom left */}
           <BreathingRing
             className="bottom-32 -left-10"
             size={100}
@@ -201,7 +199,7 @@ export default function DiscoverCollectivesPage() {
             delay={1}
           />
 
-          {/* Blurred moss glow — bottom left */}
+          {/* Blurred moss glow - bottom left */}
           <motion.div
             className="absolute bottom-48 -left-6 w-28 h-28 rounded-full bg-moss-100/30 blur-2xl"
             animate={
@@ -212,7 +210,7 @@ export default function DiscoverCollectivesPage() {
             transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
           />
 
-          {/* Warm glow — center right */}
+          {/* Warm glow - center right */}
           <motion.div
             className="absolute top-1/3 -right-4 w-24 h-24 rounded-full bg-secondary-100/20 blur-xl"
             animate={

@@ -24,7 +24,7 @@ const pushTransition = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Revisit: subtle quick fade — feels instant but not jarring         */
+/*  Revisit: subtle quick fade - feels instant but not jarring         */
 /* ------------------------------------------------------------------ */
 
 const revisitVariants = {
@@ -63,7 +63,7 @@ const instantVariants = {
 const instantTransition = { duration: 0 }
 
 /* ------------------------------------------------------------------ */
-/*  Visited path cache — persists for the session                      */
+/*  Visited path cache - persists for the session                      */
 /* ------------------------------------------------------------------ */
 
 const visitedPaths = new Set<string>()

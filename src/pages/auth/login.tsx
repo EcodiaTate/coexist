@@ -79,14 +79,14 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-950" />
 
       {/* ── Bold geometric shapes ── */}
-      {/* Big filled circle — top-right */}
+      {/* Big filled circle - top-right */}
       <motion.div
         initial={rm ? {} : { scale: 0.6, opacity: 0 }}
         animate={{ scale: [1, 1.04, 1], opacity: 1 }}
         transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.5, ease: 'easeOut' } }}
         className="absolute -right-[15%] -top-[12%] w-[55vw] h-[55vw] max-w-[500px] max-h-[500px] rounded-full bg-white/[0.06]"
       />
-      {/* Large ring — bottom-left */}
+      {/* Large ring - bottom-left */}
       <motion.div
         initial={rm ? {} : { scale: 0.5, opacity: 0 }}
         animate={{ scale: [1, 1.05, 1], opacity: 1 }}
@@ -100,14 +100,14 @@ export default function LoginPage() {
         transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.8, delay: 0.5, ease: 'easeOut' } }}
         className="absolute -left-[14%] -bottom-[4%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.06]"
       />
-      {/* Small ring — top-left accent */}
+      {/* Small ring - top-left accent */}
       <motion.div
         initial={rm ? {} : { scale: 0.5, opacity: 0 }}
         animate={{ scale: [1, 1.06, 1], opacity: 1 }}
         transition={{ scale: { duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 2, delay: 0.8, ease: 'easeOut' } }}
         className="absolute left-[8%] top-[6%] w-[25vw] h-[25vw] max-w-[200px] max-h-[200px] rounded-full border border-white/[0.05]"
       />
-      {/* Small filled accent — mid-left */}
+      {/* Small filled accent - mid-left */}
       <motion.div
         initial={rm ? {} : { scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -250,7 +250,7 @@ export default function LoginPage() {
               <div className="flex-1 h-px bg-white/[0.10]" />
             </div>
 
-            {/* Form card — glassmorphic */}
+            {/* Form card - glassmorphic */}
             <div className="bg-white/[0.10] backdrop-blur-md rounded-2xl p-5 space-y-4">
               <Input
                 type="email"

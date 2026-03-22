@@ -112,14 +112,13 @@ function PromoFormSheet({
 
 export default function PromosTab() {
   const { data: promos, isLoading } = useAdminPromoCodes()
+  const shouldReduceMotion = useReducedMotion()
   const [formOpen, setFormOpen] = useState(false)
   const [editPromo, setEditPromo] = useState<PromoCode | undefined>()
 
   if (isLoading) {
     return <Skeleton variant="text" count={5} />
   }
-
-  const shouldReduceMotion = useReducedMotion()
 
   const stagger = {
     hidden: {},
@@ -162,7 +161,7 @@ export default function PromosTab() {
           {promos.map((promo) => (
             <StaggeredItem
               key={promo.id}
-              className="flex items-center justify-between p-3 bg-white rounded-xl shadow-sm"
+              className="flex items-center justify-between p-3.5 bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 rounded-2xl shadow-sm"
             >
               <div>
                 <div className="flex items-center gap-2">

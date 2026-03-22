@@ -2,30 +2,28 @@ import { useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import {
-  ArrowLeft,
-  Users,
-  CalendarDays,
-  MapPin,
-  TreePine,
-  Trash2 as TrashIcon,
-  Clock,
-  Crown,
-  Shield,
-  ShieldCheck,
-  ShieldAlert,
-  UserMinus,
-  UserPlus,
-  RotateCcw,
-  Search,
-  Download,
-  Archive,
-  AlertTriangle,
-  ExternalLink,
-  Eye,
-  Waves,
-  Leaf,
-  TrendingUp,
-  Sparkles,
+    ArrowLeft,
+    Users,
+    CalendarDays,
+    MapPin,
+    TreePine, Clock,
+    Crown,
+    Shield,
+    ShieldCheck,
+    ShieldAlert,
+    UserMinus,
+    UserPlus,
+    RotateCcw,
+    Search,
+    Download,
+    Archive,
+    AlertTriangle,
+    ExternalLink,
+    Eye,
+    Waves,
+    Leaf,
+    TrendingUp,
+    Sparkles
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -41,21 +39,21 @@ import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useCountUp } from '@/components/stat-card'
 import {
-  useAdminCollectiveDetail,
-  useAdminCollectiveMembers,
-  useAdminCollectiveEvents,
-  useAdminCollectiveStats,
-  useAdminUpdateCollective,
-  useAdminUpdateMemberRole,
-  useAdminRemoveMember,
-  useAdminRestoreMember,
-  useAdminAddMember,
-  useArchiveCollective,
-  useDeleteCollective,
-  useSearchUsers,
-  exportAdminMembersCSV,
-  type AdminCollectiveMember,
-  type AdminCollectiveEvent,
+    useAdminCollectiveDetail,
+    useAdminCollectiveMembers,
+    useAdminCollectiveEvents,
+    useAdminCollectiveStats,
+    useAdminUpdateCollective,
+    useAdminUpdateMemberRole,
+    useAdminRemoveMember,
+    useAdminRestoreMember,
+    useAdminAddMember,
+    useArchiveCollective,
+    useDeleteCollective,
+    useSearchUsers,
+    exportAdminMembersCSV,
+    type AdminCollectiveMember,
+    type AdminCollectiveEvent,
 } from '@/hooks/use-admin-collectives'
 import type { Database } from '@/types/database.types'
 
@@ -100,7 +98,7 @@ const AUSTRALIAN_STATES = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'] 
 type TabKey = 'overview' | 'members' | 'events' | 'settings'
 
 /* ------------------------------------------------------------------ */
-/*  Rich stat card — gradient surface with icon & countUp             */
+/*  Rich stat card - gradient surface with icon & countUp             */
 /* ------------------------------------------------------------------ */
 
 function RichStatCard({
@@ -145,7 +143,7 @@ function RichStatCard({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Hero stat — large gradient card (used for top 4 stats)            */
+/*  Hero stat - large gradient card (used for top 4 stats)            */
 /* ------------------------------------------------------------------ */
 
 function HeroStat({
@@ -288,7 +286,7 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
         </div>
       </motion.div>
 
-      {/* ── Primary stats — 4 hero cards ── */}
+      {/* ── Primary stats - 4 hero cards ── */}
       {statsLoading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -429,7 +427,7 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
 }
 
 /* ------------------------------------------------------------------ */
-/*  Event row — rich card style                                        */
+/*  Event row - rich card style                                        */
 /* ------------------------------------------------------------------ */
 
 const EVENT_STATUS_STYLES: Record<string, { bg: string; text: string; dot: string }> = {
@@ -1288,7 +1286,7 @@ export default function AdminCollectiveDetailPage() {
         </button>
       </motion.div>
 
-      {/* ── Tab bar — rich pill style ── */}
+      {/* ── Tab bar - rich pill style ── */}
       <motion.div
         initial={rm ? {} : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}

@@ -3,9 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Heart, Users, Sparkles, Crown, ChevronRight, ArrowLeft,
-  TreePine, Leaf, Waves, MapPin, Zap,
-  TrendingUp, ShieldCheck,
+    Heart, Users, Sparkles, Crown, ChevronRight, ArrowLeft,
+    TreePine, Leaf, Waves, MapPin, Zap,
+    TrendingUp, ShieldCheck,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Button } from '@/components/button'
@@ -18,9 +18,9 @@ import { useDonationProjects, useCreateDonation } from '@/hooks/use-donations'
 import { redirectToCheckout } from '@/lib/stripe'
 import { supabase } from '@/lib/supabase'
 import {
-  PRESET_AMOUNTS,
-  getImpactMessage,
-  type DonationProject,
+    PRESET_AMOUNTS,
+    getImpactMessage,
+    type DonationProject,
 } from '@/types/donations'
 import { cn } from '@/lib/cn'
 
@@ -87,7 +87,7 @@ const IMPACT_ICONS: Record<number, React.ReactNode> = {
 function PageDepthElements({ rm }: { rm: boolean }) {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* Large ring — upper right */}
+      {/* Large ring - upper right */}
       <motion.div
         className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-bark-300/22"
         animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.4, 0.7, 0.4] }}
@@ -119,7 +119,7 @@ function PageDepthElements({ rm }: { rm: boolean }) {
         transition={{ duration: 55, repeat: Infinity, ease: 'linear' }}
       />
 
-      {/* Floating particles — golden & earthy */}
+      {/* Floating particles - golden & earthy */}
       <motion.div className="absolute top-[18%] right-[16%] w-3.5 h-3.5 rounded-full bg-warning-400/18"
         animate={rm ? undefined : { y: [-6, 6, -6], x: [0, 4, 0] }} transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }} />
       <motion.div className="absolute top-[45%] left-[10%] w-3 h-3 rounded-full bg-bark-400/15"
@@ -131,7 +131,7 @@ function PageDepthElements({ rm }: { rm: boolean }) {
       <motion.div className="absolute top-[55%] right-8 w-2 h-2 rounded-full bg-warning-300/15"
         animate={rm ? undefined : { y: [-3, 3, -3], x: [1, -1, 1] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }} />
 
-      {/* Rich blurred orbs — golden amber warmth */}
+      {/* Rich blurred orbs - golden amber warmth */}
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-warning-200/25 via-bark-100/15 to-transparent blur-[60px]" />
       <div className="absolute -top-12 -left-16 w-[300px] h-[280px] rounded-full bg-gradient-to-br from-bark-200/22 to-transparent blur-[50px]" />
       <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-bark-100/18 blur-[50px]" />
@@ -174,7 +174,7 @@ function ImpactBadge({ amount }: { amount: number }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  National stats — gradient cards (no blue)                          */
+/*  National stats - gradient cards (no blue)                          */
 /* ------------------------------------------------------------------ */
 
 function NationalStatsStrip() {
@@ -488,7 +488,7 @@ export default function DonatePage() {
           <div className="absolute inset-0 bg-gradient-to-b from-[#f2ece0] via-[#f0ead9] via-30% to-[#eae5d4] to-65%" />
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-bark-50/12 to-moss-50/15" />
 
-          {/* Topographic contour lines — earthy bushland feel */}
+          {/* Topographic contour lines - earthy bushland feel */}
           <svg className="absolute inset-0 w-full h-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="donate-topo" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
@@ -660,7 +660,7 @@ export default function DonatePage() {
               </motion.div>
 
               {/* ═══════════════════════════════════════════════════ */}
-              {/*  PROJECT SELECTION — tinted panel with wave        */}
+              {/*  PROJECT SELECTION - tinted panel with wave        */}
               {/* ═══════════════════════════════════════════════════ */}
               {loadingProjects ? (
                 <motion.div variants={fadeUp}>
@@ -773,7 +773,7 @@ export default function DonatePage() {
           </div>
         </div>
 
-        {/* Sticky donate button — no background panel */}
+        {/* Sticky donate button - no background panel */}
         <div
           className="sticky bottom-0 z-30 px-5 lg:px-6 pb-3 pt-3"
           style={{ paddingBottom: 'calc(var(--safe-bottom) + 0.75rem)' }}

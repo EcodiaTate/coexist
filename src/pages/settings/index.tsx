@@ -2,29 +2,24 @@ import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Bell,
-  BellOff,
-  MessageSquare,
-  Moon,
-  Shield,
-  Eye,
-  Trophy,
-  Mail,
-  Lock,
-  AtSign,
-  Trash2,
-  Heart,
-  FileText,
-  ShieldCheck,
-  HelpCircle,
-  LifeBuoy,
-  Cookie,
-  Info,
-  LogOut,
-  ChevronRight,
-  Clock,
-  Volume2,
-  VolumeX,
+    Bell, MessageSquare,
+    Moon,
+    Shield,
+    Eye,
+    Trophy,
+    Mail,
+    Lock,
+    AtSign,
+    Trash2,
+    Heart,
+    FileText,
+    ShieldCheck,
+    HelpCircle,
+    LifeBuoy,
+    Cookie,
+    Info,
+    LogOut,
+    ChevronRight, Volume2
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -39,12 +34,12 @@ import { useAuth } from '@/hooks/use-auth'
 import { usePlatform } from '@/hooks/use-platform'
 import { useToast } from '@/components/toast'
 import {
-  APP_NAME,
-  TAGLINE,
-  CONTACT_EMAIL,
-  WEBSITE_URL,
-  INSTAGRAM_URL,
-  FACEBOOK_URL,
+    APP_NAME,
+    TAGLINE,
+    CONTACT_EMAIL,
+    WEBSITE_URL,
+    INSTAGRAM_URL,
+    FACEBOOK_URL,
 } from '@/lib/constants'
 import type { NotificationPreferences } from '@/hooks/use-notifications'
 import { DEFAULT_PREFERENCES } from '@/hooks/use-notifications'
@@ -78,35 +73,35 @@ function DecorativeShapes({ reduced }: { reduced: boolean }) {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Large ring — top right */}
+      {/* Large ring - top right */}
       <motion.div
         className="absolute -top-20 -right-16 w-64 h-64 rounded-full border-[3px] border-primary-200/25"
         animate={{ rotate: 360 }}
         transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
       />
 
-      {/* Medium ring — left mid */}
+      {/* Medium ring - left mid */}
       <motion.div
         className="absolute top-[40%] -left-24 w-48 h-48 rounded-full border-[2px] border-primary-200/20"
         animate={{ rotate: -360 }}
         transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
       />
 
-      {/* Soft glow — top left */}
+      {/* Soft glow - top left */}
       <motion.div
         className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-primary-100/20 blur-3xl"
         animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.35, 0.2] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Soft glow — bottom right */}
+      {/* Soft glow - bottom right */}
       <motion.div
         className="absolute -bottom-16 -right-8 w-56 h-56 rounded-full bg-primary-100/15 blur-3xl"
         animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.3, 0.15] }}
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
       />
 
-      {/* Small floating dot cluster — top center */}
+      {/* Small floating dot cluster - top center */}
       <motion.div
         className="absolute top-16 left-1/2 w-3 h-3 rounded-full bg-primary-300/20"
         animate={{ y: [0, -10, 0], x: [0, 5, 0] }}
@@ -123,14 +118,14 @@ function DecorativeShapes({ reduced }: { reduced: boolean }) {
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
       />
 
-      {/* Small ring — bottom left */}
+      {/* Small ring - bottom left */}
       <motion.div
         className="absolute bottom-32 -left-6 w-20 h-20 rounded-full border border-primary-200/20"
         animate={{ rotate: 360 }}
         transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
       />
 
-      {/* Floating dots — mid right */}
+      {/* Floating dots - mid right */}
       <motion.div
         className="absolute top-[60%] right-8 w-2.5 h-2.5 rounded-full bg-primary-300/20"
         animate={{ y: [0, -12, 0] }}

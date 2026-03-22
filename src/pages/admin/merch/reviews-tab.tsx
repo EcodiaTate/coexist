@@ -14,6 +14,7 @@ export default function ReviewsTab() {
   const { data: reviews, isLoading } = useAdminReviews()
   const moderate = useModerateReview()
   const { toast } = useToast()
+  const shouldReduceMotion = useReducedMotion()
 
   const handleModerate = useCallback(
     async (reviewId: string, status: 'approved' | 'removed') => {
@@ -41,8 +42,6 @@ export default function ReviewsTab() {
     )
   }
 
-  const shouldReduceMotion = useReducedMotion()
-
   const stagger = {
     hidden: {},
     visible: { transition: { staggerChildren: 0.04 } },
@@ -60,7 +59,7 @@ export default function ReviewsTab() {
       {reviews.map((review) => (
         <StaggeredItem
           key={review.id}
-          className="p-4 bg-white rounded-2xl shadow-sm"
+          className="p-4 bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf] border border-primary-200/25 rounded-[20px] shadow-[0_4px_20px_-4px_rgba(61,77,51,0.10),0_1px_4px_rgba(61,77,51,0.04)]"
         >
           <div className="flex items-center gap-2 mb-2">
             <Avatar

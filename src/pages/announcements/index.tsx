@@ -11,9 +11,9 @@ import { SearchBar } from '@/components/search-bar'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import {
-  useAnnouncements,
-  useMarkAnnouncementRead,
-  type AnnouncementWithAuthor,
+    useAnnouncements,
+    useMarkAnnouncementRead,
+    type AnnouncementWithAuthor,
 } from '@/hooks/use-announcements'
 
 /* ------------------------------------------------------------------ */
@@ -56,17 +56,17 @@ function DecorativeBackground() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Multi-stop gradient — warm olive-moss canopy */}
+      {/* Multi-stop gradient - warm olive-moss canopy */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/60 via-primary-100/35 via-25% to-moss-50/20 to-60%" />
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-sprout-50/15 to-bark-50/15" />
 
-      {/* Concentrated hero glow — top center */}
+      {/* Concentrated hero glow - top center */}
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/30 via-primary-200/20 to-transparent blur-[60px]" />
 
-      {/* Warm accent — top right */}
+      {/* Warm accent - top right */}
       <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-gradient-to-bl from-bark-200/20 to-transparent blur-[50px]" />
 
-      {/* Large breathing ring — top right */}
+      {/* Large breathing ring - top right */}
       <motion.div
         className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/22"
         animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
@@ -79,7 +79,7 @@ function DecorativeBackground() {
         transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Medium ring — left side */}
+      {/* Medium ring - left side */}
       <motion.div
         className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/22"
         animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
@@ -98,7 +98,7 @@ function DecorativeBackground() {
         transition={{ repeat: Infinity, duration: 55, ease: 'linear' }}
       />
 
-      {/* Deep warm glow — mid left */}
+      {/* Deep warm glow - mid left */}
       <motion.div
         className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/20 blur-[50px]"
         animate={r ? {} : { scale: [1, 1.14, 1], opacity: [0.22, 0.4, 0.22] }}

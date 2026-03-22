@@ -1,22 +1,20 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import {
-  Settings,
-  Share2,
-  Edit3,
-  MapPin,
-  Instagram,
-  Calendar,
-  Clock,
-  TreePine,
-  Star,
-  Trash2,
-  Waves,
-  Sprout,
-  Bird,
-  Ruler,
-  Pencil,
+    Settings,
+    Share2,
+    Edit3,
+    MapPin,
+    Instagram,
+    Calendar,
+    Clock,
+    TreePine,
+    Star,
+    Trash2,
+    Waves,
+    Sprout,
+    Bird,
+    Ruler
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -30,11 +28,9 @@ import { Card } from '@/components/card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { CountUp } from '@/components/count-up'
-import { useToast } from '@/components/toast'
-import { cn } from '@/lib/cn'
 import { OfflineIndicator } from '@/components/offline-indicator'
 import { useAuth } from '@/hooks/use-auth'
-import { useProfile, useProfileCollectives, useProfileStats, useUpdateProfile } from '@/hooks/use-profile'
+import { useProfile, useProfileCollectives, useProfileStats } from '@/hooks/use-profile'
 import { usePointsBalance, getTierProgress, getTierFromPoints } from '@/hooks/use-points'
 import type { TierName } from '@/hooks/use-points'
 
@@ -67,21 +63,21 @@ const fadeUp: Variants = {
 function DecoShapes({ rm }: { rm: boolean }) {
   return (
     <>
-      {/* Large ring — top right, breathing animation */}
+      {/* Large ring - top right, breathing animation */}
       <motion.div
         className="absolute -top-14 -right-14 w-52 h-52 rounded-full border-2 border-primary-200/35"
         animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.35, 0.5, 0.35] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Blurred glow — bottom left */}
+      {/* Blurred glow - bottom left */}
       <motion.div
         className="absolute -bottom-20 -left-20 w-64 h-64 rounded-full bg-moss-100/40 blur-3xl"
         animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.3, 0.45, 0.3] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Small ring — mid left */}
+      {/* Small ring - mid left */}
       <motion.div
         className="absolute top-60 -left-6 w-24 h-24 rounded-full border-2 border-moss-200/30"
         animate={rm ? undefined : { rotate: -360 }}

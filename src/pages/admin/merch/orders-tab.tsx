@@ -12,6 +12,7 @@ import {
     ExternalLink,
     StickyNote,
 } from 'lucide-react'
+import { TabBar } from '@/components/tab-bar'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { SearchBar } from '@/components/search-bar'
@@ -164,7 +165,7 @@ function OrderCounts({ orders }: { orders: OrderWithProfile[] }) {
   return (
     <div className="grid grid-cols-4 gap-2 mb-4">
       {cards.map((c) => (
-        <div key={c.label} className={cn('p-2.5 rounded-xl text-center', c.color)}>
+        <div key={c.label} className={cn('p-2.5 rounded-xl text-center shadow-sm border border-primary-100/20', c.color)}>
           <p className="font-heading text-lg font-bold tabular-nums">{c.count}</p>
           <p className="text-[10px] font-medium mt-0.5">{c.label}</p>
         </div>
@@ -305,22 +306,13 @@ export default function OrdersTab() {
       )}
 
       {/* Filters */}
-      <motion.div variants={fadeUp} className="flex gap-2 mb-3 overflow-x-auto scrollbar-none">
-        {STATUS_OPTIONS.map((opt) => (
-          <button
-            key={opt.value}
-            type="button"
-            onClick={() => setStatusFilter(opt.value)}
-            className={cn(
-              'px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap cursor-pointer transition-colors',
-              statusFilter === opt.value
-                ? 'ring-2 ring-primary-500 bg-white text-primary-800 shadow-sm'
-                : 'bg-primary-50/60 text-primary-400',
-            )}
-          >
-            {opt.label}
-          </button>
-        ))}
+      <motion.div variants={fadeUp} className="mb-3">
+        <TabBar
+          tabs={STATUS_OPTIONS.map((opt) => ({ id: opt.value, label: opt.label }))}
+          activeTab={statusFilter}
+          onChange={(id) => setStatusFilter(id as OrderStatus | 'all')}
+          aria-label="Order status filter"
+        />
       </motion.div>
 
       {/* Search + export */}
@@ -352,7 +344,7 @@ export default function OrdersTab() {
                 key={order.id}
                 type="button"
                 onClick={() => openOrder(order)}
-                className="w-full text-left p-4 bg-white rounded-2xl shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                className="w-full text-left p-4 bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf] border border-primary-200/30 rounded-[20px] shadow-[0_4px_20px_-4px_rgba(61,77,51,0.10),0_1px_4px_rgba(61,77,51,0.04)] cursor-pointer hover:shadow-[0_6px_28px_-4px_rgba(61,77,51,0.16)] transition-all duration-200 active:scale-[0.98]"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">

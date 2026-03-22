@@ -119,21 +119,21 @@ export function Page({
           className,
         )}
       >
-        {/* Atmospheric background — gentle gradient + soft decorative shapes */}
+        {/* Atmospheric background - gentle gradient + soft decorative shapes */}
         {!noBackground && (
           <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
             <div className="absolute inset-0 bg-gradient-to-b from-primary-50/50 via-white to-moss-50/20" />
-            {/* Large soft ring — top right */}
+            {/* Large soft ring - top right */}
             <div className="absolute -top-20 -right-20 w-[340px] h-[340px] rounded-full border-2 border-moss-200/25" />
             {/* Concentric inner ring */}
             <div className="absolute -top-6 -right-6 w-[220px] h-[220px] rounded-full border border-primary-200/15" />
-            {/* Blurred glow — bottom left */}
+            {/* Blurred glow - bottom left */}
             <div className="absolute -bottom-20 -left-16 w-[300px] h-[300px] rounded-full bg-moss-100/30 blur-3xl" />
-            {/* Small ring — mid left */}
+            {/* Small ring - mid left */}
             <div className="absolute top-[45%] -left-8 w-[100px] h-[100px] rounded-full border border-primary-100/25" />
-            {/* Warm glow — center right */}
+            {/* Warm glow - center right */}
             <div className="absolute top-[20%] -right-10 w-[200px] h-[200px] rounded-full bg-primary-50/20 blur-3xl" />
-            {/* Small filled accent — lower right */}
+            {/* Small filled accent - lower right */}
             <div className="absolute bottom-[15%] right-[8%] w-[60px] h-[60px] rounded-full bg-moss-100/20" />
             {/* Dots */}
             <div className="absolute top-16 left-[14%] w-2 h-2 rounded-full bg-moss-200/30" />

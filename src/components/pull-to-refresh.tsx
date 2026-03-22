@@ -1,8 +1,8 @@
 import {
-  type ReactNode,
-  useState,
-  useRef,
-  useCallback,
+    type ReactNode,
+    useState,
+    useRef,
+    useCallback,
 } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Sprout } from 'lucide-react'
@@ -100,7 +100,7 @@ export function PullToRefresh({
       onTouchEnd={handleTouchEnd}
       className={cn('relative overflow-y-auto', className)}
     >
-      {/* Content — pulls down, revealing the page's own background behind it */}
+      {/* Content - pulls down, revealing the page's own background behind it */}
       <motion.div
         animate={{ y: active ? pullDistance : 0 }}
         transition={
@@ -114,7 +114,7 @@ export function PullToRefresh({
         {children}
       </motion.div>
 
-      {/* Pull indicator — positioned in the gap, no background of its own */}
+      {/* Pull indicator - positioned in the gap, no background of its own */}
       {active && (
         <div
           aria-hidden="true"

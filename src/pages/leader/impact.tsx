@@ -1,17 +1,17 @@
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  ArrowLeft,
-  TreePine,
-  Waves,
-  Clock,
-  Eye,
-  Leaf,
-  MapPin,
-  Users,
-  CalendarDays,
-  CheckCircle2,
-  TrendingUp,
+    ArrowLeft,
+    TreePine,
+    Waves,
+    Clock,
+    Eye,
+    Leaf,
+    MapPin,
+    Users,
+    CalendarDays,
+    CheckCircle2,
+    TrendingUp,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useLeaderHeader, useLeaderContext } from '@/components/leader-layout'
@@ -22,7 +22,7 @@ import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 
 /* ------------------------------------------------------------------ */
-/*  Data — all collective stats                                        */
+/*  Data - all collective stats                                        */
 /* ------------------------------------------------------------------ */
 
 function useCollectiveFullStats(collectiveId: string | undefined) {
@@ -113,7 +113,7 @@ const fadeUp = {
 function DecoShapes({ rm }: { rm: boolean }) {
   return (
     <>
-      {/* Large breathing ring — top right */}
+      {/* Large breathing ring - top right */}
       <motion.div
         className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-moss-300/25"
         animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
@@ -126,21 +126,21 @@ function DecoShapes({ rm }: { rm: boolean }) {
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Medium ring — left side */}
+      {/* Medium ring - left side */}
       <motion.div
         className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-sprout-300/22"
         animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
       />
 
-      {/* Small ring — bottom right */}
+      {/* Small ring - bottom right */}
       <motion.div
         className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-moss-300/18"
         animate={rm ? undefined : { rotate: 360 }}
         transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
       />
 
-      {/* Deep warm glow — mid left */}
+      {/* Deep warm glow - mid left */}
       <motion.div
         className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/22 blur-[50px]"
         animate={rm ? undefined : { scale: [1, 1.14, 1], opacity: [0.22, 0.4, 0.22] }}
@@ -201,7 +201,7 @@ function ImpactCard({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Stat row — lighter style for secondary stats                       */
+/*  Stat row - lighter style for secondary stats                       */
 /* ------------------------------------------------------------------ */
 
 function StatRow({
@@ -285,7 +285,7 @@ export default function LeaderImpactPage() {
     )
   }
 
-  // Build cards list — only show cards with data
+  // Build cards list - only show cards with data
   const impactCards = [
     { value: stats.trees, label: 'Trees Planted', icon: <TreePine />, gradient: 'bg-gradient-to-br from-moss-500 to-moss-700' },
     { value: stats.hours, label: 'Volunteer Hours', unit: 'hrs', icon: <Clock />, gradient: 'bg-gradient-to-br from-primary-500 to-primary-700' },
@@ -358,7 +358,7 @@ export default function LeaderImpactPage() {
               color="bg-success-100"
             />
             <StatRow
-              value={stats.attendanceRate > 0 ? `${stats.attendanceRate}%` : '—'}
+              value={stats.attendanceRate > 0 ? `${stats.attendanceRate}%` : '-'}
               label="Attendance Rate"
               icon={<TrendingUp size={18} className="text-secondary-600" />}
               color="bg-secondary-100"

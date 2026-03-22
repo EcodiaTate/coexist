@@ -40,7 +40,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
   // Handles auto-sync on reconnect + toast notifications
   useSyncManager()
 
-  // Push notification registration — sets up FCM/APNs listeners,
+  // Push notification registration - sets up FCM/APNs listeners,
   // stores token in DB, handles deep-link routing on tap,
   // re-registers on app resume. Runs once for all authenticated users.
   usePushRegistration()
@@ -53,7 +53,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
   return (
     <div className={cn(
       'flex flex-col bg-surface-1',
-      // Mobile/native: fixed viewport — only inner Page <main> scrolls (native app feel)
+      // Mobile/native: fixed viewport - only inner Page <main> scrolls (native app feel)
       // Desktop web: document can grow for natural window scrolling + WebFooter
       showBottomTabs ? 'h-dvh overflow-hidden' : 'min-h-dvh',
     )}>
@@ -74,10 +74,10 @@ function AppShellInner({ children }: { children: ReactNode }) {
       {/* Web footer - full width, below the sidebar row so sidebar unsticks at footer */}
       {isWeb && !isMobile && !isChatRoute && <WebFooter />}
 
-      {/* Bottom tab bar (mobile + native) — hidden on admin/leader pages */}
+      {/* Bottom tab bar (mobile + native) - hidden on admin/leader pages */}
       {showBottomTabs && !isAdminRoute && !isLeaderRoute && <BottomTabBar />}
 
-      {/* Fixed hamburger (mobile + native) — always visible, top-right, white, no background */}
+      {/* Fixed hamburger (mobile + native) - always visible, top-right, white, no background */}
       {showBottomTabs && !isAdminRoute && !isLeaderRoute && (
         <button
           type="button"
@@ -92,7 +92,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
         </button>
       )}
 
-      {/* Menu side sheet (mobile + native) — hidden on admin/leader pages */}
+      {/* Menu side sheet (mobile + native) - hidden on admin/leader pages */}
       {showBottomTabs && !isAdminRoute && !isLeaderRoute && <MenuSheet open={open} onClose={closeMenu} />}
     </div>
   )

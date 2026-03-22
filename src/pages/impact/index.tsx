@@ -3,17 +3,17 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import {
-  TreePine,
-  Clock,
-  Calendar,
-  Trash2,
-  Waves,
-  Sprout,
-  Bird,
-  Share2,
-  Flame,
-  ArrowRight,
-  Globe,
+    TreePine,
+    Clock,
+    Calendar,
+    Trash2,
+    Waves,
+    Sprout,
+    Bird,
+    Share2,
+    Flame,
+    ArrowRight,
+    Globe,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -68,21 +68,21 @@ const fadeUp: Variants = {
 function DecoShapes({ reduced }: { reduced: boolean }) {
   return (
     <>
-      {/* Ring 1 — top-right */}
+      {/* Ring 1 - top-right */}
       <motion.div
         className="absolute -top-16 -right-16 w-56 h-56 rounded-full border-[3px] border-moss-200/35 pointer-events-none"
         animate={reduced ? undefined : { scale: [1, 1.08, 1] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
-      {/* Ring 2 — mid-left */}
+      {/* Ring 2 - mid-left */}
       <motion.div
         className="absolute top-[40%] -left-12 w-40 h-40 rounded-full border-[3px] border-moss-200/35 pointer-events-none"
         animate={reduced ? undefined : { scale: [1, 1.06, 1] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
-      {/* Blurred glow — bottom-left */}
+      {/* Blurred glow - bottom-left */}
       <div className="absolute bottom-24 -left-10 w-48 h-48 rounded-full bg-sprout-100/30 blur-2xl pointer-events-none" />
-      {/* Soft glow — top-right */}
+      {/* Soft glow - top-right */}
       <div className="absolute -top-10 right-8 w-56 h-56 rounded-full bg-moss-100/20 blur-3xl pointer-events-none" />
       {/* Floating dot 1 */}
       <motion.div

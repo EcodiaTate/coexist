@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { MessageCircle, Users, ChevronRight, Lock, Globe, MapPin, Leaf, MessagesSquare } from 'lucide-react'
 import { Page } from '@/components/page'
-import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { cn } from '@/lib/cn'
@@ -74,7 +73,7 @@ const fadeUp = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Decorative background — deep teal-plum palette                     */
+/*  Decorative background - deep teal-plum palette                     */
 /* ------------------------------------------------------------------ */
 
 function DecorativeBackground() {
@@ -82,20 +81,20 @@ function DecorativeBackground() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Multi-stop gradient — deep teal-plum forest feel */}
+      {/* Multi-stop gradient - deep teal-plum forest feel */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/65 via-plum-100/30 via-30% to-primary-100/25 to-65%" />
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-secondary-100/20 to-plum-50/20" />
 
-      {/* Top hero glow — concentrated teal-green */}
+      {/* Top hero glow - concentrated teal-green */}
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-secondary-300/35 via-secondary-200/25 to-transparent blur-[60px]" />
 
-      {/* Warm plum accent — top right */}
+      {/* Warm plum accent - top right */}
       <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-gradient-to-bl from-plum-200/28 to-transparent blur-[50px]" />
 
-      {/* Deep moss glow — bottom left */}
+      {/* Deep moss glow - bottom left */}
       <div className="absolute -bottom-20 -left-10 w-[280px] h-[260px] rounded-full bg-gradient-to-tr from-moss-200/20 to-transparent blur-[55px]" />
 
-      {/* Large ring — top right */}
+      {/* Large ring - top right */}
       <motion.div
         className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/22"
         animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}

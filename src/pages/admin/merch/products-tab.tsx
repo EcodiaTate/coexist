@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Plus, Edit3, Archive, Package, ImagePlus, AlertTriangle } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
@@ -38,14 +38,24 @@ function ProductFormSheet({
   const createProduct = useCreateProduct()
   const updateProduct = useUpdateProduct()
 
-  const [name, setName] = useState(product?.name ?? '')
-  const [slug, setSlug] = useState(product?.slug ?? '')
-  const [description, setDescription] = useState(product?.description ?? '')
-  const [category, setCategory] = useState(product?.category ?? '')
-  const [basePriceCents, setBasePriceCents] = useState(
-    product ? String(product.base_price_cents / 100) : '',
-  )
-  const [status, setStatus] = useState<ProductStatus>(product?.status ?? 'draft')
+  const [name, setName] = useState('')
+  const [slug, setSlug] = useState('')
+  const [description, setDescription] = useState('')
+  const [category, setCategory] = useState('')
+  const [basePriceCents, setBasePriceCents] = useState('')
+  const [status, setStatus] = useState<ProductStatus>('draft')
+
+  // Populate form when product changes (edit mode) or reset when creating
+  useEffect(() => {
+    if (open) {
+      setName(product?.name ?? '')
+      setSlug(product?.slug ?? '')
+      setDescription(product?.description ?? '')
+      setCategory(product?.category ?? '')
+      setBasePriceCents(product ? String(product.base_price_cents / 100) : '')
+      setStatus(product?.status ?? 'draft')
+    }
+  }, [open, product])
 
   const handleSave = useCallback(async () => {
     const priceNum = Math.round(Number(basePriceCents) * 100)
@@ -220,6 +230,7 @@ export default function ProductsTab() {
   const [editProduct, setEditProduct] = useState<Product | undefined>()
   const [archiveTarget, setArchiveTarget] = useState<Product | null>(null)
   const [stockTarget, setStockTarget] = useState<{ variantId: string; stock: number } | null>(null)
+  const shouldReduceMotion = useReducedMotion()
 
   const handleArchive = useCallback(async () => {
     if (!archiveTarget) return
@@ -241,8 +252,6 @@ export default function ProductsTab() {
       </div>
     )
   }
-
-  const shouldReduceMotion = useReducedMotion()
 
   const stagger = {
     hidden: {},
@@ -285,7 +294,7 @@ export default function ProductsTab() {
           {products.map((product) => (
             <div
               key={product.id}
-              className="p-4 bg-white rounded-2xl shadow-sm"
+              className="p-4 bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf] border border-primary-200/25 rounded-[20px] shadow-[0_4px_20px_-4px_rgba(61,77,51,0.10),0_1px_4px_rgba(61,77,51,0.04)]"
             >
               <div className="flex gap-3">
                 <img

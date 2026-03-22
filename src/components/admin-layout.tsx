@@ -24,6 +24,7 @@ import {
     Image,
     Shield,
     Home,
+    ShoppingBag,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -70,7 +71,7 @@ export function useAdminHeader(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Per-page hero hue config — maps title → gradient hue + subtitle   */
+/*  Per-page hero hue config - maps title → gradient hue + subtitle   */
 /* ------------------------------------------------------------------ */
 
 const PAGE_HERO_CONFIG: Record<string, { hue: string; defaultSubtitle: string }> = {
@@ -139,6 +140,7 @@ const adminNavCategories: AdminNavCategory[] = [
       { label: 'Events', path: '/admin/events', icon: <CalendarDays size={17} strokeWidth={1.5} />, capability: 'manage_events' },
       { label: 'Challenges', path: '/admin/challenges', icon: <Trophy size={17} strokeWidth={1.5} />, capability: 'manage_challenges' },
       { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_surveys' },
+      { label: 'Merch Shop', path: '/admin/merch', icon: <ShoppingBag size={17} strokeWidth={1.5} /> },
     ],
   },
   {
@@ -186,37 +188,37 @@ const adminBottomTabs: Tab[] = [
     label: 'App',
     path: '/',
     exact: true,
-    icon: <Home size={22} strokeWidth={1.5} />,
-    activeIcon: <Home size={22} strokeWidth={2} fill="currentColor" />,
+    icon: <Home size={21} strokeWidth={1.5} />,
+    activeIcon: <Home size={21} strokeWidth={2.2} />,
   },
   {
     key: 'admin-home',
     label: 'Overview',
     path: '/admin',
     exact: true,
-    icon: <LayoutDashboard size={22} strokeWidth={1.5} />,
-    activeIcon: <LayoutDashboard size={22} strokeWidth={2} fill="currentColor" />,
+    icon: <LayoutDashboard size={21} strokeWidth={1.5} />,
+    activeIcon: <LayoutDashboard size={21} strokeWidth={2.2} />,
   },
   {
     key: 'admin-collectives',
     label: 'Collectives',
     path: '/admin/collectives',
-    icon: <MapPin size={22} strokeWidth={1.5} />,
-    activeIcon: <MapPin size={22} strokeWidth={2} fill="currentColor" />,
+    icon: <MapPin size={21} strokeWidth={1.5} />,
+    activeIcon: <MapPin size={21} strokeWidth={2.2} />,
   },
   {
     key: 'admin-events',
     label: 'Events',
     path: '/admin/events',
-    icon: <CalendarDays size={22} strokeWidth={1.5} />,
-    activeIcon: <CalendarDays size={22} strokeWidth={2} fill="currentColor" />,
+    icon: <CalendarDays size={21} strokeWidth={1.5} />,
+    activeIcon: <CalendarDays size={21} strokeWidth={2.2} />,
   },
   {
     key: 'admin-users',
     label: 'Users',
     path: '/admin/users',
-    icon: <Users size={22} strokeWidth={1.5} />,
-    activeIcon: <Users size={22} strokeWidth={2} fill="currentColor" />,
+    icon: <Users size={21} strokeWidth={1.5} />,
+    activeIcon: <Users size={21} strokeWidth={2.2} />,
   },
 ]
 
@@ -371,7 +373,7 @@ export function AdminLayout() {
                   </button>
                 </div>
 
-                {/* Admin badge — mobile */}
+                {/* Admin badge - mobile */}
                 <div className="px-3 py-3 mx-3 mb-2 rounded-xl bg-gradient-to-br from-primary-50/80 to-primary-50/30 border border-primary-100/30">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shrink-0 shadow-sm">
@@ -434,7 +436,7 @@ export function AdminLayout() {
           )}
         </AnimatePresence>
 
-        {/* Fixed mobile hamburger — top-right, white, no background */}
+        {/* Fixed mobile hamburger - top-right, white, no background */}
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -453,7 +455,7 @@ export function AdminLayout() {
           'flex-1 flex flex-col min-w-0 min-h-0 bg-white',
           showBottomTabs && 'overflow-y-auto overscroll-contain',
         )}>
-          {/* ── Shared hero bar — only for non-fullBleed pages ── */}
+          {/* ── Shared hero bar - only for non-fullBleed pages ── */}
           {!header.fullBleed && header.title && header.title !== 'Dashboard' ? (() => {
             const cfg = PAGE_HERO_CONFIG[header.title] ?? DEFAULT_HERO
             const subtitle = header.subtitle ?? cfg.defaultSubtitle
@@ -503,14 +505,9 @@ export function AdminLayout() {
             {/* Atmospheric background for non-fullBleed pages */}
             {!header.fullBleed && (
               <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
-                <div className="absolute inset-0 bg-gradient-to-b from-primary-50/30 via-white to-primary-50/15" />
-                <div className="absolute -top-16 -right-20 w-[300px] h-[300px] rounded-full border border-primary-100/20" />
-                <div className="absolute -top-4 -right-8 w-[200px] h-[200px] rounded-full border border-primary-100/12" />
-                <div className="absolute -bottom-24 -left-16 w-[260px] h-[260px] rounded-full bg-primary-50/20 blur-3xl" />
-                <div className="absolute top-[40%] -left-6 w-[80px] h-[80px] rounded-full border border-primary-100/15" />
-                <div className="absolute top-[18%] -right-8 w-[180px] h-[180px] rounded-full bg-primary-50/12 blur-3xl" />
-                <div className="absolute top-12 left-[12%] w-1.5 h-1.5 rounded-full bg-primary-200/20" />
-                <div className="absolute top-[28%] right-[8%] w-2 h-2 rounded-full bg-primary-200/15" />
+                <div className="absolute inset-0 bg-gradient-to-b from-primary-50/40 via-white to-primary-50/20" />
+                <div className="absolute -top-20 -right-20 w-[350px] h-[350px] rounded-full bg-primary-100/10 blur-3xl" />
+                <div className="absolute -bottom-16 -left-12 w-[280px] h-[280px] rounded-full bg-primary-50/15 blur-3xl" />
               </div>
             )}
 
@@ -524,7 +521,7 @@ export function AdminLayout() {
           </div>
         </div>
 
-        {/* Admin bottom tab bar — mobile only */}
+        {/* Admin bottom tab bar - mobile only */}
         {showBottomTabs && (
           <BottomTabBar
             tabs={adminBottomTabs}

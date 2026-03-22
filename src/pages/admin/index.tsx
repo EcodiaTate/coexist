@@ -4,22 +4,18 @@ import {
     Users,
     MapPin,
     CalendarDays,
-    TreePine,
-    TrendingUp,
-    Clock,
+    TreePine, Clock,
     Waves,
     Leaf,
     Eye,
     UserCheck,
     ClipboardCheck,
     ArrowUpRight,
-    Globe,
+    Globe
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
-import { Skeleton } from '@/components/skeleton'
 import { Dropdown } from '@/components/dropdown'
-import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { useCountUp } from '@/components/stat-card'
 
@@ -522,14 +518,14 @@ export default function AdminDashboardPage() {
       <div className="absolute inset-0 bg-gradient-to-b from-primary-700 via-primary-800 to-primary-950" />
 
       {/* ── Background geometric shapes ── */}
-      {/* Big filled circle — top-left */}
+      {/* Big filled circle - top-left */}
       <motion.div
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: [1, 1.04, 1], opacity: 1 }}
         transition={{ scale: { duration: 16, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.2, ease: 'easeOut' } }}
         className="absolute -left-[8%] -top-[8%] w-[45vw] h-[45vw] max-w-[420px] max-h-[420px] rounded-full bg-white/[0.06]"
       />
-      {/* Large ring — top-right */}
+      {/* Large ring - top-right */}
       <motion.div
         initial={{ scale: 0.5, opacity: 0 }}
         animate={{ scale: [1, 1.05, 1], opacity: 1 }}
@@ -550,7 +546,7 @@ export default function AdminDashboardPage() {
         transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 2, delay: 0.8, ease: 'easeOut' } }}
         className="absolute -left-[20%] bottom-[5%] w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-full border border-white/[0.07]"
       />
-      {/* Small filled accent — bottom-right */}
+      {/* Small filled accent - bottom-right */}
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

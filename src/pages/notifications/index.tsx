@@ -1,20 +1,17 @@
-import { useState, useCallback, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion, type PanInfo, type Variants } from 'framer-motion'
-import { ArrowLeft, CheckCheck, Bell, Leaf } from 'lucide-react'
+import { ArrowLeft, CheckCheck, Bell } from 'lucide-react'
 import { Page } from '@/components/page'
-import { Button } from '@/components/button'
-import { EmptyState } from '@/components/empty-state'
-import { Skeleton } from '@/components/skeleton'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import {
-  useNotifications,
-  useMarkRead,
-  useMarkAllRead,
-  getNotificationDeepLink,
-  getNotificationMeta,
+    useNotifications,
+    useMarkRead,
+    useMarkAllRead,
+    getNotificationDeepLink,
+    getNotificationMeta,
 } from '@/hooks/use-notifications'
 import type { Notification } from '@/types/database.types'
 
@@ -41,17 +38,17 @@ function DecorativeBackground() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Multi-stop gradient — warm forest canopy feel */}
+      {/* Multi-stop gradient - warm forest canopy feel */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/35 via-25% to-moss-50/20 to-60%" />
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-sprout-50/15 to-moss-50/20" />
 
-      {/* Concentrated hero glow — top center */}
+      {/* Concentrated hero glow - top center */}
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/30 via-primary-200/20 to-transparent blur-[60px]" />
 
-      {/* Warm glow — top left */}
+      {/* Warm glow - top left */}
       <div className="absolute -top-16 -left-16 w-[280px] h-[280px] rounded-full bg-gradient-to-br from-sprout-200/25 to-transparent blur-[50px]" />
 
-      {/* Large breathing ring — top right */}
+      {/* Large breathing ring - top right */}
       <motion.div
         className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/22"
         animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
@@ -64,21 +61,21 @@ function DecorativeBackground() {
         transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Medium ring — left side */}
+      {/* Medium ring - left side */}
       <motion.div
         className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/22"
         animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 2 }}
       />
 
-      {/* Small ring — bottom right */}
+      {/* Small ring - bottom right */}
       <motion.div
         className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-primary-300/18"
         animate={r ? {} : { rotate: 360 }}
         transition={{ repeat: Infinity, duration: 50, ease: 'linear' }}
       />
 
-      {/* Deep warm glow — mid left */}
+      {/* Deep warm glow - mid left */}
       <motion.div
         className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/18 blur-[50px]"
         animate={r ? {} : { scale: [1, 1.14, 1], opacity: [0.2, 0.38, 0.2] }}
@@ -311,7 +308,7 @@ function AllCaughtUp() {
         All caught up!
       </h3>
       <p className="mt-2 text-sm text-primary-500 max-w-xs leading-relaxed">
-        No new notifications. Enjoy the peace — or go plant a tree.
+        No new notifications. Enjoy the peace - or go plant a tree.
       </p>
     </motion.div>
   )

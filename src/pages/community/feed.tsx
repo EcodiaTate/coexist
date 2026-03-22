@@ -2,17 +2,17 @@ import { useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
 import {
-  Heart,
-  MessageCircle,
-  Share2,
-  Flag,
-  MoreHorizontal,
-  Leaf,
-  Award,
-  Calendar,
-  Users,
-  PenSquare,
-  TreePine,
+    Heart,
+    MessageCircle,
+    Share2,
+    Flag,
+    MoreHorizontal,
+    Leaf,
+    Award,
+    Calendar,
+    Users,
+    PenSquare,
+    TreePine,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Button } from '@/components/button'
@@ -22,19 +22,18 @@ import { EmptyState } from '@/components/empty-state'
 import { Skeleton } from '@/components/skeleton'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { BottomSheet } from '@/components/bottom-sheet'
-import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import {
-  useFeed,
-  useToggleLike,
-  usePostComments,
-  useAddComment,
-  useReportPost,
-  sharePost,
-  type PostWithDetails,
-  type CommentWithAuthor,
+    useFeed,
+    useToggleLike,
+    usePostComments,
+    useAddComment,
+    useReportPost,
+    sharePost,
+    type PostWithDetails,
+    type CommentWithAuthor,
 } from '@/hooks/use-feed'
 
 /* ------------------------------------------------------------------ */
@@ -87,17 +86,17 @@ function DecorativeBackground() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Multi-stop gradient — deep forest canopy feel */}
+      {/* Multi-stop gradient - deep forest canopy feel */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/65 via-secondary-100/40 via-20% to-primary-100/25 to-60%" />
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-moss-50/15 to-sprout-50/25" />
 
-      {/* Concentrated hero glow — top center */}
+      {/* Concentrated hero glow - top center */}
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/35 via-primary-200/25 to-transparent blur-[60px]" />
 
-      {/* Secondary warm glow — top left corner */}
+      {/* Secondary warm glow - top left corner */}
       <div className="absolute -top-16 -left-16 w-[300px] h-[300px] rounded-full bg-gradient-to-br from-sprout-200/30 to-transparent blur-[50px]" />
 
-      {/* Large breathing ring — top right */}
+      {/* Large breathing ring - top right */}
       <motion.div
         className="absolute -top-28 -right-28 w-80 h-80 rounded-full border-[3px] border-secondary-300/25"
         animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.85, 0.5] }}
@@ -110,21 +109,21 @@ function DecorativeBackground() {
         transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Medium ring — left side */}
+      {/* Medium ring - left side */}
       <motion.div
         className="absolute top-[28%] -left-16 w-52 h-52 rounded-full border-[2.5px] border-moss-300/25"
         animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.75, 0.4] }}
         transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 2 }}
       />
 
-      {/* Small ring — bottom right, slowly rotating */}
+      {/* Small ring - bottom right, slowly rotating */}
       <motion.div
         className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-primary-300/20"
         animate={r ? {} : { rotate: 360 }}
         transition={{ repeat: Infinity, duration: 45, ease: 'linear' }}
       />
 
-      {/* Deep warm glow — mid left */}
+      {/* Deep warm glow - mid left */}
       <motion.div
         className="absolute top-[42%] -left-12 w-64 h-64 rounded-full bg-sprout-100/20 blur-[50px]"
         animate={r ? {} : { scale: [1, 1.15, 1], opacity: [0.25, 0.45, 0.25] }}
@@ -154,7 +153,7 @@ function DecorativeBackground() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Hero header — greeting + create prompt                             */
+/*  Hero header - greeting + create prompt                             */
 /* ------------------------------------------------------------------ */
 
 function HeroHeader({
@@ -593,7 +592,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
         </button>
       )}
 
-      {/* Images — edge-to-edge for single, padded for grid */}
+      {/* Images - edge-to-edge for single, padded for grid */}
       {hasImages && (
         <div className={cn(post.images.length === 1 ? 'px-0' : 'px-5', 'pb-0')}>
           {post.images.length === 1 ? (

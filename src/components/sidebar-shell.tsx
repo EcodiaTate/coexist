@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { PanelLeftClose } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { APP_NAME } from '@/lib/constants'
 
@@ -40,19 +40,19 @@ export interface SidebarShellProps {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Widths — identical across all suites                               */
+/*  Widths - identical across all suites                               */
 /* ------------------------------------------------------------------ */
 
 const EXPANDED_WIDTH = 'w-[240px]'
 const COLLAPSED_WIDTH = 'w-[60px]'
 
 /* ------------------------------------------------------------------ */
-/*  Session-level cache — only stagger on first mount per suite        */
+/*  Session-level cache - only stagger on first mount per suite        */
 /* ------------------------------------------------------------------ */
 
 const mountedSuites = new Set<string>()
 
-/** True once *any* sidebar has mounted — used to skip wordmark entry animation on suite switches */
+/** True once *any* sidebar has mounted - used to skip wordmark entry animation on suite switches */
 let anySidebarMounted = false
 
 /* ------------------------------------------------------------------ */
@@ -85,7 +85,7 @@ const headerEnter = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Revisit — near-instant fade, no stagger                            */
+/*  Revisit - near-instant fade, no stagger                            */
 /* ------------------------------------------------------------------ */
 
 const quickFadeContainer = {
@@ -189,7 +189,7 @@ export function SidebarShell({
       )}
       aria-label={ariaLabel}
     >
-      {/* ---- Wordmark (identical everywhere — no animation on suite switch) ---- */}
+      {/* ---- Wordmark (identical everywhere - no animation on suite switch) ---- */}
       <div className="flex items-center justify-center px-4 py-4">
         <Link
           to="/"

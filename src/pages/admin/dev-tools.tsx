@@ -2,26 +2,19 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Bug,
-  Bell,
-  Calendar,
-  QrCode,
-  ClipboardCheck,
-  TreePine,
-  MapPin, Users,
-  Trash2,
-  Play, AlertCircle, Star,
-  Send,
-  CheckCircle2,
-  XCircle,
-  MessageSquare,
-  Megaphone,
-  Trophy,
-  Zap,
-  Smartphone,
-  Moon,
-  Globe,
-  RefreshCw,
+    Bug,
+    Bell,
+    Calendar,
+    QrCode,
+    ClipboardCheck,
+    TreePine,
+    MapPin, Users,
+    Trash2,
+    Play, AlertCircle, Star, CheckCircle2,
+    XCircle, Smartphone,
+    Moon,
+    Globe,
+    RefreshCw
 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -37,7 +30,7 @@ import type { NotificationType, NotificationPreferences } from '@/hooks/use-noti
 import { DEFAULT_PREFERENCES } from '@/hooks/use-notifications'
 
 /* ================================================================== */
-/*  SECTION 1 — Event Seeding (existing)                               */
+/*  SECTION 1 - Event Seeding (existing)                               */
 /* ================================================================== */
 
 interface TestEvent {
@@ -266,7 +259,7 @@ function useCleanupTests() {
 }
 
 /* ================================================================== */
-/*  SECTION 2 — Push Notification Test Suite                           */
+/*  SECTION 2 - Push Notification Test Suite                           */
 /* ================================================================== */
 
 /* ---- 2a. Types --------------------------------------------------- */
@@ -508,7 +501,7 @@ function usePushTestRunner() {
         data: { event_id: '00000000-0000-0000-0000-000000000000' },
       })
       if (error) throw error
-      return 'Inserted. Check the notification bell — realtime channel should show it instantly.'
+      return 'Inserted. Check the notification bell - realtime channel should show it instantly.'
     }))
 
     // ── DELIVERY: Multi-user batch ──
@@ -884,7 +877,7 @@ function ResultGroup({ label, results }: { label: string; results: PushTestResul
 }
 
 /* ================================================================== */
-/*  SECTION 3 — Main Page                                              */
+/*  SECTION 3 - Main Page                                              */
 /* ================================================================== */
 
 export default function DevToolsPage() {
@@ -1083,7 +1076,7 @@ export default function DevToolsPage() {
 }
 
 /* ================================================================== */
-/*  SECTION 4 — Test Event Card                                        */
+/*  SECTION 4 - Test Event Card                                        */
 /* ================================================================== */
 
 function TestEventCard({

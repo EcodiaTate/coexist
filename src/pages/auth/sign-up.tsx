@@ -105,7 +105,7 @@ export default function SignUpPage() {
     <div className="min-h-dvh flex flex-col bg-primary-50/60 relative overflow-hidden">
       <OGMeta
         title="Sign Up"
-        description="Create your free Co-Exist account. Join thousands of young Australians volunteering for conservation — tree planting, beach cleanups, habitat restoration, and more."
+        description="Create your free Co-Exist account. Join thousands of young Australians volunteering for conservation - tree planting, beach cleanups, habitat restoration, and more."
         canonicalPath="/signup"
         noindex
       />

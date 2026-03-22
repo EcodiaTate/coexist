@@ -2,11 +2,10 @@ import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
-import { ArrowLeft, Trophy, Medal, Crown, TreePine, Clock, Calendar, Star, Users, Flame } from 'lucide-react'
+import { ArrowLeft, Trophy, Medal, Crown, TreePine, Clock, Calendar, Star, Flame } from 'lucide-react'
 import { Page } from '@/components/page'
 import { TabBar } from '@/components/tab-bar'
 import { Avatar } from '@/components/avatar'
-import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { cn } from '@/lib/cn'
@@ -80,19 +79,19 @@ function formatMetricValue(value: number, metric: Metric): string {
 function BackgroundShapes({ reduced }: { reduced: boolean }) {
   return (
     <>
-      {/* Multi-stop gradient — rich warm forest feel */}
+      {/* Multi-stop gradient - rich warm forest feel */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-warning-50/30 via-25% to-primary-100/20 to-60%" />
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-moss-50/15 to-warning-50/15" />
 
-      {/* Concentrated hero glow — top center */}
+      {/* Concentrated hero glow - top center */}
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-warning-200/30 via-secondary-200/20 to-transparent blur-[60px]" />
 
-      {/* Warm accent — top right */}
+      {/* Warm accent - top right */}
       <div className="absolute -top-16 -right-16 w-[280px] h-[260px] rounded-full bg-gradient-to-bl from-warning-200/22 to-transparent blur-[50px]" />
 
       {reduced ? null : (
         <>
-          {/* Large breathing ring — top right */}
+          {/* Large breathing ring - top right */}
           <motion.div
             className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-warning-300/22"
             animate={{ scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}

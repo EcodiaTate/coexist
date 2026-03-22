@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { AlertTriangle, PackageX, Search, ArrowUpDown } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
+import { TabBar } from '@/components/tab-bar'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -133,11 +134,11 @@ function SummaryCards({ items }: { items: FlatVariant[] }) {
   return (
     <div className="grid grid-cols-4 gap-2 mb-4">
       {cards.map((c) => (
-        <div key={c.label} className="p-3 rounded-xl bg-white shadow-sm text-center">
+        <div key={c.label} className="p-3 rounded-xl bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 shadow-sm text-center">
           <p className={cn('font-heading text-xl font-bold tabular-nums', c.color)}>
             {c.value}
           </p>
-          <p className="text-[10px] text-primary-400 font-medium mt-0.5">{c.label}</p>
+          <p className="text-[10px] text-primary-500 font-semibold mt-0.5">{c.label}</p>
         </div>
       ))}
     </div>
@@ -248,27 +249,16 @@ export default function InventoryTab() {
         <SummaryCards items={allItems} />
       </motion.div>
 
-      {/* Filter pills */}
-      <motion.div variants={fadeUp} className="flex gap-2 mb-3 overflow-x-auto scrollbar-none">
-        {STOCK_FILTERS.map((f) => (
-          <button
-            key={f.value}
-            type="button"
-            onClick={() => setFilter(f.value)}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap',
-              'cursor-pointer transition-colors',
-              filter === f.value
-                ? 'ring-2 ring-primary-500 bg-white text-primary-800 shadow-sm'
-                : 'bg-primary-50/60 text-primary-400',
-            )}
-          >
-            {f.icon && <f.icon size={12} />}
-            {f.label}
-          </button>
-        ))}
-
-        {/* Sort toggle */}
+      {/* Filter tabs + sort */}
+      <motion.div variants={fadeUp} className="flex items-end gap-2 mb-3">
+        <div className="flex-1 min-w-0">
+          <TabBar
+            tabs={STOCK_FILTERS.map((f) => ({ id: f.value, label: f.label }))}
+            activeTab={filter}
+            onChange={(id) => setFilter(id as StockFilter)}
+            aria-label="Stock filter"
+          />
+        </div>
         <button
           type="button"
           onClick={() =>
@@ -276,7 +266,7 @@ export default function InventoryTab() {
               s === 'stock-asc' ? 'name' : s === 'name' ? 'product' : 'stock-asc',
             )
           }
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap bg-primary-50/60 text-primary-400 cursor-pointer transition-colors ml-auto"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/30 text-secondary-700 cursor-pointer transition-all hover:shadow-sm active:scale-[0.97] shrink-0 mb-px"
         >
           <ArrowUpDown size={12} />
           {sort === 'stock-asc' ? 'Stock ↑' : sort === 'name' ? 'A-Z' : 'Product'}
@@ -325,7 +315,7 @@ export default function InventoryTab() {
                   key={`${item.product.id}-${item.variant.id}`}
                   type="button"
                   onClick={() => setAdjustTarget(item)}
-                  className="w-full text-left flex items-center gap-3 p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  className="w-full text-left flex items-center gap-3 p-3 bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.98]"
                 >
                   {/* Product image */}
                   <img

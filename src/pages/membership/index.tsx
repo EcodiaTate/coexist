@@ -2,16 +2,16 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import {
-  ArrowLeft,
-  Crown,
-  Check,
-  Gift,
-  Tag,
-  ShoppingBag,
-  Ticket,
-  Star,
-  Copy,
-  Loader2,
+    ArrowLeft,
+    Crown,
+    Check,
+    Gift,
+    Tag,
+    ShoppingBag,
+    Ticket,
+    Star,
+    Copy,
+    Loader2,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Button } from '@/components/button'
@@ -23,10 +23,10 @@ import { useProfile } from '@/hooks/use-profile'
 import { usePointsBalance, getTierFromPoints } from '@/hooks/use-points'
 import type { TierName } from '@/hooks/use-points'
 import {
-  useMembershipPlans,
-  useMyMembership,
-  useMembershipRewards,
-  useSubscribeMembership,
+    useMembershipPlans,
+    useMyMembership,
+    useMembershipRewards,
+    useSubscribeMembership,
 } from '@/hooks/use-membership'
 import { redirectToCheckout } from '@/lib/stripe'
 import type { MembershipPlanInterval, MembershipReward, RewardCategory } from '@/types/membership'
@@ -80,7 +80,7 @@ const categoryIcons: Record<RewardCategory, React.ReactNode> = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Reward card — dark theme                                           */
+/*  Reward card - dark theme                                           */
 /* ------------------------------------------------------------------ */
 
 function RewardCard({ reward }: { reward: MembershipReward }) {
@@ -237,18 +237,18 @@ export default function MembershipPage() {
   return (
     <Page className="!px-0 !pb-0 !bg-transparent">
       <div className="relative min-h-screen overflow-clip">
-        {/* ── Full-page gradient — diagonal sweep, distinct from dashboard ── */}
+        {/* ── Full-page gradient - diagonal sweep, distinct from dashboard ── */}
         <div className="absolute inset-0 bg-gradient-to-br from-secondary-600 via-primary-800 to-secondary-900" />
 
         {/* ── Geometric shapes ── */}
-        {/* Large filled circle — top-right (opposite placement to dashboard) */}
+        {/* Large filled circle - top-right (opposite placement to dashboard) */}
         <motion.div
           initial={rm ? {} : { scale: 0.6, opacity: 0 }}
           animate={{ scale: [1, 1.05, 1], opacity: 1 }}
           transition={{ scale: { duration: 22, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.4, ease: 'easeOut' } }}
           className="absolute -right-[15%] -top-[12%] w-[55vw] h-[55vw] max-w-[500px] max-h-[500px] rounded-full bg-white/[0.05]"
         />
-        {/* Large ring — bottom-left */}
+        {/* Large ring - bottom-left */}
         <motion.div
           initial={rm ? {} : { scale: 0.5, opacity: 0 }}
           animate={{ scale: [1, 1.04, 1], opacity: 1 }}
@@ -262,7 +262,7 @@ export default function MembershipPage() {
           transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.6, delay: 0.6, ease: 'easeOut' } }}
           className="absolute -left-[14%] bottom-[10%] w-[42vw] h-[42vw] max-w-[420px] max-h-[420px] rounded-full border border-white/[0.05]"
         />
-        {/* Small filled accent — mid-left */}
+        {/* Small filled accent - mid-left */}
         <motion.div
           initial={rm ? {} : { scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}

@@ -13,9 +13,7 @@ import {
   Send,
   ArrowLeft,
   Menu,
-  X,
-  MapPin,
-  Home,
+  X, Home
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -25,7 +23,7 @@ import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
 import { SidebarShell, type SidebarNavCategory } from '@/components/sidebar-shell'
 
 /* ------------------------------------------------------------------ */
-/*  Leader header context — lets child pages set title + actions       */
+/*  Leader header context - lets child pages set title + actions       */
 /* ------------------------------------------------------------------ */
 
 interface LeaderHeaderState {
@@ -33,7 +31,7 @@ interface LeaderHeaderState {
   subtitle?: string
   actions?: ReactNode
   heroContent?: ReactNode
-  /** When true, the layout skips the hero bar and uses p-0 — page owns its entire background */
+  /** When true, the layout skips the hero bar and uses p-0 - page owns its entire background */
   fullBleed?: boolean
 }
 
@@ -75,7 +73,7 @@ export function useIsLeaderLayout() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Per-page hero config — earthy/nature-inspired gradients            */
+/*  Per-page hero config - earthy/nature-inspired gradients            */
 /* ------------------------------------------------------------------ */
 
 const PAGE_HERO_CONFIG: Record<string, { hue: string; defaultSubtitle: string }> = {
@@ -202,7 +200,7 @@ export function LeaderLayout() {
   const { data: collectiveDetail } = useCollective(collectiveId)
   const collectiveSlug = collectiveDetail?.slug ?? collectiveId
   const collectiveNameRaw = collectiveDetail?.name ?? 'My Collective'
-  // Strip trailing "Collective" — e.g. "Byron Bay Collective" → "Byron Bay"
+  // Strip trailing "Collective" - e.g. "Byron Bay Collective" → "Byron Bay"
   const collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
 
   // Scroll content to top on route change
@@ -229,7 +227,7 @@ export function LeaderLayout() {
   return (
     <LeaderHeaderContext.Provider value={headerCtx}>
       <div className="flex flex-1 min-h-0">
-        {/* ── Leader sidebar — desktop ── */}
+        {/* ── Leader sidebar - desktop ── */}
         <SidebarShell
           ariaLabel="Leader navigation"
           categories={leaderNavCategories}
@@ -328,7 +326,7 @@ export function LeaderLayout() {
                   </button>
                 </div>
 
-                {/* Collective name badge — mobile */}
+                {/* Collective name badge - mobile */}
                 <div className="px-4 py-3 mx-3 mb-2 rounded-xl bg-gradient-to-br from-moss-50/80 to-moss-50/30 border border-moss-100/30">
                   <div className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shrink-0 shadow-sm">
@@ -388,7 +386,7 @@ export function LeaderLayout() {
           )}
         </AnimatePresence>
 
-        {/* Fixed mobile hamburger — top-right, white, no background */}
+        {/* Fixed mobile hamburger - top-right, white, no background */}
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -407,7 +405,7 @@ export function LeaderLayout() {
           'flex-1 flex flex-col min-w-0 min-h-0',
           showBottomTabs && 'overflow-y-auto overscroll-contain',
         )}>
-          {/* Shared hero bar — only for non-fullBleed pages */}
+          {/* Shared hero bar - only for non-fullBleed pages */}
           {!header.fullBleed && header.title ? (() => {
             const cfg = PAGE_HERO_CONFIG[header.title] ?? DEFAULT_HERO
             const subtitle = header.subtitle ?? cfg.defaultSubtitle
@@ -420,7 +418,7 @@ export function LeaderLayout() {
                   'px-6 pt-5 pb-10 sm:px-8 sm:pt-8 sm:pb-12',
                 )}
               >
-                {/* Decorative ambient — leaf-like circles */}
+                {/* Decorative ambient - leaf-like circles */}
                 <div className="pointer-events-none absolute -top-20 -right-20 h-56 w-56 rounded-full bg-white/[0.05] blur-2xl" />
                 <div className="pointer-events-none absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-white/[0.04] blur-2xl" />
                 <div className="pointer-events-none absolute top-6 right-1/4 h-24 w-24 rounded-full bg-white/[0.03] blur-xl" />
@@ -458,14 +456,8 @@ export function LeaderLayout() {
             {!header.fullBleed && (
               <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
                 <div className="absolute inset-0 bg-gradient-to-b from-moss-50/40 via-white to-primary-50/20" />
-                <div className="absolute -top-16 -right-20 w-[300px] h-[300px] rounded-full border-2 border-moss-200/20" />
-                <div className="absolute -top-4 -right-6 w-[200px] h-[200px] rounded-full border border-moss-200/12" />
-                <div className="absolute -bottom-20 -left-16 w-[280px] h-[280px] rounded-full bg-moss-100/25 blur-3xl" />
-                <div className="absolute top-[40%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-100/20" />
-                <div className="absolute top-[18%] -right-8 w-[180px] h-[180px] rounded-full bg-primary-50/15 blur-3xl" />
-                <div className="absolute bottom-[12%] right-[10%] w-[50px] h-[50px] rounded-full bg-moss-100/15" />
-                <div className="absolute top-12 left-[12%] w-1.5 h-1.5 rounded-full bg-moss-200/25" />
-                <div className="absolute top-[28%] right-[8%] w-2 h-2 rounded-full bg-primary-200/20" />
+                <div className="absolute -top-20 -right-16 w-[350px] h-[350px] rounded-full bg-moss-100/12 blur-3xl" />
+                <div className="absolute -bottom-16 -left-12 w-[280px] h-[280px] rounded-full bg-moss-50/18 blur-3xl" />
               </div>
             )}
 
@@ -479,7 +471,7 @@ export function LeaderLayout() {
           </div>
         </div>
 
-        {/* Leader bottom tab bar — mobile only */}
+        {/* Leader bottom tab bar - mobile only */}
         {showBottomTabs && (
           <BottomTabBar
             tabs={leaderBottomTabs}

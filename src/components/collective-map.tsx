@@ -272,7 +272,7 @@ function injectStyles() {
     .coexist-cmap .leaflet-control-zoom a:hover { background: #f8fafc !important; }
     .coexist-cmap .leaflet-control-attribution { display: none !important; }
 
-    /* Transparent bg — page white shows through as ocean */
+    /* Transparent bg - page white shows through as ocean */
     .coexist-cmap,
     .coexist-cmap.leaflet-container {
       background: transparent !important;
@@ -285,7 +285,7 @@ function injectStyles() {
       touch-action: none !important;
     }
 
-    /* Tooltip labels — hidden by default, shown when zoomed in */
+    /* Tooltip labels - hidden by default, shown when zoomed in */
     .coexist-cmap-label {
       background: none !important;
       border: none !important;
@@ -378,7 +378,7 @@ export function CollectiveMap({ className }: CollectiveMapProps) {
       maxZoom: 12,
       maxBounds: ausBounds,
       maxBoundsViscosity: 0.8,
-      // Start with all interactions disabled — enabled only over land/markers
+      // Start with all interactions disabled - enabled only over land/markers
       dragging: false,
       touchZoom: false,
       scrollWheelZoom: false,
@@ -443,7 +443,7 @@ export function CollectiveMap({ className }: CollectiveMapProps) {
       let onLand = false
       ausLayer.eachLayer((layer) => {
         if ((layer as L.Polygon).getBounds?.().contains(point)) {
-          // Rough bounding box check — good enough for touch
+          // Rough bounding box check - good enough for touch
           onLand = true
         }
       })
@@ -537,7 +537,7 @@ export function CollectiveMap({ className }: CollectiveMapProps) {
       const icon = createCollectiveIcon(false)
       const marker = L.marker([c.lat, c.lng], { icon })
 
-      // Permanent tooltip label — hidden initially, shown on zoom
+      // Permanent tooltip label - hidden initially, shown on zoom
       marker.bindTooltip(c.shortName, {
         permanent: true,
         direction: 'right',
@@ -587,7 +587,7 @@ export function CollectiveMap({ className }: CollectiveMapProps) {
         showVicCluster()
       }
 
-      // Labels — show/hide via CSS class on the container
+      // Labels - show/hide via CSS class on the container
       const container = map.getContainer()
       if (z >= LABEL_ZOOM) {
         container.classList.add('coexist-cmap-labels-visible')

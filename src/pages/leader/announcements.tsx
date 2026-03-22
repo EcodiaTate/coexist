@@ -1,23 +1,18 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Megaphone,
-  Plus,
-  Pin,
-  Clock,
+    Plus,
+    Pin,
+    Clock
 } from 'lucide-react'
 import { useLeaderHeader } from '@/components/leader-layout'
-import { Button } from '@/components/button'
 import { Avatar } from '@/components/avatar'
-import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { cn } from '@/lib/cn'
-import { useAuth } from '@/hooks/use-auth'
 import {
-  useAnnouncements,
-  type AnnouncementWithAuthor,
+    useAnnouncements,
+    type AnnouncementWithAuthor,
 } from '@/hooks/use-announcements'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -63,7 +58,7 @@ function FullBleedBackground({ rm }: { rm: boolean }) {
       {/* Gradient base */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-50/50 via-white to-primary-50/20" />
 
-      {/* Large ring — top right */}
+      {/* Large ring - top right */}
       <motion.div
         initial={rm ? {} : { scale: 0.7, opacity: 0 }}
         animate={{ scale: [1, 1.03, 1], opacity: 1 }}
@@ -77,23 +72,23 @@ function FullBleedBackground({ rm }: { rm: boolean }) {
         transition={{ scale: { duration: 22, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.5, delay: 0.3, ease: 'easeOut' } }}
         className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-secondary-200/25"
       />
-      {/* Filled glow — bottom left */}
+      {/* Filled glow - bottom left */}
       <motion.div
         initial={rm ? {} : { scale: 0.6, opacity: 0 }}
         animate={{ scale: [1, 1.04, 1], opacity: 1 }}
         transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 1 }, opacity: { duration: 1.5, delay: 0.5, ease: 'easeOut' } }}
         className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-secondary-100/25 blur-2xl"
       />
-      {/* Small ring — mid left */}
+      {/* Small ring - mid left */}
       <motion.div
         initial={rm ? {} : { scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-100/20"
       />
-      {/* Warm glow — center right */}
+      {/* Warm glow - center right */}
       <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-secondary-100/25 blur-3xl" />
-      {/* Small filled circle — bottom right */}
+      {/* Small filled circle - bottom right */}
       <motion.div
         initial={rm ? {} : { scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

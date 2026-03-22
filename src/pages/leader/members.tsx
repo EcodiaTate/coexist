@@ -2,20 +2,16 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Users,
-  Search,
-  ChevronRight,
-  Crown,
-  ShieldCheck,
-  ShieldAlert,
-  UserMinus,
-  CheckCircle2,
-  AlertTriangle,
+    Users,
+    Search,
+    ChevronRight,
+    Crown,
+    ShieldCheck,
+    ShieldAlert
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useLeaderHeader, useLeaderContext } from '@/components/leader-layout'
 import { Avatar } from '@/components/avatar'
-import { Input } from '@/components/input'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { cn } from '@/lib/cn'
@@ -76,21 +72,21 @@ const fadeUp = {
 function Shapes({ rm }: { rm: boolean }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      {/* Large ring — top-right */}
+      {/* Large ring - top-right */}
       <motion.div
         animate={rm ? {} : { scale: [1, 1.08, 1] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute -top-20 -right-20 h-64 w-64 rounded-full border-[3px] border-primary-200/40"
       />
 
-      {/* Filled glow — bottom-left */}
+      {/* Filled glow - bottom-left */}
       <motion.div
         animate={rm ? {} : { scale: [1, 1.12, 1] }}
         transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-bark-100/30 blur-2xl"
       />
 
-      {/* Small ring — mid-left */}
+      {/* Small ring - mid-left */}
       <motion.div
         animate={rm ? {} : { scale: [1, 1.1, 1] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}

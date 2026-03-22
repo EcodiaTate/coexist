@@ -1,28 +1,28 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import {
-  AlertTriangle,
-  XCircle,
-  Send,
-  Users,
-  Tag,
-  FileText,
-  BarChart3,
-  Plus,
-  Search,
-  Trash2,
-  Copy,
-  Eye,
-  Edit3,
-  CheckCircle2,
-  MousePointerClick,
-  Save,
-  ArrowLeft,
-  Sparkles,
-  RefreshCw,
-  MapPin,
-  Loader2,
+    AlertTriangle,
+    XCircle,
+    Send,
+    Users,
+    Tag,
+    FileText,
+    BarChart3,
+    Plus,
+    Search,
+    Trash2,
+    Copy,
+    Eye,
+    Edit3,
+    CheckCircle2,
+    MousePointerClick,
+    Save,
+    ArrowLeft,
+    Sparkles,
+    RefreshCw,
+    MapPin,
+    Loader2,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -634,7 +634,7 @@ function CampaignComposer({
             />
             {!templates?.length && (
               <p className="text-[11px] text-primary-400 mt-1">
-                No templates yet — create one in the Templates tab with AI
+                No templates yet - create one in the Templates tab with AI
               </p>
             )}
           </div>
@@ -695,7 +695,7 @@ function CampaignComposer({
             />
           )}
 
-          {/* No template selected — show blank HTML area */}
+          {/* No template selected - show blank HTML area */}
           {!selectedTemplateId && !bodyHtml && (
             <div>
               <label className="block text-xs font-medium text-primary-400 mb-1.5">
@@ -1051,7 +1051,7 @@ function TemplateEditor({
 
       <Input
         label="Default Subject Line"
-        placeholder="e.g. {{event_title}} — this Saturday!"
+        placeholder="e.g. {{event_title}} - this Saturday!"
         value={subject}
         onChange={(e) => setSubject(e.target.value)}
       />

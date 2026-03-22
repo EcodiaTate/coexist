@@ -2,38 +2,32 @@ import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Calendar,
-  Mail,
-  Clock,
-  MapPin,
-  Users,
-  ChevronRight,
-  X,
-  Compass,
-  Leaf,
+    Calendar,
+    Mail,
+    Clock,
+    MapPin,
+    Users,
+    ChevronRight,
+    X,
+    Compass,
+    Leaf,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useAuth } from '@/hooks/use-auth'
 import {
-  useMyEvents,
-  useCancelRegistration,
-  formatEventDate,
-  getCountdown,
-  ACTIVITY_TYPE_LABELS,
-  isPastEvent,
+    useMyEvents,
+    useCancelRegistration,
+    formatEventDate,
+    getCountdown,
+    ACTIVITY_TYPE_LABELS,
+    isPastEvent,
 } from '@/hooks/use-events'
 import type { MyEventItem } from '@/hooks/use-events'
 import {
-  Page,
-  TabBar,
-  PullToRefresh,
-  Card,
-  Badge,
-  Avatar,
-  Skeleton,
-  EmptyState,
-  Button,
-  ConfirmationSheet,
+    Page,
+    TabBar,
+    PullToRefresh,
+    Card,
+    Badge, EmptyState, ConfirmationSheet
 } from '@/components'
 import { cn } from '@/lib/cn'
 import { OfflineIndicator } from '@/components/offline-indicator'
@@ -54,7 +48,7 @@ const fadeUp = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Decorative background — earthy warm tones, distinct from feed      */
+/*  Decorative background - earthy warm tones, distinct from feed      */
 /* ------------------------------------------------------------------ */
 
 function DecorativeBackground() {
@@ -62,17 +56,17 @@ function DecorativeBackground() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Rich olive gradient — true Co-Exist palette */}
+      {/* Rich olive gradient - true Co-Exist palette */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/60 via-primary-100/35 via-30% to-moss-50/25 to-65%" />
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-moss-50/20 to-sprout-50/20" />
 
-      {/* Top hero glow — concentrated olive-green */}
+      {/* Top hero glow - concentrated olive-green */}
       <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/32 via-primary-200/22 to-transparent blur-[60px]" />
 
-      {/* Warm accent — top left */}
+      {/* Warm accent - top left */}
       <div className="absolute -top-16 -left-16 w-[280px] h-[280px] rounded-full bg-gradient-to-br from-sprout-200/25 to-transparent blur-[50px]" />
 
-      {/* Large breathing ring — top right */}
+      {/* Large breathing ring - top right */}
       <motion.div
         className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/22"
         animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
@@ -85,7 +79,7 @@ function DecorativeBackground() {
         transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Medium ring — left side */}
+      {/* Medium ring - left side */}
       <motion.div
         className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/22"
         animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
@@ -104,7 +98,7 @@ function DecorativeBackground() {
         transition={{ repeat: Infinity, duration: 55, ease: 'linear' }}
       />
 
-      {/* Deep warm glow — mid left */}
+      {/* Deep warm glow - mid left */}
       <motion.div
         className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/20 blur-[50px]"
         animate={r ? {} : { scale: [1, 1.14, 1], opacity: [0.22, 0.4, 0.22] }}
@@ -118,7 +112,7 @@ function DecorativeBackground() {
         transition={{ repeat: Infinity, duration: 11, ease: 'easeInOut', delay: 3 }}
       />
 
-      {/* Floating particles — olive toned */}
+      {/* Floating particles - olive toned */}
       <motion.div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-primary-400/18"
         animate={r ? {} : { y: [-5, 5, -5], x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }} />
       <motion.div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-moss-400/15"
@@ -204,7 +198,7 @@ function EventCard({
           past && 'opacity-70 saturate-[0.85]',
         )}
       >
-        {/* Event image — always shown */}
+        {/* Event image - always shown */}
         <div className="relative">
           {event.cover_image_url ? (
             <Card.Image src={event.cover_image_url} alt={event.title} />
@@ -411,7 +405,7 @@ export default function MyEventsPage() {
             </div>
           </motion.div>
 
-          {/* Tab bar — glass morphism */}
+          {/* Tab bar - glass morphism */}
           <motion.div
             initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

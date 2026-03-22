@@ -43,7 +43,7 @@ function FullBleedBackground({ rm }: { rm: boolean }) {
       {/* Gradient base */}
       <div className="absolute inset-0 bg-gradient-to-b from-amber-50/50 via-white to-primary-50/15" />
 
-      {/* Large ring — top right */}
+      {/* Large ring - top right */}
       <motion.div
         initial={rm ? {} : { scale: 0.7, opacity: 0 }}
         animate={{ scale: [1, 1.03, 1], opacity: 1 }}
@@ -57,23 +57,23 @@ function FullBleedBackground({ rm }: { rm: boolean }) {
         transition={{ scale: { duration: 22, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.5, delay: 0.3, ease: 'easeOut' } }}
         className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-amber-200/35"
       />
-      {/* Filled glow — bottom left */}
+      {/* Filled glow - bottom left */}
       <motion.div
         initial={rm ? {} : { scale: 0.6, opacity: 0 }}
         animate={{ scale: [1, 1.04, 1], opacity: 1 }}
         transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 1 }, opacity: { duration: 1.5, delay: 0.5, ease: 'easeOut' } }}
         className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-amber-100/25 blur-2xl"
       />
-      {/* Small ring — mid left */}
+      {/* Small ring - mid left */}
       <motion.div
         initial={rm ? {} : { scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
         className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-amber-200/35"
       />
-      {/* Warm glow — center right */}
+      {/* Warm glow - center right */}
       <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-amber-100/25 blur-3xl" />
-      {/* Small filled circle — bottom right */}
+      {/* Small filled circle - bottom right */}
       <motion.div
         initial={rm ? {} : { scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
