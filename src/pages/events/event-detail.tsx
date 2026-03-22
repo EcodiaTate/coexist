@@ -7,7 +7,6 @@ import {
     Clock,
     MapPin,
     Users,
-    Share2,
     CalendarPlus,
     ChevronRight,
     TreePine,
@@ -89,20 +88,6 @@ const difficultyConfig = {
 /* ------------------------------------------------------------------ */
 /*  Share helper                                                       */
 /* ------------------------------------------------------------------ */
-
-async function shareEvent(title: string, url: string) {
-  if (Capacitor.isNativePlatform() && navigator.share) {
-    try {
-      await navigator.share({ title, text: `Check out this event: ${title}`, url })
-    } catch {
-      // User cancelled
-    }
-  } else if (navigator.share) {
-    await navigator.share({ title, url })
-  } else {
-    await navigator.clipboard.writeText(url)
-  }
-}
 
 /* ------------------------------------------------------------------ */
 /*  Skeleton                                                           */
@@ -241,11 +226,6 @@ export default function EventDetailPage() {
     } else {
       window.open(`https://maps.google.com/maps?daddr=${encoded}`, '_blank')
     }
-  }, [event])
-
-  const handleShare = useCallback(() => {
-    if (!event) return
-    shareEvent(event.title, `${window.location.origin}/events/${event.id}`)
   }, [event])
 
   const handleCancelEvent = useCallback(() => {
@@ -424,22 +404,6 @@ export default function EventDetailPage() {
           title=""
           back
           transparent={!!event.cover_image_url}
-          rightActions={
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={handleShare}
-                className={cn(
-                  'flex items-center justify-center min-h-11 min-w-11 rounded-full cursor-pointer select-none',
-                  'active:scale-[0.97] transition-all duration-150',
-                  event.cover_image_url ? 'text-white/90 hover:bg-white/20' : 'text-primary-400 hover:bg-surface-3',
-                )}
-                aria-label="Share event"
-              >
-                <Share2 size={18} />
-              </button>
-            </div>
-          }
         />
       }
       footer={renderCta()}

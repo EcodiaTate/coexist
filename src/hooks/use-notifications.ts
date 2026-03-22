@@ -38,6 +38,7 @@ export interface NotificationPreferences {
   quiet_hours_enabled: boolean
   quiet_hours_start: string // "22:00"
   quiet_hours_end: string   // "07:00"
+  timezone: string           // IANA timezone e.g. "Australia/Sydney"
 }
 
 export const DEFAULT_PREFERENCES: NotificationPreferences = {
@@ -56,6 +57,7 @@ export const DEFAULT_PREFERENCES: NotificationPreferences = {
   quiet_hours_enabled: false,
   quiet_hours_start: '22:00',
   quiet_hours_end: '07:00',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
 }
 
 export interface GroupedNotifications {

@@ -61,12 +61,64 @@ const ROLE_CONFIG: Record<string, { label: string; icon: React.ReactNode; classN
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.03 } },
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Decorative shapes                                                  */
+/* ------------------------------------------------------------------ */
+
+function Shapes({ rm }: { rm: boolean }) {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      {/* Large ring — top-right */}
+      <motion.div
+        animate={rm ? {} : { scale: [1, 1.08, 1] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -top-20 -right-20 h-64 w-64 rounded-full border-[3px] border-primary-200/40"
+      />
+
+      {/* Filled glow — bottom-left */}
+      <motion.div
+        animate={rm ? {} : { scale: [1, 1.12, 1] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-bark-100/30 blur-2xl"
+      />
+
+      {/* Small ring — mid-left */}
+      <motion.div
+        animate={rm ? {} : { scale: [1, 1.1, 1] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-1/3 -left-8 h-24 w-24 rounded-full border-2 border-primary-100/25"
+      />
+
+      {/* Floating dot 1 */}
+      <motion.div
+        animate={rm ? {} : { y: [0, -10, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-28 right-12 h-2.5 w-2.5 rounded-full bg-primary-200/50"
+      />
+
+      {/* Floating dot 2 */}
+      <motion.div
+        animate={rm ? {} : { y: [0, 8, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        className="absolute top-1/2 right-1/4 h-2 w-2 rounded-full bg-bark-200/40"
+      />
+
+      {/* Floating dot 3 */}
+      <motion.div
+        animate={rm ? {} : { y: [0, -6, 0] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+        className="absolute bottom-40 left-16 h-1.5 w-1.5 rounded-full bg-primary-300/30"
+      />
+    </div>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -75,10 +127,11 @@ const fadeUp = {
 
 export default function LeaderMembersPage() {
   const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
   const { collectiveId, collectiveSlug } = useLeaderContext()
   const [search, setSearch] = useState('')
 
-  useLeaderHeader('Members')
+  useLeaderHeader('Members', { fullBleed: true })
 
   const { data: members, isLoading } = useCollectiveMembers(collectiveId)
 
@@ -94,156 +147,187 @@ export default function LeaderMembersPage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="h-11 w-full rounded-xl" />
-        <Skeleton variant="list-item" count={6} />
+      <div className="relative min-h-screen bg-gradient-to-b from-primary-50/80 via-white to-bark-50/20">
+        <Shapes rm={rm} />
+        <div className="relative z-10 px-4 pt-8 pb-10 space-y-4">
+          <Skeleton className="h-8 w-40 mx-auto rounded-xl" />
+          <Skeleton className="h-5 w-24 mx-auto rounded-lg" />
+          <div className="grid grid-cols-3 gap-3 pt-4">
+            <Skeleton className="h-20 rounded-2xl" />
+            <Skeleton className="h-20 rounded-2xl" />
+            <Skeleton className="h-20 rounded-2xl" />
+          </div>
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton variant="list-item" count={6} />
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-5">
-      {/* Stats row */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-xl bg-white p-3.5 shadow-sm text-center">
-          <p className="font-heading text-2xl font-extrabold text-primary-800 tabular-nums">
-            {members?.length ?? 0}
-          </p>
-          <p className="text-[11px] font-semibold text-primary-400 mt-0.5">Total</p>
-        </div>
-        <div className="rounded-xl bg-white p-3.5 shadow-sm text-center">
-          <p className="font-heading text-2xl font-extrabold text-moss-700 tabular-nums">
-            {leaders.length}
-          </p>
-          <p className="text-[11px] font-semibold text-primary-400 mt-0.5">Leaders</p>
-        </div>
-        <div className="rounded-xl bg-white p-3.5 shadow-sm text-center">
-          <p className="font-heading text-2xl font-extrabold text-secondary-700 tabular-nums">
-            {regularMembers.length}
-          </p>
-          <p className="text-[11px] font-semibold text-primary-400 mt-0.5">Members</p>
-        </div>
-      </div>
+    <div className="relative min-h-screen bg-gradient-to-b from-primary-50/80 via-white to-bark-50/20">
+      <Shapes rm={rm} />
 
-      {/* Search */}
-      <div className="relative">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary-300 pointer-events-none" />
-        <input
-          type="text"
-          placeholder="Search members..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className={cn(
-            'w-full h-11 pl-10 pr-4 rounded-xl',
-            'bg-white shadow-sm border border-primary-100',
-            'text-sm text-primary-800 placeholder:text-primary-300',
-            'focus:outline-none focus:ring-2 focus:ring-moss-300 focus:border-moss-300',
-            'transition-shadow duration-150',
+      <div className="relative z-10 px-4 pt-8 pb-10">
+        <motion.div
+          variants={rm ? undefined : stagger}
+          initial="hidden"
+          animate="visible"
+          className="space-y-5"
+        >
+          {/* Hero title */}
+          <motion.div variants={rm ? undefined : fadeUp} className="text-center pb-1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary-400 mb-1">
+              Community
+            </p>
+            <h1 className="font-heading text-2xl font-extrabold text-primary-900">
+              Members
+            </h1>
+          </motion.div>
+
+          {/* Stats row */}
+          <motion.div variants={rm ? undefined : fadeUp} className="grid grid-cols-3 gap-3">
+            <div className="rounded-2xl bg-white/90 backdrop-blur-sm p-3.5 shadow-sm border border-white/60 text-center">
+              <p className="font-heading text-2xl font-extrabold text-primary-800 tabular-nums">
+                {members?.length ?? 0}
+              </p>
+              <p className="text-[11px] font-semibold text-primary-400 mt-0.5">Total</p>
+            </div>
+            <div className="rounded-2xl bg-white/90 backdrop-blur-sm p-3.5 shadow-sm border border-white/60 text-center">
+              <p className="font-heading text-2xl font-extrabold text-moss-700 tabular-nums">
+                {leaders.length}
+              </p>
+              <p className="text-[11px] font-semibold text-primary-400 mt-0.5">Leaders</p>
+            </div>
+            <div className="rounded-2xl bg-white/90 backdrop-blur-sm p-3.5 shadow-sm border border-white/60 text-center">
+              <p className="font-heading text-2xl font-extrabold text-secondary-700 tabular-nums">
+                {regularMembers.length}
+              </p>
+              <p className="text-[11px] font-semibold text-primary-400 mt-0.5">Members</p>
+            </div>
+          </motion.div>
+
+          {/* Search */}
+          <motion.div variants={rm ? undefined : fadeUp} className="relative">
+            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary-300 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search members..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className={cn(
+                'w-full h-11 pl-10 pr-4 rounded-xl',
+                'bg-white/90 backdrop-blur-sm shadow-sm border border-primary-100',
+                'text-sm text-primary-800 placeholder:text-primary-300',
+                'focus:outline-none focus:ring-2 focus:ring-moss-300 focus:border-moss-300',
+                'transition-shadow duration-150',
+              )}
+            />
+          </motion.div>
+
+          {/* Leadership team */}
+          {leaders.length > 0 && (
+            <motion.div variants={rm ? undefined : fadeUp}>
+              <p className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2 px-1">
+                Leadership Team
+              </p>
+              <motion.div
+                variants={rm ? undefined : stagger}
+                initial="hidden"
+                animate="visible"
+                className="rounded-2xl bg-white/90 backdrop-blur-sm shadow-sm border border-white/60 overflow-hidden"
+              >
+                {leaders.map((member: any, idx: number) => {
+                  const profile = member.profiles
+                  const roleConfig = ROLE_CONFIG[member.role] ?? ROLE_CONFIG.member
+                  return (
+                    <motion.div key={member.id} variants={rm ? undefined : fadeUp}>
+                      <Link
+                        to={`/profile/${member.user_id}`}
+                        className={cn(
+                          'flex items-center gap-3 px-4 py-3',
+                          'hover:bg-moss-50/50 transition-colors duration-150',
+                          idx > 0 && 'border-t border-primary-50',
+                        )}
+                      >
+                        <Avatar
+                          src={profile?.avatar_url}
+                          name={profile?.display_name ?? ''}
+                          size="sm"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-primary-800 truncate">
+                            {profile?.display_name ?? 'Unknown'}
+                          </p>
+                        </div>
+                        <span className={cn(
+                          'flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0',
+                          roleConfig.className,
+                        )}>
+                          {roleConfig.icon}
+                          {roleConfig.label}
+                        </span>
+                        <ChevronRight size={14} className="text-primary-200 shrink-0" />
+                      </Link>
+                    </motion.div>
+                  )
+                })}
+              </motion.div>
+            </motion.div>
           )}
-        />
-      </div>
 
-      {/* Leadership team */}
-      {leaders.length > 0 && (
-        <div>
-          <p className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2 px-1">
-            Leadership Team
-          </p>
-          <motion.div
-            variants={shouldReduceMotion ? undefined : stagger}
-            initial="hidden"
-            animate="visible"
-            className="rounded-2xl bg-white shadow-sm overflow-hidden"
-          >
-            {leaders.map((member: any, idx: number) => {
-              const profile = member.profiles
-              const roleConfig = ROLE_CONFIG[member.role] ?? ROLE_CONFIG.member
-              return (
-                <motion.div key={member.id} variants={shouldReduceMotion ? undefined : fadeUp}>
-                  <Link
-                    to={`/profile/${member.user_id}`}
-                    className={cn(
-                      'flex items-center gap-3 px-4 py-3',
-                      'hover:bg-moss-50/50 transition-colors duration-150',
-                      idx > 0 && 'border-t border-primary-50',
-                    )}
-                  >
-                    <Avatar
-                      src={profile?.avatar_url}
-                      name={profile?.display_name ?? ''}
-                      size="sm"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-primary-800 truncate">
-                        {profile?.display_name ?? 'Unknown'}
-                      </p>
-                    </div>
-                    <span className={cn(
-                      'flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0',
-                      roleConfig.className,
-                    )}>
-                      {roleConfig.icon}
-                      {roleConfig.label}
-                    </span>
-                    <ChevronRight size={14} className="text-primary-200 shrink-0" />
-                  </Link>
-                </motion.div>
-              )
-            })}
+          {/* Regular members */}
+          <motion.div variants={rm ? undefined : fadeUp}>
+            <p className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2 px-1">
+              Members ({regularMembers.length})
+            </p>
+            {regularMembers.length === 0 ? (
+              <EmptyState
+                illustration="empty"
+                title={search ? 'No members found' : 'No members yet'}
+                description={search ? 'Try a different search' : 'Invite people to join your collective'}
+              />
+            ) : (
+              <motion.div
+                variants={rm ? undefined : stagger}
+                initial="hidden"
+                animate="visible"
+                className="rounded-2xl bg-white/90 backdrop-blur-sm shadow-sm border border-white/60 overflow-hidden"
+              >
+                {regularMembers.map((member: any, idx: number) => {
+                  const profile = member.profiles
+                  return (
+                    <motion.div key={member.id} variants={rm ? undefined : fadeUp}>
+                      <Link
+                        to={`/profile/${member.user_id}`}
+                        className={cn(
+                          'flex items-center gap-3 px-4 py-3',
+                          'hover:bg-moss-50/50 transition-colors duration-150',
+                          idx > 0 && 'border-t border-primary-50',
+                        )}
+                      >
+                        <Avatar
+                          src={profile?.avatar_url}
+                          name={profile?.display_name ?? ''}
+                          size="sm"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-primary-800 truncate">
+                            {profile?.display_name ?? 'Unknown'}
+                          </p>
+                          <p className="text-[11px] text-primary-400">
+                            Joined {new Date(member.joined_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                          </p>
+                        </div>
+                        <ChevronRight size={14} className="text-primary-200 shrink-0" />
+                      </Link>
+                    </motion.div>
+                  )
+                })}
+              </motion.div>
+            )}
           </motion.div>
-        </div>
-      )}
-
-      {/* Regular members */}
-      <div>
-        <p className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2 px-1">
-          Members ({regularMembers.length})
-        </p>
-        {regularMembers.length === 0 ? (
-          <EmptyState
-            illustration="empty"
-            title={search ? 'No members found' : 'No members yet'}
-            description={search ? 'Try a different search' : 'Invite people to join your collective'}
-          />
-        ) : (
-          <motion.div
-            variants={shouldReduceMotion ? undefined : stagger}
-            initial="hidden"
-            animate="visible"
-            className="rounded-2xl bg-white shadow-sm overflow-hidden"
-          >
-            {regularMembers.map((member: any, idx: number) => {
-              const profile = member.profiles
-              return (
-                <motion.div key={member.id} variants={shouldReduceMotion ? undefined : fadeUp}>
-                  <Link
-                    to={`/profile/${member.user_id}`}
-                    className={cn(
-                      'flex items-center gap-3 px-4 py-3',
-                      'hover:bg-moss-50/50 transition-colors duration-150',
-                      idx > 0 && 'border-t border-primary-50',
-                    )}
-                  >
-                    <Avatar
-                      src={profile?.avatar_url}
-                      name={profile?.display_name ?? ''}
-                      size="sm"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-primary-800 truncate">
-                        {profile?.display_name ?? 'Unknown'}
-                      </p>
-                      <p className="text-[11px] text-primary-400">
-                        Joined {new Date(member.joined_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
-                      </p>
-                    </div>
-                    <ChevronRight size={14} className="text-primary-200 shrink-0" />
-                  </Link>
-                </motion.div>
-              )
-            })}
-          </motion.div>
-        )}
+        </motion.div>
       </div>
     </div>
   )

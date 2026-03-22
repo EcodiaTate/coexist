@@ -11,8 +11,6 @@ import {
   BarChart3,
   TreePine,
   Send,
-  PanelLeftClose,
-  PanelLeftOpen,
   ArrowLeft,
   Menu,
   X,
@@ -24,6 +22,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useCollective } from '@/hooks/use-collective'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
+import { SidebarShell, type SidebarNavCategory } from '@/components/sidebar-shell'
 
 /* ------------------------------------------------------------------ */
 /*  Leader header context — lets child pages set title + actions       */
@@ -34,6 +33,8 @@ interface LeaderHeaderState {
   subtitle?: string
   actions?: ReactNode
   heroContent?: ReactNode
+  /** When true, the layout skips the hero bar and uses p-0 — page owns its entire background */
+  fullBleed?: boolean
 }
 
 interface LeaderHeaderContextValue {
@@ -49,12 +50,12 @@ const LeaderHeaderContext = createContext<LeaderHeaderContextValue | null>(null)
  */
 export function useLeaderHeader(
   title: string,
-  opts?: { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode } | ReactNode,
+  opts?: { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean } | ReactNode,
 ) {
   const ctx = useContext(LeaderHeaderContext)
   useEffect(() => {
-    if (opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any))) {
-      const o = opts as { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode }
+    if (opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any) || 'fullBleed' in (opts as any))) {
+      const o = opts as { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }
       ctx?.setHeader({ title, ...o })
     } else {
       ctx?.setHeader({ title, actions: opts as ReactNode })
@@ -95,18 +96,7 @@ const DEFAULT_HERO = { hue: 'from-moss-600 via-moss-700 to-primary-900', default
 /*  Nav items                                                          */
 /* ------------------------------------------------------------------ */
 
-interface LeaderNavItem {
-  label: string
-  path: string
-  icon: React.ReactNode
-}
-
-interface LeaderNavCategory {
-  label: string
-  items: LeaderNavItem[]
-}
-
-const leaderNavCategories: LeaderNavCategory[] = [
+const leaderNavCategories: SidebarNavCategory[] = [
   {
     label: 'Overview',
     items: [
@@ -186,74 +176,6 @@ const leaderBottomTabs: Tab[] = [
 /*  Shared nav link component                                          */
 /* ------------------------------------------------------------------ */
 
-function NavLink({
-  item,
-  active,
-  collapsed,
-  shouldReduceMotion,
-  layoutId,
-  accentColor = 'moss',
-}: {
-  item: LeaderNavItem
-  active: boolean
-  collapsed: boolean
-  shouldReduceMotion: boolean | null
-  layoutId: string
-  accentColor?: 'moss' | 'primary'
-}) {
-  const activeClasses = accentColor === 'moss'
-    ? 'bg-moss-50/70 text-moss-800 font-medium'
-    : 'bg-primary-50/70 text-primary-800 font-medium'
-  const hoverClasses = accentColor === 'moss'
-    ? 'text-primary-400 hover:bg-moss-50/40 hover:text-moss-700'
-    : 'text-primary-400 hover:bg-primary-50/40 hover:text-primary-700'
-  const indicatorColor = accentColor === 'moss'
-    ? 'from-moss-400 to-moss-600'
-    : 'from-primary-500 to-primary-700'
-
-  return (
-    <Link
-      to={item.path}
-      className={cn(
-        'relative flex items-center gap-2.5',
-        'rounded-xl text-[13px]',
-        'transition-all duration-200',
-        'cursor-pointer select-none',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
-        collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-9',
-        active ? activeClasses : hoverClasses,
-      )}
-      aria-current={active ? 'page' : undefined}
-      title={collapsed ? item.label : undefined}
-    >
-      {active && !collapsed && (
-        <motion.span
-          layoutId={shouldReduceMotion ? undefined : layoutId}
-          className={cn('absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b', indicatorColor)}
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        />
-      )}
-      {active && collapsed && (
-        <motion.span
-          layoutId={shouldReduceMotion ? undefined : `${layoutId}-dot`}
-          className={cn(
-            'absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full',
-            accentColor === 'moss' ? 'bg-moss-500' : 'bg-primary-600',
-          )}
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        />
-      )}
-      <span className={cn(
-        'flex items-center justify-center shrink-0 transition-transform duration-200',
-        active && 'scale-105',
-      )}>
-        {item.icon}
-      </span>
-      {!collapsed && <span className="truncate">{item.label}</span>}
-    </Link>
-  )
-}
-
 /* ------------------------------------------------------------------ */
 /*  LeaderLayout  route-level layout, renders <Outlet />              */
 /* ------------------------------------------------------------------ */
@@ -265,7 +187,6 @@ export function LeaderLayout() {
   const { collectiveRoles } = useAuth()
   const { navMode } = useLayout()
   const showBottomTabs = navMode === 'bottom-tabs'
-  const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [header, setHeaderState] = useState<LeaderHeaderState>({ title: '' })
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -309,109 +230,58 @@ export function LeaderLayout() {
     <LeaderHeaderContext.Provider value={headerCtx}>
       <div className="flex flex-1 min-h-0">
         {/* ── Leader sidebar — desktop ── */}
-        <aside
-          className={cn(
-            'hidden md:flex flex-col',
-            'sticky top-0 self-start max-h-dvh z-50',
-            'bg-white border-r border-moss-100/40',
-            'transition-[width] duration-250 ease-in-out',
-            'overflow-y-auto',
-            collapsed ? 'w-[60px]' : 'w-[240px]',
-          )}
-          aria-label="Leader navigation"
-        >
-          {/* Back to app */}
-          <div className="px-2.5 py-2.5">
-            <Link
-              to="/"
-              className={cn(
-                'flex items-center gap-2',
-                'rounded-xl text-[13px]',
-                'text-primary-300 hover:text-primary-700 hover:bg-moss-50/50',
-                'transition-all duration-200',
-                'cursor-pointer select-none',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
-                collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-8',
-              )}
-              title={collapsed ? 'Back to app' : undefined}
-            >
-              <ArrowLeft size={15} strokeWidth={1.5} className="shrink-0" />
-              {!collapsed && <span>Back to app</span>}
-            </Link>
-          </div>
-
-          {/* Collective name badge */}
-          {!collapsed && (
-            <div className="px-3 py-3 mx-2.5 mb-1 rounded-xl bg-gradient-to-br from-moss-50/80 to-moss-50/30 border border-moss-100/30">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shrink-0 shadow-sm">
-                  <TreePine size={14} className="text-white" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-semibold text-moss-500 uppercase tracking-[0.08em] leading-none">Leader</p>
-                  <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">{collectiveName}</p>
-                </div>
-              </div>
-            </div>
-          )}
-          {collapsed && (
-            <div className="flex justify-center py-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shadow-sm">
-                <TreePine size={14} className="text-white" />
-              </div>
-            </div>
-          )}
-
-          <div className="flex-1 py-2 px-2 space-y-0.5">
-            {leaderNavCategories.map((cat) => {
-              const showLabel = cat.label !== 'Overview'
-              return (
-                <div key={cat.label}>
-                  {showLabel && (
-                    <>
-                      {!collapsed && (
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-2.5 mt-4 mb-1.5">
-                          {cat.label}
-                        </p>
-                      )}
-                      {collapsed && <div className="my-2.5 mx-2 h-px bg-moss-100/30" />}
-                    </>
+        <SidebarShell
+          ariaLabel="Leader navigation"
+          categories={leaderNavCategories}
+          accent="moss"
+          layoutId="leader-sidebar-active"
+          hideOnMobile
+          header={(collapsed) => (
+            <>
+              {/* Back to app */}
+              <div className="px-2.5">
+                <Link
+                  to="/"
+                  className={cn(
+                    'flex items-center gap-2',
+                    'rounded-xl text-[13px]',
+                    'text-primary-300 hover:text-primary-700 hover:bg-moss-50/50',
+                    'transition-all duration-200',
+                    'cursor-pointer select-none',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
+                    collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-8',
                   )}
-                  {cat.items.map((item) => (
-                    <NavLink
-                      key={item.path}
-                      item={item}
-                      active={isActive(item.path)}
-                      collapsed={collapsed}
-                      shouldReduceMotion={shouldReduceMotion}
-                      layoutId="leader-sidebar-active"
-                      accentColor="moss"
-                    />
-                  ))}
-                </div>
-              )
-            })}
-          </div>
+                  title={collapsed ? 'Back to app' : undefined}
+                >
+                  <ArrowLeft size={15} strokeWidth={1.5} className="shrink-0" />
+                  {!collapsed && <span>Back to app</span>}
+                </Link>
+              </div>
 
-          <div className="p-2 border-t border-moss-100/30">
-            <button
-              type="button"
-              onClick={() => setCollapsed((p) => !p)}
-              className={cn(
-                'flex items-center justify-center gap-2 w-full',
-                'h-8 rounded-xl text-[13px]',
-                'text-primary-300 hover:text-primary-600 hover:bg-moss-50/50',
-                'cursor-pointer select-none',
-                'transition-all duration-200',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
+              {/* Collective name badge */}
+              {!collapsed && (
+                <div className="px-3 py-3 mx-2.5 mb-1 rounded-xl bg-gradient-to-br from-moss-50/80 to-moss-50/30 border border-moss-100/30">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shrink-0 shadow-sm">
+                      <TreePine size={14} className="text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold text-moss-500 uppercase tracking-[0.08em] leading-none">Leader</p>
+                      <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">{collectiveName}</p>
+                    </div>
+                  </div>
+                </div>
               )}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {collapsed ? <PanelLeftOpen size={15} strokeWidth={1.5} /> : <PanelLeftClose size={15} strokeWidth={1.5} />}
-              {!collapsed && <span>Collapse</span>}
-            </button>
-          </div>
-        </aside>
+              {collapsed && (
+                <div className="flex justify-center py-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shadow-sm">
+                    <TreePine size={14} className="text-white" />
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        />
 
         {/* ── Mobile drawer ── */}
         <AnimatePresence>
@@ -533,9 +403,12 @@ export function LeaderLayout() {
         </button>
 
         {/* ── Main content ── */}
-        <div ref={scrollRef} className="flex-1 flex flex-col min-w-0 overflow-y-auto overscroll-contain bg-surface-1">
-          {/* Shared hero bar */}
-          {header.title === 'Dashboard' ? null : header.title ? (() => {
+        <div ref={scrollRef} className={cn(
+          'flex-1 flex flex-col min-w-0 min-h-0',
+          showBottomTabs && 'overflow-y-auto overscroll-contain',
+        )}>
+          {/* Shared hero bar — only for non-fullBleed pages */}
+          {!header.fullBleed && header.title ? (() => {
             const cfg = PAGE_HERO_CONFIG[header.title] ?? DEFAULT_HERO
             const subtitle = header.subtitle ?? cfg.defaultSubtitle
             return (
@@ -578,7 +451,7 @@ export function LeaderLayout() {
           {/* Content rendered by nested <Route> children */}
           <div className={cn(
             'flex-1',
-            header.title === 'Dashboard' ? 'p-0' : 'p-6',
+            header.fullBleed ? 'p-0' : 'p-6',
             showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
           )}>
             <Suspense fallback={

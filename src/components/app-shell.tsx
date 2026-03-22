@@ -33,7 +33,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
   const { isMobile, isWeb, navMode } = useLayout()
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
-  const isLeaderRoute = location.pathname.startsWith('/leader')
+  const isLeaderRoute = location.pathname.startsWith('/leader') && !location.pathname.startsWith('/leaderboard')
   const { open, openMenu, closeMenu } = useMenuSheet()
 
   // Handles auto-sync on reconnect + toast notifications

@@ -96,12 +96,72 @@ function useCollectiveFullStats(collectiveId: string | undefined) {
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.05 } },
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
 }
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Decorative background shapes                                       */
+/* ------------------------------------------------------------------ */
+
+function DecoShapes({ rm }: { rm: boolean }) {
+  return (
+    <>
+      {/* Large ring — top right */}
+      <motion.div
+        className="absolute -top-16 -right-16 w-56 h-56 rounded-full border-2 border-moss-200/40"
+        animate={rm ? undefined : { rotate: 360 }}
+        transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
+      />
+
+      {/* Medium ring — bottom left */}
+      <motion.div
+        className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full border-2 border-moss-200/40"
+        animate={rm ? undefined : { rotate: -360 }}
+        transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+      />
+
+      {/* Soft circle — mid left */}
+      <motion.div
+        className="absolute top-44 -left-8 w-28 h-28 rounded-full bg-sprout-100/30"
+        animate={rm ? undefined : { y: [0, -14, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Soft circle — right center */}
+      <motion.div
+        className="absolute top-72 -right-6 w-20 h-20 rounded-full bg-moss-100/25"
+        animate={rm ? undefined : { y: [0, 10, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      />
+
+      {/* Floating dots */}
+      <motion.div
+        className="absolute top-28 right-14 w-2.5 h-2.5 rounded-full bg-moss-400/25"
+        animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.25, 0.5, 0.25] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-60 left-10 w-2 h-2 rounded-full bg-sprout-300/30"
+        animate={rm ? undefined : { y: [0, 6, 0], opacity: [0.3, 0.55, 0.3] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+      />
+      <motion.div
+        className="absolute bottom-40 right-8 w-1.5 h-1.5 rounded-full bg-moss-400/25"
+        animate={rm ? undefined : { y: [0, -6, 0], opacity: [0.2, 0.45, 0.2] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+      />
+      <motion.div
+        className="absolute bottom-64 left-20 w-2 h-2 rounded-full bg-sprout-300/30"
+        animate={rm ? undefined : { y: [0, 8, 0], opacity: [0.25, 0.5, 0.25] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+      />
+    </>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -155,7 +215,7 @@ function StatRow({
   return (
     <motion.div
       variants={fadeUp}
-      className="flex items-center gap-3 rounded-xl bg-white shadow-sm p-3.5"
+      className="flex items-center gap-3 rounded-xl bg-white shadow-sm border border-moss-50/60 p-3.5"
     >
       <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', color)}>
         {icon}
@@ -176,20 +236,30 @@ function StatRow({
 
 export default function LeaderImpactPage() {
   const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
   const { collectiveId } = useLeaderContext()
   const { data: collective } = useCollective(collectiveId)
 
-  useLeaderHeader('Impact')
+  useLeaderHeader('Impact', { fullBleed: true })
 
   const { data: stats, isLoading } = useCollectiveFullStats(collectiveId)
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-3">
-          {Array.from({ length: 8 }, (_, i) => (
-            <Skeleton key={i} variant="stat-card" />
-          ))}
+      <div className="relative min-h-screen overflow-x-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-moss-50/70 via-white to-sprout-50/20" />
+        <DecoShapes rm={rm} />
+        <div className="relative z-10 px-6 pt-4 space-y-5 pb-20">
+          {/* Hero skeleton */}
+          <div className="text-center pt-2 pb-1">
+            <Skeleton className="h-3 w-28 mx-auto mb-2" />
+            <Skeleton className="h-8 w-24 mx-auto" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {Array.from({ length: 8 }, (_, i) => (
+              <Skeleton key={i} variant="stat-card" />
+            ))}
+          </div>
         </div>
       </div>
     )
@@ -197,11 +267,17 @@ export default function LeaderImpactPage() {
 
   if (!stats) {
     return (
-      <EmptyState
-        illustration="wildlife"
-        title="No impact data yet"
-        description="Impact metrics will show up here once you log impact data for your events."
-      />
+      <div className="relative min-h-screen overflow-x-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-moss-50/70 via-white to-sprout-50/20" />
+        <DecoShapes rm={rm} />
+        <div className="relative z-10 px-6 pt-4 pb-20">
+          <EmptyState
+            illustration="wildlife"
+            title="No impact data yet"
+            description="Impact metrics will show up here once you log impact data for your events."
+          />
+        </div>
+      </div>
     )
   }
 
@@ -219,73 +295,98 @@ export default function LeaderImpactPage() {
   const hasAnyImpact = impactCards.length > 0
 
   return (
-    <motion.div
-      variants={shouldReduceMotion ? undefined : stagger}
-      initial="hidden"
-      animate="visible"
-      className="space-y-6"
-    >
-      {/* Collective overview stats */}
-      <div>
-        <p className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2.5 px-1">
-          Collective Overview
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <StatRow
-            value={stats.totalMembers}
-            label="Members"
-            icon={<Users size={18} className="text-primary-600" />}
-            color="bg-primary-100"
-          />
-          <StatRow
-            value={stats.totalEvents}
-            label="Total Events"
-            icon={<CalendarDays size={18} className="text-moss-600" />}
-            color="bg-moss-100"
-          />
-          <StatRow
-            value={stats.eventsLogged}
-            label="Impact Logged"
-            icon={<CheckCircle2 size={18} className="text-success-600" />}
-            color="bg-success-100"
-          />
-          <StatRow
-            value={stats.attendanceRate > 0 ? `${stats.attendanceRate}%` : '—'}
-            label="Attendance Rate"
-            icon={<TrendingUp size={18} className="text-secondary-600" />}
-            color="bg-secondary-100"
-          />
-        </div>
-      </div>
+    <div className="relative min-h-screen overflow-x-hidden">
+      {/* Full-bleed gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-moss-50/70 via-white to-sprout-50/20" />
 
-      {/* Environmental impact */}
-      {hasAnyImpact && (
-        <div>
-          <p className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2.5 px-1">
-            Environmental Impact
+      {/* Animated decorative shapes */}
+      <DecoShapes rm={rm} />
+
+      {/* Content */}
+      <motion.div
+        className="relative z-10 px-6 pt-4 space-y-5 pb-20"
+        variants={rm ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Hero title */}
+        <motion.div variants={fadeUp} className="text-center pt-2 pb-1">
+          <p className="text-[11px] uppercase tracking-widest text-moss-400 font-semibold mb-1.5">
+            Your Contribution
           </p>
+          <h1 className="font-heading text-2xl font-extrabold text-primary-900">
+            Impact
+          </h1>
+        </motion.div>
+
+        {/* Collective overview stats */}
+        <div>
+          <motion.p
+            variants={fadeUp}
+            className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2.5 px-1"
+          >
+            Collective Overview
+          </motion.p>
           <div className="grid grid-cols-2 gap-3">
-            {impactCards.map((card) => (
-              <ImpactCard
-                key={card.label}
-                value={card.value}
-                label={card.label}
-                unit={card.unit}
-                icon={card.icon}
-                gradient={card.gradient}
-              />
-            ))}
+            <StatRow
+              value={stats.totalMembers}
+              label="Members"
+              icon={<Users size={18} className="text-primary-600" />}
+              color="bg-primary-100"
+            />
+            <StatRow
+              value={stats.totalEvents}
+              label="Total Events"
+              icon={<CalendarDays size={18} className="text-moss-600" />}
+              color="bg-moss-100"
+            />
+            <StatRow
+              value={stats.eventsLogged}
+              label="Impact Logged"
+              icon={<CheckCircle2 size={18} className="text-success-600" />}
+              color="bg-success-100"
+            />
+            <StatRow
+              value={stats.attendanceRate > 0 ? `${stats.attendanceRate}%` : '—'}
+              label="Attendance Rate"
+              icon={<TrendingUp size={18} className="text-secondary-600" />}
+              color="bg-secondary-100"
+            />
           </div>
         </div>
-      )}
 
-      {!hasAnyImpact && (
-        <div className="rounded-2xl bg-moss-50 p-6 text-center">
-          <TreePine size={32} className="text-moss-300 mx-auto mb-3" />
-          <p className="text-sm font-medium text-moss-700">No environmental impact logged yet</p>
-          <p className="text-xs text-moss-500 mt-1">Log impact for your events to see metrics here</p>
-        </div>
-      )}
-    </motion.div>
+        {/* Environmental impact */}
+        {hasAnyImpact && (
+          <div>
+            <motion.p
+              variants={fadeUp}
+              className="text-[10px] uppercase tracking-wider text-primary-400 font-semibold mb-2.5 px-1"
+            >
+              Environmental Impact
+            </motion.p>
+            <div className="grid grid-cols-2 gap-3">
+              {impactCards.map((card) => (
+                <ImpactCard
+                  key={card.label}
+                  value={card.value}
+                  label={card.label}
+                  unit={card.unit}
+                  icon={card.icon}
+                  gradient={card.gradient}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!hasAnyImpact && (
+          <motion.div variants={fadeUp} className="rounded-2xl bg-moss-50 p-6 text-center">
+            <TreePine size={32} className="text-moss-300 mx-auto mb-3" />
+            <p className="text-sm font-medium text-moss-700">No environmental impact logged yet</p>
+            <p className="text-xs text-moss-500 mt-1">Log impact for your events to see metrics here</p>
+          </motion.div>
+        )}
+      </motion.div>
+    </div>
   )
 }

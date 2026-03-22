@@ -994,18 +994,30 @@ export function useSendBroadcastNotification() {
     }) => {
       if (!user) throw new Error('Not authenticated')
 
-      // Send push notification to all collective members
-      const { data: pushResult } = await supabase.functions.invoke('send-push', {
-        body: {
-          collectiveId,
-          title,
-          body,
-          data: {
-            type: 'chat_messages',
-            collective_id: collectiveId,
-          },
-        },
-      })
+      // Send push notification to all collective members except the sender
+      // Fetch members first so we can exclude self
+      const { data: members } = await supabase
+        .from('collective_members')
+        .select('user_id')
+        .eq('collective_id', collectiveId)
+        .eq('status', 'active')
+      const recipientIds = (members ?? [])
+        .map((m: { user_id: string }) => m.user_id)
+        .filter((id: string) => id !== user.id)
+
+      const { data: pushResult } = recipientIds.length > 0
+        ? await supabase.functions.invoke('send-push', {
+            body: {
+              userIds: recipientIds,
+              title,
+              body,
+              data: {
+                type: 'chat_messages',
+                collective_id: collectiveId,
+              },
+            },
+          })
+        : { data: { sent: 0 } }
 
       // Log the broadcast for dedup visibility
       const { error } = await (supabase as any)

@@ -182,7 +182,7 @@ export default function HomePage() {
   return (
     <Page className="!px-0 !pb-0 bg-primary-600">
       <PullToRefresh onRefresh={handleRefresh} dark>
-        <div className="relative min-h-full">
+        <div className="relative min-h-full overflow-clip">
           {/* ── Full-page branded background ── */}
           <div className="absolute inset-0 bg-gradient-to-b from-primary-600 via-secondary-700 to-primary-950" />
 
@@ -226,27 +226,27 @@ export default function HomePage() {
           />
 
           {/* ── Content ── */}
-          <div className="relative z-10 pb-[calc(6rem+3.5rem+var(--safe-bottom))]">
+          <div className="relative z-10">
             {/* 1. Hero greeting — compact */}
             <div className="relative w-full flex flex-col">
               {/* Safe-area spacer */}
               <div style={{ paddingTop: 'var(--safe-top)' }} />
 
               {/* Greeting — grand hero */}
-              <div className="flex flex-col items-center justify-center px-6 text-center pt-16 pb-4 min-h-[70svh] -mb-8">
+              <div className="flex flex-col items-center justify-start px-6 text-center pt-[18svh] pb-4 min-h-[70svh] lg:min-h-0 lg:pt-16 lg:pb-8 -mb-8 lg:mb-0">
                 <motion.img
                   src="/logos/white-wordmark.webp"
                   alt="Co-Exist"
                   initial={rm ? {} : { opacity: 0, y: 20, scale: 0.92 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 1, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className="h-16 sm:h-20 w-auto object-contain mb-8"
+                  className="h-16 sm:h-20 w-auto object-contain mb-8 lg:mb-4"
                 />
                 <motion.p
                   initial={rm ? {} : { opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className="font-heading text-2xl sm:text-3xl font-bold text-white"
+                  className="font-heading text-xl sm:text-2xl lg:text-3xl font-bold text-white"
                 >
                   {getGreeting(firstName)}
                 </motion.p>
@@ -255,7 +255,7 @@ export default function HomePage() {
 
             {/* Body sections */}
             <motion.div
-              className="px-6 space-y-12 pb-24 -mt-32"
+              className="px-6 space-y-16 pb-24 -mt-32 lg:mt-0"
               initial="hidden"
               animate="visible"
               variants={rm ? undefined : stagger}

@@ -20,15 +20,23 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useReferralCode, useReferralStats } from '@/hooks/use-referral'
 
+/* ------------------------------------------------------------------ */
+/*  Animation                                                          */
+/* ------------------------------------------------------------------ */
+
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 }
+
+/* ------------------------------------------------------------------ */
+/*  Skeleton                                                           */
+/* ------------------------------------------------------------------ */
 
 function ReferralSkeleton() {
   return (
@@ -43,8 +51,13 @@ function ReferralSkeleton() {
   )
 }
 
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
+
 export default function ReferralPage() {
   const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
   const { toast } = useToast()
   const { data: code, isLoading: codeLoading } = useReferralCode()
   const { data: stats } = useReferralStats()
@@ -85,122 +98,182 @@ export default function ReferralPage() {
 
   return (
     <Page header={<Header title="Invite Friends" back />}>
-      <motion.div
-        className="pb-8"
-        variants={shouldReduceMotion ? undefined : stagger}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* Hero */}
+      <div className="relative min-h-[calc(100vh-4rem)] overflow-x-hidden">
+        {/* Full-bleed gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-moss-50/50 via-white to-sky-50/15" />
+
+        {/* Decorative geometric shapes */}
         <motion.div
-          variants={fadeUp}
-          className="mt-4 rounded-2xl bg-gradient-to-br from-surface-2 to-primary-100/60 shadow-md p-5 text-center"
-        >
-          <div className="w-14 h-14 rounded-full bg-primary-200/70 flex items-center justify-center mx-auto mb-3">
-            <Gift size={28} className="text-primary-600" />
-          </div>
-          <h2 className="font-heading text-lg font-bold text-primary-800">
-            Grow the Movement
-          </h2>
-          <p className="mt-1 text-sm text-primary-400 max-w-xs mx-auto">
-            Invite friends to join Co-Exist. Earn 200 points when they attend their first event!
-          </p>
-        </motion.div>
-
-        {/* Referral Code */}
+          className="absolute top-12 -right-12 w-56 h-56 rounded-full border border-moss-200/35"
+          animate={rm ? undefined : { rotate: 360 }}
+          transition={rm ? undefined : { duration: 50, repeat: Infinity, ease: 'linear' }}
+        />
         <motion.div
-          variants={fadeUp}
-          className="mt-5"
+          className="absolute top-44 -left-16 w-44 h-44 rounded-full border border-moss-200/35"
+          animate={rm ? undefined : { rotate: -360 }}
+          transition={rm ? undefined : { duration: 60, repeat: Infinity, ease: 'linear' }}
+        />
+        <motion.div
+          className="absolute top-24 right-10 w-20 h-20 rounded-full bg-moss-100/25"
+          animate={rm ? undefined : { y: [0, -12, 0] }}
+          transition={rm ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute top-80 left-6 w-16 h-16 rounded-full bg-moss-100/25"
+          animate={rm ? undefined : { y: [0, 10, 0] }}
+          transition={rm ? undefined : { duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute bottom-40 -right-8 w-32 h-32 rounded-full border border-moss-200/35"
+          animate={rm ? undefined : { rotate: 360 }}
+          transition={rm ? undefined : { duration: 70, repeat: Infinity, ease: 'linear' }}
+        />
+
+        {/* Floating dots */}
+        <motion.div
+          className="absolute top-20 left-1/4 w-2 h-2 rounded-full bg-sky-300/20"
+          animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.2, 0.5, 0.2] }}
+          transition={rm ? undefined : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div
+          className="absolute top-56 right-1/4 w-1.5 h-1.5 rounded-full bg-moss-300/25"
+          animate={rm ? undefined : { y: [0, 6, 0], opacity: [0.25, 0.5, 0.25] }}
+          transition={rm ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+        />
+        <motion.div
+          className="absolute top-[22rem] left-1/3 w-2.5 h-2.5 rounded-full bg-sky-300/20"
+          animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.2, 0.5, 0.2] }}
+          transition={rm ? undefined : { duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+        />
+        <motion.div
+          className="absolute top-[28rem] right-1/3 w-1.5 h-1.5 rounded-full bg-moss-300/25"
+          animate={rm ? undefined : { y: [0, 8, 0], opacity: [0.2, 0.45, 0.2] }}
+          transition={rm ? undefined : { duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+        />
+        <motion.div
+          className="absolute bottom-28 left-1/5 w-2 h-2 rounded-full bg-moss-300/25"
+          animate={rm ? undefined : { y: [0, -6, 0], opacity: [0.2, 0.4, 0.2] }}
+          transition={rm ? undefined : { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+        />
+
+        {/* Content */}
+        <motion.div
+          className="relative z-10 pb-8"
+          variants={rm ? undefined : stagger}
+          initial="hidden"
+          animate="visible"
         >
-          <h3 className="font-heading text-sm font-semibold text-primary-800 mb-2">
-            Your Referral Code
-          </h3>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 rounded-xl bg-surface-2 px-4 py-3 text-center font-heading text-lg font-bold text-primary-800 tracking-wider select-all">
-              {code}
-            </div>
-            <button
-              type="button"
-              onClick={handleCopy}
-              className={cn(
-                'flex items-center justify-center min-h-11 min-w-11 rounded-xl active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
-                copied
-                  ? 'bg-success-100/80 shadow-sm text-success-600'
-                  : 'bg-surface-2 shadow-sm text-primary-500 hover:bg-primary-100/60',
-              )}
-              aria-label="Copy code"
-            >
-              {copied ? <CheckCircle size={20} /> : <Copy size={20} />}
-            </button>
-          </div>
-        </motion.div>
-
-        {/* Share button */}
-        <motion.div variants={fadeUp} className="mt-4">
-          <Button
-            variant="primary"
-            size="md"
-            fullWidth
-            icon={<Share2 size={16} />}
-            onClick={handleShare}
-          >
-            Share Invite Link
-          </Button>
-        </motion.div>
-
-        {/* Stats */}
-        {stats && (
+          {/* Hero */}
           <motion.div
             variants={fadeUp}
-            className="mt-6 grid grid-cols-3 gap-3"
+            className="mt-4 rounded-2xl bg-white/80 backdrop-blur-sm border border-moss-200/40 shadow-sm p-5 text-center"
           >
-            <StatCard
-              value={stats.total}
-              label="Invites Sent"
-              icon={<Share2 size={18} />}
-            />
-            <StatCard
-              value={stats.accepted}
-              label="Joined"
-              icon={<Users size={18} />}
-            />
-            <StatCard
-              value={stats.pending}
-              label="Pending"
-              icon={<Clock size={18} />}
-            />
+            <div className="w-14 h-14 rounded-full bg-moss-100/60 flex items-center justify-center mx-auto mb-3">
+              <Gift size={28} className="text-moss-600" />
+            </div>
+            <h2 className="font-heading text-lg font-bold text-primary-800">
+              Grow the Movement
+            </h2>
+            <p className="mt-1 text-sm text-primary-400 max-w-xs mx-auto">
+              Invite friends to join Co-Exist. Earn 200 points when they attend their first event!
+            </p>
           </motion.div>
-        )}
 
-        {/* Reward chain */}
-        <motion.section
-          variants={fadeUp}
-          className="mt-6"
-        >
-          <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
-            Referral Rewards
-          </h3>
-          <div className="space-y-2">
-            {[
-              { label: 'Friend joins Co-Exist', points: 50, icon: <UserPlus size={16} /> },
-              { label: 'Friend attends first event', points: 200, icon: <CheckCircle size={16} /> },
-              { label: 'Friend attends 5th event', points: 100, icon: <Trophy size={16} /> },
-            ].map(({ label, points, icon }) => (
-              <div
-                key={label}
-                className="flex items-center gap-3 rounded-xl bg-surface-2 shadow-sm px-4 py-3"
-              >
-                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-100/80 text-primary-500">
-                  {icon}
-                </span>
-                <span className="flex-1 text-sm text-primary-800">{label}</span>
-                <span className="text-sm font-bold text-primary-400">+{points} pts</span>
+          {/* Referral Code */}
+          <motion.div
+            variants={fadeUp}
+            className="mt-5"
+          >
+            <h3 className="font-heading text-sm font-semibold text-primary-800 mb-2">
+              Your Referral Code
+            </h3>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 rounded-xl bg-white/80 backdrop-blur-sm border border-moss-200/40 px-4 py-3 text-center font-heading text-lg font-bold text-primary-800 tracking-wider select-all shadow-sm">
+                {code}
               </div>
-            ))}
-          </div>
-        </motion.section>
+              <button
+                type="button"
+                onClick={handleCopy}
+                className={cn(
+                  'flex items-center justify-center min-h-11 min-w-11 rounded-xl active:scale-[0.97] transition-all duration-150 cursor-pointer select-none shadow-sm',
+                  copied
+                    ? 'bg-success-100/80 border border-success-200/40 text-success-600'
+                    : 'bg-white/80 backdrop-blur-sm border border-moss-200/40 text-primary-500 hover:bg-moss-50/60',
+                )}
+                aria-label="Copy code"
+              >
+                {copied ? <CheckCircle size={20} /> : <Copy size={20} />}
+              </button>
+            </div>
+          </motion.div>
 
-      </motion.div>
+          {/* Share button */}
+          <motion.div variants={fadeUp} className="mt-4">
+            <Button
+              variant="primary"
+              size="md"
+              fullWidth
+              icon={<Share2 size={16} />}
+              onClick={handleShare}
+            >
+              Share Invite Link
+            </Button>
+          </motion.div>
+
+          {/* Stats */}
+          {stats && (
+            <motion.div
+              variants={fadeUp}
+              className="mt-6 grid grid-cols-3 gap-3"
+            >
+              <StatCard
+                value={stats.total}
+                label="Invites Sent"
+                icon={<Share2 size={18} />}
+              />
+              <StatCard
+                value={stats.accepted}
+                label="Joined"
+                icon={<Users size={18} />}
+              />
+              <StatCard
+                value={stats.pending}
+                label="Pending"
+                icon={<Clock size={18} />}
+              />
+            </motion.div>
+          )}
+
+          {/* Reward chain */}
+          <motion.section
+            variants={fadeUp}
+            className="mt-6"
+          >
+            <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
+              Referral Rewards
+            </h3>
+            <div className="space-y-2">
+              {[
+                { label: 'Friend joins Co-Exist', points: 50, icon: <UserPlus size={16} /> },
+                { label: 'Friend attends first event', points: 200, icon: <CheckCircle size={16} /> },
+                { label: 'Friend attends 5th event', points: 100, icon: <Trophy size={16} /> },
+              ].map(({ label, points, icon }) => (
+                <div
+                  key={label}
+                  className="flex items-center gap-3 rounded-xl bg-white/80 backdrop-blur-sm border border-moss-200/40 shadow-sm px-4 py-3"
+                >
+                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-moss-100/60 text-moss-600">
+                    {icon}
+                  </span>
+                  <span className="flex-1 text-sm text-primary-800">{label}</span>
+                  <span className="text-sm font-bold text-moss-600">+{points} pts</span>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+
+        </motion.div>
+      </div>
     </Page>
   )
 }

@@ -37,9 +37,9 @@ const sizeMap: Record<AvatarSize, { px: number; text: string; dot: string; ring:
 /* ------------------------------------------------------------------ */
 
 const tierRingColor: Record<Tier, string> = {
-  seedling: 'ring-success-400',
-  sapling: 'ring-primary-400',
-  native: 'ring-moss-500',
+  seedling: 'ring-moss-400',
+  sapling: 'ring-moss-500',
+  native: 'ring-moss-600',
   canopy: 'ring-primary-500',
   elder: 'ring-warning-500',
 }
@@ -100,7 +100,7 @@ export function Avatar({
         role="img"
         className={cn(
           'w-full h-full rounded-full overflow-hidden',
-          tier && `${s.ring} ${tierRingColor[tier]}`,
+          // tier ring removed by design
           !showImage && 'bg-primary-200',
         )}
       >

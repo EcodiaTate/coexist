@@ -64,6 +64,48 @@ const fadeUp: Variants = {
   show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 200, damping: 24 } },
 }
 
+/* ─── decorative shapes ─── */
+function DecoShapes({ reduced }: { reduced: boolean }) {
+  return (
+    <>
+      {/* Ring 1 — top-right */}
+      <motion.div
+        className="absolute -top-16 -right-16 w-56 h-56 rounded-full border-[3px] border-moss-200/35 pointer-events-none"
+        animate={reduced ? undefined : { scale: [1, 1.08, 1] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Ring 2 — mid-left */}
+      <motion.div
+        className="absolute top-[40%] -left-12 w-40 h-40 rounded-full border-[3px] border-moss-200/35 pointer-events-none"
+        animate={reduced ? undefined : { scale: [1, 1.06, 1] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      />
+      {/* Blurred glow — bottom-left */}
+      <div className="absolute bottom-24 -left-10 w-48 h-48 rounded-full bg-sprout-100/30 blur-2xl pointer-events-none" />
+      {/* Soft glow — top-right */}
+      <div className="absolute -top-10 right-8 w-56 h-56 rounded-full bg-moss-100/20 blur-3xl pointer-events-none" />
+      {/* Floating dot 1 */}
+      <motion.div
+        className="absolute top-28 right-10 w-3 h-3 rounded-full bg-moss-300/30 pointer-events-none"
+        animate={reduced ? undefined : { y: [0, -8, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Floating dot 2 */}
+      <motion.div
+        className="absolute top-[55%] right-[20%] w-2 h-2 rounded-full bg-sprout-300/25 pointer-events-none"
+        animate={reduced ? undefined : { y: [0, -6, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+      />
+      {/* Floating dot 3 */}
+      <motion.div
+        className="absolute bottom-48 left-[15%] w-2.5 h-2.5 rounded-full bg-moss-300/30 pointer-events-none"
+        animate={reduced ? undefined : { y: [0, -10, 0] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+      />
+    </>
+  )
+}
+
 /* ─── skeleton ─── */
 function ImpactSkeleton() {
   return (
@@ -138,7 +180,8 @@ function BigStat({
       variants={fadeUp}
       className={cn(
         'flex flex-col items-center justify-center text-center rounded-3xl p-6 min-h-[150px]',
-        'bg-gradient-to-br shadow-lg shadow-sm',
+        'bg-white shadow-sm border border-moss-50/60',
+        'bg-gradient-to-br',
         `${style.gradient}`,
       )}
     >
@@ -294,21 +337,31 @@ export default function ImpactDashboardPage() {
 
   if (statsLoading) {
     return (
-      <Page header={<Header title="My Impact" back />}>
-        <ImpactSkeleton />
+      <Page header={<Header title="My Impact" back />} className="!px-0 !bg-transparent">
+        <div className="relative min-h-full">
+          <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
+          <div className="relative z-10 px-4 lg:px-6 py-4">
+            <ImpactSkeleton />
+          </div>
+        </div>
       </Page>
     )
   }
 
   if (!stats) {
     return (
-      <Page header={<Header title="My Impact" back />}>
-        <EmptyState
-          illustration="empty"
-          title="No impact data yet"
-          description="Attend your first event to start tracking your conservation impact"
-          action={{ label: 'Find Events', to: '/explore' }}
-        />
+      <Page header={<Header title="My Impact" back />} className="!px-0 !bg-transparent">
+        <div className="relative min-h-full">
+          <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
+          <div className="relative z-10 px-4 lg:px-6 py-4">
+            <EmptyState
+              illustration="empty"
+              title="No impact data yet"
+              description="Attend your first event to start tracking your conservation impact"
+              action={{ label: 'Find Events', to: '/explore' }}
+            />
+          </div>
+        </div>
       </Page>
     )
   }
@@ -336,228 +389,225 @@ export default function ImpactDashboardPage() {
         <Header
           title="My Impact"
           back
-          rightActions={
-            <button
-              type="button"
-              onClick={handleShare}
-              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
-              aria-label="Share impact"
-            >
-              <Share2 size={20} strokeWidth={2.5} />
-            </button>
-          }
         />
       }
+      className="!px-0 !bg-transparent"
     >
       <PullToRefresh onRefresh={handleRefresh}>
-        <div className="pb-12">
+        <div className="relative min-h-full">
+          {/* ─── Full-bleed background gradient ─── */}
+          <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
 
-          {/* ─── Hero: Trees Planted ─── */}
-          <motion.div
-            variants={shouldReduceMotion ? undefined : stagger}
-            initial="hidden"
-            animate="show"
-            className="px-5 pt-6 pb-2"
-          >
+          {/* ─── Decorative animated shapes ─── */}
+          <DecoShapes reduced={!!shouldReduceMotion} />
+
+          {/* ─── Content ─── */}
+          <div className="relative z-10 px-4 lg:px-6 py-4 space-y-5">
+
+            {/* ─── Hero: Trees Planted ─── */}
             <motion.div
-              variants={fadeUp}
-              className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-7 shadow-2xl overflow-hidden"
+              variants={shouldReduceMotion ? undefined : stagger}
+              initial="hidden"
+              animate="show"
             >
-              {/* Decorative background circles */}
-              <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
+              <motion.div
+                variants={fadeUp}
+                className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-7 shadow-2xl overflow-hidden"
+              >
+                {/* Decorative background circles */}
+                <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
+                <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
 
-              <div className="relative">
-                <div className="flex items-center gap-2 mb-5">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-sm">
-                    <TreePine size={20} strokeWidth={2.5} className="text-white" />
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-5">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-sm">
+                      <TreePine size={20} strokeWidth={2.5} className="text-white" />
+                    </div>
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 font-bold">
+                      Your Conservation Footprint
+                    </p>
                   </div>
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 font-bold">
-                    Your Conservation Footprint
-                  </p>
+
+                  <span className="font-heading text-7xl font-extrabold text-white tabular-nums leading-none tracking-tight">
+                    <CountUp end={stats.treesPlanted} />
+                  </span>
+                  <p className="text-lg text-white/70 font-semibold mt-3">trees planted</p>
                 </div>
-
-                <span className="font-heading text-7xl font-extrabold text-white tabular-nums leading-none tracking-tight">
-                  <CountUp end={stats.treesPlanted} />
-                </span>
-                <p className="text-lg text-white/70 font-semibold mt-3">trees planted</p>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
 
-          {/* ─── Core Stats Grid ─── */}
-          <motion.div
-            variants={shouldReduceMotion ? undefined : stagger}
-            initial="hidden"
-            animate="show"
-            className="px-5 mt-6 grid grid-cols-2 gap-4"
-          >
-            <BigStat
-              value={stats.eventsAttended}
-              label="Events"
-              icon={<Calendar size={20} strokeWidth={2.5} />}
-              config="events"
-            />
-            <BigStat
-              value={stats.hoursVolunteered}
-              label="Hours"
-              icon={<Clock size={20} strokeWidth={2.5} />}
-              config="hours"
-            />
-            <BigStat
-              value={stats.rubbishCollectedKg}
-              label="kg Rubbish"
-              icon={<Trash2 size={20} strokeWidth={2.5} />}
-              config="rubbish"
-            />
-            {stats.coastlineCleanedM > 0 && (
+            {/* ─── Core Stats Grid ─── */}
+            <motion.div
+              variants={shouldReduceMotion ? undefined : stagger}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-2 gap-4"
+            >
               <BigStat
-                value={stats.coastlineCleanedM}
-                label="Coastline (m)"
-                icon={<Waves size={20} strokeWidth={2.5} />}
-                config="coastline"
+                value={stats.eventsAttended}
+                label="Events"
+                icon={<Calendar size={20} strokeWidth={2.5} />}
+                config="events"
               />
-            )}
-            {stats.areaRestoredSqm > 0 && (
               <BigStat
-                value={stats.areaRestoredSqm}
-                label="Area (sqm)"
-                icon={<Waves size={20} strokeWidth={2.5} />}
-                config="area"
+                value={stats.hoursVolunteered}
+                label="Hours"
+                icon={<Clock size={20} strokeWidth={2.5} />}
+                config="hours"
               />
-            )}
-            {stats.nativePlants > 0 && (
               <BigStat
-                value={stats.nativePlants}
-                label="Native Plants"
-                icon={<Sprout size={20} strokeWidth={2.5} />}
-                config="plants"
+                value={stats.rubbishCollectedKg}
+                label="kg Rubbish"
+                icon={<Trash2 size={20} strokeWidth={2.5} />}
+                config="rubbish"
               />
-            )}
-            {stats.wildlifeSightings > 0 && (
-              <BigStat
-                value={stats.wildlifeSightings}
-                label="Wildlife"
-                icon={<Bird size={20} strokeWidth={2.5} />}
-                config="wildlife"
-              />
-            )}
-          </motion.div>
+              {stats.coastlineCleanedM > 0 && (
+                <BigStat
+                  value={stats.coastlineCleanedM}
+                  label="Coastline (m)"
+                  icon={<Waves size={20} strokeWidth={2.5} />}
+                  config="coastline"
+                />
+              )}
+              {stats.areaRestoredSqm > 0 && (
+                <BigStat
+                  value={stats.areaRestoredSqm}
+                  label="Area (sqm)"
+                  icon={<Waves size={20} strokeWidth={2.5} />}
+                  config="area"
+                />
+              )}
+              {stats.nativePlants > 0 && (
+                <BigStat
+                  value={stats.nativePlants}
+                  label="Native Plants"
+                  icon={<Sprout size={20} strokeWidth={2.5} />}
+                  config="plants"
+                />
+              )}
+              {stats.wildlifeSightings > 0 && (
+                <BigStat
+                  value={stats.wildlifeSightings}
+                  label="Wildlife"
+                  icon={<Bird size={20} strokeWidth={2.5} />}
+                  config="wildlife"
+                />
+              )}
+            </motion.div>
 
-          {/* ─── Streak ─── */}
-          {streak && (streak.currentWeeks > 0 || streak.currentMonths > 0) && (
+            {/* ─── Streak ─── */}
+            {streak && (streak.currentWeeks > 0 || streak.currentMonths > 0) && (
+              <motion.div
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 22 }}
+                className="flex items-center gap-5 rounded-3xl bg-gradient-to-r from-warning-100/80 via-warning-50 to-coral-100/60 bg-white shadow-sm border border-moss-50/60 p-6"
+              >
+                <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-warning-500 to-coral-500 shadow-lg shadow-warning-200/50">
+                  <Flame size={26} strokeWidth={2.5} className="text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-warning-700 font-extrabold mb-2.5">
+                    Active Streak
+                  </p>
+                  <div className="flex items-baseline gap-4">
+                    <p className="font-heading text-3xl font-extrabold text-primary-900 tabular-nums">
+                      <CountUp end={streak.currentWeeks} />
+                      <span className="text-sm font-bold text-primary-500 ml-1">wks</span>
+                    </p>
+                    <span className="w-0.5 h-7 bg-primary-300/50 rounded-full" />
+                    <p className="font-heading text-3xl font-extrabold text-primary-900 tabular-nums">
+                      <CountUp end={streak.currentMonths} />
+                      <span className="text-sm font-bold text-primary-500 ml-1">mos</span>
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ─── Monthly Activity ─── */}
+            {monthly && monthly.length > 0 && (
+              <motion.section
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25, type: 'spring', stiffness: 200, damping: 22 }}
+              >
+                <SectionHeading>Monthly Activity</SectionHeading>
+                <div className="rounded-3xl bg-white shadow-sm border border-moss-50/60 p-6">
+                  <ActivitySparkline data={monthly} />
+                </div>
+              </motion.section>
+            )}
+
+            {/* ─── Category Breakdown ─── */}
+            {byCategory && byCategory.length > 0 && (
+              <motion.section
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 22 }}
+              >
+                <SectionHeading>Impact Breakdown</SectionHeading>
+                <div className="rounded-3xl bg-white shadow-sm border border-moss-50/60 p-6">
+                  <ImpactRing data={byCategory} />
+                </div>
+              </motion.section>
+            )}
+
+            {/* ─── National Impact CTA ─── */}
+            <motion.button
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35, type: 'spring', stiffness: 200, damping: 22 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate('/impact/national')}
+              className="w-full flex items-center gap-5 rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-xl shadow-primary-300/30 p-6 min-h-11 text-left active:scale-[0.97] transition-all duration-150 hover:shadow-2xl cursor-pointer select-none overflow-hidden relative"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
+              <div className="relative flex items-center justify-center w-13 h-13 rounded-2xl bg-white/15 backdrop-blur-sm">
+                <Globe size={24} strokeWidth={2.5} className="text-white" />
+              </div>
+              <div className="relative flex-1 min-w-0">
+                <p className="font-heading text-base font-bold text-white">National Impact</p>
+                <p className="text-sm text-white/60 font-medium mt-1">
+                  See how the whole community is making a difference
+                </p>
+              </div>
+              <ArrowRight size={20} strokeWidth={2.5} className="text-white/50 shrink-0 relative" />
+            </motion.button>
+
+            {/* ─── Comparison ─── */}
             <motion.div
               initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 22 }}
-              className="mx-5 mt-8 flex items-center gap-5 rounded-3xl bg-gradient-to-r from-warning-100/80 via-warning-50 to-coral-100/60 shadow-lg shadow-sm p-6"
+              transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 22 }}
+              className="rounded-3xl bg-white shadow-sm border border-moss-50/60 bg-gradient-to-br from-bark-100/60 to-bark-200/40 p-6"
             >
-              <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-warning-500 to-coral-500 shadow-lg shadow-warning-200/50">
-                <Flame size={26} strokeWidth={2.5} className="text-white" />
-              </div>
-              <div className="flex-1">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-warning-700 font-extrabold mb-2.5">
-                  Active Streak
-                </p>
-                <div className="flex items-baseline gap-4">
-                  <p className="font-heading text-3xl font-extrabold text-primary-900 tabular-nums">
-                    <CountUp end={streak.currentWeeks} />
-                    <span className="text-sm font-bold text-primary-500 ml-1">wks</span>
-                  </p>
-                  <span className="w-0.5 h-7 bg-primary-300/50 rounded-full" />
-                  <p className="font-heading text-3xl font-extrabold text-primary-900 tabular-nums">
-                    <CountUp end={streak.currentMonths} />
-                    <span className="text-sm font-bold text-primary-500 ml-1">mos</span>
-                  </p>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* ─── Monthly Activity ─── */}
-          {monthly && monthly.length > 0 && (
-            <motion.section
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, type: 'spring', stiffness: 200, damping: 22 }}
-              className="mx-5 mt-10"
-            >
-              <SectionHeading>Monthly Activity</SectionHeading>
-              <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6">
-                <ActivitySparkline data={monthly} />
-              </div>
-            </motion.section>
-          )}
-
-          {/* ─── Category Breakdown ─── */}
-          {byCategory && byCategory.length > 0 && (
-            <motion.section
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 22 }}
-              className="mx-5 mt-10"
-            >
-              <SectionHeading>Impact Breakdown</SectionHeading>
-              <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6">
-                <ImpactRing data={byCategory} />
-              </div>
-            </motion.section>
-          )}
-
-          {/* ─── National Impact CTA ─── */}
-          <motion.button
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35, type: 'spring', stiffness: 200, damping: 22 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigate('/impact/national')}
-            className="mx-5 mt-10 w-[calc(100%-2.5rem)] flex items-center gap-5 rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-xl shadow-primary-300/30 p-6 min-h-11 text-left active:scale-[0.97] transition-all duration-150 hover:shadow-2xl cursor-pointer select-none overflow-hidden relative"
-          >
-            <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
-            <div className="relative flex items-center justify-center w-13 h-13 rounded-2xl bg-white/15 backdrop-blur-sm">
-              <Globe size={24} strokeWidth={2.5} className="text-white" />
-            </div>
-            <div className="relative flex-1 min-w-0">
-              <p className="font-heading text-base font-bold text-white">National Impact</p>
-              <p className="text-sm text-white/60 font-medium mt-1">
-                See how the whole community is making a difference
+              <p className="text-sm text-primary-700 font-semibold leading-relaxed">
+                {stats.treesPlanted > 10
+                  ? `You've planted ${Math.round(stats.treesPlanted / 3)}x more trees than the average Co-Exist member. Keep it up!`
+                  : 'Keep attending events to grow your impact and see how you compare!'}
               </p>
-            </div>
-            <ArrowRight size={20} strokeWidth={2.5} className="text-white/50 shrink-0 relative" />
-          </motion.button>
+            </motion.div>
 
-          {/* ─── Comparison ─── */}
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 22 }}
-            className="mx-5 mt-8 rounded-3xl bg-gradient-to-br from-bark-100/60 to-bark-200/40 shadow-lg shadow-sm p-6"
-          >
-            <p className="text-sm text-primary-700 font-semibold leading-relaxed">
-              {stats.treesPlanted > 10
-                ? `You've planted ${Math.round(stats.treesPlanted / 3)}x more trees than the average Co-Exist member. Keep it up!`
-                : 'Keep attending events to grow your impact and see how you compare!'}
-            </p>
-          </motion.div>
-
-          {/* ─── Share Button ─── */}
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45, type: 'spring', stiffness: 200, damping: 22 }}
-            className="mx-5 mt-10"
-          >
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              icon={<Share2 size={18} />}
-              onClick={handleShare}
+            {/* ─── Share Button ─── */}
+            <motion.div
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.45, type: 'spring', stiffness: 200, damping: 22 }}
+              className="pb-8"
             >
-              Share My Impact
-            </Button>
-          </motion.div>
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                icon={<Share2 size={18} />}
+                onClick={handleShare}
+              >
+                Share My Impact
+              </Button>
+            </motion.div>
 
+          </div>
         </div>
       </PullToRefresh>
     </Page>

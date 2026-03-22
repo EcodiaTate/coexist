@@ -21,6 +21,7 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useCreateAnnouncement } from '@/hooks/use-announcements'
+import { useMyCollectives } from '@/hooks/use-collective'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useCamera } from '@/hooks/use-camera'
 import type { Enums } from '@/types/database.types'
@@ -61,23 +62,38 @@ const audienceOptions: {
 
 export default function CreateAnnouncementPage() {
   const navigate = useNavigate()
-  const { profile } = useAuth()
+  const { profile, isStaff, collectiveRoles } = useAuth()
   const { toast } = useToast()
   const createAnnouncement = useCreateAnnouncement()
   const { pickFromGallery, loading: cameraLoading } = useCamera()
   const annUpload = useImageUpload({ bucket: 'announcement-images' })
+  const { data: myCollectives } = useMyCollectives()
+
+  // Collectives this user leads (assist_leader, co_leader, leader)
+  const staffCollectives = (myCollectives ?? []).filter((m) =>
+    m.role === 'leader' || m.role === 'co_leader' || m.role === 'assist_leader',
+  )
+  const isCollectiveStaffOnly = !isStaff && staffCollectives.length > 0
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [priority, setPriority] = useState<Enums<'announcement_priority'>>('normal')
-  const [targetAudience, setTargetAudience] = useState<Enums<'announcement_target'>>('all')
+  const [targetAudience, setTargetAudience] = useState<Enums<'announcement_target'>>(
+    isCollectiveStaffOnly ? 'collective_specific' : 'all',
+  )
+  const [selectedCollectiveId, setSelectedCollectiveId] = useState<string | null>(
+    staffCollectives.length === 1 ? staffCollectives[0].collective_id : null,
+  )
   const [isPinned, setIsPinned] = useState(false)
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const shouldReduceMotion = useReducedMotion()
 
-  const canSubmit = title.trim().length > 0 && content.trim().length > 0
+  const canSubmit =
+    title.trim().length > 0 &&
+    content.trim().length > 0 &&
+    (targetAudience !== 'collective_specific' || !!selectedCollectiveId)
 
   const handleImageChange = (files: FileList | null) => {
     const file = files?.[0]
@@ -104,6 +120,7 @@ export default function CreateAnnouncementPage() {
         imageUrl,
         priority,
         targetAudience,
+        targetCollectiveId: targetAudience === 'collective_specific' ? selectedCollectiveId ?? undefined : undefined,
         isPinned,
       })
 
@@ -312,7 +329,8 @@ export default function CreateAnnouncementPage() {
             Target Audience
           </label>
           <div className="space-y-2">
-            {audienceOptions.map((opt) => {
+            {/* Admin/staff see all options; collective staff only see collective_specific */}
+            {(isStaff ? audienceOptions : audienceOptions.filter((o) => o.value === 'collective_specific')).map((opt) => {
               const Icon = opt.icon
               const isSelected = targetAudience === opt.value
               return (
@@ -348,6 +366,59 @@ export default function CreateAnnouncementPage() {
               )
             })}
           </div>
+
+          {/* Collective picker – shown when targeting a specific collective */}
+          {targetAudience === 'collective_specific' && (
+            <div className="mt-3 space-y-2">
+              <label className="block text-xs font-semibold text-primary-400 uppercase tracking-wider">
+                Select collective
+              </label>
+              {(isStaff ? (myCollectives ?? []) : staffCollectives).map((m) => {
+                const collective = m.collectives as any
+                if (!collective) return null
+                const isSelected = selectedCollectiveId === m.collective_id
+                return (
+                  <button
+                    key={m.collective_id}
+                    type="button"
+                    onClick={() => setSelectedCollectiveId(m.collective_id)}
+                    className={cn(
+                      'flex items-center gap-3 w-full px-4 py-3 rounded-xl text-left',
+                      'transition-all duration-150 cursor-pointer select-none',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                      isSelected
+                        ? 'bg-primary-100 shadow-sm ring-2 ring-primary-500'
+                        : 'bg-primary-50/60 hover:bg-primary-100/60',
+                    )}
+                    aria-pressed={isSelected}
+                  >
+                    {collective.cover_image_url ? (
+                      <img
+                        src={collective.cover_image_url}
+                        alt=""
+                        className="w-9 h-9 rounded-lg object-cover shrink-0"
+                      />
+                    ) : (
+                      <div className="w-9 h-9 rounded-lg bg-primary-200/60 flex items-center justify-center shrink-0">
+                        <Users size={16} className="text-primary-400" />
+                      </div>
+                    )}
+                    <div>
+                      <p className={cn(
+                        'text-sm font-medium',
+                        isSelected ? 'text-primary-400' : 'text-primary-800',
+                      )}>
+                        {collective.name}
+                      </p>
+                      {collective.region && (
+                        <p className="text-xs text-primary-400">{collective.region}, {collective.state}</p>
+                      )}
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
 
         {/* Pin toggle */}

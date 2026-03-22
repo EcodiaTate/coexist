@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -67,6 +67,82 @@ const stagger = {
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Decorative background shapes                                       */
+/* ------------------------------------------------------------------ */
+
+function DecorativeShapes({ reduced }: { reduced: boolean }) {
+  if (reduced) return null
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* Large ring — top right */}
+      <motion.div
+        className="absolute -top-20 -right-16 w-64 h-64 rounded-full border-[3px] border-primary-200/25"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
+      />
+
+      {/* Medium ring — left mid */}
+      <motion.div
+        className="absolute top-[40%] -left-24 w-48 h-48 rounded-full border-[2px] border-primary-200/20"
+        animate={{ rotate: -360 }}
+        transition={{ duration: 120, repeat: Infinity, ease: 'linear' }}
+      />
+
+      {/* Soft glow — top left */}
+      <motion.div
+        className="absolute -top-12 -left-12 w-40 h-40 rounded-full bg-primary-100/20 blur-3xl"
+        animate={{ scale: [1, 1.15, 1], opacity: [0.2, 0.35, 0.2] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Soft glow — bottom right */}
+      <motion.div
+        className="absolute -bottom-16 -right-8 w-56 h-56 rounded-full bg-primary-100/15 blur-3xl"
+        animate={{ scale: [1, 1.2, 1], opacity: [0.15, 0.3, 0.15] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+
+      {/* Small floating dot cluster — top center */}
+      <motion.div
+        className="absolute top-16 left-1/2 w-3 h-3 rounded-full bg-primary-300/20"
+        animate={{ y: [0, -10, 0], x: [0, 5, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-24 left-[55%] w-2 h-2 rounded-full bg-primary-300/15"
+        animate={{ y: [0, -8, 0], x: [0, -4, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      />
+      <motion.div
+        className="absolute top-20 left-[45%] w-1.5 h-1.5 rounded-full bg-primary-300/20"
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+      />
+
+      {/* Small ring — bottom left */}
+      <motion.div
+        className="absolute bottom-32 -left-6 w-20 h-20 rounded-full border border-primary-200/20"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
+      />
+
+      {/* Floating dots — mid right */}
+      <motion.div
+        className="absolute top-[60%] right-8 w-2.5 h-2.5 rounded-full bg-primary-300/20"
+        animate={{ y: [0, -12, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+      />
+      <motion.div
+        className="absolute top-[65%] right-14 w-1.5 h-1.5 rounded-full bg-primary-200/25"
+        animate={{ y: [0, -8, 0], x: [0, 3, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+      />
+    </div>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -742,10 +818,20 @@ export default function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
-  // Notification preferences (local state, persisted to profile)
+  // Notification preferences (local state, hydrated from profile, persisted to profile)
   const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT_PREFERENCES)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [leaderboardOptIn, setLeaderboardOptIn] = useState(true)
+
+  // Hydrate prefs from profile on mount / when profile loads
+  useEffect(() => {
+    if ((profile as any)?.notification_preferences) {
+      setPrefs((prev) => ({
+        ...prev,
+        ...((profile as any).notification_preferences as Partial<NotificationPreferences>),
+      }))
+    }
+  }, [(profile as any)?.notification_preferences])
   const [profileVisible, setProfileVisible] = useState(true)
   const [marketingOptIn, setMarketingOptIn] = useState(
     (profile as any)?.marketing_opt_in !== false,
@@ -770,19 +856,22 @@ export default function SettingsPage() {
 
   const updatePref = useCallback(
     (key: keyof NotificationPreferences, value: boolean | string) => {
-      setPrefs((prev) => ({ ...prev, [key]: value }))
-      // Persist to Supabase
-      supabase
-        .from('profiles')
-        .update({
-          notification_preferences: { ...prefs, [key]: value },
-        } as any)
-        .eq('id', user?.id ?? '')
-        .then(({ error }) => {
-          if (error) console.error('Failed to save preferences:', error)
-        })
+      setPrefs((prev) => {
+        const updated = { ...prev, [key]: value }
+        // Persist to Supabase using the freshly computed value
+        supabase
+          .from('profiles')
+          .update({
+            notification_preferences: updated,
+          } as any)
+          .eq('id', user?.id ?? '')
+          .then(({ error }) => {
+            if (error) console.error('Failed to save preferences:', error)
+          })
+        return updated
+      })
     },
-    [prefs, user?.id],
+    [user?.id],
   )
 
   const handleLogout = async () => {
@@ -822,284 +911,296 @@ export default function SettingsPage() {
 
   return (
     <Page header={<Header title="Settings" back />}>
-      <motion.div
-        className="pb-8"
-        variants={shouldReduceMotion ? undefined : stagger}
-        initial="hidden"
-        animate="visible"
-      >
-        {/* ---- Notifications ---- */}
-        <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-        <SectionHeader label="Notifications" className="pt-4" />
-        <div className="bg-surface-2 rounded-2xl shadow-sm overflow-hidden">
-          <MenuRow
-            icon={<Bell size={18} />}
-            label="Notification Preferences"
-            subtitle="Choose what you get notified about"
-            onClick={() => setShowNotifPrefs(true)}
-          />
-          <MenuRow
-            icon={<MessageSquare size={18} />}
-            label="Chat Preferences"
-            subtitle="Mute collectives, @mention-only mode"
-            onClick={() => setShowChatPrefs(true)}
-          />
-          <MenuRow
-            icon={<Moon size={18} />}
-            label="Quiet Hours"
-            subtitle={
-              prefs.quiet_hours_enabled
-                ? `${prefs.quiet_hours_start} \u2013 ${prefs.quiet_hours_end}`
-                : 'Off'
-            }
-            onClick={() => setShowQuietHours(true)}
-          />
-          <MenuRow
-            icon={<Volume2 size={18} />}
-            label="Notification Sounds"
-            rightContent={
-              <Toggle
-                checked={soundEnabled}
-                onChange={setSoundEnabled}
-                size="sm"
-              />
-            }
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            hideDivider
-          />
-        </div>
+      {/* Full-bleed background container */}
+      <div className="relative -mx-4 lg:-mx-6 min-h-full">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary-50/30 via-white to-primary-50/10" />
 
-        </motion.div>
+        {/* Animated decorative shapes */}
+        <DecorativeShapes reduced={!!shouldReduceMotion} />
 
-        {/* ---- Privacy ---- */}
-        <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-        <SectionHeader label="Privacy" />
-        <div className="bg-surface-2 rounded-2xl shadow-sm overflow-hidden">
-          <MenuRow
-            icon={<Eye size={18} />}
-            label="Profile Visibility"
-            subtitle={profileVisible ? 'Public' : 'Only collective members'}
-            rightContent={
-              <Toggle
-                checked={profileVisible}
-                onChange={setProfileVisible}
-                size="sm"
-              />
-            }
-            onClick={() => setProfileVisible(!profileVisible)}
-          />
-          <MenuRow
-            icon={<Trophy size={18} />}
-            label="Leaderboard"
-            subtitle={leaderboardOptIn ? 'Visible on leaderboard' : 'Hidden from leaderboard'}
-            rightContent={
-              <Toggle
-                checked={leaderboardOptIn}
-                onChange={setLeaderboardOptIn}
-                size="sm"
-              />
-            }
-            onClick={() => setLeaderboardOptIn(!leaderboardOptIn)}
-          />
-          <MenuRow
-            icon={<Mail size={18} />}
-            label="Marketing Emails"
-            subtitle={marketingOptIn ? 'Subscribed' : 'Unsubscribed'}
-            rightContent={
-              <Toggle
-                checked={marketingOptIn}
-                onChange={handleMarketingToggle}
-                size="sm"
-              />
-            }
-            onClick={() => handleMarketingToggle(!marketingOptIn)}
-            hideDivider
-          />
-        </div>
-
-        </motion.div>
-
-        {/* ---- Account ---- */}
-        <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-        <SectionHeader label="Account" />
-        <div className="bg-surface-2 rounded-2xl shadow-sm overflow-hidden">
-          <MenuRow
-            icon={<Lock size={18} />}
-            label="Change Password"
-            onClick={() => setShowChangePassword(true)}
-          />
-          <MenuRow
-            icon={<AtSign size={18} />}
-            label="Change Email"
-            subtitle={user.email}
-            onClick={() => setShowChangeEmail(true)}
-          />
-          <MenuRow
-            icon={<Shield size={18} />}
-            label="Your Data & Privacy"
-            subtitle="Export or delete your data (GDPR)"
-            onClick={() => setShowDataPrivacy(true)}
-          />
-          <MenuRow
-            icon={<Trash2 size={18} />}
-            label="Delete Account"
-            danger
-            onClick={() => setShowDeleteConfirm(true)}
-            hideDivider
-          />
-        </div>
-
-        </motion.div>
-
-        {/* ---- About ---- */}
-        <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-        <SectionHeader label="About" />
-        <div className="bg-surface-2 rounded-2xl shadow-sm overflow-hidden">
-          <MenuRow
-            icon={<Heart size={18} />}
-            label="About Co-Exist"
-            subtitle="Our mission and story"
-            onClick={() => setShowAbout(true)}
-          />
-          <MenuRow
-            icon={<FileText size={18} />}
-            label="Terms of Service"
-            subtitle={`Version ${TOS_VERSION}`}
-            onClick={() => setShowTerms(true)}
-          />
-          <MenuRow
-            icon={<ShieldCheck size={18} />}
-            label="Privacy Policy"
-            subtitle={`Version ${PRIVACY_VERSION}`}
-            onClick={() => setShowPrivacy(true)}
-          />
-          <MenuRow
-            icon={<Info size={18} />}
-            label="Child Safety Policy"
-            subtitle="Our commitment to child safety"
-            onClick={() => {
-              toast.info('Co-Exist is committed to child safety. Users must be 18+ to create accounts. Under-18 attendance requires guardian consent via Collective leaders.')
-            }}
-          />
-          {isWeb && (
-            <MenuRow
-              icon={<Cookie size={18} />}
-              label="Cookie Preferences"
-              subtitle="Manage cookie consent"
-              onClick={() => {
-                // Dispatch event for cookie consent banner to reopen
-                window.dispatchEvent(new CustomEvent('coexist:open-cookie-consent'))
-              }}
-            />
-          )}
-          <MenuRow
-            icon={<HelpCircle size={18} />}
-            label="Help & FAQ"
-            onClick={() => setShowHelp(true)}
-          />
-          <MenuRow
-            icon={<LifeBuoy size={18} />}
-            label="Contact Support"
-            subtitle={CONTACT_EMAIL}
-            onClick={() => {
-              window.open(`mailto:${CONTACT_EMAIL}`, '_blank')
-            }}
-            hideDivider
-          />
-        </div>
-
-        </motion.div>
-
-        {/* ---- App Info ---- */}
-        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-6 text-center">
-          <p className="text-xs text-primary-400">
-            {APP_NAME} v{APP_VERSION}
-          </p>
-        </motion.div>
-
-        {/* ---- Logout ---- */}
-        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-4">
-          <Button
-            variant="ghost"
-            fullWidth
-            icon={<LogOut size={18} />}
-            onClick={() => setShowLogoutConfirm(true)}
-            className="text-primary-800"
+        {/* Content with restored padding */}
+        <div className="relative px-4 lg:px-6">
+          <motion.div
+            className="pb-8"
+            variants={shouldReduceMotion ? undefined : stagger}
+            initial="hidden"
+            animate="visible"
           >
-            Log Out
-          </Button>
-        </motion.div>
+            {/* ---- Notifications ---- */}
+            <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+            <SectionHeader label="Notifications" className="pt-4" />
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
+              <MenuRow
+                icon={<Bell size={18} />}
+                label="Notification Preferences"
+                subtitle="Choose what you get notified about"
+                onClick={() => setShowNotifPrefs(true)}
+              />
+              <MenuRow
+                icon={<MessageSquare size={18} />}
+                label="Chat Preferences"
+                subtitle="Mute collectives, @mention-only mode"
+                onClick={() => setShowChatPrefs(true)}
+              />
+              <MenuRow
+                icon={<Moon size={18} />}
+                label="Quiet Hours"
+                subtitle={
+                  prefs.quiet_hours_enabled
+                    ? `${prefs.quiet_hours_start} \u2013 ${prefs.quiet_hours_end}`
+                    : 'Off'
+                }
+                onClick={() => setShowQuietHours(true)}
+              />
+              <MenuRow
+                icon={<Volume2 size={18} />}
+                label="Notification Sounds"
+                rightContent={
+                  <Toggle
+                    checked={soundEnabled}
+                    onChange={setSoundEnabled}
+                    size="sm"
+                  />
+                }
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                hideDivider
+              />
+            </div>
 
-        {/* ---- All Bottom Sheets ---- */}
-        <NotificationPrefsSheet
-          open={showNotifPrefs}
-          onClose={() => setShowNotifPrefs(false)}
-          prefs={prefs}
-          onUpdate={updatePref}
-        />
-        <ChatPrefsSheet
-          open={showChatPrefs}
-          onClose={() => setShowChatPrefs(false)}
-          prefs={prefs}
-          onUpdate={updatePref}
-        />
-        <QuietHoursSheet
-          open={showQuietHours}
-          onClose={() => setShowQuietHours(false)}
-          prefs={prefs}
-          onUpdate={updatePref}
-        />
-        <ChangePasswordSheet
-          open={showChangePassword}
-          onClose={() => setShowChangePassword(false)}
-        />
-        <ChangeEmailSheet
-          open={showChangeEmail}
-          onClose={() => setShowChangeEmail(false)}
-        />
-        <AboutSheet
-          open={showAbout}
-          onClose={() => setShowAbout(false)}
-        />
-        <TermsSheet
-          open={showTerms}
-          onClose={() => setShowTerms(false)}
-        />
-        <PrivacySheet
-          open={showPrivacy}
-          onClose={() => setShowPrivacy(false)}
-        />
-        <HelpSheet
-          open={showHelp}
-          onClose={() => setShowHelp(false)}
-        />
-        <DataPrivacySheet
-          open={showDataPrivacy}
-          onClose={() => setShowDataPrivacy(false)}
-        />
+            </motion.div>
 
-        {/* Delete Account Confirmation */}
-        <ConfirmationSheet
-          open={showDeleteConfirm}
-          onClose={() => setShowDeleteConfirm(false)}
-          onConfirm={handleDeleteAccount}
-          title="Delete Account?"
-          description="Your account will be marked for deletion. You have 30 days to recover it by logging back in. After that, all data will be permanently removed."
-          confirmLabel="Delete My Account"
-          variant="danger"
-        />
+            {/* ---- Privacy ---- */}
+            <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+            <SectionHeader label="Privacy" />
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
+              <MenuRow
+                icon={<Eye size={18} />}
+                label="Profile Visibility"
+                subtitle={profileVisible ? 'Public' : 'Only collective members'}
+                rightContent={
+                  <Toggle
+                    checked={profileVisible}
+                    onChange={setProfileVisible}
+                    size="sm"
+                  />
+                }
+                onClick={() => setProfileVisible(!profileVisible)}
+              />
+              <MenuRow
+                icon={<Trophy size={18} />}
+                label="Leaderboard"
+                subtitle={leaderboardOptIn ? 'Visible on leaderboard' : 'Hidden from leaderboard'}
+                rightContent={
+                  <Toggle
+                    checked={leaderboardOptIn}
+                    onChange={setLeaderboardOptIn}
+                    size="sm"
+                  />
+                }
+                onClick={() => setLeaderboardOptIn(!leaderboardOptIn)}
+              />
+              <MenuRow
+                icon={<Mail size={18} />}
+                label="Marketing Emails"
+                subtitle={marketingOptIn ? 'Subscribed' : 'Unsubscribed'}
+                rightContent={
+                  <Toggle
+                    checked={marketingOptIn}
+                    onChange={handleMarketingToggle}
+                    size="sm"
+                  />
+                }
+                onClick={() => handleMarketingToggle(!marketingOptIn)}
+                hideDivider
+              />
+            </div>
 
-        {/* Logout Confirmation */}
-        <ConfirmationSheet
-          open={showLogoutConfirm}
-          onClose={() => setShowLogoutConfirm(false)}
-          onConfirm={handleLogout}
-          title="Log Out?"
-          description="You'll need to sign in again to access your account."
-          confirmLabel="Log Out"
-          variant="warning"
-        />
-      </motion.div>
+            </motion.div>
+
+            {/* ---- Account ---- */}
+            <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+            <SectionHeader label="Account" />
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
+              <MenuRow
+                icon={<Lock size={18} />}
+                label="Change Password"
+                onClick={() => setShowChangePassword(true)}
+              />
+              <MenuRow
+                icon={<AtSign size={18} />}
+                label="Change Email"
+                subtitle={user.email}
+                onClick={() => setShowChangeEmail(true)}
+              />
+              <MenuRow
+                icon={<Shield size={18} />}
+                label="Your Data & Privacy"
+                subtitle="Export or delete your data (GDPR)"
+                onClick={() => setShowDataPrivacy(true)}
+              />
+              <MenuRow
+                icon={<Trash2 size={18} />}
+                label="Delete Account"
+                danger
+                onClick={() => setShowDeleteConfirm(true)}
+                hideDivider
+              />
+            </div>
+
+            </motion.div>
+
+            {/* ---- About ---- */}
+            <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+            <SectionHeader label="About" />
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
+              <MenuRow
+                icon={<Heart size={18} />}
+                label="About Co-Exist"
+                subtitle="Our mission and story"
+                onClick={() => setShowAbout(true)}
+              />
+              <MenuRow
+                icon={<FileText size={18} />}
+                label="Terms of Service"
+                subtitle={`Version ${TOS_VERSION}`}
+                onClick={() => setShowTerms(true)}
+              />
+              <MenuRow
+                icon={<ShieldCheck size={18} />}
+                label="Privacy Policy"
+                subtitle={`Version ${PRIVACY_VERSION}`}
+                onClick={() => setShowPrivacy(true)}
+              />
+              <MenuRow
+                icon={<Info size={18} />}
+                label="Child Safety Policy"
+                subtitle="Our commitment to child safety"
+                onClick={() => {
+                  toast.info('Co-Exist is committed to child safety. Users must be 18+ to create accounts. Under-18 attendance requires guardian consent via Collective leaders.')
+                }}
+              />
+              {isWeb && (
+                <MenuRow
+                  icon={<Cookie size={18} />}
+                  label="Cookie Preferences"
+                  subtitle="Manage cookie consent"
+                  onClick={() => {
+                    // Dispatch event for cookie consent banner to reopen
+                    window.dispatchEvent(new CustomEvent('coexist:open-cookie-consent'))
+                  }}
+                />
+              )}
+              <MenuRow
+                icon={<HelpCircle size={18} />}
+                label="Help & FAQ"
+                onClick={() => setShowHelp(true)}
+              />
+              <MenuRow
+                icon={<LifeBuoy size={18} />}
+                label="Contact Support"
+                subtitle={CONTACT_EMAIL}
+                onClick={() => {
+                  window.open(`mailto:${CONTACT_EMAIL}`, '_blank')
+                }}
+                hideDivider
+              />
+            </div>
+
+            </motion.div>
+
+            {/* ---- App Info ---- */}
+            <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-6 text-center">
+              <p className="text-xs text-primary-400">
+                {APP_NAME} v{APP_VERSION}
+              </p>
+            </motion.div>
+
+            {/* ---- Logout ---- */}
+            <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-4">
+              <Button
+                variant="ghost"
+                fullWidth
+                icon={<LogOut size={18} />}
+                onClick={() => setShowLogoutConfirm(true)}
+                className="text-primary-800"
+              >
+                Log Out
+              </Button>
+            </motion.div>
+
+            {/* ---- All Bottom Sheets ---- */}
+            <NotificationPrefsSheet
+              open={showNotifPrefs}
+              onClose={() => setShowNotifPrefs(false)}
+              prefs={prefs}
+              onUpdate={updatePref}
+            />
+            <ChatPrefsSheet
+              open={showChatPrefs}
+              onClose={() => setShowChatPrefs(false)}
+              prefs={prefs}
+              onUpdate={updatePref}
+            />
+            <QuietHoursSheet
+              open={showQuietHours}
+              onClose={() => setShowQuietHours(false)}
+              prefs={prefs}
+              onUpdate={updatePref}
+            />
+            <ChangePasswordSheet
+              open={showChangePassword}
+              onClose={() => setShowChangePassword(false)}
+            />
+            <ChangeEmailSheet
+              open={showChangeEmail}
+              onClose={() => setShowChangeEmail(false)}
+            />
+            <AboutSheet
+              open={showAbout}
+              onClose={() => setShowAbout(false)}
+            />
+            <TermsSheet
+              open={showTerms}
+              onClose={() => setShowTerms(false)}
+            />
+            <PrivacySheet
+              open={showPrivacy}
+              onClose={() => setShowPrivacy(false)}
+            />
+            <HelpSheet
+              open={showHelp}
+              onClose={() => setShowHelp(false)}
+            />
+            <DataPrivacySheet
+              open={showDataPrivacy}
+              onClose={() => setShowDataPrivacy(false)}
+            />
+
+            {/* Delete Account Confirmation */}
+            <ConfirmationSheet
+              open={showDeleteConfirm}
+              onClose={() => setShowDeleteConfirm(false)}
+              onConfirm={handleDeleteAccount}
+              title="Delete Account?"
+              description="Your account will be marked for deletion. You have 30 days to recover it by logging back in. After that, all data will be permanently removed."
+              confirmLabel="Delete My Account"
+              variant="danger"
+            />
+
+            {/* Logout Confirmation */}
+            <ConfirmationSheet
+              open={showLogoutConfirm}
+              onClose={() => setShowLogoutConfirm(false)}
+              onConfirm={handleLogout}
+              title="Log Out?"
+              description="You'll need to sign in again to access your account."
+              confirmLabel="Log Out"
+              variant="warning"
+            />
+          </motion.div>
+        </div>
+      </div>
     </Page>
   )
 }

@@ -109,10 +109,10 @@ export function Page({
           'px-4 lg:px-6',
           // Small gap between sidebar and page content on desktop
           isDesktopNav && 'pl-4',
-          // Pad bottom: generous scroll buffer + tab bar + safe area
+          // Pad bottom: tab bar height + safe area (content bleeds behind drag handle)
           hasBottomTabs
-            ? 'pb-[calc(6rem+3.5rem+var(--safe-bottom))]'
-            : 'pb-[calc(6rem+var(--safe-bottom))]',
+            ? 'pb-[calc(3.5rem+var(--safe-bottom))]'
+            : 'pb-[var(--safe-bottom)]',
           className,
         )}
       >

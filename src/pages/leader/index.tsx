@@ -481,7 +481,7 @@ export default function LeaderDashboardPage() {
   const { data: pendingItems = [] } = usePendingItems(collectiveId)
   const { data: inviteStats } = useEventInviteStats(collectiveId)
 
-  useLeaderHeader('Dashboard')
+  useLeaderHeader('Dashboard', { fullBleed: true })
 
   // Wrapper: when inside leader layout, no Page/Header needed
   const Wrapper = isInLeaderLayout
@@ -491,7 +491,7 @@ export default function LeaderDashboardPage() {
   if (isLoading) {
     return (
       <Wrapper>
-        <div className="relative min-h-screen overflow-hidden">
+        <div className="relative min-h-screen overflow-x-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
           {/* Filled circle top-left */}
           <div className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06]" />
@@ -627,7 +627,7 @@ export default function LeaderDashboardPage() {
   return (
     <Wrapper>
       {/* ── Full-page branded background ── */}
-      <div className="relative min-h-screen overflow-hidden">
+      <div className="relative min-h-screen overflow-x-hidden">
         {/* Layered background — Co-Exist olive green palette */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
 

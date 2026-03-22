@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
     MessageCircle,
-    Share2,
     Users,
     CalendarDays,
     TreePine,
@@ -124,16 +123,6 @@ export default function CollectiveDetailPage() {
     }
   }
 
-  const handleShare = async () => {
-    const url = `${window.location.origin}/collectives/${slug}`
-    if (navigator.share) {
-      await navigator.share({ title: collective?.name, url })
-    } else {
-      await navigator.clipboard.writeText(url)
-      toast.success('Link copied!')
-    }
-  }
-
   if (isLoading) {
     return (
       <Page header={<Header title="Collective" back />}>
@@ -162,26 +151,16 @@ export default function CollectiveDetailPage() {
           title={collective.name}
           back
           rightActions={
-            <div className="flex items-center gap-1">
-              {isLeader && (
-                <button
-                  type="button"
-                  onClick={() => navigate(`/collectives/${slug}/manage`)}
-                  aria-label="Manage collective"
-                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-surface-3 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
-                >
-                  <Settings size={20} />
-                </button>
-              )}
+            isLeader ? (
               <button
                 type="button"
-                onClick={handleShare}
-                aria-label="Share collective"
+                onClick={() => navigate(`/collectives/${slug}/manage`)}
+                aria-label="Manage collective"
                 className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-surface-3 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               >
-                <Share2 size={20} />
+                <Settings size={20} />
               </button>
-            </div>
+            ) : undefined
           }
         />
       }

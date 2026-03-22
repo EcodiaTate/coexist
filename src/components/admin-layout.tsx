@@ -17,8 +17,6 @@ import {
     Heart,
     BarChart3,
     AlertCircle,
-    PanelLeftClose,
-    PanelLeftOpen,
     ArrowLeft,
     Menu,
     X,
@@ -31,6 +29,7 @@ import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
+import { SidebarShell, type SidebarNavCategory } from '@/components/sidebar-shell'
 
 /* ------------------------------------------------------------------ */
 /*  Admin header context  lets child pages set title + actions        */
@@ -41,10 +40,11 @@ interface AdminHeaderState {
   subtitle?: string
   actions?: ReactNode
   heroContent?: ReactNode
+  fullBleed?: boolean
 }
 
 interface AdminHeaderContextValue {
-  setHeader: (opts: { title: string; subtitle?: string; actions?: ReactNode; heroContent?: ReactNode }) => void
+  setHeader: (opts: { title: string; subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }) => void
 }
 
 const AdminHeaderContext = createContext<AdminHeaderContextValue | null>(null)
@@ -55,13 +55,13 @@ const AdminHeaderContext = createContext<AdminHeaderContextValue | null>(null)
  */
 export function useAdminHeader(
   title: string,
-  opts?: { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode } | ReactNode,
+  opts?: { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean } | ReactNode,
 ) {
   const ctx = useContext(AdminHeaderContext)
   useEffect(() => {
     // Support legacy (title, actions) signature
-    if (opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any))) {
-      const o = opts as { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode }
+    if (opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any) || 'fullBleed' in (opts as any))) {
+      const o = opts as { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }
       ctx?.setHeader({ title, ...o })
     } else {
       ctx?.setHeader({ title, actions: opts as ReactNode })
@@ -230,7 +230,6 @@ export function AdminLayout() {
   const { isSuperAdmin, hasCapability } = useAuth()
   const { navMode } = useLayout()
   const showBottomTabs = navMode === 'bottom-tabs'
-  const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [header, setHeaderState] = useState<AdminHeaderState>({ title: '' })
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -256,149 +255,74 @@ export function AdminLayout() {
     return location.pathname.startsWith(path)
   }
 
+  // Build capability-filtered categories for the shared sidebar shell
+  const adminSidebarCategories = useMemo<SidebarNavCategory[]>(() =>
+    adminNavCategories
+      .filter((cat) => !cat.superAdminOnly || isSuperAdmin)
+      .map((cat) => ({
+        label: cat.label,
+        items: cat.items.filter((item) => !item.capability || hasCapability(item.capability)),
+      }))
+      .filter((cat) => cat.items.length > 0),
+    [isSuperAdmin, hasCapability],
+  )
+
   return (
     <AdminHeaderContext.Provider value={headerCtx}>
       <div className="flex flex-1 min-h-0">
         {/* Admin sidebar - hidden on mobile, shown on md+ */}
-        <aside
-          className={cn(
-            'hidden md:flex flex-col',
-            'sticky top-0 self-start max-h-dvh z-50',
-            'bg-white border-r border-primary-100/40',
-            'transition-[width] duration-250 ease-in-out',
-            'overflow-y-auto',
-            collapsed ? 'w-[60px]' : 'w-[240px]',
-          )}
-          aria-label="Admin navigation"
-        >
-          {/* Back to app + Admin badge */}
-          <div className="px-2.5 py-2.5">
-            <Link
-              to="/"
-              className={cn(
-                'flex items-center gap-2',
-                'rounded-xl text-[13px]',
-                'text-primary-300 hover:text-primary-700 hover:bg-primary-50/50',
-                'transition-all duration-200',
-                'cursor-pointer select-none',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-                collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-8',
-              )}
-              title={collapsed ? 'Back to app' : undefined}
-            >
-              <ArrowLeft size={15} strokeWidth={1.5} className="shrink-0" />
-              {!collapsed && <span>Back to app</span>}
-            </Link>
-          </div>
-
-          {/* Admin badge */}
-          {!collapsed && (
-            <div className="px-3 py-3 mx-2.5 mb-1 rounded-xl bg-gradient-to-br from-primary-50/80 to-primary-50/30 border border-primary-100/30">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shrink-0 shadow-sm">
-                  <Shield size={14} className="text-white" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-[0.08em] leading-none">Admin</p>
-                  <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">Co-Exist</p>
-                </div>
-              </div>
-            </div>
-          )}
-          {collapsed && (
-            <div className="flex justify-center py-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shadow-sm">
-                <Shield size={14} className="text-white" />
-              </div>
-            </div>
-          )}
-
-          <div className="flex-1 py-2 px-2 space-y-0.5">
-            {adminNavCategories.map((cat) => {
-              if (cat.superAdminOnly && !isSuperAdmin) return null
-              const visibleItems = cat.items.filter((item) => !item.capability || hasCapability(item.capability))
-              if (visibleItems.length === 0) return null
-              const showLabel = cat.label !== 'Overview'
-              return (
-                <div key={cat.label}>
-                  {showLabel && (
-                    <>
-                      {!collapsed && (
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-2.5 mt-4 mb-1.5">
-                          {cat.label}
-                        </p>
-                      )}
-                      {collapsed && <div className="my-2.5 mx-2 h-px bg-primary-100/30" />}
-                    </>
+        <SidebarShell
+          ariaLabel="Admin navigation"
+          categories={adminSidebarCategories}
+          accent="primary"
+          layoutId="admin-sidebar-active"
+          hideOnMobile
+          header={(collapsed) => (
+            <>
+              {/* Back to app */}
+              <div className="px-2.5">
+                <Link
+                  to="/"
+                  className={cn(
+                    'flex items-center gap-2',
+                    'rounded-xl text-[13px]',
+                    'text-primary-300 hover:text-primary-700 hover:bg-primary-50/50',
+                    'transition-all duration-200',
+                    'cursor-pointer select-none',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                    collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-8',
                   )}
-                  {visibleItems.map((item) => {
-                    const active = isActive(item.path)
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className={cn(
-                          'relative flex items-center gap-2.5',
-                          'rounded-xl text-[13px]',
-                          'transition-all duration-200',
-                          'cursor-pointer select-none',
-                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-                          collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-9',
-                          active
-                            ? 'bg-primary-50/70 text-primary-800 font-medium'
-                            : 'text-primary-400 hover:bg-primary-50/40 hover:text-primary-700',
-                        )}
-                        aria-current={active ? 'page' : undefined}
-                        title={collapsed ? item.label : undefined}
-                      >
-                        {active && !collapsed && (
-                          <motion.span
-                            layoutId={shouldReduceMotion ? undefined : 'admin-sidebar-active'}
-                            className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b from-primary-500 to-primary-700"
-                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                          />
-                        )}
-                        {active && collapsed && (
-                          <motion.span
-                            layoutId={shouldReduceMotion ? undefined : 'admin-sidebar-active-dot'}
-                            className="absolute left-0.5 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-primary-600"
-                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                          />
-                        )}
-                        <span className={cn(
-                          'flex items-center justify-center shrink-0 transition-transform duration-200',
-                          active && 'scale-105',
-                        )}>
-                          {item.icon}
-                        </span>
-                        {!collapsed && <span className="truncate">{item.label}</span>}
-                      </Link>
-                    )
-                  })}
-                </div>
-              )
-            })}
-          </div>
+                  title={collapsed ? 'Back to app' : undefined}
+                >
+                  <ArrowLeft size={15} strokeWidth={1.5} className="shrink-0" />
+                  {!collapsed && <span>Back to app</span>}
+                </Link>
+              </div>
 
-          <div className="p-2 border-t border-primary-100/30">
-            <button
-              type="button"
-              onClick={() => setCollapsed((p) => !p)}
-              className={cn(
-                'flex items-center justify-center gap-2 w-full',
-                'h-8 rounded-xl text-[13px]',
-                'text-primary-300 hover:text-primary-600 hover:bg-primary-50/50',
-                'cursor-pointer select-none',
-                'transition-all duration-200',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+              {/* Admin badge */}
+              {!collapsed && (
+                <div className="px-3 py-3 mx-2.5 mb-1 rounded-xl bg-gradient-to-br from-primary-50/80 to-primary-50/30 border border-primary-100/30">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shrink-0 shadow-sm">
+                      <Shield size={14} className="text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-[0.08em] leading-none">Admin</p>
+                      <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">Co-Exist</p>
+                    </div>
+                  </div>
+                </div>
               )}
-              aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {collapsed ? <PanelLeftOpen size={15} strokeWidth={1.5} /> : <PanelLeftClose size={15} strokeWidth={1.5} />}
-              {!collapsed && <span>Collapse</span>}
-            </button>
-          </div>
-        </aside>
+              {collapsed && (
+                <div className="flex justify-center py-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shadow-sm">
+                    <Shield size={14} className="text-white" />
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        />
 
         {/* Mobile hamburger + drawer */}
         <AnimatePresence>
@@ -525,9 +449,12 @@ export function AdminLayout() {
         </button>
 
         {/* Main content */}
-        <div ref={scrollRef} className="flex-1 flex flex-col min-w-0 overflow-y-auto overscroll-contain bg-surface-1">
-          {/* ── Shared hero bar — never unmounts, gradient transitions between pages ── */}
-          {header.title && header.title !== 'Dashboard' ? (() => {
+        <div ref={scrollRef} className={cn(
+          'flex-1 flex flex-col min-w-0 min-h-0 bg-white',
+          showBottomTabs && 'overflow-y-auto overscroll-contain',
+        )}>
+          {/* ── Shared hero bar — only for non-fullBleed pages ── */}
+          {!header.fullBleed && header.title && header.title !== 'Dashboard' ? (() => {
             const cfg = PAGE_HERO_CONFIG[header.title] ?? DEFAULT_HERO
             const subtitle = header.subtitle ?? cfg.defaultSubtitle
             return (
@@ -567,19 +494,37 @@ export function AdminLayout() {
             )
           })() : null}
 
-          {/* Content  rendered by nested <Route> children */}
+          {/* Content rendered by nested <Route> children */}
           <div className={cn(
-            'flex-1',
-            header.title === 'Dashboard' ? 'p-0' : 'p-6',
+            'relative flex-1',
+            header.fullBleed ? 'p-0' : header.title === 'Dashboard' ? 'p-0' : 'p-6',
             showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
           )}>
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-24">
-                <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
+            {/* Decorative background for non-fullBleed, non-Dashboard pages */}
+            {!header.fullBleed && header.title !== 'Dashboard' && (
+              <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+                <div className="absolute inset-0 bg-gradient-to-b from-primary-50/30 via-white to-white" />
+                <div className="absolute -top-16 -right-20 w-[300px] h-[300px] rounded-full border border-primary-100/30" />
+                <div className="absolute -top-4 -right-8 w-[200px] h-[200px] rounded-full border border-primary-100/20" />
+                <div className="absolute -bottom-24 -left-16 w-[250px] h-[250px] rounded-full bg-primary-50/25 blur-2xl" />
+                <div className="absolute top-[40%] -left-6 w-[80px] h-[80px] rounded-full border border-primary-100/25" />
+                <div className="absolute top-12 left-[12%] w-2 h-2 rounded-full bg-primary-200/25" />
+                <div className="absolute top-[28%] right-[8%] w-1.5 h-1.5 rounded-full bg-primary-200/20" />
+                <div className="absolute bottom-[18%] left-[20%] w-2 h-2 rounded-full bg-primary-100/30" />
+                <div className="absolute top-8 right-[18%] w-[180px] h-[180px] rounded-full bg-primary-50/15 blur-3xl" />
+                <div className="absolute bottom-[12%] right-[10%] w-[60px] h-[60px] rounded-full bg-primary-50/30" />
               </div>
-            }>
-              <Outlet key={location.pathname} />
-            </Suspense>
+            )}
+
+            <div className="relative">
+              <Suspense fallback={
+                <div className="flex items-center justify-center py-24">
+                  <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
+                </div>
+              }>
+                <Outlet key={location.pathname} />
+              </Suspense>
+            </div>
           </div>
         </div>
 

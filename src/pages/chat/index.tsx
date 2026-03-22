@@ -26,21 +26,21 @@ const CHANNEL_TYPE_CONFIG: Record<string, {
 }> = {
   staff_national: {
     icon: Globe,
-    gradient: 'from-plum-200/80 via-plum-100/40 to-surface-0',
+    gradient: 'from-plum-200/80 via-plum-100/40 to-white',
     iconBg: 'bg-plum-600 text-white',
     badge: 'bg-plum-200 text-plum-800',
     label: 'National',
   },
   staff_state: {
     icon: MapPin,
-    gradient: 'from-info-200/80 via-info-100/40 to-surface-0',
+    gradient: 'from-info-200/80 via-info-100/40 to-white',
     iconBg: 'bg-info-600 text-white',
     badge: 'bg-info-200 text-info-800',
     label: 'State',
   },
   staff_collective: {
     icon: Users,
-    gradient: 'from-primary-200/80 via-primary-100/40 to-surface-0',
+    gradient: 'from-primary-200/80 via-primary-100/40 to-white',
     iconBg: 'bg-primary-600 text-white',
     badge: 'bg-primary-200 text-primary-800',
     label: 'Staff',
@@ -54,6 +54,55 @@ function cleanChannelName(name: string): string {
     .replace(/\bStaff\b\s*/i, '')
     .trim()
     || name
+}
+
+/* ------------------------------------------------------------------ */
+/*  Animated background shapes                                         */
+/* ------------------------------------------------------------------ */
+
+function BackgroundShapes() {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+      {/* Ring — top right */}
+      <motion.div
+        className="absolute -top-12 -right-10 h-56 w-56 rounded-full border-[3px] border-secondary-200/30"
+        animate={shouldReduceMotion ? {} : { scale: [1, 1.08, 1] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Ring — mid left */}
+      <motion.div
+        className="absolute top-1/3 -left-16 h-44 w-44 rounded-full border-[3px] border-secondary-200/30"
+        animate={shouldReduceMotion ? {} : { scale: [1, 1.1, 1] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+      />
+      {/* Blurred glow — bottom left */}
+      <motion.div
+        className="absolute bottom-16 -left-8 h-40 w-40 rounded-full bg-secondary-100/30 blur-2xl"
+        animate={shouldReduceMotion ? {} : { scale: [1, 1.12, 1], opacity: [0.3, 0.45, 0.3] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+      />
+      {/* Dot 1 */}
+      <motion.div
+        className="absolute top-20 right-14 h-3 w-3 rounded-full bg-secondary-300/25"
+        animate={shouldReduceMotion ? {} : { y: [0, -10, 0], opacity: [0.25, 0.45, 0.25] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Dot 2 */}
+      <motion.div
+        className="absolute top-1/2 right-8 h-2.5 w-2.5 rounded-full bg-moss-300/20"
+        animate={shouldReduceMotion ? {} : { y: [0, 8, 0], opacity: [0.2, 0.4, 0.2] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+      {/* Dot 3 */}
+      <motion.div
+        className="absolute bottom-32 left-12 h-2 w-2 rounded-full bg-secondary-300/25"
+        animate={shouldReduceMotion ? {} : { y: [0, -6, 0], opacity: [0.25, 0.5, 0.25] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      />
+    </div>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -77,11 +126,11 @@ function StaffChannelRow({ channel, unread, index }: { channel: StaffChannel; un
         className={cn(
           'group relative flex items-center gap-4 rounded-2xl p-4',
           'transition-all duration-200 active:scale-[0.97]',
-          'bg-gradient-to-r',
+          'bg-gradient-to-r shadow-sm border border-secondary-50/60',
           config.gradient,
           hasUnread
             ? 'ring-2 ring-primary-400/70 shadow-lg shadow-primary-200/40'
-            : 'ring-1 ring-primary-200/60 shadow-md hover:shadow-lg hover:ring-primary-300/60',
+            : 'hover:shadow-md hover:ring-1 hover:ring-primary-300/60',
         )}
       >
         {/* Channel type icon */}
@@ -94,7 +143,7 @@ function StaffChannelRow({ channel, unread, index }: { channel: StaffChannel; un
             <Icon size={24} strokeWidth={2.5} />
           </div>
           {/* Lock badge */}
-          <div className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-full bg-surface-0 flex items-center justify-center shadow-md ring-2 ring-white">
+          <div className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-full bg-white flex items-center justify-center shadow-md ring-2 ring-white">
             <Lock size={11} strokeWidth={2.5} className="text-primary-500" />
           </div>
           {hasUnread && (
@@ -169,10 +218,11 @@ function CollectiveChatRow({
         to={`/chat/${collectiveId}`}
         className={cn(
           'group relative flex items-center gap-4 rounded-2xl p-4',
+          'bg-white shadow-sm border border-secondary-50/60',
           'transition-all duration-200 active:scale-[0.97]',
           hasUnread
-            ? 'bg-gradient-to-r from-primary-100/80 via-primary-50/60 to-surface-0 ring-2 ring-primary-400/70 shadow-lg shadow-primary-200/40'
-            : 'bg-surface-0 ring-1 ring-primary-200/60 shadow-md hover:shadow-lg hover:ring-primary-300/60',
+            ? 'ring-2 ring-primary-400/70 shadow-lg shadow-primary-200/40'
+            : 'hover:shadow-md hover:ring-1 hover:ring-primary-300/60',
         )}
       >
         {/* Collective avatar */}
@@ -181,7 +231,7 @@ function CollectiveChatRow({
             className={cn(
               'h-13 w-13 overflow-hidden rounded-2xl',
               hasUnread
-                ? 'ring-[3px] ring-primary-500 ring-offset-2 ring-offset-surface-0 shadow-lg'
+                ? 'ring-[3px] ring-primary-500 ring-offset-2 ring-offset-white shadow-lg'
                 : 'ring-2 ring-primary-200/80 shadow-md',
             )}
           >
@@ -290,71 +340,80 @@ export default function ChatListPage() {
   }
 
   return (
-    <Page header={<Header title="Chat" />}>
+    <Page header={<Header title="Chat" />} className="!px-0 !bg-transparent">
       <PullToRefresh onRefresh={handleRefresh}>
-      <div className="py-5 space-y-7">
-        {/* Staff Channels section */}
-        {hasStaffChannels && (
-          <div>
-            <div className="flex items-center gap-3 px-1 mb-4">
-              <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-primary-300/50 to-transparent rounded-full" />
-              <p className="text-[11px] uppercase tracking-[0.15em] text-primary-600 font-extrabold flex items-center gap-2">
-                <Lock size={12} strokeWidth={2.5} />
-                Staff Channels
-              </p>
-              <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-primary-300/50 to-transparent rounded-full" />
-            </div>
-            <div className="space-y-3">
-              {staffChannels!.map((channel, i) => (
-                <StaffChannelRow
-                  key={channel.id}
-                  channel={channel}
-                  unread={channelUnreads[channel.id] ?? 0}
-                  index={i}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+      <div className="relative min-h-full">
+        {/* Full-bleed gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary-50/40 via-white to-moss-50/20" />
 
-        {/* Collective Chats section */}
-        {(myCollectives?.length ?? 0) > 0 && (
-          <div>
-            <div className="flex items-center gap-3 px-1 mb-4">
-              <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-primary-300/50 to-transparent rounded-full" />
-              <p className="text-[11px] uppercase tracking-[0.15em] text-primary-600 font-extrabold flex items-center gap-2">
-                <MessageCircle size={12} strokeWidth={2.5} />
-                Collectives
-              </p>
-              <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-primary-300/50 to-transparent rounded-full" />
-            </div>
-            <div className="space-y-3">
-              {myCollectives!.map((membership, i) => {
-                const collective = membership.collectives as {
-                  id: string
-                  name: string
-                  slug: string
-                  cover_image_url: string | null
-                  region: string | null
-                  state: string | null
-                  member_count: number
-                } | null
+        {/* Animated decorative shapes */}
+        <BackgroundShapes />
 
-                if (!collective) return null
-
-                return (
-                  <CollectiveChatRow
-                    key={membership.collective_id}
-                    collective={collective}
-                    collectiveId={membership.collective_id}
-                    unread={unreadCounts[membership.collective_id] ?? 0}
+        {/* Content layer */}
+        <div className="relative z-10 px-4 lg:px-6 py-5 space-y-5">
+          {/* Staff Channels section */}
+          {hasStaffChannels && (
+            <div>
+              <div className="flex items-center gap-3 px-1 mb-4">
+                <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-primary-300/50 to-transparent rounded-full" />
+                <p className="text-[11px] uppercase tracking-[0.15em] text-primary-700 font-extrabold flex items-center gap-2">
+                  <Lock size={12} strokeWidth={2.5} />
+                  Staff Channels
+                </p>
+                <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-primary-300/50 to-transparent rounded-full" />
+              </div>
+              <div className="space-y-3">
+                {staffChannels!.map((channel, i) => (
+                  <StaffChannelRow
+                    key={channel.id}
+                    channel={channel}
+                    unread={channelUnreads[channel.id] ?? 0}
                     index={i}
                   />
-                )
-              })}
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Collective Chats section */}
+          {(myCollectives?.length ?? 0) > 0 && (
+            <div>
+              <div className="flex items-center gap-3 px-1 mb-4">
+                <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-primary-300/50 to-transparent rounded-full" />
+                <p className="text-[11px] uppercase tracking-[0.15em] text-primary-700 font-extrabold flex items-center gap-2">
+                  <MessageCircle size={12} strokeWidth={2.5} />
+                  Collectives
+                </p>
+                <div className="h-0.5 flex-1 bg-gradient-to-r from-transparent via-primary-300/50 to-transparent rounded-full" />
+              </div>
+              <div className="space-y-3">
+                {myCollectives!.map((membership, i) => {
+                  const collective = membership.collectives as {
+                    id: string
+                    name: string
+                    slug: string
+                    cover_image_url: string | null
+                    region: string | null
+                    state: string | null
+                    member_count: number
+                  } | null
+
+                  if (!collective) return null
+
+                  return (
+                    <CollectiveChatRow
+                      key={membership.collective_id}
+                      collective={collective}
+                      collectiveId={membership.collective_id}
+                      unread={unreadCounts[membership.collective_id] ?? 0}
+                      index={i}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
       </PullToRefresh>
     </Page>

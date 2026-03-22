@@ -54,15 +54,15 @@ const fadeUp: Variants = {
 function LeaderboardSkeleton() {
   return (
     <div className="space-y-6 pt-4 pb-8">
-      <div className="h-36 rounded-3xl bg-primary-100/40 animate-pulse" />
+      <div className="h-36 rounded-3xl bg-amber-100/40 animate-pulse" />
       <div className="flex items-end justify-center gap-4">
-        <div className="w-20 h-28 rounded-2xl bg-primary-100/30 animate-pulse" />
-        <div className="w-24 h-36 rounded-2xl bg-primary-100/40 animate-pulse" />
-        <div className="w-20 h-24 rounded-2xl bg-primary-100/30 animate-pulse" />
+        <div className="w-20 h-28 rounded-2xl bg-amber-100/30 animate-pulse" />
+        <div className="w-24 h-36 rounded-2xl bg-amber-100/40 animate-pulse" />
+        <div className="w-20 h-24 rounded-2xl bg-amber-100/30 animate-pulse" />
       </div>
       <div className="space-y-2">
         {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="h-14 rounded-xl bg-primary-100/20 animate-pulse" />
+          <div key={i} className="h-14 rounded-xl bg-amber-100/20 animate-pulse" />
         ))}
       </div>
     </div>
@@ -74,6 +74,65 @@ function formatMetricValue(value: number, metric: Metric): string {
   if (metric === 'trees') return `${value.toLocaleString()} trees`
   if (metric === 'events') return `${value} events`
   return `${value} hrs`
+}
+
+/* ─── Decorative background shapes ─── */
+
+function BackgroundShapes({ reduced }: { reduced: boolean }) {
+  if (reduced) return null
+
+  return (
+    <>
+      {/* Ring — top-right */}
+      <motion.div
+        className="absolute -top-16 -right-16 w-56 h-56 rounded-full border-[3px] border-amber-200/30"
+        animate={{ scale: [1, 1.06, 1] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Ring — bottom-left */}
+      <motion.div
+        className="absolute -bottom-20 -left-14 w-48 h-48 rounded-full border-[3px] border-amber-200/30"
+        animate={{ scale: [1, 1.08, 1] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+      />
+
+      {/* Blurred glow — center-right */}
+      <motion.div
+        className="absolute top-1/3 -right-10 w-44 h-44 rounded-full bg-amber-100/25 blur-3xl"
+        animate={{ scale: [1, 1.12, 1], opacity: [0.25, 0.35, 0.25] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+      />
+
+      {/* Soft circle — top-left */}
+      <motion.div
+        className="absolute -top-8 -left-8 w-36 h-36 rounded-full bg-primary-100/20 blur-2xl"
+        animate={{ scale: [1, 1.1, 1] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+
+      {/* Floating dot 1 */}
+      <motion.div
+        className="absolute top-24 right-12 w-2.5 h-2.5 rounded-full bg-amber-300/25"
+        animate={{ y: [0, -10, 0], x: [0, 4, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Floating dot 2 */}
+      <motion.div
+        className="absolute top-1/2 left-8 w-2 h-2 rounded-full bg-amber-300/25"
+        animate={{ y: [0, 8, 0], x: [0, -3, 0] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      />
+
+      {/* Floating dot 3 */}
+      <motion.div
+        className="absolute bottom-32 right-1/3 w-3 h-3 rounded-full bg-amber-300/25"
+        animate={{ y: [0, -12, 0], x: [0, 5, 0] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }}
+      />
+    </>
+  )
 }
 
 /* ─── Podium card for top 3 ─── */
@@ -130,276 +189,288 @@ export default function LeaderboardPage() {
   }, [queryClient])
 
   return (
-    <Page header={<Header title="Leaderboard" back />} className="!px-0">
-      <PullToRefresh onRefresh={handleRefresh}>
-        <motion.div
-          className="pb-10"
-          variants={shouldReduceMotion ? undefined : stagger}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* ─── Hero banner ─── */}
-          <motion.div variants={fadeUp} className="px-5 pt-4 pb-2">
-            <div className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-6 shadow-2xl overflow-hidden">
-              {/* Decorative circles */}
-              <div className="absolute top-0 right-0 w-36 h-36 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
-              <div className="absolute bottom-0 left-0 w-20 h-20 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
+    <Page header={<Header title="Leaderboard" back />} className="!px-0 !bg-transparent">
+      <div className="relative min-h-full">
+        {/* ─── Full-bleed gradient background ─── */}
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-50/50 via-white to-primary-50/15" />
 
-              <div className="relative flex items-center gap-4">
-                <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm">
-                  <Trophy size={24} strokeWidth={2.5} className="text-warning-400" />
-                </div>
-                <div>
-                  <h2 className="font-heading text-xl font-bold text-white">Leaderboard</h2>
-                  <p className="text-sm text-white/60 font-medium mt-0.5">
-                    See who's leading the charge
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+        {/* ─── Animated decorative shapes ─── */}
+        <BackgroundShapes reduced={!!shouldReduceMotion} />
 
-          {/* ─── Controls ─── */}
-          <motion.div variants={fadeUp} className="px-5">
-            <div className="mt-4 mb-3 flex items-center gap-2">
-              <TabBar
-                tabs={[
-                  { id: 'individual', label: 'Individual' },
-                  { id: 'collective', label: 'Collectives' },
-                ]}
-                activeTab={view}
-                onChange={(id) => setView(id as 'individual' | 'collective')}
-                className="flex-1"
-              />
-              <select
-                value={period}
-                onChange={(e) => setPeriod(e.target.value as TimePeriod)}
-                className={cn(
-                  'h-9 px-3 rounded-xl text-sm font-medium',
-                  'bg-surface-2 text-primary-700 shadow-sm',
-                  'focus:outline-none focus:ring-2 focus:ring-primary-400',
-                  'cursor-pointer',
-                )}
-                aria-label="Time period"
-              >
-                {PERIOD_TABS.map((t) => (
-                  <option key={t.id} value={t.id}>{t.label}</option>
-                ))}
-              </select>
-            </div>
+        {/* ─── Content ─── */}
+        <div className="relative z-10">
+          <PullToRefresh onRefresh={handleRefresh}>
+            <motion.div
+              className="pb-10"
+              variants={shouldReduceMotion ? undefined : stagger}
+              initial="hidden"
+              animate="visible"
+            >
+              {/* ─── Hero banner ─── */}
+              <motion.div variants={fadeUp} className="px-5 lg:px-6 pt-4 pb-2">
+                <div className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-6 shadow-2xl overflow-hidden">
+                  {/* Decorative circles */}
+                  <div className="absolute top-0 right-0 w-36 h-36 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
+                  <div className="absolute bottom-0 left-0 w-20 h-20 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
 
-            <TabBar
-              tabs={METRIC_TABS}
-              activeTab={metric}
-              onChange={(id) => setMetric(id as Metric)}
-              className="mb-5"
-            />
-          </motion.div>
-
-          {isLoading ? (
-            <div className="px-5"><LeaderboardSkeleton /></div>
-          ) : view === 'individual' ? (
-            <>
-              {/* ─── Your rank card ─── */}
-              {individualData?.userRank && (
-                <motion.div variants={fadeUp} className="px-5 mb-5">
-                  <div className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary-100/90 to-primary-200/50 shadow-md p-4">
-                    <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-600 shadow-md">
-                      <Flame size={20} strokeWidth={2.5} className="text-white" />
+                  <div className="relative flex items-center gap-4">
+                    <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm">
+                      <Trophy size={24} strokeWidth={2.5} className="text-warning-400" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold">Your Rank</p>
-                      <p className="font-heading text-2xl font-extrabold text-primary-900 tabular-nums leading-none mt-1">
-                        #{individualData.userRank}
+                    <div>
+                      <h2 className="font-heading text-xl font-bold text-white">Leaderboard</h2>
+                      <p className="text-sm text-white/60 font-medium mt-0.5">
+                        See who's leading the charge
                       </p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs text-primary-500 font-medium">Keep going!</p>
-                    </div>
                   </div>
-                </motion.div>
-              )}
+                </div>
+              </motion.div>
 
-              {/* ─── Top 3 podium ─── */}
-              {individualData && individualData.entries.length >= 3 && (
-                <motion.div
-                  variants={fadeUp}
-                  className="flex items-end justify-center gap-3 mb-6 px-5"
-                >
-                  {/* Render order: 2nd, 1st, 3rd */}
-                  {[1, 0, 2].map((idx) => {
-                    const entry = individualData.entries[idx]
-                    if (!entry) return null
-                    const cfg = PODIUM_CONFIG[idx]
-                    return (
-                      <motion.button
-                        key={entry.userId}
-                        type="button"
-                        onClick={() => navigate(`/profile/${entry.userId}`)}
-                        whileTap={{ scale: 0.96 }}
-                        className="flex flex-col items-center justify-end gap-1.5 cursor-pointer select-none"
-                      >
-                        {/* Avatar with glow */}
-                        <div className={cn('relative', cfg.glow, 'rounded-full')}>
-                          <Avatar
-                            src={entry.avatarUrl}
-                            name={entry.displayName}
-                            size={cfg.avatarSize}
-                            tier={entry.tier as TierName}
-                          />
-                          {/* Rank badge */}
-                          <span className={cn(
-                            'absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-extrabold text-white shadow-md',
-                            cfg.labelBg,
-                          )}>
-                            {cfg.rank}
-                          </span>
-                        </div>
-                        <p className="text-xs font-bold text-primary-800 truncate max-w-[80px]">
-                          {entry.displayName}
-                        </p>
-                        <p className="text-[10px] font-bold text-primary-500 tabular-nums">
-                          {formatMetricValue(entry.value, metric)}
-                        </p>
-                        {/* Podium bar */}
-                        <div
-                          className={cn(
-                            'w-20 rounded-t-2xl bg-gradient-to-t',
-                            cfg.height,
-                            cfg.gradient,
-                          )}
-                        />
-                      </motion.button>
-                    )
-                  })}
-                </motion.div>
-              )}
-
-              {/* ─── Full list ─── */}
-              {individualData && individualData.entries.length > 0 ? (
-                <div className="px-5">
-                  <div className="rounded-2xl bg-surface-2 shadow-sm overflow-hidden">
-                    {individualData.entries.slice(3).map((entry, i) => (
-                      <motion.button
-                        key={entry.userId}
-                        initial={shouldReduceMotion ? false : { opacity: 0, x: -8 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.02 }}
-                        onClick={() => navigate(`/profile/${entry.userId}`)}
-                        className={cn(
-                          'w-full flex items-center gap-3 px-4 py-3 min-h-11',
-                          'active:scale-[0.98] transition-all duration-150 cursor-pointer select-none',
-                          'hover:bg-primary-50/60',
-                          entry.userId === user?.id && 'bg-primary-100/60',
-                          i > 0 && 'border-t border-primary-100/20',
-                        )}
-                      >
-                        <span className="w-7 text-sm font-extrabold text-primary-400/70 tabular-nums text-center">
-                          {entry.rank}
-                        </span>
-                        <Avatar
-                          src={entry.avatarUrl}
-                          name={entry.displayName}
-                          size="sm"
-                          tier={entry.tier as TierName}
-                        />
-                        <span className="flex-1 text-sm font-semibold text-primary-800 text-left truncate">
-                          {entry.displayName}
-                          {entry.userId === user?.id && (
-                            <span className="text-xs text-primary-500 font-medium ml-1">(You)</span>
-                          )}
-                        </span>
-                        <span className="text-sm font-bold text-primary-500 tabular-nums">
-                          {formatMetricValue(entry.value, metric)}
-                        </span>
-                      </motion.button>
+              {/* ─── Controls ─── */}
+              <motion.div variants={fadeUp} className="px-5 lg:px-6">
+                <div className="mt-4 mb-3 flex items-center gap-2 rounded-2xl bg-white/80 backdrop-blur-sm border border-amber-50/60 shadow-sm p-1.5">
+                  <TabBar
+                    tabs={[
+                      { id: 'individual', label: 'Individual' },
+                      { id: 'collective', label: 'Collectives' },
+                    ]}
+                    activeTab={view}
+                    onChange={(id) => setView(id as 'individual' | 'collective')}
+                    className="flex-1"
+                  />
+                  <select
+                    value={period}
+                    onChange={(e) => setPeriod(e.target.value as TimePeriod)}
+                    className={cn(
+                      'h-9 px-3 rounded-xl text-sm font-medium',
+                      'bg-white text-primary-700 shadow-sm border border-amber-100/60',
+                      'focus:outline-none focus:ring-2 focus:ring-amber-300/50',
+                      'cursor-pointer',
+                    )}
+                    aria-label="Time period"
+                  >
+                    {PERIOD_TABS.map((t) => (
+                      <option key={t.id} value={t.id}>{t.label}</option>
                     ))}
-                  </div>
+                  </select>
                 </div>
-              ) : (
-                <EmptyState
-                  illustration="empty"
-                  title="Leaderboard is empty"
-                  description="Attend events and earn points to climb the ranks"
-                  action={{ label: 'Find Events', to: '/explore' }}
-                  className="min-h-[200px]"
-                />
-              )}
-            </>
-          ) : (
-            /* ─── Collective leaderboard ─── */
-            <div className="px-5">
-              {collectiveData && collectiveData.length > 0 ? (
-                <div className="space-y-2.5">
-                  {collectiveData.map((entry, i) => (
-                    <motion.div
-                      key={entry.collectiveId}
-                      initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.04, type: 'spring', stiffness: 300, damping: 26 }}
-                      className={cn(
-                        'flex items-center gap-3 rounded-2xl shadow-sm px-4 py-3.5',
-                        i === 0
-                          ? 'bg-gradient-to-r from-warning-50/80 to-surface-2'
-                          : 'bg-surface-2',
-                      )}
-                    >
-                      <span className="w-8 text-center">
-                        {entry.rank <= 3 ? (
-                          <span className={cn(
-                            'flex items-center justify-center w-8 h-8 rounded-lg text-xs font-extrabold text-white shadow-sm',
-                            entry.rank === 1 && 'bg-gradient-to-br from-warning-400 to-warning-600',
-                            entry.rank === 2 && 'bg-gradient-to-br from-primary-300 to-primary-500',
-                            entry.rank === 3 && 'bg-gradient-to-br from-bark-300 to-bark-500',
-                          )}>
-                            {entry.rank}
-                          </span>
-                        ) : (
-                          <span className="text-sm font-bold text-primary-400/70 tabular-nums">
-                            {entry.rank}
-                          </span>
-                        )}
-                      </span>
-                      <div className="w-10 h-10 rounded-xl overflow-hidden bg-primary-100 shrink-0">
-                        {entry.coverImageUrl ? (
-                          <img
-                            src={entry.coverImageUrl}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200 text-primary-400">
-                            <TreePine size={16} />
-                          </div>
-                        )}
+
+                <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-amber-50/60 shadow-sm p-1.5 mb-5">
+                  <TabBar
+                    tabs={METRIC_TABS}
+                    activeTab={metric}
+                    onChange={(id) => setMetric(id as Metric)}
+                  />
+                </div>
+              </motion.div>
+
+              {isLoading ? (
+                <div className="px-5 lg:px-6"><LeaderboardSkeleton /></div>
+              ) : view === 'individual' ? (
+                <>
+                  {/* ─── Your rank card ─── */}
+                  {individualData?.userRank && (
+                    <motion.div variants={fadeUp} className="px-5 lg:px-6 mb-5">
+                      <div className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary-100/90 to-primary-200/50 shadow-md p-4 border border-amber-50/60">
+                        <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-600 shadow-md">
+                          <Flame size={20} strokeWidth={2.5} className="text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold">Your Rank</p>
+                          <p className="font-heading text-2xl font-extrabold text-primary-900 tabular-nums leading-none mt-1">
+                            #{individualData.userRank}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-primary-500 font-medium">Keep going!</p>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-primary-800 truncate">
-                          {entry.name}
-                        </p>
-                        {entry.region && (
-                          <p className="text-xs text-primary-400 mt-0.5">{entry.region}</p>
-                        )}
-                      </div>
-                      <span className="text-sm font-bold text-primary-500 tabular-nums">
-                        {formatMetricValue(entry.value, metric)}
-                      </span>
                     </motion.div>
-                  ))}
-                </div>
+                  )}
+
+                  {/* ─── Top 3 podium ─── */}
+                  {individualData && individualData.entries.length >= 3 && (
+                    <motion.div
+                      variants={fadeUp}
+                      className="flex items-end justify-center gap-3 mb-6 px-5 lg:px-6"
+                    >
+                      {/* Render order: 2nd, 1st, 3rd */}
+                      {[1, 0, 2].map((idx) => {
+                        const entry = individualData.entries[idx]
+                        if (!entry) return null
+                        const cfg = PODIUM_CONFIG[idx]
+                        return (
+                          <motion.button
+                            key={entry.userId}
+                            type="button"
+                            onClick={() => navigate(`/profile/${entry.userId}`)}
+                            whileTap={{ scale: 0.96 }}
+                            className="flex flex-col items-center justify-end gap-1.5 cursor-pointer select-none"
+                          >
+                            {/* Avatar with glow */}
+                            <div className={cn('relative', cfg.glow, 'rounded-full')}>
+                              <Avatar
+                                src={entry.avatarUrl}
+                                name={entry.displayName}
+                                size={cfg.avatarSize}
+                                tier={entry.tier as TierName}
+                              />
+                              {/* Rank badge */}
+                              <span className={cn(
+                                'absolute -top-1 -right-1 w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-extrabold text-white shadow-md',
+                                cfg.labelBg,
+                              )}>
+                                {cfg.rank}
+                              </span>
+                            </div>
+                            <p className="text-xs font-bold text-primary-800 truncate max-w-[80px]">
+                              {entry.displayName}
+                            </p>
+                            <p className="text-[10px] font-bold text-primary-500 tabular-nums">
+                              {formatMetricValue(entry.value, metric)}
+                            </p>
+                            {/* Podium bar */}
+                            <div
+                              className={cn(
+                                'w-20 rounded-t-2xl bg-gradient-to-t',
+                                cfg.height,
+                                cfg.gradient,
+                              )}
+                            />
+                          </motion.button>
+                        )
+                      })}
+                    </motion.div>
+                  )}
+
+                  {/* ─── Full list ─── */}
+                  {individualData && individualData.entries.length > 0 ? (
+                    <div className="px-5 lg:px-6">
+                      <div className="rounded-2xl bg-white shadow-sm border border-amber-50/60 overflow-hidden">
+                        {individualData.entries.slice(3).map((entry, i) => (
+                          <motion.button
+                            key={entry.userId}
+                            initial={shouldReduceMotion ? false : { opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.02 }}
+                            onClick={() => navigate(`/profile/${entry.userId}`)}
+                            className={cn(
+                              'w-full flex items-center gap-3 px-4 py-3 min-h-11',
+                              'active:scale-[0.98] transition-all duration-150 cursor-pointer select-none',
+                              'hover:bg-amber-50/40',
+                              entry.userId === user?.id && 'bg-amber-50/60',
+                              i > 0 && 'border-t border-amber-100/20',
+                            )}
+                          >
+                            <span className="w-7 text-sm font-extrabold text-primary-400/70 tabular-nums text-center">
+                              {entry.rank}
+                            </span>
+                            <Avatar
+                              src={entry.avatarUrl}
+                              name={entry.displayName}
+                              size="sm"
+                              tier={entry.tier as TierName}
+                            />
+                            <span className="flex-1 text-sm font-semibold text-primary-800 text-left truncate">
+                              {entry.displayName}
+                              {entry.userId === user?.id && (
+                                <span className="text-xs text-primary-500 font-medium ml-1">(You)</span>
+                              )}
+                            </span>
+                            <span className="text-sm font-bold text-primary-500 tabular-nums">
+                              {formatMetricValue(entry.value, metric)}
+                            </span>
+                          </motion.button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <EmptyState
+                      illustration="empty"
+                      title="Leaderboard is empty"
+                      description="Attend events and earn points to climb the ranks"
+                      action={{ label: 'Find Events', to: '/explore' }}
+                      className="min-h-[200px]"
+                    />
+                  )}
+                </>
               ) : (
-                <EmptyState
-                  illustration="empty"
-                  title="No collective rankings yet"
-                  description="Collectives will appear once they start logging impact from events"
-                  action={{ label: 'Explore Collectives', to: '/collectives' }}
-                  className="min-h-[200px]"
-                />
+                /* ─── Collective leaderboard ─── */
+                <div className="px-5 lg:px-6">
+                  {collectiveData && collectiveData.length > 0 ? (
+                    <div className="space-y-2.5">
+                      {collectiveData.map((entry, i) => (
+                        <motion.div
+                          key={entry.collectiveId}
+                          initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.04, type: 'spring', stiffness: 300, damping: 26 }}
+                          className={cn(
+                            'flex items-center gap-3 rounded-2xl shadow-sm border border-amber-50/60 px-4 py-3.5',
+                            i === 0
+                              ? 'bg-gradient-to-r from-warning-50/80 to-white'
+                              : 'bg-white',
+                          )}
+                        >
+                          <span className="w-8 text-center">
+                            {entry.rank <= 3 ? (
+                              <span className={cn(
+                                'flex items-center justify-center w-8 h-8 rounded-lg text-xs font-extrabold text-white shadow-sm',
+                                entry.rank === 1 && 'bg-gradient-to-br from-warning-400 to-warning-600',
+                                entry.rank === 2 && 'bg-gradient-to-br from-primary-300 to-primary-500',
+                                entry.rank === 3 && 'bg-gradient-to-br from-bark-300 to-bark-500',
+                              )}>
+                                {entry.rank}
+                              </span>
+                            ) : (
+                              <span className="text-sm font-bold text-primary-400/70 tabular-nums">
+                                {entry.rank}
+                              </span>
+                            )}
+                          </span>
+                          <div className="w-10 h-10 rounded-xl overflow-hidden bg-primary-100 shrink-0">
+                            {entry.coverImageUrl ? (
+                              <img
+                                src={entry.coverImageUrl}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary-100 to-primary-200 text-primary-400">
+                                <TreePine size={16} />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-primary-800 truncate">
+                              {entry.name}
+                            </p>
+                            {entry.region && (
+                              <p className="text-xs text-primary-400 mt-0.5">{entry.region}</p>
+                            )}
+                          </div>
+                          <span className="text-sm font-bold text-primary-500 tabular-nums">
+                            {formatMetricValue(entry.value, metric)}
+                          </span>
+                        </motion.div>
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      illustration="empty"
+                      title="No collective rankings yet"
+                      description="Collectives will appear once they start logging impact from events"
+                      action={{ label: 'Explore Collectives', to: '/collectives' }}
+                      className="min-h-[200px]"
+                    />
+                  )}
+                </div>
               )}
-            </div>
-          )}
-        </motion.div>
-      </PullToRefresh>
+            </motion.div>
+          </PullToRefresh>
+        </div>
+      </div>
     </Page>
   )
 }

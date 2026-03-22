@@ -53,6 +53,82 @@ const fadeUp = {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Decorative background shapes                                       */
+/* ------------------------------------------------------------------ */
+
+function DecorativeShapes() {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* Large ring — top-right */}
+      <motion.div
+        className="absolute -top-20 -right-16 h-64 w-64 rounded-full border-[3px] border-moss-200/30"
+        animate={shouldReduceMotion ? {} : { rotate: 360 }}
+        transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
+      />
+
+      {/* Small ring — bottom-left */}
+      <motion.div
+        className="absolute bottom-32 -left-10 h-36 w-36 rounded-full border-[2px] border-moss-200/30"
+        animate={shouldReduceMotion ? {} : { rotate: -360 }}
+        transition={{ duration: 70, repeat: Infinity, ease: 'linear' }}
+      />
+
+      {/* Soft glow — top-left */}
+      <motion.div
+        className="absolute -top-10 -left-10 h-48 w-48 rounded-full bg-moss-100/30 blur-3xl"
+        animate={shouldReduceMotion ? {} : { scale: [1, 1.15, 1], opacity: [0.3, 0.45, 0.3] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Soft glow — center-right */}
+      <motion.div
+        className="absolute top-1/3 -right-8 h-40 w-40 rounded-full bg-moss-100/30 blur-3xl"
+        animate={shouldReduceMotion ? {} : { scale: [1, 1.2, 1], opacity: [0.25, 0.4, 0.25] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+
+      {/* Dot cluster — top area */}
+      <motion.div
+        className="absolute top-16 left-8 h-2.5 w-2.5 rounded-full bg-moss-300/25"
+        animate={shouldReduceMotion ? {} : { y: [0, -6, 0], opacity: [0.25, 0.5, 0.25] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-24 left-16 h-1.5 w-1.5 rounded-full bg-primary-300/20"
+        animate={shouldReduceMotion ? {} : { y: [0, -4, 0], opacity: [0.2, 0.4, 0.2] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      />
+      <motion.div
+        className="absolute top-20 right-20 h-2 w-2 rounded-full bg-moss-300/25"
+        animate={shouldReduceMotion ? {} : { y: [0, -5, 0], opacity: [0.25, 0.45, 0.25] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+      />
+
+      {/* Dot cluster — mid area */}
+      <motion.div
+        className="absolute top-1/2 left-6 h-2 w-2 rounded-full bg-primary-300/20"
+        animate={shouldReduceMotion ? {} : { y: [0, -5, 0], opacity: [0.2, 0.35, 0.2] }}
+        transition={{ duration: 6.5, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+      />
+      <motion.div
+        className="absolute top-2/3 right-10 h-1.5 w-1.5 rounded-full bg-moss-300/25"
+        animate={shouldReduceMotion ? {} : { y: [0, -4, 0], opacity: [0.25, 0.4, 0.25] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+
+      {/* Medium ring — bottom-right */}
+      <motion.div
+        className="absolute -bottom-8 -right-12 h-44 w-44 rounded-full border-[2px] border-moss-200/30"
+        animate={shouldReduceMotion ? {} : { rotate: 360 }}
+        transition={{ duration: 80, repeat: Infinity, ease: 'linear' }}
+      />
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Tab config                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -116,6 +192,7 @@ function EventCard({
         variant="event"
         onClick={() => navigate(`/events/${event.id}`)}
         aria-label={`${event.title} - ${status?.label}`}
+        className="bg-white/90 backdrop-blur-sm border border-white/60 shadow-sm"
       >
         {event.cover_image_url && (
           <div className="relative">
@@ -280,60 +357,73 @@ export default function MyEventsPage() {
           }
         />
       }
+      className="!px-0 !bg-transparent"
     >
-      <div className="pt-3 pb-2">
-        <div className="flex items-center gap-2 bg-surface-2 rounded-xl p-1">
-          <TabBar
-            tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon }))}
-            activeTab={activeTab}
-            onChange={(id) => setActiveTab(id as TabId)}
-            aria-label="Event tabs"
-            className="bg-transparent rounded-none p-0 flex-1"
-          />
-          <div className="flex items-center gap-1.5 shrink-0 pr-2">
-            <OfflineIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} className="text-primary-400" />
-            <PendingSyncBadge />
+      {/* Full-bleed background container */}
+      <div className="relative min-h-full px-4 lg:px-6">
+        {/* Gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-moss-50/40 via-white to-primary-50/20" />
+
+        {/* Animated decorative shapes */}
+        <DecorativeShapes />
+
+        {/* Content layer */}
+        <div className="relative z-10">
+          <div className="pt-3 pb-2">
+            <div className="flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-xl p-1 border border-white/60 shadow-sm">
+              <TabBar
+                tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon }))}
+                activeTab={activeTab}
+                onChange={(id) => setActiveTab(id as TabId)}
+                aria-label="Event tabs"
+                className="bg-transparent rounded-none p-0 flex-1"
+              />
+              <div className="flex items-center gap-1.5 shrink-0 pr-2">
+                <OfflineIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} className="text-primary-400" />
+                <PendingSyncBadge />
+              </div>
+            </div>
           </div>
+
+          <PullToRefresh onRefresh={handleRefresh}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={shouldReduceMotion ? undefined : { opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={shouldReduceMotion ? undefined : { opacity: 0, x: -8 }}
+                transition={{ duration: 0.15 }}
+                className="pb-6"
+              >
+                {isLoading ? (
+                  <EventListSkeleton />
+                ) : !events || events.length === 0 ? (
+                  <EmptyState {...emptyConfig[activeTab]} />
+                ) : (
+                  <motion.div
+                    variants={shouldReduceMotion ? undefined : stagger}
+                    initial="hidden"
+                    animate="visible"
+                    className="space-y-4"
+                  >
+                    {events.map((event) => (
+                      <EventCard
+                        key={event.id}
+                        event={event}
+                        onCancel={
+                          activeTab === 'upcoming'
+                            ? (id) => setCancelTarget(id)
+                            : undefined
+                        }
+                      />
+                    ))}
+                  </motion.div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </PullToRefresh>
         </div>
       </div>
-
-      <PullToRefresh onRefresh={handleRefresh}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={shouldReduceMotion ? undefined : { opacity: 0, x: 8 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={shouldReduceMotion ? undefined : { opacity: 0, x: -8 }}
-            transition={{ duration: 0.15 }}
-            className="pb-6"
-          >
-            {isLoading ? (
-              <EventListSkeleton />
-            ) : !events || events.length === 0 ? (
-              <EmptyState {...emptyConfig[activeTab]} />
-            ) : (
-              <motion.div
-                variants={shouldReduceMotion ? undefined : stagger}
-                initial="hidden"
-                animate="visible"
-                className="space-y-4"
-              >
-                {events.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onCancel={
-                      activeTab === 'upcoming'
-                        ? (id) => setCancelTarget(id)
-                        : undefined
-                    }
-                  />
-                ))}
-              </motion.div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </PullToRefresh>
 
       {/* Cancel confirmation sheet */}
       <ConfirmationSheet

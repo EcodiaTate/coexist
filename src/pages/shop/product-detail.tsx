@@ -11,7 +11,6 @@ import {
     Truck,
     ShieldCheck,
     Leaf,
-    Share2,
     Check,
 } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
@@ -282,19 +281,6 @@ function Divider() {
 /*  Share helper                                                       */
 /* ------------------------------------------------------------------ */
 
-async function shareProduct(name: string, slug: string) {
-  const url = `${window.location.origin}/shop/${slug}`
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: name, text: `Check out this Co-Exist merch: ${name}`, url })
-    } catch {
-      // User cancelled
-    }
-  } else {
-    await navigator.clipboard.writeText(url)
-  }
-}
-
 /* ------------------------------------------------------------------ */
 /*  Loading skeleton                                                   */
 /* ------------------------------------------------------------------ */
@@ -368,12 +354,6 @@ export default function ProductDetailPage() {
     setTimeout(() => setAddedToCart(false), 2000)
   }, [product, activeVariant, quantity, addItem, toast])
 
-  const handleShare = useCallback(() => {
-    if (!product) return
-    shareProduct(product.name, product.slug)
-    toast.success('Link copied!')
-  }, [product, toast])
-
   if (isLoading) return <ProductDetailSkeleton />
 
   if (!product) {
@@ -395,16 +375,6 @@ export default function ProductDetailPage() {
         <Header
           title={product.name}
           back
-          rightActions={
-            <button
-              type="button"
-              onClick={handleShare}
-              className="flex items-center justify-center min-w-11 min-h-11 rounded-full text-primary-600 hover:bg-surface-2 cursor-pointer select-none active:scale-[0.95] transition-all duration-150"
-              aria-label="Share product"
-            >
-              <Share2 size={18} />
-            </button>
-          }
         />
       }
       footer={

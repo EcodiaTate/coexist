@@ -275,12 +275,18 @@ serve(async (req: Request) => {
       // Check if notification type is disabled
       if (userPrefs[notifType] === false) return false
 
-      // Check quiet hours
+      // Check quiet hours (using user's timezone, not server UTC)
       if (userPrefs.quiet_hours_enabled) {
+        const userTz = (userPrefs.timezone as string) || 'Australia/Sydney'
         const now = new Date()
-        const hours = now.getHours()
-        const minutes = now.getMinutes()
-        const current = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+        // Get current time in the user's timezone
+        const userTime = new Intl.DateTimeFormat('en-AU', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+          timeZone: userTz,
+        }).format(now)
+        const current = userTime // "HH:MM"
         const start = (userPrefs.quiet_hours_start as string) ?? '22:00'
         const end = (userPrefs.quiet_hours_end as string) ?? '07:00'
 

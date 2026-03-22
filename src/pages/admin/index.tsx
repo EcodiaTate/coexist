@@ -434,11 +434,11 @@ export default function AdminDashboardPage() {
   const rm = !!shouldReduceMotion
 
   // No actions passed — the period filter lives inside the hero now
-  useAdminHeader('Dashboard')
+  useAdminHeader('Dashboard', { fullBleed: true })
 
   if (isLoading) {
     return (
-      <div className="relative min-h-screen overflow-hidden">
+      <div className="relative min-h-screen overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary-600 via-secondary-700 to-primary-950" />
         {/* Filled circle top-left */}
         <div className="absolute -left-[8%] -top-[8%] w-[45vw] h-[45vw] max-w-[420px] max-h-[420px] rounded-full bg-white/[0.06]" />
@@ -603,7 +603,7 @@ export default function AdminDashboardPage() {
   ]
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen overflow-x-hidden">
       {/* ── Full-page branded background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary-600 via-secondary-700 to-primary-950" />
 

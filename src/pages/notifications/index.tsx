@@ -25,12 +25,84 @@ import type { Notification } from '@/types/database.types'
 
 const stagger: Variants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.05 } },
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
 }
 
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 26 } },
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Decorative background                                              */
+/* ------------------------------------------------------------------ */
+
+function DecorativeBackground() {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* Gradient base */}
+      <div className="absolute inset-0 bg-gradient-to-b from-sky-50/40 via-white to-primary-50/15" />
+
+      {/* Large ring — top right */}
+      <motion.div
+        className="absolute -top-16 -right-16 h-56 w-56 rounded-full border-[3px] border-sky-200/35"
+        animate={shouldReduceMotion ? {} : { rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 50, ease: 'linear' }}
+      />
+
+      {/* Medium ring — left */}
+      <motion.div
+        className="absolute top-1/3 -left-10 h-36 w-36 rounded-full border-2 border-sky-200/35"
+        animate={shouldReduceMotion ? {} : { rotate: -360 }}
+        transition={{ repeat: Infinity, duration: 38, ease: 'linear' }}
+      />
+
+      {/* Small ring — bottom right */}
+      <motion.div
+        className="absolute bottom-28 right-6 h-20 w-20 rounded-full border-[2px] border-sky-200/35"
+        animate={shouldReduceMotion ? {} : { rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 28, ease: 'linear' }}
+      />
+
+      {/* Soft glow — top left */}
+      <motion.div
+        className="absolute -top-8 left-8 h-40 w-40 rounded-full bg-sky-100/25 blur-2xl"
+        animate={shouldReduceMotion ? {} : { scale: [1, 1.15, 1], opacity: [0.25, 0.35, 0.25] }}
+        transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut' }}
+      />
+
+      {/* Soft glow — center right */}
+      <motion.div
+        className="absolute top-1/2 right-0 h-48 w-48 -translate-y-1/2 rounded-full bg-sky-100/25 blur-3xl"
+        animate={shouldReduceMotion ? {} : { scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
+        transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut', delay: 2 }}
+      />
+
+      {/* Dots */}
+      <motion.div
+        className="absolute top-20 right-14 h-2 w-2 rounded-full bg-sky-300/25"
+        animate={shouldReduceMotion ? {} : { y: [-4, 4, -4] }}
+        transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-44 left-10 h-1.5 w-1.5 rounded-full bg-sky-300/25"
+        animate={shouldReduceMotion ? {} : { y: [3, -3, 3] }}
+        transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut', delay: 1 }}
+      />
+      <motion.div
+        className="absolute bottom-40 left-1/3 h-2.5 w-2.5 rounded-full bg-sky-300/25"
+        animate={shouldReduceMotion ? {} : { y: [-3, 5, -3] }}
+        transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 0.5 }}
+      />
+      <motion.div
+        className="absolute bottom-16 right-1/4 h-1.5 w-1.5 rounded-full bg-sky-300/25"
+        animate={shouldReduceMotion ? {} : { y: [2, -4, 2] }}
+        transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut', delay: 1.5 }}
+      />
+    </div>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -114,8 +186,8 @@ function NotificationRow({
           'transition-all duration-200',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-inset',
           isUnread
-            ? 'bg-gradient-to-r from-primary-100/70 to-surface-2 shadow-sm'
-            : 'bg-surface-2/60 hover:bg-surface-2',
+            ? 'bg-white shadow-sm border border-sky-50/60'
+            : 'bg-white/60 shadow-sm border border-sky-50/60 hover:bg-white/80',
         )}
         aria-label={`${notification.title}. ${notification.body ?? ''}`}
       >
@@ -187,7 +259,7 @@ function AllCaughtUp() {
     >
       {/* Illustrated circle */}
       <div className="relative mb-6">
-        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary-100 to-primary-200/60 flex items-center justify-center">
+        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-sky-100 to-sky-200/60 flex items-center justify-center shadow-sm shadow-sky-200/30">
           <svg
             width="64"
             height="64"
@@ -224,12 +296,12 @@ function AllCaughtUp() {
         </div>
         {/* Floating particles */}
         <motion.div
-          className="absolute top-2 -right-1 w-3 h-3 rounded-full bg-primary-300/60"
+          className="absolute top-2 -right-1 w-3 h-3 rounded-full bg-sky-300/50"
           animate={shouldReduceMotion ? {} : { y: [-3, 3, -3] }}
           transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute bottom-3 -left-2 w-2.5 h-2.5 rounded-full bg-moss-300/50"
+          className="absolute bottom-3 -left-2 w-2.5 h-2.5 rounded-full bg-sky-200/50"
           animate={shouldReduceMotion ? {} : { y: [2, -3, 2] }}
           transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut', delay: 0.5 }}
         />
@@ -356,66 +428,74 @@ export default function NotificationsPage() {
         />
       }
     >
-      {isLoading ? (
-        <div className="space-y-4 py-6">
-          {Array.from({ length: 5 }, (_, i) => (
-            <div key={i} className="flex items-start gap-3.5 px-4 py-4 rounded-2xl bg-surface-2/60 animate-pulse">
-              <div className="w-11 h-11 rounded-xl bg-primary-100/50 shrink-0" />
-              <div className="flex-1 space-y-2">
-                <div className="h-3.5 bg-primary-100/40 rounded w-3/4" />
-                <div className="h-3 bg-primary-100/30 rounded w-full" />
-                <div className="h-2.5 bg-primary-100/20 rounded w-16" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : !hasNotifications ? (
-        <AllCaughtUp />
-      ) : (
-        <PullToRefresh onRefresh={handleRefresh}>
-          <motion.div
-            className="py-4 space-y-6"
-            variants={shouldReduceMotion ? undefined : stagger}
-            initial="hidden"
-            animate="visible"
-          >
-            {/* Unread count banner */}
-            {unreadCount > 0 && (
-              <motion.div variants={fadeUp}>
-                <div className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-primary-100/80 to-surface-2 p-3.5 shadow-sm">
-                  <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary-500 shadow-sm">
-                    <Bell size={16} className="text-white" />
+      {/* Full-bleed background container */}
+      <div className="relative min-h-full">
+        <DecorativeBackground />
+
+        {/* Content layer */}
+        <div className="relative z-10">
+          {isLoading ? (
+            <div className="space-y-4 py-6">
+              {Array.from({ length: 5 }, (_, i) => (
+                <div key={i} className="flex items-start gap-3.5 px-4 py-4 rounded-2xl bg-white/60 shadow-sm border border-sky-50/60 animate-pulse">
+                  <div className="w-11 h-11 rounded-xl bg-sky-100/50 shrink-0" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3.5 bg-sky-100/40 rounded w-3/4" />
+                    <div className="h-3 bg-sky-100/30 rounded w-full" />
+                    <div className="h-2.5 bg-sky-100/20 rounded w-16" />
                   </div>
-                  <p className="text-sm font-semibold text-primary-800">
-                    {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
-                  </p>
                 </div>
+              ))}
+            </div>
+          ) : !hasNotifications ? (
+            <AllCaughtUp />
+          ) : (
+            <PullToRefresh onRefresh={handleRefresh}>
+              <motion.div
+                className="py-4 space-y-6"
+                variants={shouldReduceMotion ? undefined : stagger}
+                initial="hidden"
+                animate="visible"
+              >
+                {/* Unread count banner */}
+                {unreadCount > 0 && (
+                  <motion.div variants={fadeUp}>
+                    <div className="flex items-center gap-3 rounded-2xl bg-white/80 backdrop-blur-sm p-3.5 shadow-sm border border-sky-50/60">
+                      <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary-500 shadow-sm">
+                        <Bell size={16} className="text-white" />
+                      </div>
+                      <p className="text-sm font-semibold text-primary-800">
+                        {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Grouped notifications */}
+                {(() => {
+                  let runningIndex = 0
+                  return grouped.map((group) => {
+                    const startIndex = runningIndex
+                    runningIndex += group.notifications.length
+                    return (
+                      <NotificationGroup
+                        key={group.date}
+                        group={group}
+                        onTap={handleTap}
+                        onSwipeRead={handleSwipeRead}
+                        startIndex={startIndex}
+                      />
+                    )
+                  })
+                })()}
+
+                {/* All caught up footer when everything is read */}
+                {allRead && <AllCaughtUp />}
               </motion.div>
-            )}
-
-            {/* Grouped notifications */}
-            {(() => {
-              let runningIndex = 0
-              return grouped.map((group) => {
-                const startIndex = runningIndex
-                runningIndex += group.notifications.length
-                return (
-                  <NotificationGroup
-                    key={group.date}
-                    group={group}
-                    onTap={handleTap}
-                    onSwipeRead={handleSwipeRead}
-                    startIndex={startIndex}
-                  />
-                )
-              })
-            })()}
-
-            {/* All caught up footer when everything is read */}
-            {allRead && <AllCaughtUp />}
-          </motion.div>
-        </PullToRefresh>
-      )}
+            </PullToRefresh>
+          )}
+        </div>
+      </div>
     </Page>
   )
 }

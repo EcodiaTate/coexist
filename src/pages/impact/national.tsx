@@ -636,16 +636,6 @@ export default function NationalImpactPage() {
         <Header
           title="National Impact"
           back
-          rightActions={
-            <button
-              type="button"
-              onClick={shareLink}
-              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
-              aria-label="Share"
-            >
-              <Share2 size={18} strokeWidth={2.5} />
-            </button>
-          }
         />
       }
     >
