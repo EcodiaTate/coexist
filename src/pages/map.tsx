@@ -169,7 +169,7 @@ const COLLECTIVES: Collective[] = [
 function createCollectiveIcon(active = false): L.DivIcon {
   const size = active ? 48 : 36
   const height = active ? 62 : 46
-  const color = '#879e62'
+  const color = '#869e62'
   const svg = `<svg width="${size}" height="${height}" viewBox="0 0 36 46" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M18 0C8.06 0 0 8.06 0 18c0 12.6 16.2 26.4 17.1 27.15a1.5 1.5 0 0 0 1.8 0C19.8 44.4 36 30.6 36 18 36 8.06 27.94 0 18 0Z" fill="${color}"/>
     <circle cx="18" cy="17" r="10" fill="white" fill-opacity="0.95"/>

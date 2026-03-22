@@ -10,6 +10,7 @@ import {
   ChevronRight,
   X,
   Compass,
+  Leaf,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
@@ -61,73 +62,73 @@ function DecorativeBackground() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Rich warm gradient — amber-moss-earth palette */}
-      <div className="absolute inset-0 bg-gradient-to-b from-bark-200/50 via-bark-100/30 via-35% to-moss-50/25 to-70%" />
-      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-moss-50/15 to-bark-100/25" />
+      {/* Rich olive gradient — true Co-Exist palette */}
+      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/60 via-primary-100/35 via-30% to-moss-50/25 to-65%" />
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-moss-50/20 to-sprout-50/20" />
 
-      {/* Top hero glow — warm amber wash */}
-      <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-[550px] h-[320px] rounded-full bg-gradient-to-b from-bark-200/40 via-bark-100/25 to-transparent blur-[60px]" />
+      {/* Top hero glow — concentrated olive-green */}
+      <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/32 via-primary-200/22 to-transparent blur-[60px]" />
 
-      {/* Warm accent — top right */}
-      <div className="absolute -top-12 -right-12 w-[280px] h-[280px] rounded-full bg-gradient-to-bl from-warning-100/30 to-transparent blur-[50px]" />
+      {/* Warm accent — top left */}
+      <div className="absolute -top-16 -left-16 w-[280px] h-[280px] rounded-full bg-gradient-to-br from-sprout-200/25 to-transparent blur-[50px]" />
 
-      {/* Large ring — top right with warm border */}
+      {/* Large breathing ring — top right */}
       <motion.div
-        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-bark-200/25"
-        animate={r ? {} : { scale: [1, 1.05, 1], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut' }}
+        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/22"
+        animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
+        transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
       />
-      {/* Inner concentric ring */}
+      {/* Concentric inner ring */}
       <motion.div
-        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-[2px] border-moss-200/20"
-        animate={r ? {} : { scale: [1, 1.04, 1], opacity: [0.4, 0.65, 0.4] }}
-        transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 1.5 }}
+        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-primary-200/18"
+        animate={r ? {} : { scale: [1, 1.04, 1], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Left ring cluster */}
+      {/* Medium ring — left side */}
       <motion.div
-        className="absolute top-[35%] -left-14 w-48 h-48 rounded-full border-[2.5px] border-bark-200/20"
-        animate={r ? {} : { scale: [1, 1.07, 1], opacity: [0.4, 0.7, 0.4] }}
-        transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut', delay: 2.5 }}
+        className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/22"
+        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 2 }}
       />
       <motion.div
-        className="absolute top-[45%] -left-6 w-28 h-28 rounded-full border-[1.5px] border-moss-300/15"
+        className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-primary-200/15"
         animate={r ? {} : { rotate: -360 }}
         transition={{ repeat: Infinity, duration: 50, ease: 'linear' }}
       />
 
       {/* Bottom right ring */}
       <motion.div
-        className="absolute bottom-[15%] right-0 w-36 h-36 rounded-full border-2 border-bark-200/18"
+        className="absolute bottom-[16%] right-2 w-36 h-36 rounded-full border-2 border-secondary-200/18"
         animate={r ? {} : { rotate: 360 }}
         transition={{ repeat: Infinity, duration: 55, ease: 'linear' }}
       />
 
-      {/* Deep glow — center left */}
+      {/* Deep warm glow — mid left */}
       <motion.div
-        className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-bark-100/18 blur-[50px]"
-        animate={r ? {} : { scale: [1, 1.12, 1], opacity: [0.2, 0.4, 0.2] }}
-        transition={{ repeat: Infinity, duration: 10, ease: 'easeInOut', delay: 1 }}
+        className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/20 blur-[50px]"
+        animate={r ? {} : { scale: [1, 1.14, 1], opacity: [0.22, 0.4, 0.22] }}
+        transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Bottom glow pool */}
+      {/* Bottom gradient pool */}
       <motion.div
-        className="absolute -bottom-16 left-1/4 w-64 h-64 rounded-full bg-moss-200/18 blur-[55px]"
+        className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-moss-200/20 blur-[55px]"
         animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.25, 0.42, 0.25] }}
         transition={{ repeat: Infinity, duration: 11, ease: 'easeInOut', delay: 3 }}
       />
 
-      {/* Floating particles — warm toned */}
-      <motion.div className="absolute top-20 right-16 w-3 h-3 rounded-full bg-bark-300/22"
+      {/* Floating particles — olive toned */}
+      <motion.div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-primary-400/18"
         animate={r ? {} : { y: [-5, 5, -5], x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }} />
-      <motion.div className="absolute top-32 left-10 w-2.5 h-2.5 rounded-full bg-moss-400/18"
-        animate={r ? {} : { y: [3, -5, 3] }} transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 1 }} />
-      <motion.div className="absolute top-[52%] right-[22%] w-2 h-2 rounded-full bg-bark-400/15"
-        animate={r ? {} : { y: [-3, 4, -3], x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 2 }} />
-      <motion.div className="absolute bottom-[32%] left-[18%] w-2.5 h-2.5 rounded-full bg-warning-400/12"
-        animate={r ? {} : { y: [2, -4, 2] }} transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut', delay: 3 }} />
-      <motion.div className="absolute top-[68%] right-8 w-2 h-2 rounded-full bg-moss-400/15"
-        animate={r ? {} : { y: [-2, 3, -2], x: [1, -1, 1] }} transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1.5 }} />
+      <motion.div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-moss-400/15"
+        animate={r ? {} : { y: [3, -5, 3] }} transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 1.5 }} />
+      <motion.div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-sprout-400/15"
+        animate={r ? {} : { y: [-3, 4, -3], x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} />
+      <motion.div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-secondary-400/12"
+        animate={r ? {} : { y: [2, -3, 2] }} transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut', delay: 2.5 }} />
+      <motion.div className="absolute top-[35%] right-[28%] w-1.5 h-1.5 rounded-full bg-primary-300/15"
+        animate={r ? {} : { y: [-2, 3, -2], x: [1, -1, 1] }} transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 3.5 }} />
     </div>
   )
 }
@@ -197,50 +198,60 @@ function EventCard({
         onClick={() => navigate(`/events/${event.id}`)}
         aria-label={`${event.title} - ${status?.label}`}
         className={cn(
-          'bg-gradient-to-b from-[#f7f3ee] via-[#f4f0ea] to-[#efe9e0]',
-          'border border-bark-200/30',
-          'shadow-[0_6px_28px_-6px_rgba(93,77,51,0.16),0_2px_6px_rgba(93,77,51,0.06)]',
+          'bg-[#869e62]',
+          'border border-primary-400/30',
+          'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.22),0_2px_6px_rgba(61,77,51,0.08)]',
           past && 'opacity-70 saturate-[0.85]',
         )}
       >
-        {event.cover_image_url && (
-          <div className="relative">
+        {/* Event image — always shown */}
+        <div className="relative">
+          {event.cover_image_url ? (
             <Card.Image src={event.cover_image_url} alt={event.title} />
-            <Card.Badge position="top-right">
-              <Badge
-                variant="activity"
-                activity={activityToBadge[event.activity_type] ?? 'education'}
-                size="sm"
-              >
-                {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
-              </Badge>
-            </Card.Badge>
-          </div>
-        )}
+          ) : (
+            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-300/60 via-moss-400/50 to-secondary-500/40 flex items-center justify-center">
+                <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                  <Leaf size={28} strokeWidth={2} className="text-white/70" />
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" aria-hidden="true" />
+            </div>
+          )}
+          <Card.Badge position="top-right">
+            <Badge
+              variant="activity"
+              activity={activityToBadge[event.activity_type] ?? 'education'}
+              size="sm"
+            >
+              {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
+            </Badge>
+          </Card.Badge>
+        </div>
 
         <Card.Content>
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
-              <Card.Title>{event.title}</Card.Title>
-              <Card.Meta>
+              <Card.Title className="!text-white">{event.title}</Card.Title>
+              <Card.Meta className="!text-white/70">
                 <span className="flex items-center gap-1.5">
-                  <Calendar size={13} className="shrink-0 text-bark-500" />
-                  <span className="font-semibold text-bark-700">{formatEventDate(event.date_start)}</span>
+                  <Calendar size={13} className="shrink-0 text-white/60" />
+                  <span className="font-semibold text-white/85">{formatEventDate(event.date_start)}</span>
                 </span>
               </Card.Meta>
               {event.collectives && (
-                <Card.Meta>
+                <Card.Meta className="!text-white/70">
                   <span className="flex items-center gap-1.5">
-                    <Users size={13} className="shrink-0 text-moss-500" />
-                    <span className="text-moss-600">{event.collectives.name}</span>
+                    <Users size={13} className="shrink-0 text-white/60" />
+                    <span className="text-white/75">{event.collectives.name}</span>
                   </span>
                 </Card.Meta>
               )}
               {event.address && (
-                <Card.Meta>
+                <Card.Meta className="!text-white/70">
                   <span className="flex items-center gap-1.5">
-                    <MapPin size={13} className="shrink-0 text-primary-400" />
-                    <span className="truncate">{event.address}</span>
+                    <MapPin size={13} className="shrink-0 text-white/60" />
+                    <span className="truncate text-white/75">{event.address}</span>
                   </span>
                 </Card.Meta>
               )}
@@ -258,7 +269,7 @@ function EventCard({
                 </span>
               )}
               {countdown && (
-                <span className="text-[11px] font-bold text-bark-600 bg-gradient-to-r from-bark-100/80 to-bark-50/60 px-2.5 py-0.5 rounded-full border border-bark-200/30">
+                <span className="text-[11px] font-bold text-white/90 bg-white/15 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-white/20">
                   {countdown}
                 </span>
               )}
@@ -274,7 +285,7 @@ function EventCard({
                 onCancel(event.id)
               }}
               className={cn(
-                'mt-3 min-h-11 flex items-center justify-center gap-1 text-caption font-medium text-primary-400',
+                'mt-3 min-h-11 flex items-center justify-center gap-1 text-caption font-medium text-white/50',
                 'hover:text-error',
                 'cursor-pointer select-none',
                 'active:scale-[0.97] transition-all duration-150',
@@ -299,12 +310,12 @@ function EventListSkeleton() {
   return (
     <div className="space-y-4">
       {Array.from({ length: 3 }, (_, i) => (
-        <div key={i} className="rounded-[20px] bg-gradient-to-b from-[#f7f3ee] to-[#efe9e0] border border-bark-200/25 shadow-sm overflow-hidden animate-pulse">
-          <div className="h-40 bg-bark-200/20" />
+        <div key={i} className="rounded-[20px] bg-gradient-to-b from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 shadow-sm overflow-hidden animate-pulse">
+          <div className="h-40 bg-primary-200/20" />
           <div className="p-4 space-y-3">
-            <div className="h-4 bg-bark-200/25 rounded w-3/4" />
-            <div className="h-3 bg-bark-200/20 rounded w-1/2" />
-            <div className="h-3 bg-bark-200/15 rounded w-2/3" />
+            <div className="h-4 bg-primary-200/25 rounded w-3/4" />
+            <div className="h-3 bg-primary-200/20 rounded w-1/2" />
+            <div className="h-3 bg-primary-200/15 rounded w-2/3" />
           </div>
         </div>
       ))}
@@ -373,7 +384,7 @@ export default function MyEventsPage() {
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-bark-500 to-moss-700 shadow-sm">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-700 shadow-sm shadow-primary-400/25">
                   <Compass size={15} className="text-white" />
                 </div>
                 <h1 className="font-heading text-[22px] font-bold text-secondary-900 tracking-tight">
@@ -386,10 +397,10 @@ export default function MyEventsPage() {
                 onClick={() => navigate('/explore')}
                 className={cn(
                   'flex items-center gap-1.5 px-3.5 py-2 rounded-xl min-h-11',
-                  'text-sm font-semibold text-bark-700',
-                  'bg-gradient-to-r from-[#f0ece4] to-[#ebe5da] border border-bark-200/35',
-                  'shadow-sm shadow-bark-300/15',
-                  'hover:from-[#ede8df] hover:to-[#e8e1d5] active:scale-[0.97]',
+                  'text-sm font-semibold text-secondary-800',
+                  'bg-gradient-to-r from-[#eef2e8] to-[#e8eddf] border border-primary-200/35',
+                  'shadow-sm shadow-primary-300/15',
+                  'hover:from-[#eaefe3] hover:to-[#e4e9da] active:scale-[0.97]',
                   'transition-all duration-150 cursor-pointer select-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 )}
@@ -407,7 +418,7 @@ export default function MyEventsPage() {
             transition={{ duration: 0.35, delay: 0.08 }}
             className="pb-4"
           >
-            <div className="flex items-center gap-2 bg-gradient-to-r from-[#f5f1eb] to-[#f0ece4] backdrop-blur-md rounded-2xl p-1.5 border border-bark-200/30 shadow-[0_4px_20px_-4px_rgba(93,77,51,0.14)]">
+            <div className="flex items-center gap-2 bg-gradient-to-r from-[#eef2e8]/90 to-[#e8eddf]/90 backdrop-blur-md rounded-2xl p-1.5 border border-primary-200/30 shadow-[0_4px_20px_-4px_rgba(61,77,51,0.14)]">
               <TabBar
                 tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon }))}
                 activeTab={activeTab}
@@ -459,16 +470,16 @@ export default function MyEventsPage() {
                     {/* End of list marker */}
                     <motion.div variants={fadeUp} className="flex flex-col items-center py-10 gap-3">
                       <div className="relative">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#e8dfd3] via-[#e0d5c6] to-[#d6c9b7] flex items-center justify-center shadow-md shadow-bark-300/20 border border-bark-200/25">
-                          <Calendar size={20} className="text-bark-600" />
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#dce3d3] via-[#d4dbc9] to-[#c9d2bc] flex items-center justify-center shadow-md shadow-primary-300/20 border border-primary-200/25">
+                          <Calendar size={20} className="text-secondary-700" />
                         </div>
-                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-bark-400 to-moss-500 border-2 border-[#f4f0ea]" />
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-primary-400 to-secondary-500 border-2 border-[#eef2e8]" />
                       </div>
                       <div className="text-center">
-                        <p className="text-sm font-bold text-bark-600">
+                        <p className="text-sm font-bold text-secondary-700">
                           {activeTab === 'past' ? 'End of history' : 'All events loaded'}
                         </p>
-                        <p className="text-xs text-bark-400 mt-0.5">
+                        <p className="text-xs text-primary-400 mt-0.5">
                           Pull down to refresh
                         </p>
                       </div>

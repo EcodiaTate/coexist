@@ -7,11 +7,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Match the native root view background to the app surface colour
-        // so the home-indicator / safe-area zone never flashes white.
-        let surface = UIColor(red: 248/255, green: 249/255, blue: 245/255, alpha: 1) // #f8f9f5
-        window?.backgroundColor = surface
-        window?.rootViewController?.view.backgroundColor = surface
+        // Window background — covers any gap behind the WebView (home indicator zone)
+        window?.backgroundColor = UIColor(red: 248/255, green: 249/255, blue: 245/255, alpha: 1)
         return true
     }
 

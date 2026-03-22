@@ -23,12 +23,15 @@ html {
 }
 
 @theme {
-  /* Primary - Olive Green (#879e62) scale */
+  /* Brand — Co-Exist olive green */
+  --color-brand: #869e62;
+
+  /* Primary - Olive Green (#869e62) scale */
   --color-primary-50: #f5f7f0;
   --color-primary-100: #e8eddf;
   --color-primary-200: #d1dbbf;
   --color-primary-300: #b3c496;
-  --color-primary-400: #879e62;
+  --color-primary-400: #869e62;
   --color-primary-500: #748b50;
   --color-primary-600: #5d7340;
   --color-primary-700: #4a5c34;
@@ -54,7 +57,7 @@ html {
   --color-accent-100: #e8eddf;
   --color-accent-200: #d1dbbf;
   --color-accent-300: #b3c496;
-  --color-accent-400: #879e62;
+  --color-accent-400: #869e62;
   --color-accent-500: #748b50;
   --color-accent-600: #5d7340;
   --color-accent-700: #4a5c34;
@@ -67,7 +70,7 @@ html {
   --color-neutral-100: #ffffff;
   --color-neutral-200: #e8eddf;
   --color-neutral-300: #d1dbbf;
-  --color-neutral-400: #879e62;
+  --color-neutral-400: #869e62;
   --color-neutral-500: #6b7a52;
   --color-neutral-600: #5a6745;
   --color-neutral-700: #3d4d33;

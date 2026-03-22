@@ -418,7 +418,7 @@ export function CollectiveMap({ className }: CollectiveMapProps) {
     // Draw Australia as an olive polygon
     const ausLayer = L.geoJSON(australiaGeoJson as GeoJSON.FeatureCollection, {
       style: {
-        fillColor: '#879e62',
+        fillColor: '#869e62',
         fillOpacity: 1,
         color: '#748b50',
         weight: 1.5,

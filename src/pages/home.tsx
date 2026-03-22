@@ -2,7 +2,6 @@ import { useCallback } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Bell,
   ChevronRight,
   Calendar,
   Users,
@@ -28,7 +27,6 @@ import {
   useRecentPosts,
   useHomeTierProgress,
 } from '@/hooks/use-home-feed'
-import { useUnreadCount } from '@/hooks/use-notifications'
 import {
   Page,
   PullToRefresh,
@@ -45,12 +43,12 @@ import { ProximityCheckInBanner } from '@/components/proximity-check-in-banner'
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.4 } },
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.3 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] } },
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -70,7 +68,7 @@ function Section({
 }) {
   return (
     <section className={cn(className)} aria-label={title}>
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="font-heading text-sm font-bold text-white/50 uppercase tracking-widest">
           {title}
         </h2>
@@ -183,10 +181,10 @@ export default function HomePage() {
     <Page noBackground className="!px-0 bg-primary-950">
       <PullToRefresh onRefresh={handleRefresh} dark>
         <div className="relative min-h-full overflow-clip bg-primary-950">
-          {/* ── Full-page branded background ── */}
+          {/* ── Background ── */}
           <div className="absolute inset-0 bg-gradient-to-b from-primary-600 via-secondary-700 to-primary-950" />
 
-          {/* ── Bold geometric shapes ── */}
+          {/* ── Background geometric shapes ── */}
           <motion.div
             initial={rm ? {} : { scale: 0.6, opacity: 0 }}
             animate={{ scale: [1, 1.04, 1], opacity: 1 }}
@@ -227,25 +225,23 @@ export default function HomePage() {
 
           {/* ── Content ── */}
           <div className="relative z-10">
-            {/* 1. Hero greeting — compact */}
+            {/* Hero greeting */}
             <div className="relative w-full flex flex-col">
-              {/* Safe-area spacer */}
               <div style={{ paddingTop: 'var(--safe-top)' }} />
 
-              {/* Greeting — grand hero */}
               <div className="flex flex-col items-center justify-start px-6 text-center pt-[18svh] pb-4 min-h-[70svh] lg:min-h-0 lg:pt-16 lg:pb-8 -mb-8 lg:mb-0">
                 <motion.img
                   src="/logos/white-wordmark.webp"
                   alt="Co-Exist"
-                  initial={rm ? {} : { opacity: 0, y: 20, scale: 0.92 }}
+                  initial={rm ? {} : { opacity: 0, y: 16, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 1, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  transition={{ duration: 0.6, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
                   className="h-16 sm:h-20 w-auto object-contain mb-8 lg:mb-4"
                 />
                 <motion.p
-                  initial={rm ? {} : { opacity: 0, y: 15 }}
+                  initial={rm ? {} : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  transition={{ duration: 0.5, delay: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
                   className="font-heading text-xl sm:text-2xl lg:text-3xl font-bold text-white"
                 >
                   {getGreeting(firstName)}
@@ -255,7 +251,7 @@ export default function HomePage() {
 
             {/* Body sections */}
             <motion.div
-              className="px-6 space-y-16 pb-24 -mt-32 lg:mt-0"
+              className="px-6 space-y-10 pb-24 -mt-32 lg:mt-0"
               initial="hidden"
               animate="visible"
               variants={rm ? undefined : stagger}
@@ -265,34 +261,34 @@ export default function HomePage() {
 
               {/* Announcement banner */}
               {announcement.isLoading ? (
-                <div className="rounded-2xl bg-white/[0.08] p-4 animate-pulse flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-white/[0.08] shrink-0" />
+                <div className="rounded-2xl bg-white/[0.06] p-4 animate-pulse flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-white/[0.06] shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded-full bg-white/[0.06]" />
+                    <div className="h-4 w-3/4 rounded-full bg-white/[0.05]" />
                     <div className="h-3 w-1/2 rounded-full bg-white/[0.04]" />
                   </div>
                 </div>
               ) : announcement.data ? (
                 <motion.div variants={rm ? undefined : fadeUp}>
                   <div
-                    className="flex items-center gap-3 rounded-2xl p-4 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                    className="flex items-center gap-3 rounded-2xl bg-white/[0.06] p-4 active:scale-[0.98] transition-all duration-150 cursor-pointer"
                     onClick={() => navigate('/announcements')}
                     role="button"
                     tabIndex={0}
                     aria-label={`Announcement: ${announcement.data.title}`}
                   >
-                    <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/15 text-white/70 shrink-0">
+                    <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.08] text-white/60 shrink-0">
                       <Megaphone size={16} />
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-white truncate">
                         {announcement.data.title}
                       </p>
-                      <p className="text-xs text-white/40 truncate">
+                      <p className="text-xs text-white/35 truncate">
                         {announcement.data.content}
                       </p>
                     </div>
-                    <ChevronRight size={18} className="text-white/30 shrink-0" />
+                    <ChevronRight size={18} className="text-white/25 shrink-0" />
                   </div>
                 </motion.div>
               ) : null}
@@ -300,38 +296,34 @@ export default function HomePage() {
               {/* Your Collective */}
               <motion.div variants={rm ? undefined : fadeUp}>
                 {myCollective.isLoading ? (
-                  <div className="rounded-2xl bg-white/[0.08] p-6 animate-pulse space-y-4">
-                    <div className="h-3 w-24 rounded-full bg-white/[0.06]" />
-                    <div className="h-7 w-48 rounded-xl bg-white/[0.08]" />
+                  <div className="rounded-2xl bg-white/[0.06] p-6 animate-pulse space-y-4">
+                    <div className="h-3 w-24 rounded-full bg-white/[0.05]" />
+                    <div className="h-7 w-48 rounded-xl bg-white/[0.06]" />
                     <div className="flex gap-5">
-                      <div className="h-4 w-16 rounded-full bg-white/[0.05]" />
-                      <div className="h-4 w-24 rounded-full bg-white/[0.05]" />
+                      <div className="h-4 w-16 rounded-full bg-white/[0.04]" />
+                      <div className="h-4 w-24 rounded-full bg-white/[0.04]" />
                     </div>
                   </div>
                 ) : myCollective.data ? (
                   <div
-                    className={cn(
-                      'relative rounded-3xl',
-                      'p-7 sm:p-9',
-                      'active:scale-[0.98] transition-all duration-200 cursor-pointer',
-                    )}
+                    className="relative rounded-2xl bg-white/[0.06] p-7 sm:p-9 overflow-hidden active:scale-[0.98] transition-all duration-150 cursor-pointer"
                     onClick={() => navigate(`/collectives/${myCollective.data!.slug}`)}
                     role="button"
                     tabIndex={0}
                     aria-label={myCollective.data.name}
                   >
-                    <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/[0.05]" />
+                    <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/[0.04]" />
                     <div className="absolute -left-8 -bottom-10 w-32 h-32 rounded-full bg-white/[0.03]" />
 
                     <div className="relative z-10">
-                      <p className="text-[11px] font-semibold text-white/40 uppercase tracking-widest">
+                      <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest">
                         Your Collective
                       </p>
                       <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mt-3 truncate">
                         {myCollective.data.name.replace(/\s*Collective$/i, '')}
                       </h2>
 
-                      <div className="flex items-center gap-5 mt-6 text-sm text-white/50">
+                      <div className="flex items-center gap-5 mt-6 text-sm text-white/45">
                         <span className="flex items-center gap-1.5">
                           <Users size={15} aria-hidden="true" />
                           {myCollective.data.member_count}
@@ -343,14 +335,14 @@ export default function HomePage() {
                       </div>
 
                       {myCollective.data.next_event && (
-                        <div className="mt-6 pt-6 border-t border-white/[0.08]">
-                          <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest">
+                        <div className="mt-6 pt-6 border-t border-white/[0.06]">
+                          <p className="text-[11px] font-semibold text-white/25 uppercase tracking-widest">
                             Next up
                           </p>
                           <p className="mt-2 text-lg font-bold text-white">
                             {myCollective.data.next_event.title}
                           </p>
-                          <p className="mt-1 text-sm text-white/40">
+                          <p className="mt-1 text-sm text-white/35">
                             {formatEventDate(myCollective.data.next_event.date_start)}
                           </p>
                         </div>
@@ -359,28 +351,24 @@ export default function HomePage() {
                   </div>
                 ) : (
                   <div
-                    className={cn(
-                      'relative rounded-3xl',
-                      'p-7 sm:p-9',
-                      'active:scale-[0.98] transition-all duration-200 cursor-pointer',
-                    )}
+                    className="relative rounded-2xl bg-white/[0.06] p-7 sm:p-9 overflow-hidden active:scale-[0.98] transition-all duration-150 cursor-pointer"
                     onClick={() => navigate('/explore')}
                     role="button"
                     tabIndex={0}
                     aria-label="Find your collective"
                   >
-                    <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/[0.04]" />
+                    <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/[0.03]" />
                     <div className="relative z-10">
-                      <p className="text-[11px] font-semibold text-white/30 uppercase tracking-widest">
+                      <p className="text-[11px] font-semibold text-white/25 uppercase tracking-widest">
                         Get started
                       </p>
                       <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mt-3">
                         Find your collective
                       </h2>
-                      <p className="mt-3 text-sm text-white/40 max-w-xs">
+                      <p className="mt-3 text-sm text-white/35 max-w-xs">
                         Join a local group and start making an impact
                       </p>
-                      <div className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-white/70">
+                      <div className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-white/60">
                         Explore
                         <ChevronRight size={16} />
                       </div>
@@ -389,15 +377,15 @@ export default function HomePage() {
                 )}
               </motion.div>
 
-              {/* Your Upcoming Events — registered/waitlisted */}
+              {/* Your Upcoming Events */}
               {myEvents.isLoading ? (
                 <div className="space-y-3">
-                  <div className="h-3 w-36 rounded-full bg-white/[0.05] animate-pulse" />
+                  <div className="h-3 w-36 rounded-full bg-white/[0.04] animate-pulse" />
                   {[1, 2].map((i) => (
-                    <div key={i} className="rounded-2xl bg-white/[0.08] p-4 animate-pulse flex gap-4" style={{ animationDelay: `${i * 100}ms` }}>
-                      <div className="w-14 h-14 rounded-xl bg-white/[0.06] shrink-0" />
+                    <div key={i} className="rounded-2xl bg-white/[0.06] p-4 animate-pulse flex gap-4" style={{ animationDelay: `${i * 80}ms` }}>
+                      <div className="w-14 h-14 rounded-xl bg-white/[0.05] shrink-0" />
                       <div className="flex-1 space-y-2 py-1">
-                        <div className="h-4 w-3/4 rounded-full bg-white/[0.06]" />
+                        <div className="h-4 w-3/4 rounded-full bg-white/[0.05]" />
                         <div className="h-3 w-1/2 rounded-full bg-white/[0.04]" />
                       </div>
                     </div>
@@ -409,7 +397,7 @@ export default function HomePage() {
                     title="Your Upcoming Events"
                     action={{ label: 'All events', to: '/events' }}
                   >
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       {myEvents.data.map((event) => {
                         const days = daysUntil(event.date_start)
                         const isToday = days === 0
@@ -421,11 +409,10 @@ export default function HomePage() {
                             key={event.id}
                             className={cn(
                               'flex items-center gap-4 rounded-2xl p-4',
-                              'backdrop-blur-md',
-                              'active:scale-[0.98] transition-all duration-200 cursor-pointer',
+                              'active:scale-[0.98] transition-all duration-150 cursor-pointer',
                               isToday
-                                ? 'bg-success-500/20 ring-1 ring-success-400/30'
-                                : 'bg-white/[0.12]',
+                                ? 'bg-success-500/15 ring-1 ring-success-400/25'
+                                : 'bg-white/[0.06]',
                             )}
                             onClick={() => navigate(`/events/${event.id}`)}
                             role="button"
@@ -435,7 +422,7 @@ export default function HomePage() {
                             {/* Date block */}
                             <div className={cn(
                               'flex flex-col items-center justify-center w-14 h-14 rounded-xl shrink-0',
-                              isToday ? 'bg-success-500/30' : isSoon ? 'bg-warning-500/20' : 'bg-white/[0.1]',
+                              isToday ? 'bg-success-500/25' : isSoon ? 'bg-warning-500/15' : 'bg-white/[0.08]',
                             )}>
                               <span className={cn(
                                 'text-[10px] font-bold uppercase tracking-wider',
@@ -455,7 +442,7 @@ export default function HomePage() {
                               <p className="text-sm font-semibold text-white truncate">
                                 {event.title}
                               </p>
-                              <div className="flex items-center gap-2 mt-1 text-xs text-white/40">
+                              <div className="flex items-center gap-2 mt-1 text-xs text-white/35">
                                 <span className="flex items-center gap-1">
                                   <Clock size={11} aria-hidden="true" />
                                   {new Date(event.date_start).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })}
@@ -483,14 +470,14 @@ export default function HomePage() {
                 <motion.div variants={rm ? undefined : fadeUp}>
                   <Section title="Your Upcoming Events">
                     <div
-                      className="rounded-2xl bg-white/[0.08] p-6 text-center cursor-pointer active:scale-[0.98] transition-all duration-200"
+                      className="rounded-2xl bg-white/[0.06] p-6 text-center cursor-pointer active:scale-[0.98] transition-all duration-150"
                       onClick={() => navigate('/explore?tab=events')}
                       role="button"
                       tabIndex={0}
                     >
-                      <Calendar size={24} className="mx-auto text-white/30 mb-2" />
-                      <p className="text-sm text-white/50 font-medium">No events coming up</p>
-                      <p className="text-xs text-white/30 mt-1">Find your next one</p>
+                      <Calendar size={24} className="mx-auto text-white/25 mb-2" />
+                      <p className="text-sm text-white/45 font-medium">No events coming up</p>
+                      <p className="text-xs text-white/25 mt-1">Find your next one</p>
                     </div>
                   </Section>
                 </motion.div>
@@ -500,7 +487,7 @@ export default function HomePage() {
               {tierProgress.data && (
                 <motion.div variants={rm ? undefined : fadeUp}>
                   <div
-                    className="rounded-2xl p-6 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+                    className="rounded-2xl bg-white/[0.06] p-6 active:scale-[0.98] transition-all duration-150 cursor-pointer"
                     onClick={() => navigate('/points')}
                     role="button"
                     tabIndex={0}
@@ -508,20 +495,20 @@ export default function HomePage() {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/20 shrink-0">
+                        <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/15 shrink-0">
                           <Award size={20} className="text-amber-300" />
                         </span>
                         <div>
                           <p className="text-sm font-semibold text-white">
                             {tierProgress.data.tier}
                           </p>
-                          <p className="text-xs text-white/40">
+                          <p className="text-xs text-white/35">
                             {tierProgress.data.points.toLocaleString()} pts
                           </p>
                         </div>
                       </div>
                       {tierProgress.data.nextTier && (
-                        <span className="text-xs text-white/30">
+                        <span className="text-xs text-white/25">
                           {tierProgress.data.pointsToNext.toLocaleString()} to {tierProgress.data.nextTier}
                         </span>
                       )}
@@ -543,18 +530,17 @@ export default function HomePage() {
                     title="From Your Community"
                     action={{ label: 'See all', to: '/community' }}
                   >
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                       {recentPosts.data.map((post) => (
                         <div
                           key={post.id}
-                          className="rounded-2xl p-5 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+                          className="rounded-2xl bg-white/[0.06] p-5 active:scale-[0.98] transition-all duration-150 cursor-pointer"
                           onClick={() => navigate('/community')}
                           role="button"
                           tabIndex={0}
                         >
                           <div className="flex items-start gap-3">
-                            {/* Avatar */}
-                            <div className="w-8 h-8 rounded-full bg-white/[0.15] shrink-0 overflow-hidden">
+                            <div className="w-8 h-8 rounded-full bg-white/[0.08] shrink-0 overflow-hidden">
                               {post.author?.avatar_url ? (
                                 <img
                                   src={post.author.avatar_url}
@@ -573,28 +559,27 @@ export default function HomePage() {
                                 <p className="text-sm font-semibold text-white truncate">
                                   {post.author?.display_name ?? 'Member'}
                                 </p>
-                                <span className="text-[10px] text-white/30 shrink-0">
+                                <span className="text-[10px] text-white/25 shrink-0">
                                   {formatRelativeTime(post.created_at)}
                                 </span>
                               </div>
                               {post.content && (
-                                <p className="mt-1 text-sm text-white/60 line-clamp-2">
+                                <p className="mt-1 text-sm text-white/50 line-clamp-2">
                                   {post.content}
                                 </p>
                               )}
                               {post.images && post.images.length > 0 && !post.content && (
-                                <p className="mt-1 text-sm text-white/40 italic">Shared a photo</p>
+                                <p className="mt-1 text-sm text-white/35 italic">Shared a photo</p>
                               )}
                             </div>
                           </div>
 
-                          {/* Engagement stats */}
                           <div className="flex items-center gap-4 mt-3 pl-11">
-                            <span className="flex items-center gap-1 text-xs text-white/30">
+                            <span className="flex items-center gap-1 text-xs text-white/25">
                               <Heart size={12} />
                               {post.like_count}
                             </span>
-                            <span className="flex items-center gap-1 text-xs text-white/30">
+                            <span className="flex items-center gap-1 text-xs text-white/25">
                               <MessageCircle size={12} />
                               {post.comment_count}
                             </span>
@@ -611,42 +596,42 @@ export default function HomePage() {
                 <motion.div variants={rm ? undefined : fadeUp}>
                   <Link
                     to="/impact"
-                    className="flex items-center gap-4 rounded-2xl bg-white/[0.12] backdrop-blur-md p-6 active:scale-[0.98] transition-all duration-200"
+                    className="flex items-center gap-4 rounded-2xl bg-white/[0.06] p-5 active:scale-[0.98] transition-all duration-150"
                   >
-                    <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-success-500/25 shrink-0">
-                      <TreePine size={22} className="text-success-300" />
+                    <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-success-500/15 shrink-0">
+                      <TreePine size={20} className="text-success-300" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-heading text-sm font-semibold text-white">
                         Your Impact
                       </p>
-                      <p className="text-xs text-white/40 mt-0.5">
+                      <p className="text-xs text-white/35 mt-0.5">
                         {impact.data.trees_planted} trees · {impact.data.events_attended} events · {impact.data.hours_volunteered}h volunteered
                       </p>
                     </div>
-                    <ChevronRight size={18} className="text-white/30 shrink-0" />
+                    <ChevronRight size={18} className="text-white/25 shrink-0" />
                   </Link>
                 </motion.div>
               )}
 
               {/* National Challenge */}
               {challenge.isLoading ? (
-                <div className="rounded-2xl bg-white/[0.08] p-5 animate-pulse space-y-3">
+                <div className="rounded-2xl bg-white/[0.06] p-5 animate-pulse space-y-3">
                   <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/[0.08] shrink-0" />
+                    <div className="w-10 h-10 rounded-xl bg-white/[0.06] shrink-0" />
                     <div className="flex-1 space-y-2">
-                      <div className="h-4 w-3/4 rounded-full bg-white/[0.06]" />
+                      <div className="h-4 w-3/4 rounded-full bg-white/[0.05]" />
                       <div className="h-3 w-1/2 rounded-full bg-white/[0.04]" />
                     </div>
                   </div>
-                  <div className="h-2 rounded-full bg-white/[0.06]" />
+                  <div className="h-2 rounded-full bg-white/[0.05]" />
                 </div>
               ) : challenge.data ? (
                 <motion.div variants={rm ? undefined : fadeUp}>
                   <Section title="National Challenge">
-                    <div className="rounded-2xl bg-white/[0.12] backdrop-blur-md p-6">
+                    <div className="rounded-2xl bg-white/[0.06] p-6">
                       <div className="flex items-start gap-4">
-                        <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-white/15 text-white/70 shrink-0">
+                        <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-white/[0.08] text-white/60 shrink-0">
                           <Target size={22} />
                         </span>
                         <div className="flex-1 min-w-0">
@@ -654,7 +639,7 @@ export default function HomePage() {
                             {challenge.data.title}
                           </p>
                           {challenge.data.description && (
-                            <p className="mt-0.5 text-xs text-white/40 line-clamp-2">
+                            <p className="mt-0.5 text-xs text-white/35 line-clamp-2">
                               {challenge.data.description}
                             </p>
                           )}
@@ -687,7 +672,7 @@ export default function HomePage() {
                     {trending.isLoading ? (
                       <HScroll>
                         {[1, 2, 3].map((i) => (
-                          <div key={i} className="shrink-0 w-44 h-28 rounded-2xl bg-white/[0.08] animate-pulse" style={{ animationDelay: `${i * 100}ms` }} />
+                          <div key={i} className="shrink-0 w-44 h-28 rounded-2xl bg-white/[0.06] animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
                         ))}
                       </HScroll>
                     ) : trending.data && trending.data.length > 0 ? (
@@ -695,7 +680,7 @@ export default function HomePage() {
                         {trending.data.map((c) => (
                           <div
                             key={c.id}
-                            className="shrink-0 w-44 snap-start rounded-2xl bg-white/[0.12] backdrop-blur-md p-4 active:scale-[0.97] transition-all duration-200 cursor-pointer"
+                            className="shrink-0 w-44 snap-start rounded-2xl bg-white/[0.06] p-4 active:scale-[0.97] transition-all duration-150 cursor-pointer"
                             onClick={() => navigate(`/collectives/${c.slug}`)}
                             role="button"
                             tabIndex={0}
@@ -704,10 +689,10 @@ export default function HomePage() {
                             <p className="font-heading text-sm font-semibold text-white truncate">
                               {c.name}
                             </p>
-                            <p className="mt-0.5 text-xs text-white/40">
+                            <p className="mt-0.5 text-xs text-white/35">
                               {c.region ?? c.state}
                             </p>
-                            <p className="mt-3 text-xs text-white/50 font-medium">
+                            <p className="mt-3 text-xs text-white/45 font-medium">
                               {c.member_count} members
                             </p>
                           </div>
@@ -721,14 +706,14 @@ export default function HomePage() {
               {/* New user welcome */}
               {isNewUser && !impact.isLoading && (
                 <motion.div variants={rm ? undefined : fadeUp}>
-                  <div className="rounded-3xl bg-white/[0.12] backdrop-blur-md p-10 text-center">
-                    <span className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-white/15 text-white/70 mb-5">
+                  <div className="rounded-2xl bg-white/[0.08] p-10 text-center">
+                    <span className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-white/[0.08] text-white/60 mb-5">
                       <Sparkles size={30} />
                     </span>
                     <h3 className="font-heading text-2xl sm:text-3xl font-bold text-white">
                       Welcome to Co-Exist!
                     </h3>
-                    <p className="mt-3 text-base text-white/40 max-w-xs mx-auto">
+                    <p className="mt-3 text-base text-white/35 max-w-xs mx-auto">
                       Join a collective, find your first event, and start making a difference.
                     </p>
                     <div className="mt-8 flex flex-col gap-3 max-w-[240px] mx-auto">
@@ -742,7 +727,7 @@ export default function HomePage() {
                       <button
                         type="button"
                         onClick={() => navigate('/explore?tab=events')}
-                        className="h-11 rounded-2xl bg-white/[0.12] text-sm font-semibold text-white/80 hover:bg-white/[0.18] active:scale-[0.97] transition-all duration-200 cursor-pointer"
+                        className="h-11 rounded-2xl bg-white/[0.08] text-sm font-semibold text-white/70 hover:bg-white/[0.12] active:scale-[0.97] transition-all duration-150 cursor-pointer"
                       >
                         Explore Events
                       </button>
