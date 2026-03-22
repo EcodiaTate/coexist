@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { getCurrentPeriodKey, getDueDate, type TaskTemplate, type TaskInstance } from '@/hooks/use-admin-tasks'
+import { resolveAndGenerateDynamicInstances } from '@/hooks/use-timeline-rules'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -269,6 +270,9 @@ export function useGenerateTaskInstances() {
           }
         }
       }
+
+      // --- Handle dynamic timeline templates (event_relative with smart resolution) ---
+      await resolveAndGenerateDynamicInstances(staffCollectiveIds)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['my-tasks'] })

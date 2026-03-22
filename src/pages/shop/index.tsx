@@ -366,8 +366,8 @@ function ProductCard({ product, onClick, index }: { product: Product; onClick: (
           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
           {!inStock && (
-            <div className="absolute inset-0 bg-secondary-900/50 backdrop-blur-[3px] flex items-center justify-center">
-              <span className="px-4 py-1.5 bg-white rounded-full text-sm font-bold text-secondary-800 shadow">
+            <div className="absolute inset-0 bg-primary-900/50 backdrop-blur-[3px] flex items-center justify-center">
+              <span className="px-4 py-1.5 bg-white rounded-full text-sm font-bold text-primary-800 shadow">
                 Sold Out
               </span>
             </div>
@@ -388,7 +388,7 @@ function ProductCard({ product, onClick, index }: { product: Product; onClick: (
 
         {/* Details */}
         <div className="p-3.5 pb-4">
-          <p className="font-heading text-sm font-bold text-secondary-800 line-clamp-1 leading-snug">
+          <p className="font-heading text-sm font-bold text-primary-800 line-clamp-1 leading-snug">
             {product.name}
           </p>
           {product.category && (
@@ -445,7 +445,7 @@ function FeaturedProduct({ product, onClick }: { product: Product; onClick: () =
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
           {/* Gradient: primary-to-moss diagonal overlay */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-secondary-900/80 via-primary-900/50 to-moss-800/30" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-primary-800/80 via-primary-700/50 to-sprout-700/30" />
 
           {/* Decorative floating circle */}
           <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-sprout-400/10 blur-2xl" />
@@ -569,7 +569,7 @@ function PerkCard({ perk, isMember }: { perk: PartnerPerk; isMember: boolean }) 
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-secondary-800 line-clamp-1">{perk.title}</p>
+            <p className="text-sm font-bold text-primary-800 line-clamp-1">{perk.title}</p>
             <p className="text-xs text-primary-400 mt-0.5 font-medium">{perk.partner_name}</p>
           </div>
         </div>
@@ -602,9 +602,9 @@ function PerkCard({ perk, isMember }: { perk: PartnerPerk; isMember: boolean }) 
               )}
             </>
           ) : (
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-secondary-50/60 border border-secondary-100/30">
-              <Lock size={14} className="text-secondary-300 shrink-0" />
-              <span className="text-xs font-semibold text-secondary-400">Join to unlock</span>
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-primary-50/60 border border-primary-100/30">
+              <Lock size={14} className="text-primary-300 shrink-0" />
+              <span className="text-xs font-semibold text-primary-400">Join to unlock</span>
             </div>
           )}
         </div>
@@ -647,7 +647,7 @@ function PartnerPerksSection({ rm }: { rm: boolean }) {
             <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-moss-500 to-primary-500 shadow-sm">
               <Sparkles size={14} className="text-white" />
             </div>
-            <h2 className="font-heading font-extrabold text-secondary-800 text-lg">
+            <h2 className="font-heading font-extrabold text-primary-800 text-lg">
               Member Perks
             </h2>
           </div>
@@ -695,7 +695,7 @@ function SectionHeader({
         <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-moss-500 shadow-sm">
           <Icon size={14} className="text-white" />
         </div>
-        <h2 className="font-heading font-extrabold text-secondary-800 text-lg">{title}</h2>
+        <h2 className="font-heading font-extrabold text-primary-800 text-lg">{title}</h2>
       </div>
       {action && (
         <button

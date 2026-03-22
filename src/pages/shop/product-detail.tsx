@@ -86,7 +86,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
   }
 
   return (
-    <div className="relative -mx-4 lg:mx-0 lg:rounded-2xl lg:overflow-hidden">
+    <div className="relative -mx-4 lg:mx-auto lg:max-w-md lg:rounded-2xl lg:overflow-hidden">
       <div
         ref={scrollRef}
         onScroll={handleScroll}
@@ -512,10 +512,16 @@ export default function ProductDetailPage() {
   return (
     <Page
       header={
-        <Header
-          title={product.name}
-          back
-        />
+        <div className="px-2 py-2">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm shadow-sm cursor-pointer active:scale-95 transition-transform"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={18} className="text-primary-700" />
+          </button>
+        </div>
       }
       footer={
         <div className="space-y-0">
@@ -676,7 +682,7 @@ export default function ProductDetailPage() {
                           'relative px-5 py-2.5 min-h-11 min-w-[3.5rem] rounded-xl text-sm font-semibold',
                           'transition-all duration-200 cursor-pointer select-none',
                           isSelected
-                            ? 'bg-primary-800 text-white shadow-md'
+                            ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md'
                             : available
                               ? 'bg-surface-2 text-primary-700 shadow-sm hover:shadow-md'
                               : 'bg-primary-50/40 text-primary-300 cursor-not-allowed line-through',
@@ -719,7 +725,7 @@ export default function ProductDetailPage() {
                           'relative px-5 py-2.5 min-h-11 rounded-xl text-sm font-semibold',
                           'transition-all duration-200 cursor-pointer select-none',
                           isSelected
-                            ? 'bg-primary-800 text-white shadow-md'
+                            ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md'
                             : available
                               ? 'bg-surface-2 text-primary-700 shadow-sm hover:shadow-md'
                               : 'bg-primary-50/40 text-primary-300 cursor-not-allowed line-through',

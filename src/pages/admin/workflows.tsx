@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
   Plus,
   ClipboardCheck,
@@ -23,6 +23,9 @@ import {
   CheckCircle,
   Clock,
   Target,
+  Zap,
+  Sparkles,
+  Eye,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -52,6 +55,13 @@ import {
   CATEGORY_COLORS,
   type TaskTemplate,
 } from '@/hooks/use-admin-tasks'
+import {
+  useTimelineRule,
+  useUpsertTimelineRule,
+  useDeleteTimelineRule,
+  buildDisplayLabel,
+  type TimelineAnchor,
+} from '@/hooks/use-timeline-rules'
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -114,10 +124,172 @@ const SCHEDULE_ICONS: Record<string, typeof Calendar> = {
   once: CircleDot,
 }
 
+const ACTIVITY_TYPE_OPTIONS = [
+  { value: '', label: 'Any event type' },
+  { value: 'tree_planting', label: 'Tree Planting' },
+  { value: 'beach_cleanup', label: 'Beach Cleanup' },
+  { value: 'habitat_restoration', label: 'Habitat Restoration' },
+  { value: 'nature_walk', label: 'Nature Walk' },
+  { value: 'education', label: 'Education' },
+  { value: 'wildlife_survey', label: 'Wildlife Survey' },
+  { value: 'seed_collecting', label: 'Seed Collecting' },
+  { value: 'weed_removal', label: 'Weed Removal' },
+  { value: 'waterway_cleanup', label: 'Waterway Cleanup' },
+  { value: 'community_garden', label: 'Community Garden' },
+  { value: 'other', label: 'Other' },
+]
+
+const ANCHOR_OPTIONS: { value: TimelineAnchor; label: string; description: string }[] = [
+  { value: 'next_event', label: 'Any event', description: 'Triggers for upcoming events regardless of type' },
+  { value: 'next_event_of_type', label: 'Specific event type', description: 'Only triggers for a specific activity type' },
+  { value: 'event_series', label: 'Event series', description: 'Only triggers for events in a specific series' },
+]
+
 const tabs = [
   { id: 'templates', label: 'Templates', icon: <ClipboardCheck size={14} /> },
   { id: 'kpi', label: 'KPI Dashboard', icon: <BarChart3 size={14} /> },
 ]
+
+/* ------------------------------------------------------------------ */
+/*  Dynamic Timeline Builder                                           */
+/* ------------------------------------------------------------------ */
+
+function DynamicTimelineBuilder({
+  anchor,
+  setAnchor,
+  activityTypeFilter,
+  setActivityTypeFilter,
+  offsetDays,
+  setOffsetDays,
+  lookaheadDays,
+  setLookaheadDays,
+  matchAllEvents,
+  setMatchAllEvents,
+}: {
+  anchor: TimelineAnchor
+  setAnchor: (v: TimelineAnchor) => void
+  activityTypeFilter: string
+  setActivityTypeFilter: (v: string) => void
+  offsetDays: string
+  setOffsetDays: (v: string) => void
+  lookaheadDays: string
+  setLookaheadDays: (v: string) => void
+  matchAllEvents: boolean
+  setMatchAllEvents: (v: boolean) => void
+}) {
+  const offsetNum = parseInt(offsetDays) || 0
+  const previewLabel = buildDisplayLabel({
+    anchor,
+    offset_days: offsetNum,
+    activity_type_filter: activityTypeFilter || null,
+    match_all_events: matchAllEvents,
+  })
+
+  return (
+    <div className="space-y-3">
+      {/* Natural language preview */}
+      <div className="rounded-xl bg-gradient-to-r from-primary-50 to-moss-50 border border-primary-100/60 px-4 py-3">
+        <div className="flex items-start gap-2.5">
+          <Sparkles size={15} className="text-primary-500 mt-0.5 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-medium text-primary-400 uppercase tracking-wider mb-0.5">Auto-calculated deadline</p>
+            <p className="text-sm font-semibold text-primary-800">{previewLabel}</p>
+            <p className="text-[11px] text-primary-400 mt-1">
+              Each collective gets a personalised due date based on their own events
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Anchor selection */}
+      <div>
+        <p className="text-sm font-medium text-primary-800 mb-2">Anchor to</p>
+        <div className="space-y-1.5">
+          {ANCHOR_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setAnchor(opt.value)}
+              className={cn(
+                'w-full text-left px-3 py-2.5 rounded-xl transition-colors cursor-pointer',
+                anchor === opt.value
+                  ? 'bg-primary-100 border border-primary-200'
+                  : 'bg-white border border-primary-100/40 hover:bg-primary-50',
+              )}
+            >
+              <p className={cn(
+                'text-sm font-medium',
+                anchor === opt.value ? 'text-primary-700' : 'text-primary-600',
+              )}>
+                {opt.label}
+              </p>
+              <p className="text-[11px] text-primary-400 mt-0.5">{opt.description}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Activity type filter (only for next_event_of_type) */}
+      {anchor === 'next_event_of_type' && (
+        <Dropdown
+          options={ACTIVITY_TYPE_OPTIONS}
+          value={activityTypeFilter}
+          onChange={setActivityTypeFilter}
+          label="Event Type"
+        />
+      )}
+
+      {/* Offset */}
+      <div>
+        <p className="text-sm font-medium text-primary-800 mb-2">Timing</p>
+        <div className="flex items-center gap-2">
+          <Input
+            type="number"
+            value={offsetDays}
+            onChange={(e) => setOffsetDays(e.target.value)}
+            className="w-24"
+          />
+          <p className="text-sm text-primary-600">
+            day{Math.abs(offsetNum) !== 1 ? 's' : ''}{' '}
+            {offsetNum < 0 ? 'before' : offsetNum > 0 ? 'after' : 'on the day of'}{' '}
+            the event
+          </p>
+        </div>
+        <p className="text-[11px] text-primary-400 mt-1">
+          Use negative numbers for before (e.g. -3), positive for after (e.g. 7)
+        </p>
+      </div>
+
+      {/* Advanced options */}
+      <div className="space-y-3 pt-1">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-primary-700">Apply to all upcoming events</p>
+            <p className="text-[11px] text-primary-400">
+              {matchAllEvents
+                ? 'Creates a task for every matching event in the lookahead window'
+                : 'Only creates a task for the next matching event'}
+            </p>
+          </div>
+          <Toggle checked={matchAllEvents} onChange={setMatchAllEvents} />
+        </div>
+
+        <div>
+          <Input
+            label="Lookahead window (days)"
+            type="number"
+            value={lookaheadDays}
+            onChange={(e) => setLookaheadDays(e.target.value)}
+            placeholder="60"
+          />
+          <p className="text-[11px] text-primary-400 mt-1">
+            How far ahead to search for events (default 60 days)
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 /* ------------------------------------------------------------------ */
 /*  Template Create/Edit Modal                                         */
@@ -137,6 +309,8 @@ function TemplateModal({
   const { toast } = useToast()
   const createMutation = useAdminCreateTemplate()
   const updateMutation = useAdminUpdateTemplate()
+  const upsertRuleMutation = useUpsertTimelineRule()
+  const deleteRuleMutation = useDeleteTimelineRule()
   const fileUpload = useFileUpload({ bucket: 'task-attachments', pathPrefix: 'templates' })
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -152,6 +326,27 @@ function TemplateModal({
   const [sortOrder, setSortOrder] = useState(String(template?.sort_order ?? 0))
   const [attachmentUrl, setAttachmentUrl] = useState(template?.attachment_url ?? '')
   const [attachmentLabel, setAttachmentLabel] = useState(template?.attachment_label ?? '')
+
+  // Dynamic timeline state
+  const [useDynamicTimeline, setUseDynamicTimeline] = useState((template as any)?.use_dynamic_timeline ?? false)
+  const [tlAnchor, setTlAnchor] = useState<TimelineAnchor>('next_event')
+  const [tlActivityTypeFilter, setTlActivityTypeFilter] = useState('')
+  const [tlOffsetDays, setTlOffsetDays] = useState('-3')
+  const [tlLookaheadDays, setTlLookaheadDays] = useState('60')
+  const [tlMatchAllEvents, setTlMatchAllEvents] = useState(false)
+
+  // Load existing timeline rule for edits
+  const { data: existingRule } = useTimelineRule(template?.id)
+  useEffect(() => {
+    if (existingRule) {
+      setUseDynamicTimeline(true)
+      setTlAnchor(existingRule.anchor)
+      setTlActivityTypeFilter(existingRule.activity_type_filter ?? '')
+      setTlOffsetDays(String(existingRule.offset_days))
+      setTlLookaheadDays(String(existingRule.lookahead_days))
+      setTlMatchAllEvents(existingRule.match_all_events)
+    }
+  }, [existingRule])
 
   const isEdit = !!template
 
@@ -176,6 +371,7 @@ function TemplateModal({
   ], [collectives])
 
   const handleSave = () => {
+    const isDynamic = scheduleType === 'event_relative' && useDynamicTimeline
     const input = {
       title: title.trim(),
       description: description.trim() || undefined,
@@ -184,18 +380,39 @@ function TemplateModal({
       schedule_type: scheduleType,
       day_of_week: scheduleType === 'weekly' ? parseInt(dayOfWeek) : null,
       day_of_month: scheduleType === 'monthly' ? parseInt(dayOfMonth) : null,
-      event_offset_days: scheduleType === 'event_relative' ? parseInt(eventOffsetDays) : null,
+      event_offset_days: scheduleType === 'event_relative' ? parseInt(isDynamic ? tlOffsetDays : eventOffsetDays) : null,
       assignee_role: assigneeRole,
       sort_order: parseInt(sortOrder) || 0,
       attachment_url: attachmentUrl.trim() || null,
       attachment_label: attachmentLabel.trim() || null,
+      use_dynamic_timeline: isDynamic,
+    }
+
+    const saveTimelineRule = (templateId: string) => {
+      if (isDynamic) {
+        upsertRuleMutation.mutate({
+          template_id: templateId,
+          anchor: tlAnchor,
+          activity_type_filter: tlAnchor === 'next_event_of_type' ? tlActivityTypeFilter || null : null,
+          offset_days: parseInt(tlOffsetDays) || -3,
+          lookahead_days: parseInt(tlLookaheadDays) || 60,
+          match_all_events: tlMatchAllEvents,
+        })
+      } else if (isEdit) {
+        // If turning off dynamic timeline on an existing template, clean up the rule
+        deleteRuleMutation.mutate(template.id)
+      }
     }
 
     if (isEdit) {
       updateMutation.mutate(
         { id: template.id, ...input },
         {
-          onSuccess: () => { toast.success('Template updated'); onClose() },
+          onSuccess: () => {
+            saveTimelineRule(template.id)
+            toast.success('Template updated')
+            onClose()
+          },
           onError: () => toast.error('Failed to update template'),
         },
       )
@@ -203,7 +420,11 @@ function TemplateModal({
       createMutation.mutate(
         input,
         {
-          onSuccess: () => { toast.success('Template created'); onClose() },
+          onSuccess: (created) => {
+            saveTimelineRule(created.id)
+            toast.success('Template created')
+            onClose()
+          },
           onError: () => toast.error('Failed to create template'),
         },
       )
@@ -286,13 +507,42 @@ function TemplateModal({
             <Dropdown options={dayOfMonthOptions} value={dayOfMonth} onChange={setDayOfMonth} label="Day of Month" />
           )}
           {scheduleType === 'event_relative' && (
-            <Input
-              label="Days offset (negative = before event)"
-              type="number"
-              value={eventOffsetDays}
-              onChange={(e) => setEventOffsetDays(e.target.value)}
-              placeholder="-3"
-            />
+            <div className="space-y-3">
+              {/* Dynamic timeline toggle */}
+              <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-moss-50 to-primary-50 border border-moss-200/50 px-3 py-2.5">
+                <div className="flex items-center gap-2">
+                  <Zap size={15} className="text-moss-600" />
+                  <div>
+                    <p className="text-sm font-medium text-primary-800">Dynamic Timeline</p>
+                    <p className="text-[11px] text-primary-400">Auto-calculate deadlines per collective</p>
+                  </div>
+                </div>
+                <Toggle checked={useDynamicTimeline} onChange={setUseDynamicTimeline} />
+              </div>
+
+              {useDynamicTimeline ? (
+                <DynamicTimelineBuilder
+                  anchor={tlAnchor}
+                  setAnchor={setTlAnchor}
+                  activityTypeFilter={tlActivityTypeFilter}
+                  setActivityTypeFilter={setTlActivityTypeFilter}
+                  offsetDays={tlOffsetDays}
+                  setOffsetDays={setTlOffsetDays}
+                  lookaheadDays={tlLookaheadDays}
+                  setLookaheadDays={setTlLookaheadDays}
+                  matchAllEvents={tlMatchAllEvents}
+                  setMatchAllEvents={setTlMatchAllEvents}
+                />
+              ) : (
+                <Input
+                  label="Days offset (negative = before event)"
+                  type="number"
+                  value={eventOffsetDays}
+                  onChange={(e) => setEventOffsetDays(e.target.value)}
+                  placeholder="-3"
+                />
+              )}
+            </div>
           )}
         </div>
 
@@ -667,6 +917,15 @@ export default function AdminWorkflowsPage() {
                               <ScheduleIcon size={12} />
                               {formatSchedule(template)}
                             </span>
+                            {(template as any).use_dynamic_timeline && (
+                              <>
+                                <span className="text-primary-200">·</span>
+                                <span className="flex items-center gap-1 text-moss-600 font-medium">
+                                  <Zap size={10} />
+                                  Dynamic
+                                </span>
+                              </>
+                            )}
                             <span className="text-primary-200">·</span>
                             <span>{template.collective?.name ?? 'All Collectives'}</span>
                             <span className="text-primary-200">·</span>

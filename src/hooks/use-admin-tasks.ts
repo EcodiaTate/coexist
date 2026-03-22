@@ -202,6 +202,7 @@ export function useAdminCreateTemplate() {
       sort_order?: number
       attachment_url?: string | null
       attachment_label?: string | null
+      use_dynamic_timeline?: boolean
     }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')

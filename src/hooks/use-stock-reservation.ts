@@ -63,7 +63,7 @@ export function useReserveStock() {
       queryClient.invalidateQueries({ queryKey: ['product-stock'] })
       queryClient.invalidateQueries({ queryKey: ['available-stock'] })
 
-      return data as ReservationResult
+      return data as unknown as ReservationResult
     },
     [user, queryClient],
   )
@@ -71,7 +71,7 @@ export function useReserveStock() {
   const release = useCallback(
     async (variantKey: string) => {
       if (!user) return
-      await supabase.rpc('release_reservation', {
+      await (supabase.rpc as any)('release_reservation', {
         p_user_id: user.id,
         p_variant_key: variantKey,
       })
@@ -83,7 +83,7 @@ export function useReserveStock() {
 
   const releaseAll = useCallback(async () => {
     if (!user) return
-    await supabase.rpc('release_all_reservations', {
+    await (supabase.rpc as any)('release_all_reservations', {
       p_user_id: user.id,
     })
     queryClient.invalidateQueries({ queryKey: ['product-stock'] })
@@ -105,13 +105,13 @@ export function useAvailableStock(productId: string | undefined) {
 
   const fetchStock = useCallback(async () => {
     if (!productId) return
-    const { data, error } = await supabase.rpc('get_product_available_stock', {
+    const { data, error } = await (supabase.rpc as any)('get_product_available_stock', {
       p_product_id: productId,
       p_exclude_user_id: user?.id ?? null,
     })
 
     if (!error && data) {
-      const entries = data as AvailableStockEntry[]
+      const entries = data as unknown as AvailableStockEntry[]
       const map = new Map<string, AvailableStockEntry>()
       for (const entry of entries) {
         map.set(entry.variant_key, entry)
@@ -187,13 +187,12 @@ export function useMyReservations() {
 
   const fetchReservations = useCallback(async () => {
     if (!user) return
-    const { data } = await supabase
-      .from('cart_reservations')
+    const { data } = await (supabase.from as any)('cart_reservations')
       .select('id, variant_key, product_id, quantity, expires_at')
       .eq('user_id', user.id)
       .gt('expires_at', new Date().toISOString())
 
-    setReservations((data as MyReservation[]) ?? [])
+    setReservations((data as unknown as MyReservation[]) ?? [])
   }, [user])
 
   useEffect(() => {
