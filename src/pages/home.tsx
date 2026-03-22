@@ -50,7 +50,7 @@ const stagger = {
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -471,7 +471,7 @@ export default function HomePage() {
                             </div>
 
                             {event.registration_status === 'waitlisted' && (
-                              <Badge variant="secondary" size="sm">Waitlisted</Badge>
+                              <Badge variant="default" size="sm">Waitlisted</Badge>
                             )}
 
                             <ChevronRight size={16} className="text-white/20 shrink-0" />
