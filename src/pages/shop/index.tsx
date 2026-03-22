@@ -1,18 +1,20 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion, type Variants } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion'
 import {
   ShoppingBag,
   Star,
   Sparkles,
   Lock,
   Tag,
-  Leaf,
   ChevronRight,
   TrendingUp,
   Package,
   Heart,
+  TreePine,
+  Users,
+  Clock,
 } from 'lucide-react'
 import { useAppImage, useAppImages } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
@@ -26,6 +28,7 @@ import { useCart } from '@/hooks/use-cart'
 import { usePartnerPerks, type PartnerPerk } from '@/hooks/use-partner-perks'
 import { useMyMembership } from '@/hooks/use-membership'
 import { formatPrice, type Product } from '@/types/merch'
+import { useNationalImpact } from '@/hooks/use-impact'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -62,19 +65,11 @@ const slideInRight: Variants = {
 function ShopBackground() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* 1. Base gradient — warm earthy tones shifting across the viewport */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#f0f4ec] via-[#f5f7f2] to-[#edf2e8]" />
+      {/* Base gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#f0f4ec] via-[#f4f6f1] to-[#eef3e9]" />
 
-      {/* 2. Diagonal warm accent band */}
-      <div
-        className="absolute inset-0 opacity-40"
-        style={{
-          background: 'linear-gradient(135deg, transparent 0%, transparent 30%, rgb(var(--color-primary-100) / 0.3) 45%, transparent 60%, rgb(var(--color-moss-100) / 0.2) 75%, transparent 90%)',
-        }}
-      />
-
-      {/* 3. Topographic contour lines — nature map feel */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+      {/* Topographic contour lines — subtle nature map feel */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="shop-topo" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
             <path d="M20 100c30-40 70-60 100-40s60 50 80 20" fill="none" stroke="currentColor" strokeWidth="1" />
@@ -82,34 +77,14 @@ function ShopBackground() {
             <path d="M30 60c25-35 55-45 85-25s45 35 65 5" fill="none" stroke="currentColor" strokeWidth="0.8" />
             <circle cx="160" cy="30" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" />
             <circle cx="160" cy="30" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" />
-            <circle cx="40" cy="170" r="20" fill="none" stroke="currentColor" strokeWidth="0.5" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#shop-topo)" className="text-primary-900" />
       </svg>
 
-      {/* 4. Leaf silhouette watermarks — large, faded, organic */}
-      <Leaf className="absolute top-[25%] -left-8 w-48 h-48 rotate-[-30deg] text-primary-300/[0.04]" />
-      <Leaf className="absolute top-[55%] -right-12 w-56 h-56 rotate-[20deg] text-moss-300/[0.04]" />
-      <Leaf className="absolute top-[80%] left-[20%] w-36 h-36 rotate-[50deg] text-sprout-300/[0.03]" />
-
-      {/* 5. Dot grid texture in a mid-section band */}
-      <div className="absolute top-[35%] left-0 right-0 h-[30%] opacity-[0.025]">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="shop-dots" x="0" y="0" width="16" height="16" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1" fill="currentColor" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#shop-dots)" className="text-primary-800" />
-        </svg>
-      </div>
-
-      {/* 6. Static blurred color orbs — depth without animation cost */}
-      <div className="absolute top-[20%] -left-20 w-80 h-80 rounded-full bg-primary-200/20 blur-[100px]" />
-      <div className="absolute top-[50%] -right-24 w-72 h-72 rounded-full bg-moss-200/18 blur-[100px]" />
-      <div className="absolute top-[75%] left-[30%] w-64 h-64 rounded-full bg-sprout-200/12 blur-[90px]" />
-      <div className="absolute top-[10%] right-[15%] w-48 h-48 rounded-full bg-sky-200/10 blur-[80px]" />
+      {/* A couple of soft blurred color orbs for warmth */}
+      <div className="absolute top-[30%] -left-16 w-72 h-72 rounded-full bg-primary-200/15 blur-[100px]" />
+      <div className="absolute top-[65%] -right-20 w-64 h-64 rounded-full bg-moss-200/12 blur-[100px]" />
     </div>
   )
 }
@@ -184,7 +159,108 @@ function CategoryPills({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Hero section — full-bleed with parallax & organic curve            */
+/*  SVG landscape layers — mountains, hills, trees                     */
+/* ------------------------------------------------------------------ */
+
+/** Far mountain range — tall jagged peaks, lightest tone */
+function MountainsFar({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 1440 320" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M0,320 L0,200
+           L40,195 L80,160 L120,180 L160,120 L200,150
+           L240,90 L280,130 L320,100 L360,140
+           L400,60 L440,110 L480,80 L520,130
+           L560,50 L600,100 L640,70 L680,120
+           L720,55 L760,105 L800,75 L840,130
+           L880,45 L920,95 L960,70 L1000,120
+           L1040,65 L1080,110 L1120,80 L1160,130
+           L1200,55 L1240,100 L1280,85 L1320,125
+           L1360,70 L1400,110 L1440,90
+           L1440,320 Z"
+        className="fill-primary-800/30"
+      />
+    </svg>
+  )
+}
+
+/** Near mountain range — craggy ridges, darker */
+function MountainsNear({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 1440 280" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M0,280 L0,185
+           L30,180 L60,155 L90,165 L120,130 L150,150
+           L180,110 L210,140 L240,105 L270,135
+           L300,90 L330,125 L360,100 L390,130
+           L420,85 L450,120 L480,95 L510,130
+           L540,80 L570,115 L600,90 L630,125
+           L660,78 L690,110 L720,88 L750,120
+           L780,75 L810,115 L840,90 L870,125
+           L900,82 L930,118 L960,92 L990,128
+           L1020,80 L1050,112 L1080,88 L1110,122
+           L1140,78 L1170,115 L1200,90 L1230,125
+           L1260,85 L1290,118 L1320,95 L1350,125
+           L1380,88 L1410,115 L1440,105
+           L1440,280 Z"
+        className="fill-primary-900/40"
+      />
+    </svg>
+  )
+}
+
+/** Rocky ridge & tree line — foreground, darkest, dramatic elevation */
+function TreeLine({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 1440 220" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M0,220 L0,155
+           C20,150 30,120 45,105 L50,108 L55,95 L62,100
+           C75,110 85,130 100,125
+           L110,100 L115,95 L120,98 L130,115
+           C145,130 155,140 170,135
+           L180,110 L185,90 L190,85 L198,92 L205,105
+           C215,115 225,125 240,118
+           L255,95 L260,80 L265,75 L272,82 L280,100
+           C290,120 305,135 320,128
+           L335,105 L340,98 L345,92 L348,88
+           L355,70 L360,65 L365,68 L370,78
+           C380,100 395,120 410,130
+           L425,120 L435,100 L440,90
+           L445,82 L450,78 L455,84 L465,100
+           C480,125 500,138 520,132
+           L530,110 L535,95 L540,88 L548,92 L555,108
+           C570,128 585,135 600,128
+           L615,105 L620,85 L625,75 L630,72 L638,80
+           L645,95 L655,110
+           C670,125 685,132 700,125
+           L715,100 L720,82 L728,70 L735,66 L740,72 L748,88
+           C758,110 775,130 795,135
+           L810,120 L820,100 L825,90 L830,85
+           L835,78 L840,72 L845,76 L852,88
+           C862,108 880,128 900,132
+           L915,118 L925,95 L930,82 L938,78 L945,85
+           C955,105 970,120 985,125
+           L1000,110 L1005,92 L1010,80 L1018,75 L1025,82
+           C1035,100 1050,125 1070,130
+           L1085,115 L1095,90 L1100,78 L1108,72 L1115,78
+           L1125,95 L1135,112
+           C1150,128 1165,135 1180,128
+           L1195,105 L1200,88 L1208,75 L1215,70 L1220,76
+           C1230,95 1248,118 1265,128
+           L1280,115 L1290,95 L1295,85 L1302,80 L1310,88
+           C1320,105 1340,125 1360,130
+           L1375,115 L1385,95 L1390,85 L1398,80 L1405,88
+           L1415,105 L1425,120
+           L1440,125 L1440,220 Z"
+        className="fill-secondary-900/60"
+      />
+    </svg>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hero section — parallax mountain landscape                         */
 /* ------------------------------------------------------------------ */
 
 function ShopHero({
@@ -202,33 +278,81 @@ function ShopHero({
   // Admin-configurable hero image — set via app_images table key "shop_hero"
   const heroUrl = appImages?.shop_hero
 
+  const { scrollY } = useScroll()
+  // Parallax: each layer moves at a different speed
+  const bgY = useTransform(scrollY, [0, 400], [0, 60])
+  const farY = useTransform(scrollY, [0, 400], [0, 40])
+  const nearY = useTransform(scrollY, [0, 400], [0, 20])
+  const treeY = useTransform(scrollY, [0, 400], [0, 8])
+  const textY = useTransform(scrollY, [0, 300], [0, 50])
+  const textOpacity = useTransform(scrollY, [0, 200], [1, 0])
+
   return (
     <div className="relative overflow-hidden">
-      <div className="relative w-full min-h-[280px] sm:min-h-[340px]">
-        {/* Admin hero image OR rich fallback gradient */}
-        {heroUrl ? (
-          <img
-            src={heroUrl}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-primary-800 via-secondary-800 to-moss-900">
-            {/* Leaf silhouettes for visual interest when no admin image */}
-            <div className="absolute inset-0 overflow-hidden">
-              <Leaf className="absolute top-6 left-[8%] w-28 h-28 rotate-[-25deg] text-white/[0.04]" />
-              <Leaf className="absolute bottom-16 right-[10%] w-20 h-20 rotate-[40deg] text-sprout-400/[0.06]" />
-              <Leaf className="absolute top-[35%] right-[25%] w-24 h-24 rotate-[15deg] text-moss-400/[0.05]" />
-              <Leaf className="absolute bottom-8 left-[30%] w-14 h-14 rotate-[-50deg] text-white/[0.03]" />
-              {/* Static gradient orbs — no animation, pure CSS */}
-              <div className="absolute top-10 right-[20%] w-32 h-32 rounded-full bg-sprout-400/10 blur-3xl" />
-              <div className="absolute bottom-20 left-[15%] w-40 h-40 rounded-full bg-moss-400/10 blur-3xl" />
-            </div>
-          </div>
-        )}
+      <div className="relative w-full h-[320px] sm:h-[380px]">
 
-        {/* Dark gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/25 to-black/10" />
+        {/* Layer 0: Sky / admin image — slowest parallax */}
+        <motion.div
+          className="absolute inset-0"
+          style={rm ? undefined : { y: bgY }}
+        >
+          {heroUrl ? (
+            <img
+              src={heroUrl}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-b from-secondary-900 via-primary-900 to-primary-800">
+              {/* Stars — tiny dots scattered across the sky */}
+              <div className="absolute inset-0 overflow-hidden">
+                {/* Star field */}
+                <div className="absolute top-[12%] left-[8%] w-1 h-1 rounded-full bg-white/40" />
+                <div className="absolute top-[8%] left-[25%] w-1.5 h-1.5 rounded-full bg-white/25" />
+                <div className="absolute top-[18%] left-[42%] w-1 h-1 rounded-full bg-white/35" />
+                <div className="absolute top-[6%] left-[58%] w-1 h-1 rounded-full bg-white/30" />
+                <div className="absolute top-[15%] left-[72%] w-1.5 h-1.5 rounded-full bg-white/20" />
+                <div className="absolute top-[10%] left-[88%] w-1 h-1 rounded-full bg-white/40" />
+                <div className="absolute top-[22%] left-[15%] w-1 h-1 rounded-full bg-white/20" />
+                <div className="absolute top-[5%] left-[35%] w-1 h-1 rounded-full bg-white/35" />
+                <div className="absolute top-[20%] left-[65%] w-1 h-1 rounded-full bg-white/25" />
+                <div className="absolute top-[25%] left-[50%] w-1.5 h-1.5 rounded-full bg-white/15" />
+                {/* Moon glow */}
+                <div className="absolute top-[8%] right-[18%] w-20 h-20 rounded-full bg-sky-200/8 blur-2xl" />
+              </div>
+            </div>
+          )}
+        </motion.div>
+
+        {/* Gradient overlay — darkens bottom for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 z-[1]" />
+
+        {/* Layer 1: Far mountains — medium parallax */}
+        <motion.div
+          className="absolute inset-0 z-[2]"
+          style={rm ? undefined : { y: farY }}
+        >
+          <MountainsFar className="h-[65%]" />
+        </motion.div>
+
+        {/* Layer 2: Near mountains — faster parallax */}
+        <motion.div
+          className="absolute inset-0 z-[3]"
+          style={rm ? undefined : { y: nearY }}
+        >
+          <MountainsNear className="h-[55%]" />
+        </motion.div>
+
+        {/* Layer 3: Tree line — barely moves, closest to viewer */}
+        <motion.div
+          className="absolute inset-0 z-[4]"
+          style={rm ? undefined : { y: treeY }}
+        >
+          <TreeLine className="h-[40%]" />
+        </motion.div>
+
+        {/* Ground — solid band at very bottom merging into content */}
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-secondary-950/80 to-transparent z-[5]" />
 
         {/* Top bar: back + cart */}
         <div
@@ -238,7 +362,7 @@ function ShopHero({
           <button
             type="button"
             onClick={onBack}
-            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-xl text-white border border-white/10 active:scale-[0.95] transition-transform cursor-pointer"
+            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-black/25 backdrop-blur-md text-white border border-white/10 active:scale-[0.95] transition-transform cursor-pointer"
             aria-label="Go back"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -248,7 +372,7 @@ function ShopHero({
           <button
             type="button"
             onClick={onCartClick}
-            className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-xl text-white border border-white/10 active:scale-[0.95] transition-transform cursor-pointer"
+            className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-black/25 backdrop-blur-md text-white border border-white/10 active:scale-[0.95] transition-transform cursor-pointer"
             aria-label={`Cart (${cartCount} items)`}
           >
             <ShoppingBag size={20} />
@@ -266,37 +390,38 @@ function ShopHero({
           </button>
         </div>
 
-        {/* Hero content — layered text */}
-        <div className="relative z-10 flex flex-col justify-end h-full min-h-[280px] sm:min-h-[340px] px-5 pb-8">
-          <div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 mb-3 rounded-full bg-sprout-400/20 backdrop-blur-sm text-sprout-200 text-xs font-semibold tracking-wide border border-sprout-400/15">
-              <Leaf size={12} />
-              Conservation Merch
-            </span>
-            <h1 className="font-heading text-[2rem] sm:text-4xl font-extrabold text-white leading-[1.1] tracking-tight">
-              Wear the
-              <br />
-              <span className="bg-gradient-to-r from-sprout-300 via-moss-300 to-sky-300 bg-clip-text text-transparent">
-                Movement
-              </span>
-            </h1>
-            <p className="text-white/60 text-sm mt-2 max-w-[280px] leading-relaxed">
-              Every purchase funds wildlife conservation and habitat protection.
-            </p>
-          </div>
-        </div>
+        {/* Hero text — parallaxes away as you scroll */}
+        <motion.div
+          className="absolute inset-x-0 bottom-0 z-[6] px-5 pb-6"
+          style={rm ? undefined : { y: textY, opacity: textOpacity }}
+        >
+          <h1 className="font-heading text-[1.75rem] sm:text-3xl font-bold text-white leading-tight tracking-tight drop-shadow-lg">
+            Co-Exist Shop
+          </h1>
+          <p className="text-white/75 text-sm mt-1.5 max-w-xs drop-shadow-md">
+            Wear the movement. Every purchase funds conservation.
+          </p>
+        </motion.div>
       </div>
 
-      {/* Organic wave transition — overlaps the hero bottom */}
+      {/* Transition into content — rocky ridgeline edge */}
       <div className="relative -mt-1 z-20">
         <svg
-          viewBox="0 0 1440 60"
+          viewBox="0 0 1440 80"
           preserveAspectRatio="none"
-          className="w-full h-6 sm:h-10 block"
+          className="w-full h-8 sm:h-12 block"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M0,0 C360,60 720,0 1080,40 C1260,55 1380,20 1440,30 L1440,60 L0,60 Z"
+            d="M0,12 L35,15 L50,8 L65,18 L90,5 L110,20 L130,10 L155,22
+               L175,6 L200,18 L225,3 L250,16 L270,8 L295,20 L320,4 L345,17
+               L365,10 L390,22 L415,5 L440,19 L460,8 L485,21 L510,3 L535,18
+               L555,7 L580,20 L605,4 L630,17 L650,9 L675,22 L700,5 L725,19
+               L745,8 L770,21 L795,3 L820,16 L840,10 L865,22 L890,4 L915,18
+               L935,7 L960,20 L985,3 L1010,17 L1030,9 L1055,22 L1080,5 L1105,19
+               L1125,8 L1150,21 L1175,4 L1200,18 L1220,7 L1245,20 L1270,3 L1295,16
+               L1315,10 L1340,22 L1365,5 L1390,18 L1410,8 L1440,14
+               L1440,80 L0,80 Z"
             className="fill-[#f0f4ec]"
           />
         </svg>
@@ -469,11 +594,31 @@ function FeaturedProduct({ product, onClick }: { product: Product; onClick: () =
 /*  Impact banner — gradient card, not white                           */
 /* ------------------------------------------------------------------ */
 
-function ImpactBanner() {
+/* ------------------------------------------------------------------ */
+/*  Impact strip — live community stats, every purchase contributes    */
+/* ------------------------------------------------------------------ */
+
+function formatStat(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`
+  return n.toLocaleString()
+}
+
+function ImpactStrip() {
+  const { data: impact } = useNationalImpact()
+
+  const stats = useMemo(() => {
+    if (!impact) return null
+    return [
+      { icon: TreePine, value: formatStat(impact.totalTrees), label: 'Trees planted' },
+      { icon: Clock, value: formatStat(impact.totalHours), label: 'Volunteer hours' },
+      { icon: Users, value: formatStat(impact.totalMembers), label: 'Members' },
+    ]
+  }, [impact])
+
   return (
     <motion.div variants={fadeUp}>
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-moss-700 p-5 shadow-lg shadow-primary-800/15">
-        {/* Subtle pattern overlay */}
+      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-moss-700 shadow-lg shadow-primary-800/15">
+        {/* Dot pattern texture */}
         <div className="absolute inset-0 opacity-[0.06]">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -484,20 +629,44 @@ function ImpactBanner() {
             <rect width="100%" height="100%" fill="url(#impact-dots)" />
           </svg>
         </div>
-        {/* Static floating orb — depth without animation cost */}
-        <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-sprout-300/15 blur-2xl" />
 
-        <div className="relative flex items-center gap-4">
-          <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/10 shrink-0">
-            <Heart size={22} className="text-coral-300" />
+        <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-sprout-300/15 blur-2xl" />
+        <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-moss-300/10 blur-2xl" />
+
+        <div className="relative p-5">
+          {/* Header */}
+          <div className="flex items-center gap-2.5 mb-4">
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/15 border border-white/10">
+              <Heart size={16} className="text-coral-300" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white leading-tight">Your purchases fund real impact</p>
+              <p className="text-[11px] text-white/50 mt-0.5">Community totals so far</p>
+            </div>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-white">Shop with purpose</p>
-            <p className="text-xs text-white/60 mt-0.5 leading-relaxed">
-              Profits from the Co-Exist shop fund our conservation programs
-            </p>
-          </div>
-          <ChevronRight size={18} className="text-white/30 shrink-0" />
+
+          {/* Live stats row */}
+          {stats ? (
+            <div className="grid grid-cols-3 gap-2">
+              {stats.map(({ icon: Icon, value, label }) => (
+                <div key={label} className="rounded-2xl bg-white/10 border border-white/[0.06] px-3 py-3 text-center">
+                  <Icon size={16} className="text-sprout-300 mx-auto mb-1.5" />
+                  <p className="font-heading text-lg font-extrabold text-white leading-none">{value}</p>
+                  <p className="text-[10px] text-white/50 mt-1 leading-tight">{label}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="rounded-2xl bg-white/10 border border-white/[0.06] px-3 py-3">
+                  <div className="w-4 h-4 rounded bg-white/10 mx-auto mb-1.5" />
+                  <div className="w-10 h-5 rounded bg-white/10 mx-auto" />
+                  <div className="w-14 h-2.5 rounded bg-white/10 mx-auto mt-1" />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
@@ -828,7 +997,7 @@ export default function ShopPage() {
                   )}
 
                   {/* Impact banner — now a gradient card */}
-                  {!search && activeCategory === CATEGORY_ALL && <ImpactBanner />}
+                  {!search && activeCategory === CATEGORY_ALL && <ImpactStrip />}
 
                   {/* Featured product */}
                   {showFeatured && (
@@ -855,32 +1024,24 @@ export default function ShopPage() {
                       }
                     />
                   ) : (
-                    <div className="relative -mx-5 lg:-mx-6">
-                      {/* Tinted band behind the grid */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-primary-50/30 via-primary-50/20 to-transparent rounded-none" />
-                      {/* Top edge wave */}
-                      <svg viewBox="0 0 1440 30" preserveAspectRatio="none" className="absolute -top-3 left-0 right-0 w-full h-3 block" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M0,30 C360,0 720,20 1080,5 C1260,0 1380,15 1440,10 L1440,30 Z" className="fill-primary-50/30" />
-                      </svg>
-                      <div className="relative px-5 lg:px-6 py-5">
-                        <SectionHeader
-                          icon={Package}
-                          title={activeCategory !== CATEGORY_ALL ? activeCategory : 'All Products'}
-                        />
-                        <motion.div
-                          variants={rm ? undefined : stagger}
-                          className="grid grid-cols-2 gap-3.5"
-                        >
-                          {gridProducts.map((product, i) => (
-                            <ProductCard
-                              key={product.id}
-                              product={product}
-                              onClick={() => navigate(`/shop/${product.slug}`)}
-                              index={i}
-                            />
-                          ))}
-                        </motion.div>
-                      </div>
+                    <div>
+                      <SectionHeader
+                        icon={Package}
+                        title={activeCategory !== CATEGORY_ALL ? activeCategory : 'All Products'}
+                      />
+                      <motion.div
+                        variants={rm ? undefined : stagger}
+                        className="grid grid-cols-2 gap-3.5"
+                      >
+                        {gridProducts.map((product, i) => (
+                          <ProductCard
+                            key={product.id}
+                            product={product}
+                            onClick={() => navigate(`/shop/${product.slug}`)}
+                            index={i}
+                          />
+                        ))}
+                      </motion.div>
                     </div>
                   )}
 

@@ -74,71 +74,10 @@ const scaleIn: Variants = {
 /* ------------------------------------------------------------------ */
 
 const IMPACT_ICONS: Record<number, React.ReactNode> = {
-  5: <Leaf size={18} className="text-sprout-500" />,
+  5: <Leaf size={18} className="text-sprout-600" />,
   10: <Waves size={18} className="text-sky-500" />,
-  25: <TreePine size={18} className="text-primary-500" />,
-  50: <MapPin size={18} className="text-moss-500" />,
-}
-
-/* ------------------------------------------------------------------ */
-/*  Decorative background shapes                                       */
-/* ------------------------------------------------------------------ */
-
-function DecorativeShapes({ reducedMotion }: { reducedMotion: boolean | null }) {
-  if (reducedMotion) return null
-
-  return (
-    <>
-      {/* Ring 1 — upper-right breathing */}
-      <motion.div
-        className="absolute -top-20 -right-16 w-72 h-72 rounded-full border-[2px] border-primary-200/25"
-        animate={{ scale: [1, 1.08, 1], opacity: [0.25, 0.4, 0.25] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-      />
-
-      {/* Ring 2 — centre-left breathing */}
-      <motion.div
-        className="absolute top-[40%] -left-24 w-56 h-56 rounded-full border-[2px] border-primary-200/25"
-        animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.35, 0.2] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-      />
-
-      {/* Blurred moss glow — bottom-left */}
-      <motion.div
-        className="absolute bottom-32 -left-12 w-64 h-64 rounded-full bg-moss-100/20 blur-3xl"
-        animate={{ opacity: [0.15, 0.3, 0.15], x: [0, 8, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-      />
-
-      {/* Warm circle — top-right */}
-      <motion.div
-        className="absolute -top-8 right-8 w-40 h-40 rounded-full bg-coral-50/30 blur-2xl"
-        animate={{ opacity: [0.2, 0.4, 0.2], scale: [1, 1.06, 1] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      />
-
-      {/* Floating dot 1 */}
-      <motion.div
-        className="absolute top-[25%] right-[15%] w-2 h-2 rounded-full bg-primary-200/40"
-        animate={{ y: [0, -12, 0], opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-      />
-
-      {/* Floating dot 2 */}
-      <motion.div
-        className="absolute top-[55%] left-[10%] w-1.5 h-1.5 rounded-full bg-coral-200/35"
-        animate={{ y: [0, -10, 0], opacity: [0.25, 0.5, 0.25] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-
-      {/* Floating dot 3 */}
-      <motion.div
-        className="absolute top-[70%] right-[25%] w-2.5 h-2.5 rounded-full bg-moss-200/30"
-        animate={{ y: [0, -14, 0], opacity: [0.2, 0.45, 0.2] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }}
-      />
-    </>
-  )
+  25: <TreePine size={18} className="text-primary-600" />,
+  50: <MapPin size={18} className="text-moss-600" />,
 }
 
 /* ------------------------------------------------------------------ */
@@ -150,7 +89,7 @@ function ImpactBadge({ amount }: { amount: number }) {
   if (amount < 5) return null
 
   const closest = [50, 25, 10, 5].find((t) => amount >= t) ?? 5
-  const icon = IMPACT_ICONS[closest] ?? <Leaf size={18} className="text-primary-500" />
+  const icon = IMPACT_ICONS[closest] ?? <Leaf size={18} className="text-sprout-600" />
 
   return (
     <motion.div
@@ -158,9 +97,9 @@ function ImpactBadge({ amount }: { amount: number }) {
       initial={{ opacity: 0, y: 8, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.95 }}
-      className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-sprout-100/60"
+      className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-sprout-50 border border-sprout-200/60"
     >
-      <div className="w-10 h-10 rounded-xl bg-surface-0 flex items-center justify-center shrink-0 shadow-sm">
+      <div className="w-10 h-10 rounded-xl bg-sprout-100 flex items-center justify-center shrink-0">
         {icon}
       </div>
       <div className="min-w-0">
@@ -174,7 +113,7 @@ function ImpactBadge({ amount }: { amount: number }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  National stats strip (real data)                                   */
+/*  National stats strip                                               */
 /* ------------------------------------------------------------------ */
 
 function NationalStatsStrip() {
@@ -182,9 +121,9 @@ function NationalStatsStrip() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-2.5">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="py-5 rounded-2xl bg-white shadow-sm border border-primary-50/60">
+          <div key={i} className="py-5 rounded-2xl bg-white shadow-sm">
             <Skeleton variant="text" className="w-12 mx-auto mb-1" />
             <Skeleton variant="text" className="w-16 mx-auto" />
           </div>
@@ -200,37 +139,34 @@ function NationalStatsStrip() {
       icon: <TreePine size={16} />,
       value: data.totalTrees.toLocaleString(),
       label: 'Trees planted',
-      bg: 'bg-white shadow-sm border border-primary-50/60',
-      iconBg: 'bg-sprout-200/60',
+      iconBg: 'bg-sprout-100',
       iconColor: 'text-sprout-600',
-      valueColor: 'text-sprout-800',
+      valueColor: 'text-primary-800',
     },
     {
       icon: <Waves size={16} />,
       value: `${(data.totalRubbishKg ?? 0).toLocaleString()} kg`,
       label: 'Rubbish collected',
-      bg: 'bg-white shadow-sm border border-primary-50/60',
-      iconBg: 'bg-sky-200/50',
+      iconBg: 'bg-sky-100',
       iconColor: 'text-sky-600',
-      valueColor: 'text-sky-800',
+      valueColor: 'text-primary-800',
     },
     {
       icon: <Users size={16} />,
       value: data.totalMembers.toLocaleString(),
       label: 'Members',
-      bg: 'bg-white shadow-sm border border-primary-50/60',
-      iconBg: 'bg-moss-200/50',
+      iconBg: 'bg-moss-100',
       iconColor: 'text-moss-600',
-      valueColor: 'text-moss-800',
+      valueColor: 'text-primary-800',
     },
   ]
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-3 gap-2.5">
       {stats.map((s) => (
         <div
           key={s.label}
-          className={cn('flex flex-col items-center gap-1.5 py-4 px-2 rounded-2xl', s.bg)}
+          className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-2xl bg-white shadow-sm"
         >
           <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', s.iconBg, s.iconColor)}>
             {s.icon}
@@ -269,8 +205,8 @@ function ProjectThermometer({
       className={cn(
         'w-full rounded-2xl text-left transition-all duration-200 overflow-hidden',
         selected
-          ? 'shadow-lg bg-gradient-to-br from-primary-50 to-surface-2 ring-1 ring-primary-200/40'
-          : 'bg-white shadow-sm border border-primary-50/60',
+          ? 'shadow-md ring-2 ring-primary-400 bg-white'
+          : 'bg-white shadow-sm hover:shadow-md',
       )}
     >
       {project.image_url && (
@@ -340,7 +276,7 @@ function AmountPill({
         'transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-0.5',
         selected
           ? 'bg-primary-600 text-white shadow-md shadow-primary-600/25'
-          : 'bg-white shadow-sm border border-primary-50/60 text-primary-800',
+          : 'bg-primary-50 text-primary-800 hover:bg-primary-100',
       )}
     >
       <span className="text-lg">${amount}</span>
@@ -371,7 +307,7 @@ function AmountPill({
 
 function TrustBadges() {
   return (
-    <div className="flex items-center justify-center gap-4 py-3 px-4 rounded-2xl bg-white shadow-sm border border-primary-50/60">
+    <div className="flex items-center justify-center gap-4 py-3 px-4 rounded-2xl bg-white shadow-sm">
       <div className="flex items-center gap-1.5 text-primary-400">
         <ShieldCheck size={14} />
         <span className="text-[11px] font-medium">Secure</span>
@@ -398,6 +334,7 @@ export default function DonatePage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
 
   const { data: projects, isLoading: loadingProjects } = useDonationProjects()
   const createDonation = useCreateDonation()
@@ -466,40 +403,64 @@ export default function DonatePage() {
         </div>
       }
     >
-      <div className="relative min-h-full">
-        {/* ---- Full-bleed background gradient ---- */}
-        <div className="absolute inset-0 bg-gradient-to-b from-coral-50/30 via-white to-moss-50/15" />
+      {/* ── Continuous light gradient background ── */}
+      <div className="relative min-h-full bg-gradient-to-b from-primary-100 via-sprout-50 to-moss-50">
 
-        {/* ---- Animated decorative shapes ---- */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <DecorativeShapes reducedMotion={shouldReduceMotion} />
-        </div>
+        {/* ── Soft organic shapes ── */}
+        {!rm && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <motion.div
+              animate={{ scale: [1, 1.06, 1], opacity: [0.4, 0.6, 0.4] }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+              className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-primary-200/40 blur-3xl"
+            />
+            <motion.div
+              animate={{ scale: [1, 1.08, 1], opacity: [0.3, 0.5, 0.3] }}
+              transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+              className="absolute top-[50%] -left-16 w-56 h-56 rounded-full bg-moss-200/30 blur-3xl"
+            />
+            <motion.div
+              animate={{ scale: [1, 1.05, 1], opacity: [0.25, 0.4, 0.25] }}
+              transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+              className="absolute bottom-[20%] right-0 w-48 h-48 rounded-full bg-sprout-200/30 blur-3xl"
+            />
+          </div>
+        )}
 
-        {/* ---- Foreground content ---- */}
+        {/* ── Content ── */}
         <div className="relative z-10">
-          {/* ---- Full-bleed hero ---- */}
+
+          {/* ══════════════════════════════════════════════════════ */}
+          {/*  HERO                                                  */}
+          {/* ══════════════════════════════════════════════════════ */}
           <div className="relative w-full h-64 sm:h-72 lg:h-80 overflow-hidden">
             <img
               src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80&auto=format&fit=crop"
               alt="Volunteers planting native trees"
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary-950/85 via-primary-900/35 to-primary-900/10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-primary-950/80 via-primary-900/40 to-primary-800/10" />
 
-            {/* Floating back button */}
+            {/* Back button */}
             <motion.button
               type="button"
               onClick={() => navigate(-1)}
               whileTap={{ scale: 0.9 }}
-              className="absolute top-4 left-4 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/45 transition-colors cursor-pointer"
+              className="absolute top-4 left-4 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-black/25 backdrop-blur-sm text-white hover:bg-black/40 transition-colors cursor-pointer"
               style={{ marginTop: 'var(--safe-top)' }}
               aria-label="Go back"
             >
               <ArrowLeft size={20} />
             </motion.button>
 
+            {/* Hero text */}
             <div className="absolute bottom-0 left-0 right-0 px-5 pb-6 lg:px-8 lg:pb-8">
-              <div className="max-w-2xl mx-auto">
+              <motion.div
+                className="max-w-2xl mx-auto"
+                initial={rm ? undefined : { opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+              >
                 <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">
                   Co-Exist Australia
                 </p>
@@ -511,31 +472,33 @@ export default function DonatePage() {
                 <p className="text-sm text-white/70 mt-2 max-w-sm">
                   100% of every donation goes directly to events, native plantings & habitat restoration
                 </p>
-              </div>
+              </motion.div>
             </div>
           </div>
 
-          {/* ---- Contained form content ---- */}
+          {/* ══════════════════════════════════════════════════════ */}
+          {/*  FORM CONTENT                                          */}
+          {/* ══════════════════════════════════════════════════════ */}
           <div className="max-w-2xl mx-auto w-full px-4 lg:px-6">
             <motion.div
-              variants={shouldReduceMotion ? undefined : stagger}
+              variants={rm ? undefined : stagger}
               initial="hidden"
               animate="visible"
-              className="pt-6 space-y-7"
+              className="pt-6 space-y-5"
             >
-              {/* ---- National impact stats (real data) ---- */}
+              {/* ── National impact stats ── */}
               <motion.section variants={fadeUp}>
                 <NationalStatsStrip />
               </motion.section>
 
-              {/* ---- Donor wall link ---- */}
+              {/* ── Donor wall link ── */}
               <motion.section variants={fadeUp}>
                 <Link
                   to="/donate/donors"
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-white shadow-sm border border-primary-50/60 transition-colors hover:bg-primary-50/30"
+                  className="flex items-center gap-3 p-4 rounded-2xl bg-white shadow-sm transition-colors hover:bg-primary-50 active:scale-[0.98]"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-primary-100/70 flex items-center justify-center shrink-0">
-                    <Users size={18} className="text-primary-500" />
+                  <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
+                    <Users size={18} className="text-primary-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-heading text-sm font-semibold text-primary-800">
@@ -549,8 +512,8 @@ export default function DonatePage() {
                 </Link>
               </motion.section>
 
-              {/* ---- Amount selection ---- */}
-              <motion.section variants={fadeUp} className="rounded-2xl bg-white shadow-sm border border-primary-50/60 p-5">
+              {/* ── Amount selection ── */}
+              <motion.section variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5">
                 <div className="flex items-baseline justify-between mb-4">
                   <h3 className="font-heading font-semibold text-primary-800 text-lg">
                     Choose an amount
@@ -586,14 +549,14 @@ export default function DonatePage() {
                 </div>
               </motion.section>
 
-              {/* ---- Membership callout ---- */}
+              {/* ── Membership callout ── */}
               <motion.section variants={fadeUp}>
                 <Link
                   to="/membership"
-                  className="flex items-center gap-3.5 p-4 rounded-2xl bg-warning-100/50 shadow-sm border border-warning-200/40 transition-colors hover:bg-warning-100/70"
+                  className="flex items-center gap-3.5 p-4 rounded-2xl bg-amber-50 shadow-sm border border-amber-200/50 transition-colors hover:bg-amber-100/60 active:scale-[0.98]"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-warning-200/60 flex items-center justify-center shrink-0">
-                    <Crown size={20} className="text-warning-600" />
+                  <div className="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                    <Crown size={20} className="text-amber-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-heading text-sm font-semibold text-primary-800">
@@ -607,9 +570,9 @@ export default function DonatePage() {
                 </Link>
               </motion.section>
 
-              {/* ---- Project selection (only shown when projects exist) ---- */}
+              {/* ── Project selection ── */}
               {loadingProjects ? (
-                <motion.section variants={fadeUp} className="rounded-2xl bg-white shadow-sm border border-primary-50/60 p-5">
+                <motion.section variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5">
                   <div className="flex items-baseline justify-between mb-1">
                     <h3 className="font-heading font-semibold text-primary-800 text-lg">
                       Support a project
@@ -625,16 +588,13 @@ export default function DonatePage() {
                   </div>
                 </motion.section>
               ) : projects && projects.length > 0 ? (
-                <motion.section variants={fadeUp} className="rounded-2xl bg-white shadow-sm border border-primary-50/60 p-5">
-                  <div className="flex items-baseline justify-between mb-1">
+                <motion.section variants={fadeUp}>
+                  <div className="flex items-baseline justify-between mb-3 px-1">
                     <h3 className="font-heading font-semibold text-primary-800 text-lg">
                       Support a project
                     </h3>
                     <span className="text-xs text-primary-400">Optional</span>
                   </div>
-                  <p className="text-sm text-primary-400 mb-4">
-                    Direct your donation to a specific initiative
-                  </p>
                   <motion.div
                     variants={stagger}
                     initial="hidden"
@@ -655,8 +615,8 @@ export default function DonatePage() {
                 </motion.section>
               ) : null}
 
-              {/* ---- Personal touches ---- */}
-              <motion.section variants={fadeUp} className="rounded-2xl bg-white shadow-sm border border-primary-50/60 p-5 space-y-4">
+              {/* ── Personal touches ── */}
+              <motion.section variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5 space-y-4">
                 <div>
                   <div className="flex items-baseline justify-between mb-1">
                     <h3 className="font-heading font-semibold text-primary-800 text-lg">
@@ -678,7 +638,7 @@ export default function DonatePage() {
                 />
 
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-primary-100/70 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
                     <Users size={16} className="text-primary-500" />
                   </div>
                   <Toggle
@@ -706,7 +666,7 @@ export default function DonatePage() {
                 </AnimatePresence>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-primary-100/70 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
                     <Sparkles size={16} className="text-primary-500" />
                   </div>
                   <Toggle
@@ -718,7 +678,7 @@ export default function DonatePage() {
                 </div>
               </motion.section>
 
-              {/* ---- Trust footer ---- */}
+              {/* ── Trust footer ── */}
               <motion.section variants={fadeUp}>
                 <TrustBadges />
               </motion.section>

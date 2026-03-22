@@ -342,7 +342,13 @@ function QuietHoursSheet({
       </h2>
       <Toggle
         checked={prefs.quiet_hours_enabled}
-        onChange={(val) => onUpdate('quiet_hours_enabled', val)}
+        onChange={(val) => {
+          onUpdate('quiet_hours_enabled', val)
+          // Save the user's timezone so the server applies quiet hours correctly
+          if (val) {
+            onUpdate('timezone', Intl.DateTimeFormat().resolvedOptions().timeZone)
+          }
+        }}
         label="Enable Quiet Hours"
         description="Silence all notifications during set hours"
         className="mb-4"
@@ -824,14 +830,17 @@ export default function SettingsPage() {
   const [leaderboardOptIn, setLeaderboardOptIn] = useState(true)
 
   // Hydrate prefs from profile on mount / when profile loads
+  const savedPrefsJson = JSON.stringify((profile as any)?.notification_preferences ?? null)
   useEffect(() => {
-    if ((profile as any)?.notification_preferences) {
+    const saved = (profile as any)?.notification_preferences
+    if (saved) {
       setPrefs((prev) => ({
         ...prev,
-        ...((profile as any).notification_preferences as Partial<NotificationPreferences>),
+        ...(saved as Partial<NotificationPreferences>),
       }))
     }
-  }, [(profile as any)?.notification_preferences])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedPrefsJson])
   const [profileVisible, setProfileVisible] = useState(true)
   const [marketingOptIn, setMarketingOptIn] = useState(
     (profile as any)?.marketing_opt_in !== false,
