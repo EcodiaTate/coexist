@@ -220,8 +220,6 @@ function ShopHero({
   const fgY = useTransform(scrollY, [0, 600], [0, 130])
   const textY = useTransform(scrollY, [0, 350], [0, 70])
   const textOpacity = useTransform(scrollY, [0, 280], [1, 0])
-  // Dark gradient extends down with the people so it doesn't cut off
-  const gradY = useTransform(scrollY, [0, 600], [0, 130])
 
   return (
     <div className="relative">
@@ -229,13 +227,15 @@ function ShopHero({
        * NO overflow-hidden on the outer wrapper — the bg image and gradient
        * need to bleed down behind the rocky SVG transition below.
        */}
-      <div className="relative w-full h-[480px] sm:h-[520px] md:h-[560px]">
+      {/*
+       * aspect-video (16:9) makes the hero scale proportionally with
+       * screen width — wider screens get a shorter/wider hero,
+       * narrower screens get a taller/narrower one. Both images
+       * are w-full so they scale together.
+       */}
+      <div className="relative w-full aspect-video max-h-[560px]">
 
         {/* ── Layer 0: Background landscape — slowest parallax ── */}
-        {/*
-         * Extends well below the container so as it parallaxes down
-         * it's still visible behind the rocky transition SVG.
-         */}
         <motion.div
           className="absolute inset-x-0 top-0 will-change-transform"
           style={{
@@ -248,8 +248,6 @@ function ShopHero({
             alt="Australian landscape"
             className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
           />
-          {/* Dark gradient — sits on top of the bg, extends the full
-              oversized height so it covers everything the bg covers */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
         </motion.div>
 
@@ -258,23 +256,21 @@ function ShopHero({
 
         {/* ── Layer 1: Foreground people ── */}
         {/*
-         * Natural size, centered horizontally, bottom-aligned with the bg.
-         * Both layers start flush at the bottom; the different parallax
-         * rates make the people drift down faster → depth.
+         * w-full scales the people proportionally with the viewport.
+         * Bottom-aligned so they sit flush with the bg bottom.
          */}
-        <motion.div
-          className="absolute bottom-0 left-1/2 z-[3] will-change-transform"
-          style={{
-            transform: 'translateX(-50%)',
-            ...(rm ? {} : { y: fgY }),
-          }}
-        >
-          <img
-            src="/img/merch-hero-2.png"
-            alt="Co-Exist members"
-            className="h-[420px] sm:h-[460px] md:h-[500px] w-auto max-w-none block"
-          />
-        </motion.div>
+        <div className="absolute bottom-0 inset-x-0 z-[3] flex justify-center">
+          <motion.div
+            className="w-full will-change-transform"
+            style={rm ? undefined : { y: fgY }}
+          >
+            <img
+              src="/img/merch-hero-2.png"
+              alt="Co-Exist members"
+              className="w-full h-auto block"
+            />
+          </motion.div>
+        </div>
 
         {/* Vignette — photographic depth */}
         <div
