@@ -78,78 +78,38 @@ const fadeUp = {
 /* ------------------------------------------------------------------ */
 
 function DecorativeBackground() {
-  const r = useReducedMotion()
-
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       {/* Multi-stop gradient - deep teal-plum forest feel */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/65 via-plum-100/30 via-30% to-primary-100/25 to-65%" />
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-secondary-100/20 to-plum-50/20" />
 
-      {/* Top hero glow - concentrated teal-green */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-secondary-300/35 via-secondary-200/25 to-transparent blur-[60px]" />
+      {/* Top hero glow — radial gradient instead of blur filter */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary-300/30 via-secondary-200/15 to-transparent" />
 
       {/* Warm plum accent - top right */}
-      <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-gradient-to-bl from-plum-200/28 to-transparent blur-[50px]" />
+      <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-plum-200/25 to-transparent" />
 
       {/* Deep moss glow - bottom left */}
-      <div className="absolute -bottom-20 -left-10 w-[280px] h-[260px] rounded-full bg-gradient-to-tr from-moss-200/20 to-transparent blur-[55px]" />
+      <div className="absolute -bottom-20 -left-10 w-[280px] h-[260px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-200/18 to-transparent" />
 
-      {/* Large ring - top right */}
-      <motion.div
-        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/22"
-        animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
-      />
-      {/* Inner concentric */}
-      <motion.div
-        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-plum-200/18"
-        animate={r ? {} : { scale: [1, 1.04, 1], opacity: [0.3, 0.6, 0.3] }}
-        transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
-      />
+      {/* Static decorative rings — no animation, no blur */}
+      <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/18 opacity-60" />
+      <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-plum-200/14 opacity-40" />
+      <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-secondary-200/18 opacity-50" />
+      <div className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-plum-200/12" />
+      <div className="absolute bottom-[16%] right-2 w-36 h-36 rounded-full border-2 border-secondary-200/14" />
 
-      {/* Left ring cluster */}
-      <motion.div
-        className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-secondary-200/22"
-        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
-        transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 2 }}
-      />
-      <motion.div
-        className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-plum-200/15"
-        animate={r ? {} : { rotate: -360 }}
-        transition={{ repeat: Infinity, duration: 50, ease: 'linear' }}
-      />
+      {/* Soft glows — radial gradient instead of blur filter */}
+      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary-100/22 to-transparent opacity-35" />
+      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-plum-100/20 to-transparent opacity-35" />
 
-      {/* Bottom right ring */}
-      <motion.div
-        className="absolute bottom-[16%] right-2 w-36 h-36 rounded-full border-2 border-secondary-200/18"
-        animate={r ? {} : { rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 55, ease: 'linear' }}
-      />
-
-      {/* Glows */}
-      <motion.div
-        className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-secondary-100/25 blur-[50px]"
-        animate={r ? {} : { scale: [1, 1.14, 1], opacity: [0.25, 0.45, 0.25] }}
-        transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut', delay: 1 }}
-      />
-      <motion.div
-        className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-plum-100/22 blur-[55px]"
-        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.25, 0.42, 0.25] }}
-        transition={{ repeat: Infinity, duration: 11, ease: 'easeInOut', delay: 3 }}
-      />
-
-      {/* Particles */}
-      <motion.div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-secondary-400/18"
-        animate={r ? {} : { y: [-5, 5, -5], x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }} />
-      <motion.div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-plum-400/15"
-        animate={r ? {} : { y: [3, -5, 3] }} transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 1.5 }} />
-      <motion.div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-secondary-400/15"
-        animate={r ? {} : { y: [-3, 4, -3], x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} />
-      <motion.div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-primary-400/12"
-        animate={r ? {} : { y: [2, -3, 2] }} transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut', delay: 2.5 }} />
-      <motion.div className="absolute top-[35%] right-[28%] w-1.5 h-1.5 rounded-full bg-plum-300/15"
-        animate={r ? {} : { y: [-2, 3, -2], x: [1, -1, 1] }} transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 3.5 }} />
+      {/* Static particles */}
+      <div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-secondary-400/15" />
+      <div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-plum-400/12" />
+      <div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-secondary-400/12" />
+      <div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-primary-400/10" />
+      <div className="absolute top-[35%] right-[28%] w-1.5 h-1.5 rounded-full bg-plum-300/12" />
     </div>
   )
 }

@@ -204,7 +204,7 @@ function PinnedMessageBar({
   const hasMultiple = messages.length > 1
 
   return (
-    <div className="bg-surface-1/95 backdrop-blur-sm shadow-md">
+    <div className="bg-surface-1 shadow-md">
       {/* Main pinned bar */}
       <div className="flex w-full items-center gap-2.5 px-4 py-2.5 min-h-11">
         <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100 shrink-0">
@@ -805,7 +805,7 @@ export default function CollectiveChatPage() {
                 <motion.span
                   initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-full bg-white px-4 py-1.5 text-[11px] font-bold text-primary-600 shadow-md ring-1 ring-primary-200/60 backdrop-blur-sm"
+                  className="rounded-full bg-white px-4 py-1.5 text-[11px] font-bold text-primary-600 shadow-md ring-1 ring-primary-200/60"
                 >
                   {dateHeader(group.date)}
                 </motion.span>
@@ -903,21 +903,15 @@ export default function CollectiveChatPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="px-4 pb-1.5 bg-white/70 backdrop-blur-sm"
+            className="px-4 pb-1.5 bg-white/90"
           >
             <div className="flex items-center gap-2">
               <div className="flex gap-1">
                 {[0, 1, 2].map((i) => (
-                  <motion.div
+                  <div
                     key={i}
-                    className="h-2 w-2 rounded-full bg-primary-500"
-                    animate={{ y: [0, -3, 0] }}
-                    transition={{
-                      duration: 0.6,
-                      repeat: Infinity,
-                      delay: i * 0.15,
-                      ease: 'easeInOut',
-                    }}
+                    className="h-2 w-2 rounded-full bg-primary-500 animate-bounce"
+                    style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.6s' }}
                   />
                 ))}
               </div>
@@ -935,7 +929,7 @@ export default function CollectiveChatPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="bg-surface-1/95 px-4 py-2.5 backdrop-blur-sm shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
+            className="bg-surface-1 px-4 py-2.5 shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100">
@@ -966,7 +960,7 @@ export default function CollectiveChatPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="bg-warning-100/90 px-4 py-2.5 backdrop-blur-sm shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
+            className="bg-warning-100 px-4 py-2.5 shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-warning-200">

@@ -99,6 +99,13 @@ export function PullToRefresh({
   }, [pastThreshold, onRefresh, refreshing])
 
   const active = pullDistance > 0 || refreshing
+  const currentPull = active ? pullDistance : 0
+
+  const springTransition = pulling.current
+    ? { duration: 0 }
+    : shouldReduceMotion
+      ? { duration: 0 }
+      : { type: 'spring' as const, stiffness: 280, damping: 28, mass: 0.8 }
 
   return (
     <div
@@ -108,30 +115,18 @@ export function PullToRefresh({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       className={cn('relative', className)}
+      style={{ clipPath: 'inset(0 -100vw -200px -100vw)' }}
     >
-      {/* Content - pulls down, revealing the page's own background behind it */}
-      <motion.div
-        animate={{ y: active ? pullDistance : 0 }}
-        transition={
-          pulling.current
-            ? { duration: 0 }
-            : shouldReduceMotion
-              ? { duration: 0 }
-              : { type: 'spring', stiffness: 280, damping: 28, mass: 0.8 }
-        }
-      >
-        {children}
-      </motion.div>
-
-      {/* Pull indicator - positioned in the gap, no background of its own */}
+      {/* Pull indicator — absolutely positioned, revealed as content slides down.
+          z-20 sits between the background (z-0/-z-10) and content (z-10/z-30). */}
       {active && (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-center"
-          style={{ height: pullDistance }}
+          className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-end justify-center"
+          style={{ height: currentPull }}
         >
           <motion.div
-            className="mt-3 flex flex-col items-center gap-1"
+            className="pb-2 flex flex-col items-center gap-1"
             animate={{ opacity: pullDistance > 10 || refreshing ? 1 : 0 }}
             transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.15 }}
           >
@@ -163,6 +158,17 @@ export function PullToRefresh({
           </motion.div>
         </div>
       )}
+
+      {/* Content — slides down via translateY. overflow-clip on the container
+          prevents revealing any surface behind. The gap shows the page's own
+          background (which paints on <main> or is sticky-positioned inside). */}
+      <motion.div
+        className="relative will-change-transform"
+        animate={{ y: currentPull }}
+        transition={springTransition}
+      >
+        {children}
+      </motion.div>
 
       {/* Live region for screen readers */}
       <div aria-live="polite" className="sr-only">

@@ -755,6 +755,231 @@ function MobileProfileCard({ onNavigate }: { onNavigate: (path: string) => void 
 }
 
 /* ------------------------------------------------------------------ */
+/*  Mobile suite icon switcher — compact 3-icon toggle                 */
+/* ------------------------------------------------------------------ */
+
+function MobileSuiteSwitcher({
+  suite,
+  availableSuites,
+  collectiveName,
+  reduced,
+  onSuiteChange,
+}: {
+  suite: Suite
+  availableSuites: Suite[]
+  collectiveName: string
+  reduced: boolean
+  onSuiteChange: (s: Suite) => void
+}) {
+  // Only show if user has 2+ suites
+  if (availableSuites.length <= 1) return null
+
+  const identities = availableSuites.map((s) => getSuiteIdentity(s, collectiveName))
+
+  return (
+    <div className="mx-5 mb-3">
+      <div className="relative flex items-center bg-primary-50/60 rounded-2xl p-1">
+        {/* Sliding pill background */}
+        {identities.map((id, idx) => {
+          if (id.key !== suite) return null
+          return (
+            <motion.div
+              key="active-pill"
+              layoutId={reduced ? undefined : 'mobile-suite-pill'}
+              className={cn(
+                'absolute top-1 bottom-1 rounded-xl',
+                'bg-white shadow-sm',
+              )}
+              style={{
+                left: `calc(${(idx / identities.length) * 100}% + 4px)`,
+                width: `calc(${100 / identities.length}% - 8px)`,
+              }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.7 }}
+            />
+          )
+        })}
+
+        {/* Icon buttons */}
+        {identities.map((id) => {
+          const isActive = id.key === suite
+          return (
+            <button
+              key={id.key}
+              type="button"
+              onClick={() => onSuiteChange(id.key)}
+              className={cn(
+                'relative z-10 flex items-center justify-center gap-1.5',
+                'flex-1 min-h-[44px] min-w-[44px]',
+                'rounded-xl',
+                'cursor-pointer select-none',
+                'transition-colors duration-200',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                isActive ? 'text-primary-800' : 'text-primary-400',
+              )}
+              aria-label={id.label}
+              aria-pressed={isActive}
+            >
+              <span className={cn(
+                'w-7 h-7 rounded-lg bg-gradient-to-br flex items-center justify-center',
+                'transition-opacity duration-200',
+                isActive ? 'opacity-100' : 'opacity-50',
+                id.iconGradient,
+              )}>
+                {id.iconSmall}
+              </span>
+              {isActive && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 'auto' }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-[12px] font-semibold truncate"
+                >
+                  {id.label}
+                </motion.span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Desktop suite icon switcher — works expanded & collapsed           */
+/* ------------------------------------------------------------------ */
+
+function DesktopSuiteSwitcher({
+  suite,
+  availableSuites,
+  collectiveName,
+  collapsed,
+  reduced,
+  onSuiteChange,
+}: {
+  suite: Suite
+  availableSuites: Suite[]
+  collectiveName: string
+  collapsed: boolean
+  reduced: boolean
+  onSuiteChange: (s: Suite) => void
+}) {
+  const identities = availableSuites.map((s) => getSuiteIdentity(s, collectiveName))
+
+  if (collapsed) {
+    // Collapsed: vertical stack of icon buttons
+    return (
+      <div className="mx-2 mb-2 flex flex-col items-center gap-1">
+        {identities.map((id) => {
+          const isActive = id.key === suite
+          return (
+            <button
+              key={id.key}
+              type="button"
+              onClick={() => onSuiteChange(id.key)}
+              className={cn(
+                'relative flex items-center justify-center',
+                'w-9 h-9 rounded-xl',
+                'cursor-pointer select-none',
+                'transition-all duration-200',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+              )}
+              aria-label={id.label}
+              aria-pressed={isActive}
+              title={id.label}
+            >
+              {isActive && (
+                <motion.span
+                  layoutId={reduced ? undefined : 'desktop-suite-pill'}
+                  className="absolute inset-0 rounded-xl bg-primary-50/70"
+                  transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.7 }}
+                />
+              )}
+              <span className={cn(
+                'relative z-10 w-7 h-7 rounded-lg bg-gradient-to-br flex items-center justify-center',
+                'transition-opacity duration-200',
+                isActive ? 'opacity-100' : 'opacity-40',
+                id.iconGradient,
+              )}>
+                {id.iconSmall}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
+  // Expanded: horizontal row with sliding pill
+  return (
+    <div className="mx-2.5 mb-2">
+      <div className="relative flex items-center bg-primary-50/60 rounded-2xl p-1">
+        {/* Sliding pill background */}
+        {identities.map((id, idx) => {
+          if (id.key !== suite) return null
+          return (
+            <motion.div
+              key="active-pill"
+              layoutId={reduced ? undefined : 'desktop-suite-pill'}
+              className="absolute top-1 bottom-1 rounded-xl bg-white shadow-sm"
+              style={{
+                left: `calc(${(idx / identities.length) * 100}% + 4px)`,
+                width: `calc(${100 / identities.length}% - 8px)`,
+              }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.7 }}
+            />
+          )
+        })}
+
+        {/* Icon buttons */}
+        {identities.map((id) => {
+          const isActive = id.key === suite
+          return (
+            <button
+              key={id.key}
+              type="button"
+              onClick={() => onSuiteChange(id.key)}
+              className={cn(
+                'relative z-10 flex items-center justify-center gap-1.5',
+                'flex-1 h-9',
+                'rounded-xl',
+                'cursor-pointer select-none',
+                'transition-colors duration-200',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                isActive ? 'text-primary-800' : 'text-primary-400',
+              )}
+              aria-label={id.label}
+              aria-pressed={isActive}
+            >
+              <span className={cn(
+                'w-6 h-6 rounded-md bg-gradient-to-br flex items-center justify-center',
+                'transition-opacity duration-200',
+                isActive ? 'opacity-100' : 'opacity-50',
+                id.iconGradient,
+              )}>
+                {id.iconSmall}
+              </span>
+              {isActive && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 'auto' }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-[11px] font-semibold truncate"
+                >
+                  {id.label}
+                </motion.span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Mobile overlay sidebar                                             */
 /* ------------------------------------------------------------------ */
 
@@ -929,14 +1154,12 @@ function MobileSidebarOverlay({
               <MobileProfileCard onNavigate={handleNavigate} />
             </div>
 
-            {/* ── Suite switcher — switches view in-place without closing ── */}
-            <SuiteSwitcher
+            {/* ── Suite switcher — compact icon toggle ── */}
+            <MobileSuiteSwitcher
               suite={mobileSuite}
-              collapsed={false}
-              collectiveName={collectiveName}
               availableSuites={availableSuites}
+              collectiveName={collectiveName}
               reduced={reduced}
-              skipInitial={false}
               onSuiteChange={setMobileSuite}
             />
 
@@ -1107,6 +1330,17 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
   }
 
   // ── Desktop mode: permanent left sidebar ──
+
+  // Local suite state — lets user switch views in-place (same as mobile)
+  const [desktopSuite, setDesktopSuite] = useState<Suite>(suite)
+
+  // Sync local suite when the URL-derived suite changes
+  useEffect(() => {
+    setDesktopSuite(suite)
+  }, [suite])
+
+  const dAccent = getAccentClasses(desktopSuite)
+
   return (
     <aside
       className={cn(
@@ -1117,17 +1351,17 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
         'shadow-[4px_0_24px_-4px_rgba(0,0,0,0.08),8px_0_16px_-8px_rgba(0,0,0,0.04)]',
         'transition-[width,border-color] duration-250 ease-in-out',
         collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
-        accent.borderColor,
+        dAccent.borderColor,
       )}
       aria-label={
-        suite === 'admin' ? 'Admin navigation' : suite === 'leader' ? 'Leader navigation' : 'Sidebar navigation'
+        desktopSuite === 'admin' ? 'Admin navigation' : desktopSuite === 'leader' ? 'Leader navigation' : 'Sidebar navigation'
       }
     >
       {/* ── Wordmark ── */}
       <div className="flex items-center justify-center px-4 py-4">
         <Link
           to="/"
-          className={cn('focus-visible:outline-none focus-visible:ring-2 rounded-md', accent.focusRing)}
+          className={cn('focus-visible:outline-none focus-visible:ring-2 rounded-md', dAccent.focusRing)}
           aria-label={`${APP_NAME} home`}
         >
           <img
@@ -1149,15 +1383,27 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
         </Link>
       </div>
 
-      {/* ── Suite switcher ── */}
-      <SuiteSwitcher
-        suite={suite}
-        collapsed={collapsed}
-        collectiveName={collectiveName}
-        availableSuites={availableSuites}
-        reduced={reduced}
-        skipInitial={skip}
-      />
+      {/* ── Suite switcher — icon toggle, same as mobile ── */}
+      {availableSuites.length > 1 && (
+        <DesktopSuiteSwitcher
+          suite={desktopSuite}
+          availableSuites={availableSuites}
+          collectiveName={collectiveName}
+          collapsed={collapsed}
+          reduced={reduced}
+          onSuiteChange={setDesktopSuite}
+        />
+      )}
+      {availableSuites.length <= 1 && !collapsed && (
+        <SuiteSwitcher
+          suite={desktopSuite}
+          collapsed={collapsed}
+          collectiveName={collectiveName}
+          availableSuites={availableSuites}
+          reduced={reduced}
+          skipInitial={skip}
+        />
+      )}
 
       {/* ── Nav ── */}
       <div className="flex-1 min-h-0 overflow-y-auto">
@@ -1167,7 +1413,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
             suite={s}
             categories={allSuiteCategories[s]}
             collapsed={collapsed}
-            isCurrent={s === suite}
+            isCurrent={s === desktopSuite}
             isActive={isActive}
             reduced={reduced}
             isMobileMode={false}
@@ -1175,59 +1421,72 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
         ))}
       </div>
 
-      {/* ── Footer slot — profile link for main suite ── */}
-      <AnimatePresence>
-        {suite === 'main' && (
-          <motion.div
-            key="footer-main"
-            initial={(reduced || skip) ? false : { opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={reduced ? undefined : { opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-            className="overflow-hidden"
+      {/* ── Sticky footer: settings + profile + collapse ── */}
+      <div className={cn('border-t transition-colors duration-250', dAccent.borderColor)}>
+        {/* Settings link — always visible */}
+        <div className="px-2 pt-2">
+          <Link
+            to="/settings"
+            className={cn(
+              'relative flex items-center gap-2.5',
+              'rounded-xl text-[13px]',
+              'transition-colors duration-150',
+              'cursor-pointer select-none',
+              'focus-visible:outline-none focus-visible:ring-2',
+              dAccent.focusRing,
+              collapsed ? 'justify-center h-9 w-full' : 'px-2.5 h-9',
+              location.pathname.startsWith('/settings')
+                ? dAccent.activeClasses
+                : dAccent.hoverClasses,
+            )}
+            title={collapsed ? 'Settings' : undefined}
           >
-            <div className="p-2.5 border-t border-primary-100/40">
-              <Link
-                to="/profile"
-                className={cn(
-                  'flex items-center gap-3 min-w-0',
-                  'rounded-xl p-2',
-                  'transition-all duration-200',
-                  'cursor-pointer select-none',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-                  collapsed && 'justify-center',
-                  location.pathname.startsWith('/profile')
-                    ? 'bg-primary-50 text-primary-800'
-                    : 'text-primary-500 hover:text-primary-800 hover:bg-primary-50/60',
+            <Settings size={17} strokeWidth={1.5} />
+            {!collapsed && <span>Settings</span>}
+          </Link>
+        </div>
+
+        {/* Profile link — all suites */}
+        <div className="px-2.5 pt-1 pb-1">
+          <Link
+            to="/profile"
+            className={cn(
+              'flex items-center gap-3 min-w-0',
+              'rounded-xl p-2',
+              'transition-all duration-200',
+              'cursor-pointer select-none',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+              collapsed && 'justify-center',
+              location.pathname.startsWith('/profile')
+                ? 'bg-primary-50 text-primary-800'
+                : 'text-primary-500 hover:text-primary-800 hover:bg-primary-50/60',
+            )}
+            aria-label="View profile"
+            title={collapsed ? profile?.display_name || 'Profile' : undefined}
+          >
+            <Avatar
+              src={profile?.avatar_url}
+              name={profile?.display_name || ''}
+              size="sm"
+            />
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="font-heading text-[13px] font-semibold text-primary-800 truncate">
+                  {profile?.display_name}
+                </p>
+                {(profile as any)?.collective_name && (
+                  <p className="text-[11px] text-primary-400 truncate">
+                    {(profile as any).collective_name}
+                  </p>
                 )}
-                aria-label="View profile"
-                title={collapsed ? profile?.display_name || 'Profile' : undefined}
-              >
-                <Avatar
-                  src={profile?.avatar_url}
-                  name={profile?.display_name || ''}
-                  size="sm"
-                />
-                {!collapsed && (
-                  <div className="flex-1 min-w-0">
-                    <p className="font-heading text-[13px] font-semibold text-primary-800 truncate">
-                      {profile?.display_name}
-                    </p>
-                    {(profile as any)?.collective_name && (
-                      <p className="text-[11px] text-primary-400 truncate">
-                        {(profile as any).collective_name}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </Link>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </div>
+            )}
+          </Link>
+        </div>
+      </div>
 
       {/* ── Collapse toggle ── */}
-      <div className={cn('p-2 border-t transition-colors duration-250', accent.borderColor)}>
+      <div className={cn('p-2 border-t transition-colors duration-250', dAccent.borderColor)}>
         <button
           type="button"
           onClick={() => setCollapsed((p) => !p)}
@@ -1235,11 +1494,11 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
             'flex items-center justify-center gap-2 w-full',
             'h-8 rounded-xl text-[13px]',
             'text-primary-300',
-            accent.collapseHover,
+            dAccent.collapseHover,
             'cursor-pointer select-none',
             'transition-all duration-200',
             'focus-visible:outline-none focus-visible:ring-2',
-            accent.focusRing,
+            dAccent.focusRing,
           )}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
