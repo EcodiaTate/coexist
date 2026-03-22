@@ -281,41 +281,6 @@ function HeroStatCard({
 }) {
   const display = useCountUp(value, 1200, !reducedMotion)
 
-  const variantStyles = {
-    primary: 'bg-white/[0.20] backdrop-blur-md text-white',
-    dark: 'bg-white/[0.14] backdrop-blur-md text-white',
-    accent: 'bg-white/[0.22] backdrop-blur-md text-white',
-    default: 'bg-white/[0.18] backdrop-blur-md text-white',
-  }
-
-  const valueColor = {
-    primary: 'text-white',
-    dark: 'text-white',
-    accent: 'text-white',
-    default: 'text-white',
-  }
-
-  const labelColor = {
-    primary: 'text-white/60',
-    dark: 'text-white/50',
-    accent: 'text-white/60',
-    default: 'text-white/50',
-  }
-
-  const iconBg = {
-    primary: 'bg-white/15',
-    dark: 'bg-white/10',
-    accent: 'bg-white/15',
-    default: 'bg-white/10',
-  }
-
-  const subColor = {
-    primary: 'text-success-300',
-    dark: 'text-success-300',
-    accent: 'text-white/80',
-    default: 'text-success-300',
-  }
-
   return (
     <motion.div
       initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 40, scale: 0.9 }}
@@ -325,46 +290,35 @@ function HeroStatCard({
         delay: reducedMotion ? 0 : 1.5 + delay * 3,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
-      className={cn(
-        'relative overflow-hidden rounded-2xl p-5 sm:p-6',
-        variantStyles[variant],
-      )}
+      className="relative rounded-2xl p-5 sm:p-6 pb-7"
       aria-label={`${label}: ${value}`}
     >
-      {/* Subtle decorative elements */}
-      <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-white/[0.05]" />
-      <div className="absolute -left-3 -bottom-6 w-16 h-16 rounded-full bg-white/[0.03]" />
+      {/* SVG light glare */}
+      <svg className="absolute top-0 right-0 w-20 h-20 opacity-[0.07] pointer-events-none" viewBox="0 0 80 80" fill="none">
+        <ellipse cx="60" cy="20" rx="40" ry="30" fill="white" />
+      </svg>
 
-      <div className="relative z-10">
-        <div className="flex items-center justify-between mb-3">
-          <span
-            className={cn(
-              'flex items-center justify-center w-9 h-9 rounded-xl',
-              iconBg[variant],
-              'text-white/80',
-            )}
-            aria-hidden="true"
-          >
-            {icon}
+      <div className="flex items-center justify-between mb-3">
+        <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/10 text-white/80" aria-hidden="true">
+          {icon}
+        </span>
+        {sub && (
+          <span className="inline-flex items-center gap-0.5 text-xs font-semibold rounded-full px-2 py-0.5 bg-white/10 text-success-300">
+            <ArrowUpRight size={12} />
+            {sub}
           </span>
-          {sub && (
-            <span className="inline-flex items-center gap-0.5 text-xs font-semibold rounded-full px-2 py-0.5 bg-white/10 text-success-300">
-              <ArrowUpRight size={12} />
-              {sub}
-            </span>
-          )}
-        </div>
+        )}
+      </div>
 
+      <div className="relative">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 50%)' }} />
         <p
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-          className={cn(
-            'text-3xl sm:text-4xl font-bold tracking-tight tabular-nums',
-            valueColor[variant],
-          )}
+          className="relative text-3xl sm:text-4xl font-bold tracking-tight tabular-nums text-white"
         >
           {display.toLocaleString()}
         </p>
-        <p className={cn('mt-1 text-sm font-medium', labelColor[variant])}>
+        <p className="relative mt-1 text-sm font-medium text-white/55">
           {label}
         </p>
       </div>

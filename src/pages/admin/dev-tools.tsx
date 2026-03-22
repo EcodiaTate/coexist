@@ -326,13 +326,13 @@ function useNotifPrefs() {
       if (!user) return DEFAULT_PREFERENCES
       const { data, error } = await supabase
         .from('profiles')
-        .select('notification_preferences')
+        .select('notification_preferences' as string & keyof never)
         .eq('id', user.id)
         .single()
       if (error) throw error
       return {
         ...DEFAULT_PREFERENCES,
-        ...((data?.notification_preferences as Partial<NotificationPreferences>) ?? {}),
+        ...(((data as any)?.notification_preferences as Partial<NotificationPreferences>) ?? {}),
       }
     },
     enabled: !!user,
@@ -425,11 +425,11 @@ function usePushTestRunner() {
     await push(runSingleTest('prefs', 'Preferences Stored', 'infra', async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('notification_preferences')
+        .select('notification_preferences' as string & keyof never)
         .eq('id', user.id)
         .single()
       if (error) throw error
-      const p = data?.notification_preferences as Record<string, unknown> | null
+      const p = (data as any)?.notification_preferences as Record<string, unknown> | null
       if (!p || Object.keys(p).length === 0) return 'Defaults (no custom prefs). OK for new users.'
       const disabled = Object.entries(p).filter(([k, v]) => v === false && k !== 'quiet_hours_enabled')
       return `${Object.keys(p).length} prefs saved. ${disabled.length} type(s) disabled. TZ: ${(p.timezone as string) || 'auto'}`
@@ -558,10 +558,10 @@ function usePushTestRunner() {
       await push(runSingleTest('opt-out', 'Preference Opt-Out Blocks Delivery', 'filtering', async () => {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('notification_preferences')
+          .select('notification_preferences' as string & keyof never)
           .eq('id', user.id)
           .single()
-        const orig = (profile?.notification_preferences ?? {}) as Record<string, unknown>
+        const orig = ((profile as any)?.notification_preferences ?? {}) as Record<string, unknown>
 
         // Disable event_reminder temporarily
         await supabase
@@ -592,10 +592,10 @@ function usePushTestRunner() {
       await push(runSingleTest('quiet', 'Quiet Hours Blocks Delivery', 'filtering', async () => {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('notification_preferences')
+          .select('notification_preferences' as string & keyof never)
           .eq('id', user.id)
           .single()
-        const orig = (profile?.notification_preferences ?? {}) as Record<string, unknown>
+        const orig = ((profile as any)?.notification_preferences ?? {}) as Record<string, unknown>
 
         const now = new Date()
         const h = now.getHours()
