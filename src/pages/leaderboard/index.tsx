@@ -2,9 +2,8 @@ import { useState, useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
-import { Trophy, Medal, Crown, TreePine, Clock, Calendar, Star, Users, Flame } from 'lucide-react'
+import { ArrowLeft, Trophy, Medal, Crown, TreePine, Clock, Calendar, Star, Users, Flame } from 'lucide-react'
 import { Page } from '@/components/page'
-import { Header } from '@/components/header'
 import { TabBar } from '@/components/tab-bar'
 import { Avatar } from '@/components/avatar'
 import { Skeleton } from '@/components/skeleton'
@@ -54,15 +53,15 @@ const fadeUp: Variants = {
 function LeaderboardSkeleton() {
   return (
     <div className="space-y-6 pt-4 pb-8">
-      <div className="h-36 rounded-3xl bg-amber-100/40 animate-pulse" />
+      <div className="h-36 rounded-3xl bg-warning-100/40 animate-pulse" />
       <div className="flex items-end justify-center gap-4">
-        <div className="w-20 h-28 rounded-2xl bg-amber-100/30 animate-pulse" />
-        <div className="w-24 h-36 rounded-2xl bg-amber-100/40 animate-pulse" />
-        <div className="w-20 h-24 rounded-2xl bg-amber-100/30 animate-pulse" />
+        <div className="w-20 h-28 rounded-2xl bg-warning-100/30 animate-pulse" />
+        <div className="w-24 h-36 rounded-2xl bg-warning-100/40 animate-pulse" />
+        <div className="w-20 h-24 rounded-2xl bg-warning-100/30 animate-pulse" />
       </div>
       <div className="space-y-2">
         {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="h-14 rounded-xl bg-amber-100/20 animate-pulse" />
+          <div key={i} className="h-14 rounded-xl bg-warning-100/20 animate-pulse" />
         ))}
       </div>
     </div>
@@ -79,58 +78,70 @@ function formatMetricValue(value: number, metric: Metric): string {
 /* ─── Decorative background shapes ─── */
 
 function BackgroundShapes({ reduced }: { reduced: boolean }) {
-  if (reduced) return null
-
   return (
     <>
-      {/* Ring — top-right */}
-      <motion.div
-        className="absolute -top-16 -right-16 w-56 h-56 rounded-full border-[3px] border-amber-200/30"
-        animate={{ scale: [1, 1.06, 1] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      {/* Multi-stop gradient — rich warm forest feel */}
+      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-warning-50/30 via-25% to-primary-100/20 to-60%" />
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-moss-50/15 to-warning-50/15" />
 
-      {/* Ring — bottom-left */}
-      <motion.div
-        className="absolute -bottom-20 -left-14 w-48 h-48 rounded-full border-[3px] border-amber-200/30"
-        animate={{ scale: [1, 1.08, 1] }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-      />
+      {/* Concentrated hero glow — top center */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-warning-200/30 via-secondary-200/20 to-transparent blur-[60px]" />
 
-      {/* Blurred glow — center-right */}
-      <motion.div
-        className="absolute top-1/3 -right-10 w-44 h-44 rounded-full bg-amber-100/25 blur-3xl"
-        animate={{ scale: [1, 1.12, 1], opacity: [0.25, 0.35, 0.25] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-      />
+      {/* Warm accent — top right */}
+      <div className="absolute -top-16 -right-16 w-[280px] h-[260px] rounded-full bg-gradient-to-bl from-warning-200/22 to-transparent blur-[50px]" />
 
-      {/* Soft circle — top-left */}
-      <motion.div
-        className="absolute -top-8 -left-8 w-36 h-36 rounded-full bg-primary-100/20 blur-2xl"
-        animate={{ scale: [1, 1.1, 1] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      />
+      {reduced ? null : (
+        <>
+          {/* Large breathing ring — top right */}
+          <motion.div
+            className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-warning-300/22"
+            animate={{ scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          {/* Concentric inner ring */}
+          <motion.div
+            className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-secondary-200/18"
+            animate={{ scale: [1, 1.04, 1], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          />
 
-      {/* Floating dot 1 */}
-      <motion.div
-        className="absolute top-24 right-12 w-2.5 h-2.5 rounded-full bg-amber-300/25"
-        animate={{ y: [0, -10, 0], x: [0, 4, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-      />
+          {/* Left ring cluster */}
+          <motion.div
+            className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/22"
+            animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
+            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          />
 
-      {/* Floating dot 2 */}
-      <motion.div
-        className="absolute top-1/2 left-8 w-2 h-2 rounded-full bg-amber-300/25"
-        animate={{ y: [0, 8, 0], x: [0, -3, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
+          {/* Bottom right ring */}
+          <motion.div
+            className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-warning-300/18"
+            animate={{ rotate: 360 }}
+            transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
+          />
 
-      {/* Floating dot 3 */}
-      <motion.div
-        className="absolute bottom-32 right-1/3 w-3 h-3 rounded-full bg-amber-300/25"
-        animate={{ y: [0, -12, 0], x: [0, 5, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }}
-      />
+          {/* Deep warm glows */}
+          <motion.div
+            className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-moss-100/18 blur-[50px]"
+            animate={{ scale: [1, 1.14, 1], opacity: [0.2, 0.38, 0.2] }}
+            transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          />
+          <motion.div
+            className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-warning-100/18 blur-[55px]"
+            animate={{ scale: [1, 1.08, 1], opacity: [0.2, 0.35, 0.2] }}
+            transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+          />
+
+          {/* Floating particles */}
+          <motion.div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-warning-400/18"
+            animate={{ y: [-5, 5, -5], x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }} />
+          <motion.div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-moss-400/15"
+            animate={{ y: [3, -5, 3] }} transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 1.5 }} />
+          <motion.div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-secondary-400/15"
+            animate={{ y: [-3, 4, -3], x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} />
+          <motion.div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-warning-300/12"
+            animate={{ y: [2, -3, 2] }} transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut', delay: 2.5 }} />
+        </>
+      )}
     </>
   )
 }
@@ -189,12 +200,9 @@ export default function LeaderboardPage() {
   }, [queryClient])
 
   return (
-    <Page header={<Header title="Leaderboard" back />} className="!px-0 !bg-transparent">
+    <Page noBackground className="!px-0">
       <div className="relative min-h-full">
-        {/* ─── Full-bleed gradient background ─── */}
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-50/50 via-white to-primary-50/15" />
-
-        {/* ─── Animated decorative shapes ─── */}
+        {/* ─── Animated decorative background ─── */}
         <BackgroundShapes reduced={!!shouldReduceMotion} />
 
         {/* ─── Content ─── */}
@@ -206,8 +214,22 @@ export default function LeaderboardPage() {
               initial="hidden"
               animate="visible"
             >
+              {/* ─── Floating back button ─── */}
+              <div className="pt-[var(--safe-top)] px-4">
+                <motion.button
+                  type="button"
+                  onClick={() => navigate(-1)}
+                  whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                  className="flex items-center justify-center w-9 h-9 rounded-full text-primary-800 hover:bg-primary-50/80 cursor-pointer select-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                  aria-label="Go back"
+                >
+                  <ArrowLeft size={22} />
+                </motion.button>
+              </div>
+
               {/* ─── Hero banner ─── */}
-              <motion.div variants={fadeUp} className="px-5 lg:px-6 pt-4 pb-2">
+              <motion.div variants={fadeUp} className="px-5 lg:px-6 pt-2 pb-2">
                 <div className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-6 shadow-2xl overflow-hidden">
                   {/* Decorative circles */}
                   <div className="absolute top-0 right-0 w-36 h-36 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
@@ -229,7 +251,7 @@ export default function LeaderboardPage() {
 
               {/* ─── Controls ─── */}
               <motion.div variants={fadeUp} className="px-5 lg:px-6">
-                <div className="mt-4 mb-3 flex items-center gap-2 rounded-2xl bg-white/80 backdrop-blur-sm border border-amber-50/60 shadow-sm p-1.5">
+                <div className="mt-4 mb-3 flex items-center gap-2 rounded-2xl bg-white/80 backdrop-blur-sm border border-primary-100/40 shadow-sm p-1.5">
                   <TabBar
                     tabs={[
                       { id: 'individual', label: 'Individual' },
@@ -244,8 +266,8 @@ export default function LeaderboardPage() {
                     onChange={(e) => setPeriod(e.target.value as TimePeriod)}
                     className={cn(
                       'h-9 px-3 rounded-xl text-sm font-medium',
-                      'bg-white text-primary-700 shadow-sm border border-amber-100/60',
-                      'focus:outline-none focus:ring-2 focus:ring-amber-300/50',
+                      'bg-white text-primary-700 shadow-sm border border-primary-100/30',
+                      'focus:outline-none focus:ring-2 focus:ring-primary-300/50',
                       'cursor-pointer',
                     )}
                     aria-label="Time period"
@@ -256,7 +278,7 @@ export default function LeaderboardPage() {
                   </select>
                 </div>
 
-                <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-amber-50/60 shadow-sm p-1.5 mb-5">
+                <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-primary-100/40 shadow-sm p-1.5 mb-5">
                   <TabBar
                     tabs={METRIC_TABS}
                     activeTab={metric}
@@ -272,7 +294,7 @@ export default function LeaderboardPage() {
                   {/* ─── Your rank card ─── */}
                   {individualData?.userRank && (
                     <motion.div variants={fadeUp} className="px-5 lg:px-6 mb-5">
-                      <div className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary-100/90 to-primary-200/50 shadow-md p-4 border border-amber-50/60">
+                      <div className="flex items-center gap-4 rounded-2xl bg-gradient-to-r from-primary-100/90 to-primary-200/50 shadow-md p-4 border border-primary-100/40">
                         <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-600 shadow-md">
                           <Flame size={20} strokeWidth={2.5} className="text-white" />
                         </div>
@@ -347,7 +369,7 @@ export default function LeaderboardPage() {
                   {/* ─── Full list ─── */}
                   {individualData && individualData.entries.length > 0 ? (
                     <div className="px-5 lg:px-6">
-                      <div className="rounded-2xl bg-white shadow-sm border border-amber-50/60 overflow-hidden">
+                      <div className="rounded-2xl bg-white shadow-sm border border-primary-100/40 overflow-hidden">
                         {individualData.entries.slice(3).map((entry, i) => (
                           <motion.button
                             key={entry.userId}
@@ -358,9 +380,9 @@ export default function LeaderboardPage() {
                             className={cn(
                               'w-full flex items-center gap-3 px-4 py-3 min-h-11',
                               'active:scale-[0.98] transition-all duration-150 cursor-pointer select-none',
-                              'hover:bg-amber-50/40',
-                              entry.userId === user?.id && 'bg-amber-50/60',
-                              i > 0 && 'border-t border-amber-100/20',
+                              'hover:bg-warning-50/40',
+                              entry.userId === user?.id && 'bg-warning-50/50',
+                              i > 0 && 'border-t border-primary-100/20',
                             )}
                           >
                             <span className="w-7 text-sm font-extrabold text-primary-400/70 tabular-nums text-center">
@@ -407,7 +429,7 @@ export default function LeaderboardPage() {
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.04, type: 'spring', stiffness: 300, damping: 26 }}
                           className={cn(
-                            'flex items-center gap-3 rounded-2xl shadow-sm border border-amber-50/60 px-4 py-3.5',
+                            'flex items-center gap-3 rounded-2xl shadow-sm border border-primary-100/40 px-4 py-3.5',
                             i === 0
                               ? 'bg-gradient-to-r from-warning-50/80 to-white'
                               : 'bg-white',

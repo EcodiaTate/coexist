@@ -1,5 +1,7 @@
+import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
+  ArrowLeft,
   TreePine,
   Waves,
   Clock,
@@ -111,55 +113,56 @@ const fadeUp = {
 function DecoShapes({ rm }: { rm: boolean }) {
   return (
     <>
-      {/* Large ring — top right */}
+      {/* Large breathing ring — top right */}
       <motion.div
-        className="absolute -top-16 -right-16 w-56 h-56 rounded-full border-2 border-moss-200/40"
+        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-moss-300/25"
+        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      {/* Concentric inner ring */}
+      <motion.div
+        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-primary-200/18"
+        animate={rm ? undefined : { scale: [1, 1.04, 1], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      />
+
+      {/* Medium ring — left side */}
+      <motion.div
+        className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-sprout-300/22"
+        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+
+      {/* Small ring — bottom right */}
+      <motion.div
+        className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-moss-300/18"
         animate={rm ? undefined : { rotate: 360 }}
         transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
       />
 
-      {/* Medium ring — bottom left */}
+      {/* Deep warm glow — mid left */}
       <motion.div
-        className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full border-2 border-moss-200/40"
-        animate={rm ? undefined : { rotate: -360 }}
-        transition={{ duration: 40, repeat: Infinity, ease: 'linear' }}
+        className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/22 blur-[50px]"
+        animate={rm ? undefined : { scale: [1, 1.14, 1], opacity: [0.22, 0.4, 0.22] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Soft circle — mid left */}
+      {/* Bottom gradient pool */}
       <motion.div
-        className="absolute top-44 -left-8 w-28 h-28 rounded-full bg-sprout-100/30"
-        animate={rm ? undefined : { y: [0, -14, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-moss-200/20 blur-[55px]"
+        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.2, 0.38, 0.2] }}
+        transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
       />
 
-      {/* Soft circle — right center */}
-      <motion.div
-        className="absolute top-72 -right-6 w-20 h-20 rounded-full bg-moss-100/25"
-        animate={rm ? undefined : { y: [0, 10, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-
-      {/* Floating dots */}
-      <motion.div
-        className="absolute top-28 right-14 w-2.5 h-2.5 rounded-full bg-moss-400/25"
-        animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.25, 0.5, 0.25] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-60 left-10 w-2 h-2 rounded-full bg-sprout-300/30"
-        animate={rm ? undefined : { y: [0, 6, 0], opacity: [0.3, 0.55, 0.3] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-      />
-      <motion.div
-        className="absolute bottom-40 right-8 w-1.5 h-1.5 rounded-full bg-moss-400/25"
-        animate={rm ? undefined : { y: [0, -6, 0], opacity: [0.2, 0.45, 0.2] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-      />
-      <motion.div
-        className="absolute bottom-64 left-20 w-2 h-2 rounded-full bg-sprout-300/30"
-        animate={rm ? undefined : { y: [0, 8, 0], opacity: [0.25, 0.5, 0.25] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
-      />
+      {/* Floating particles */}
+      <motion.div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-moss-400/18"
+        animate={rm ? undefined : { y: [-5, 5, -5], x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }} />
+      <motion.div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-sprout-400/15"
+        animate={rm ? undefined : { y: [3, -5, 3] }} transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 1.5 }} />
+      <motion.div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-moss-400/15"
+        animate={rm ? undefined : { y: [-3, 4, -3], x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} />
+      <motion.div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-primary-400/12"
+        animate={rm ? undefined : { y: [2, -3, 2] }} transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut', delay: 2.5 }} />
     </>
   )
 }
@@ -215,7 +218,7 @@ function StatRow({
   return (
     <motion.div
       variants={fadeUp}
-      className="flex items-center gap-3 rounded-xl bg-white shadow-sm border border-moss-50/60 p-3.5"
+      className="flex items-center gap-3 rounded-xl bg-white/80 backdrop-blur-sm shadow-sm border border-primary-100/40 p-3.5"
     >
       <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', color)}>
         {icon}
@@ -238,6 +241,7 @@ export default function LeaderImpactPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const { collectiveId } = useLeaderContext()
+  const navigate = useNavigate()
   const { data: collective } = useCollective(collectiveId)
 
   useLeaderHeader('Impact', { fullBleed: true })
@@ -247,7 +251,7 @@ export default function LeaderImpactPage() {
   if (isLoading) {
     return (
       <div className="relative min-h-screen overflow-x-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-moss-50/70 via-white to-sprout-50/20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
         <DecoShapes rm={rm} />
         <div className="relative z-10 px-6 pt-4 space-y-5 pb-20">
           {/* Hero skeleton */}
@@ -268,7 +272,7 @@ export default function LeaderImpactPage() {
   if (!stats) {
     return (
       <div className="relative min-h-screen overflow-x-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-moss-50/70 via-white to-sprout-50/20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
         <DecoShapes rm={rm} />
         <div className="relative z-10 px-6 pt-4 pb-20">
           <EmptyState
@@ -297,10 +301,13 @@ export default function LeaderImpactPage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden">
       {/* Full-bleed gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-moss-50/70 via-white to-sprout-50/20" />
+      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
 
       {/* Animated decorative shapes */}
       <DecoShapes rm={rm} />
+
+      {/* Top hero glow */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/28 via-primary-200/18 to-transparent blur-[60px]" />
 
       {/* Content */}
       <motion.div
@@ -309,15 +316,19 @@ export default function LeaderImpactPage() {
         initial="hidden"
         animate="visible"
       >
-        {/* Hero title */}
-        <motion.div variants={fadeUp} className="text-center pt-2 pb-1">
-          <p className="text-[11px] uppercase tracking-widest text-moss-400 font-semibold mb-1.5">
-            Your Contribution
-          </p>
-          <h1 className="font-heading text-2xl font-extrabold text-primary-900">
-            Impact
-          </h1>
-        </motion.div>
+        {/* Floating back button */}
+        <div className="pt-[var(--safe-top)]">
+          <motion.button
+            type="button"
+            onClick={() => navigate(-1)}
+            whileTap={rm ? undefined : { scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            className="flex items-center justify-center w-9 h-9 rounded-full text-primary-800 hover:bg-primary-50/80 cursor-pointer select-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={22} />
+          </motion.button>
+        </div>
 
         {/* Collective overview stats */}
         <div>

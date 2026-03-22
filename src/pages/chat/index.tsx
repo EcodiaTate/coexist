@@ -82,15 +82,18 @@ function DecorativeBackground() {
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Multi-stop gradient — deep teal-purple forest feel */}
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-plum-50/20 via-30% to-primary-100/20 to-65%" />
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-secondary-50/15 to-plum-50/15" />
+      {/* Multi-stop gradient — deep teal-plum forest feel */}
+      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/65 via-plum-100/30 via-30% to-primary-100/25 to-65%" />
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-secondary-100/20 to-plum-50/20" />
 
       {/* Top hero glow — concentrated teal-green */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-secondary-300/30 via-secondary-200/20 to-transparent blur-[60px]" />
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-secondary-300/35 via-secondary-200/25 to-transparent blur-[60px]" />
 
       {/* Warm plum accent — top right */}
-      <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-gradient-to-bl from-plum-200/20 to-transparent blur-[50px]" />
+      <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-gradient-to-bl from-plum-200/28 to-transparent blur-[50px]" />
+
+      {/* Deep moss glow — bottom left */}
+      <div className="absolute -bottom-20 -left-10 w-[280px] h-[260px] rounded-full bg-gradient-to-tr from-moss-200/20 to-transparent blur-[55px]" />
 
       {/* Large ring — top right */}
       <motion.div
@@ -126,13 +129,13 @@ function DecorativeBackground() {
 
       {/* Glows */}
       <motion.div
-        className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-secondary-100/18 blur-[50px]"
-        animate={r ? {} : { scale: [1, 1.14, 1], opacity: [0.2, 0.38, 0.2] }}
+        className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-secondary-100/25 blur-[50px]"
+        animate={r ? {} : { scale: [1, 1.14, 1], opacity: [0.25, 0.45, 0.25] }}
         transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut', delay: 1 }}
       />
       <motion.div
-        className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-plum-100/15 blur-[55px]"
-        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.2, 0.35, 0.2] }}
+        className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-plum-100/22 blur-[55px]"
+        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.25, 0.42, 0.25] }}
         transition={{ repeat: Infinity, duration: 11, ease: 'easeInOut', delay: 3 }}
       />
 

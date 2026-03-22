@@ -37,69 +37,70 @@ const fadeUp: Variants = {
 /* ------------------------------------------------------------------ */
 
 function DecorativeBackground() {
-  const shouldReduceMotion = useReducedMotion()
+  const r = useReducedMotion()
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      {/* Gradient base */}
-      <div className="absolute inset-0 bg-gradient-to-b from-sky-50/40 via-white to-primary-50/15" />
+      {/* Multi-stop gradient — warm forest canopy feel */}
+      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/35 via-25% to-moss-50/20 to-60%" />
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-sprout-50/15 to-moss-50/20" />
 
-      {/* Large ring — top right */}
+      {/* Concentrated hero glow — top center */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/30 via-primary-200/20 to-transparent blur-[60px]" />
+
+      {/* Warm glow — top left */}
+      <div className="absolute -top-16 -left-16 w-[280px] h-[280px] rounded-full bg-gradient-to-br from-sprout-200/25 to-transparent blur-[50px]" />
+
+      {/* Large breathing ring — top right */}
       <motion.div
-        className="absolute -top-16 -right-16 h-56 w-56 rounded-full border-[3px] border-sky-200/35"
-        animate={shouldReduceMotion ? {} : { rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 50, ease: 'linear' }}
+        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/22"
+        animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
+        transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
+      />
+      {/* Concentric inner ring */}
+      <motion.div
+        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-primary-200/18"
+        animate={r ? {} : { scale: [1, 1.04, 1], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Medium ring — left */}
+      {/* Medium ring — left side */}
       <motion.div
-        className="absolute top-1/3 -left-10 h-36 w-36 rounded-full border-2 border-sky-200/35"
-        animate={shouldReduceMotion ? {} : { rotate: -360 }}
-        transition={{ repeat: Infinity, duration: 38, ease: 'linear' }}
+        className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/22"
+        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 2 }}
       />
 
       {/* Small ring — bottom right */}
       <motion.div
-        className="absolute bottom-28 right-6 h-20 w-20 rounded-full border-[2px] border-sky-200/35"
-        animate={shouldReduceMotion ? {} : { rotate: 360 }}
-        transition={{ repeat: Infinity, duration: 28, ease: 'linear' }}
+        className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-primary-300/18"
+        animate={r ? {} : { rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 50, ease: 'linear' }}
       />
 
-      {/* Soft glow — top left */}
+      {/* Deep warm glow — mid left */}
       <motion.div
-        className="absolute -top-8 left-8 h-40 w-40 rounded-full bg-sky-100/25 blur-2xl"
-        animate={shouldReduceMotion ? {} : { scale: [1, 1.15, 1], opacity: [0.25, 0.35, 0.25] }}
-        transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut' }}
+        className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/18 blur-[50px]"
+        animate={r ? {} : { scale: [1, 1.14, 1], opacity: [0.2, 0.38, 0.2] }}
+        transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Soft glow — center right */}
+      {/* Bottom gradient pool */}
       <motion.div
-        className="absolute top-1/2 right-0 h-48 w-48 -translate-y-1/2 rounded-full bg-sky-100/25 blur-3xl"
-        animate={shouldReduceMotion ? {} : { scale: [1, 1.1, 1], opacity: [0.2, 0.3, 0.2] }}
-        transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut', delay: 2 }}
+        className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-moss-200/18 blur-[55px]"
+        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.2, 0.35, 0.2] }}
+        transition={{ repeat: Infinity, duration: 11, ease: 'easeInOut', delay: 3 }}
       />
 
-      {/* Dots */}
-      <motion.div
-        className="absolute top-20 right-14 h-2 w-2 rounded-full bg-sky-300/25"
-        animate={shouldReduceMotion ? {} : { y: [-4, 4, -4] }}
-        transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-44 left-10 h-1.5 w-1.5 rounded-full bg-sky-300/25"
-        animate={shouldReduceMotion ? {} : { y: [3, -3, 3] }}
-        transition={{ repeat: Infinity, duration: 3.5, ease: 'easeInOut', delay: 1 }}
-      />
-      <motion.div
-        className="absolute bottom-40 left-1/3 h-2.5 w-2.5 rounded-full bg-sky-300/25"
-        animate={shouldReduceMotion ? {} : { y: [-3, 5, -3] }}
-        transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut', delay: 0.5 }}
-      />
-      <motion.div
-        className="absolute bottom-16 right-1/4 h-1.5 w-1.5 rounded-full bg-sky-300/25"
-        animate={shouldReduceMotion ? {} : { y: [2, -4, 2] }}
-        transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut', delay: 1.5 }}
-      />
+      {/* Floating particles */}
+      <motion.div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-primary-400/18"
+        animate={r ? {} : { y: [-5, 5, -5], x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }} />
+      <motion.div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-moss-400/15"
+        animate={r ? {} : { y: [3, -5, 3] }} transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 1.5 }} />
+      <motion.div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-sprout-400/15"
+        animate={r ? {} : { y: [-3, 4, -3], x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} />
+      <motion.div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-secondary-400/12"
+        animate={r ? {} : { y: [2, -3, 2] }} transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut', delay: 2.5 }} />
     </div>
   )
 }
@@ -185,8 +186,8 @@ function NotificationRow({
           'transition-all duration-200',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-inset',
           isUnread
-            ? 'bg-white shadow-sm border border-sky-50/60'
-            : 'bg-white/60 shadow-sm border border-sky-50/60 hover:bg-white/80',
+            ? 'bg-white shadow-sm border border-primary-100/50'
+            : 'bg-white/60 shadow-sm border border-primary-50/50 hover:bg-white/80',
         )}
         aria-label={`${notification.title}. ${notification.body ?? ''}`}
       >
@@ -258,7 +259,7 @@ function AllCaughtUp() {
     >
       {/* Illustrated circle */}
       <div className="relative mb-6">
-        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-sky-100 to-sky-200/60 flex items-center justify-center shadow-sm shadow-sky-200/30">
+        <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary-100 to-moss-200/60 flex items-center justify-center shadow-sm shadow-primary-200/30">
           <svg
             width="64"
             height="64"
@@ -295,12 +296,12 @@ function AllCaughtUp() {
         </div>
         {/* Floating particles */}
         <motion.div
-          className="absolute top-2 -right-1 w-3 h-3 rounded-full bg-sky-300/50"
+          className="absolute top-2 -right-1 w-3 h-3 rounded-full bg-primary-300/50"
           animate={shouldReduceMotion ? {} : { y: [-3, 3, -3] }}
           transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute bottom-3 -left-2 w-2.5 h-2.5 rounded-full bg-sky-200/50"
+          className="absolute bottom-3 -left-2 w-2.5 h-2.5 rounded-full bg-moss-200/50"
           animate={shouldReduceMotion ? {} : { y: [2, -3, 2] }}
           transition={{ repeat: Infinity, duration: 2.5, ease: 'easeInOut', delay: 0.5 }}
         />
@@ -449,12 +450,12 @@ export default function NotificationsPage() {
           {isLoading ? (
             <div className="space-y-4 py-6">
               {Array.from({ length: 5 }, (_, i) => (
-                <div key={i} className="flex items-start gap-3.5 px-4 py-4 rounded-2xl bg-white/60 shadow-sm border border-sky-50/60 animate-pulse">
-                  <div className="w-11 h-11 rounded-xl bg-sky-100/50 shrink-0" />
+                <div key={i} className="flex items-start gap-3.5 px-4 py-4 rounded-2xl bg-white/60 shadow-sm border border-primary-50/50 animate-pulse">
+                  <div className="w-11 h-11 rounded-xl bg-primary-100/40 shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-3.5 bg-sky-100/40 rounded w-3/4" />
-                    <div className="h-3 bg-sky-100/30 rounded w-full" />
-                    <div className="h-2.5 bg-sky-100/20 rounded w-16" />
+                    <div className="h-3.5 bg-primary-100/30 rounded w-3/4" />
+                    <div className="h-3 bg-primary-100/25 rounded w-full" />
+                    <div className="h-2.5 bg-primary-100/20 rounded w-16" />
                   </div>
                 </div>
               ))}
@@ -472,7 +473,7 @@ export default function NotificationsPage() {
                 {/* Unread count banner */}
                 {unreadCount > 0 && (
                   <motion.div variants={fadeUp}>
-                    <div className="flex items-center gap-3 rounded-2xl bg-white/80 backdrop-blur-sm p-3.5 shadow-sm border border-sky-50/60">
+                    <div className="flex items-center gap-3 rounded-2xl bg-white/80 backdrop-blur-sm p-3.5 shadow-sm border border-primary-100/40">
                       <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary-500 shadow-sm">
                         <Bell size={16} className="text-white" />
                       </div>
