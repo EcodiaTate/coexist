@@ -654,13 +654,13 @@ function App() {
           path="/announcements/create"
           element={
             <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
+              <AppShell>
+                <RequireRole minRole="national_staff">
                   <PageTransition>
                     <CreateAnnouncementPage />
                   </PageTransition>
-                </AppShell>
-              </RequireRole>
+                </RequireRole>
+              </AppShell>
             </RequireAuth>
           }
         />
@@ -885,11 +885,11 @@ function App() {
           path="/admin"
           element={
             <RequireAuth>
-              <RequireRole minRole="national_staff">
-                <AppShell>
+              <AppShell>
+                <RequireRole minRole="national_staff">
                   <AdminLayoutRoute />
-                </AppShell>
-              </RequireRole>
+                </RequireRole>
+              </AppShell>
             </RequireAuth>
           }
         >

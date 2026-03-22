@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useCollective } from '@/hooks/use-collective'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
+import { type SidebarNavCategory, type SidebarNavItem } from '@/components/sidebar-shell'
 
 /* ------------------------------------------------------------------ */
 /*  Leader header context - lets child pages set title + actions       */
@@ -296,7 +297,7 @@ export function LeaderLayout() {
                             {cat.label}
                           </p>
                         )}
-                        {cat.items.map((item) => {
+                        {cat.items.map((item: SidebarNavItem) => {
                           const active = isActive(item.path)
                           return (
                             <Link
