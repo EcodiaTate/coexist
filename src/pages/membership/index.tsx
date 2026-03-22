@@ -236,58 +236,56 @@ export default function MembershipPage() {
 
   return (
     <Page className="!px-0 !pb-0 !bg-transparent">
-      <div className="relative min-h-screen overflow-clip">
-        {/* ── Full-page gradient - diagonal sweep, distinct from dashboard ── */}
-        <div className="absolute inset-0 bg-gradient-to-br from-secondary-600 via-primary-800 to-secondary-900" />
+      <div className="relative min-h-screen">
+        {/* ── Background — sticky keeps it viewport-pinned, negative margin collapses it ── */}
+        <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary-600 via-primary-800 to-secondary-900" />
 
-        {/* ── Geometric shapes ── */}
-        {/* Large filled circle - top-right (opposite placement to dashboard) */}
-        <motion.div
-          initial={rm ? {} : { scale: 0.6, opacity: 0 }}
-          animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-          transition={{ scale: { duration: 22, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.4, ease: 'easeOut' } }}
-          className="absolute -right-[15%] -top-[12%] w-[55vw] h-[55vw] max-w-[500px] max-h-[500px] rounded-full bg-white/[0.05]"
-        />
-        {/* Large ring - bottom-left */}
-        <motion.div
-          initial={rm ? {} : { scale: 0.5, opacity: 0 }}
-          animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-          transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.6, delay: 0.3, ease: 'easeOut' } }}
-          className="absolute -left-[20%] bottom-[5%] w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-full border border-white/[0.07]"
-        />
-        {/* Inner concentric ring */}
-        <motion.div
-          initial={rm ? {} : { scale: 0.5, opacity: 0 }}
-          animate={{ scale: [1, 1.06, 1], opacity: 1 }}
-          transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.6, delay: 0.6, ease: 'easeOut' } }}
-          className="absolute -left-[14%] bottom-[10%] w-[42vw] h-[42vw] max-w-[420px] max-h-[420px] rounded-full border border-white/[0.05]"
-        />
-        {/* Small filled accent - mid-left */}
-        <motion.div
-          initial={rm ? {} : { scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1.2, delay: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="absolute left-[8%] top-[45%] w-[70px] h-[70px] rounded-full bg-white/[0.04]"
-        />
-        {/* Floating dots */}
-        <motion.div
-          initial={rm ? {} : { opacity: 0 }}
-          animate={{ y: [0, -9, 0], opacity: [0.25, 0.5, 0.25] }}
-          transition={{ y: { duration: 5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1 } }}
-          className="absolute right-[18%] top-[22%] w-2 h-2 rounded-full bg-white/30"
-        />
-        <motion.div
-          initial={rm ? {} : { opacity: 0 }}
-          animate={{ y: [0, 6, 0], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }, opacity: { duration: 0.8, delay: 1.4 } }}
-          className="absolute left-[12%] top-[30%] w-1.5 h-1.5 rounded-full bg-white/25"
-        />
-        <motion.div
-          initial={rm ? {} : { opacity: 0 }}
-          animate={{ y: [0, -6, 0], opacity: [0.2, 0.45, 0.2] }}
-          transition={{ y: { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 0.8, delay: 1.8 } }}
-          className="absolute right-[30%] bottom-[20%] w-2.5 h-2.5 rounded-full bg-white/20"
-        />
+          {/* ── Geometric shapes ── */}
+          <motion.div
+            initial={rm ? {} : { scale: 0.6, opacity: 0 }}
+            animate={{ scale: [1, 1.05, 1], opacity: 1 }}
+            transition={{ scale: { duration: 22, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.4, ease: 'easeOut' } }}
+            className="absolute -right-[15%] -top-[12%] w-[55vw] h-[55vw] max-w-[500px] max-h-[500px] rounded-full bg-white/[0.05]"
+          />
+          <motion.div
+            initial={rm ? {} : { scale: 0.5, opacity: 0 }}
+            animate={{ scale: [1, 1.04, 1], opacity: 1 }}
+            transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.6, delay: 0.3, ease: 'easeOut' } }}
+            className="absolute -left-[20%] bottom-[5%] w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-full border border-white/[0.07]"
+          />
+          <motion.div
+            initial={rm ? {} : { scale: 0.5, opacity: 0 }}
+            animate={{ scale: [1, 1.06, 1], opacity: 1 }}
+            transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.6, delay: 0.6, ease: 'easeOut' } }}
+            className="absolute -left-[14%] bottom-[10%] w-[42vw] h-[42vw] max-w-[420px] max-h-[420px] rounded-full border border-white/[0.05]"
+          />
+          <motion.div
+            initial={rm ? {} : { scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.2, delay: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="absolute left-[8%] top-[45%] w-[70px] h-[70px] rounded-full bg-white/[0.04]"
+          />
+          {/* Floating dots */}
+          <motion.div
+            initial={rm ? {} : { opacity: 0 }}
+            animate={{ y: [0, -9, 0], opacity: [0.25, 0.5, 0.25] }}
+            transition={{ y: { duration: 5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1 } }}
+            className="absolute right-[18%] top-[22%] w-2 h-2 rounded-full bg-white/30"
+          />
+          <motion.div
+            initial={rm ? {} : { opacity: 0 }}
+            animate={{ y: [0, 6, 0], opacity: [0.2, 0.4, 0.2] }}
+            transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }, opacity: { duration: 0.8, delay: 1.4 } }}
+            className="absolute left-[12%] top-[30%] w-1.5 h-1.5 rounded-full bg-white/25"
+          />
+          <motion.div
+            initial={rm ? {} : { opacity: 0 }}
+            animate={{ y: [0, -6, 0], opacity: [0.2, 0.45, 0.2] }}
+            transition={{ y: { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 0.8, delay: 1.8 } }}
+            className="absolute right-[30%] bottom-[20%] w-2.5 h-2.5 rounded-full bg-white/20"
+          />
+        </div>
 
         {/* ── Back button (inside gradient) ── */}
         <div className="relative z-10 px-4" style={{ paddingTop: 'var(--safe-top)' }}>

@@ -917,7 +917,7 @@ function App() {
           <Route path="system" element={<AdminSystemPage />} />
           <Route path="branding" element={<AdminBrandingPage />} />
           <Route path="membership" element={<AdminMembershipPage />} />
-          <Route path="merch" element={<AdminMerchPage />} />
+          <Route path="shop" element={<AdminMerchPage />} />
           <Route path="dev-tools" element={<DevToolsPage />} />
         </Route>
 

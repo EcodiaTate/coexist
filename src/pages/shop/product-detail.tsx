@@ -12,6 +12,8 @@ import {
     ShieldCheck,
     Leaf,
     Check,
+    Zap,
+    ArrowLeft,
 } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
@@ -21,10 +23,12 @@ import { Card } from '@/components/card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { Avatar } from '@/components/avatar'
+import { Modal } from '@/components/modal'
 import { useToast } from '@/components/toast'
 import { useProduct, useRelatedProducts, useProductReviews } from '@/hooks/use-merch'
 import { useCart } from '@/hooks/use-cart'
-import { formatPrice, type ProductVariant } from '@/types/merch'
+import { useAvailableStock, useReserveStock } from '@/hooks/use-stock-reservation'
+import { formatPrice, type ProductVariant, type Product } from '@/types/merch'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -308,6 +312,93 @@ function ProductDetailSkeleton() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Added-to-cart recommendation modal                                 */
+/* ------------------------------------------------------------------ */
+
+function AddedToCartModal({
+  open,
+  onClose,
+  related,
+  placeholderMerch,
+}: {
+  open: boolean
+  onClose: () => void
+  related: Product[] | undefined
+  placeholderMerch: string | undefined
+}) {
+  const navigate = useNavigate()
+
+  return (
+    <Modal open={open} onClose={onClose} title="Added to cart!" size="md">
+      <div className="space-y-5">
+        {/* Recommendations */}
+        {related && related.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold text-primary-600 mb-3">
+              You might also like
+            </p>
+            <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 -mx-1 px-1">
+              {related.slice(0, 6).map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => {
+                    onClose()
+                    navigate(`/shop/${p.slug}`)
+                  }}
+                  className="shrink-0 w-32 cursor-pointer select-none active:scale-[0.97] transition-transform duration-150 text-left"
+                >
+                  <div className="rounded-xl overflow-hidden bg-primary-50 shadow-sm">
+                    <img
+                      src={p.images[0] ?? placeholderMerch}
+                      alt={p.name}
+                      className="w-full aspect-square object-cover"
+                    />
+                    <div className="p-2.5">
+                      <p className="text-xs font-semibold text-primary-800 line-clamp-1">
+                        {p.name}
+                      </p>
+                      <p className="text-xs font-bold text-primary-500 mt-0.5">
+                        {formatPrice(p.base_price_cents)}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div className="flex flex-col gap-2.5 pt-1">
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            icon={<ShoppingBag size={18} />}
+            onClick={() => {
+              onClose()
+              navigate('/shop/checkout')
+            }}
+          >
+            Checkout Now
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            fullWidth
+            icon={<ArrowLeft size={18} />}
+            onClick={onClose}
+          >
+            Continue Shopping
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main product detail page                                           */
 /* ------------------------------------------------------------------ */
 
@@ -322,14 +413,23 @@ export default function ProductDetailPage() {
   const { data: reviews } = useProductReviews(product?.id)
   const { data: related } = useRelatedProducts(product?.id)
   const addItem = useCart((s) => s.addItem)
+  const { reserve } = useReserveStock()
+
+  // Realtime available stock (total - other users' reservations)
+  const { getAvailable, loading: stockLoading } = useAvailableStock(product?.id)
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [addedToCart, setAddedToCart] = useState(false)
+  const [showCartModal, setShowCartModal] = useState(false)
+  const [reserving, setReserving] = useState(false)
 
   // Auto-select first in-stock variant when product loads
   const activeVariant = selectedVariant ?? product?.variants.find((v) => v.stock > 0 && v.is_active) ?? product?.variants[0] ?? null
-  const inStock = activeVariant ? activeVariant.stock > 0 : false
+
+  // Use realtime available stock instead of static variant.stock
+  const availableStock = activeVariant ? getAvailable(activeVariant.id) : 0
+  const inStock = !stockLoading && availableStock > 0
 
   const sizes = useMemo(
     () => product ? [...new Set(product.variants.map((v) => v.size).filter(Boolean))] as string[] : [],
@@ -346,13 +446,53 @@ export default function ProductDetailPage() {
     return { avg: Math.round(avg * 10) / 10, count: reviews.length }
   }, [reviews])
 
-  const handleAddToCart = useCallback(() => {
+  const handleAddToCart = useCallback(async () => {
     if (!product || !activeVariant) return
-    addItem(product, activeVariant, quantity)
-    setAddedToCart(true)
-    toast.success(`${product.name} added to cart`)
-    setTimeout(() => setAddedToCart(false), 2000)
-  }, [product, activeVariant, quantity, addItem, toast])
+    setReserving(true)
+    try {
+      // Reserve stock first — prevents overselling
+      const result = await reserve(product.id, activeVariant.id, quantity)
+      if (!result.success) {
+        if (result.error === 'insufficient_stock') {
+          toast.error(
+            result.available === 0
+              ? 'Sorry, this item just sold out!'
+              : `Only ${result.available} available — please reduce quantity`,
+          )
+        } else {
+          toast.error('Could not reserve stock. Please try again.')
+        }
+        return
+      }
+      addItem(product, activeVariant, quantity)
+      setAddedToCart(true)
+      toast.success(`${product.name} added to cart — reserved for 15 min`)
+      setShowCartModal(true)
+      setTimeout(() => setAddedToCart(false), 2000)
+    } finally {
+      setReserving(false)
+    }
+  }, [product, activeVariant, quantity, addItem, toast, reserve])
+
+  const handleBuyNow = useCallback(async () => {
+    if (!product || !activeVariant) return
+    setReserving(true)
+    try {
+      const result = await reserve(product.id, activeVariant.id, quantity)
+      if (!result.success) {
+        toast.error(
+          result.available === 0
+            ? 'Sorry, this item just sold out!'
+            : `Only ${result.available} available — please reduce quantity`,
+        )
+        return
+      }
+      addItem(product, activeVariant, quantity)
+      navigate('/shop/checkout')
+    } finally {
+      setReserving(false)
+    }
+  }, [product, activeVariant, quantity, addItem, navigate, reserve, toast])
 
   if (isLoading) return <ProductDetailSkeleton />
 
@@ -390,19 +530,33 @@ export default function ProductDetailPage() {
             <QuantityStepper
               value={quantity}
               onChange={setQuantity}
-              max={activeVariant?.stock}
+              max={availableStock || undefined}
             />
           </div>
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            icon={addedToCart ? <Check size={18} /> : <ShoppingBag size={18} />}
-            disabled={!inStock}
-            onClick={handleAddToCart}
-          >
-            {addedToCart ? 'Added!' : inStock ? 'Add to Cart' : 'Sold Out'}
-          </Button>
+          <div className="flex gap-2.5">
+            <Button
+              variant="secondary"
+              size="lg"
+              fullWidth
+              icon={addedToCart ? <Check size={18} /> : <ShoppingBag size={18} />}
+              disabled={!inStock || reserving}
+              loading={reserving}
+              onClick={handleAddToCart}
+            >
+              {addedToCart ? 'Added!' : inStock ? 'Add to Cart' : 'Sold Out'}
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              icon={<Zap size={18} />}
+              disabled={!inStock || reserving}
+              loading={reserving}
+              onClick={handleBuyNow}
+            >
+              Buy Now
+            </Button>
+          </div>
         </div>
       }
     >
@@ -445,9 +599,9 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Stock status badges */}
+          {/* Stock status badges — uses realtime available stock */}
           <AnimatePresence mode="wait">
-            {activeVariant && !inStock && (
+            {activeVariant && !stockLoading && availableStock === 0 && (
               <motion.div
                 key="oos"
                 initial={{ opacity: 0, height: 0 }}
@@ -459,7 +613,7 @@ export default function ProductDetailPage() {
                 <span className="text-sm font-medium text-error-700">Out of stock</span>
               </motion.div>
             )}
-            {activeVariant && activeVariant.stock > 0 && activeVariant.stock <= 5 && (
+            {activeVariant && availableStock > 0 && availableStock <= 5 && (
               <motion.div
                 key="low"
                 initial={{ opacity: 0, height: 0 }}
@@ -469,7 +623,7 @@ export default function ProductDetailPage() {
               >
                 <div className="w-2 h-2 rounded-full bg-warning-400 animate-pulse" />
                 <span className="text-sm font-medium text-warning-700">
-                  Only {activeVariant.stock} left - grab yours!
+                  Only {availableStock} available - grab yours!
                 </span>
               </motion.div>
             )}
@@ -509,7 +663,7 @@ export default function ProductDetailPage() {
                       (v) => v.size === size && (activeVariant?.colour ? v.colour === activeVariant.colour : true),
                     )
                     const isSelected = activeVariant?.size === size
-                    const available = variant && variant.stock > 0
+                    const available = variant && getAvailable(variant.id) > 0
 
                     return (
                       <motion.button
@@ -552,7 +706,7 @@ export default function ProductDetailPage() {
                       (v) => v.colour === colour && (activeVariant?.size ? v.size === activeVariant.size : true),
                     )
                     const isSelected = activeVariant?.colour === colour
-                    const available = variant && variant.stock > 0
+                    const available = variant && getAvailable(variant.id) > 0
 
                     return (
                       <motion.button
@@ -700,6 +854,13 @@ export default function ProductDetailPage() {
           </>
         )}
       </motion.div>
+
+      <AddedToCartModal
+        open={showCartModal}
+        onClose={() => setShowCartModal(false)}
+        related={related}
+        placeholderMerch={placeholderMerch}
+      />
     </Page>
   )
 }

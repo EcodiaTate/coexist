@@ -106,8 +106,8 @@ export function Page({
         className={cn(
           'relative flex-1',
           // On mobile/native, use inner scroll container for tab-bar offset + scroll restore
-          // On desktop, let the browser handle scrolling naturally
-          !isDesktopNav && 'overflow-y-auto overflow-x-hidden overscroll-contain',
+          // On desktop, clip overflow so sticky bg doesn't paint over the web footer
+          isDesktopNav ? 'overflow-clip' : 'overflow-y-auto overflow-x-hidden overscroll-contain',
           // Side padding for all page content
           'px-4 lg:px-6',
           // Small gap between sidebar and page content on desktop
@@ -119,9 +119,10 @@ export function Page({
           className,
         )}
       >
-        {/* Atmospheric background - gentle gradient + soft decorative shapes */}
+        {/* Atmospheric background — sticky so it stays viewport-pinned while
+            content scrolls over it. Negative margin collapses it out of flow. */}
         {!noBackground && (
-          <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+          <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 -mx-4 lg:-mx-6" aria-hidden="true">
             <div className="absolute inset-0 bg-gradient-to-b from-primary-50/50 via-white to-moss-50/20" />
             {/* Large soft ring - top right */}
             <div className="absolute -top-20 -right-20 w-[340px] h-[340px] rounded-full border-2 border-moss-200/25" />

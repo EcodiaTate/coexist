@@ -1,4 +1,4 @@
-import { Fragment, useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -10,7 +10,6 @@ import {
   RotateCcw,
   ChevronRight,
   Crown,
-  Filter,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -23,6 +22,7 @@ import { Modal } from '@/components/modal'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
+import { useCountUp } from '@/components/stat-card'
 import {
   useAdminCollectives,
   useCreateCollective,
@@ -45,6 +45,51 @@ const AUSTRALIAN_STATES = [
 ] as const
 
 type StatusFilter = 'all' | 'active' | 'archived'
+
+/* ------------------------------------------------------------------ */
+/*  Hero stat card (matches /admin dashboard)                          */
+/* ------------------------------------------------------------------ */
+
+function HeroStatCard({
+  value,
+  label,
+  icon,
+  reducedMotion,
+  delay = 0,
+}: {
+  value: number
+  label: string
+  icon: React.ReactNode
+  reducedMotion: boolean
+  delay?: number
+}) {
+  const display = useCountUp(value, 1200, !reducedMotion)
+
+  return (
+    <motion.div
+      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: 0.5,
+        delay: reducedMotion ? 0 : 0.2 + delay * 0.8,
+        ease: [0.25, 0.46, 0.45, 0.94],
+      }}
+      className="flex flex-col items-center text-center py-6 px-3"
+      aria-label={`${label}: ${value}`}
+    >
+      <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-3" aria-hidden="true">
+        {icon}
+      </span>
+      <p
+        style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
+        className="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums text-white"
+      >
+        {display.toLocaleString()}
+      </p>
+      <p className="mt-1.5 text-xs font-medium text-white/45 tracking-wide uppercase">{label}</p>
+    </motion.div>
+  )
+}
 
 /* ------------------------------------------------------------------ */
 /*  Create collective modal                                            */
@@ -203,30 +248,44 @@ export default function AdminCollectivesPage() {
     return { total, active, totalMembers, totalEvents }
   }, [collectives])
 
+  const rm = !!shouldReduceMotion
+
   const heroStats = useMemo(() => (
     stats ? (
-      <div className="flex items-center">
-        {[
-          { label: 'Total', value: stats.total, icon: <MapPin size={16} /> },
-          { label: 'Active', value: stats.active, icon: <Users size={16} /> },
-          { label: 'Members', value: stats.totalMembers, icon: <Users size={16} /> },
-          { label: 'Events', value: stats.totalEvents, icon: <CalendarDays size={16} /> },
-        ].map((s, i) => (
-          <Fragment key={s.label}>
-            {i > 0 && <div className="w-px self-stretch bg-white/[0.1] shrink-0 my-2" />}
-            <div className="relative flex-1 p-3 text-center">
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 70%)' }} />
-              <div className="relative flex items-center justify-center gap-1.5 text-white/50 mb-1">
-                {s.icon}
-                <span className="text-[11px] font-semibold uppercase tracking-wider">{s.label}</span>
-              </div>
-              <p className="relative text-xl font-bold text-white tabular-nums">{s.value.toLocaleString()}</p>
-            </div>
-          </Fragment>
-        ))}
+      <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
+        <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-white/[0.06]">
+          <HeroStatCard
+            value={stats.total}
+            label="Total"
+            icon={<MapPin size={20} />}
+            reducedMotion={rm}
+            delay={0}
+          />
+          <HeroStatCard
+            value={stats.active}
+            label="Active"
+            icon={<Users size={20} />}
+            reducedMotion={rm}
+            delay={0.1}
+          />
+          <HeroStatCard
+            value={stats.totalMembers}
+            label="Members"
+            icon={<Users size={20} />}
+            reducedMotion={rm}
+            delay={0.2}
+          />
+          <HeroStatCard
+            value={stats.totalEvents}
+            label="Events"
+            icon={<CalendarDays size={20} />}
+            reducedMotion={rm}
+            delay={0.3}
+          />
+        </div>
       </div>
     ) : null
-  ), [stats])
+  ), [stats, rm])
 
   useAdminHeader('Collectives', { actions: heroActions, heroContent: heroStats })
 

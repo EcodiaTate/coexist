@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
     CheckCircle, Clock,
     AlertTriangle, ChevronRight,
-    Calendar,
+    Calendar, FileText,
     SkipForward, Flame, Sparkles
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -197,6 +197,22 @@ function TaskCard({ task }: { task: MyTask }) {
             <div className="px-4 pb-4 pl-12 space-y-3">
               {task.template?.description && (
                 <p className="text-xs text-primary-500 leading-relaxed">{task.template.description}</p>
+              )}
+              {task.template?.attachment_url && (
+                <a
+                  href={task.template.attachment_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-primary-50 border border-primary-100 hover:bg-primary-100 transition-colors"
+                >
+                  <FileText size={18} className="text-primary-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-primary-700 truncate">
+                      {task.template.attachment_label || 'View Attachment'}
+                    </p>
+                    <p className="text-[10px] text-primary-400">Tap to open</p>
+                  </div>
+                </a>
               )}
               <Input
                 placeholder="Add a note (optional)..."

@@ -14,13 +14,15 @@ export interface TaskTemplate {
   description: string | null
   collective_id: string | null
   category: string
-  schedule_type: 'weekly' | 'monthly' | 'event_relative'
+  schedule_type: 'weekly' | 'monthly' | 'event_relative' | 'once'
   day_of_week: number | null
   day_of_month: number | null
   event_offset_days: number | null
   assignee_role: string
   sort_order: number
   is_active: boolean
+  attachment_url: string | null
+  attachment_label: string | null
   created_by: string
   created_at: string
   updated_at: string
@@ -32,6 +34,7 @@ export interface TaskInstance {
   template_id: string
   collective_id: string
   event_id: string | null
+  assigned_user_id: string | null
   due_date: string
   period_key: string
   status: 'pending' | 'completed' | 'skipped'
@@ -71,6 +74,8 @@ export function formatSchedule(template: TaskTemplate): string {
       const direction = (template.event_offset_days ?? 0) < 0 ? 'before' : 'after'
       return `${days} day${days !== 1 ? 's' : ''} ${direction} event`
     }
+    case 'once':
+      return 'One-time'
     default:
       return template.schedule_type
   }
@@ -195,20 +200,31 @@ export function useAdminCreateTemplate() {
       event_offset_days?: number | null
       assignee_role: string
       sort_order?: number
+      attachment_url?: string | null
+      attachment_label?: string | null
     }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('task_templates' as any)
         .insert({
           ...input,
           collective_id: input.collective_id || null,
           created_by: user.id,
         })
+        .select('*, collectives(id, name)')
+        .single()
       if (error) throw error
+      return { ...data, collective: data.collectives } as TaskTemplate
     },
-    onSuccess: () => {
+    onSuccess: (created) => {
+      // Immediately prepend the new template into all matching query caches
+      // so it shows up instantly without waiting for the refetch
+      queryClient.setQueriesData<TaskTemplate[]>(
+        { queryKey: ['admin-task-templates'] },
+        (old) => old ? [created, ...old] : [created],
+      )
       queryClient.invalidateQueries({ queryKey: ['admin-task-templates'] })
     },
   })
@@ -221,13 +237,21 @@ export function useAdminUpdateTemplate() {
       id,
       ...updates
     }: Partial<TaskTemplate> & { id: string }) => {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('task_templates' as any)
         .update(updates)
         .eq('id', id)
+        .select('*, collectives(id, name)')
+        .single()
       if (error) throw error
+      return { ...data, collective: data.collectives } as TaskTemplate
     },
-    onSuccess: () => {
+    onSuccess: (updated) => {
+      // Instantly replace the updated template in cache
+      queryClient.setQueriesData<TaskTemplate[]>(
+        { queryKey: ['admin-task-templates'] },
+        (old) => old?.map((t) => (t.id === updated.id ? updated : t)) ?? [],
+      )
       queryClient.invalidateQueries({ queryKey: ['admin-task-templates'] })
     },
   })

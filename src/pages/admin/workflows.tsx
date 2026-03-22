@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -8,6 +8,12 @@ import {
   CalendarDays,
   CalendarClock,
   Repeat,
+  CircleDot,
+  Paperclip,
+  Upload,
+  FileText,
+  Info,
+  X,
   Trash2,
   Pencil,
   ChevronDown,
@@ -33,6 +39,7 @@ import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
+import { useFileUpload } from '@/hooks/use-file-upload'
 import {
   useAdminTaskTemplates,
   useAdminCreateTemplate,
@@ -71,6 +78,7 @@ const scheduleTypeOptions = [
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
   { value: 'event_relative', label: 'Event Relative' },
+  { value: 'once', label: 'One-time' },
 ]
 
 const scopeOptions = [
@@ -103,6 +111,7 @@ const SCHEDULE_ICONS: Record<string, typeof Calendar> = {
   weekly: Repeat,
   monthly: CalendarDays,
   event_relative: CalendarClock,
+  once: CircleDot,
 }
 
 const tabs = [
@@ -128,6 +137,8 @@ function TemplateModal({
   const { toast } = useToast()
   const createMutation = useAdminCreateTemplate()
   const updateMutation = useAdminUpdateTemplate()
+  const fileUpload = useFileUpload({ bucket: 'task-attachments', pathPrefix: 'templates' })
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [title, setTitle] = useState(template?.title ?? '')
   const [description, setDescription] = useState(template?.description ?? '')
@@ -139,8 +150,25 @@ function TemplateModal({
   const [assigneeRole, setAssigneeRole] = useState(template?.assignee_role ?? 'assist_leader')
   const [collectiveId, setCollectiveId] = useState(template?.collective_id ?? '')
   const [sortOrder, setSortOrder] = useState(String(template?.sort_order ?? 0))
+  const [attachmentUrl, setAttachmentUrl] = useState(template?.attachment_url ?? '')
+  const [attachmentLabel, setAttachmentLabel] = useState(template?.attachment_label ?? '')
 
   const isEdit = !!template
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const result = await fileUpload.upload(file)
+      setAttachmentUrl(result.url)
+      setAttachmentLabel(result.fileName)
+      toast.success('File uploaded')
+    } catch {
+      toast.error(fileUpload.error || 'Upload failed')
+    }
+    // Reset input so same file can be re-selected
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   const collectiveOptions = useMemo(() => [
     { value: '', label: 'All Collectives (Global)' },
@@ -159,6 +187,8 @@ function TemplateModal({
       event_offset_days: scheduleType === 'event_relative' ? parseInt(eventOffsetDays) : null,
       assignee_role: assigneeRole,
       sort_order: parseInt(sortOrder) || 0,
+      attachment_url: attachmentUrl.trim() || null,
+      attachment_label: attachmentLabel.trim() || null,
     }
 
     if (isEdit) {
@@ -226,9 +256,10 @@ function TemplateModal({
         {/* Schedule */}
         <div>
           <p className="text-sm font-medium text-primary-800 mb-2">Schedule</p>
-          <div className="flex gap-2 mb-3">
-            {(['weekly', 'monthly', 'event_relative'] as const).map((type) => {
+          <div className="flex gap-2 mb-3 flex-wrap">
+            {(['weekly', 'monthly', 'event_relative', 'once'] as const).map((type) => {
               const Icon = SCHEDULE_ICONS[type]
+              const labels: Record<string, string> = { weekly: 'Weekly', monthly: 'Monthly', event_relative: 'Event', once: 'One-time' }
               return (
                 <button
                   key={type}
@@ -243,7 +274,7 @@ function TemplateModal({
                   )}
                 >
                   <Icon size={14} />
-                  {type === 'event_relative' ? 'Event' : type.charAt(0).toUpperCase() + type.slice(1)}
+                  {labels[type]}
                 </button>
               )
             })}
@@ -272,6 +303,70 @@ function TemplateModal({
           onChange={(e) => setSortOrder(e.target.value)}
           placeholder="0"
         />
+
+        {scheduleType === 'once' && (
+          <div className="rounded-xl bg-info-50 px-3 py-2.5">
+            <p className="text-xs text-info-700 leading-relaxed">
+              One-time tasks are created once per user when they load the tasks page. Once completed or skipped, they never reappear.
+            </p>
+          </div>
+        )}
+
+        {/* Attachment (optional) */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-primary-800 flex items-center gap-1.5">
+            <Paperclip size={14} className="text-primary-400" />
+            Attachment (optional)
+          </p>
+
+          {attachmentUrl ? (
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary-50 border border-primary-100">
+              <FileText size={18} className="text-primary-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-primary-700 truncate">{attachmentLabel || 'Attachment'}</p>
+                <p className="text-[10px] text-primary-400 truncate">{attachmentUrl}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => { setAttachmentUrl(''); setAttachmentLabel('') }}
+                className="shrink-0 p-1 rounded-lg text-primary-400 hover:text-error-600 hover:bg-error-50 cursor-pointer transition-colors"
+                aria-label="Remove attachment"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg,.webp,.txt"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={fileUpload.uploading}
+                className={cn(
+                  'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed',
+                  'text-sm font-medium cursor-pointer transition-colors',
+                  fileUpload.uploading
+                    ? 'border-primary-200 text-primary-300 bg-primary-50'
+                    : 'border-primary-200 text-primary-500 hover:border-primary-300 hover:bg-primary-50',
+                )}
+              >
+                <Upload size={16} />
+                {fileUpload.uploading
+                  ? `Uploading${fileUpload.progress != null ? ` ${fileUpload.progress}%` : '...'}`
+                  : 'Upload file (PDF, doc, image)'}
+              </button>
+              {fileUpload.error && (
+                <p className="text-xs text-error-600 mt-1">{fileUpload.error}</p>
+              )}
+            </div>
+          )}
+        </div>
 
         <Button
           variant="primary"
@@ -418,6 +513,9 @@ export default function AdminWorkflowsPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [editTemplate, setEditTemplate] = useState<TaskTemplate | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [tipDismissed, setTipDismissed] = useState(() => {
+    try { return localStorage.getItem('workflows-tip-dismissed') === '1' } catch { return false }
+  })
 
   const { toast } = useToast()
   const { data: collectives } = useAllCollectives()
@@ -498,6 +596,36 @@ export default function AdminWorkflowsPage() {
             />
           </motion.div>
 
+          {/* Tip: handbook onboarding setup */}
+          {!tipDismissed && (
+            <motion.div variants={fadeUp} className="mb-4 rounded-xl bg-info-50/80 border border-info-200/40 px-4 py-3">
+              <div className="flex items-start gap-3">
+                <Info size={16} className="text-info-500 mt-0.5 shrink-0" />
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <p className="text-xs font-semibold text-info-800">Setting up the Handbook task for new leaders</p>
+                  <ol className="text-[11px] text-info-700 leading-relaxed list-decimal pl-3.5 space-y-0.5">
+                    <li>Tap <span className="font-medium">Create Template</span></li>
+                    <li>Set schedule to <span className="font-medium">One-time</span> so it only appears once per user</li>
+                    <li>Set scope to <span className="font-medium">All Collectives</span> and assign to <span className="font-medium">Assist Leader+</span></li>
+                    <li>Upload the handbook PDF using the <span className="font-medium">Attachment</span> file picker</li>
+                    <li>Once a leader completes or skips the task, it never reappears for them</li>
+                  </ol>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTipDismissed(true)
+                    try { localStorage.setItem('workflows-tip-dismissed', '1') } catch {}
+                  }}
+                  className="shrink-0 p-1 rounded-lg text-info-400 hover:text-info-600 hover:bg-info-100 cursor-pointer transition-colors"
+                  aria-label="Dismiss tip"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+
           {/* Template list */}
           <motion.div variants={fadeUp}>
             {isLoading ? (
@@ -543,6 +671,15 @@ export default function AdminWorkflowsPage() {
                             <span>{template.collective?.name ?? 'All Collectives'}</span>
                             <span className="text-primary-200">·</span>
                             <span>{template.assignee_role.replace('_', ' ')}+</span>
+                            {template.attachment_url && (
+                              <>
+                                <span className="text-primary-200">·</span>
+                                <span className="flex items-center gap-1 text-primary-500">
+                                  <Paperclip size={10} />
+                                  {template.attachment_label || 'Attachment'}
+                                </span>
+                              </>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -14,6 +14,9 @@ import {
   X,
   ChevronRight,
   Camera,
+  ImagePlus,
+  Trash2,
+  MapPin,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -29,6 +32,7 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
+import { useImageUpload } from '@/hooks/use-image-upload'
 import {
   useCollective,
   useCollectiveMembers,
@@ -67,8 +71,10 @@ const ROLE_COLORS: Record<CollectiveRole, string> = {
   member: 'text-primary-400 bg-white',
 }
 
+const AUSTRALIAN_STATES = ['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'] as const
+
 /* ------------------------------------------------------------------ */
-/*  Edit profile sheet                                                 */
+/*  Edit collective sheet                                              */
 /* ------------------------------------------------------------------ */
 
 function EditCollectiveSheet({
@@ -80,20 +86,91 @@ function EditCollectiveSheet({
 }: {
   open: boolean
   onClose: () => void
-  collective: { name: string; description: string | null; cover_image_url: string | null } | null
-  onSave: (updates: { name: string; description: string }) => void
+  collective: { name: string; description: string | null; cover_image_url: string | null; region: string | null; state: string | null } | null
+  onSave: (updates: { name: string; description: string; region: string; state: string; cover_image_url: string | null }) => void
   isSaving: boolean
 }) {
   const [name, setName] = useState(collective?.name ?? '')
   const [description, setDescription] = useState(collective?.description ?? '')
+  const [region, setRegion] = useState(collective?.region ?? '')
+  const [state, setState] = useState(collective?.state ?? '')
+  const [coverPreview, setCoverPreview] = useState<string | null>(collective?.cover_image_url ?? null)
+  const { upload, uploading, progress } = useImageUpload({ bucket: 'collective-images', pathPrefix: 'covers' })
+  const { toast } = useToast()
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const result = await upload(file)
+      setCoverPreview(result.url)
+    } catch {
+      toast.error('Failed to upload image')
+    }
+  }
 
   return (
-    <BottomSheet open={open} onClose={onClose} snapPoints={[0.6]}>
+    <BottomSheet open={open} onClose={onClose} snapPoints={[0.85]}>
       <div className="space-y-4">
         <h3 className="font-heading text-lg font-semibold text-primary-800">
           Edit Collective
         </h3>
 
+        {/* Cover image */}
+        <div>
+          <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+            Cover Image
+          </label>
+          <div className="mt-1.5 relative rounded-xl overflow-hidden bg-primary-50/50" style={{ aspectRatio: '16/9' }}>
+            {coverPreview ? (
+              <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-primary-300 gap-1.5">
+                <ImagePlus size={28} />
+                <span className="text-[11px] font-medium">Add a cover photo</span>
+              </div>
+            )}
+            {uploading && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <div className="bg-white rounded-xl px-4 py-2 shadow-lg">
+                  <p className="text-xs font-semibold text-primary-700 tabular-nums">{progress ?? 0}%</p>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Camera size={14} />}
+              disabled={uploading}
+              onClick={() => fileRef.current?.click()}
+            >
+              {coverPreview ? 'Replace' : 'Upload'}
+            </Button>
+            {coverPreview && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Trash2 size={14} />}
+                onClick={() => setCoverPreview(null)}
+                disabled={uploading}
+              >
+                Remove
+              </Button>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCoverUpload}
+            />
+          </div>
+        </div>
+
+        {/* Name */}
         <div>
           <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
             Name
@@ -107,6 +184,7 @@ function EditCollectiveSheet({
           />
         </div>
 
+        {/* Description */}
         <div>
           <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
             Description
@@ -115,7 +193,7 @@ function EditCollectiveSheet({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Tell people what your collective is about..."
-            rows={4}
+            rows={3}
             className={cn(
               'mt-1 w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
               'placeholder:text-primary-400',
@@ -125,11 +203,46 @@ function EditCollectiveSheet({
           />
         </div>
 
+        {/* Region + State */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+              Region
+            </label>
+            <Input
+              label="Region"
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+              placeholder="e.g. Byron Bay"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+              State
+            </label>
+            <select
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              className={cn(
+                'mt-1 w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
+                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
+              )}
+            >
+              <option value="">Select...</option>
+              {AUSTRALIAN_STATES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         <Button
           variant="primary"
           fullWidth
-          loading={isSaving}
-          onClick={() => onSave({ name, description })}
+          loading={isSaving || uploading}
+          disabled={uploading}
+          onClick={() => onSave({ name, description, region, state, cover_image_url: coverPreview })}
         >
           Save Changes
         </Button>
@@ -246,12 +359,18 @@ export default function CollectiveManagePage() {
     )
   }, [members, searchQuery])
 
-  const handleSaveCollective = async (updates: { name: string; description: string }) => {
+  const handleSaveCollective = async (updates: { name: string; description: string; region: string; state: string; cover_image_url: string | null }) => {
     if (!collectiveId) return
     try {
       await updateCollective.mutateAsync({
         collectiveId,
-        updates: { name: updates.name, description: updates.description },
+        updates: {
+          name: updates.name,
+          description: updates.description || null,
+          region: updates.region || null,
+          state: updates.state || null,
+          cover_image_url: updates.cover_image_url,
+        },
       })
       setShowEdit(false)
       toast.success('Collective updated')

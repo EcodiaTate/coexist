@@ -12,12 +12,22 @@ const DEFAULT_SHIPPING: ShippingConfig = {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Member discount type                                               */
+/* ------------------------------------------------------------------ */
+
+export interface MemberDiscount {
+  title: string
+  discount_percent: number
+}
+
+/* ------------------------------------------------------------------ */
 /*  Store                                                              */
 /* ------------------------------------------------------------------ */
 
 interface CartState {
   items: CartItem[]
   promoCode: PromoCode | null
+  memberDiscount: MemberDiscount | null
   shippingConfig: ShippingConfig
 
   // Actions
@@ -25,12 +35,14 @@ interface CartState {
   removeItem: (variantId: string) => void
   updateQuantity: (variantId: string, quantity: number) => void
   setPromoCode: (promo: PromoCode | null) => void
+  setMemberDiscount: (discount: MemberDiscount | null) => void
   setShippingConfig: (config: ShippingConfig) => void
   clear: () => void
 
   // Computed
   itemCount: () => number
   subtotalCents: () => number
+  memberDiscountCents: () => number
   discountCents: () => number
   shippingCents: () => number
   totalCents: () => number
@@ -41,6 +53,7 @@ export const useCart = create<CartState>()(
     (set, get) => ({
       items: [],
       promoCode: null,
+      memberDiscount: null,
       shippingConfig: DEFAULT_SHIPPING,
 
       addItem: (product, variant, quantity = 1) => {
@@ -78,18 +91,27 @@ export const useCart = create<CartState>()(
       },
 
       setPromoCode: (promo) => set({ promoCode: promo }),
+      setMemberDiscount: (discount) => set({ memberDiscount: discount }),
       setShippingConfig: (config) => set({ shippingConfig: config }),
-      clear: () => set({ items: [], promoCode: null }),
+      clear: () => set({ items: [], promoCode: null, memberDiscount: null }),
 
       itemCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
 
       subtotalCents: () =>
         get().items.reduce((sum, i) => sum + i.variant.price_cents * i.quantity, 0),
 
+      memberDiscountCents: () => {
+        const md = get().memberDiscount
+        if (!md || !md.discount_percent) return 0
+        const subtotal = get().subtotalCents()
+        return Math.round(subtotal * (md.discount_percent / 100))
+      },
+
       discountCents: () => {
         const promo = get().promoCode
         if (!promo) return 0
-        const subtotal = get().subtotalCents()
+        // Promo applies after member discount
+        const subtotal = get().subtotalCents() - get().memberDiscountCents()
         if (promo.min_order_cents && subtotal < promo.min_order_cents) return 0
         switch (promo.type) {
           case 'percentage':
@@ -117,9 +139,10 @@ export const useCart = create<CartState>()(
 
       totalCents: () => {
         const subtotal = get().subtotalCents()
-        const discount = get().discountCents()
+        const memberDisc = get().memberDiscountCents()
+        const promoDisc = get().discountCents()
         const shipping = get().shippingCents()
-        return Math.max(0, subtotal - discount + shipping)
+        return Math.max(0, subtotal - memberDisc - promoDisc + shipping)
       },
     }),
     {

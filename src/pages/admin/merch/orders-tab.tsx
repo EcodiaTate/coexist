@@ -163,11 +163,11 @@ function OrderCounts({ orders }: { orders: OrderWithProfile[] }) {
   ]
 
   return (
-    <div className="grid grid-cols-4 gap-2 mb-4">
+    <div className="grid grid-cols-4 gap-2.5 mb-5">
       {cards.map((c) => (
-        <div key={c.label} className={cn('p-2.5 rounded-xl text-center shadow-sm border border-primary-100/20', c.color)}>
+        <div key={c.label} className={cn('p-3 rounded-2xl text-center shadow-sm border border-primary-100/15', c.color)}>
           <p className="font-heading text-lg font-bold tabular-nums">{c.count}</p>
-          <p className="text-[10px] font-medium mt-0.5">{c.label}</p>
+          <p className="text-[10px] font-semibold mt-0.5">{c.label}</p>
         </div>
       ))}
     </div>
@@ -188,7 +188,7 @@ export default function OrdersTab() {
 
   const { toast } = useToast()
   const shouldReduceMotion = useReducedMotion()
-  const { data: orders, isLoading } = useAdminOrders(
+  const { data: orders, isLoading, isFetching } = useAdminOrders(
     statusFilter === 'all' ? undefined : statusFilter,
   )
   const updateStatus = useUpdateOrderStatus()
@@ -271,7 +271,8 @@ export default function OrdersTab() {
     [],
   )
 
-  if (isLoading) {
+  // Only show skeleton on first ever load, not on tab/filter switches
+  if (isLoading && !orders) {
     return (
       <div className="space-y-3">
         <div className="grid grid-cols-4 gap-2">
@@ -316,13 +317,13 @@ export default function OrdersTab() {
       </motion.div>
 
       {/* Search + export */}
-      <motion.div variants={fadeUp} className="flex gap-2 mb-4">
+      <motion.div variants={fadeUp} className="flex gap-2 mb-5">
         <SearchBar
           value={search}
           onChange={setSearch}
           placeholder="Search orders..."
           compact
-          className="flex-1"
+          className="flex-1 [&>*+*]:!bg-white"
         />
         <Button variant="ghost" size="sm" icon={<Download size={14} />} onClick={handleExport}>
           CSV
@@ -338,13 +339,13 @@ export default function OrdersTab() {
             description={search ? 'Try a different search' : 'Orders will appear here'}
           />
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {filteredOrders.map((order) => (
               <button
                 key={order.id}
                 type="button"
                 onClick={() => openOrder(order)}
-                className="w-full text-left p-4 bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf] border border-primary-200/30 rounded-[20px] shadow-[0_4px_20px_-4px_rgba(61,77,51,0.10),0_1px_4px_rgba(61,77,51,0.04)] cursor-pointer hover:shadow-[0_6px_28px_-4px_rgba(61,77,51,0.16)] transition-all duration-200 active:scale-[0.98]"
+                className="w-full text-left p-5 bg-gradient-to-br from-[#f0f4ea] via-[#edf1e7] to-[#e8ecdf] border border-primary-200/20 rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.08),0_1px_4px_rgba(61,77,51,0.03)] cursor-pointer hover:shadow-[0_6px_28px_-4px_rgba(61,77,51,0.14)] transition-all duration-200 active:scale-[0.98]"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">

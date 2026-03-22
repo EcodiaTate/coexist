@@ -514,60 +514,62 @@ export default function LeaderDashboardPage() {
 
   return (
     <Wrapper>
-      <div className="relative min-h-screen overflow-x-hidden">
-        {/* ── Background ── */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
+      <div className="relative min-h-screen">
+        {/* ── Background — sticky keeps it viewport-pinned ── */}
+        <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
 
-        {/* ── Background geometric shapes ── */}
-        <motion.div
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-          transition={{ scale: { duration: 16, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.2, ease: 'easeOut' } }}
-          className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06]"
-        />
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-          transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.5, delay: 0.3, ease: 'easeOut' } }}
-          className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08]"
-        />
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: [1, 1.07, 1], opacity: 1 }}
-          transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.5, delay: 0.5, ease: 'easeOut' } }}
-          className="absolute -right-[12%] bottom-[8%] w-[45vw] h-[45vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.06]"
-        />
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-          transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 2, delay: 0.6, ease: 'easeOut' } }}
-          className="absolute -right-[5%] -top-[12%] w-[40vw] h-[40vw] max-w-[380px] max-h-[380px] rounded-full border border-white/[0.05]"
-        />
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1, delay: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="absolute right-[5%] top-[40%] w-[80px] h-[80px] rounded-full bg-white/[0.04]"
-        />
-        {/* Floating dots */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ y: [0, -8, 0], opacity: [0.3, 0.55, 0.3] }}
-          transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1.2 } }}
-          className="absolute left-[20%] top-[15%] w-2 h-2 rounded-full bg-white/30"
-        />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ y: [0, 6, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={{ y: { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 0.8, delay: 1.5 } }}
-          className="absolute right-[22%] top-[25%] w-1.5 h-1.5 rounded-full bg-white/25"
-        />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ y: [0, -5, 0], opacity: [0.2, 0.4, 0.2] }}
-          transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 0.8, delay: 1.8 } }}
-          className="absolute left-[45%] bottom-[18%] w-2 h-2 rounded-full bg-white/20"
-        />
+          {/* ── Background geometric shapes ── */}
+          <motion.div
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: [1, 1.04, 1], opacity: 1 }}
+            transition={{ scale: { duration: 16, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.2, ease: 'easeOut' } }}
+            className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06]"
+          />
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: [1, 1.05, 1], opacity: 1 }}
+            transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.5, delay: 0.3, ease: 'easeOut' } }}
+            className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08]"
+          />
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: [1, 1.07, 1], opacity: 1 }}
+            transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.5, delay: 0.5, ease: 'easeOut' } }}
+            className="absolute -right-[12%] bottom-[8%] w-[45vw] h-[45vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.06]"
+          />
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: [1, 1.04, 1], opacity: 1 }}
+            transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 2, delay: 0.6, ease: 'easeOut' } }}
+            className="absolute -right-[5%] -top-[12%] w-[40vw] h-[40vw] max-w-[380px] max-h-[380px] rounded-full border border-white/[0.05]"
+          />
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1, delay: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="absolute right-[5%] top-[40%] w-[80px] h-[80px] rounded-full bg-white/[0.04]"
+          />
+          {/* Floating dots */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ y: [0, -8, 0], opacity: [0.3, 0.55, 0.3] }}
+            transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1.2 } }}
+            className="absolute left-[20%] top-[15%] w-2 h-2 rounded-full bg-white/30"
+          />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ y: [0, 6, 0], opacity: [0.2, 0.5, 0.2] }}
+            transition={{ y: { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 0.8, delay: 1.5 } }}
+            className="absolute right-[22%] top-[25%] w-1.5 h-1.5 rounded-full bg-white/25"
+          />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ y: [0, -5, 0], opacity: [0.2, 0.4, 0.2] }}
+            transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 0.8, delay: 1.8 } }}
+            className="absolute left-[45%] bottom-[18%] w-2 h-2 rounded-full bg-white/20"
+          />
+        </div>
 
         {/* ── Content ── */}
         <motion.div

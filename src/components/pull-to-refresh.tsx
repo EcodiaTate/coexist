@@ -38,8 +38,17 @@ export function PullToRefresh({
   const pastThreshold = pullDistance >= THRESHOLD
 
   const isAtScrollTop = useCallback(() => {
-    if (!containerRef.current) return true
-    return containerRef.current.scrollTop <= 0
+    const el = containerRef.current
+    if (!el) return true
+    // Check own scrollTop first, then walk up to find the nearest scrolling ancestor
+    if (el.scrollHeight > el.clientHeight && el.scrollTop > 0) return false
+    let node = el.parentElement
+    while (node) {
+      const { overflowY } = getComputedStyle(node)
+      if ((overflowY === 'auto' || overflowY === 'scroll') && node.scrollTop > 0) return false
+      node = node.parentElement
+    }
+    return true
   }, [])
 
   const handleTouchStart = useCallback(
@@ -98,7 +107,7 @@ export function PullToRefresh({
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className={cn('relative overflow-y-auto', className)}
+      className={cn('relative', className)}
     >
       {/* Content - pulls down, revealing the page's own background behind it */}
       <motion.div

@@ -74,9 +74,9 @@ export function useAdminHeader(
 /*  Per-page hero hue config - maps title → gradient hue + subtitle   */
 /* ------------------------------------------------------------------ */
 
-const PAGE_HERO_CONFIG: Record<string, { hue: string; defaultSubtitle: string }> = {
+const PAGE_HERO_CONFIG: Record<string, { hue: string; defaultSubtitle: string; tall?: boolean }> = {
   'Dashboard':           { hue: 'from-primary-800 via-primary-900 to-primary-950',        defaultSubtitle: 'National conservation overview' },
-  'Collectives':         { hue: 'from-primary-800 via-primary-900 to-primary-950',        defaultSubtitle: 'Manage local chapters across Australia' },
+  'Collectives':         { hue: 'from-primary-600 via-primary-700 to-primary-900',        defaultSubtitle: 'Manage local chapters across Australia', tall: true },
   'Users':               { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Manage members, roles, and permissions' },
   'User Management':     { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Manage members, roles, and permissions' },
   'Workflows':           { hue: 'from-primary-700 via-primary-800 to-primary-950',        defaultSubtitle: 'Automate recurring tasks and track KPIs' },
@@ -99,7 +99,7 @@ const PAGE_HERO_CONFIG: Record<string, { hue: string; defaultSubtitle: string }>
   'Dev Tools':           { hue: 'from-primary-900 via-neutral-900 to-neutral-950',        defaultSubtitle: 'Testing and debugging utilities' },
 }
 
-const DEFAULT_HERO = { hue: 'from-primary-800 via-primary-900 to-primary-950', defaultSubtitle: '' }
+const DEFAULT_HERO = { hue: 'from-primary-800 via-primary-900 to-primary-950', defaultSubtitle: '', tall: false }
 
 /** Returns true when the component is rendered inside the admin layout. */
 export function useIsAdminLayout() {
@@ -140,7 +140,7 @@ const adminNavCategories: AdminNavCategory[] = [
       { label: 'Events', path: '/admin/events', icon: <CalendarDays size={17} strokeWidth={1.5} />, capability: 'manage_events' },
       { label: 'Challenges', path: '/admin/challenges', icon: <Trophy size={17} strokeWidth={1.5} />, capability: 'manage_challenges' },
       { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_surveys' },
-      { label: 'Merch Shop', path: '/admin/merch', icon: <ShoppingBag size={17} strokeWidth={1.5} /> },
+      { label: 'Shop', path: '/admin/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} /> },
     ],
   },
   {
@@ -465,12 +465,14 @@ export function AdminLayout() {
                   'relative overflow-hidden',
                   'bg-gradient-to-br transition-all duration-700 ease-in-out',
                   cfg.hue,
-                  'px-6 pt-5 pb-10 sm:px-8 sm:pt-8 sm:pb-12',
+                  cfg.tall
+                    ? 'px-6 pt-8 pb-14 sm:px-8 sm:pt-12 sm:pb-16'
+                    : 'px-6 pt-5 pb-10 sm:px-8 sm:pt-8 sm:pb-12',
                 )}
               >
                 {/* Decorative ambient circles */}
-                <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-white/[0.04] blur-2xl" />
-                <div className="pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-white/[0.03] blur-2xl" />
+                <div className={cn('pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full blur-2xl', cfg.tall ? 'bg-white/[0.07]' : 'bg-white/[0.04]')} />
+                <div className={cn('pointer-events-none absolute -bottom-16 -left-16 h-48 w-48 rounded-full blur-2xl', cfg.tall ? 'bg-white/[0.05]' : 'bg-white/[0.03]')} />
 
                 <div className="relative z-10">
                   <div className="flex items-end justify-between gap-4 flex-wrap">
@@ -498,13 +500,13 @@ export function AdminLayout() {
 
           {/* Content rendered by nested <Route> children */}
           <div className={cn(
-            'relative flex-1',
+            'relative flex-1 overflow-clip',
             header.fullBleed ? 'p-0' : 'p-6',
             showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
           )}>
-            {/* Atmospheric background for non-fullBleed pages */}
+            {/* Atmospheric background — sticky keeps it viewport-pinned */}
             {!header.fullBleed && (
-              <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+              <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 overflow-hidden" aria-hidden="true">
                 <div className="absolute inset-0 bg-gradient-to-b from-primary-50/40 via-white to-primary-50/20" />
                 <div className="absolute -top-20 -right-20 w-[350px] h-[350px] rounded-full bg-primary-100/10 blur-3xl" />
                 <div className="absolute -bottom-16 -left-12 w-[280px] h-[280px] rounded-full bg-primary-50/15 blur-3xl" />

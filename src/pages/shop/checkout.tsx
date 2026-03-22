@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { MapPin, CreditCard } from 'lucide-react'
+import { MapPin, CreditCard, Crown, Clock } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -11,7 +11,9 @@ import { Divider } from '@/components/divider'
 import { Dropdown } from '@/components/dropdown'
 import { useToast } from '@/components/toast'
 import { useCart } from '@/hooks/use-cart'
+import { useMemberAutoDiscount } from '@/hooks/use-member-discount'
 import { useCreateMerchCheckout, useSavedAddresses } from '@/hooks/use-orders'
+import { useCartReservationSync, useMyReservations, useReservationCountdown } from '@/hooks/use-stock-reservation'
 import { redirectToCheckout } from '@/lib/stripe'
 import { formatPrice, type ShippingAddress } from '@/types/merch'
 import { cn } from '@/lib/cn'
@@ -46,10 +48,27 @@ export default function CheckoutPage() {
 
   const items = useCart((s) => s.items)
   const subtotalCents = useCart((s) => s.subtotalCents())
+  const memberDiscountCents = useCart((s) => s.memberDiscountCents())
   const discountCents = useCart((s) => s.discountCents())
   const shippingCents = useCart((s) => s.shippingCents())
   const totalCents = useCart((s) => s.totalCents())
   const clearCart = useCart((s) => s.clear)
+
+  // Keep member discount synced
+  useMemberAutoDiscount()
+
+  // Keep stock reservations alive while on checkout
+  const { releaseAll } = useCartReservationSync(items)
+  const { reservations } = useMyReservations()
+
+  // Find the earliest expiring reservation to show a countdown
+  const earliestExpiry = reservations.length > 0
+    ? reservations.reduce<string | undefined>((earliest, r) =>
+        !earliest || new Date(r.expires_at) < new Date(earliest) ? r.expires_at : earliest,
+      undefined)
+    : undefined
+  const { secondsLeft: reservationSecondsLeft, isExpiring: reservationExpiring, isExpired: reservationExpired } =
+    useReservationCountdown(earliestExpiry)
 
   const { data: savedAddresses } = useSavedAddresses()
   const checkout = useCreateMerchCheckout()
@@ -91,6 +110,13 @@ export default function CheckoutPage() {
 
   const handleCheckout = useCallback(async () => {
     if (!validate()) return
+
+    // Block checkout if reservations have expired
+    if (reservationExpired) {
+      toast.error('Your reservations have expired. Please go back to your cart and try again.')
+      return
+    }
+
     try {
       const result = await checkout.mutateAsync({ shippingAddress: address })
       if (result.url) {
@@ -101,7 +127,7 @@ export default function CheckoutPage() {
     } catch {
       toast.error('Checkout failed. Please try again.')
     }
-  }, [validate, checkout, address, toast])
+  }, [validate, checkout, address, toast, reservationExpired])
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -124,9 +150,10 @@ export default function CheckoutPage() {
           fullWidth
           icon={<CreditCard size={18} />}
           loading={checkout.isPending}
+          disabled={reservationExpired}
           onClick={handleCheckout}
         >
-          Pay {formatPrice(totalCents)}
+          {reservationExpired ? 'Reservations Expired' : `Pay ${formatPrice(totalCents)}`}
         </Button>
       }
     >
@@ -136,6 +163,43 @@ export default function CheckoutPage() {
         animate="visible"
         className="py-5 space-y-6"
       >
+        {/* Reservation countdown banner */}
+        {reservationSecondsLeft !== null && reservationSecondsLeft > 0 && (
+          <motion.div
+            variants={fadeUp}
+            className={cn(
+              'flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl',
+              reservationExpiring
+                ? 'bg-warning-50 ring-1 ring-warning-200/50'
+                : 'bg-primary-50 ring-1 ring-primary-200/50',
+            )}
+          >
+            <Clock size={16} className={reservationExpiring ? 'text-warning-600 shrink-0' : 'text-primary-500 shrink-0'} />
+            <div className="flex-1 min-w-0">
+              <p className={cn('text-sm font-semibold', reservationExpiring ? 'text-warning-800' : 'text-primary-800')}>
+                Items reserved for you
+              </p>
+              <p className={cn('text-xs', reservationExpiring ? 'text-warning-600' : 'text-primary-500')}>
+                Complete checkout within {Math.floor(reservationSecondsLeft / 60)}:{(reservationSecondsLeft % 60).toString().padStart(2, '0')}
+              </p>
+            </div>
+          </motion.div>
+        )}
+        {reservationExpired && (
+          <motion.div
+            variants={fadeUp}
+            className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-error-50 ring-1 ring-error-200/50"
+          >
+            <Clock size={16} className="text-error-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-error-800">Reservations expired</p>
+              <p className="text-xs text-error-600">
+                Go back to your cart to re-reserve items
+              </p>
+            </div>
+          </motion.div>
+        )}
+
         {/* Saved addresses */}
         {savedAddresses && savedAddresses.length > 0 && (
           <motion.section variants={fadeUp}>
@@ -267,9 +331,18 @@ export default function CheckoutPage() {
               <span>Subtotal</span>
               <span className="tabular-nums">{formatPrice(subtotalCents)}</span>
             </div>
+            {memberDiscountCents > 0 && (
+              <div className="flex justify-between text-primary-600">
+                <span className="flex items-center gap-1">
+                  <Crown size={12} />
+                  Member discount
+                </span>
+                <span className="tabular-nums">-{formatPrice(memberDiscountCents)}</span>
+              </div>
+            )}
             {discountCents > 0 && (
               <div className="flex justify-between text-primary-400">
-                <span>Discount</span>
+                <span>Promo discount</span>
                 <span className="tabular-nums">-{formatPrice(discountCents)}</span>
               </div>
             )}

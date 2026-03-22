@@ -127,7 +127,7 @@ export const Input = forwardRef<
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type
 
   const sharedClasses = cn(
-    'peer w-full rounded-lg bg-white px-4 pt-5 pb-2',
+    'peer w-full rounded-lg bg-white px-4 pt-7 pb-2',
     'text-[16px] leading-normal text-primary-800',
     'outline-none transition-all duration-150',
     'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -141,8 +141,8 @@ export const Input = forwardRef<
   const labelMotion = {
     initial: false as const,
     animate: {
-      y: isFloating ? 0 : 8,
-      scale: isFloating ? 0.8 : 1,
+      y: isFloating ? -2 : 10,
+      scale: isFloating ? 0.75 : 1,
       originX: 0,
     },
     transition: shouldReduceMotion
@@ -223,7 +223,7 @@ export const Input = forwardRef<
           htmlFor={id}
           {...(labelMotion as any)}
           className={cn(
-            'absolute left-4 top-2 pointer-events-none',
+            'absolute left-4 top-3 pointer-events-none',
             'text-[16px] leading-normal origin-left',
             (isSearch || icon) && 'left-10',
             error ? 'text-error' : focused ? 'text-primary-400' : 'text-primary-400',

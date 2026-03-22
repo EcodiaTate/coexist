@@ -15,6 +15,7 @@ import {
     TreePine,
     Users,
     Clock,
+    Trash2,
 } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
@@ -25,6 +26,7 @@ import { PullToRefresh } from '@/components/pull-to-refresh'
 import { Button } from '@/components/button'
 import { useProducts } from '@/hooks/use-merch'
 import { useCart } from '@/hooks/use-cart'
+import { useMemberAutoDiscount } from '@/hooks/use-member-discount'
 import { usePartnerPerks, type PartnerPerk } from '@/hooks/use-partner-perks'
 import { useMyMembership } from '@/hooks/use-membership'
 import { formatPrice, type Product } from '@/types/merch'
@@ -146,7 +148,7 @@ function CategoryPills({
             'shrink-0 snap-start px-4 h-10 rounded-2xl text-sm font-semibold transition-all duration-200 select-none cursor-pointer',
             'flex items-center gap-1.5 active:scale-[0.96]',
             active === CATEGORY_ALL
-              ? 'bg-gradient-to-r from-primary-600 to-moss-600 text-white shadow-md shadow-primary-600/20'
+              ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md shadow-primary-400/20'
               : 'bg-white text-primary-700 hover:bg-primary-50 border border-primary-100/60 shadow-sm',
           )}
         >
@@ -162,7 +164,7 @@ function CategoryPills({
               'shrink-0 snap-start px-4 h-10 rounded-2xl text-sm font-semibold capitalize transition-all duration-200 select-none cursor-pointer whitespace-nowrap',
               'flex items-center gap-1.5 active:scale-[0.96]',
               active === cat
-                ? 'bg-gradient-to-r from-primary-600 to-moss-600 text-white shadow-md shadow-primary-600/20'
+                ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md shadow-primary-400/20'
                 : 'bg-white text-primary-700 hover:bg-primary-50 border border-primary-100/60 shadow-sm',
             )}
           >
@@ -186,13 +188,9 @@ function CategoryPills({
 /* ------------------------------------------------------------------ */
 
 function ShopHero({
-  cartCount,
-  onCartClick,
   onBack,
   rm,
 }: {
-  cartCount: number
-  onCartClick: () => void
   onBack: () => void
   rm: boolean
 }) {
@@ -262,32 +260,16 @@ function ShopHero({
           <button
             type="button"
             onClick={onBack}
-            className="flex items-center justify-center w-10 h-10 rounded-2xl bg-black/25 backdrop-blur-md text-white border border-white/10 active:scale-[0.95] transition-transform cursor-pointer"
+            className="flex items-center justify-center w-10 h-10 text-black active:scale-[0.95] transition-transform cursor-pointer"
             aria-label="Go back"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 18l-6-6 6-6" />
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5" />
+              <path d="M12 19l-7-7 7-7" />
             </svg>
           </button>
-          <button
-            type="button"
-            onClick={onCartClick}
-            className="relative flex items-center justify-center w-10 h-10 rounded-2xl bg-black/25 backdrop-blur-md text-white border border-white/10 active:scale-[0.95] transition-transform cursor-pointer"
-            aria-label={`Cart (${cartCount} items)`}
-          >
-            <ShoppingBag size={20} />
-            {cartCount > 0 && (
-              <span
-                className={cn(
-                  'absolute -top-1 -right-1 flex items-center justify-center',
-                  'min-w-[20px] h-[20px] px-1 rounded-full',
-                  'bg-coral-500 text-white text-[10px] font-bold shadow-lg shadow-coral-500/30',
-                )}
-              >
-                {cartCount}
-              </span>
-            )}
-          </button>
+          {/* spacer — cart moved outside hero */}
+          <div className="w-10" />
         </div>
 
         {/* Hero text — behind the people so they pass in front */}
@@ -295,7 +277,7 @@ function ShopHero({
           className="absolute inset-x-0 top-[12%] z-[2] flex justify-center"
           style={rm ? undefined : { y: textY }}
         >
-          <h1 className="font-heading text-8xl sm:text-9xl md:text-[11rem] lg:text-[16rem] xl:text-[20rem] font-bold text-[#fff] tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+          <h1 style={{ fontSize: 'clamp(3.5rem, 10vw, 10rem)' }} className="font-heading font-bold text-[#fff] tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
             Shop
           </h1>
         </motion.div>
@@ -516,13 +498,13 @@ function ImpactStrip() {
     return [
       { icon: TreePine, value: formatStat(impact.totalTrees), label: 'Trees planted' },
       { icon: Clock, value: formatStat(impact.totalHours), label: 'Volunteer hours' },
-      { icon: Users, value: formatStat(impact.totalMembers), label: 'Members' },
+      { icon: Trash2, value: `${formatStat(impact.totalRubbish)}kg`, label: 'Rubbish collected' },
     ]
   }, [impact])
 
   return (
     <motion.div variants={fadeUp}>
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-moss-700 shadow-lg shadow-primary-800/15">
+      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary-500 via-primary-400 to-sprout-500 shadow-lg shadow-primary-600/15">
         <div className="p-5 pb-6">
           {/* Header */}
           <div className="flex items-center gap-2.5 mb-4">
@@ -784,6 +766,7 @@ export default function ShopPage() {
   const rm = !!shouldReduceMotion
   const { data: products, isLoading } = useProducts()
   const cartCount = useCart((s) => s.itemCount())
+  useMemberAutoDiscount() // Pre-load member discount for cart
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState(CATEGORY_ALL)
 
@@ -851,8 +834,6 @@ export default function ShopPage() {
                 {/* Hero - full bleed with wave transition */}
                 <motion.div variants={rm ? undefined : fadeUp}>
                   <ShopHero
-                    cartCount={cartCount}
-                    onCartClick={() => navigate('/shop/cart')}
                     onBack={() => navigate(-1)}
                     rm={rm}
                   />
@@ -860,7 +841,10 @@ export default function ShopPage() {
 
                 {/* Content below hero - padded */}
                 <div className="px-5 lg:px-6 space-y-6 -mt-1">
-                  {/* Search - elevated with subtle shadow */}
+                  {/* Impact banner */}
+                  {!search && activeCategory === CATEGORY_ALL && <ImpactStrip />}
+
+                  {/* Search */}
                   <motion.div variants={rm ? undefined : fadeUp}>
                     <div className="relative">
                       <SearchBar
@@ -871,6 +855,7 @@ export default function ShopPage() {
                         }}
                         placeholder="Search merch..."
                         compact
+                        className="[&>*+*]:!bg-white"
                       />
                     </div>
                   </motion.div>
@@ -885,9 +870,6 @@ export default function ShopPage() {
                       />
                     </motion.div>
                   )}
-
-                  {/* Impact banner - now a gradient card */}
-                  {!search && activeCategory === CATEGORY_ALL && <ImpactStrip />}
 
                   {/* Featured product */}
                   {showFeatured && (
@@ -943,6 +925,28 @@ export default function ShopPage() {
           </div>
         </div>
       </PullToRefresh>
+
+      {/* Floating cart button — outside hero so hamburger doesn't cover it */}
+      <button
+        type="button"
+        onClick={() => navigate('/shop/cart')}
+        className="fixed bottom-6 right-5 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg shadow-primary-900/20 active:scale-[0.95] transition-transform cursor-pointer"
+        style={{ marginBottom: 'var(--safe-bottom, 0px)' }}
+        aria-label={`Cart (${cartCount} items)`}
+      >
+        <ShoppingBag size={22} />
+        {cartCount > 0 && (
+          <span
+            className={cn(
+              'absolute -top-1 -right-1 flex items-center justify-center',
+              'min-w-[20px] h-[20px] px-1 rounded-full',
+              'bg-coral-500 text-white text-[10px] font-bold shadow-lg shadow-coral-500/30',
+            )}
+          >
+            {cartCount}
+          </span>
+        )}
+      </button>
     </Page>
   )
 }

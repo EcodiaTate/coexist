@@ -20,7 +20,8 @@ export default function AnalyticsTab() {
   const { data: analytics, isLoading } = useSalesAnalytics(period)
   const shouldReduceMotion = useReducedMotion()
 
-  if (isLoading) {
+  // Only show skeleton on first ever load, not on period tab switches
+  if (isLoading && !analytics) {
     return (
       <div className="space-y-3">
         <Skeleton variant="card" />
@@ -51,7 +52,7 @@ export default function AnalyticsTab() {
   }
 
   return (
-    <motion.div className="space-y-4" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+    <motion.div className="space-y-5" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
       {/* Period selector */}
       <motion.div variants={fadeUp}>
         <TabBar
@@ -89,7 +90,7 @@ export default function AnalyticsTab() {
             {analytics.by_product.map((row) => (
               <div
                 key={row.product_id}
-                className="flex items-center justify-between p-3.5 bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 rounded-2xl shadow-sm"
+                className="flex items-center justify-between p-4 bg-gradient-to-br from-[#f0f4ea] to-[#e8ecdf] border border-primary-200/20 rounded-2xl shadow-sm"
               >
                 <div>
                   <p className="text-sm font-medium text-primary-800">{row.product_name}</p>
@@ -112,7 +113,7 @@ export default function AnalyticsTab() {
             {analytics.by_period.map((row) => (
               <div
                 key={row.date}
-                className="flex items-center justify-between px-3.5 py-2.5 bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/20 rounded-xl text-sm"
+                className="flex items-center justify-between px-4 py-3 bg-gradient-to-br from-[#f0f4ea] to-[#e8ecdf] border border-primary-200/15 rounded-xl text-sm"
               >
                 <span className="text-primary-400">{row.date}</span>
                 <div className="flex gap-3">

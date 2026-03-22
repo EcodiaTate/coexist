@@ -126,6 +126,70 @@ export function useMembershipRewards() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Admin: fetch a specific user's membership                          */
+/* ------------------------------------------------------------------ */
+
+export function useAdminUserMembership(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['admin-user-membership', userId],
+    enabled: !!userId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('memberships' as any)
+        .select('*, plan:membership_plans(*)')
+        .eq('user_id', userId!)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (error) throw error
+      return data as unknown as (MembershipWithPlan & { interval: string }) | null
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Admin: update membership status                                    */
+/* ------------------------------------------------------------------ */
+
+export function useAdminUpdateMembershipStatus() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ membershipId, status }: { membershipId: string; status: string }) => {
+      const { error } = await supabase
+        .from('memberships' as any)
+        .update({ status } as any)
+        .eq('id', membershipId)
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-user-membership'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    },
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Admin: set of user IDs with active memberships (for list badges)   */
+/* ------------------------------------------------------------------ */
+
+export function useActiveMemberUserIds() {
+  return useQuery({
+    queryKey: ['admin-active-member-ids'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('memberships' as any)
+        .select('user_id')
+        .in('status', ['active', 'trialing'])
+      if (error) throw error
+      return new Set((data as any[] ?? []).map((d: any) => d.user_id as string))
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
+/* ------------------------------------------------------------------ */
 /*  Admin: all rewards (active + inactive)                             */
 /* ------------------------------------------------------------------ */
 

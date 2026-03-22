@@ -448,13 +448,13 @@ export function LeaderLayout() {
 
           {/* Content rendered by nested <Route> children */}
           <div className={cn(
-            'relative flex-1',
+            'relative flex-1 overflow-clip',
             header.fullBleed ? 'p-0' : 'p-6',
             showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
           )}>
-            {/* Atmospheric background for non-fullBleed pages */}
+            {/* Atmospheric background — sticky keeps it viewport-pinned */}
             {!header.fullBleed && (
-              <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+              <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 overflow-hidden" aria-hidden="true">
                 <div className="absolute inset-0 bg-gradient-to-b from-moss-50/40 via-white to-primary-50/20" />
                 <div className="absolute -top-20 -right-16 w-[350px] h-[350px] rounded-full bg-moss-100/12 blur-3xl" />
                 <div className="absolute -bottom-16 -left-12 w-[280px] h-[280px] rounded-full bg-moss-50/18 blur-3xl" />

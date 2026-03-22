@@ -73,7 +73,7 @@ const TAB_COMPONENTS: Record<string, React.ComponentType> = {
 }
 
 export default function AdminMerchPage() {
-  useAdminHeader('Merch Management')
+  useAdminHeader('Shop')
   const [activeTab, setActiveTab] = useState('products')
   const shouldReduceMotion = useReducedMotion()
   const ActiveComponent = TAB_COMPONENTS[activeTab]
@@ -103,7 +103,7 @@ export default function AdminMerchPage() {
         initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2 }}
-        className="px-4 py-4"
+        className="px-4 py-5"
       >
         <ActiveComponent />
       </motion.div>

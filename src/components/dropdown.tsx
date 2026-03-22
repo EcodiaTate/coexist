@@ -28,6 +28,7 @@ interface DropdownProps {
   error?: string
   disabled?: boolean
   className?: string
+  triggerClassName?: string
 }
 
 function useIsMobile() {
@@ -54,6 +55,7 @@ export function Dropdown({
   error,
   disabled = false,
   className,
+  triggerClassName,
 }: DropdownProps) {
   const [open, setOpen] = useState(false)
   const isMobile = useIsMobile()
@@ -67,18 +69,49 @@ export function Dropdown({
 
   const selectedOption = options.find((o) => o.value === value)
 
-  // Track trigger position for fixed-position popover (escapes overflow clipping)
+  // Track trigger position for fixed-position popover (escapes overflow clipping).
+  // Recalculates on scroll/resize so the popover follows the trigger inside modals.
   const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({})
 
   useLayoutEffect(() => {
     if (!open || isMobile || !triggerRef.current) return
-    const rect = triggerRef.current.getBoundingClientRect()
-    setPopoverStyle({
-      position: 'fixed',
-      top: rect.bottom + 4,
-      left: rect.left,
-      width: rect.width,
-    })
+
+    const updatePosition = () => {
+      if (!triggerRef.current) return
+      const rect = triggerRef.current.getBoundingClientRect()
+      setPopoverStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+      })
+    }
+
+    updatePosition()
+
+    // Listen on all scrollable ancestors + window resize so the popover
+    // repositions when a modal or parent container scrolls.
+    const scrollParents: (HTMLElement | Window)[] = [window]
+    let el: HTMLElement | null = triggerRef.current.parentElement
+    while (el) {
+      const style = getComputedStyle(el)
+      if (/(auto|scroll)/.test(style.overflow + style.overflowY + style.overflowX)) {
+        scrollParents.push(el)
+      }
+      el = el.parentElement
+    }
+
+    for (const parent of scrollParents) {
+      parent.addEventListener('scroll', updatePosition, { passive: true })
+    }
+    window.addEventListener('resize', updatePosition, { passive: true })
+
+    return () => {
+      for (const parent of scrollParents) {
+        parent.removeEventListener('scroll', updatePosition)
+      }
+      window.removeEventListener('resize', updatePosition)
+    }
   }, [open, isMobile])
 
   const handleSelect = useCallback(
@@ -142,6 +175,7 @@ export function Dropdown({
           : open
             ? 'ring-2 ring-primary-500'
             : '',
+        triggerClassName,
       )}
     >
       <span

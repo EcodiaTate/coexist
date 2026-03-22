@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import type {
   Product,
@@ -15,6 +15,25 @@ import type {
 /*  Products (admin - includes archived & draft)                       */
 /* ------------------------------------------------------------------ */
 
+/** Map a DB row back to the app-level Product type */
+function fromDbProduct(row: Record<string, any>): Product {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug ?? '',
+    description: row.description ?? '',
+    images: row.images ?? [],
+    category: row.category ?? null,
+    status: row.status ?? 'active',
+    base_price_cents: row.base_price_cents ?? (row.price != null ? Math.round(Number(row.price) * 100) : 0),
+    variants: Array.isArray(row.variants) ? row.variants : [],
+    avg_rating: row.avg_rating ?? null,
+    review_count: row.review_count ?? 0,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  }
+}
+
 export function useAdminProducts() {
   return useQuery({
     queryKey: ['admin-products'],
@@ -24,7 +43,7 @@ export function useAdminProducts() {
         .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
-      return data as unknown as Product[]
+      return (data ?? []).map(fromDbProduct)
     },
     staleTime: 60 * 1000,
   })
@@ -34,11 +53,36 @@ export function useAdminProducts() {
 /*  Product CRUD                                                       */
 /* ------------------------------------------------------------------ */
 
+/** Map app-level product fields to DB columns.
+ *  Migration 012 added slug, category, status, base_price_cents directly
+ *  to the table, so most fields pass through as-is. We also sync the
+ *  legacy `price` (numeric dollars) and `is_active` columns. */
+function toDbProduct(product: Record<string, unknown>) {
+  const mapped: Record<string, unknown> = {}
+  if ('name' in product) mapped.name = product.name
+  if ('slug' in product) mapped.slug = product.slug
+  if ('description' in product) mapped.description = product.description
+  if ('category' in product) mapped.category = product.category
+  if ('images' in product) mapped.images = product.images
+  if ('base_price_cents' in product) {
+    mapped.base_price_cents = product.base_price_cents
+    // Keep legacy price column in sync (numeric dollars)
+    mapped.price = Number(product.base_price_cents) / 100
+  }
+  if ('status' in product) {
+    mapped.status = product.status
+    // Keep legacy is_active column in sync
+    mapped.is_active = product.status === 'active'
+  }
+  return mapped
+}
+
 export function useCreateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (product: Omit<Product, 'id' | 'variants' | 'avg_rating' | 'review_count' | 'created_at' | 'updated_at'>) => {
-      const { data, error } = await supabase.from('merch_products').insert(product as any).select().single()
+      const row = toDbProduct(product as Record<string, unknown>)
+      const { data, error } = await supabase.from('merch_products').insert(row as any).select().single()
       if (error) throw error
       return data
     },
@@ -50,10 +94,41 @@ export function useUpdateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Product> & { id: string }) => {
-      const { error } = await supabase.from('merch_products').update(updates as any).eq('id', id)
+      const row = toDbProduct(updates as Record<string, unknown>)
+      const { data, error } = await supabase
+        .from('merch_products')
+        .update(row as any)
+        .eq('id', id)
+        .select()
       if (error) throw error
+      if (!data || data.length === 0) {
+        throw new Error('Update had no effect — check RLS policies')
+      }
+      // Return the mapped product so the cache stays in sync
+      return fromDbProduct(data[0])
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-products'] }),
+    onMutate: async ({ id, ...updates }) => {
+      await qc.cancelQueries({ queryKey: ['admin-products'] })
+      const prev = qc.getQueryData<Product[]>(['admin-products'])
+      if (prev) {
+        qc.setQueryData<Product[]>(['admin-products'], prev.map((p) =>
+          p.id === id ? { ...p, ...updates } : p,
+        ))
+      }
+      return { prev }
+    },
+    onSuccess: (updated) => {
+      // Patch the cache with the real DB response so we don't rely on refetch
+      if (updated) {
+        qc.setQueryData<Product[]>(['admin-products'], (prev) =>
+          prev?.map((p) => (p.id === updated.id ? updated : p)),
+        )
+      }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['admin-products'], ctx.prev)
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ['admin-products'] }),
   })
 }
 
@@ -132,6 +207,7 @@ export function useAdminOrders(statusFilter?: OrderStatus) {
       return data as any as (Order & { profiles: { display_name: string | null; avatar_url: string | null } | null })[]
     },
     staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -495,6 +571,7 @@ export function useSalesAnalytics(period: 'week' | 'month' | 'year') {
       return { total_revenue_cents, total_orders, total_units_sold, by_product, by_period }
     },
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 

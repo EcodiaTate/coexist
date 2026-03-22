@@ -23,7 +23,10 @@ import {
     Waves,
     Leaf,
     TrendingUp,
-    Sparkles
+    Sparkles,
+    Camera,
+    ImagePlus,
+    Trash2,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -38,6 +41,7 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useCountUp } from '@/components/stat-card'
+import { useImageUpload } from '@/hooks/use-image-upload'
 import {
     useAdminCollectiveDetail,
     useAdminCollectiveMembers,
@@ -989,6 +993,7 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
   const updateCollective = useAdminUpdateCollective()
   const archiveCollective = useArchiveCollective()
   const deleteCollective = useDeleteCollective()
+  const { upload, uploading, progress } = useImageUpload({ bucket: 'collective-images', pathPrefix: 'covers' })
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -997,6 +1002,7 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
   const [slug, setSlug] = useState('')
   const [initialized, setInitialized] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
 
   // Initialize form when detail loads
   if (detail && !initialized) {
@@ -1005,7 +1011,37 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
     setRegion(detail.region ?? '')
     setState(detail.state ?? '')
     setSlug(detail.slug)
+    setCoverPreview(detail.cover_image_url)
     setInitialized(true)
+  }
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      const result = await upload(file)
+      setCoverPreview(result.url)
+      await updateCollective.mutateAsync({
+        collectiveId,
+        updates: { cover_image_url: result.url },
+      })
+      toast.success('Cover image updated')
+    } catch {
+      toast.error('Failed to upload image')
+    }
+  }
+
+  const handleCoverRemove = async () => {
+    try {
+      await updateCollective.mutateAsync({
+        collectiveId,
+        updates: { cover_image_url: null },
+      })
+      setCoverPreview(null)
+      toast.success('Cover image removed')
+    } catch {
+      toast.error('Failed to remove image')
+    }
   }
 
   const handleSave = async () => {
@@ -1054,6 +1090,66 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
 
   return (
     <div className="space-y-6 max-w-xl">
+      {/* ── Cover image ── */}
+      <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
+        <div className="bg-gradient-to-r from-primary-50 via-white to-primary-50/60 px-5 py-3 border-b border-primary-100/60">
+          <h3 className="font-heading text-sm font-semibold text-primary-700">
+            Cover Image
+          </h3>
+        </div>
+        <div className="p-5">
+          <div className="relative rounded-xl overflow-hidden bg-primary-50/50" style={{ aspectRatio: '16/9' }}>
+            {coverPreview ? (
+              <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-primary-300 gap-2">
+                <ImagePlus size={32} />
+                <span className="text-xs font-medium">No cover image</span>
+              </div>
+            )}
+            {uploading && (
+              <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                <div className="bg-white rounded-xl px-4 py-2 shadow-lg">
+                  <p className="text-xs font-semibold text-primary-700 tabular-nums">{progress ?? 0}%</p>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-2 mt-3">
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Camera size={14} />}
+              disabled={uploading}
+              onClick={() => document.getElementById('admin-cover-upload')?.click()}
+            >
+              {coverPreview ? 'Replace' : 'Upload'}
+            </Button>
+            {coverPreview && (
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Trash2 size={14} />}
+                onClick={handleCoverRemove}
+                disabled={uploading}
+              >
+                Remove
+              </Button>
+            )}
+            <input
+              id="admin-cover-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCoverUpload}
+            />
+          </div>
+          <p className="text-[11px] text-primary-400 mt-2">
+            Recommended: 1200x675px (16:9). Shown on the collective page and discovery cards.
+          </p>
+        </div>
+      </div>
+
       {/* ── Edit form ── */}
       <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
         <div className="bg-gradient-to-r from-primary-50 via-white to-primary-50/60 px-5 py-3 border-b border-primary-100/60">

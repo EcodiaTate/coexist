@@ -56,12 +56,15 @@ export function useMyTasks() {
 
       if (error) throw error
 
-      return (data ?? []).map((row: any) => ({
-        ...row,
-        template: row.task_templates,
-        collective: row.collectives,
-        event: row.events,
-      })) as MyTask[]
+      // Filter: for once-tasks (assigned_user_id set), only show the current user's instances
+      return (data ?? [])
+        .filter((row: any) => !row.assigned_user_id || row.assigned_user_id === user!.id)
+        .map((row: any) => ({
+          ...row,
+          template: row.task_templates,
+          collective: row.collectives,
+          event: row.events,
+        })) as MyTask[]
     },
     enabled: !!user && staffCollectiveIds.length > 0,
     staleTime: 30 * 1000,
@@ -193,7 +196,12 @@ export function useGenerateTaskInstances() {
 
       if (!templates?.length) return
 
-      for (const template of templates as any[]) {
+      // Separate once vs recurring templates
+      const onceTemplates = (templates as any[]).filter((t) => t.schedule_type === 'once')
+      const recurringTemplates = (templates as any[]).filter((t) => t.schedule_type !== 'once')
+
+      // --- Handle recurring templates (weekly/monthly) ---
+      for (const template of recurringTemplates) {
         const periodKey = getCurrentPeriodKey(template.schedule_type)
         if (!periodKey) continue
 
@@ -216,6 +224,49 @@ export function useGenerateTaskInstances() {
               },
               { onConflict: 'template_id,collective_id,period_key' },
             )
+        }
+      }
+
+      // --- Handle once templates (per-user, never regenerate after any status) ---
+      if (onceTemplates.length > 0) {
+        const onceTemplateIds = onceTemplates.map((t: any) => t.id)
+
+        // Check which once-tasks this user already has (any status — pending, completed, or skipped)
+        const { data: existingOnce } = await supabase
+          .from('task_instances' as any)
+          .select('template_id, collective_id')
+          .in('template_id', onceTemplateIds)
+          .eq('assigned_user_id', user.id)
+
+        const existingKeys = new Set(
+          (existingOnce ?? []).map((r: any) => `${r.template_id}:${r.collective_id}`),
+        )
+
+        for (const template of onceTemplates) {
+          const targetCollectives = template.collective_id
+            ? [template.collective_id].filter((id: string) => staffCollectiveIds.includes(id))
+            : staffCollectiveIds
+
+          for (const collectiveId of targetCollectives) {
+            const key = `${template.id}:${collectiveId}`
+            if (existingKeys.has(key)) continue // Already exists — never regenerate
+
+            const periodKey = `once:${user.id}`
+            const dueDate = new Date()
+            dueDate.setDate(dueDate.getDate() + 7) // Due in 7 days
+            dueDate.setHours(23, 59, 59, 999)
+
+            await supabase
+              .from('task_instances' as any)
+              .insert({
+                template_id: template.id,
+                collective_id: collectiveId,
+                due_date: dueDate.toISOString(),
+                period_key: periodKey,
+                assigned_user_id: user.id,
+                status: 'pending',
+              })
+          }
         }
       }
     },
