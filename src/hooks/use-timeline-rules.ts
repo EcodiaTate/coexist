@@ -116,7 +116,7 @@ export function useUpsertTimelineRule() {
         .select('*')
         .single()
       if (error) throw error
-      return data as TimelineRule
+      return data as unknown as TimelineRule
     },
     onSuccess: (rule) => {
       queryClient.setQueryData(['timeline-rule', rule.template_id], rule)

@@ -49,7 +49,7 @@ export function useReserveStock() {
     async (productId: string, variantKey: string, quantity: number): Promise<ReservationResult> => {
       if (!user) return { success: false, error: 'not_authenticated' }
 
-      const { data, error } = await supabase.rpc('reserve_stock', {
+      const { data, error } = await (supabase.rpc as any)('reserve_stock', {
         p_user_id: user.id,
         p_product_id: productId,
         p_variant_key: variantKey,

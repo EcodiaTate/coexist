@@ -524,38 +524,37 @@ export default function ProductDetailPage() {
         </div>
       }
       footer={
-        <div className="space-y-0">
-          {/* Price summary + quantity in sticky footer */}
-          <div className="flex items-center justify-between px-1 pb-2">
-            <div>
-              <span className="text-xs text-primary-400">Total</span>
-              <p className="font-heading text-xl font-bold text-primary-800">
-                {formatPrice((activeVariant?.price_cents ?? product.base_price_cents) * quantity)}
-              </p>
-            </div>
-            <QuantityStepper
-              value={quantity}
-              onChange={setQuantity}
-              max={availableStock || undefined}
-            />
+        <div className="flex items-center gap-3">
+          {/* Price + quantity — compact inline */}
+          <div className="shrink-0">
+            <p className="font-heading text-lg font-bold text-primary-800 leading-none">
+              {formatPrice((activeVariant?.price_cents ?? product.base_price_cents) * quantity)}
+            </p>
           </div>
-          <div className="flex gap-2.5">
+          <QuantityStepper
+            value={quantity}
+            onChange={setQuantity}
+            max={availableStock || undefined}
+          />
+          {/* Buttons */}
+          <div className="flex gap-2 flex-1">
             <Button
               variant="secondary"
-              size="lg"
+              size="md"
               fullWidth
-              icon={addedToCart ? <Check size={18} /> : <ShoppingBag size={18} />}
+              icon={addedToCart ? <Check size={16} /> : <ShoppingBag size={16} />}
               disabled={!inStock || reserving}
               loading={reserving}
               onClick={handleAddToCart}
+              className="!bg-gradient-to-r !from-primary-400 !to-sprout-500 !text-white !border-none"
             >
-              {addedToCart ? 'Added!' : inStock ? 'Add to Cart' : 'Sold Out'}
+              {addedToCart ? 'Added!' : inStock ? 'Cart' : 'Sold Out'}
             </Button>
             <Button
               variant="primary"
-              size="lg"
+              size="md"
               fullWidth
-              icon={<Zap size={18} />}
+              icon={<Zap size={16} />}
               disabled={!inStock || reserving}
               loading={reserving}
               onClick={handleBuyNow}
@@ -836,7 +835,7 @@ export default function ProductDetailPage() {
                             aspectRatio="1/1"
                           />
                           {p.variants.every((v) => v.stock === 0) && (
-                            <div className="absolute inset-0 bg-primary-950/40 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-primary-800/40 flex items-center justify-center">
                               <span className="px-2.5 py-1 bg-white/90 rounded-full text-xs font-semibold text-primary-800">
                                 Sold out
                               </span>

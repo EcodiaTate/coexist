@@ -23,6 +23,7 @@ export interface TaskTemplate {
   is_active: boolean
   attachment_url: string | null
   attachment_label: string | null
+  use_dynamic_timeline: boolean
   created_by: string
   created_at: string
   updated_at: string
@@ -72,7 +73,8 @@ export function formatSchedule(template: TaskTemplate): string {
     case 'event_relative': {
       const days = Math.abs(template.event_offset_days ?? 0)
       const direction = (template.event_offset_days ?? 0) < 0 ? 'before' : 'after'
-      return `${days} day${days !== 1 ? 's' : ''} ${direction} event`
+      const label = `${days} day${days !== 1 ? 's' : ''} ${direction} event`
+      return template.use_dynamic_timeline ? `${label} (auto)` : label
     }
     case 'once':
       return 'One-time'
@@ -217,7 +219,8 @@ export function useAdminCreateTemplate() {
         .select('*, collectives(id, name)')
         .single()
       if (error) throw error
-      return { ...data, collective: data.collectives } as TaskTemplate
+      const row = data as any
+      return { ...row, collective: row.collectives } as TaskTemplate
     },
     onSuccess: (created) => {
       // Immediately prepend the new template into all matching query caches
@@ -245,7 +248,8 @@ export function useAdminUpdateTemplate() {
         .select('*, collectives(id, name)')
         .single()
       if (error) throw error
-      return { ...data, collective: data.collectives } as TaskTemplate
+      const row = data as any
+      return { ...row, collective: row.collectives } as TaskTemplate
     },
     onSuccess: (updated) => {
       // Instantly replace the updated template in cache
