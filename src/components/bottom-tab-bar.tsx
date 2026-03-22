@@ -165,7 +165,7 @@ export function BottomTabBar({
                   <motion.span
                     layoutId={shouldReduceMotion ? undefined : `${layoutPrefix}-pill`}
                     className={cn('absolute inset-x-1.5 inset-y-1 rounded-2xl', activePill)}
-                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30, mass: 0.7 }}
                   />
                 )}
 

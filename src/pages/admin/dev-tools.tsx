@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
     Bug,
     Bell,
@@ -641,6 +643,7 @@ function usePushTestRunner() {
 
 function PushTestSuite() {
   const { data: tokens, isLoading: tokensLoading, refetch: refetchTokens } = usePushTokens()
+  const showTokensLoading = useDelayedLoading(tokensLoading)
   const { data: prefs } = useNotifPrefs()
   const { data: collectives } = useUserCollectives()
   const { results, running, runAll, clear } = usePushTestRunner()
@@ -679,9 +682,9 @@ function PushTestSuite() {
           </button>
         </div>
 
-        {tokensLoading ? (
+        {showTokensLoading ? (
           <Skeleton className="h-10 rounded-lg" />
-        ) : !tokens?.length ? (
+        ) : tokensLoading ? null : !tokens?.length ? (
           <div className="flex items-center gap-2 p-2.5 rounded-lg bg-warning-50 border border-warning-200">
             <AlertCircle size={14} className="text-warning-600 shrink-0" />
             <p className="text-[11px] text-warning-700">
@@ -761,7 +764,7 @@ function PushTestSuite() {
                 type="button"
                 onClick={() => toggleType(type)}
                 className={cn(
-                  'px-2 py-0.5 rounded text-[10px] font-medium transition-all active:scale-[0.97] cursor-pointer',
+                  'px-2 py-0.5 rounded text-[10px] font-medium transition-[color,background-color,box-shadow,transform] duration-150 active:scale-[0.97] cursor-pointer',
                   selectedTypes.includes(type) ? 'bg-primary-600 text-white' : 'bg-primary-50 text-primary-500',
                 )}
               >
@@ -887,17 +890,13 @@ export default function DevToolsPage() {
   const shouldReduceMotion = useReducedMotion()
   const { user, profile } = useAuth()
   const { data: testEvents, isLoading } = useTestEvents()
+  const showLoading = useDelayedLoading(isLoading)
   const seedEvent = useSeedTestEvent()
   const cleanup = useCleanupTests()
 
   const [selectedActivity, setSelectedActivity] = useState('beach_cleanup')
 
-  const stagger = shouldReduceMotion
-    ? undefined
-    : { hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }
-  const fadeUp = shouldReduceMotion
-    ? undefined
-    : { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.25 } } }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   if (!import.meta.env.DEV && profile?.role !== 'super_admin') {
     return (
@@ -953,7 +952,7 @@ export default function DevToolsPage() {
                   type="button"
                   onClick={() => setSelectedActivity(opt.value)}
                   className={cn(
-                    'px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-150',
+                    'px-3 py-1.5 rounded-full text-xs font-medium transition-[color,background-color,box-shadow,transform] duration-150',
                     'cursor-pointer select-none active:scale-[0.97]',
                     selectedActivity === opt.value
                       ? 'bg-primary-600 text-white shadow-sm'
@@ -1002,7 +1001,7 @@ export default function DevToolsPage() {
             </Button>
           </div>
 
-          {isLoading ? (
+          {showLoading ? (
             <div className="space-y-3">
               {[1, 2].map((i) => (
                 <Skeleton key={i} className="h-28 rounded-xl" />

@@ -10,8 +10,8 @@ const stagger = {
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] } },
 }
 
 const LEADER_TOOLS = [
@@ -52,8 +52,8 @@ export default function LeaderWelcomePage() {
         {/* Crown badge */}
         <motion.div
           variants={{
-            hidden: { scale: 0.5, opacity: 0 },
-            visible: { scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 200, damping: 15 } },
+            hidden: { scale: 0.6, opacity: 0 },
+            visible: { scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 300, damping: 20, mass: 0.8 } },
           }}
           className="mx-auto mb-6"
         >

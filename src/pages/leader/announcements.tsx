@@ -15,6 +15,7 @@ import {
     type AnnouncementWithAuthor,
 } from '@/hooks/use-announcements'
 import { useQueryClient } from '@tanstack/react-query'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 /* ------------------------------------------------------------------ */
 /*  Animation                                                          */
@@ -22,12 +23,12 @@ import { useQueryClient } from '@tanstack/react-query'
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -52,68 +53,28 @@ function formatDate(dateStr: string): string {
 /*  Decorative background                                              */
 /* ------------------------------------------------------------------ */
 
-function FullBleedBackground({ rm }: { rm: boolean }) {
+function FullBleedBackground() {
   return (
     <>
       {/* Gradient base */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-50/50 via-white to-primary-50/20" />
 
-      {/* Large ring - top right */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.7, opacity: 0 }}
-        animate={{ scale: [1, 1.03, 1], opacity: 1 }}
-        transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.2, ease: 'easeOut' } }}
-        className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-secondary-200/30"
-      />
+      {/* Large ring - top right — CSS-only breathe */}
+      <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-secondary-200/30 will-change-transform animate-[breathe_20s_ease-in-out_infinite]" />
       {/* Concentric inner ring */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.5, opacity: 0 }}
-        animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-        transition={{ scale: { duration: 22, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.5, delay: 0.3, ease: 'easeOut' } }}
-        className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-secondary-200/25"
-      />
-      {/* Filled glow - bottom left */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.6, opacity: 0 }}
-        animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-        transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 1 }, opacity: { duration: 1.5, delay: 0.5, ease: 'easeOut' } }}
-        className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-secondary-100/25 blur-2xl"
-      />
+      <div className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-secondary-200/25 will-change-transform animate-[breathe_22s_ease-in-out_0.5s_infinite]" />
+      {/* Filled glow - bottom left — static blur, CSS scale */}
+      <div className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-secondary-100/25 blur-2xl will-change-transform animate-[breathe_18s_ease-in-out_1s_infinite]" />
       {/* Small ring - mid left */}
-      <motion.div
-        initial={rm ? {} : { scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-100/20"
-      />
+      <div className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-100/20" />
       {/* Warm glow - center right */}
       <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-secondary-100/25 blur-3xl" />
       {/* Small filled circle - bottom right */}
-      <motion.div
-        initial={rm ? {} : { scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8, delay: 1, ease: 'easeOut' }}
-        className="absolute bottom-[15%] right-[10%] w-[60px] h-[60px] rounded-full bg-primary-100/20"
-      />
-      {/* Floating dots */}
-      <motion.div
-        initial={rm ? {} : { opacity: 0 }}
-        animate={{ opacity: 1, y: [0, -6, 0] }}
-        transition={{ opacity: { duration: 1, delay: 0.8 }, y: { duration: 5, repeat: Infinity, ease: 'easeInOut' } }}
-        className="absolute top-[28%] left-[15%] w-2 h-2 rounded-full bg-secondary-300/25"
-      />
-      <motion.div
-        initial={rm ? {} : { opacity: 0 }}
-        animate={{ opacity: 1, y: [0, 5, 0] }}
-        transition={{ opacity: { duration: 1, delay: 1.2 }, y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 } }}
-        className="absolute top-[55%] right-[20%] w-1.5 h-1.5 rounded-full bg-primary-300/20"
-      />
-      <motion.div
-        initial={rm ? {} : { opacity: 0 }}
-        animate={{ opacity: 1, y: [0, -4, 0] }}
-        transition={{ opacity: { duration: 1, delay: 1.5 }, y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 } }}
-        className="absolute top-[70%] left-[25%] w-1.5 h-1.5 rounded-full bg-secondary-300/25"
-      />
+      <div className="absolute bottom-[15%] right-[10%] w-[60px] h-[60px] rounded-full bg-primary-100/20" />
+      {/* Floating dots — CSS-only */}
+      <div className="absolute top-[28%] left-[15%] w-2 h-2 rounded-full bg-secondary-300/25 will-change-transform animate-[float_5s_ease-in-out_infinite]" />
+      <div className="absolute top-[55%] right-[20%] w-1.5 h-1.5 rounded-full bg-primary-300/20 will-change-transform animate-[floatDown_6s_ease-in-out_1s_infinite]" />
+      <div className="absolute top-[70%] left-[25%] w-1.5 h-1.5 rounded-full bg-secondary-300/25 will-change-transform animate-[float_4.5s_ease-in-out_0.5s_infinite]" />
     </>
   )
 }
@@ -128,18 +89,19 @@ export default function LeaderAnnouncementsPage() {
   const rm = !!shouldReduceMotion
   const queryClient = useQueryClient()
   const { data: announcements, isLoading } = useAnnouncements()
+  const showLoading = useDelayedLoading(isLoading)
 
   useLeaderHeader('Announcements', { fullBleed: true })
 
   /* Loading skeleton */
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="relative min-h-screen overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-secondary-50/50 via-white to-primary-50/20" />
         <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-secondary-200/30" />
         <div className="absolute -left-20 bottom-[10%] w-[280px] h-[280px] rounded-full bg-secondary-100/25 blur-2xl" />
-        <div className="relative z-10 px-6 pt-12 space-y-6">
-          <div className="flex flex-col items-center gap-2 pt-4 pb-2">
+        <div className="relative z-10 px-6 pt-14 space-y-6">
+          <div className="flex flex-col items-center gap-2 pb-2">
             <div className="h-3 w-20 rounded-full bg-secondary-200/40 animate-pulse" />
             <div className="h-8 w-48 rounded-lg bg-secondary-200/30 animate-pulse" />
           </div>
@@ -160,8 +122,8 @@ export default function LeaderAnnouncementsPage() {
   if (!announcements || announcements.length === 0) {
     return (
       <div className="relative min-h-screen overflow-x-hidden">
-        <FullBleedBackground rm={rm} />
-        <div className="relative z-10 px-6 pt-12">
+        <FullBleedBackground />
+        <div className="relative z-10 px-6 pt-14">
           <EmptyState
             illustration="empty"
             title="No announcements"
@@ -175,17 +137,17 @@ export default function LeaderAnnouncementsPage() {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden">
-      <FullBleedBackground rm={rm} />
+      <FullBleedBackground />
 
       <PullToRefresh onRefresh={() => queryClient.invalidateQueries({ queryKey: ['announcements'] })}>
         <motion.div
-          className="relative z-10 px-6 pt-4 space-y-5 pb-20"
+          className="relative z-10 px-6 pt-14 space-y-5 pb-20"
           variants={rm ? undefined : stagger}
           initial="hidden"
           animate="visible"
         >
           {/* ── Hero title ── */}
-          <motion.div variants={rm ? undefined : fadeUp} className="flex flex-col items-center gap-1 pt-6 pb-2">
+          <motion.div variants={rm ? undefined : fadeUp} className="flex flex-col items-center gap-1 pb-2">
             <span className="text-xs font-medium tracking-widest uppercase text-secondary-400">
               Communicate
             </span>
@@ -198,7 +160,7 @@ export default function LeaderAnnouncementsPage() {
           <motion.div variants={rm ? undefined : fadeUp} className="flex justify-center">
             <button
               onClick={() => navigate('/announcements/create')}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-secondary-500 to-secondary-600 text-white text-sm font-semibold shadow-md shadow-secondary-500/20 hover:shadow-lg hover:shadow-secondary-500/30 active:scale-[0.97] transition-all duration-150"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-secondary-500 to-secondary-600 text-white text-sm font-semibold shadow-md shadow-secondary-500/20 hover:shadow-lg hover:shadow-secondary-500/30 active:scale-[0.97] transition-[box-shadow,transform] duration-150"
             >
               <Plus size={16} strokeWidth={2.5} />
               New Announcement
@@ -212,7 +174,7 @@ export default function LeaderAnnouncementsPage() {
               variants={rm ? undefined : fadeUp}
               className={cn(
                 'rounded-2xl bg-white shadow-sm border border-secondary-50/60 p-4',
-                'hover:shadow-md transition-shadow duration-150',
+                'hover:shadow-md transition-shadow duration-200',
                 a.is_pinned && 'ring-1 ring-moss-200 bg-moss-50/30',
               )}
             >

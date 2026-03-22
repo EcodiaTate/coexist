@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
     Download,
     Truck,
@@ -12,6 +13,7 @@ import {
     ExternalLink,
     StickyNote,
 } from 'lucide-react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { TabBar } from '@/components/tab-bar'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -191,6 +193,7 @@ export default function OrdersTab() {
   const { data: orders, isLoading, isFetching } = useAdminOrders(
     statusFilter === 'all' ? undefined : statusFilter,
   )
+  const showLoading = useDelayedLoading(isLoading)
   const updateStatus = useUpdateOrderStatus()
   const refundOrder = useRefundOrder()
   const updateNotes = useUpdateOrderNotes()
@@ -272,7 +275,7 @@ export default function OrdersTab() {
   )
 
   // Only show skeleton on first ever load, not on tab/filter switches
-  if (isLoading && !orders) {
+  if (showLoading && !orders) {
     return (
       <div className="space-y-3">
         <div className="grid grid-cols-4 gap-2">
@@ -286,19 +289,12 @@ export default function OrdersTab() {
       </div>
     )
   }
+  if (isLoading && !orders) return null
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+    <motion.div variants={stagger} initial="hidden" animate="visible">
       {/* Summary counts */}
       {orders && orders.length > 0 && (
         <motion.div variants={fadeUp}>
@@ -345,7 +341,7 @@ export default function OrdersTab() {
                 key={order.id}
                 type="button"
                 onClick={() => openOrder(order)}
-                className="w-full text-left p-5 bg-gradient-to-br from-[#f0f4ea] via-[#edf1e7] to-[#e8ecdf] border border-primary-200/20 rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.08),0_1px_4px_rgba(61,77,51,0.03)] cursor-pointer hover:shadow-[0_6px_28px_-4px_rgba(61,77,51,0.14)] transition-all duration-200 active:scale-[0.98]"
+                className="w-full text-left p-5 bg-gradient-to-br from-[#f0f4ea] via-[#edf1e7] to-[#e8ecdf] border border-primary-200/20 rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.08),0_1px_4px_rgba(61,77,51,0.03)] cursor-pointer hover:shadow-[0_6px_28px_-4px_rgba(61,77,51,0.14)] transition-[color,background-color,box-shadow,transform] duration-200 active:scale-[0.98]"
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">

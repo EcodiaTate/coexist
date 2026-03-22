@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Users, MapPin, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { cn } from '@/lib/cn'
@@ -41,6 +42,7 @@ export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCol
       return data as Collective[]
     },
   })
+  const showLoading = useDelayedLoading(isLoading)
 
   return (
     <div className="flex-1 flex flex-col px-6 pt-8 min-h-0">
@@ -58,7 +60,7 @@ export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCol
         </motion.p>
 
         <div className="mt-6 space-y-3">
-          {isLoading ? (
+          {showLoading ? (
             <Skeleton variant="list-item" count={4} />
           ) : collectives && collectives.length > 0 ? (
             collectives.map((collective) => {

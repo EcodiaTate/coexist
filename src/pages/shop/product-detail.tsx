@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
@@ -12,7 +13,6 @@ import {
     ShieldCheck,
     Leaf,
     Check,
-    Zap,
     ArrowLeft,
 } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
@@ -410,6 +410,7 @@ export default function ProductDetailPage() {
   const placeholderMerch = useAppImage('placeholder_merch')
 
   const { data: product, isLoading } = useProduct(slug)
+  const showLoading = useDelayedLoading(isLoading)
   const { data: reviews } = useProductReviews(product?.id)
   const { data: related } = useRelatedProducts(product?.id)
   const addItem = useCart((s) => s.addItem)
@@ -494,8 +495,7 @@ export default function ProductDetailPage() {
     }
   }, [product, activeVariant, quantity, addItem, navigate, reserve, toast])
 
-  if (isLoading) return <ProductDetailSkeleton />
-
+  if (showLoading) return <ProductDetailSkeleton />
   if (!product) {
     return (
       <Page header={<Header title="Product" back />}>
@@ -554,7 +554,6 @@ export default function ProductDetailPage() {
               variant="primary"
               size="md"
               fullWidth
-              icon={<Zap size={16} />}
               disabled={!inStock || reserving}
               loading={reserving}
               onClick={handleBuyNow}

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import {
@@ -604,7 +605,7 @@ function CampaignComposer({
             key={s}
             onClick={() => setStep(s)}
             className={cn(
-              'flex-1 min-h-11 flex items-center justify-center text-sm font-medium rounded-lg transition-all duration-150 capitalize cursor-pointer',
+              'flex-1 min-h-11 flex items-center justify-center text-sm font-medium rounded-lg transition-[color,background-color,box-shadow] duration-150 capitalize cursor-pointer',
               step === s
                 ? 'bg-primary-50 shadow-sm text-primary-800'
                 : 'text-primary-400 hover:text-primary-600',
@@ -750,7 +751,7 @@ function CampaignComposer({
                         key={tag.id}
                         onClick={() => toggleTag(tag.id)}
                         className={cn(
-                          'inline-flex items-center rounded-full text-xs font-medium px-3 py-1 transition-all duration-150 cursor-pointer',
+                          'inline-flex items-center rounded-full text-xs font-medium px-3 py-1 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
                           selectedTagIds.includes(tag.id)
                             ? 'ring-2 ring-offset-1 shadow-sm'
                             : 'opacity-60 hover:opacity-100',
@@ -782,7 +783,7 @@ function CampaignComposer({
                         key={c.id}
                         onClick={() => toggleCollective(c.id)}
                         className={cn(
-                          'inline-flex items-center rounded-full text-xs font-medium px-3 py-1 transition-all duration-150 cursor-pointer',
+                          'inline-flex items-center rounded-full text-xs font-medium px-3 py-1 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
                           'bg-primary-100 text-primary-600',
                           selectedCollectiveIds.includes(c.id)
                             ? 'ring-2 ring-primary-500 ring-offset-1 shadow-sm'
@@ -1121,7 +1122,7 @@ function TemplateEditor({
             <button
               onClick={() => setActiveView('preview')}
               className={cn(
-                'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer',
+                'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
                 activeView === 'preview' ? 'bg-primary-50 shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
               )}
             >
@@ -1130,7 +1131,7 @@ function TemplateEditor({
             <button
               onClick={() => setActiveView('html')}
               className={cn(
-                'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer',
+                'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
                 activeView === 'html' ? 'bg-primary-50 shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
               )}
             >
@@ -1273,7 +1274,7 @@ function TagManagerSheet({
                 key={c}
                 onClick={() => setColour(c)}
                 className={cn(
-                  'w-8 h-8 rounded-full transition-all duration-150 cursor-pointer',
+                  'w-8 h-8 rounded-full transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
                   colour === c ? 'ring-2 ring-offset-2 scale-110' : 'hover:scale-105',
                 )}
                 style={{ backgroundColor: c, ['--tw-ring-color' as any]: c }}
@@ -1376,7 +1377,7 @@ function AssignTagsSheet({
             key={tag.id}
             onClick={() => toggle(tag.id)}
             className={cn(
-              'inline-flex items-center rounded-full text-xs font-medium px-3 py-1.5 transition-all duration-150 cursor-pointer',
+              'inline-flex items-center rounded-full text-xs font-medium px-3 py-1.5 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
               selectedIds.has(tag.id)
                 ? 'ring-2 ring-offset-1 shadow-sm'
                 : 'opacity-50 hover:opacity-100',
@@ -1474,6 +1475,7 @@ function CampaignDetailSheet({
 
 function CampaignsTab() {
   const { data: campaigns, isLoading } = useCampaigns()
+  const showLoading = useDelayedLoading(isLoading)
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [composing, setComposing] = useState(false)
@@ -1586,7 +1588,7 @@ function CampaignsTab() {
         </div>
       </div>
 
-      {isLoading ? (
+      {showLoading ? (
         <Skeleton variant="list-item" count={5} />
       ) : !filtered?.length ? (
         <EmptyState
@@ -1661,6 +1663,7 @@ function CampaignsTab() {
 
 function TemplatesTab() {
   const { data: templates, isLoading } = useTemplates()
+  const showLoading = useDelayedLoading(isLoading)
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [editing, setEditing] = useState<EmailTemplate | null | undefined>(undefined)
@@ -1706,7 +1709,7 @@ function TemplatesTab() {
         </Button>
       </div>
 
-      {isLoading ? (
+      {showLoading ? (
         <Skeleton variant="list-item" count={4} />
       ) : !templates?.length ? (
         <EmptyState
@@ -1770,6 +1773,7 @@ function SubscribersTab() {
   const queryClient = useQueryClient()
   const { data: tags } = useTags()
   const { data: subscribers, isLoading } = useSubscribers(search, tagFilter)
+  const showLoading = useDelayedLoading(isLoading)
   const [syncing, setSyncing] = useState(false)
 
   const [taggingProfile, setTaggingProfile] = useState<{
@@ -1858,7 +1862,7 @@ function SubscribersTab() {
         </div>
       </div>
 
-      {isLoading ? (
+      {showLoading ? (
         <Skeleton variant="list-item" count={8} />
       ) : !subscribers?.length ? (
         <EmptyState
@@ -1887,7 +1891,7 @@ function SubscribersTab() {
                       <MapPin size={9} />{sub.location}
                     </span>
                   )}
-                  {sub.membership_level && sub.membership_level !== 'Seedling' && (
+                  {sub.membership_level && sub.membership_level !== 'New' && (
                     <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-success-50 text-success-600">
                       {sub.membership_level}
                     </span>
@@ -1941,6 +1945,7 @@ function SubscribersTab() {
 
 function TagsTab() {
   const { data: tags, isLoading } = useTags()
+  const showLoading = useDelayedLoading(isLoading)
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const [showCreate, setShowCreate] = useState(false)
@@ -1980,7 +1985,7 @@ function TagsTab() {
         </Button>
       </div>
 
-      {isLoading ? (
+      {showLoading ? (
         <Skeleton variant="list-item" count={4} />
       ) : !tags?.length ? (
         <EmptyState
@@ -2034,7 +2039,9 @@ function TagsTab() {
 function DeliveryTab() {
   const [subTab, setSubTab] = useState<'bounces' | 'complaints'>('bounces')
   const { data: bounces, isLoading: bouncesLoading } = useEmailBounces()
+  const showBouncesLoading = useDelayedLoading(bouncesLoading)
   const { data: complaints, isLoading: complaintsLoading } = useEmailComplaints()
+  const showComplaintsLoading = useDelayedLoading(complaintsLoading)
 
   return (
     <>
@@ -2042,7 +2049,7 @@ function DeliveryTab() {
         <button
           onClick={() => setSubTab('bounces')}
           className={cn(
-            'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer',
+            'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
             subTab === 'bounces' ? 'bg-primary-50 shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
           )}
         >
@@ -2051,7 +2058,7 @@ function DeliveryTab() {
         <button
           onClick={() => setSubTab('complaints')}
           className={cn(
-            'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-all duration-150 cursor-pointer',
+            'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
             subTab === 'complaints' ? 'bg-primary-50 shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
           )}
         >
@@ -2061,9 +2068,9 @@ function DeliveryTab() {
 
       {subTab === 'bounces' && (
         <>
-          {bouncesLoading ? (
+          {showBouncesLoading ? (
             <Skeleton variant="list-item" count={5} />
-          ) : !bounces?.length ? (
+          ) : bouncesLoading ? null : !bounces?.length ? (
             <EmptyState illustration="empty" title="No bounces" description="Email bounces from SendGrid will appear here" />
           ) : (
             <StaggeredList className="space-y-1">
@@ -2088,9 +2095,9 @@ function DeliveryTab() {
 
       {subTab === 'complaints' && (
         <>
-          {complaintsLoading ? (
+          {showComplaintsLoading ? (
             <Skeleton variant="list-item" count={5} />
-          ) : !complaints?.length ? (
+          ) : complaintsLoading ? null : !complaints?.length ? (
             <EmptyState illustration="empty" title="No complaints" description="Spam complaints from SendGrid will appear here" />
           ) : (
             <StaggeredList className="space-y-1">
@@ -2121,18 +2128,19 @@ function DeliveryTab() {
 export default function AdminEmailPage() {
   const [activeTab, setActiveTab] = useState('campaigns')
   const { data: stats, isLoading: statsLoading } = useEmailMarketingStats()
+  const showStatsLoading = useDelayedLoading(statsLoading)
   const shouldReduceMotion = useReducedMotion()
 
   const heroStats = useMemo(
     () =>
-      statsLoading ? (
+      showStatsLoading ? (
         <div className="flex items-center gap-2 sm:gap-3">
           <Skeleton variant="stat-card" />
           <Skeleton variant="stat-card" />
           <Skeleton variant="stat-card" />
           <Skeleton variant="stat-card" />
         </div>
-      ) : stats ? (
+      ) : statsLoading ? null : stats ? (
         <div className="flex items-center gap-2 sm:gap-3">
           <StatCard label="Subscribers" value={stats.subscribers} icon={<Users size={12} />} />
           <StatCard label="Campaigns Sent" value={stats.campaignsSent} icon={<Send size={12} />} />
@@ -2140,7 +2148,7 @@ export default function AdminEmailPage() {
           <StatCard label="Suppressed" value={stats.suppressed} icon={<AlertTriangle size={12} />} />
         </div>
       ) : null,
-    [stats, statsLoading],
+    [stats, statsLoading, showStatsLoading],
   )
 
   useAdminHeader('Email Marketing', { heroContent: heroStats })

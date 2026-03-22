@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   CalendarDays,
   MapPin,
@@ -253,7 +255,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
         className={cn(
           'block rounded-2xl overflow-hidden',
           'bg-white shadow-sm',
-          'hover:shadow-md transition-all duration-150',
+          'hover:shadow-md transition-[color,background-color,box-shadow] duration-150',
           isPast && 'opacity-60',
         )}
       >
@@ -461,7 +463,7 @@ function PastEventRow({ event, index }: { event: AdminEvent; index: number }) {
         className={cn(
           'flex items-center gap-3 p-3 rounded-xl',
           'bg-white/60',
-          'hover:bg-white hover:shadow-sm transition-all duration-150',
+          'hover:bg-white hover:shadow-sm transition-[color,background-color,box-shadow] duration-150',
         )}
       >
         {event.cover_image_url ? (
@@ -512,6 +514,7 @@ export default function AdminEventsPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('upcoming')
 
   const { data, isLoading, isError } = useAdminEventsData()
+  const showLoading = useDelayedLoading(isLoading)
 
   const heroStats = useMemo(() => (
     data?.stats ? (
@@ -577,17 +580,9 @@ export default function AdminEventsPage() {
   const shouldReduceMotion2 = useReducedMotion()
   const rm = !!shouldReduceMotion2
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
+  const { stagger, fadeUp } = adminVariants(rm)
 
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
-
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -601,7 +596,6 @@ export default function AdminEventsPage() {
       </div>
     )
   }
-
   if (isError) {
     return (
       <EmptyState
@@ -616,7 +610,7 @@ export default function AdminEventsPage() {
 
   return (
     <div>
-        <motion.div className="space-y-6" variants={rm ? undefined : stagger} initial="hidden" animate="visible">
+        <motion.div className="space-y-6" variants={stagger} initial="hidden" animate="visible">
           {/* ── Hottest event spotlight ── */}
           {stats?.hottestEvent && stats.hottestEvent.registrationCount > 0 && (
             <motion.div variants={fadeUp}><HottestEventSpotlight event={stats.hottestEvent} /></motion.div>

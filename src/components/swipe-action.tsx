@@ -111,7 +111,7 @@ export function SwipeAction({
 
       {/* Draggable content */}
       <motion.div
-        className="relative bg-white"
+        className="relative bg-white gpu-panel"
         drag="x"
         dragConstraints={{
           left: rightAction ? -ACTION_WIDTH : 0,

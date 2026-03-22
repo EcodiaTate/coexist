@@ -43,7 +43,7 @@ export function DonationThermometer({
           transition={
             shouldReduceMotion
               ? { duration: 0 }
-              : { duration: 1.5, ease: [0.25, 0.46, 0.45, 0.94] }
+              : { type: 'spring', stiffness: 60, damping: 18, mass: 1.2 }
           }
         >
           {/* Liquid surface wobble */}

@@ -65,7 +65,7 @@ export function SlotCounter({
             initial={{ y: yIn, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: yOut, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 25 }}
+            transition={{ type: 'spring', stiffness: 380, damping: 28, mass: 0.7 }}
           >
             {formatted}
           </motion.span>

@@ -48,6 +48,7 @@ import {
   CountUp,
 } from '@/components'
 import { SearchBar } from '@/components/search-bar'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { CollectiveMap } from '@/components/collective-map'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
@@ -845,6 +846,9 @@ export default function ExplorePage() {
     filters.distanceKm,
   )
 
+  const initialLoading = results.isLoading || nearbyEvents.isLoading || nearbyCollectives.isLoading
+  const showLoading = useDelayedLoading(initialLoading)
+
   // National impact stats (for hero)
   const { data: nationalImpact } = useNationalImpact()
 
@@ -1095,7 +1099,7 @@ export default function ExplorePage() {
                 </div>
                 </div>
 
-                {results.isLoading ? (
+                {results.isLoading && showLoading ? (
                   <div className="space-y-3">
                     <Skeleton variant="list-item" count={5} />
                   </div>
@@ -1272,7 +1276,7 @@ export default function ExplorePage() {
                 exit={{ opacity: 0 }}
               >
                 {(viewMode as ViewMode) === 'map' ? (
-                  <div className="px-4 lg:px-6 pt-4">
+                  <div className="px-4 lg:px-6 pt-10">
                     {/* Search + filter bar for map mode */}
                     <div className="flex items-center gap-2 mb-3">
                       <SearchBar
@@ -1580,7 +1584,7 @@ export default function ExplorePage() {
                         </button>
                       </div>
 
-                      {nearbyEvents.isLoading ? (
+                      {nearbyEvents.isLoading && showLoading ? (
                         <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
                           {[1, 2, 3].map((i) => (
                             <div key={i} className="w-[260px] shrink-0">
@@ -1736,7 +1740,7 @@ export default function ExplorePage() {
                         </button>
                       </div>
 
-                      {nearbyCollectives.isLoading ? (
+                      {nearbyCollectives.isLoading && showLoading ? (
                         <Skeleton variant="list-item" count={3} />
                       ) : nearbyCollectives.data && nearbyCollectives.data.length > 0 ? (
                         <div className="space-y-3">

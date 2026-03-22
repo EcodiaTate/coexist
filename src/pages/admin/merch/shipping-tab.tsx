@@ -1,5 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Skeleton } from '@/components/skeleton'
@@ -9,6 +11,7 @@ import { useUpdateShippingConfig } from '@/hooks/use-admin-merch'
 
 export default function ShippingTab() {
   const { data: config, isLoading } = useShippingConfig()
+  const showLoading = useDelayedLoading(isLoading)
   const updateConfig = useUpdateShippingConfig()
   const { toast } = useToast()
 
@@ -41,24 +44,15 @@ export default function ShippingTab() {
     }
   }, [flatRate, freeThreshold, updateConfig, toast])
 
-  if (isLoading) {
+  if (showLoading) {
     return <Skeleton variant="text" count={3} />
   }
-
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
     <motion.div
       className="space-y-4"
-      variants={shouldReduceMotion ? undefined : stagger}
+      variants={stagger}
       initial="hidden"
       animate="visible"
     >

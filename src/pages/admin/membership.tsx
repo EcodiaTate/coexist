@@ -1,5 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { adminVariants, expandCollapse as expandCollapseVariants } from '@/lib/admin-motion'
 import {
   Plus,
   Gift,
@@ -154,7 +156,7 @@ function RewardForm({
               key={cat}
               onClick={() => set('category', cat)}
               className={cn(
-                'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer',
+                'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer',
                 form.category === cat
                   ? 'ring-2 ring-primary-500 bg-primary-50 text-primary-700 shadow-sm'
                   : 'bg-primary-50/60 text-primary-400 hover:bg-primary-100',
@@ -198,7 +200,9 @@ export default function AdminMembershipPage() {
   const { toast } = useToast()
 
   const { data: rewards, isLoading: rewardsLoading } = useAdminMembershipRewards()
+  const showRewardsLoading = useDelayedLoading(rewardsLoading)
   const { data: plans, isLoading: plansLoading } = useAdminMembershipPlans()
+  const showPlansLoading = useDelayedLoading(plansLoading)
   const upsertReward = useUpsertReward()
   const upsertPlan = useUpsertPlan()
 
@@ -248,18 +252,10 @@ export default function AdminMembershipPage() {
     [upsertReward, toast],
   )
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+    <motion.div variants={stagger} initial="hidden" animate="visible">
       {/* Tab bar */}
       <motion.div variants={fadeUp} className="flex items-center gap-1 mb-6">
         {(['rewards', 'plans'] as const).map((t) => (
@@ -289,9 +285,10 @@ export default function AdminMembershipPage() {
           <AnimatePresence>
             {editingReward && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
+                variants={expandCollapseVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
                 className="overflow-hidden mb-6"
               >
                 <div className="rounded-2xl shadow-sm bg-primary-50/50 p-5">
@@ -306,13 +303,13 @@ export default function AdminMembershipPage() {
             )}
           </AnimatePresence>
 
-          {rewardsLoading ? (
+          {showRewardsLoading ? (
             <div className="space-y-3">
               <Skeleton variant="card" />
               <Skeleton variant="card" />
               <Skeleton variant="card" />
             </div>
-          ) : rewards && rewards.length > 0 ? (
+          ) : rewardsLoading ? null : rewards && rewards.length > 0 ? (
             <div className="space-y-2">
               {rewards.map((reward) => (
                 <div
@@ -375,12 +372,12 @@ export default function AdminMembershipPage() {
       {/* ---- Plans tab ---- */}
       {tab === 'plans' && (
         <motion.div variants={fadeUp}>
-          {plansLoading ? (
+          {showPlansLoading ? (
             <div className="space-y-3">
               <Skeleton variant="card" />
               <Skeleton variant="card" />
             </div>
-          ) : plans && plans.length > 0 ? (
+          ) : plansLoading ? null : plans && plans.length > 0 ? (
             <div className="space-y-3">
               {plans.map((plan) => (
                 <div

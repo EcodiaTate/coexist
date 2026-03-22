@@ -10,6 +10,7 @@ import { cn } from '@/lib/cn'
 import { useMyCollectives } from '@/hooks/use-collective'
 import { useUnreadCounts } from '@/hooks/use-chat'
 import { useMyStaffChannels, useChannelUnreadCounts, type StaffChannel } from '@/hooks/use-staff-channels'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 /* ------------------------------------------------------------------ */
 /*  Staff channel type config                                          */
@@ -371,6 +372,7 @@ export default function ChatListPage() {
   const { data: unreadCounts = {} } = useUnreadCounts()
   const { data: staffChannels, isLoading: channelsLoading } = useMyStaffChannels()
   const { data: channelUnreads = {} } = useChannelUnreadCounts()
+  const showLoading = useDelayedLoading(isLoading && channelsLoading)
 
   const handleRefresh = useCallback(async () => {
     await Promise.all([
@@ -383,12 +385,12 @@ export default function ChatListPage() {
 
   const hasStaffChannels = (staffChannels?.length ?? 0) > 0
 
-  if (isLoading && channelsLoading) {
+  if (showLoading) {
     return (
       <Page noBackground className="!px-0">
         <div className="relative min-h-full">
           <DecorativeBackground />
-          <div className="relative z-10 px-4 lg:px-6 pt-6 pb-4 space-y-4">
+          <div className="relative z-10 px-4 lg:px-6 pt-14 pb-4 space-y-4">
             {/* Title skeleton */}
             <div className="flex items-center gap-2.5 mb-2 animate-pulse">
               <div className="w-8 h-8 rounded-lg bg-secondary-200/40" />
@@ -410,13 +412,14 @@ export default function ChatListPage() {
       </Page>
     )
   }
+  if (isLoading && channelsLoading) return null
 
   if (!myCollectives?.length && !hasStaffChannels) {
     return (
       <Page noBackground className="!px-0">
         <div className="relative min-h-full">
           <DecorativeBackground />
-          <div className="relative z-10 px-4 lg:px-6 pt-6">
+          <div className="relative z-10 px-4 lg:px-6 pt-14">
             {/* Title */}
             <div className="flex items-center gap-2.5 mb-6">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-secondary-500 to-plum-600 shadow-sm">
@@ -447,7 +450,7 @@ export default function ChatListPage() {
         <div className="relative z-10 px-4 lg:px-6">
           <PullToRefresh onRefresh={handleRefresh}>
             <motion.div
-              className="pt-6 pb-6 space-y-6"
+              className="pt-14 pb-6 space-y-6"
               variants={shouldReduceMotion ? undefined : stagger}
               initial="hidden"
               animate="visible"

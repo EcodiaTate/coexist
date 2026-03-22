@@ -62,7 +62,7 @@ export function LikeButton({
         'relative inline-flex items-center justify-center gap-1.5 p-2 rounded-xl',
         'min-h-11 min-w-11',
         'cursor-pointer select-none',
-        'active:scale-[0.97] transition-all duration-150',
+        'transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
         liked ? 'text-primary-400' : 'text-primary-400',
         className,
@@ -84,13 +84,13 @@ export function LikeButton({
           shouldReduceMotion
             ? {}
             : liked
-              ? { scale: [1, 1.3, 1] }
+              ? { scale: [1, 1.25, 0.95, 1] }
               : { scale: 1 }
         }
         transition={
           shouldReduceMotion
             ? { duration: 0 }
-            : { type: 'spring', stiffness: 500, damping: 12 }
+            : { type: 'spring', stiffness: 400, damping: 14, mass: 0.6 }
         }
         aria-hidden="true"
       >

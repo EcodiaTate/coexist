@@ -54,7 +54,7 @@ export function SharedElement({
       transition={
         shouldReduceMotion
           ? { duration: 0 }
-          : { type: 'spring', stiffness: 300, damping: 28, mass: 0.8 }
+          : { type: 'spring', stiffness: 280, damping: 30, mass: 0.8 }
       }
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}

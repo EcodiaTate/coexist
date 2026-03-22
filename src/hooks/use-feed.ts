@@ -295,7 +295,7 @@ export function useAddComment() {
         is_deleted: false,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
-        author: { id: user!.id, display_name: profile?.display_name ?? null, avatar_url: profile?.avatar_url ?? null, membership_level: profile?.membership_level ?? 'seedling' },
+        author: { id: user!.id, display_name: profile?.display_name ?? null, avatar_url: profile?.avatar_url ?? null, membership_level: profile?.membership_level ?? 'new' },
       } as CommentWithAuthor
       queryClient.setQueryData<CommentWithAuthor[]>(['post-comments', postId], (old) => [...(old ?? []), optimisticComment])
       // Update comment count in feed

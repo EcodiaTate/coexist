@@ -177,9 +177,21 @@ export function WebFooter({ className }: WebFooterProps) {
             land always was, and always will be, Aboriginal and Torres Strait
             Islander land.
           </p>
-          <p className="mt-4 text-xs text-white/50">
-            &copy; {year} Co-Exist Australia Ltd. All rights reserved.
-          </p>
+          <div className="mt-4 flex items-center gap-1.5 text-xs text-white/50">
+            <span>&copy; {year} Co-Exist Australia Ltd. All rights reserved.</span>
+            <span className="mx-1">·</span>
+            <span className="inline-flex items-center">
+              Made By{' '}
+              <span className="inline-flex ml-1">
+                <span className="bg-white text-black p-2 text-xs font-semibold leading-none transition-colors duration-150 hover:bg-black hover:text-white cursor-default">
+                  Ecodia
+                </span>
+                <span className="bg-black text-white p-2 text-xs font-semibold leading-none transition-colors duration-150 hover:bg-white hover:text-black cursor-default">
+                  Code
+                </span>
+              </span>
+            </span>
+          </div>
         </div>
       </div>
     </footer>

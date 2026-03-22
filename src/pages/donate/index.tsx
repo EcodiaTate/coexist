@@ -22,6 +22,7 @@ import {
     getImpactMessage,
     type DonationProject,
 } from '@/types/donations'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -179,8 +180,9 @@ function ImpactBadge({ amount }: { amount: number }) {
 
 function NationalStatsStrip() {
   const { data, isLoading } = useDonateNationalStats()
+  const showLoading = useDelayedLoading(isLoading)
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="grid grid-cols-3 gap-2.5">
         {[0, 1, 2].map((i) => (
@@ -192,7 +194,6 @@ function NationalStatsStrip() {
       </div>
     )
   }
-
   if (!data) return null
 
   const stats = [
@@ -429,6 +430,7 @@ export default function DonatePage() {
   const rm = !!shouldReduceMotion
 
   const { data: projects, isLoading: loadingProjects } = useDonationProjects()
+  const showProjectsLoading = useDelayedLoading(loadingProjects)
   const createDonation = useCreateDonation()
 
   const [selectedAmount, setSelectedAmount] = useState<number | null>(25)
@@ -662,7 +664,7 @@ export default function DonatePage() {
               {/* ═══════════════════════════════════════════════════ */}
               {/*  PROJECT SELECTION - tinted panel with wave        */}
               {/* ═══════════════════════════════════════════════════ */}
-              {loadingProjects ? (
+              {showProjectsLoading ? (
                 <motion.div variants={fadeUp}>
                   <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-[#e4ddd0]/50 to-transparent">
                     <div className="absolute top-0 left-0 right-0 -translate-y-[calc(100%-1px)]">
@@ -677,7 +679,7 @@ export default function DonatePage() {
                     </div>
                   </div>
                 </motion.div>
-              ) : projects && projects.length > 0 ? (
+              ) : loadingProjects ? null : projects && projects.length > 0 ? (
                 <motion.div variants={fadeUp}>
                   <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-[#e4ddd0]/50 to-transparent">
                     <div className="absolute top-0 left-0 right-0 -translate-y-[calc(100%-1px)]">

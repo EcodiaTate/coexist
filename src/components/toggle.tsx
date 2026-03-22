@@ -108,9 +108,8 @@ export function Toggle({
           transition={
             shouldReduceMotion
               ? { duration: 0 }
-              : { type: 'spring', stiffness: 500, damping: 30 }
+              : { type: 'spring', stiffness: 420, damping: 28, mass: 0.6 }
           }
-          layout
         />
       </button>
     </div>

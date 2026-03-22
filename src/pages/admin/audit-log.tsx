@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   Clock,
 } from 'lucide-react'
@@ -90,6 +92,7 @@ export default function AdminAuditLogPage() {
   const [page, setPage] = useState(0)
 
   const { data, isLoading } = useAuditLog(search, actionFilter, page)
+  const showLoading = useDelayedLoading(isLoading)
   const pageSize = 25
   const totalPages = data ? Math.ceil(data.total / pageSize) : 0
 
@@ -106,19 +109,11 @@ export default function AdminAuditLogPage() {
 
   useAdminHeader('Audit Log', { heroContent: heroStats })
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
     <div>
-      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={stagger} initial="hidden" animate="visible">
         {/* Filters */}
         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-4">
           <SearchBar
@@ -144,7 +139,7 @@ export default function AdminAuditLogPage() {
 
         {/* Log list */}
         <motion.div variants={fadeUp}>
-        {isLoading ? (
+        {showLoading ? (
           <Skeleton variant="list-item" count={8} />
         ) : !data?.logs.length ? (
           <EmptyState

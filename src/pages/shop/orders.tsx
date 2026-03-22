@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Package, ChevronRight } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
@@ -38,11 +39,12 @@ export default function OrdersPage() {
   const shouldReduceMotion = useReducedMotion()
   const placeholderMerch = useAppImage('placeholder_merch')
   const { data: orders, isLoading } = useMyOrders()
+  const showLoading = useDelayedLoading(isLoading)
 
   return (
     <Page header={<Header title="My Orders" back />}>
       <div className="py-4">
-        {isLoading ? (
+        {showLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <Skeleton key={i} variant="card" />

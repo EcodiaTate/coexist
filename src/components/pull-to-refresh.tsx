@@ -117,7 +117,7 @@ export function PullToRefresh({
             ? { duration: 0 }
             : shouldReduceMotion
               ? { duration: 0 }
-              : { type: 'spring', stiffness: 300, damping: 30 }
+              : { type: 'spring', stiffness: 280, damping: 28, mass: 0.8 }
         }
       >
         {children}

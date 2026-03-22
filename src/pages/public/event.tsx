@@ -2,6 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Calendar, MapPin, Users, Clock, TreePine, ExternalLink, Download } from 'lucide-react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/button'
@@ -68,8 +69,9 @@ export default function PublicEventPage() {
     },
     enabled: !!id,
   })
+  const showLoading = useDelayedLoading(isLoading)
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="min-h-dvh bg-white">
         <div className="h-64 animate-pulse bg-white" />
@@ -80,7 +82,6 @@ export default function PublicEventPage() {
       </div>
     )
   }
-
   if (error || !event) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-white p-6">

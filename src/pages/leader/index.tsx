@@ -21,6 +21,7 @@ import {
   MapPin,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { EmptyState } from '@/components/empty-state'
 import { Avatar } from '@/components/avatar'
 import { Button } from '@/components/button'
@@ -311,7 +312,7 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
           <button
             type="button"
             onClick={() => setCurrentMonth(new Date(year, month - 1))}
-            className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.08] text-white/70 hover:bg-white/15 active:scale-95 transition-all duration-150 cursor-pointer select-none"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.08] text-white/70 hover:bg-white/15 active:scale-95 transition-[background-color,transform] duration-150 cursor-pointer select-none"
             aria-label="Previous month"
           >
             <ChevronLeft size={14} />
@@ -319,7 +320,7 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
           <button
             type="button"
             onClick={() => setCurrentMonth(new Date(year, month + 1))}
-            className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.08] text-white/70 hover:bg-white/15 active:scale-95 transition-all duration-150 cursor-pointer select-none"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.08] text-white/70 hover:bg-white/15 active:scale-95 transition-[background-color,transform] duration-150 cursor-pointer select-none"
             aria-label="Next month"
           >
             <ChevronRight size={14} />
@@ -368,12 +369,12 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.08 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -426,6 +427,7 @@ export default function LeaderDashboardPage() {
   }, [collectiveRoles])
 
   const { data, isLoading } = useLeaderDashboard(collectiveId)
+  const showLoading = useDelayedLoading(isLoading)
   const { data: collectiveDetail } = useCollective(collectiveId)
   const collectiveSlug = leaderCtx.collectiveSlug ?? collectiveDetail?.slug ?? collectiveId
   const { data: engagement } = useEngagementScores(collectiveId)
@@ -438,7 +440,7 @@ export default function LeaderDashboardPage() {
     ? ({ children }: { children: React.ReactNode }) => <>{children}</>
     : ({ children }: { children: React.ReactNode }) => <Page header={<Header title="Leader Dashboard" back />}>{children}</Page>
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Wrapper>
         <div className="relative min-h-screen overflow-x-hidden">
@@ -446,8 +448,8 @@ export default function LeaderDashboardPage() {
           <div className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06]" />
           <div className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08]" />
 
-          <div className="relative z-10 px-6 pt-4 space-y-6 pb-20">
-            <div className="flex flex-col items-center pt-6 pb-2 space-y-2 animate-pulse">
+          <div className="relative z-10 px-6 pt-14 space-y-6 pb-20">
+            <div className="flex flex-col items-center pb-2 space-y-2 animate-pulse">
               <div className="h-3 w-28 rounded-full bg-white/[0.06]" />
               <div className="h-8 w-48 rounded-xl bg-white/[0.08]" />
             </div>
@@ -519,61 +521,37 @@ export default function LeaderDashboardPage() {
         <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
 
-          {/* ── Background geometric shapes ── */}
-          <motion.div
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-            transition={{ scale: { duration: 16, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.2, ease: 'easeOut' } }}
-            className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06]"
+          {/* ── Background geometric shapes — CSS-only infinite animations for GPU compositing ── */}
+          <div
+            className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06] will-change-transform animate-[breathe_16s_ease-in-out_infinite]"
           />
-          <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-            transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.5, delay: 0.3, ease: 'easeOut' } }}
-            className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08]"
+          <div
+            className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08] will-change-transform animate-[breathe_20s_ease-in-out_infinite]"
           />
-          <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: [1, 1.07, 1], opacity: 1 }}
-            transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.5, delay: 0.5, ease: 'easeOut' } }}
-            className="absolute -right-[12%] bottom-[8%] w-[45vw] h-[45vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.06]"
+          <div
+            className="absolute -right-[12%] bottom-[8%] w-[45vw] h-[45vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.06] will-change-transform animate-[breathe_20s_ease-in-out_0.5s_infinite]"
           />
-          <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-            transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 2, delay: 0.6, ease: 'easeOut' } }}
-            className="absolute -right-[5%] -top-[12%] w-[40vw] h-[40vw] max-w-[380px] max-h-[380px] rounded-full border border-white/[0.05]"
+          <div
+            className="absolute -right-[5%] -top-[12%] w-[40vw] h-[40vw] max-w-[380px] max-h-[380px] rounded-full border border-white/[0.05] will-change-transform animate-[breathe_18s_ease-in-out_2s_infinite]"
           />
-          <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1, delay: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
+          <div
             className="absolute right-[5%] top-[40%] w-[80px] h-[80px] rounded-full bg-white/[0.04]"
           />
-          {/* Floating dots */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ y: [0, -8, 0], opacity: [0.3, 0.55, 0.3] }}
-            transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1.2 } }}
-            className="absolute left-[20%] top-[15%] w-2 h-2 rounded-full bg-white/30"
+          {/* Floating dots — CSS-only float animation */}
+          <div
+            className="absolute left-[20%] top-[15%] w-2 h-2 rounded-full bg-white/30 will-change-transform animate-[float_4s_ease-in-out_infinite]"
           />
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ y: [0, 6, 0], opacity: [0.2, 0.5, 0.2] }}
-            transition={{ y: { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 0.8, delay: 1.5 } }}
-            className="absolute right-[22%] top-[25%] w-1.5 h-1.5 rounded-full bg-white/25"
+          <div
+            className="absolute right-[22%] top-[25%] w-1.5 h-1.5 rounded-full bg-white/25 will-change-transform animate-[floatDown_5s_ease-in-out_2s_infinite]"
           />
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ y: [0, -5, 0], opacity: [0.2, 0.4, 0.2] }}
-            transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 0.8, delay: 1.8 } }}
-            className="absolute left-[45%] bottom-[18%] w-2 h-2 rounded-full bg-white/20"
+          <div
+            className="absolute left-[45%] bottom-[18%] w-2 h-2 rounded-full bg-white/20 will-change-transform animate-[float_6s_ease-in-out_3s_infinite]"
           />
         </div>
 
         {/* ── Content ── */}
         <motion.div
-          className="relative z-10 px-6 pt-4 space-y-6 pb-20"
+          className="relative z-10 px-6 pt-14 space-y-6 pb-20"
           variants={shouldReduceMotion ? undefined : stagger}
           initial="hidden"
           animate="visible"
@@ -581,7 +559,7 @@ export default function LeaderDashboardPage() {
           {/* ── Hero title ── */}
           <motion.div
             variants={shouldReduceMotion ? undefined : fadeUp}
-            className="flex flex-col items-center justify-center text-center pt-8 pb-2"
+            className="flex flex-col items-center justify-center text-center pb-2"
           >
             <p className="text-xs font-semibold text-white/40 uppercase tracking-[0.2em]">
               Leader Dashboard
@@ -693,7 +671,7 @@ export default function LeaderDashboardPage() {
                 <Link
                   key={action.label}
                   to={action.to}
-                  className="group flex flex-col items-center gap-2 rounded-xl bg-white/[0.06] p-3 hover:bg-white/[0.12] active:scale-[0.96] transition-all duration-150"
+                  className="group flex flex-col items-center gap-2 rounded-xl bg-white/[0.06] p-3 hover:bg-white/[0.12] active:scale-[0.96] transition-[background-color,transform] duration-150"
                 >
                   <div className={cn(
                     'flex items-center justify-center w-10 h-10 rounded-lg transition-transform group-hover:scale-105',
@@ -748,7 +726,7 @@ export default function LeaderDashboardPage() {
                   <Link
                     key={event.id}
                     to={`/events/${event.id}`}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.10] active:scale-[0.99] transition-all duration-150"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.10] active:scale-[0.99] transition-[background-color,transform] duration-150"
                   >
                     {event.cover_image_url ? (
                       <img
@@ -922,7 +900,7 @@ export default function LeaderDashboardPage() {
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <Link
               to="/leader/reports"
-              className="flex items-center gap-4 p-5 rounded-2xl bg-white/[0.10] hover:bg-white/[0.16] active:scale-[0.99] transition-all duration-150"
+              className="flex items-center gap-4 p-5 rounded-2xl bg-white/[0.10] hover:bg-white/[0.16] active:scale-[0.99] transition-[background-color,transform] duration-150"
             >
               <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/[0.08]">
                 <BarChart3 size={22} className="text-white/80" />

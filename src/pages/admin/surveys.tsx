@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   ClipboardList,
   Plus,
@@ -99,6 +101,7 @@ export default function AdminSurveysPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const { data: surveys, isLoading } = useSurveys()
+  const showLoading = useDelayedLoading(isLoading)
   const { data: results } = useSurveyResults(selectedSurvey)
 
   const heroStats = useMemo(() => (
@@ -146,19 +149,11 @@ export default function AdminSurveysPage() {
 
   const shouldReduceMotion = useReducedMotion()
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
     <div>
-        <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+        <motion.div variants={stagger} initial="hidden" animate="visible">
           <motion.div variants={fadeUp}>
             <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
           </motion.div>
@@ -177,7 +172,7 @@ export default function AdminSurveysPage() {
             </Button>
           </div>
 
-          {isLoading ? (
+          {showLoading ? (
             <Skeleton variant="list-item" count={4} />
           ) : !surveys?.length ? (
             <EmptyState

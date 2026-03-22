@@ -33,17 +33,18 @@ import { useAuth } from '@/hooks/use-auth'
 import { useProfile, useProfileCollectives, useProfileStats } from '@/hooks/use-profile'
 import { usePointsBalance, getTierProgress, getTierFromPoints } from '@/hooks/use-points'
 import type { TierName } from '@/hooks/use-points'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
 const tierLabels: Record<TierName, string> = {
-  seedling: 'Seedling',
-  sapling: 'Sapling',
-  native: 'Native',
-  canopy: 'Canopy',
-  elder: 'Elder',
+  new: 'New',
+  active: 'Active',
+  committed: 'Committed',
+  dedicated: 'Dedicated',
+  lifetime: 'Lifetime',
 }
 
 const stagger: Variants = {
@@ -147,15 +148,15 @@ export default function ProfilePage() {
 
 
   const isLoading = profileLoading || collectivesLoading || statsLoading
+  const showLoading = useDelayedLoading(isLoading)
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="My Profile" />}>
         <ProfileSkeleton />
       </Page>
     )
   }
-
   if (!profile) {
     return (
       <Page header={<Header title="My Profile" />}>
@@ -434,7 +435,7 @@ export default function ProfilePage() {
                           {collective.region} · {collective.member_count} members
                         </p>
                       </div>
-                      <Badge variant="tier" tier={membership.role === 'leader' ? 'elder' : 'seedling'} size="sm">
+                      <Badge variant="tier" tier={membership.role === 'leader' ? 'lifetime' : 'new'} size="sm">
                         {membership.role.replace('_', ' ')}
                       </Badge>
                     </Card>

@@ -6,7 +6,7 @@ const variantStyles = {
   primary:
     'bg-primary-800 text-white hover:bg-primary-950 focus-visible:ring-primary-400',
   secondary:
-    'bg-primary-50 text-primary-800 shadow-sm hover:bg-secondary-200 focus-visible:ring-primary-400',
+    'bg-primary-100 text-primary-800 shadow-sm hover:bg-sprout-200 hover:shadow-md focus-visible:ring-primary-400',
   ghost:
     'bg-transparent text-primary-800 hover:bg-primary-50 focus-visible:ring-primary-400',
   danger:
@@ -94,13 +94,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         aria-busy={loading}
         aria-disabled={isDisabled}
         whileTap={
-          isDisabled || shouldReduceMotion ? undefined : { scale: 0.97 }
+          isDisabled || shouldReduceMotion ? undefined : { scale: 0.975 }
         }
-        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 26, mass: 0.7 }}
         className={cn(
           'relative inline-flex items-center justify-center font-heading font-semibold',
           'rounded-xl cursor-pointer select-none',
-          'transition-all duration-150 active:scale-[0.97]',
+          'transition-colors duration-150',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           variantStyles[variant],
           sizeStyles[size],

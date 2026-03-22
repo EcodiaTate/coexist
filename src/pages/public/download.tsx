@@ -401,7 +401,7 @@ export default function DownloadPage() {
             <FeatureCard
               icon={Heart}
               title="Earn Badges"
-              desc="Level up from Seedling to Elder as you grow your impact"
+              desc="Level up from New to Lifetime as you grow your impact"
               accent="bg-gradient-to-br from-secondary-500 to-secondary-600"
             />
           </motion.div>

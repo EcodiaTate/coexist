@@ -30,11 +30,11 @@ import { usePointsBalance, getTierFromPoints } from '@/hooks/use-points'
 import type { TierName } from '@/hooks/use-points'
 
 const tierLabels: Record<TierName, string> = {
-  seedling: 'Seedling',
-  sapling: 'Sapling',
-  native: 'Native',
-  canopy: 'Canopy',
-  elder: 'Elder',
+  new: 'New',
+  active: 'Active',
+  committed: 'Committed',
+  dedicated: 'Dedicated',
+  lifetime: 'Lifetime',
 }
 
 interface MenuLink {

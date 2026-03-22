@@ -7,7 +7,7 @@ import { cn } from '@/lib/cn'
 /* ------------------------------------------------------------------ */
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-type Tier = 'seedling' | 'sapling' | 'native' | 'canopy' | 'elder'
+type Tier = 'new' | 'active' | 'committed' | 'dedicated' | 'lifetime'
 
 export interface AvatarProps {
   src?: string | null
@@ -37,11 +37,11 @@ const sizeMap: Record<AvatarSize, { px: number; text: string; dot: string; ring:
 /* ------------------------------------------------------------------ */
 
 const tierRingColor: Record<Tier, string> = {
-  seedling: 'ring-moss-400',
-  sapling: 'ring-moss-500',
-  native: 'ring-moss-600',
-  canopy: 'ring-primary-500',
-  elder: 'ring-warning-500',
+  new: 'ring-moss-400',
+  active: 'ring-moss-500',
+  committed: 'ring-moss-600',
+  dedicated: 'ring-primary-500',
+  lifetime: 'ring-warning-500',
 }
 
 /* ------------------------------------------------------------------ */

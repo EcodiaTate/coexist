@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useParams, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Package, Truck, MapPin, RotateCcw } from 'lucide-react'
@@ -72,6 +73,7 @@ export default function OrderDetailPage() {
   const placeholderMerch = useAppImage('placeholder_merch')
 
   const { data: order, isLoading } = useOrder(orderId)
+  const showLoading = useDelayedLoading(isLoading)
   const requestReturn = useRequestReturn()
 
   const stagger = {
@@ -99,7 +101,7 @@ export default function OrderDetailPage() {
     }
   }, [orderId, returnReason, requestReturn, toast])
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Order" back />}>
         <div className="py-4 space-y-3">

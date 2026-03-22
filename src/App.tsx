@@ -158,11 +158,7 @@ const MapPage = lazy(() => import('@/pages/map'))
 /* ------------------------------------------------------------------ */
 
 function PageFallback() {
-  return (
-    <div className="fixed inset-0 flex items-center justify-center">
-      <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
-    </div>
-  )
+  return null
 }
 
 /* ------------------------------------------------------------------ */

@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   Shield,
   Check,
@@ -247,6 +249,7 @@ export default function ModerationQueuePage() {
   const { toast } = useToast()
   const [activeStatus, setActiveStatus] = useState<Enums<'report_status'>>('pending')
   const { data: reports, isLoading, refetch } = useModerationQueue(activeStatus)
+  const showLoading = useDelayedLoading(isLoading)
   const reviewReport = useReviewReport()
 
   const handleAction = (reportId: string, action: Enums<'report_status'>) => {
@@ -272,20 +275,11 @@ export default function ModerationQueuePage() {
 
   const isEmpty = !isLoading && (reports ?? []).length === 0
 
-  const shouldReduceMotion2 = useReducedMotion()
-
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const shouldReduceMotion = useReducedMotion()
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
-    <motion.div variants={shouldReduceMotion2 ? undefined : stagger} initial="hidden" animate="visible">
+    <motion.div variants={stagger} initial="hidden" animate="visible">
       <motion.div variants={fadeUp}>
         <TabBar
           tabs={statusTabs}
@@ -297,7 +291,7 @@ export default function ModerationQueuePage() {
       </motion.div>
 
       <motion.div variants={fadeUp}>
-      {isLoading ? (
+      {showLoading ? (
         <div className="space-y-4">
           <Skeleton variant="card" />
           <Skeleton variant="card" />

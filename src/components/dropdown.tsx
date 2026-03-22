@@ -283,12 +283,12 @@ export function Dropdown({
             <AnimatePresence>
               {open && (
                 <motion.div
-                  initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
-                  transition={{ duration: 0.15 }}
+                  initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -4, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4, scale: 0.98 }}
+                  transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 28, mass: 0.7 }}
                   style={popoverStyle}
-                  className="z-[60] relative"
+                  className="z-[60] relative gpu-panel"
                 >
                   {/* Scrollable list */}
                   <div

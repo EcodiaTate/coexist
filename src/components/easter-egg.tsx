@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
 interface EasterEggProps {
@@ -7,15 +7,40 @@ interface EasterEggProps {
   taps?: number
 }
 
+const BURST_COLORS = [
+  'var(--color-primary-400)',
+  'var(--color-primary-500)',
+  'var(--color-accent-400)',
+]
+
 /**
  * Tap logo 5x → hidden animation.
  * §53 item 48.
+ *
+ * Uses CSS keyframes for the burst particles to avoid
+ * 12 simultaneous JS-driven animation loops.
  */
 export function EasterEgg({ children, taps = 5 }: EasterEggProps) {
   const shouldReduceMotion = useReducedMotion()
   const [triggered, setTriggered] = useState(false)
   const tapCount = useRef(0)
   const lastTap = useRef(0)
+
+  // Pre-compute burst directions so they're stable during animation
+  const burstParticles = useMemo(
+    () =>
+      Array.from({ length: 12 }, (_, i) => {
+        const angle = (i / 12) * Math.PI * 2
+        const dist = 150
+        return {
+          x: Math.cos(angle) * dist,
+          y: Math.sin(angle) * dist,
+          rotate: 360 + i * 30,
+          color: BURST_COLORS[i % 3],
+        }
+      }),
+    [],
+  )
 
   const handleTap = useCallback(() => {
     const now = Date.now()
@@ -43,47 +68,41 @@ export function EasterEgg({ children, taps = 5 }: EasterEggProps) {
         {triggered && (
           <div
             className="fixed inset-0 z-[300] pointer-events-none flex items-center justify-center"
+            style={{ contain: 'strict' }}
             aria-hidden="true"
           >
-            {/* Nature burst animation */}
             {!shouldReduceMotion ? (
               <>
-                {/* Spinning leaves */}
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <motion.div
+                {/* CSS-driven burst particles */}
+                {burstParticles.map((p, i) => (
+                  <div
                     key={i}
-                    className="absolute"
-                    initial={{
-                      x: 0,
-                      y: 0,
-                      rotate: 0,
-                      scale: 0,
-                      opacity: 1,
-                    }}
-                    animate={{
-                      x: Math.cos((i / 12) * Math.PI * 2) * 150,
-                      y: Math.sin((i / 12) * Math.PI * 2) * 150,
-                      rotate: 360 + i * 30,
-                      scale: [0, 1.5, 0],
-                      opacity: [1, 1, 0],
-                    }}
-                    transition={{ duration: 1.5, ease: 'easeOut' }}
+                    className="css-particle"
+                    style={{
+                      left: '50%',
+                      top: '50%',
+                      '--burst-x': `${p.x}px`,
+                      '--burst-y': `${p.y}px`,
+                      animationName: 'burst-out',
+                      animationDuration: '1.5s',
+                      animationTimingFunction: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                    } as React.CSSProperties}
                   >
                     <svg width="20" height="20" viewBox="0 0 16 16">
                       <path
                         d="M8 1C8 1 2 5 2 10c0 2.8 2.7 5 6 5s6-2.2 6-5c0-5-6-9-6-9z"
-                        fill={['var(--color-primary-400)', 'var(--color-primary-500)', 'var(--color-accent-400)'][i % 3]}
+                        fill={p.color}
                       />
                     </svg>
-                  </motion.div>
+                  </div>
                 ))}
 
-                {/* Center burst */}
+                {/* Center burst ring */}
                 <motion.div
                   className="w-12 h-12 rounded-full bg-primary-400/40"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: [0, 3, 0] }}
-                  transition={{ duration: 1 }}
+                  initial={{ scale: 0, opacity: 0.6 }}
+                  animate={{ scale: [0, 3, 3], opacity: [0.6, 0.3, 0] }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
                 />
               </>
             ) : (

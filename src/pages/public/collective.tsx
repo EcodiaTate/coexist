@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { MapPin, Users, TreePine, Heart, Shield, ArrowRight } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/cn'
 import { Skeleton } from '@/components/skeleton'
@@ -159,9 +160,10 @@ export default function PublicCollectivePage() {
     },
     enabled: !!collective?.id,
   })
+  const showLoading = useDelayedLoading(isLoading)
 
   /* ── Loading ── */
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="min-h-dvh bg-white">
         <div className="h-56 animate-pulse bg-gradient-to-br from-primary-100 to-moss-100" />
@@ -172,7 +174,6 @@ export default function PublicCollectivePage() {
       </div>
     )
   }
-
   /* ── Error ── */
   if (error || !collective) {
     return (

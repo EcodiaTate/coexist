@@ -416,11 +416,11 @@ export function useHomeTierProgress() {
 
       // Mirror tier logic from use-points.ts
       const tiers = [
-        { name: 'Seedling', min: 0, max: 499 },
-        { name: 'Sapling', min: 500, max: 1999 },
-        { name: 'Native', min: 2000, max: 4999 },
-        { name: 'Canopy', min: 5000, max: 9999 },
-        { name: 'Elder', min: 10000, max: Infinity },
+        { name: 'New', min: 0, max: 499 },
+        { name: 'Active', min: 500, max: 1999 },
+        { name: 'Committed', min: 2000, max: 4999 },
+        { name: 'Dedicated', min: 5000, max: 9999 },
+        { name: 'Lifetime', min: 10000, max: Infinity },
       ]
 
       const tierIdx = tiers.findIndex((t) => points >= t.min && points <= t.max)

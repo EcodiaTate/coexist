@@ -96,13 +96,13 @@ export function LongPressMenu({
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
             >
-              {/* Backdrop */}
-              <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
+              {/* Backdrop — GPU-promoted for blur perf */}
+              <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] gpu-backdrop" />
 
-              {/* Menu */}
+              {/* Menu — GPU-promoted for smooth scale */}
               <motion.div
                 className={cn(
-                  'absolute z-10 min-w-[180px] rounded-xl',
+                  'absolute z-10 min-w-[180px] rounded-xl gpu-panel',
                   'bg-white shadow-lg border border-primary-100',
                   'overflow-hidden',
                 )}
@@ -110,10 +110,10 @@ export function LongPressMenu({
                   left: Math.min(position.x, window.innerWidth - 200),
                   top: Math.min(position.y, window.innerHeight - actions.length * 48 - 20),
                 }}
-                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+                initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.92 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 28, mass: 0.7 }}
                 onClick={(e) => e.stopPropagation()}
                 role="menu"
                 aria-label="Context menu"

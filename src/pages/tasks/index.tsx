@@ -10,8 +10,10 @@ import {
   Calendar,
   SkipForward,
   MessageSquare,
+  Users,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -103,7 +105,7 @@ function TaskCard({ task }: { task: MyTask }) {
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] text-primary-400">
+          <div className="flex items-center gap-2 text-[11px] text-primary-400 flex-wrap">
             <span className={cn('flex items-center gap-1', isOverdue && 'text-error-500 font-medium')}>
               <Clock size={11} />
               {formattedDue}
@@ -121,6 +123,24 @@ function TaskCard({ task }: { task: MyTask }) {
                 <span className="flex items-center gap-1">
                   <Calendar size={11} />
                   {task.event.title}
+                </span>
+              </>
+            )}
+            {isCompleted && task.completer?.display_name && (
+              <>
+                <span className="text-primary-200">·</span>
+                <span className="flex items-center gap-1 text-success-600">
+                  <CheckCircle size={10} />
+                  {task.completer.display_name}
+                </span>
+              </>
+            )}
+            {!isCompleted && !isSkipped && (task.template?.assignment_mode ?? 'collective') === 'collective' && !task.assigned_user_id && (
+              <>
+                <span className="text-primary-200">·</span>
+                <span className="flex items-center gap-1 text-primary-300">
+                  <Users size={10} />
+                  Team task
                 </span>
               </>
             )}
@@ -283,6 +303,7 @@ function CollectiveGroup({
 export default function TasksPage() {
   const queryClient = useQueryClient()
   const { data: tasks, isLoading } = useMyTasks()
+  const showLoading = useDelayedLoading(isLoading)
   const generateMutation = useGenerateTaskInstances()
   const groups = useGroupedTasks(tasks)
 
@@ -300,7 +321,7 @@ export default function TasksPage() {
   const totalPending = groups.reduce((sum, g) => sum + g.pendingCount, 0)
   const totalOverdue = groups.reduce((sum, g) => sum + g.overdueCount, 0)
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Tasks" />}>
         <div className="py-4">
@@ -309,7 +330,6 @@ export default function TasksPage() {
       </Page>
     )
   }
-
   if (!groups.length) {
     return (
       <Page header={<Header title="Tasks" />}>

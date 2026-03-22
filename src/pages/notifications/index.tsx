@@ -13,6 +13,7 @@ import {
     getNotificationDeepLink,
     getNotificationMeta,
 } from '@/hooks/use-notifications'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import type { Notification } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
@@ -368,6 +369,7 @@ export default function NotificationsPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
   const { data: notifications, isLoading, refetch, grouped } = useNotifications()
+  const showLoading = useDelayedLoading(isLoading)
   const markRead = useMarkRead()
   const markAllRead = useMarkAllRead()
   const shouldReduceMotion = useReducedMotion()
@@ -444,7 +446,7 @@ export default function NotificationsPage() {
 
         {/* Content layer */}
         <div className="relative z-10 px-4 lg:px-6">
-          {isLoading ? (
+          {showLoading ? (
             <div className="space-y-4 py-6">
               {Array.from({ length: 5 }, (_, i) => (
                 <div key={i} className="flex items-start gap-3.5 px-4 py-4 rounded-2xl bg-white/60 shadow-sm border border-primary-50/50 animate-pulse">

@@ -83,7 +83,7 @@ function LinearProgress({
           transition={
             shouldReduceMotion
               ? { duration: 0 }
-              : { type: 'spring', stiffness: 100, damping: 20 }
+              : { type: 'spring', stiffness: 120, damping: 22, mass: 0.9 }
           }
         />
         {milestones?.map((milestone) => {
@@ -181,7 +181,7 @@ function CircularProgress({
           transition={
             shouldReduceMotion
               ? { duration: 0 }
-              : { type: 'spring', stiffness: 80, damping: 20 }
+              : { type: 'spring', stiffness: 100, damping: 22, mass: 0.9 }
           }
         />
       </svg>

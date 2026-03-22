@@ -10,6 +10,7 @@ import { PullToRefresh } from '@/components/pull-to-refresh'
 import { SearchBar } from '@/components/search-bar'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import {
     useAnnouncements,
     useMarkAnnouncementRead,
@@ -264,6 +265,7 @@ export default function AnnouncementsPage() {
   )
   const canCreate = isStaff || isCollectiveStaff
   const { pinned, regular, isLoading, refetch } = useAnnouncements()
+  const showLoading = useDelayedLoading(isLoading)
   const markRead = useMarkAnnouncementRead()
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -320,6 +322,21 @@ export default function AnnouncementsPage() {
 
         {/* Page content */}
         <div className="relative z-10 px-4 lg:px-6 pb-4 space-y-5">
+          {/* Title */}
+          <motion.div
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="flex items-center gap-2.5 pt-2"
+          >
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-secondary-500 to-bark-600 shadow-sm shadow-secondary-400/25">
+              <Megaphone size={15} className="text-white" />
+            </div>
+            <h1 className="font-heading text-[22px] font-bold text-secondary-900 tracking-tight">
+              Announcements
+            </h1>
+          </motion.div>
+
           {/* Search */}
           <motion.div
             initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
@@ -367,7 +384,7 @@ export default function AnnouncementsPage() {
             </motion.button>
           )}
 
-          {isLoading ? (
+          {showLoading ? (
             <div className="space-y-4">
               <Skeleton variant="card" />
               <Skeleton variant="card" />

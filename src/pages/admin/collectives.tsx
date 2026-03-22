@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   MapPin,
   Users,
@@ -209,6 +211,7 @@ export default function AdminCollectivesPage() {
     search,
     status: statusFilter,
   })
+  const showLoading = useDelayedLoading(isLoading)
   const archiveMutation = useArchiveCollective()
 
   const heroActions = useMemo(() => (
@@ -289,19 +292,11 @@ export default function AdminCollectivesPage() {
 
   useAdminHeader('Collectives', { actions: heroActions, heroContent: heroStats })
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
     <div>
-        <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+        <motion.div variants={stagger} initial="hidden" animate="visible">
           {/* Filters */}
           <motion.div variants={fadeUp} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-4">
             <SearchBar
@@ -333,7 +328,7 @@ export default function AdminCollectivesPage() {
 
           {/* List */}
           <motion.div variants={fadeUp}>
-          {isLoading ? (
+          {showLoading ? (
             <Skeleton variant="list-item" count={5} />
           ) : !collectives?.length ? (
             <EmptyState
@@ -367,7 +362,7 @@ export default function AdminCollectivesPage() {
                       className={cn(
                         'flex items-center gap-4 p-4 rounded-xl',
                         'bg-white shadow-sm',
-                        'hover:shadow-md transition-all duration-150',
+                        'hover:shadow-md transition-[color,background-color,box-shadow] duration-150',
                         !c.is_active && 'opacity-60',
                       )}
                     >

@@ -82,10 +82,10 @@ const CardRoot = forwardRef<HTMLDivElement, CardRootProps>(function CardRoot(
         }
         whileTap={
           isInteractive && !shouldReduceMotion
-            ? { scale: 0.98, boxShadow: 'var(--shadow-sm)' }
+            ? { scale: 0.98 }
             : undefined
         }
-        transition={{ duration: 0.15 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 26, mass: 0.7 }}
         className={cn(
           'rounded-2xl shadow-md overflow-hidden',
           isInteractive && 'cursor-pointer select-none',

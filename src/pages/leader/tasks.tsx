@@ -4,9 +4,10 @@ import {
     CheckCircle, Clock,
     AlertTriangle, ChevronRight,
     Calendar, FileText,
-    SkipForward, Flame, Sparkles
+    SkipForward, Flame, Sparkles, Users,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader } from '@/components/leader-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -83,9 +84,9 @@ function TaskCard({ task }: { task: MyTask }) {
 
   return (
     <motion.div
-      layout={!shouldReduceMotion}
+      layout={!shouldReduceMotion ? 'position' : false}
       className={cn(
-        'rounded-2xl overflow-hidden transition-all duration-200',
+        'rounded-2xl overflow-hidden transition-[opacity,box-shadow] duration-200',
         isCompleted && 'opacity-50',
         isSkipped && 'opacity-40',
         !isCompleted && !isSkipped && 'bg-white shadow-sm',
@@ -165,6 +166,18 @@ function TaskCard({ task }: { task: MyTask }) {
                 <span className="text-[11px] text-primary-300 flex items-center gap-1">
                   <Calendar size={10} />
                   {task.event.title}
+                </span>
+              )}
+              {isCompleted && task.completer?.display_name && (
+                <span className="text-[11px] text-success-600 flex items-center gap-1">
+                  <CheckCircle size={10} />
+                  {task.completer.display_name}
+                </span>
+              )}
+              {!isCompleted && !isSkipped && (task.template?.assignment_mode ?? 'collective') === 'collective' && !task.assigned_user_id && (
+                <span className="text-[11px] text-primary-300 flex items-center gap-1">
+                  <Users size={10} />
+                  Team task
                 </span>
               )}
             </div>
@@ -352,6 +365,7 @@ export default function LeaderTasksPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const { data: tasks, isLoading } = useMyTasks()
+  const showLoading = useDelayedLoading(isLoading)
   const generateMutation = useGenerateTaskInstances()
   const groups = useGroupedTasks(tasks)
 
@@ -374,11 +388,11 @@ export default function LeaderTasksPage() {
   const streak = getStreak(allTasks)
 
   /* ---- Loading skeleton ---- */
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="relative min-h-screen overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
-        <div className="relative z-10 px-6 pt-4 space-y-5 pb-20">
+        <div className="relative z-10 px-6 pt-14 space-y-5 pb-20">
           <div className="grid grid-cols-3 gap-3">
             <Skeleton className="h-20 rounded-2xl" />
             <Skeleton className="h-20 rounded-2xl" />
@@ -396,28 +410,16 @@ export default function LeaderTasksPage() {
       <div className="relative min-h-screen overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
 
-        {/* Decorative shapes */}
-        <motion.div
-          className="absolute -top-10 -right-10 w-40 h-40 rounded-full border border-amber-200/35"
-          animate={rm ? undefined : { rotate: 360 }}
-          transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
-        />
-        <motion.div
-          className="absolute top-32 -left-8 w-24 h-24 rounded-full bg-amber-100/25"
-          animate={rm ? undefined : { y: [0, 12, 0] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute top-52 right-8 w-3 h-3 rounded-full bg-amber-300/30"
-          animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        {/* Decorative shapes — CSS-only */}
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full border border-amber-200/35 will-change-transform animate-[gentleSpin_50s_linear_infinite]" />
+        <div className="absolute top-32 -left-8 w-24 h-24 rounded-full bg-amber-100/25 will-change-transform animate-[floatDown_6s_ease-in-out_infinite]" />
+        <div className="absolute top-52 right-8 w-3 h-3 rounded-full bg-amber-300/30 will-change-transform animate-[float_4s_ease-in-out_infinite]" />
 
         <div className="relative z-10 flex flex-col items-center justify-center py-16 px-6">
           <motion.div
-            initial={rm ? undefined : { scale: 0.8, opacity: 0 }}
+            initial={rm ? undefined : { scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 25, mass: 0.8 }}
             className="w-20 h-20 rounded-3xl bg-gradient-to-br from-moss-100 to-moss-200 flex items-center justify-center mb-5"
           >
             <Sparkles size={36} className="text-moss-500" />
@@ -438,56 +440,27 @@ export default function LeaderTasksPage() {
       {/* Full-bleed gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
 
-      {/* Animated decorative shapes */}
-      <motion.div
-        className="absolute -top-10 -right-10 w-44 h-44 rounded-full border border-amber-200/35"
-        animate={rm ? undefined : { rotate: 360 }}
-        transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
-      />
-      <motion.div
-        className="absolute top-20 -left-12 w-32 h-32 rounded-full border border-amber-200/35"
-        animate={rm ? undefined : { rotate: -360 }}
-        transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-      />
-      <motion.div
-        className="absolute top-40 -right-6 w-20 h-20 rounded-full bg-amber-100/25"
-        animate={rm ? undefined : { y: [0, 14, 0] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-72 -left-4 w-16 h-16 rounded-full bg-moss-100/20"
-        animate={rm ? undefined : { y: [0, -10, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-      />
-
-      {/* Floating dots */}
-      <motion.div
-        className="absolute top-28 right-12 w-2.5 h-2.5 rounded-full bg-amber-300/30"
-        animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-56 left-10 w-2 h-2 rounded-full bg-moss-300/25"
-        animate={rm ? undefined : { y: [0, 6, 0], opacity: [0.25, 0.5, 0.25] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-      <motion.div
-        className="absolute top-96 right-20 w-3 h-3 rounded-full bg-amber-300/30"
-        animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.3, 0.55, 0.3] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      />
+      {/* Decorative shapes — CSS-only for GPU compositing */}
+      <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full border border-amber-200/35 will-change-transform animate-[gentleSpin_50s_linear_infinite]" />
+      <div className="absolute top-20 -left-12 w-32 h-32 rounded-full border border-amber-200/35 will-change-transform animate-[gentleSpin_60s_linear_infinite] [animation-direction:reverse]" />
+      <div className="absolute top-40 -right-6 w-20 h-20 rounded-full bg-amber-100/25 will-change-transform animate-[floatDown_7s_ease-in-out_infinite]" />
+      <div className="absolute top-72 -left-4 w-16 h-16 rounded-full bg-moss-100/20 will-change-transform animate-[float_5s_ease-in-out_infinite]" />
+      {/* Floating dots — CSS-only */}
+      <div className="absolute top-28 right-12 w-2.5 h-2.5 rounded-full bg-amber-300/30 will-change-transform animate-[float_4s_ease-in-out_infinite]" />
+      <div className="absolute top-56 left-10 w-2 h-2 rounded-full bg-moss-300/25 will-change-transform animate-[floatDown_5s_ease-in-out_1s_infinite]" />
+      <div className="absolute top-96 right-20 w-3 h-3 rounded-full bg-amber-300/30 will-change-transform animate-[float_6s_ease-in-out_2s_infinite]" />
 
       {/* Main content */}
       <motion.div
-        className="relative z-10 px-6 pt-4 space-y-5 pb-20"
-        variants={rm ? undefined : { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
+        className="relative z-10 px-6 pt-14 space-y-5 pb-20"
+        variants={rm ? undefined : { hidden: {}, visible: { transition: { staggerChildren: 0.08, delayChildren: 0.12 } } }}
         initial="hidden"
         animate="visible"
       >
         {/* Hero title */}
         <motion.div
-          className="text-center pt-2 pb-1"
-          variants={rm ? undefined : { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
+          className="text-center pb-1"
+          variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
         >
           <p className="text-xs font-semibold uppercase tracking-widest text-amber-500/80 mb-1">Stay on track</p>
           <h1 className="font-heading text-2xl font-extrabold text-primary-900">Tasks</h1>
@@ -495,7 +468,7 @@ export default function LeaderTasksPage() {
 
         {/* Momentum dashboard */}
         <motion.div
-          variants={rm ? undefined : { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}
+          variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
           className="grid grid-cols-3 gap-3"
         >
           {/* Progress */}
@@ -561,7 +534,7 @@ export default function LeaderTasksPage() {
             {groups.map((group) => (
               <motion.div
                 key={group.collective_id}
-                variants={rm ? undefined : { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
+                variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
               >
                 <CollectiveGroup
                   name={group.collective_name}

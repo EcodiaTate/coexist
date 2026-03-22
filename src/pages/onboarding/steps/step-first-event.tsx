@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Calendar, MapPin, Check } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { cn } from '@/lib/cn'
@@ -50,6 +51,7 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
       return data as Event[]
     },
   })
+  const showLoading = useDelayedLoading(isLoading)
 
   const rsvpMutation = useMutation({
     mutationFn: async (eventId: string) => {
@@ -85,7 +87,7 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
         </motion.p>
 
         <div className="mt-6 space-y-3">
-          {isLoading ? (
+          {showLoading ? (
             <Skeleton variant="list-item" count={3} />
           ) : events && events.length > 0 ? (
             events.map((event) => (

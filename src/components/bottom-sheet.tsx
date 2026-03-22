@@ -232,12 +232,12 @@ export function BottomSheet({
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-50" aria-label="Dialog">
-          {/* Backdrop */}
+          {/* Backdrop — GPU-promoted for blur perf */}
           <motion.div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm gpu-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: backdropTransition }}
-            exit={{ opacity: 0, transition: shouldReduceMotion ? instantTransition : { duration: 0.15, ease: 'easeIn' } }}
+            exit={{ opacity: 0, transition: shouldReduceMotion ? instantTransition : { duration: 0.18, ease: [0.4, 0, 0.2, 1] } }}
             style={isDesktop ? undefined : { opacity: backdropOpacity }}
             onClick={onClose}
             aria-hidden="true"
@@ -252,13 +252,13 @@ export function BottomSheet({
                 aria-modal="true"
                 aria-label="Dialog"
                 className={cn(
-                  'relative w-full max-w-md bg-surface-0 rounded-2xl shadow-lg pointer-events-auto',
+                  'relative w-full max-w-md bg-surface-0 rounded-2xl shadow-lg pointer-events-auto gpu-panel',
                   className,
                 )}
-                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95, y: 16 }}
+                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.96, y: 12 }}
                 animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
-                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 16 }}
-                transition={shouldReduceMotion ? instantTransition : { type: 'spring', stiffness: 400, damping: 30 }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 8 }}
+                transition={shouldReduceMotion ? instantTransition : { type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }}
                 onKeyDown={handleKeyDown}
               >
                 <motion.div
@@ -293,7 +293,7 @@ export function BottomSheet({
               aria-modal="true"
               aria-label="Bottom sheet"
               className={cn(
-                'fixed inset-x-0 bottom-0 z-10 bg-surface-0 rounded-t-2xl shadow-lg',
+                'fixed inset-x-0 bottom-0 z-10 bg-surface-0 rounded-t-2xl shadow-lg gpu-panel',
                 'touch-none',
                 className,
               )}

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   Download,
   Users,
@@ -359,20 +360,11 @@ export default function AdminExportsPage() {
   }
 
   const shouldReduceMotion = useReducedMotion()
-
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
     <div>
-      <motion.div className="space-y-6" variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div className="space-y-6" variants={stagger} initial="hidden" animate="visible">
         {/* Filters */}
         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 p-4 bg-white rounded-xl shadow-sm">
           <div className="flex items-center gap-2 text-sm text-primary-400 shrink-0">

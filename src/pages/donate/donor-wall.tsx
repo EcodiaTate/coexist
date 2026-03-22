@@ -6,6 +6,7 @@ import { Avatar } from '@/components/avatar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { useDonorWall } from '@/hooks/use-donations'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 
 const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.05, delayChildren: 0.15 } } }
@@ -26,6 +27,7 @@ function formatRelativeDate(dateStr: string): string {
 
 export default function DonorWallPage() {
   const { data: donors, isLoading } = useDonorWall()
+  const showLoading = useDelayedLoading(isLoading)
   const shouldReduceMotion = useReducedMotion()
 
   return (
@@ -51,7 +53,7 @@ export default function DonorWallPage() {
           </div>
         </motion.div>
 
-        {isLoading ? (
+        {showLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 8 }).map((_, i) => (
               <Skeleton key={i} variant="text" />

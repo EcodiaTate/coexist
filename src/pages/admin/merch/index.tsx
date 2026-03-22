@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import { useAdminHeader } from '@/components/admin-layout'
 import { TabBar } from '@/components/tab-bar'
 import { Package, ShoppingCart, BarChart3, Star, Settings, Warehouse } from 'lucide-react'
@@ -78,18 +79,10 @@ export default function AdminMerchPage() {
   const shouldReduceMotion = useReducedMotion()
   const ActiveComponent = TAB_COMPONENTS[activeTab]
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="min-h-full">
+    <motion.div variants={stagger} initial="hidden" animate="visible" className="min-h-full">
       <motion.div variants={fadeUp} className="px-4 pt-3 sticky top-0 z-20 bg-gradient-to-b from-white via-white to-white/0 pb-2">
         <TabBar
           tabs={TABS}

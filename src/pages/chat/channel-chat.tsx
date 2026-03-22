@@ -14,6 +14,7 @@ import { BroadcastNotificationSheet } from '@/components/broadcast-notification-
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useLayout } from '@/hooks/use-layout'
@@ -182,6 +183,7 @@ export default function ChannelChatPage() {
   const channel = channels?.find((c) => c.id === channelId)
 
   const { messages, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useChannelMessages(channelId)
+  const showLoading = useDelayedLoading(isLoading)
   const sendMessage = useSendChannelMessage()
   const markRead = useMarkChannelRead()
   const { pickFromGallery } = useCamera()
@@ -414,7 +416,7 @@ export default function ChannelChatPage() {
         aria-label="Staff chat messages"
         aria-live="polite"
       >
-        {isLoading ? (
+        {showLoading ? (
           <div className="space-y-4 py-4">
             <Skeleton variant="list-item" count={8} />
           </div>

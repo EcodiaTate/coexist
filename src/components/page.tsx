@@ -108,6 +108,8 @@ export function Page({
           // On mobile/native, use inner scroll container for tab-bar offset + scroll restore
           // On desktop, clip overflow so sticky bg doesn't paint over the web footer
           isDesktopNav ? 'overflow-clip' : 'overflow-y-auto overflow-x-hidden overscroll-contain',
+          // Base gradient painted on element itself so first paint has colour (no flash)
+          !noBackground && 'bg-gradient-to-b from-primary-50/50 via-white to-moss-50/20',
           // Side padding for all page content
           'px-4 lg:px-6',
           // Small gap between sidebar and page content on desktop
@@ -154,6 +156,7 @@ export function Page({
             'sticky bottom-0 z-30',
             'bg-surface-0/95 backdrop-blur-md',
             'border-t border-primary-100',
+            'shadow-[0_-4px_16px_-2px_rgba(0,0,0,0.08)]',
             'px-4 py-3',
           )}
           style={{

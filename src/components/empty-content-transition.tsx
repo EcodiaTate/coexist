@@ -33,20 +33,20 @@ export function EmptyContentTransition({
         {hasContent ? (
           <motion.div
             key="content"
-            initial={{ opacity: 0, y: 24 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
           >
             {children}
           </motion.div>
         ) : (
           <motion.div
             key="empty"
-            initial={{ opacity: 0, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.85 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
           >
             {emptyState}
           </motion.div>

@@ -21,11 +21,11 @@ const activityStyles = {
 /* ------------------------------------------------------------------ */
 
 const tierStyles = {
-  seedling: 'bg-success-100 text-success-800',
-  sapling: 'bg-primary-100 text-primary-800',
-  native: 'bg-moss-100 text-moss-800',
-  canopy: 'bg-secondary-100 text-secondary-800',
-  elder: 'bg-bark-100 text-bark-900',
+  new: 'bg-success-100 text-success-800',
+  active: 'bg-primary-100 text-primary-800',
+  committed: 'bg-moss-100 text-moss-800',
+  dedicated: 'bg-secondary-100 text-secondary-800',
+  lifetime: 'bg-bark-100 text-bark-900',
 } as const
 
 type ActivityVariant = keyof typeof activityStyles

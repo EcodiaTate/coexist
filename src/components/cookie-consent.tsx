@@ -99,10 +99,10 @@ export function CookieConsentBanner({ className }: { className?: string }) {
     <AnimatePresence>
       {visible && (
         <motion.div
-          initial={shouldReduceMotion ? { opacity: 1 } : { y: 100, opacity: 0 }}
+          initial={shouldReduceMotion ? { opacity: 1 } : { y: 80, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={shouldReduceMotion ? { opacity: 0 } : { y: 100, opacity: 0 }}
-          transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+          exit={shouldReduceMotion ? { opacity: 0 } : { y: 80, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 280, damping: 28, mass: 0.8 }}
           className={cn(
             'fixed bottom-0 inset-x-0 z-[60]',
             'mx-auto max-w-lg',

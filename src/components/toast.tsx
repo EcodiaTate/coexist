@@ -155,7 +155,7 @@ export function ToastProvider({ children, className }: ToastProviderProps) {
 /*  Toast card                                                                */
 /* -------------------------------------------------------------------------- */
 
-const springTransition = { type: 'spring' as const, damping: 25, stiffness: 300 }
+const springTransition = { type: 'spring' as const, damping: 28, stiffness: 340, mass: 0.8 }
 const instantTransition = { duration: 0 }
 
 function ToastCard({
@@ -175,16 +175,16 @@ function ToastCard({
     <motion.div
       layout
       role="alert"
-      initial={{ opacity: 0, y: -40, scale: 0.95 }}
+      initial={{ opacity: 0, y: -32, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1, transition }}
       exit={{
         opacity: 0,
-        y: -20,
-        scale: 0.95,
-        transition: shouldReduceMotion ? instantTransition : { duration: 0.15 },
+        y: -16,
+        scale: 0.97,
+        transition: shouldReduceMotion ? instantTransition : { duration: 0.18, ease: [0.4, 0, 0.2, 1] },
       }}
       className={cn(
-        'pointer-events-auto w-full max-w-sm',
+        'pointer-events-auto w-full max-w-sm gpu-panel',
         'flex items-start gap-3 rounded-xl px-4 py-3 shadow-lg',
         config.bgClass,
       )}

@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   Image,
   Upload,
@@ -278,21 +280,14 @@ function ImageSlotCard({
 export default function AdminBrandingPage() {
   useAdminHeader('Branding & Images')
   const { data: images, isLoading } = useAppImagesAdmin()
+  const showLoading = useDelayedLoading(isLoading)
   const shouldReduceMotion = useReducedMotion()
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
     <motion.div
-      variants={shouldReduceMotion ? undefined : stagger}
+      variants={stagger}
       initial="hidden"
       animate="visible"
     >
@@ -304,7 +299,7 @@ export default function AdminBrandingPage() {
         immediately for all users.
       </motion.p>
 
-      {isLoading ? (
+      {showLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} variant="card" className="h-72" />

@@ -20,7 +20,7 @@ export function OfflineBanner({ className }: OfflineBannerProps) {
           initial={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
           animate={shouldReduceMotion ? { opacity: 1 } : { height: 'auto', opacity: 1 }}
           exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
           role="status"
           aria-live="polite"
           className={cn('overflow-hidden', className)}

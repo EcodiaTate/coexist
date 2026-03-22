@@ -30,6 +30,7 @@ import {
     Badge, EmptyState, ConfirmationSheet
 } from '@/components'
 import { cn } from '@/lib/cn'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { OfflineIndicator } from '@/components/offline-indicator'
 import { PendingSyncBadge } from '@/components/pending-sync-badge'
 
@@ -201,12 +202,12 @@ function EventCard({
         {/* Event image - always shown */}
         <div className="relative">
           {event.cover_image_url ? (
-            <Card.Image src={event.cover_image_url} alt={event.title} />
+            <Card.Image src={event.cover_image_url} alt={event.title} aspectRatio="2/1" />
           ) : (
-            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
+            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '2/1' }}>
               <div className="absolute inset-0 bg-gradient-to-br from-primary-300/60 via-moss-400/50 to-secondary-500/40 flex items-center justify-center">
-                <div className="w-16 h-16 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
-                  <Leaf size={28} strokeWidth={2} className="text-white/70" />
+                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                  <Leaf size={22} strokeWidth={2} className="text-white/70" />
                 </div>
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" aria-hidden="true" />
@@ -302,10 +303,10 @@ function EventCard({
 
 function EventListSkeleton() {
   return (
-    <div className="space-y-4">
-      {Array.from({ length: 3 }, (_, i) => (
+    <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+      {Array.from({ length: 4 }, (_, i) => (
         <div key={i} className="rounded-[20px] bg-gradient-to-b from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 shadow-sm overflow-hidden animate-pulse">
-          <div className="h-40 bg-primary-200/20" />
+          <div className="bg-primary-200/20" style={{ aspectRatio: '2/1' }} />
           <div className="p-4 space-y-3">
             <div className="h-4 bg-primary-200/25 rounded w-3/4" />
             <div className="h-3 bg-primary-200/20 rounded w-1/2" />
@@ -329,6 +330,7 @@ export default function MyEventsPage() {
   const shouldReduceMotion = useReducedMotion()
 
   const { data: events, isLoading, dataUpdatedAt, isFetching } = useMyEvents(activeTab)
+  const showLoading = useDelayedLoading(isLoading)
   const cancelMutation = useCancelRegistration()
 
   const handleRefresh = useCallback(async () => {
@@ -374,7 +376,7 @@ export default function MyEventsPage() {
             initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="pt-6 pb-4"
+            className="pt-14 pb-4"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -438,7 +440,7 @@ export default function MyEventsPage() {
                 transition={{ duration: 0.18 }}
                 className="pb-6"
               >
-                {isLoading ? (
+                {showLoading ? (
                   <EventListSkeleton />
                 ) : !events || events.length === 0 ? (
                   <EmptyState {...emptyConfig[activeTab]} />
@@ -447,7 +449,7 @@ export default function MyEventsPage() {
                     variants={shouldReduceMotion ? undefined : stagger}
                     initial="hidden"
                     animate="visible"
-                    className="space-y-4"
+                    className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0"
                   >
                     {events.map((event) => (
                       <EventCard
@@ -462,7 +464,7 @@ export default function MyEventsPage() {
                     ))}
 
                     {/* End of list marker */}
-                    <motion.div variants={fadeUp} className="flex flex-col items-center py-10 gap-3">
+                    <motion.div variants={fadeUp} className="flex flex-col items-center py-10 gap-3 lg:col-span-2">
                       <div className="relative">
                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#dce3d3] via-[#d4dbc9] to-[#c9d2bc] flex items-center justify-center shadow-md shadow-primary-300/20 border border-primary-200/25">
                           <Calendar size={20} className="text-secondary-700" />

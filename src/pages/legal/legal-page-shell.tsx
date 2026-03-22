@@ -2,6 +2,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import { Page } from '@/components/page'
 import { OGMeta } from '@/components/og-meta'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Skeleton } from '@/components/skeleton'
 import { useLegalPage } from '@/hooks/use-legal-page'
 
@@ -18,6 +19,7 @@ interface LegalPageShellProps {
  */
 export default function LegalPageShell({ slug, fallbackTitle, fallbackDescription }: LegalPageShellProps) {
   const { data: page, isLoading, error } = useLegalPage(slug)
+  const showLoading = useDelayedLoading(isLoading)
   const shouldReduceMotion = useReducedMotion()
 
   const title = page?.title ?? fallbackTitle
@@ -44,7 +46,7 @@ export default function LegalPageShell({ slug, fallbackTitle, fallbackDescriptio
           {title}
         </h1>
 
-        {isLoading && (
+        {showLoading && (
           <div className="space-y-4">
             <Skeleton variant="text" count={3} />
             <Skeleton variant="text" count={4} />

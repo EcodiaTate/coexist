@@ -4,10 +4,9 @@ import { Menu } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar } from '@/components/bottom-tab-bar'
-import { SidebarNav } from '@/components/sidebar-nav'
+import { UnifiedSidebar } from '@/components/unified-sidebar'
 import { WebFooter } from '@/components/web-footer'
 import { OfflineBanner } from '@/components/offline-banner'
-import { MenuSheet } from '@/components/menu-sheet'
 import { MenuSheetProvider, useMenuSheet } from '@/hooks/use-menu-sheet'
 import { useSyncManager } from '@/hooks/use-sync-manager'
 import { usePushRegistration } from '@/hooks/use-push'
@@ -62,8 +61,8 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
       {/* Sidebar + content row */}
       <div className="flex flex-1 min-h-0">
-        {/* Sidebar - hidden on admin/leader pages (they have their own) */}
-        {showSidebar && !isAdminRoute && !isLeaderRoute && <SidebarNav />}
+        {/* Unified sidebar — desktop: permanent left sidebar */}
+        {showSidebar && <UnifiedSidebar />}
 
         {/* Content */}
         <main className="flex-1 flex flex-col min-w-0 min-h-0">
@@ -82,7 +81,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
         <button
           type="button"
           onClick={openMenu}
-          className="fixed right-1 z-40 flex items-center justify-center w-11 h-11 text-white mix-blend-difference cursor-pointer select-none"
+          className="fixed right-1 z-40 flex items-center justify-center w-12 h-12 text-white cursor-pointer select-none"
           style={{
             top: 'calc(var(--safe-top, 0px) + 0.25rem)',
           }}
@@ -92,8 +91,10 @@ function AppShellInner({ children }: { children: ReactNode }) {
         </button>
       )}
 
-      {/* Menu side sheet (mobile + native) - hidden on admin/leader pages */}
-      {showBottomTabs && !isAdminRoute && !isLeaderRoute && <MenuSheet open={open} onClose={closeMenu} />}
+      {/* Unified sidebar — mobile: slide-in overlay from right (replaces MenuSheet) */}
+      {showBottomTabs && !isAdminRoute && !isLeaderRoute && (
+        <UnifiedSidebar mobileOpen={open} onMobileClose={closeMenu} />
+      )}
     </div>
   )
 }

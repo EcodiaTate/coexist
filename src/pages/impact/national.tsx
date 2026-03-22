@@ -23,6 +23,7 @@ import { CountUp } from '@/components/count-up'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { cn } from '@/lib/cn'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { supabase } from '@/lib/supabase'
 import { parseLocationPoint } from '@/lib/geo'
 import { MapView } from '@/components'
@@ -305,11 +306,12 @@ export default function NationalImpactPage() {
   useAdminHeader('Impact')
   const shouldReduceMotion = useReducedMotion()
   const { data, isLoading } = useNationalImpact()
+  const showLoading = useDelayedLoading(isLoading)
   const { data: topCollectives } = useTopCollectives()
   const { data: trends } = useTrends()
   const { data: eventMapPoints } = useEventMapPoints()
 
-  if (isLoading) {
+  if (showLoading) {
     const skeleton = (
         <div className="p-5 space-y-5">
           <div className="grid grid-cols-2 gap-4">
@@ -328,7 +330,6 @@ export default function NationalImpactPage() {
       </Page>
     )
   }
-
   const exportPDF = () => {
     alert('PDF export will be generated via Edge Function with branded Co-Exist template')
   }

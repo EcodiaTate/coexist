@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import {
   getGreeting,
   useLatestAnnouncement,
@@ -169,6 +170,9 @@ export default function HomePage() {
   const recentPosts = useRecentPosts()
   const tierProgress = useHomeTierProgress()
 
+  const initialLoading = announcement.isLoading || myCollective.isLoading || myEvents.isLoading || impact.isLoading
+  const showLoading = useDelayedLoading(initialLoading)
+
   const firstName = profile?.display_name?.split(' ')[0]
   const eventsAttended = impact.data?.events_attended ?? 0
   const isNewUser = eventsAttended === 0 && !myCollective.data
@@ -262,7 +266,7 @@ export default function HomePage() {
               <ProximityCheckInBanner />
 
               {/* Announcement banner */}
-              {announcement.isLoading ? (
+              {announcement.isLoading && showLoading ? (
                 <div className="rounded-2xl bg-white/[0.06] p-4 animate-pulse flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-white/[0.06] shrink-0" />
                   <div className="flex-1 space-y-2">
@@ -297,7 +301,7 @@ export default function HomePage() {
 
               {/* Your Collective */}
               <motion.div variants={rm ? undefined : fadeUp}>
-                {myCollective.isLoading ? (
+                {myCollective.isLoading && showLoading ? (
                   <div className="rounded-2xl bg-white/[0.06] p-6 animate-pulse space-y-4">
                     <div className="h-3 w-24 rounded-full bg-white/[0.05]" />
                     <div className="h-7 w-48 rounded-xl bg-white/[0.06]" />
@@ -351,7 +355,7 @@ export default function HomePage() {
                       )}
                     </div>
                   </div>
-                ) : (
+                ) : !myCollective.isLoading ? (
                   <div
                     className="relative rounded-2xl bg-white/[0.06] p-7 sm:p-9 overflow-hidden active:scale-[0.98] transition-all duration-150 cursor-pointer"
                     onClick={() => navigate('/explore')}
@@ -376,11 +380,11 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                )}
+                ) : null}
               </motion.div>
 
               {/* Your Upcoming Events */}
-              {myEvents.isLoading ? (
+              {myEvents.isLoading && showLoading ? (
                 <div className="space-y-3">
                   <div className="h-3 w-36 rounded-full bg-white/[0.04] animate-pulse" />
                   {[1, 2].map((i) => (
@@ -617,7 +621,7 @@ export default function HomePage() {
               )}
 
               {/* National Challenge */}
-              {challenge.isLoading ? (
+              {challenge.isLoading && showLoading ? (
                 <div className="rounded-2xl bg-white/[0.06] p-5 animate-pulse space-y-3">
                   <div className="flex gap-3">
                     <div className="w-10 h-10 rounded-xl bg-white/[0.06] shrink-0" />
@@ -671,7 +675,7 @@ export default function HomePage() {
                     title="Trending Collectives"
                     action={{ label: 'View all', to: '/explore' }}
                   >
-                    {trending.isLoading ? (
+                    {trending.isLoading && showLoading ? (
                       <HScroll>
                         {[1, 2, 3].map((i) => (
                           <div key={i} className="shrink-0 w-44 h-28 rounded-2xl bg-white/[0.06] animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />

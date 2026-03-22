@@ -1,6 +1,7 @@
 import { type ReactNode, useState, useEffect, useRef, createContext, useContext, useCallback, useMemo, Suspense } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { drawerSpring } from '@/lib/admin-motion'
 import {
     LayoutDashboard,
     Users,
@@ -30,7 +31,6 @@ import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
-import { SidebarShell, type SidebarNavCategory } from '@/components/sidebar-shell'
 
 /* ------------------------------------------------------------------ */
 /*  Admin header context  lets child pages set title + actions        */
@@ -77,29 +77,29 @@ export function useAdminHeader(
 const PAGE_HERO_CONFIG: Record<string, { hue: string; defaultSubtitle: string; tall?: boolean }> = {
   'Dashboard':           { hue: 'from-primary-800 via-primary-900 to-primary-950',        defaultSubtitle: 'National conservation overview' },
   'Collectives':         { hue: 'from-primary-600 via-primary-700 to-primary-900',        defaultSubtitle: 'Manage local chapters across Australia', tall: true },
-  'Users':               { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Manage members, roles, and permissions' },
-  'User Management':     { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Manage members, roles, and permissions' },
-  'Workflows':           { hue: 'from-primary-700 via-primary-800 to-primary-950',        defaultSubtitle: 'Automate recurring tasks and track KPIs' },
-  'Events':              { hue: 'from-accent-700 via-accent-800 to-primary-950',          defaultSubtitle: 'Track and manage conservation activities' },
-  'Partners & Sponsors': { hue: 'from-primary-700 via-primary-800 to-neutral-900',        defaultSubtitle: 'Manage organisations, offers, and programs' },
-  'Challenges':          { hue: 'from-accent-700 via-primary-800 to-primary-950',         defaultSubtitle: 'Create and track national conservation goals' },
-  'Surveys':             { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Collect feedback and measure satisfaction' },
-  'Reports':             { hue: 'from-primary-700 via-primary-900 to-primary-950',        defaultSubtitle: 'Generate impact and compliance reports' },
-  'Content Moderation':  { hue: 'from-primary-900 via-primary-950 to-neutral-900',        defaultSubtitle: 'Review flagged content and manage reports' },
-  'Email & Delivery':    { hue: 'from-primary-900 via-primary-950 to-neutral-900',        defaultSubtitle: 'Monitor bounces, complaints, and delivery' },
-  'Email Marketing':     { hue: 'from-primary-900 via-primary-950 to-neutral-900',        defaultSubtitle: 'Campaigns, subscribers, and delivery health' },
-  'Charity Settings':    { hue: 'from-primary-800 via-primary-900 to-neutral-900',        defaultSubtitle: 'ACNC registration and compliance details' },
-  'Export Centre':       { hue: 'from-primary-700 via-primary-900 to-primary-950',        defaultSubtitle: 'Generate reports and download data' },
-  'Audit Log':           { hue: 'from-primary-900 via-primary-950 to-neutral-900',        defaultSubtitle: 'Track all administrative actions' },
-  'Branding & Images':   { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Manage app images and visual identity' },
-  'System':              { hue: 'from-primary-900 via-neutral-900 to-neutral-950',        defaultSubtitle: 'Infrastructure, feature flags, and health' },
-  'Membership':          { hue: 'from-primary-700 via-primary-800 to-primary-950',        defaultSubtitle: 'Manage rewards and membership plans' },
-  'Merch Management':    { hue: 'from-primary-800 via-primary-900 to-primary-950',        defaultSubtitle: 'Products, orders, and inventory' },
-  'Create Survey':       { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Design a new survey' },
-  'Dev Tools':           { hue: 'from-primary-900 via-neutral-900 to-neutral-950',        defaultSubtitle: 'Testing and debugging utilities' },
+  'Users':               { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Manage members, roles, and permissions', tall: true },
+  'User Management':     { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Manage members, roles, and permissions', tall: true },
+  'Workflows':           { hue: 'from-primary-700 via-primary-800 to-primary-950',        defaultSubtitle: 'Automate recurring tasks and track KPIs', tall: true },
+  'Events':              { hue: 'from-accent-700 via-accent-800 to-primary-950',          defaultSubtitle: 'Track and manage conservation activities', tall: true },
+  'Partners & Sponsors': { hue: 'from-primary-700 via-primary-800 to-neutral-900',        defaultSubtitle: 'Manage organisations, offers, and programs', tall: true },
+  'Challenges':          { hue: 'from-accent-700 via-primary-800 to-primary-950',         defaultSubtitle: 'Create and track national conservation goals', tall: true },
+  'Surveys':             { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Collect feedback and measure satisfaction', tall: true },
+  'Reports':             { hue: 'from-primary-700 via-primary-900 to-primary-950',        defaultSubtitle: 'Generate impact and compliance reports', tall: true },
+  'Content Moderation':  { hue: 'from-primary-900 via-primary-950 to-neutral-900',        defaultSubtitle: 'Review flagged content and manage reports', tall: true },
+  'Email & Delivery':    { hue: 'from-primary-900 via-primary-950 to-neutral-900',        defaultSubtitle: 'Monitor bounces, complaints, and delivery', tall: true },
+  'Email Marketing':     { hue: 'from-primary-900 via-primary-950 to-neutral-900',        defaultSubtitle: 'Campaigns, subscribers, and delivery health', tall: true },
+  'Charity Settings':    { hue: 'from-primary-800 via-primary-900 to-neutral-900',        defaultSubtitle: 'ACNC registration and compliance details', tall: true },
+  'Export Centre':       { hue: 'from-primary-700 via-primary-900 to-primary-950',        defaultSubtitle: 'Generate reports and download data', tall: true },
+  'Audit Log':           { hue: 'from-primary-900 via-primary-950 to-neutral-900',        defaultSubtitle: 'Track all administrative actions', tall: true },
+  'Branding & Images':   { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Manage app images and visual identity', tall: true },
+  'System':              { hue: 'from-primary-900 via-neutral-900 to-neutral-950',        defaultSubtitle: 'Infrastructure, feature flags, and health', tall: true },
+  'Membership':          { hue: 'from-primary-700 via-primary-800 to-primary-950',        defaultSubtitle: 'Manage rewards and membership plans', tall: true },
+  'Merch Management':    { hue: 'from-primary-800 via-primary-900 to-primary-950',        defaultSubtitle: 'Products, orders, and inventory', tall: true },
+  'Create Survey':       { hue: 'from-primary-800 via-primary-850 to-neutral-900',        defaultSubtitle: 'Design a new survey', tall: true },
+  'Dev Tools':           { hue: 'from-primary-900 via-neutral-900 to-neutral-950',        defaultSubtitle: 'Testing and debugging utilities', tall: true },
 }
 
-const DEFAULT_HERO = { hue: 'from-primary-800 via-primary-900 to-primary-950', defaultSubtitle: '', tall: false }
+const DEFAULT_HERO = { hue: 'from-primary-800 via-primary-900 to-primary-950', defaultSubtitle: '', tall: true }
 
 /** Returns true when the component is rendered inside the admin layout. */
 export function useIsAdminLayout() {
@@ -257,74 +257,10 @@ export function AdminLayout() {
     return location.pathname.startsWith(path)
   }
 
-  // Build capability-filtered categories for the shared sidebar shell
-  const adminSidebarCategories = useMemo<SidebarNavCategory[]>(() =>
-    adminNavCategories
-      .filter((cat) => !cat.superAdminOnly || isSuperAdmin)
-      .map((cat) => ({
-        label: cat.label,
-        items: cat.items.filter((item) => !item.capability || hasCapability(item.capability)),
-      }))
-      .filter((cat) => cat.items.length > 0),
-    [isSuperAdmin, hasCapability],
-  )
-
   return (
     <AdminHeaderContext.Provider value={headerCtx}>
       <div className="flex flex-1 min-h-0">
-        {/* Admin sidebar - hidden on mobile, shown on md+ */}
-        <SidebarShell
-          ariaLabel="Admin navigation"
-          categories={adminSidebarCategories}
-          accent="primary"
-          layoutId="admin-sidebar-active"
-          hideOnMobile
-          header={(collapsed) => (
-            <>
-              {/* Back to app */}
-              <div className="px-2.5">
-                <Link
-                  to="/"
-                  className={cn(
-                    'flex items-center gap-2',
-                    'rounded-xl text-[13px]',
-                    'text-primary-300 hover:text-primary-700 hover:bg-primary-50/50',
-                    'transition-all duration-200',
-                    'cursor-pointer select-none',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-                    collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-8',
-                  )}
-                  title={collapsed ? 'Back to app' : undefined}
-                >
-                  <ArrowLeft size={15} strokeWidth={1.5} className="shrink-0" />
-                  {!collapsed && <span>Back to app</span>}
-                </Link>
-              </div>
-
-              {/* Admin badge */}
-              {!collapsed && (
-                <div className="px-3 py-3 mx-2.5 mb-1 rounded-xl bg-gradient-to-br from-primary-50/80 to-primary-50/30 border border-primary-100/30">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shrink-0 shadow-sm">
-                      <Shield size={14} className="text-white" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-[0.08em] leading-none">Admin</p>
-                      <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">Co-Exist</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {collapsed && (
-                <div className="flex justify-center py-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shadow-sm">
-                    <Shield size={14} className="text-white" />
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        />
+        {/* Desktop sidebar is handled by UnifiedSidebar in AppShell */}
 
         {/* Mobile hamburger + drawer */}
         <AnimatePresence>
@@ -347,13 +283,13 @@ export function AdminLayout() {
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
-                transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 35 }}
+                transition={shouldReduceMotion ? { duration: 0 } : drawerSpring}
               >
                 {/* Wordmark centered + close */}
                 <div className="flex items-center justify-between px-4 py-3">
                   <Link
                     to="/"
-                    className="flex items-center justify-center w-8 h-8 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-primary-50/50 transition-all"
+                    className="flex items-center justify-center w-8 h-8 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-primary-50/50 transition-colors"
                     aria-label="Back to app"
                   >
                     <ArrowLeft size={15} strokeWidth={1.5} />
@@ -366,7 +302,7 @@ export function AdminLayout() {
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}
-                    className="p-1.5 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-all"
+                    className="p-1.5 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-colors"
                     aria-label="Close menu"
                   >
                     <X size={16} strokeWidth={1.5} />
@@ -408,7 +344,7 @@ export function AdminLayout() {
                               className={cn(
                                 'relative flex items-center gap-2.5 px-3 h-10',
                                 'rounded-xl text-[13px]',
-                                'transition-all duration-200',
+                                'transition-colors duration-200',
                                 'cursor-pointer select-none',
                                 active
                                   ? 'bg-primary-50/70 text-primary-800 font-medium'
@@ -420,7 +356,7 @@ export function AdminLayout() {
                                 <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-gradient-to-b from-primary-500 to-primary-700" />
                               )}
                               <span className={cn(
-                                'flex items-center justify-center shrink-0 transition-transform duration-200',
+                                'flex items-center justify-center shrink-0 will-change-transform transition-transform duration-200',
                                 active && 'scale-105',
                               )}>{item.icon}</span>
                               <span className="truncate">{item.label}</span>
@@ -452,7 +388,7 @@ export function AdminLayout() {
 
         {/* Main content */}
         <div ref={scrollRef} className={cn(
-          'flex-1 flex flex-col min-w-0 min-h-0 bg-white',
+          'flex-1 flex flex-col min-w-0 min-h-0 bg-surface-1',
           showBottomTabs && 'overflow-y-auto overscroll-contain',
         )}>
           {/* ── Shared hero bar - only for non-fullBleed pages ── */}
@@ -463,10 +399,10 @@ export function AdminLayout() {
               <div
                 className={cn(
                   'relative overflow-hidden',
-                  'bg-gradient-to-br transition-all duration-700 ease-in-out',
+                  'bg-gradient-to-br transition-[background] duration-700 ease-in-out',
                   cfg.hue,
                   cfg.tall
-                    ? 'px-6 pt-8 pb-14 sm:px-8 sm:pt-12 sm:pb-16'
+                    ? 'px-6 pt-12 pb-14 sm:px-8 sm:pt-16 sm:pb-16'
                     : 'px-6 pt-5 pb-10 sm:px-8 sm:pt-8 sm:pb-12',
                 )}
               >
@@ -502,23 +438,12 @@ export function AdminLayout() {
           <div className={cn(
             'relative flex-1 overflow-clip',
             header.fullBleed ? 'p-0' : 'p-6',
+            !header.fullBleed && 'bg-gradient-to-b from-primary-50/40 via-white to-primary-50/20',
             showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
           )}>
-            {/* Atmospheric background — sticky keeps it viewport-pinned */}
-            {!header.fullBleed && (
-              <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 overflow-hidden" aria-hidden="true">
-                <div className="absolute inset-0 bg-gradient-to-b from-primary-50/40 via-white to-primary-50/20" />
-                <div className="absolute -top-20 -right-20 w-[350px] h-[350px] rounded-full bg-primary-100/10 blur-3xl" />
-                <div className="absolute -bottom-16 -left-12 w-[280px] h-[280px] rounded-full bg-primary-50/15 blur-3xl" />
-              </div>
-            )}
 
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-24">
-                <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
-              </div>
-            }>
-              <Outlet key={location.pathname} />
+            <Suspense fallback={null}>
+              <Outlet />
             </Suspense>
           </div>
         </div>

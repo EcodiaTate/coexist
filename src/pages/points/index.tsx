@@ -1,9 +1,9 @@
 import { useCallback } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Star, TrendingUp, Calendar } from 'lucide-react'
+import { ArrowLeft, Star, TrendingUp, Calendar } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { Page } from '@/components/page'
-import { Header } from '@/components/header'
 import { Badge } from '@/components/badge'
 import { CountUp } from '@/components/count-up'
 import { ProgressBar } from '@/components/progress-bar'
@@ -13,13 +13,14 @@ import { PullToRefresh } from '@/components/pull-to-refresh'
 import { cn } from '@/lib/cn'
 import { usePointsBalance, usePointsHistory, getTierProgress, POINT_VALUES } from '@/hooks/use-points'
 import type { TierName } from '@/hooks/use-points'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 const tierLabels: Record<TierName, string> = {
-  seedling: 'Seedling',
-  sapling: 'Sapling',
-  native: 'Native',
-  canopy: 'Canopy',
-  elder: 'Elder',
+  new: 'New',
+  active: 'Active',
+  committed: 'Committed',
+  dedicated: 'Dedicated',
+  lifetime: 'Lifetime',
 }
 
 const REASON_LABELS: Record<string, string> = {
@@ -128,6 +129,7 @@ function PointsSkeleton() {
 /* ------------------------------------------------------------------ */
 
 export default function PointsPage() {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const shouldReduceMotion = useReducedMotion()
   const { data: balanceData, isLoading: balanceLoading } = usePointsBalance()
@@ -138,15 +140,17 @@ export default function PointsPage() {
   }, [queryClient])
 
   const isLoading = balanceLoading || historyLoading
+  const showLoading = useDelayedLoading(isLoading)
 
-  if (isLoading) {
+  if (showLoading) {
     return (
-      <Page header={<Header title="Points" back />}>
-        <PointsSkeleton />
+      <Page className="!px-0" noBackground>
+        <div className="px-4">
+          <PointsSkeleton />
+        </div>
       </Page>
     )
   }
-
   const points = balanceData?.points ?? 0
   const tierProgress = getTierProgress(points)
 
@@ -164,13 +168,37 @@ export default function PointsPage() {
   }
 
   return (
-    <Page header={<Header title="Points" back />}>
+    <Page className="!px-0" noBackground>
       <div className="relative min-h-full overflow-hidden">
         {/* Decorative background */}
         <FullBleedBackground rm={!!shouldReduceMotion} />
 
+        {/* Top bar with safe-area padding */}
+        <div className="relative z-20 px-4" style={{ paddingTop: 'var(--safe-top)' }}>
+          <div className="flex items-center h-14">
+            <motion.button
+              type="button"
+              onClick={() => navigate(-1)}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+              className={cn(
+                'flex items-center justify-center',
+                'w-9 h-9 -ml-1 rounded-full',
+                'text-primary-800 hover:bg-primary-50/80',
+                'cursor-pointer select-none',
+                'transition-colors duration-150',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+              )}
+              aria-label="Go back"
+            >
+              <ArrowLeft size={22} />
+            </motion.button>
+            <h1 className="ml-2 font-heading text-lg font-semibold text-primary-800">Points</h1>
+          </div>
+        </div>
+
         {/* Content */}
-        <div className="relative z-10">
+        <div className="relative z-10 px-4">
           <PullToRefresh onRefresh={handleRefresh}>
           <div className="pb-8">
             {/* Points balance hero */}

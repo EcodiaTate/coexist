@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   Handshake,
   Plus,
@@ -105,7 +107,9 @@ export default function AdminPartnersPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const { data: organisations, isLoading: orgsLoading } = useOrganisations()
+  const showOrgsLoading = useDelayedLoading(orgsLoading)
   const { data: offers, isLoading: offersLoading } = usePartnerOffers()
+  const showOffersLoading = useDelayedLoading(offersLoading)
 
   const heroStats = useMemo(() => (
     <div className="flex items-center gap-3">
@@ -273,20 +277,11 @@ export default function AdminPartnersPage() {
   })
 
   const shouldReduceMotion = useReducedMotion()
-
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
     <div>
-        <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+        <motion.div variants={stagger} initial="hidden" animate="visible">
           <motion.div variants={fadeUp}>
             <TabBar
               tabs={tabs}
@@ -310,9 +305,9 @@ export default function AdminPartnersPage() {
             </Button>
           </div>
 
-          {orgsLoading ? (
+          {showOrgsLoading ? (
             <Skeleton variant="list-item" count={4} />
-          ) : !organisations?.length ? (
+          ) : orgsLoading ? null : !organisations?.length ? (
             <EmptyState
               illustration="empty"
               title="No organisations"
@@ -395,9 +390,9 @@ export default function AdminPartnersPage() {
             </Button>
           </div>
 
-          {offersLoading ? (
+          {showOffersLoading ? (
             <Skeleton variant="list-item" count={4} />
-          ) : !offers?.length ? (
+          ) : offersLoading ? null : !offers?.length ? (
             <EmptyState
               illustration="empty"
               title="No partner offers"

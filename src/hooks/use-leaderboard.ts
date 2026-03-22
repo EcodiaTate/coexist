@@ -106,7 +106,7 @@ export function useIndividualLeaderboard(
             userId,
             displayName: profile?.display_name ?? 'Unknown',
             avatarUrl: profile?.avatar_url ?? null,
-            tier: profile?.membership_level ?? 'seedling',
+            tier: profile?.membership_level ?? 'new',
             value,
             rank: i + 1,
           }
@@ -166,7 +166,7 @@ export function useIndividualLeaderboard(
           userId,
           displayName: profileMap.get(userId)?.display_name ?? 'Unknown',
           avatarUrl: profileMap.get(userId)?.avatar_url ?? null,
-          tier: profileMap.get(userId)?.membership_level ?? 'seedling',
+          tier: profileMap.get(userId)?.membership_level ?? 'new',
           value,
           rank: i + 1,
         }))
@@ -218,7 +218,7 @@ export function useIndividualLeaderboard(
         userId,
         displayName: profileMap.get(userId)?.display_name ?? 'Unknown',
         avatarUrl: profileMap.get(userId)?.avatar_url ?? null,
-        tier: profileMap.get(userId)?.membership_level ?? 'seedling',
+        tier: profileMap.get(userId)?.membership_level ?? 'new',
         value,
         rank: i + 1,
       }))

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
 import {
@@ -318,6 +319,7 @@ function CommentSection({
   const [expanded, setExpanded] = useState(false)
   const [text, setText] = useState('')
   const { data: comments, isLoading } = usePostComments(postId)
+  const showLoading = useDelayedLoading(isLoading)
   const addComment = useAddComment()
   const { user } = useAuth()
   const { toast } = useToast()
@@ -372,7 +374,7 @@ function CommentSection({
             className="overflow-hidden"
           >
             <div className="pt-3 mt-2 space-y-3 px-5 pb-2 border-t border-primary-100/30">
-              {isLoading ? (
+              {showLoading ? (
                 <Skeleton variant="list-item" count={2} />
               ) : (
                 (comments ?? []).map((comment) => (
@@ -721,7 +723,7 @@ function PostCard({ post }: { post: PostWithDetails }) {
 
 function FeedSkeleton() {
   return (
-    <div className="space-y-5 pt-6 pb-4" role="status" aria-label="Loading feed">
+    <div className="space-y-5 pt-14 pb-4" role="status" aria-label="Loading feed">
       {/* Create post skeleton */}
       <div className="flex items-center gap-3.5 p-4 rounded-[20px] bg-gradient-to-br from-[#f0f4ea] to-[#e8ede1] border border-primary-200/30 shadow-sm animate-pulse">
         <div className="w-10 h-10 rounded-full bg-primary-200/40" />
@@ -763,6 +765,7 @@ export default function FeedPage() {
   const shouldReduceMotion = useReducedMotion()
 
   const feed = useFeed(undefined)
+  const showFeedLoading = useDelayedLoading(feed.isLoading)
 
   const posts = feed.data?.pages.flat() ?? []
   const isEmpty = !feed.isLoading && posts.length === 0
@@ -786,10 +789,10 @@ export default function FeedPage() {
 
         {/* Content */}
         <div className="relative z-10 px-4 lg:px-6">
-          {feed.isLoading ? (
+          {showFeedLoading ? (
             <FeedSkeleton />
           ) : isEmpty ? (
-            <div className="pt-6">
+            <div className="pt-14">
               <HeroHeader
                 displayName={profile?.display_name ?? 'there'}
                 avatarUrl={profile?.avatar_url}
@@ -810,7 +813,7 @@ export default function FeedPage() {
           ) : (
             <PullToRefresh onRefresh={handleRefresh}>
               <motion.div
-                className="space-y-5 pt-6 pb-4"
+                className="space-y-5 pt-14 pb-4"
                 variants={shouldReduceMotion ? undefined : stagger}
                 initial="hidden"
                 animate="visible"

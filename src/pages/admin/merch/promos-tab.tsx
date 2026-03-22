@@ -1,6 +1,8 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import { Plus, Edit3 } from 'lucide-react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Toggle } from '@/components/toggle'
@@ -110,7 +112,7 @@ function PromoFormSheet({
                 type="button"
                 onClick={() => setType(t)}
                 className={cn(
-                  'flex-1 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-all duration-150',
+                  'flex-1 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-[color,background-color,box-shadow] duration-150',
                   type === t
                     ? `${TYPE_COLOURS[t]} ring-2 shadow-sm`
                     : 'bg-primary-50/60 text-primary-400 hover:bg-primary-100/60',
@@ -154,26 +156,18 @@ function PromoFormSheet({
 
 export default function PromosTab() {
   const { data: promos, isLoading } = useAdminPromoCodes()
+  const showLoading = useDelayedLoading(isLoading)
   const shouldReduceMotion = useReducedMotion()
   const [formOpen, setFormOpen] = useState(false)
   const [editPromo, setEditPromo] = useState<PromoCode | undefined>()
 
-  if (isLoading) {
+  if (showLoading) {
     return <Skeleton variant="text" count={5} />
   }
-
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+    <motion.div variants={stagger} initial="hidden" animate="visible">
       <motion.div variants={fadeUp} className="flex justify-between items-center mb-5">
         <h2 className="font-heading font-semibold text-primary-800">
           Promo Codes

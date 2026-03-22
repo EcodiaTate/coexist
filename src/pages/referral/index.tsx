@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useReferralCode, useReferralStats } from '@/hooks/use-referral'
 
 /* ------------------------------------------------------------------ */
@@ -60,6 +61,7 @@ export default function ReferralPage() {
   const rm = !!shouldReduceMotion
   const { toast } = useToast()
   const { data: code, isLoading: codeLoading } = useReferralCode()
+  const showLoading = useDelayedLoading(codeLoading)
   const { data: stats } = useReferralStats()
 
   const [copied, setCopied] = useState(false)
@@ -88,13 +90,14 @@ export default function ReferralPage() {
     }
   }
 
-  if (codeLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Invite Friends" back />}>
         <ReferralSkeleton />
       </Page>
     )
   }
+  if (codeLoading) return null
 
   return (
     <Page header={<Header title="Invite Friends" back />}>

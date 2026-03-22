@@ -107,38 +107,38 @@ export function Modal({
             if (e.target === e.currentTarget) onClose()
           }}
         >
-          {/* Backdrop - visual only, no pointer events */}
+          {/* Backdrop — GPU-promoted for blur perf */}
           <motion.div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm pointer-events-none"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm pointer-events-none gpu-backdrop"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, transition: t ? instant : { duration: 0.2, ease: 'easeOut' } }}
-            exit={{ opacity: 0, transition: t ? instant : { duration: 0.15, ease: 'easeIn' } }}
+            animate={{ opacity: 1, transition: t ? instant : { duration: 0.22, ease: [0.4, 0, 0.2, 1] } }}
+            exit={{ opacity: 0, transition: t ? instant : { duration: 0.18, ease: [0.4, 0, 0.2, 1] } }}
             aria-hidden="true"
           />
 
-          {/* Panel - the only animated motion element */}
+          {/* Panel — GPU-promoted for smooth scale+fade */}
           <motion.div
             ref={contentRef}
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            initial={{ opacity: 0, scale: 0.92, y: 8 }}
+            initial={{ opacity: 0, scale: 0.94, y: 8 }}
             animate={{
               opacity: 1,
               scale: 1,
               y: 0,
               transition: t
                 ? instant
-                : { type: 'spring', stiffness: 420, damping: 30, mass: 0.8 },
+                : { type: 'spring', stiffness: 380, damping: 32, mass: 0.8 },
             }}
             exit={{
               opacity: 0,
-              scale: 0.95,
+              scale: 0.96,
               y: 4,
-              transition: t ? instant : { duration: 0.15, ease: [0.4, 0, 1, 1] },
+              transition: t ? instant : { duration: 0.18, ease: [0.4, 0, 0.2, 1] },
             }}
             className={cn(
-              'relative z-10 w-full bg-white shadow-lg',
+              'relative z-10 w-full bg-white shadow-lg gpu-panel',
               'rounded-2xl',
               'max-h-[min(85vh,calc(100dvh-3rem))] flex flex-col',
               sizeClasses[size],

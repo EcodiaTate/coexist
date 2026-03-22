@@ -71,13 +71,13 @@ export function Celebration({
         >
           <Confetti active={showConfetti} count={50} duration={3000} />
 
-          {/* Glow ring */}
+          {/* Glow ring — GPU-promoted */}
           {!shouldReduceMotion && (
             <motion.div
-              className="absolute w-64 h-64 rounded-full bg-primary-400/10"
+              className="absolute w-64 h-64 rounded-full bg-primary-400/10 gpu-panel"
               initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 1.5, 1.2], opacity: [0, 0.6, 0.3] }}
-              transition={{ duration: 1, ease: 'easeOut' }}
+              animate={{ scale: [0, 1.4, 1.15], opacity: [0, 0.5, 0.25] }}
+              transition={{ duration: 1.2, ease: [0.25, 0.1, 0.25, 1] }}
               aria-hidden="true"
             />
           )}
@@ -91,7 +91,7 @@ export function Celebration({
               transition={
                 shouldReduceMotion
                   ? { duration: 0 }
-                  : { type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }
+                  : { type: 'spring', stiffness: 220, damping: 14, mass: 0.8, delay: 0.2 }
               }
             >
               <div className="flex items-center justify-center w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm">

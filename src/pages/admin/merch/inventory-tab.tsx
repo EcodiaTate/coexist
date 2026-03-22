@@ -1,6 +1,8 @@
 import { useState, useMemo, useCallback } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import { AlertTriangle, PackageX, Search, ArrowUpDown } from 'lucide-react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useAppImage } from '@/hooks/use-app-images'
 import { TabBar } from '@/components/tab-bar'
 import { SearchBar } from '@/components/search-bar'
@@ -151,6 +153,7 @@ function SummaryCards({ items }: { items: FlatVariant[] }) {
 
 export default function InventoryTab() {
   const { data: products, isLoading } = useAdminProducts()
+  const showLoading = useDelayedLoading(isLoading)
   const shouldReduceMotion = useReducedMotion()
   const placeholderMerch = useAppImage('placeholder_merch')
 
@@ -213,17 +216,9 @@ export default function InventoryTab() {
     return items
   }, [allItems, filter, search, sort])
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.03 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.2 } },
-  }
-
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="space-y-3">
         <div className="grid grid-cols-4 gap-2">
@@ -237,10 +232,9 @@ export default function InventoryTab() {
       </div>
     )
   }
-
   return (
     <motion.div
-      variants={shouldReduceMotion ? undefined : stagger}
+      variants={stagger}
       initial="hidden"
       animate="visible"
     >
@@ -266,7 +260,7 @@ export default function InventoryTab() {
               s === 'stock-asc' ? 'name' : s === 'name' ? 'product' : 'stock-asc',
             )
           }
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/30 text-secondary-700 cursor-pointer transition-all hover:shadow-sm active:scale-[0.97] shrink-0 mb-px"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/30 text-secondary-700 cursor-pointer transition-[color,background-color,box-shadow,transform] hover:shadow-sm active:scale-[0.97] shrink-0 mb-px"
         >
           <ArrowUpDown size={12} />
           {sort === 'stock-asc' ? 'Stock ↑' : sort === 'name' ? 'A-Z' : 'Product'}
@@ -315,7 +309,7 @@ export default function InventoryTab() {
                   key={`${item.product.id}-${item.variant.id}`}
                   type="button"
                   onClick={() => setAdjustTarget(item)}
-                  className="w-full text-left flex items-center gap-3 p-3 bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.98]"
+                  className="w-full text-left flex items-center gap-3 p-3 bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 rounded-2xl shadow-sm hover:shadow-md transition-[color,background-color,box-shadow,transform] duration-200 cursor-pointer active:scale-[0.98]"
                 >
                   {/* Product image */}
                   <img

@@ -1,5 +1,7 @@
 import { useState, useCallback, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { adminVariants, expandCollapse as expandCollapseVariants } from '@/lib/admin-motion'
 import {
     Users,
     Shield,
@@ -411,9 +413,10 @@ function UserSettingsSheet({
           <AnimatePresence>
             {showRoleChange && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
+                variants={expandCollapseVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
                 className="overflow-hidden"
               >
                 <div className="p-3.5 bg-primary-50 rounded-xl ring-1 ring-primary-200/50 space-y-3">
@@ -441,9 +444,10 @@ function UserSettingsSheet({
           <AnimatePresence>
             {showSuspendForm && !user.is_suspended && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
+                variants={expandCollapseVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
                 className="overflow-hidden"
               >
                 <div className="p-3.5 bg-error-50 rounded-xl ring-1 ring-error-200/40 space-y-3">
@@ -501,9 +505,10 @@ function UserSettingsSheet({
             <AnimatePresence>
               {showAddCollective && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
+                  variants={expandCollapseVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
                   className="overflow-hidden"
                 >
                   <div className="mb-3 p-3.5 bg-primary-50 rounded-xl ring-1 ring-primary-200/50 space-y-2.5">
@@ -564,7 +569,7 @@ function UserSettingsSheet({
                       key={membership.id}
                       layout
                       className={cn(
-                        'flex items-center gap-3 p-3 rounded-xl transition-all duration-200',
+                        'flex items-center gap-3 p-3 rounded-xl transition-[color,background-color,box-shadow] duration-200',
                         COLLECTIVE_ROLE_SURFACE[membership.role],
                       )}
                     >
@@ -717,9 +722,10 @@ function UserSettingsSheet({
               <AnimatePresence>
                 {capsExpanded && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
+                    variants={expandCollapseVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
                     className="overflow-hidden"
                   >
                     {capsLoading ? (
@@ -827,6 +833,7 @@ export default function AdminUsersPage() {
   const { toast } = useToast()
 
   const { data: users, isLoading } = useAdminUsers(search, roleFilter)
+  const showLoading = useDelayedLoading(isLoading)
   const { data: memberUserIds } = useActiveMemberUserIds()
 
   useAdminHeader('User Management')
@@ -842,18 +849,10 @@ export default function AdminUsersPage() {
 
   const shouldReduceMotion = useReducedMotion()
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+    <motion.div variants={stagger} initial="hidden" animate="visible">
       {/* Filters */}
       <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 mb-4">
         <SearchBar
@@ -900,7 +899,7 @@ export default function AdminUsersPage() {
 
       {/* User list */}
       <motion.div variants={fadeUp}>
-      {isLoading ? (
+      {showLoading ? (
         <Skeleton variant="list-item" count={8} />
       ) : !users?.length ? (
         <EmptyState
@@ -915,7 +914,7 @@ export default function AdminUsersPage() {
               key={user.id}
               className={cn(
                 'flex items-center gap-3 p-3 rounded-xl',
-                'transition-all duration-200',
+                'transition-[color,background-color,box-shadow] duration-200',
                 user.is_suspended
                   ? 'bg-error-50 ring-1 ring-error-200/50 opacity-70'
                   : 'bg-white ring-1 ring-primary-100/50 shadow-sm',

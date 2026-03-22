@@ -303,6 +303,105 @@ h6, .h6 { font-family: var(--font-heading); font-size: var(--text-h6); font-weig
   100% { transform: translateX(100%); }
 }
 
+/* ===== GPU-Promoted Animation Layers ===== */
+
+/* Promote overlay backdrops to own compositor layer for buttery blur */
+.gpu-backdrop {
+  will-change: opacity, backdrop-filter;
+  transform: translateZ(0);
+}
+
+/* Promote animated panels (sheets, modals, menus) */
+.gpu-panel {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ===== CSS Particle Keyframes (offloads from JS to compositor) ===== */
+
+@keyframes particle-fall {
+  0%   { transform: translateY(-5vh) rotate(0deg); opacity: 0.7; }
+  85%  { opacity: 0.5; }
+  100% { transform: translateY(105vh) rotate(540deg); opacity: 0; }
+}
+
+@keyframes particle-sway {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(var(--sway, 30px)); }
+  75%      { transform: translateX(calc(var(--sway, 30px) * -0.5)); }
+}
+
+@keyframes firefly-glow {
+  0%, 100% { opacity: 0; }
+  25%      { opacity: 0.8; }
+  50%      { opacity: 0.3; }
+  75%      { opacity: 0.9; }
+}
+
+@keyframes firefly-drift {
+  0%, 100% { transform: translate(0, 0); }
+  25%      { transform: translate(var(--sway, 20px), calc(var(--sway, 20px) * -0.5)); }
+  50%      { transform: translate(calc(var(--sway, 20px) * -0.3), var(--sway, 20px)); }
+  75%      { transform: translate(var(--sway, 20px), calc(var(--sway, 20px) * -0.3)); }
+}
+
+@keyframes confetti-fall {
+  0%   { transform: translateY(-10vh) rotate(0deg) scale(0); opacity: 1; }
+  10%  { transform: translateY(0) rotate(45deg) scale(var(--particle-scale, 1)); opacity: 1; }
+  80%  { opacity: 0.8; }
+  100% { transform: translateY(110vh) rotate(var(--particle-rotate, 540deg)) scale(var(--particle-scale, 1)); opacity: 0; }
+}
+
+@keyframes burst-out {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--burst-x, 0), var(--burst-y, 0)) scale(0); opacity: 0; }
+}
+
+/* ── Leader page decorative animations — GPU-composited, no JS overhead ── */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+
+@keyframes breatheWide {
+  0%, 100% { transform: scale(1); opacity: 0.3; }
+  50%      { transform: scale(1.08); opacity: 0.6; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+@keyframes floatDown {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(6px); }
+}
+
+@keyframes gentleSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Particle container — prevents layout thrash */
+.particle-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  pointer-events: none;
+  overflow: hidden;
+  contain: strict;
+}
+
+/* Individual CSS-driven particle */
+.css-particle {
+  position: absolute;
+  will-change: transform, opacity;
+  animation-fill-mode: both;
+  animation-timing-function: linear;
+}
+
 /* Prevent iOS input zoom */
 input,
 select,

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   Heart,
   Save,
@@ -43,6 +45,7 @@ export default function AdminCharityPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const { data: settings, isLoading } = useCharitySettings()
+  const showLoading = useDelayedLoading(isLoading)
   const [saved, setSaved] = useState(false)
   const shouldReduceMotion = useReducedMotion()
 
@@ -87,7 +90,7 @@ export default function AdminCharityPage() {
     onError: () => toast.error('Failed to save charity settings'),
   })
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="w-full max-w-2xl space-y-6">
@@ -97,22 +100,13 @@ export default function AdminCharityPage() {
       </div>
     )
   }
-
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.06 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
     <div className="flex justify-center py-2 sm:py-6">
       <motion.div
         className="w-full max-w-2xl space-y-6"
-        variants={shouldReduceMotion ? undefined : stagger}
+        variants={stagger}
         initial="hidden"
         animate="visible"
       >

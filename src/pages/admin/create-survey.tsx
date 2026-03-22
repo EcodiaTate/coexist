@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   ArrowLeft,
   Plus,
@@ -94,6 +95,8 @@ const questionTypeLabels = {
 
 export default function CreateSurveyPage() {
   useAdminHeader('Create Survey')
+  const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const queryClient = useQueryClient()
@@ -223,10 +226,10 @@ export default function CreateSurveyPage() {
             {questions.map((q, i) => (
               <motion.div
                 key={q.id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
+                layout={!rm}
+                initial={rm ? false : { opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+                exit={rm ? { opacity: 0 } : { opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
                 className="group flex items-start gap-3 p-4 rounded-xl bg-white border border-primary-100 shadow-sm hover:shadow-md transition-shadow duration-150"
               >
@@ -264,7 +267,7 @@ export default function CreateSurveyPage() {
                 <button
                   type="button"
                   onClick={() => removeQuestion(q.id)}
-                  className="p-1.5 rounded-lg text-primary-300 opacity-0 group-hover:opacity-100 hover:bg-error-50 hover:text-error-500 cursor-pointer transition-all duration-150 shrink-0"
+                  className="p-1.5 rounded-lg text-primary-300 opacity-0 group-hover:opacity-100 hover:bg-error-50 hover:text-error-500 cursor-pointer transition-[color,background-color,opacity] duration-150 shrink-0"
                   aria-label="Remove question"
                 >
                   <Trash2 size={15} />

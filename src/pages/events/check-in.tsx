@@ -27,6 +27,7 @@ import {
   PointsFlyUp,
   WhatsNext,
 } from '@/components'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -112,6 +113,7 @@ export default function CheckInPage() {
   const { isOffline } = useOffline()
 
   const { data: event, isLoading } = useEventDetail(eventId)
+  const showLoading = useDelayedLoading(isLoading)
   const checkInMutation = useCheckIn()
 
   const [state, setState] = useState<CheckInState>('idle')
@@ -299,7 +301,7 @@ export default function CheckInPage() {
     }
   }, [eventId, user, isOffline, validateAndCheckIn, handleOfflineCheckIn])
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Check In" back />}>
         <div className="pt-8 space-y-4">
@@ -309,7 +311,6 @@ export default function CheckInPage() {
       </Page>
     )
   }
-
   if (!event) {
     return (
       <Page header={<Header title="Check In" back />}>

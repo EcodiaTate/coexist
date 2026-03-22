@@ -20,6 +20,7 @@ import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import type { MapMarker } from '@/components'
 import { useCollectives, type CollectiveWithLeader } from '@/hooks/use-collective'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -142,6 +143,7 @@ export default function DiscoverCollectivesPage() {
     state: selectedState ?? undefined,
     search: search || undefined,
   })
+  const showLoading = useDelayedLoading(isLoading)
 
   const handleRefresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ['collectives'] })
@@ -305,7 +307,7 @@ export default function DiscoverCollectivesPage() {
                   navigate(`/collectives/${c?.slug ?? id}`)
                 }}
               />
-            ) : isLoading ? (
+            ) : showLoading ? (
               <div className="space-y-3">
                 {Array.from({ length: 6 }, (_, i) => (
                   <Skeleton key={i} variant="card" className="h-24" />

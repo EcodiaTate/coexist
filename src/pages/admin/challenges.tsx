@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   Trophy,
   Plus,
@@ -52,6 +54,7 @@ export default function AdminChallengesPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const { data: challenges, isLoading } = useChallenges()
+  const showLoading = useDelayedLoading(isLoading)
 
   const heroActions = useMemo(() => (
     <Button
@@ -142,21 +145,13 @@ export default function AdminChallengesPage() {
 
   const shouldReduceMotion = useReducedMotion()
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
     <div>
-        <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+        <motion.div variants={stagger} initial="hidden" animate="visible">
           <motion.div variants={fadeUp}>
-          {isLoading ? (
+          {showLoading ? (
             <Skeleton variant="list-item" count={4} />
           ) : !challenges?.length ? (
             <EmptyState

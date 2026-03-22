@@ -17,19 +17,19 @@ interface MembershipCardProps {
 }
 
 const tierGradients: Record<TierName, string> = {
-  seedling: 'from-primary-400 to-primary-600',
-  sapling: 'from-primary-500 to-secondary-700',
-  native: 'from-secondary-600 to-secondary-800',
-  canopy: 'from-primary-600 to-primary-800',
-  elder: 'from-bark-500 to-bark-700',
+  new: 'from-primary-400 to-primary-600',
+  active: 'from-primary-500 to-secondary-700',
+  committed: 'from-secondary-600 to-secondary-800',
+  dedicated: 'from-primary-600 to-primary-800',
+  lifetime: 'from-bark-500 to-bark-700',
 }
 
 const tierLabels: Record<TierName, string> = {
-  seedling: 'Seedling',
-  sapling: 'Sapling',
-  native: 'Native',
-  canopy: 'Canopy',
-  elder: 'Elder',
+  new: 'New',
+  active: 'Active',
+  committed: 'Committed',
+  dedicated: 'Dedicated',
+  lifetime: 'Lifetime',
 }
 
 export default function MembershipCard({

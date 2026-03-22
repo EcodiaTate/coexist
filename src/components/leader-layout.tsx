@@ -20,7 +20,6 @@ import { useAuth } from '@/hooks/use-auth'
 import { useCollective } from '@/hooks/use-collective'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
-import { SidebarShell, type SidebarNavCategory } from '@/components/sidebar-shell'
 
 /* ------------------------------------------------------------------ */
 /*  Leader header context - lets child pages set title + actions       */
@@ -227,59 +226,7 @@ export function LeaderLayout() {
   return (
     <LeaderHeaderContext.Provider value={headerCtx}>
       <div className="flex flex-1 min-h-0">
-        {/* ── Leader sidebar - desktop ── */}
-        <SidebarShell
-          ariaLabel="Leader navigation"
-          categories={leaderNavCategories}
-          accent="moss"
-          layoutId="leader-sidebar-active"
-          hideOnMobile
-          header={(collapsed) => (
-            <>
-              {/* Back to app */}
-              <div className="px-2.5">
-                <Link
-                  to="/"
-                  className={cn(
-                    'flex items-center gap-2',
-                    'rounded-xl text-[13px]',
-                    'text-primary-300 hover:text-primary-700 hover:bg-moss-50/50',
-                    'transition-all duration-200',
-                    'cursor-pointer select-none',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
-                    collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-8',
-                  )}
-                  title={collapsed ? 'Back to app' : undefined}
-                >
-                  <ArrowLeft size={15} strokeWidth={1.5} className="shrink-0" />
-                  {!collapsed && <span>Back to app</span>}
-                </Link>
-              </div>
-
-              {/* Collective name badge */}
-              {!collapsed && (
-                <div className="px-3 py-3 mx-2.5 mb-1 rounded-xl bg-gradient-to-br from-moss-50/80 to-moss-50/30 border border-moss-100/30">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shrink-0 shadow-sm">
-                      <TreePine size={14} className="text-white" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[10px] font-semibold text-moss-500 uppercase tracking-[0.08em] leading-none">Leader</p>
-                      <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">{collectiveName}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {collapsed && (
-                <div className="flex justify-center py-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shadow-sm">
-                    <TreePine size={14} className="text-white" />
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        />
+        {/* Desktop sidebar is handled by UnifiedSidebar in AppShell */}
 
         {/* ── Mobile drawer ── */}
         <AnimatePresence>
@@ -300,13 +247,13 @@ export function LeaderLayout() {
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
-                transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 35 }}
+                transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }}
               >
                 {/* Wordmark centered + close */}
                 <div className="flex items-center justify-between px-4 py-3">
                   <Link
                     to="/"
-                    className="flex items-center justify-center w-8 h-8 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-moss-50/50 transition-all"
+                    className="flex items-center justify-center w-8 h-8 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-moss-50/50 transition-colors duration-150"
                     aria-label="Back to app"
                   >
                     <ArrowLeft size={15} strokeWidth={1.5} />
@@ -319,7 +266,7 @@ export function LeaderLayout() {
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}
-                    className="p-1.5 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-all"
+                    className="p-1.5 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-colors duration-150"
                     aria-label="Close menu"
                   >
                     <X size={16} strokeWidth={1.5} />
@@ -358,7 +305,7 @@ export function LeaderLayout() {
                               className={cn(
                                 'relative flex items-center gap-2.5 px-3 h-10',
                                 'rounded-xl text-[13px]',
-                                'transition-all duration-200',
+                                'transition-colors duration-150',
                                 'cursor-pointer select-none',
                                 active
                                   ? 'bg-moss-50/70 text-moss-800 font-medium'
@@ -369,10 +316,7 @@ export function LeaderLayout() {
                               {active && (
                                 <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-gradient-to-b from-moss-400 to-moss-600" />
                               )}
-                              <span className={cn(
-                                'flex items-center justify-center shrink-0 transition-transform duration-200',
-                                active && 'scale-105',
-                              )}>{item.icon}</span>
+                              <span className="flex items-center justify-center shrink-0">{item.icon}</span>
                               <span className="truncate">{item.label}</span>
                             </Link>
                           )
@@ -402,7 +346,7 @@ export function LeaderLayout() {
 
         {/* ── Main content ── */}
         <div ref={scrollRef} className={cn(
-          'flex-1 flex flex-col min-w-0 min-h-0',
+          'flex-1 flex flex-col min-w-0 min-h-0 bg-surface-1',
           showBottomTabs && 'overflow-y-auto overscroll-contain',
         )}>
           {/* Shared hero bar - only for non-fullBleed pages */}
@@ -413,9 +357,9 @@ export function LeaderLayout() {
               <div
                 className={cn(
                   'relative overflow-hidden',
-                  'bg-gradient-to-br transition-all duration-700 ease-in-out',
+                  'bg-gradient-to-br',
                   cfg.hue,
-                  'px-6 pt-5 pb-10 sm:px-8 sm:pt-8 sm:pb-12',
+                  'px-6 pt-12 pb-10 sm:px-8 sm:pt-16 sm:pb-12',
                 )}
               >
                 {/* Decorative ambient - leaf-like circles */}
@@ -450,23 +394,12 @@ export function LeaderLayout() {
           <div className={cn(
             'relative flex-1 overflow-clip',
             header.fullBleed ? 'p-0' : 'p-6',
+            !header.fullBleed && 'bg-gradient-to-b from-moss-50/40 via-white to-primary-50/20',
             showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
           )}>
-            {/* Atmospheric background — sticky keeps it viewport-pinned */}
-            {!header.fullBleed && (
-              <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 overflow-hidden" aria-hidden="true">
-                <div className="absolute inset-0 bg-gradient-to-b from-moss-50/40 via-white to-primary-50/20" />
-                <div className="absolute -top-20 -right-16 w-[350px] h-[350px] rounded-full bg-moss-100/12 blur-3xl" />
-                <div className="absolute -bottom-16 -left-12 w-[280px] h-[280px] rounded-full bg-moss-50/18 blur-3xl" />
-              </div>
-            )}
 
-            <Suspense fallback={
-              <div className="flex items-center justify-center py-24">
-                <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
-              </div>
-            }>
-              <Outlet key={location.pathname} />
+            <Suspense fallback={null}>
+              <Outlet />
             </Suspense>
           </div>
         </div>

@@ -7,5 +7,5 @@ export const WEBSITE_URL = 'https://www.coexistaus.org'
 export const INSTAGRAM_URL = 'https://www.instagram.com/coexistaus'
 export const FACEBOOK_URL = 'https://www.facebook.com/coexistaus'
 
-export const TIERS = ['Seedling', 'Sapling', 'Native', 'Canopy', 'Elder'] as const
+export const TIERS = ['New', 'Active', 'Committed', 'Dedicated', 'Lifetime'] as const
 export type Tier = (typeof TIERS)[number]

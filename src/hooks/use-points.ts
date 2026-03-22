@@ -14,21 +14,21 @@ export const POINT_VALUES = {
 } as const
 
 export const TIER_THRESHOLDS = {
-  seedling: { min: 0, max: 499 },
-  sapling: { min: 500, max: 1999 },
-  native: { min: 2000, max: 4999 },
-  canopy: { min: 5000, max: 9999 },
-  elder: { min: 10000, max: Infinity },
+  new: { min: 0, max: 499 },
+  active: { min: 500, max: 1999 },
+  committed: { min: 2000, max: 4999 },
+  dedicated: { min: 5000, max: 9999 },
+  lifetime: { min: 10000, max: Infinity },
 } as const
 
 export type TierName = keyof typeof TIER_THRESHOLDS
 
 export function getTierFromPoints(points: number): TierName {
-  if (points >= 10000) return 'elder'
-  if (points >= 5000) return 'canopy'
-  if (points >= 2000) return 'native'
-  if (points >= 500) return 'sapling'
-  return 'seedling'
+  if (points >= 10000) return 'lifetime'
+  if (points >= 5000) return 'dedicated'
+  if (points >= 2000) return 'committed'
+  if (points >= 500) return 'active'
+  return 'new'
 }
 
 export function getTierProgress(points: number): {
@@ -40,11 +40,11 @@ export function getTierProgress(points: number): {
   const tier = getTierFromPoints(points)
   const thresholds = TIER_THRESHOLDS[tier]
 
-  if (tier === 'elder') {
+  if (tier === 'lifetime') {
     return { tier, nextTier: null, progress: 100, pointsToNext: 0 }
   }
 
-  const tierOrder: TierName[] = ['seedling', 'sapling', 'native', 'canopy', 'elder']
+  const tierOrder: TierName[] = ['new', 'active', 'committed', 'dedicated', 'lifetime']
   const nextTier = tierOrder[tierOrder.indexOf(tier) + 1] as TierName
   const nextMin = TIER_THRESHOLDS[nextTier].min
   const rangeSize = nextMin - thresholds.min

@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion'
@@ -764,6 +765,7 @@ export default function ShopPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const { data: products, isLoading } = useProducts()
+  const showLoading = useDelayedLoading(isLoading)
   const cartCount = useCart((s) => s.itemCount())
   useMemberAutoDiscount() // Pre-load member discount for cart
   const [search, setSearch] = useState('')
@@ -821,7 +823,7 @@ export default function ShopPage() {
 
           {/* Main content */}
           <div className="relative z-10">
-            {isLoading ? (
+            {showLoading ? (
               <ShopSkeleton />
             ) : (
               <motion.div

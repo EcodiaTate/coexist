@@ -25,12 +25,12 @@ import { APP_NAME } from '@/lib/constants'
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -99,44 +99,20 @@ export default function LeaderInvitePage() {
       {/* ── Rich gradient background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-moss-800 via-moss-700 to-primary-900" />
 
-      {/* Decorative ambient shapes */}
+      {/* Decorative ambient shapes — CSS-only for GPU compositing */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <motion.div
-          className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/[0.04] blur-3xl"
-          animate={rm ? undefined : { scale: [1, 1.15, 1], opacity: [0.04, 0.07, 0.04] }}
-          transition={rm ? undefined : { duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute top-1/3 -left-24 w-64 h-64 rounded-full bg-moss-400/[0.06] blur-3xl"
-          animate={rm ? undefined : { scale: [1, 1.1, 1], opacity: [0.06, 0.1, 0.06] }}
-          transition={rm ? undefined : { duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        />
-        <motion.div
-          className="absolute bottom-20 right-10 w-48 h-48 rounded-full bg-sky-400/[0.05] blur-3xl"
-          animate={rm ? undefined : { scale: [1, 1.2, 1] }}
-          transition={rm ? undefined : { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        />
-        {/* Floating particles */}
-        <motion.div
-          className="absolute top-28 left-1/4 w-1.5 h-1.5 rounded-full bg-white/20"
-          animate={rm ? undefined : { y: [0, -12, 0], opacity: [0.15, 0.4, 0.15] }}
-          transition={rm ? undefined : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute top-48 right-1/3 w-2 h-2 rounded-full bg-moss-300/15"
-          animate={rm ? undefined : { y: [0, 10, 0], opacity: [0.1, 0.3, 0.1] }}
-          transition={rm ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-        />
-        <motion.div
-          className="absolute top-72 left-[15%] w-1 h-1 rounded-full bg-white/25"
-          animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={rm ? undefined : { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-        />
+        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-white/[0.04] blur-3xl will-change-transform animate-[breathe_8s_ease-in-out_infinite]" />
+        <div className="absolute top-1/3 -left-24 w-64 h-64 rounded-full bg-moss-400/[0.06] blur-3xl will-change-transform animate-[breathe_10s_ease-in-out_2s_infinite]" />
+        <div className="absolute bottom-20 right-10 w-48 h-48 rounded-full bg-sky-400/[0.05] blur-3xl will-change-transform animate-[breathe_7s_ease-in-out_1s_infinite]" />
+        {/* Floating particles — CSS-only */}
+        <div className="absolute top-28 left-1/4 w-1.5 h-1.5 rounded-full bg-white/20 will-change-transform animate-[float_4s_ease-in-out_infinite]" />
+        <div className="absolute top-48 right-1/3 w-2 h-2 rounded-full bg-moss-300/15 will-change-transform animate-[floatDown_5s_ease-in-out_1.5s_infinite]" />
+        <div className="absolute top-72 left-[15%] w-1 h-1 rounded-full bg-white/25 will-change-transform animate-[float_3.5s_ease-in-out_0.8s_infinite]" />
       </div>
 
       {/* ── Content ── */}
       <motion.div
-        className="relative z-10 px-5 pt-6 pb-24 flex flex-col items-center max-w-md mx-auto"
+        className="relative z-10 px-5 pt-14 pb-24 flex flex-col items-center max-w-md mx-auto"
         variants={rm ? undefined : stagger}
         initial="hidden"
         animate="visible"
@@ -240,7 +216,7 @@ export default function LeaderInvitePage() {
               'flex flex-col items-center gap-2.5 p-4 rounded-2xl',
               'bg-white/10 backdrop-blur-sm border border-white/10',
               'hover:bg-white/15 hover:border-white/15',
-              'active:scale-[0.97] transition-all duration-150',
+              'active:scale-[0.97] transition-[background-color,transform] duration-150',
               'cursor-pointer select-none group',
             )}
           >
@@ -260,7 +236,7 @@ export default function LeaderInvitePage() {
               'flex flex-col items-center gap-2.5 p-4 rounded-2xl',
               'bg-gradient-to-br from-moss-500 to-moss-600 border border-moss-400/20',
               'hover:from-moss-400 hover:to-moss-500',
-              'active:scale-[0.97] transition-all duration-150',
+              'active:scale-[0.97] transition-[background-color,transform] duration-150',
               'cursor-pointer select-none shadow-lg shadow-moss-900/20',
             )}
           >
@@ -278,7 +254,7 @@ export default function LeaderInvitePage() {
               'flex flex-col items-center gap-2.5 p-4 rounded-2xl',
               'bg-white/10 backdrop-blur-sm border border-white/10',
               'hover:bg-white/15 hover:border-white/15',
-              'active:scale-[0.97] transition-all duration-150',
+              'active:scale-[0.97] transition-[background-color,transform] duration-150',
               'cursor-pointer select-none group',
             )}
           >

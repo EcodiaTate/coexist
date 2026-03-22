@@ -31,6 +31,7 @@ import {
 import { redirectToCheckout } from '@/lib/stripe'
 import type { MembershipPlanInterval, MembershipReward, RewardCategory } from '@/types/membership'
 import { REWARD_CATEGORIES } from '@/types/membership'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import MembershipCard from '@/pages/profile/membership-card'
 
 /* ------------------------------------------------------------------ */
@@ -171,6 +172,7 @@ export default function MembershipPage() {
     : ''
 
   const isLoading = profileLoading || plansLoading || membershipLoading
+  const showLoading = useDelayedLoading(isLoading)
 
   const handleSubscribe = useCallback(
     async (planId: string) => {
@@ -188,7 +190,7 @@ export default function MembershipPage() {
     [subscribe, interval, toast],
   )
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page className="!px-0 !pb-0 !bg-transparent">
         <div className="relative min-h-screen overflow-clip">
@@ -220,7 +222,6 @@ export default function MembershipPage() {
       </Page>
     )
   }
-
   const isActive = membership?.status === 'active' || membership?.status === 'trialing'
 
   // Group rewards by category
@@ -302,6 +303,23 @@ export default function MembershipPage() {
             </motion.button>
           </div>
         </div>
+
+        {/* ── Title ── */}
+        <motion.div
+          className="relative z-10 px-6 pt-4 max-w-2xl mx-auto"
+          initial={rm ? false : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/15 backdrop-blur-sm shadow-sm">
+              <Crown size={15} className="text-white" />
+            </div>
+            <h1 className="font-heading text-[22px] font-bold text-white tracking-tight">
+              Membership
+            </h1>
+          </div>
+        </motion.div>
 
         {/* ── Content ── */}
         <motion.div

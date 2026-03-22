@@ -19,6 +19,7 @@ import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { getTierFromPoints } from '@/hooks/use-points'
 import type { TierName } from '@/hooks/use-points'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { supabase } from '@/lib/supabase'
 
 const INTEREST_OPTIONS = [
@@ -45,6 +46,7 @@ export default function EditProfilePage() {
   const shouldReduceMotion = useReducedMotion()
   const { profile: authProfile } = useAuth()
   const { data: profile, isLoading } = useProfile()
+  const showLoading = useDelayedLoading(isLoading)
   const updateProfile = useUpdateProfile()
   const { capture, pickFromGallery, loading: cameraLoading } = useCamera()
   const { upload, progress, uploading, error: uploadError } = useImageUpload({ bucket: 'avatars' })
@@ -128,7 +130,7 @@ export default function EditProfilePage() {
     }
   }
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Edit Profile" back />}>
         <div className="py-4 space-y-4">
@@ -140,7 +142,6 @@ export default function EditProfilePage() {
       </Page>
     )
   }
-
   return (
     <Page
       header={<Header title="Edit Profile" back />}

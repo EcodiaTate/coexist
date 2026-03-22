@@ -1,5 +1,7 @@
 import { useState, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   Database,
   HardDrive,
@@ -131,7 +133,7 @@ function UsageGauge({
       <div className="mt-2 h-1.5 bg-white rounded-full overflow-hidden">
         <div
           className={cn(
-            'h-full rounded-full transition-all duration-500',
+            'h-full rounded-full transition-[width] duration-500',
             isNearLimit ? 'bg-error-500' : 'bg-primary-500',
           )}
           style={{ width: `${percent}%` }}
@@ -153,7 +155,9 @@ export default function AdminSystemPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
   const { data: stats, isLoading: statsLoading } = useSystemStats()
+  const showStatsLoading = useDelayedLoading(statsLoading)
   const { data: flags, isLoading: flagsLoading } = useFeatureFlags()
+  const showFlagsLoading = useDelayedLoading(flagsLoading)
 
   const heroStats = useMemo(() => (
     <div className="flex items-center gap-3">
@@ -221,19 +225,11 @@ export default function AdminSystemPage() {
 
   const shouldReduceMotion = useReducedMotion()
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
     <div>
-      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+      <motion.div variants={stagger} initial="hidden" animate="visible">
         <div className="space-y-6">
           {/* Supabase Usage */}
           <motion.div variants={fadeUp}><section>
@@ -241,14 +237,14 @@ export default function AdminSystemPage() {
           Supabase Usage
         </h2>
 
-        {statsLoading ? (
+        {showStatsLoading ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Skeleton variant="stat-card" />
             <Skeleton variant="stat-card" />
             <Skeleton variant="stat-card" />
             <Skeleton variant="stat-card" />
           </div>
-        ) : (<>
+        ) : statsLoading ? null : (<>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <UsageGauge
               label="Database Rows"
@@ -317,9 +313,9 @@ export default function AdminSystemPage() {
           </Button>
         </div>
 
-        {flagsLoading ? (
+        {showFlagsLoading ? (
           <Skeleton variant="list-item" count={4} />
-        ) : !flags?.length ? (
+        ) : flagsLoading ? null : !flags?.length ? (
           <div className="p-4 rounded-xl bg-white text-center">
             <p className="text-sm text-primary-400">No feature flags configured</p>
           </div>

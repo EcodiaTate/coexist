@@ -23,10 +23,10 @@ export function ScrollReveal({ children, delay = 0, className }: ScrollRevealPro
   return (
     <motion.div
       className={cn(className)}
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.35, delay, ease: 'easeOut' }}
+      transition={{ duration: 0.4, delay, ease: [0.25, 0.1, 0.25, 1] }}
     >
       {children}
     </motion.div>
@@ -52,8 +52,8 @@ const containerVariants = {
 }
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: 'easeOut' } },
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.1, 0.25, 1] } },
 } as const satisfies import('framer-motion').Variants
 
 export function StaggeredList({

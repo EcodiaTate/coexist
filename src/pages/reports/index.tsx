@@ -20,6 +20,7 @@ import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
 import { TabBar } from '@/components/tab-bar'
 import { Toggle } from '@/components/toggle'
 import { Chip } from '@/components/chip'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 
@@ -138,6 +139,7 @@ export default function ReportsPage() {
 
   const { data: collectives } = useCollectivesList()
   const { data: history, isLoading: historyLoading } = useReportHistory()
+  const showHistoryLoading = useDelayedLoading(historyLoading)
 
   const toggleMetric = (metric: string) => {
     setSelectedMetrics((prev) => {
@@ -333,9 +335,9 @@ export default function ReportsPage() {
 
         {activeTab === 'history' && (
           <>
-            {historyLoading ? (
+            {showHistoryLoading ? (
               <Skeleton variant="list-item" count={5} />
-            ) : !history?.length ? (
+            ) : historyLoading ? null : !history?.length ? (
               <EmptyState
                 illustration="empty"
                 title="No reports generated"

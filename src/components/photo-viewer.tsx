@@ -120,10 +120,10 @@ export function PhotoViewer({
                 key={photo.id}
                 src={photo.src}
                 alt={photo.alt}
-                initial={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.95 }}
+                initial={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.15 }}
+                exit={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.97 }}
+                transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
                 className="max-h-full max-w-full object-contain select-none"
                 onClick={(e) => e.stopPropagation()}
                 draggable={false}

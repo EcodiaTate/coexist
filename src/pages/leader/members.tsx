@@ -10,6 +10,7 @@ import {
     ShieldAlert
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader, useLeaderContext } from '@/components/leader-layout'
 import { Avatar } from '@/components/avatar'
 import { Skeleton } from '@/components/skeleton'
@@ -57,62 +58,31 @@ const ROLE_CONFIG: Record<string, { label: string; icon: React.ReactNode; classN
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
+  visible: { transition: { staggerChildren: 0.04, delayChildren: 0.08 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 }
 
 /* ------------------------------------------------------------------ */
 /*  Decorative shapes                                                  */
 /* ------------------------------------------------------------------ */
 
-function Shapes({ rm }: { rm: boolean }) {
+function Shapes() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      {/* Large ring - top-right */}
-      <motion.div
-        animate={rm ? {} : { scale: [1, 1.08, 1] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -top-20 -right-20 h-64 w-64 rounded-full border-[3px] border-primary-200/40"
-      />
-
+      {/* Large ring — CSS breathe */}
+      <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full border-[3px] border-primary-200/40 will-change-transform animate-[breatheWide_7s_ease-in-out_infinite]" />
       {/* Filled glow - bottom-left */}
-      <motion.div
-        animate={rm ? {} : { scale: [1, 1.12, 1] }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-bark-100/30 blur-2xl"
-      />
-
+      <div className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-bark-100/30 blur-2xl will-change-transform animate-[breatheWide_9s_ease-in-out_infinite]" />
       {/* Small ring - mid-left */}
-      <motion.div
-        animate={rm ? {} : { scale: [1, 1.1, 1] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-1/3 -left-8 h-24 w-24 rounded-full border-2 border-primary-100/25"
-      />
-
-      {/* Floating dot 1 */}
-      <motion.div
-        animate={rm ? {} : { y: [0, -10, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute top-28 right-12 h-2.5 w-2.5 rounded-full bg-primary-200/50"
-      />
-
-      {/* Floating dot 2 */}
-      <motion.div
-        animate={rm ? {} : { y: [0, 8, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        className="absolute top-1/2 right-1/4 h-2 w-2 rounded-full bg-bark-200/40"
-      />
-
-      {/* Floating dot 3 */}
-      <motion.div
-        animate={rm ? {} : { y: [0, -6, 0] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        className="absolute bottom-40 left-16 h-1.5 w-1.5 rounded-full bg-primary-300/30"
-      />
+      <div className="absolute top-1/3 -left-8 h-24 w-24 rounded-full border-2 border-primary-100/25 will-change-transform animate-[breatheWide_6s_ease-in-out_infinite]" />
+      {/* Floating dots — CSS-only */}
+      <div className="absolute top-28 right-12 h-2.5 w-2.5 rounded-full bg-primary-200/50 will-change-transform animate-[float_4s_ease-in-out_infinite]" />
+      <div className="absolute top-1/2 right-1/4 h-2 w-2 rounded-full bg-bark-200/40 will-change-transform animate-[floatDown_5s_ease-in-out_1s_infinite]" />
+      <div className="absolute bottom-40 left-16 h-1.5 w-1.5 rounded-full bg-primary-300/30 will-change-transform animate-[float_4.5s_ease-in-out_2s_infinite]" />
     </div>
   )
 }
@@ -130,6 +100,7 @@ export default function LeaderMembersPage() {
   useLeaderHeader('Members', { fullBleed: true })
 
   const { data: members, isLoading } = useCollectiveMembers(collectiveId)
+  const showLoading = useDelayedLoading(isLoading)
 
   const filtered = (members ?? []).filter((m: any) => {
     if (!search) return true
@@ -141,11 +112,11 @@ export default function LeaderMembersPage() {
   const leaders = filtered.filter((m: any) => ['leader', 'co_leader', 'assist_leader'].includes(m.role))
   const regularMembers = filtered.filter((m: any) => m.role === 'member')
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="relative min-h-screen bg-gradient-to-b from-primary-50/80 via-white to-bark-50/20">
-        <Shapes rm={rm} />
-        <div className="relative z-10 px-4 pt-8 pb-10 space-y-4">
+        <Shapes />
+        <div className="relative z-10 px-4 pt-14 pb-10 space-y-4">
           <Skeleton className="h-8 w-40 mx-auto rounded-xl" />
           <Skeleton className="h-5 w-24 mx-auto rounded-lg" />
           <div className="grid grid-cols-3 gap-3 pt-4">
@@ -162,9 +133,9 @@ export default function LeaderMembersPage() {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-primary-50/80 via-white to-bark-50/20">
-      <Shapes rm={rm} />
+      <Shapes />
 
-      <div className="relative z-10 px-4 pt-8 pb-10">
+      <div className="relative z-10 px-4 pt-14 pb-10">
         <motion.div
           variants={rm ? undefined : stagger}
           initial="hidden"

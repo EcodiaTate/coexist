@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
     Users,
@@ -228,13 +229,15 @@ function TrendChart({
               <span className="text-[10px] sm:text-xs font-medium text-white/60 tabular-nums">
                 {val > 0 ? val : ''}
               </span>
-              <motion.div
-                className="w-full rounded-md bg-white/20 min-h-0"
-                initial={shouldReduceMotion ? { height: `${height}%` } : { height: 0 }}
-                animate={{ height: `${height}%` }}
-                transition={{ duration: 0.6, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
-                style={{ minHeight: height > 0 ? 4 : 0 }}
-              />
+              <div className="w-full flex flex-col justify-end" style={{ height: `${height}%`, minHeight: height > 0 ? 4 : 0 }}>
+                <motion.div
+                  className="w-full rounded-md bg-white/20"
+                  initial={shouldReduceMotion ? { scaleY: 1 } : { scaleY: 0 }}
+                  animate={{ scaleY: 1 }}
+                  transition={{ duration: 0.6, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  style={{ height: '100%', transformOrigin: 'bottom', willChange: 'transform' }}
+                />
+              </div>
               <span className="text-[10px] sm:text-[11px] text-white/40 font-medium">{d.month}</span>
             </div>
           )
@@ -268,10 +271,10 @@ function HeroStatCard({
 
   return (
     <motion.div
-      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
+      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        duration: 0.5,
+        duration: 0.3,
         delay: reducedMotion ? 0 : 0.2 + delay * 0.8,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
@@ -320,7 +323,7 @@ function ImpactItem({
 
   return (
     <motion.div
-      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
+      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: reducedMotion ? 0 : delay }}
       className="flex items-center gap-3 py-3 px-4 rounded-xl bg-white/[0.05]"
@@ -362,6 +365,7 @@ function SectionHeading({ children, sub }: { children: React.ReactNode; sub?: st
 export default function AdminDashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>('month')
   const { data, isLoading } = useAdminOverview(dateRange)
+  const showLoading = useDelayedLoading(isLoading)
   const { data: trends } = useTrendData()
 
   const shouldReduceMotion = useReducedMotion()
@@ -369,7 +373,7 @@ export default function AdminDashboardPage() {
 
   useAdminHeader('Dashboard', { fullBleed: true })
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="relative min-h-screen overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary-700 via-primary-800 to-primary-950" />
@@ -446,7 +450,6 @@ export default function AdminDashboardPage() {
       </div>
     )
   }
-
   // Build impact items (only show non-zero)
   const impactItems: {
     value: number
@@ -518,55 +521,53 @@ export default function AdminDashboardPage() {
       <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary-700 via-primary-800 to-primary-950" />
 
-        {/* ── Background geometric shapes ── */}
-        <motion.div
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-          transition={{ scale: { duration: 16, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.2, ease: 'easeOut' } }}
-          className="absolute -left-[8%] -top-[8%] w-[45vw] h-[45vw] max-w-[420px] max-h-[420px] rounded-full bg-white/[0.06]"
+        {/* ── Background geometric shapes (CSS-only animations) ── */}
+        <style>{`
+          @keyframes blob-breathe-1 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+          @keyframes blob-breathe-2 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+          @keyframes blob-breathe-3 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+          @keyframes blob-breathe-4 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+          @keyframes blob-fade-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
+          @keyframes blob-fade-in-2 { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
+          @keyframes dot-float-1 { 0%,100% { transform: translateY(0); opacity: 0.3; } 50% { transform: translateY(-8px); opacity: 0.6; } }
+          @keyframes dot-float-2 { 0%,100% { transform: translateY(0); opacity: 0.2; } 50% { transform: translateY(6px); opacity: 0.5; } }
+          @keyframes dot-float-3 { 0%,100% { transform: translateY(0); opacity: 0.25; } 50% { transform: translateY(-5px); opacity: 0.5; } }
+          @media (prefers-reduced-motion: reduce) {
+            .admin-blob, .admin-dot { animation: none !important; }
+          }
+        `}</style>
+        <div
+          className="admin-blob absolute -left-[8%] -top-[8%] w-[45vw] h-[45vw] max-w-[420px] max-h-[420px] rounded-full bg-white/[0.06]"
+          style={{ animation: 'blob-fade-in 1.2s ease-out forwards, blob-breathe-1 16s ease-in-out 1.2s infinite', willChange: 'transform, opacity' }}
         />
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-          transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.5, delay: 0.3, ease: 'easeOut' } }}
-          className="absolute -right-[15%] -top-[10%] w-[70vw] h-[70vw] max-w-[700px] max-h-[700px] rounded-full border border-white/[0.08]"
+        <div
+          className="admin-blob absolute -right-[15%] -top-[10%] w-[70vw] h-[70vw] max-w-[700px] max-h-[700px] rounded-full border border-white/[0.08]"
+          style={{ animation: 'blob-fade-in-2 1.5s ease-out 0.3s forwards, blob-breathe-2 20s ease-in-out 1.8s infinite', opacity: 0, willChange: 'transform, opacity' }}
         />
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: [1, 1.08, 1], opacity: 1 }}
-          transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.5, delay: 0.5, ease: 'easeOut' } }}
-          className="absolute -right-[10%] -top-[5%] w-[50vw] h-[50vw] max-w-[500px] max-h-[500px] rounded-full border border-white/[0.06]"
+        <div
+          className="admin-blob absolute -right-[10%] -top-[5%] w-[50vw] h-[50vw] max-w-[500px] max-h-[500px] rounded-full border border-white/[0.06]"
+          style={{ animation: 'blob-fade-in-2 1.5s ease-out 0.5s forwards, blob-breathe-3 20s ease-in-out 2s infinite', opacity: 0, willChange: 'transform, opacity' }}
         />
-        <motion.div
-          initial={{ scale: 0.5, opacity: 0 }}
-          animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-          transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 2, delay: 0.8, ease: 'easeOut' } }}
-          className="absolute -left-[20%] bottom-[5%] w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-full border border-white/[0.07]"
+        <div
+          className="admin-blob absolute -left-[20%] bottom-[5%] w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-full border border-white/[0.07]"
+          style={{ animation: 'blob-fade-in-2 2s ease-out 0.8s forwards, blob-breathe-4 18s ease-in-out 2.8s infinite', opacity: 0, willChange: 'transform, opacity' }}
         />
-        <motion.div
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 1.2, delay: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="absolute right-[8%] bottom-[12%] w-[100px] h-[100px] rounded-full bg-white/[0.04]"
+        <div
+          className="admin-blob absolute right-[8%] bottom-[12%] w-[100px] h-[100px] rounded-full bg-white/[0.04]"
+          style={{ animation: 'blob-fade-in-2 1.2s cubic-bezier(0.25,0.46,0.45,0.94) 1s forwards', opacity: 0 }}
         />
-        {/* Accent dots */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ y: [0, -8, 0], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1.5 } }}
-          className="absolute left-[18%] top-[22%] w-2 h-2 rounded-full bg-white/30"
+        {/* Accent dots (CSS-only float) */}
+        <div
+          className="admin-dot absolute left-[18%] top-[22%] w-2 h-2 rounded-full bg-white/30"
+          style={{ animation: 'dot-float-1 4s ease-in-out 1.5s infinite', opacity: 0.3 }}
         />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ y: [0, 6, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={{ y: { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }, opacity: { duration: 0.8, delay: 1.8 } }}
-          className="absolute right-[25%] top-[65%] w-1.5 h-1.5 rounded-full bg-white/25"
+        <div
+          className="admin-dot absolute right-[25%] top-[65%] w-1.5 h-1.5 rounded-full bg-white/25"
+          style={{ animation: 'dot-float-2 5s ease-in-out 1.8s infinite', opacity: 0.2 }}
         />
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ y: [0, -5, 0], opacity: [0.25, 0.5, 0.25] }}
-          transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 0.8, delay: 2 } }}
-          className="absolute left-[55%] bottom-[20%] w-2 h-2 rounded-full bg-white/20"
+        <div
+          className="admin-dot absolute left-[55%] bottom-[20%] w-2 h-2 rounded-full bg-white/20"
+          style={{ animation: 'dot-float-3 6s ease-in-out 2s infinite', opacity: 0.25 }}
         />
       </div>
 
@@ -576,16 +577,16 @@ export default function AdminDashboardPage() {
         <motion.div
           initial={rm ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
           className="flex flex-col items-center justify-center min-h-[220px] sm:min-h-[280px] lg:min-h-[320px] pt-10"
         >
           <div className="flex flex-col items-center text-center px-6">
             <motion.img
               src="/logos/white-wordmark.webp"
               alt="Co-Exist"
-              initial={rm ? {} : { opacity: 0, y: 16, scale: 0.95 }}
+              initial={rm ? {} : { opacity: 0, y: 10, scale: 0.97 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+              transition={{ duration: 0.5, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
               className="h-20 sm:h-28 lg:h-36 w-auto object-contain"
             />
             <motion.p
@@ -620,9 +621,9 @@ export default function AdminDashboardPage() {
 
         {/* ── Body ── */}
         <motion.div
-          initial={rm ? {} : { opacity: 0, y: 20 }}
+          initial={rm ? {} : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+          transition={{ duration: 0.4, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="px-6 sm:px-8 space-y-8 sm:space-y-10 pb-20"
         >
 

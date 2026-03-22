@@ -1,6 +1,8 @@
 import { useCallback } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import { Check, X } from 'lucide-react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -20,6 +22,7 @@ const STATUS_COLORS: Record<ReturnStatus, string> = {
 
 export default function ReturnsTab() {
   const { data: returns, isLoading } = useAdminReturns()
+  const showLoading = useDelayedLoading(isLoading)
   const updateReturn = useUpdateReturnStatus()
   const { toast } = useToast()
   const shouldReduceMotion = useReducedMotion()
@@ -36,10 +39,9 @@ export default function ReturnsTab() {
     [updateReturn, toast],
   )
 
-  if (isLoading) {
+  if (showLoading) {
     return <Skeleton variant="text" count={5} />
   }
-
   if (!returns || returns.length === 0) {
     return (
       <EmptyState
@@ -50,18 +52,10 @@ export default function ReturnsTab() {
     )
   }
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+    <motion.div variants={stagger} initial="hidden" animate="visible">
     <motion.div variants={fadeUp}>
     <StaggeredList className="space-y-3">
       {returns.map((ret) => (

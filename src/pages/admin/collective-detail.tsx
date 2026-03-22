@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
     ArrowLeft,
     Users,
@@ -183,6 +185,7 @@ function HeroStat({
       initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 18, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, delay: reducedMotion ? 0 : delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      style={{ willChange: 'transform' }}
       className={cn('relative overflow-hidden rounded-2xl p-4 sm:p-5', variantStyles[variant])}
     >
       {variant !== 'default' && (
@@ -215,6 +218,7 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
   const rm = reducedMotion
   const { data: detail } = useAdminCollectiveDetail(collectiveId)
   const { data: stats, isLoading: statsLoading } = useAdminCollectiveStats(collectiveId)
+  const showStatsLoading = useDelayedLoading(statsLoading)
   const { data: members = [] } = useAdminCollectiveMembers(collectiveId)
   const { data: events = [] } = useAdminCollectiveEvents(collectiveId)
 
@@ -291,13 +295,13 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
       </motion.div>
 
       {/* ── Primary stats - 4 hero cards ── */}
-      {statsLoading ? (
+      {showStatsLoading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-32 rounded-2xl" />
           ))}
         </div>
-      ) : stats ? (
+      ) : statsLoading ? null : stats ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <HeroStat value={stats.member_count} label="Members" icon={<Users size={20} />} variant="primary" reducedMotion={rm} delay={0.05} />
           <HeroStat value={stats.event_count} label="Events" icon={<CalendarDays size={20} />} variant="accent" reducedMotion={rm} delay={0.1} />
@@ -449,7 +453,7 @@ function EventRow({ event, reducedMotion, delay = 0 }: { event: AdminCollectiveE
     <motion.div
       initial={reducedMotion ? { opacity: 1 } : { opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.25, delay: reducedMotion ? 0 : delay }}
+      transition={{ duration: 0.25, delay: reducedMotion ? 0 : Math.min(delay, 0.3) }}
       className="flex items-center gap-3.5 rounded-2xl bg-white shadow-sm px-4 py-3 hover:shadow-md transition-shadow duration-200"
     >
       {/* Date block */}
@@ -511,6 +515,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
     collectiveId,
     showInactive ? 'all' : 'active',
   )
+  const showLoading = useDelayedLoading(isLoading)
   const updateRole = useAdminUpdateMemberRole()
   const removeMember = useAdminRemoveMember()
   const restoreMember = useAdminRestoreMember()
@@ -566,7 +571,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
     toast.success('CSV downloaded')
   }
 
-  if (isLoading) return <Skeleton variant="list-item" count={8} />
+  if (showLoading) return <Skeleton variant="list-item" count={8} />
 
   return (
     <div className="space-y-5">
@@ -597,7 +602,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
               onClick={() => setShowInactive((p) => !p)}
               className={cn(
                 'h-10 px-3.5 rounded-full text-xs font-semibold',
-                'transition-all duration-200 cursor-pointer select-none',
+                'transition-[color,background-color,box-shadow] duration-200 cursor-pointer select-none',
                 showInactive
                   ? 'bg-primary-700 text-white shadow-md'
                   : 'bg-white text-primary-500 hover:bg-primary-50 shadow-sm',
@@ -646,7 +651,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
               <div
                 key={member.id}
                 className={cn(
-                  'flex items-center gap-3 rounded-2xl px-4 py-3 transition-all duration-200',
+                  'flex items-center gap-3 rounded-2xl px-4 py-3 transition-[color,background-color,box-shadow] duration-200',
                   isInactive
                     ? 'opacity-50 bg-neutral-50/80'
                     : 'bg-white shadow-sm hover:shadow-md',
@@ -751,7 +756,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                     disabled={isActive}
                     className={cn(
                       'flex w-full items-center gap-3 rounded-xl px-4 py-3.5 min-h-11 text-sm',
-                      'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none border',
+                      'active:scale-[0.97] transition-[color,background-color,box-shadow,transform] duration-150 cursor-pointer select-none border',
                       isActive
                         ? cn(accent.bg, accent.border, 'text-primary-700')
                         : 'bg-white border-transparent text-primary-800 hover:bg-primary-50',
@@ -814,6 +819,7 @@ function AddMemberModal({
   const [query, setQuery] = useState('')
   const [selectedRole, setSelectedRole] = useState<CollectiveRole>('member')
   const { data: results = [], isLoading } = useSearchUsers(query)
+  const showLoading = useDelayedLoading(isLoading)
   const addMember = useAdminAddMember()
 
   const handleAdd = async (userId: string) => {
@@ -863,7 +869,7 @@ function AddMemberModal({
         {/* Results */}
         {query.length >= 2 && (
           <div className="space-y-1.5 max-h-64 overflow-y-auto">
-            {isLoading ? (
+            {showLoading ? (
               <Skeleton variant="list-item" count={3} />
             ) : results.length === 0 ? (
               <p className="text-sm text-primary-400 py-4 text-center">
@@ -878,7 +884,7 @@ function AddMemberModal({
                   disabled={addMember.isPending}
                   className={cn(
                     'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left',
-                    'hover:bg-primary-50 active:scale-[0.98] transition-all duration-150',
+                    'hover:bg-primary-50 active:scale-[0.98] transition-[color,background-color,transform] duration-150',
                     'cursor-pointer select-none',
                   )}
                 >
@@ -913,6 +919,7 @@ function AddMemberModal({
 function EventsTab({ collectiveId, reducedMotion }: { collectiveId: string; reducedMotion: boolean }) {
   const rm = reducedMotion
   const { data: events = [], isLoading } = useAdminCollectiveEvents(collectiveId)
+  const showLoading = useDelayedLoading(isLoading)
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
   const filtered = useMemo(() => {
@@ -930,7 +937,7 @@ function EventsTab({ collectiveId, reducedMotion }: { collectiveId: string; redu
     cancelled: { active: 'bg-error-600 text-white', inactive: 'bg-white text-error-500' },
   }
 
-  if (isLoading) return <Skeleton variant="list-item" count={5} />
+  if (showLoading) return <Skeleton variant="list-item" count={5} />
 
   return (
     <div className="space-y-5">
@@ -946,7 +953,7 @@ function EventsTab({ collectiveId, reducedMotion }: { collectiveId: string; redu
               onClick={() => setStatusFilter(s)}
               className={cn(
                 'h-9 px-4 rounded-full text-xs font-semibold capitalize',
-                'transition-all duration-200 cursor-pointer select-none shadow-sm',
+                'transition-[color,background-color,box-shadow] duration-200 cursor-pointer select-none shadow-sm',
                 isActive ? colors.active : colors.inactive,
                 isActive && 'shadow-md',
               )}
@@ -1309,6 +1316,7 @@ export default function AdminCollectiveDetailPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
 
   const { data: detail, isLoading } = useAdminCollectiveDetail(collectiveId)
+  const showLoading = useDelayedLoading(isLoading)
 
   const heroActions = useMemo(
     () => (
@@ -1327,7 +1335,7 @@ export default function AdminCollectiveDetailPage() {
 
   useAdminHeader(detail?.name ?? 'Collective', { actions: heroActions })
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="space-y-4">
         <Skeleton className="h-8 w-32 rounded-lg" />
@@ -1340,7 +1348,6 @@ export default function AdminCollectiveDetailPage() {
       </div>
     )
   }
-
   if (!detail) {
     return (
       <EmptyState
@@ -1399,7 +1406,7 @@ export default function AdminCollectiveDetailPage() {
                 onClick={() => setActiveTab(tab.key)}
                 className={cn(
                   'relative flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold',
-                  'rounded-xl transition-all duration-200 cursor-pointer select-none',
+                  'rounded-xl transition-[color,background-color,box-shadow] duration-200 cursor-pointer select-none',
                   isActive
                     ? 'bg-primary-700 text-white shadow-lg'
                     : 'text-primary-400 hover:text-primary-600 hover:bg-white/80',

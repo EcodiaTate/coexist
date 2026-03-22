@@ -30,6 +30,7 @@ import {
   UploadProgress,
 } from '@/components'
 import type { MapCenter } from '@/components'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 
@@ -45,6 +46,7 @@ export default function EditEventPage() {
   const shouldReduceMotion = useReducedMotion()
 
   const { data: event, isLoading } = useEventDetail(eventId)
+  const showLoading = useDelayedLoading(isLoading)
   const updateEvent = useUpdateEvent()
 
   const { pickFromGallery, loading: cameraLoading } = useCamera()
@@ -130,7 +132,7 @@ export default function EditEventPage() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
   }
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Edit Event" back />}>
         <div className="pt-4 space-y-4">
@@ -141,7 +143,6 @@ export default function EditEventPage() {
       </Page>
     )
   }
-
   if (!event) {
     return (
       <Page header={<Header title="Edit Event" back />}>

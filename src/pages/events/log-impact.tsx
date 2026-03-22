@@ -40,6 +40,7 @@ import {
   UploadProgress,
   WhatsNext,
 } from '@/components'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 
@@ -377,8 +378,9 @@ export default function LogImpactPage() {
   }, [eventId, formValues, notes, species, logImpact])
 
   const isLoading = eventLoading || impactLoading
+  const showLoading = useDelayedLoading(isLoading)
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Log Impact" back />}>
         <div className="pt-4 space-y-4">
@@ -389,7 +391,6 @@ export default function LogImpactPage() {
       </Page>
     )
   }
-
   if (!event) {
     return (
       <Page header={<Header title="Log Impact" back />}>

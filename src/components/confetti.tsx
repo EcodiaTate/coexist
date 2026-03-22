@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 
@@ -14,12 +14,12 @@ interface ConfettiProps {
 interface Particle {
   id: number
   x: number
-  y: number
-  rotation: number
   scale: number
   color: string
   shape: 'circle' | 'rect' | 'leaf'
   delay: number
+  animDuration: number
+  rotate: number
 }
 
 const COLORS = [
@@ -40,12 +40,12 @@ function createParticles(count: number): Particle[] {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
     x: randomBetween(10, 90),
-    y: randomBetween(-20, -5),
-    rotation: randomBetween(0, 360),
     scale: randomBetween(0.5, 1.2),
     color: COLORS[Math.floor(Math.random() * COLORS.length)],
     shape: shapes[Math.floor(Math.random() * shapes.length)],
     delay: randomBetween(0, 0.3),
+    animDuration: randomBetween(1.5, 2.5),
+    rotate: randomBetween(180, 720),
   }))
 }
 
@@ -84,12 +84,17 @@ export function Confetti({
   className,
 }: ConfettiProps) {
   const shouldReduceMotion = useReducedMotion()
-  const [particles, setParticles] = useState<Particle[]>([])
   const [visible, setVisible] = useState(false)
+
+  // Memoize particles so they're stable for the animation lifetime
+  const particles = useMemo(
+    () => (visible ? createParticles(count) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [visible, count],
+  )
 
   useEffect(() => {
     if (active && !shouldReduceMotion) {
-      setParticles(createParticles(count))
       setVisible(true)
       const timer = setTimeout(() => setVisible(false), duration)
       return () => clearTimeout(timer)
@@ -125,40 +130,25 @@ export function Confetti({
     <AnimatePresence>
       {visible && (
         <div
-          className={cn(
-            'fixed inset-0 z-[200] pointer-events-none overflow-hidden',
-            className,
-          )}
+          className={cn('particle-layer', className)}
           aria-hidden="true"
         >
           {particles.map((p) => (
-            <motion.div
+            <div
               key={p.id}
-              className="absolute"
+              className="css-particle"
               style={{
                 left: `${p.x}%`,
                 top: '0%',
-              }}
-              initial={{
-                y: '-10vh',
-                rotate: 0,
-                scale: 0,
-                opacity: 1,
-              }}
-              animate={{
-                y: '110vh',
-                rotate: p.rotation + randomBetween(180, 720),
-                scale: p.scale,
-                opacity: [1, 1, 0.8, 0],
-              }}
-              transition={{
-                duration: randomBetween(1.5, 2.5),
-                delay: p.delay,
-                ease: [0.25, 0.46, 0.45, 0.94],
-              }}
+                animationName: 'confetti-fall',
+                animationDuration: `${p.animDuration}s`,
+                animationDelay: `${p.delay}s`,
+                '--particle-scale': p.scale,
+                '--particle-rotate': `${p.rotate}deg`,
+              } as React.CSSProperties}
             >
               <ParticleShape shape={p.shape} color={p.color} />
-            </motion.div>
+            </div>
           ))}
         </div>
       )}

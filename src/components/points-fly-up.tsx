@@ -32,9 +32,9 @@ export function PointsFlyUp({ points, trigger, className }: PointsFlyUpProps) {
         <motion.span
           className={className}
           initial={{ opacity: 1, y: 0, scale: 1 }}
-          animate={{ opacity: 0, y: -40, scale: 1.2 }}
+          animate={{ opacity: [1, 1, 0], y: -44, scale: [1, 1.15, 1.2] }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1, ease: 'easeOut' }}
+          transition={{ duration: 1, ease: [0.25, 0.1, 0.25, 1] }}
           aria-live="polite"
           aria-label={`${points} points earned`}
         >

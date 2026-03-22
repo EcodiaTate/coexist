@@ -12,17 +12,18 @@ import {
     Bird,
     Share2,
     Flame,
+    ArrowLeft,
     ArrowRight,
     Globe,
 } from 'lucide-react'
 import { Page } from '@/components/page'
-import { Header } from '@/components/header'
 import { CountUp } from '@/components/count-up'
 import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { Button } from '@/components/button'
 import { cn } from '@/lib/cn'
 import { useImpactStats, useMonthlyActivity, useImpactByCategory, useStreak } from '@/hooks/use-impact'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 /* ─── category meta ─── */
 const CATEGORY_COLORS: Record<string, string> = {
@@ -334,6 +335,7 @@ export default function ImpactDashboardPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { data: stats, isLoading: statsLoading } = useImpactStats()
+  const showLoading = useDelayedLoading(statsLoading)
   const { data: monthly } = useMonthlyActivity()
   const { data: byCategory } = useImpactByCategory()
   const { data: streak } = useStreak()
@@ -342,25 +344,32 @@ export default function ImpactDashboardPage() {
     await queryClient.invalidateQueries({ queryKey: ['impact'] })
   }, [queryClient])
 
-  if (statsLoading) {
+  if (showLoading) {
     return (
-      <Page header={<Header title="My Impact" back />} className="!px-0 !bg-transparent">
+      <Page noBackground className="!px-0 !bg-transparent">
         <div className="relative min-h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
-          <div className="relative z-10 px-4 lg:px-6 py-4">
+          <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
+            <div className="h-14 flex items-center">
+              <button type="button" onClick={() => navigate(-1)} className="flex items-center justify-center w-9 h-9 -ml-1 rounded-full text-primary-800 hover:bg-primary-50/80 cursor-pointer select-none transition-colors duration-150" aria-label="Go back"><ArrowLeft size={22} /></button>
+            </div>
             <ImpactSkeleton />
           </div>
         </div>
       </Page>
     )
   }
+  if (statsLoading) return null
 
   if (!stats) {
     return (
-      <Page header={<Header title="My Impact" back />} className="!px-0 !bg-transparent">
+      <Page noBackground className="!px-0 !bg-transparent">
         <div className="relative min-h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
-          <div className="relative z-10 px-4 lg:px-6 py-4">
+          <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
+            <div className="h-14 flex items-center">
+              <button type="button" onClick={() => navigate(-1)} className="flex items-center justify-center w-9 h-9 -ml-1 rounded-full text-primary-800 hover:bg-primary-50/80 cursor-pointer select-none transition-colors duration-150" aria-label="Go back"><ArrowLeft size={22} /></button>
+            </div>
             <EmptyState
               illustration="empty"
               title="No impact data yet"
@@ -391,15 +400,7 @@ export default function ImpactDashboardPage() {
   }
 
   return (
-    <Page
-      header={
-        <Header
-          title="My Impact"
-          back
-        />
-      }
-      className="!px-0 !bg-transparent"
-    >
+    <Page noBackground className="!px-0 !bg-transparent">
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="relative min-h-full">
           {/* ─── Full-bleed background gradient ─── */}
@@ -408,8 +409,15 @@ export default function ImpactDashboardPage() {
           {/* ─── Decorative animated shapes ─── */}
           <DecoShapes reduced={!!shouldReduceMotion} />
 
+          {/* ─── Back button ─── */}
+          <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
+            <div className="h-14 flex items-center">
+              <button type="button" onClick={() => navigate(-1)} className="flex items-center justify-center w-9 h-9 -ml-1 rounded-full text-primary-800 hover:bg-primary-50/80 cursor-pointer select-none transition-colors duration-150" aria-label="Go back"><ArrowLeft size={22} /></button>
+            </div>
+          </div>
+
           {/* ─── Content ─── */}
-          <div className="relative z-10 px-4 lg:px-6 py-4 space-y-5">
+          <div className="relative z-10 px-4 lg:px-6 pb-4 space-y-5">
 
             {/* ─── Hero: Trees Planted ─── */}
             <motion.div

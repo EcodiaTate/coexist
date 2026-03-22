@@ -41,6 +41,7 @@ import {
     useLeaveCollective,
 } from '@/hooks/use-collective'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 /* ------------------------------------------------------------------ */
 /*  Skeleton                                                           */
@@ -74,6 +75,7 @@ export default function CollectiveDetailPage() {
 
   // Fetch collective by slug (or UUID for backwards compat)
   const { data: collective, isLoading } = useCollective(slug)
+  const showLoading = useDelayedLoading(isLoading)
   // Use the resolved ID for sub-queries that require a UUID
   const collectiveId = collective?.id
   const { data: leaders = [] } = useCollectiveLeaders(collectiveId)
@@ -123,14 +125,13 @@ export default function CollectiveDetailPage() {
     }
   }
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Collective" back />}>
         <CollectiveDetailSkeleton />
       </Page>
     )
   }
-
   if (!collective) {
     return (
       <Page header={<Header title="Collective" back />}>

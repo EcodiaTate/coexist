@@ -36,6 +36,7 @@ import { CreateAnnouncementSheet } from '@/components/create-announcement-sheet'
 import { BroadcastNotificationSheet } from '@/components/broadcast-notification-sheet'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useCollective, useCollectiveMembers } from '@/hooks/use-collective'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import {
@@ -295,6 +296,7 @@ function ChatSearchOverlay({
   onClose: () => void
 }) {
   const { searchQuery, results, isLoading, search } = useChatSearch(collectiveId)
+  const showSearchLoading = useDelayedLoading(isLoading)
   const [query, setQuery] = useState('')
 
   return (
@@ -316,7 +318,7 @@ function ChatSearchOverlay({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {isLoading ? (
+        {showSearchLoading ? (
           <Skeleton variant="list-item" count={5} />
         ) : results.length === 0 && searchQuery ? (
           <EmptyState
@@ -460,6 +462,7 @@ export default function CollectiveChatPage() {
     hasNextPage,
     isFetchingNextPage,
   } = useChatMessages(collectiveId)
+  const showLoading = useDelayedLoading(isLoading)
 
   const { data: pinnedMessages = [] } = usePinnedMessages(collectiveId)
   const markRead = useMarkChatRead(collectiveId)
@@ -723,7 +726,7 @@ export default function CollectiveChatPage() {
     )
   }
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Chat" back />}>
         <div className="py-4">
@@ -732,7 +735,6 @@ export default function CollectiveChatPage() {
       </Page>
     )
   }
-
   return (
     <div className="flex flex-col h-full overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40">
       {/* Header */}

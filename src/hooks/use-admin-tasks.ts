@@ -19,6 +19,7 @@ export interface TaskTemplate {
   day_of_month: number | null
   event_offset_days: number | null
   assignee_role: string
+  assignment_mode: 'collective' | 'individual'
   sort_order: number
   is_active: boolean
   attachment_url: string | null
@@ -46,7 +47,7 @@ export interface TaskInstance {
   template?: TaskTemplate
   collective?: { id: string; name: string } | null
   event?: { id: string; title: string } | null
-  completer?: { id: string; display_name: string; avatar_url: string | null } | null
+  completer?: { display_name: string; avatar_url: string | null } | null
 }
 
 export interface KpiStat {
@@ -201,6 +202,7 @@ export function useAdminCreateTemplate() {
       day_of_month?: number | null
       event_offset_days?: number | null
       assignee_role: string
+      assignment_mode?: 'collective' | 'individual'
       sort_order?: number
       attachment_url?: string | null
       attachment_label?: string | null

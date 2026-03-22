@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import DOMPurify from 'dompurify'
 import {
   FileText,
@@ -56,7 +58,7 @@ function ToolbarBtn({
         onClick()
       }}
       className={cn(
-        'flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-150 cursor-pointer',
+        'flex items-center justify-center w-8 h-8 rounded-lg transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
         active
           ? 'bg-primary-100 text-primary-800'
           : 'text-primary-400 hover:bg-primary-50 hover:text-primary-700',
@@ -176,7 +178,7 @@ function PageCard({
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left rounded-2xl bg-white p-5 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group"
+      className="w-full text-left rounded-2xl bg-white p-5 shadow-sm hover:shadow-md transition-[color,background-color,box-shadow] duration-200 cursor-pointer group"
     >
       <div className="flex items-start gap-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 group-hover:bg-primary-100 transition-colors">
@@ -233,6 +235,7 @@ export default function AdminLegalPagesPage() {
   const shouldReduceMotion = useReducedMotion()
   const { toast } = useToast()
   const { data: pages, isLoading } = useAllLegalPages()
+  const showLoading = useDelayedLoading(isLoading)
   const saveMutation = useSaveLegalPage()
 
   const [editing, setEditing] = useState<LegalPage | null>(null)
@@ -292,17 +295,10 @@ export default function AdminLegalPagesPage() {
     setPreviewMode(false)
   }, [])
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   /* ---------- Loading state ---------- */
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="flex justify-center py-8">
         <div className="w-full max-w-3xl space-y-4">
@@ -312,7 +308,6 @@ export default function AdminLegalPagesPage() {
       </div>
     )
   }
-
   /* ---------- Editor view ---------- */
   if (editing) {
     return (
@@ -445,7 +440,7 @@ export default function AdminLegalPagesPage() {
     <div className="flex justify-center py-2 sm:py-6">
       <motion.div
         className="w-full max-w-3xl space-y-4"
-        variants={shouldReduceMotion ? undefined : stagger}
+        variants={stagger}
         initial="hidden"
         animate="visible"
       >

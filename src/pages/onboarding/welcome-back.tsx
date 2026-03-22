@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Hand, Calendar, Users, ArrowRight } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 
@@ -47,6 +48,7 @@ export default function WelcomeBackPage() {
     },
     enabled: !!user,
   })
+  const showLoading = useDelayedLoading(isLoading)
 
   const displayName = profile?.display_name ?? 'there'
 
@@ -87,7 +89,7 @@ export default function WelcomeBackPage() {
 
         {/* What you missed */}
         <div className="mt-8 space-y-3">
-          {isLoading ? (
+          {showLoading ? (
             <Skeleton variant="list-item" count={3} />
           ) : missedData ? (
             <>

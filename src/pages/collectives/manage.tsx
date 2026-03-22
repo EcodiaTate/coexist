@@ -43,6 +43,7 @@ import {
   type CollectiveMemberWithProfile,
 } from '@/hooks/use-collective'
 import type { Database } from '@/types/database.types'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 type CollectiveRole = Database['public']['Enums']['collective_role']
 
@@ -324,6 +325,7 @@ export default function CollectiveManagePage() {
   const collectiveId = collective?.id
   const { isLeader } = useCollectiveRole(collectiveId)
   const { data: members = [], isLoading: loadingMembers } = useCollectiveMembers(collectiveId)
+  const showLoading = useDelayedLoading(loadingCollective || loadingMembers)
   const updateCollective = useUpdateCollective()
   const removeMember = useRemoveMember()
   const updateRole = useUpdateMemberRole()
@@ -413,7 +415,7 @@ export default function CollectiveManagePage() {
     toast.success('CSV downloaded')
   }
 
-  if (loadingCollective || loadingMembers) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Manage" back />}>
         <div className="py-4 space-y-4">
@@ -423,6 +425,7 @@ export default function CollectiveManagePage() {
       </Page>
     )
   }
+  if (loadingCollective || loadingMembers) return null
 
   if (!collective || !isLeader) {
     return (

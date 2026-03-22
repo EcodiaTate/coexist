@@ -29,13 +29,14 @@ import { MapView } from '@/components'
 import { useProfile, useProfileCollectives, useProfileStats, useMutualConnections } from '@/hooks/use-profile'
 import { usePointsBalance, getTierFromPoints } from '@/hooks/use-points'
 import type { TierName } from '@/hooks/use-points'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 const tierLabels: Record<TierName, string> = {
-  seedling: 'Seedling',
-  sapling: 'Sapling',
-  native: 'Native',
-  canopy: 'Canopy',
-  elder: 'Elder',
+  new: 'New',
+  active: 'Active',
+  committed: 'Committed',
+  dedicated: 'Dedicated',
+  lifetime: 'Lifetime',
 }
 
 function ViewProfileSkeleton() {
@@ -60,19 +61,19 @@ export default function ViewProfilePage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { data: profile, isLoading } = useProfile(userId)
+  const showLoading = useDelayedLoading(isLoading)
   const { data: collectives } = useProfileCollectives(userId)
   const { data: stats } = useProfileStats(userId)
   const { data: pointsData } = usePointsBalance(userId)
   const { data: mutualData } = useMutualConnections(userId ?? '')
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Profile" back />}>
         <ViewProfileSkeleton />
       </Page>
     )
   }
-
   if (!profile) {
     return (
       <Page header={<Header title="Profile" back />}>

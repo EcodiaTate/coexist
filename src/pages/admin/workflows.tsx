@@ -1,6 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useQuery } from '@tanstack/react-query'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { adminVariants } from '@/lib/admin-motion'
 import {
   Plus,
   ClipboardCheck,
@@ -26,6 +28,8 @@ import {
   Zap,
   Sparkles,
   Eye,
+  Users,
+  User,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -322,6 +326,7 @@ function TemplateModal({
   const [dayOfMonth, setDayOfMonth] = useState(String(template?.day_of_month ?? 1))
   const [eventOffsetDays, setEventOffsetDays] = useState(String(template?.event_offset_days ?? -3))
   const [assigneeRole, setAssigneeRole] = useState(template?.assignee_role ?? 'assist_leader')
+  const [assignmentMode, setAssignmentMode] = useState<'collective' | 'individual'>(template?.assignment_mode ?? 'collective')
   const [collectiveId, setCollectiveId] = useState(template?.collective_id ?? '')
   const [sortOrder, setSortOrder] = useState(String(template?.sort_order ?? 0))
   const [attachmentUrl, setAttachmentUrl] = useState(template?.attachment_url ?? '')
@@ -382,6 +387,7 @@ function TemplateModal({
       day_of_month: scheduleType === 'monthly' ? parseInt(dayOfMonth) : null,
       event_offset_days: scheduleType === 'event_relative' ? parseInt(isDynamic ? tlOffsetDays : eventOffsetDays) : null,
       assignee_role: assigneeRole,
+      assignment_mode: assignmentMode,
       sort_order: parseInt(sortOrder) || 0,
       attachment_url: attachmentUrl.trim() || null,
       attachment_label: attachmentLabel.trim() || null,
@@ -470,8 +476,51 @@ function TemplateModal({
             options={assigneeRoleOptions}
             value={assigneeRole}
             onChange={setAssigneeRole}
-            label="Assigned To"
+            label="Visible To"
           />
+        </div>
+
+        {/* Assignment mode */}
+        <div>
+          <p className="text-sm font-medium text-primary-800 mb-2">Completion Mode</p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setAssignmentMode('collective')}
+              className={cn(
+                'flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-left',
+                assignmentMode === 'collective'
+                  ? 'bg-primary-100 border border-primary-200'
+                  : 'bg-white border border-primary-100/40 hover:bg-primary-50',
+              )}
+            >
+              <Users size={16} className={assignmentMode === 'collective' ? 'text-primary-700' : 'text-primary-400'} />
+              <div>
+                <p className={cn('text-sm font-medium', assignmentMode === 'collective' ? 'text-primary-700' : 'text-primary-500')}>
+                  Collective
+                </p>
+                <p className="text-[10px] text-primary-400">Anyone can tick it off</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => setAssignmentMode('individual')}
+              className={cn(
+                'flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-left',
+                assignmentMode === 'individual'
+                  ? 'bg-primary-100 border border-primary-200'
+                  : 'bg-white border border-primary-100/40 hover:bg-primary-50',
+              )}
+            >
+              <User size={16} className={assignmentMode === 'individual' ? 'text-primary-700' : 'text-primary-400'} />
+              <div>
+                <p className={cn('text-sm font-medium', assignmentMode === 'individual' ? 'text-primary-700' : 'text-primary-500')}>
+                  Individual
+                </p>
+                <p className="text-[10px] text-primary-400">Each person completes it</p>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Schedule */}
@@ -651,6 +700,7 @@ function KpiDashboard() {
     collectiveId: collectiveFilter || undefined,
     dateFrom,
   })
+  const showLoading = useDelayedLoading(isLoading)
 
   const collectiveOptions = useMemo(() => [
     { value: '', label: 'All Collectives' },
@@ -667,7 +717,7 @@ function KpiDashboard() {
         className="max-w-xs"
       />
 
-      {isLoading ? (
+      {showLoading ? (
         <Skeleton variant="list-item" count={4} />
       ) : !data ? (
         <EmptyState illustration="empty" title="No data" description="No task instances found for this period" />
@@ -774,6 +824,7 @@ export default function AdminWorkflowsPage() {
     scheduleType: scheduleFilter || undefined,
     search: search || undefined,
   })
+  const showLoading = useDelayedLoading(isLoading)
 
   const toggleMutation = useAdminToggleTemplate()
   const deleteMutation = useAdminDeleteTemplate()
@@ -803,18 +854,10 @@ export default function AdminWorkflowsPage() {
 
   useAdminHeader('Workflows', { actions: heroActions })
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+    <motion.div variants={stagger} initial="hidden" animate="visible">
       <motion.div variants={fadeUp}>
         <TabBar tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-4" />
       </motion.div>
@@ -878,7 +921,7 @@ export default function AdminWorkflowsPage() {
 
           {/* Template list */}
           <motion.div variants={fadeUp}>
-            {isLoading ? (
+            {showLoading ? (
               <Skeleton variant="list-item" count={6} />
             ) : !templates?.length ? (
               <EmptyState
@@ -928,6 +971,12 @@ export default function AdminWorkflowsPage() {
                             )}
                             <span className="text-primary-200">·</span>
                             <span>{template.collective?.name ?? 'All Collectives'}</span>
+                            <span className="text-primary-200">·</span>
+                            <span className="flex items-center gap-1">
+                              {(template.assignment_mode ?? 'collective') === 'collective'
+                                ? <><Users size={10} /> Collective</>
+                                : <><User size={10} /> Individual</>}
+                            </span>
                             <span className="text-primary-200">·</span>
                             <span>{template.assignee_role.replace('_', ' ')}+</span>
                             {template.attachment_url && (

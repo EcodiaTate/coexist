@@ -84,7 +84,7 @@ export function TabBar({
                 transition={
                   shouldReduceMotion
                     ? { duration: 0 }
-                    : { type: 'spring', stiffness: 400, damping: 35 }
+                    : { type: 'spring', stiffness: 380, damping: 30, mass: 0.7 }
                 }
               />
             )}

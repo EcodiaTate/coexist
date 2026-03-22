@@ -85,7 +85,7 @@ describe('Accessibility audit (axe-core)', () => {
 
   it('Badge: tier variant no violations', async () => {
     const { container } = render(
-      <Badge variant="tier" tier="canopy">Canopy</Badge>,
+      <Badge variant="tier" tier="dedicated">Dedicated</Badge>,
     )
     const results = await axe(container);
     (expect(results) as any).toHaveNoViolations()

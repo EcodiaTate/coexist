@@ -33,6 +33,7 @@ import {
   ConfirmationSheet,
   BottomSheet,
 } from '@/components'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -226,8 +227,9 @@ export default function EventDayPage() {
   )
 
   const isLoading = eventLoading || attendeesLoading
+  const showLoading = useDelayedLoading(isLoading)
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <Page header={<Header title="Event Day" back />}>
         <div className="pt-4 space-y-4">
@@ -241,7 +243,6 @@ export default function EventDayPage() {
       </Page>
     )
   }
-
   if (!event) {
     return (
       <Page header={<Header title="Event Day" back />}>

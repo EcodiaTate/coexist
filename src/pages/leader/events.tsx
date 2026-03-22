@@ -11,6 +11,7 @@ import {
     Search,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader, useLeaderContext } from '@/components/leader-layout'
 import { Badge } from '@/components/badge'
 import { cn } from '@/lib/cn'
@@ -85,12 +86,12 @@ function useEventStats(collectiveId: string | undefined) {
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -143,17 +144,18 @@ export default function LeaderEventsPage() {
   useLeaderHeader('Events', { fullBleed: true })
 
   const { data: events, isLoading } = useCollectiveEvents(collectiveId, filter)
+  const showLoading = useDelayedLoading(isLoading)
   const { data: stats } = useEventStats(collectiveId)
 
   /* Loading skeleton */
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="relative min-h-screen overflow-x-hidden bg-gradient-to-b from-moss-50 via-white to-primary-50/30">
         {/* Decorative shapes */}
         <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-moss-200/40" />
         <div className="absolute -left-20 bottom-[10%] w-[280px] h-[280px] rounded-full bg-moss-100/30 blur-2xl" />
-        <div className="relative z-10 px-6 pt-12 space-y-6">
-          <div className="flex flex-col items-center gap-2 pt-4 pb-2">
+        <div className="relative z-10 px-6 pt-14 space-y-6">
+          <div className="flex flex-col items-center gap-2 pb-2">
             <div className="h-3 w-16 rounded-full bg-moss-200/40 animate-pulse" />
             <div className="h-8 w-40 rounded-lg bg-moss-200/30 animate-pulse" />
           </div>
@@ -178,64 +180,21 @@ export default function LeaderEventsPage() {
       {/* ── Bright airy background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-moss-50 via-white to-primary-50/30" />
 
-      {/* ── Decorative geometric shapes - soft, nature-toned ── */}
-      {/* Large ring - top right */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.7, opacity: 0 }}
-        animate={{ scale: [1, 1.03, 1], opacity: 1 }}
-        transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.2, ease: 'easeOut' } }}
-        className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-moss-200/40"
-      />
-      {/* Concentric inner ring */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.5, opacity: 0 }}
-        animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-        transition={{ scale: { duration: 22, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.5, delay: 0.3, ease: 'easeOut' } }}
-        className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-moss-200/25"
-      />
-      {/* Filled glow - bottom left */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.6, opacity: 0 }}
-        animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-        transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 1 }, opacity: { duration: 1.5, delay: 0.5, ease: 'easeOut' } }}
-        className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-moss-100/40 blur-2xl"
-      />
-      {/* Small ring - mid left */}
-      <motion.div
-        initial={rm ? {} : { scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-200/35"
-      />
-      {/* Warm glow - center right */}
+      {/* ── Decorative geometric shapes — CSS-only for GPU compositing ── */}
+      <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-moss-200/40 will-change-transform animate-[breathe_20s_ease-in-out_infinite]" />
+      <div className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-moss-200/25 will-change-transform animate-[breathe_22s_ease-in-out_0.5s_infinite]" />
+      <div className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-moss-100/40 blur-2xl will-change-transform animate-[breathe_18s_ease-in-out_1s_infinite]" />
+      <div className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-200/35" />
       <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-moss-100/25 blur-3xl" />
-      {/* Small filled circle - bottom right */}
-      <motion.div
-        initial={rm ? {} : { scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.8, delay: 1, ease: 'easeOut' }}
-        className="absolute bottom-[15%] right-[10%] w-[60px] h-[60px] rounded-full bg-primary-100/30"
-      />
-      {/* Floating dots */}
-      <motion.div
-        animate={rm ? {} : { y: [0, -7, 0], opacity: [0.35, 0.6, 0.35] }}
-        transition={{ y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 4.5, repeat: Infinity, ease: 'easeInOut' } }}
-        className="absolute left-[15%] top-[16%] w-2 h-2 rounded-full bg-moss-300/40"
-      />
-      <motion.div
-        animate={rm ? {} : { y: [0, 5, 0], opacity: [0.25, 0.45, 0.25] }}
-        transition={{ y: { duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }, opacity: { duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 } }}
-        className="absolute right-[14%] top-[35%] w-1.5 h-1.5 rounded-full bg-primary-300/30"
-      />
-      <motion.div
-        animate={rm ? {} : { y: [0, -4, 0], opacity: [0.2, 0.4, 0.2] }}
-        transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 } }}
-        className="absolute left-[35%] bottom-[20%] w-2.5 h-2.5 rounded-full bg-moss-300/25"
-      />
+      <div className="absolute bottom-[15%] right-[10%] w-[60px] h-[60px] rounded-full bg-primary-100/30" />
+      {/* Floating dots — CSS-only */}
+      <div className="absolute left-[15%] top-[16%] w-2 h-2 rounded-full bg-moss-300/40 will-change-transform animate-[float_4.5s_ease-in-out_infinite]" />
+      <div className="absolute right-[14%] top-[35%] w-1.5 h-1.5 rounded-full bg-primary-300/30 will-change-transform animate-[floatDown_5.5s_ease-in-out_1.5s_infinite]" />
+      <div className="absolute left-[35%] bottom-[20%] w-2.5 h-2.5 rounded-full bg-moss-300/25 will-change-transform animate-[float_6s_ease-in-out_3s_infinite]" />
 
       {/* ── Content ── */}
       <motion.div
-        className="relative z-10 px-6 pt-4 space-y-5 pb-20"
+        className="relative z-10 px-6 pt-14 space-y-5 pb-20"
         variants={rm ? undefined : stagger}
         initial="hidden"
         animate="visible"
@@ -243,7 +202,7 @@ export default function LeaderEventsPage() {
         {/* ── Hero title ── */}
         <motion.div
           variants={rm ? undefined : fadeUp}
-          className="flex flex-col items-center justify-center text-center pt-8 pb-2"
+          className="flex flex-col items-center justify-center text-center pb-2"
         >
           <p className="text-[10px] font-semibold text-moss-500 uppercase tracking-[0.2em]">
             Manage
@@ -272,7 +231,7 @@ export default function LeaderEventsPage() {
           <button
             type="button"
             onClick={() => navigate('/leader/events/create')}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-moss-500 to-moss-600 py-3.5 text-sm font-bold text-white shadow-md shadow-moss-500/20 hover:shadow-lg hover:shadow-moss-500/30 active:scale-[0.98] transition-all duration-200 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-moss-500 to-moss-600 py-3.5 text-sm font-bold text-white shadow-md shadow-moss-500/20 hover:shadow-lg hover:shadow-moss-500/30 active:scale-[0.98] transition-[box-shadow,transform] duration-150 cursor-pointer"
           >
             <Plus size={18} strokeWidth={2.5} />
             Create New Event
@@ -288,7 +247,7 @@ export default function LeaderEventsPage() {
                 type="button"
                 onClick={() => setFilter(f.id)}
                 className={cn(
-                  'flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer select-none whitespace-nowrap',
+                  'flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-[background-color,color,box-shadow] duration-150 cursor-pointer select-none whitespace-nowrap',
                   filter === f.id
                     ? 'bg-moss-600 text-white shadow-sm'
                     : 'text-primary-500 hover:text-primary-700 hover:bg-primary-50',
@@ -329,7 +288,7 @@ export default function LeaderEventsPage() {
                 >
                   <Link
                     to={`/events/${event.id}`}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-white shadow-sm border border-primary-50/60 hover:shadow-md hover:border-moss-100 hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white shadow-sm border border-primary-50/60 hover:shadow-md hover:border-moss-100 active:scale-[0.99] transition-[box-shadow,border-color,transform] duration-200"
                   >
                     {/* Cover thumbnail */}
                     {event.cover_image_url ? (

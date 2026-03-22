@@ -1,7 +1,5 @@
-import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-    ArrowLeft,
     TreePine,
     Waves,
     Clock,
@@ -14,6 +12,7 @@ import {
     TrendingUp,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader, useLeaderContext } from '@/components/leader-layout'
 import { useCollective } from '@/hooks/use-collective'
 import { Skeleton } from '@/components/skeleton'
@@ -98,71 +97,38 @@ function useCollectiveFullStats(collectiveId: string | undefined) {
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
+  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
 }
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 }
 
 /* ------------------------------------------------------------------ */
 /*  Decorative background shapes                                       */
 /* ------------------------------------------------------------------ */
 
-function DecoShapes({ rm }: { rm: boolean }) {
+function DecoShapes() {
   return (
     <>
-      {/* Large breathing ring - top right */}
-      <motion.div
-        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-moss-300/25"
-        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      {/* Large breathing ring — CSS-only GPU compositing */}
+      <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-moss-300/25 will-change-transform animate-[breatheWide_8s_ease-in-out_infinite]" />
       {/* Concentric inner ring */}
-      <motion.div
-        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-primary-200/18"
-        animate={rm ? undefined : { scale: [1, 1.04, 1], opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-
+      <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-primary-200/18 will-change-transform animate-[breatheWide_6s_ease-in-out_1s_infinite]" />
       {/* Medium ring - left side */}
-      <motion.div
-        className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-sprout-300/22"
-        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      />
-
-      {/* Small ring - bottom right */}
-      <motion.div
-        className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-moss-300/18"
-        animate={rm ? undefined : { rotate: 360 }}
-        transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
-      />
-
-      {/* Deep warm glow - mid left */}
-      <motion.div
-        className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/22 blur-[50px]"
-        animate={rm ? undefined : { scale: [1, 1.14, 1], opacity: [0.22, 0.4, 0.22] }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-
+      <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-sprout-300/22 will-change-transform animate-[breatheWide_7s_ease-in-out_2s_infinite]" />
+      {/* Small ring - bottom right — gentle spin */}
+      <div className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-moss-300/18 will-change-transform animate-[gentleSpin_50s_linear_infinite]" />
+      {/* Deep warm glow — static blur, CSS breathe on wrapper */}
+      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/22 blur-[50px] will-change-transform animate-[breatheWide_9s_ease-in-out_1s_infinite]" />
       {/* Bottom gradient pool */}
-      <motion.div
-        className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-moss-200/20 blur-[55px]"
-        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.2, 0.38, 0.2] }}
-        transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-      />
-
-      {/* Floating particles */}
-      <motion.div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-moss-400/18"
-        animate={rm ? undefined : { y: [-5, 5, -5], x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }} />
-      <motion.div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-sprout-400/15"
-        animate={rm ? undefined : { y: [3, -5, 3] }} transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 1.5 }} />
-      <motion.div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-moss-400/15"
-        animate={rm ? undefined : { y: [-3, 4, -3], x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} />
-      <motion.div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-primary-400/12"
-        animate={rm ? undefined : { y: [2, -3, 2] }} transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut', delay: 2.5 }} />
+      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-moss-200/20 blur-[55px] will-change-transform animate-[breatheWide_11s_ease-in-out_3s_infinite]" />
+      {/* Floating particles — CSS-only */}
+      <div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-moss-400/18 will-change-transform animate-[float_5s_ease-in-out_infinite]" />
+      <div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-sprout-400/15 will-change-transform animate-[floatDown_4.5s_ease-in-out_1.5s_infinite]" />
+      <div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-moss-400/15 will-change-transform animate-[float_4s_ease-in-out_0.5s_infinite]" />
+      <div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-primary-400/12 will-change-transform animate-[floatDown_5.5s_ease-in-out_2.5s_infinite]" />
     </>
   )
 }
@@ -241,21 +207,21 @@ export default function LeaderImpactPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const { collectiveId } = useLeaderContext()
-  const navigate = useNavigate()
   const { data: collective } = useCollective(collectiveId)
 
   useLeaderHeader('Impact', { fullBleed: true })
 
   const { data: stats, isLoading } = useCollectiveFullStats(collectiveId)
+  const showLoading = useDelayedLoading(isLoading)
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="relative min-h-screen overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
-        <DecoShapes rm={rm} />
-        <div className="relative z-10 px-6 pt-4 space-y-5 pb-20">
+        <DecoShapes />
+        <div className="relative z-10 px-6 pt-14 space-y-5 pb-20">
           {/* Hero skeleton */}
-          <div className="text-center pt-2 pb-1">
+          <div className="text-center pb-1">
             <Skeleton className="h-3 w-28 mx-auto mb-2" />
             <Skeleton className="h-8 w-24 mx-auto" />
           </div>
@@ -273,8 +239,8 @@ export default function LeaderImpactPage() {
     return (
       <div className="relative min-h-screen overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
-        <DecoShapes rm={rm} />
-        <div className="relative z-10 px-6 pt-4 pb-20">
+        <DecoShapes />
+        <div className="relative z-10 px-6 pt-14 pb-20">
           <EmptyState
             illustration="wildlife"
             title="No impact data yet"
@@ -304,31 +270,30 @@ export default function LeaderImpactPage() {
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
 
       {/* Animated decorative shapes */}
-      <DecoShapes rm={rm} />
+      <DecoShapes />
 
       {/* Top hero glow */}
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/28 via-primary-200/18 to-transparent blur-[60px]" />
 
       {/* Content */}
       <motion.div
-        className="relative z-10 px-6 pt-4 space-y-5 pb-20"
+        className="relative z-10 px-6 pt-14 space-y-5 pb-20"
         variants={rm ? undefined : stagger}
         initial="hidden"
         animate="visible"
       >
-        {/* Floating back button */}
-        <div className="pt-[var(--safe-top)]">
-          <motion.button
-            type="button"
-            onClick={() => navigate(-1)}
-            whileTap={rm ? undefined : { scale: 0.9 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            className="flex items-center justify-center w-9 h-9 rounded-full text-primary-800 hover:bg-primary-50/80 cursor-pointer select-none transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-            aria-label="Go back"
-          >
-            <ArrowLeft size={22} />
-          </motion.button>
-        </div>
+        {/* Hero eyebrow */}
+        <motion.div
+          variants={rm ? undefined : fadeUp}
+          className="flex flex-col items-center justify-center text-center pb-2"
+        >
+          <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-[0.2em]">
+            Your Collective
+          </p>
+          <h1 className="font-heading text-3xl sm:text-4xl font-bold text-primary-900 mt-1.5">
+            Impact
+          </h1>
+        </motion.div>
 
         {/* Collective overview stats */}
         <div>

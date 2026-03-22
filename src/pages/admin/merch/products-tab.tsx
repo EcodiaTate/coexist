@@ -1,9 +1,11 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { adminVariants, expandCollapse } from '@/lib/admin-motion'
 import {
   Plus, Edit3, Archive, AlertTriangle, Search, X,
   ChevronDown, ChevronUp, ImagePlus, GripVertical, Trash2,
 } from 'lucide-react'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useAppImage } from '@/hooks/use-app-images'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { Button } from '@/components/button'
@@ -355,7 +357,7 @@ function ProductFormSheet({
               <div
                 key={url + idx}
                 className={cn(
-                  'relative group w-20 h-20 rounded-xl overflow-hidden border-2 transition-all',
+                  'relative group w-20 h-20 rounded-xl overflow-hidden border-2 transition-colors',
                   idx === 0 ? 'border-primary-400 shadow-md' : 'border-primary-200/30',
                   dragIdx === idx && 'opacity-50 scale-95',
                 )}
@@ -394,7 +396,7 @@ function ProductFormSheet({
               className={cn(
                 'w-20 h-20 rounded-xl border-2 border-dashed border-primary-300/50 flex flex-col items-center justify-center gap-1',
                 'text-primary-400 hover:text-primary-600 hover:border-primary-400/60 hover:bg-primary-50/40',
-                'cursor-pointer transition-all duration-150',
+                'cursor-pointer transition-[color,background-color,box-shadow] duration-150',
                 uploading && 'opacity-60 pointer-events-none',
               )}
             >
@@ -459,7 +461,7 @@ function ProductFormSheet({
                 type="button"
                 onClick={() => setStatus(s)}
                 className={cn(
-                  'flex-1 py-2.5 rounded-xl text-sm font-semibold capitalize cursor-pointer transition-all duration-150',
+                  'flex-1 py-2.5 rounded-xl text-sm font-semibold capitalize cursor-pointer transition-[color,background-color,box-shadow] duration-150',
                   status === s && s === 'active' && 'bg-success-100 text-success-700 ring-2 ring-success-300 shadow-sm',
                   status === s && s === 'draft' && 'bg-warning-100 text-warning-700 ring-2 ring-warning-300 shadow-sm',
                   status === s && s === 'archived' && 'bg-primary-100 text-primary-600 ring-2 ring-primary-300 shadow-sm',
@@ -617,10 +619,10 @@ function VariantSummary({
       <AnimatePresence>
         {expanded && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            variants={expandCollapse}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="overflow-hidden"
           >
             <div className="mt-2 space-y-1.5">
@@ -735,6 +737,7 @@ const STATUS_BADGE: Record<ProductStatus, string> = {
 
 export default function ProductsTab() {
   const { data: products, isLoading } = useAdminProducts()
+  const showLoading = useDelayedLoading(isLoading)
   const updateProduct = useUpdateProduct()
   const { toast } = useToast()
   const placeholderMerch = useAppImage('placeholder_merch')
@@ -776,7 +779,7 @@ export default function ProductsTab() {
     setArchiveTarget(null)
   }, [archiveTarget, updateProduct, toast])
 
-  if (isLoading) {
+  if (showLoading) {
     return (
       <div className="space-y-3">
         {Array.from({ length: 3 }).map((_, i) => (
@@ -785,19 +788,10 @@ export default function ProductsTab() {
       </div>
     )
   }
-
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
+  const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   return (
-    <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible">
+    <motion.div variants={stagger} initial="hidden" animate="visible">
       {/* Header */}
       <motion.div variants={fadeUp} className="flex justify-between items-center mb-4">
         <h2 className="font-heading font-semibold text-lg text-primary-800">
@@ -834,7 +828,7 @@ export default function ProductsTab() {
               'text-[16px] sm:text-sm',
               'outline-none border-none',
               'shadow-sm focus:shadow-md focus:ring-2 focus:ring-primary-300/50',
-              'transition-all duration-200',
+              'transition-[color,background-color,box-shadow] duration-200',
             )}
           />
           <AnimatePresence>

@@ -13,6 +13,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useIndividualLeaderboard, useCollectiveLeaderboard } from '@/hooks/use-leaderboard'
 import { useProfileCollectives } from '@/hooks/use-profile'
 import type { TierName } from '@/hooks/use-points'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 type TimePeriod = 'week' | 'month' | 'quarter' | 'year' | 'all-time'
 type Metric = 'points' | 'trees' | 'events' | 'hours'
@@ -193,6 +194,7 @@ export default function LeaderboardPage() {
     useCollectiveLeaderboard(period, metric)
 
   const isLoading = view === 'individual' ? individualLoading : collectiveLoading
+  const showLoading = useDelayedLoading(isLoading)
 
   const handleRefresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
@@ -286,7 +288,7 @@ export default function LeaderboardPage() {
                 </div>
               </motion.div>
 
-              {isLoading ? (
+              {showLoading ? (
                 <div className="px-5 lg:px-6"><LeaderboardSkeleton /></div>
               ) : view === 'individual' ? (
                 <>
