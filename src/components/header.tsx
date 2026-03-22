@@ -71,16 +71,9 @@ export function Header({
         )}
       </div>
 
-      {/* Center zone: title */}
+      {/* Center zone: spacer (title hidden for native app feel) */}
       <div className="flex-1 min-w-0 px-2">
-        <h1
-          className={cn(
-            'font-heading text-base font-semibold text-center truncate',
-            transparent ? 'text-white' : 'text-primary-800',
-          )}
-        >
-          {title}
-        </h1>
+        {/* Title kept as accessible label on the header element */}
       </div>
 
       {/* Right zone: actions */}

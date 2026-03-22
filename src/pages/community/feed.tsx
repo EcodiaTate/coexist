@@ -6,7 +6,6 @@ import {
   MessageCircle,
   Share2,
   Flag,
-  Plus,
   MoreHorizontal,
   Leaf,
   Award,
@@ -609,25 +608,7 @@ export default function FeedPage() {
   return (
     <Page
       header={
-        <Header
-          title="Community"
-          rightActions={
-            <button
-              type="button"
-              onClick={() => navigate('/community/create-post')}
-              className={cn(
-                'flex items-center justify-center w-9 h-9 min-h-11 min-w-11 rounded-full',
-                'bg-primary-800 text-white',
-                'cursor-pointer select-none',
-                'hover:bg-primary-950 active:scale-[0.95] transition-all duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
-              )}
-              aria-label="Create post"
-            >
-              <Plus size={20} />
-            </button>
-          }
-        />
+        <Header title="Community" />
       }
     >
       {feed.isLoading ? (

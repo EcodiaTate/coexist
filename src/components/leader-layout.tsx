@@ -17,10 +17,13 @@ import {
   Menu,
   X,
   MapPin,
+  Home,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollective } from '@/hooks/use-collective'
+import { useLayout } from '@/hooks/use-layout'
+import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
 
 /* ------------------------------------------------------------------ */
 /*  Leader header context — lets child pages set title + actions       */
@@ -107,33 +110,149 @@ const leaderNavCategories: LeaderNavCategory[] = [
   {
     label: 'Overview',
     items: [
-      { label: 'Dashboard', path: '/leader', icon: <LayoutDashboard size={18} /> },
+      { label: 'Dashboard', path: '/leader', icon: <LayoutDashboard size={17} strokeWidth={1.5} /> },
     ],
   },
   {
     label: 'Manage',
     items: [
-      { label: 'Events', path: '/leader/events', icon: <CalendarDays size={18} /> },
-      { label: 'Members', path: '/leader/members', icon: <Users size={18} /> },
-      { label: 'Tasks', path: '/leader/tasks', icon: <ClipboardCheck size={18} /> },
-      { label: 'Announcements', path: '/leader/announcements', icon: <Megaphone size={18} /> },
+      { label: 'Events', path: '/leader/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
+      { label: 'Members', path: '/leader/members', icon: <Users size={17} strokeWidth={1.5} /> },
+      { label: 'Tasks', path: '/leader/tasks', icon: <ClipboardCheck size={17} strokeWidth={1.5} /> },
+      { label: 'Announcements', path: '/leader/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> },
     ],
   },
   {
     label: 'Insights',
     items: [
-      { label: 'Impact', path: '/leader/impact', icon: <TreePine size={18} /> },
-      { label: 'Reports', path: '/leader/reports', icon: <BarChart3 size={18} /> },
+      { label: 'Impact', path: '/leader/impact', icon: <TreePine size={17} strokeWidth={1.5} /> },
+      { label: 'Reports', path: '/leader/reports', icon: <BarChart3 size={17} strokeWidth={1.5} /> },
     ],
   },
   {
     label: 'Actions',
     items: [
-      { label: 'Create Event', path: '/leader/events/create', icon: <Plus size={18} /> },
-      { label: 'Invite Members', path: '/leader/invite', icon: <Send size={18} /> },
+      { label: 'Create Event', path: '/leader/events/create', icon: <Plus size={17} strokeWidth={1.5} /> },
+      { label: 'Invite Members', path: '/leader/invite', icon: <Send size={17} strokeWidth={1.5} /> },
     ],
   },
 ]
+
+/* ------------------------------------------------------------------ */
+/*  Mobile bottom tab bar tabs for leader suite                        */
+/* ------------------------------------------------------------------ */
+
+const leaderBottomTabs: Tab[] = [
+  {
+    key: 'back',
+    label: 'App',
+    path: '/',
+    exact: true,
+    icon: <Home size={22} strokeWidth={1.5} />,
+    activeIcon: <Home size={22} strokeWidth={2} fill="currentColor" />,
+  },
+  {
+    key: 'leader-home',
+    label: 'Dashboard',
+    path: '/leader',
+    exact: true,
+    icon: <LayoutDashboard size={22} strokeWidth={1.5} />,
+    activeIcon: <LayoutDashboard size={22} strokeWidth={2} fill="currentColor" />,
+  },
+  {
+    key: 'leader-events',
+    label: 'Events',
+    path: '/leader/events',
+    icon: <CalendarDays size={22} strokeWidth={1.5} />,
+    activeIcon: <CalendarDays size={22} strokeWidth={2} fill="currentColor" />,
+  },
+  {
+    key: 'leader-tasks',
+    label: 'Tasks',
+    path: '/leader/tasks',
+    icon: <ClipboardCheck size={22} strokeWidth={1.5} />,
+    activeIcon: <ClipboardCheck size={22} strokeWidth={2} fill="currentColor" />,
+  },
+  {
+    key: 'leader-impact',
+    label: 'Impact',
+    path: '/leader/impact',
+    icon: <TreePine size={22} strokeWidth={1.5} />,
+    activeIcon: <TreePine size={22} strokeWidth={2} fill="currentColor" />,
+  },
+]
+
+/* ------------------------------------------------------------------ */
+/*  Shared nav link component                                          */
+/* ------------------------------------------------------------------ */
+
+function NavLink({
+  item,
+  active,
+  collapsed,
+  shouldReduceMotion,
+  layoutId,
+  accentColor = 'moss',
+}: {
+  item: LeaderNavItem
+  active: boolean
+  collapsed: boolean
+  shouldReduceMotion: boolean | null
+  layoutId: string
+  accentColor?: 'moss' | 'primary'
+}) {
+  const activeClasses = accentColor === 'moss'
+    ? 'bg-moss-50/70 text-moss-800 font-medium'
+    : 'bg-primary-50/70 text-primary-800 font-medium'
+  const hoverClasses = accentColor === 'moss'
+    ? 'text-primary-400 hover:bg-moss-50/40 hover:text-moss-700'
+    : 'text-primary-400 hover:bg-primary-50/40 hover:text-primary-700'
+  const indicatorColor = accentColor === 'moss'
+    ? 'from-moss-400 to-moss-600'
+    : 'from-primary-500 to-primary-700'
+
+  return (
+    <Link
+      to={item.path}
+      className={cn(
+        'relative flex items-center gap-2.5',
+        'rounded-xl text-[13px]',
+        'transition-all duration-200',
+        'cursor-pointer select-none',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
+        collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-9',
+        active ? activeClasses : hoverClasses,
+      )}
+      aria-current={active ? 'page' : undefined}
+      title={collapsed ? item.label : undefined}
+    >
+      {active && !collapsed && (
+        <motion.span
+          layoutId={shouldReduceMotion ? undefined : layoutId}
+          className={cn('absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b', indicatorColor)}
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        />
+      )}
+      {active && collapsed && (
+        <motion.span
+          layoutId={shouldReduceMotion ? undefined : `${layoutId}-dot`}
+          className={cn(
+            'absolute left-0 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full',
+            accentColor === 'moss' ? 'bg-moss-500' : 'bg-primary-600',
+          )}
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        />
+      )}
+      <span className={cn(
+        'flex items-center justify-center shrink-0 transition-transform duration-200',
+        active && 'scale-105',
+      )}>
+        {item.icon}
+      </span>
+      {!collapsed && <span className="truncate">{item.label}</span>}
+    </Link>
+  )
+}
 
 /* ------------------------------------------------------------------ */
 /*  LeaderLayout  route-level layout, renders <Outlet />              */
@@ -144,6 +263,8 @@ export function LeaderLayout() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { collectiveRoles } = useAuth()
+  const { navMode } = useLayout()
+  const showBottomTabs = navMode === 'bottom-tabs'
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [header, setHeaderState] = useState<LeaderHeaderState>({ title: '' })
@@ -159,7 +280,9 @@ export function LeaderLayout() {
 
   const { data: collectiveDetail } = useCollective(collectiveId)
   const collectiveSlug = collectiveDetail?.slug ?? collectiveId
-  const collectiveName = collectiveDetail?.name ?? 'My Collective'
+  const collectiveNameRaw = collectiveDetail?.name ?? 'My Collective'
+  // Strip trailing "Collective" — e.g. "Byron Bay Collective" → "Byron Bay"
+  const collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
 
   // Scroll content to top on route change
   useEffect(() => {
@@ -190,56 +313,56 @@ export function LeaderLayout() {
           className={cn(
             'hidden md:flex flex-col',
             'sticky top-0 self-start max-h-dvh z-50',
-            'bg-white shadow-2xl',
+            'bg-white border-r border-moss-100/40',
             'transition-[width] duration-250 ease-in-out',
             'overflow-y-auto',
-            collapsed ? 'w-14' : 'w-56',
+            collapsed ? 'w-[60px]' : 'w-[240px]',
           )}
           aria-label="Leader navigation"
         >
           {/* Back to app */}
-          <div className="bg-moss-50/40 px-1.5 py-2">
+          <div className="px-2.5 py-2.5">
             <Link
               to="/"
               className={cn(
                 'flex items-center gap-2',
-                'rounded-lg text-[13px]',
-                'text-primary-400 hover:text-primary-800 hover:bg-moss-50',
-                'transition-colors duration-150',
+                'rounded-xl text-[13px]',
+                'text-primary-300 hover:text-primary-700 hover:bg-moss-50/50',
+                'transition-all duration-200',
                 'cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
                 collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-8',
               )}
               title={collapsed ? 'Back to app' : undefined}
             >
-              <ArrowLeft size={16} className="shrink-0" />
+              <ArrowLeft size={15} strokeWidth={1.5} className="shrink-0" />
               {!collapsed && <span>Back to app</span>}
             </Link>
           </div>
 
           {/* Collective name badge */}
           {!collapsed && (
-            <div className="px-3 py-2.5 border-b border-moss-100/50">
-              <div className="flex items-center gap-2">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shrink-0">
+            <div className="px-3 py-3 mx-2.5 mb-1 rounded-xl bg-gradient-to-br from-moss-50/80 to-moss-50/30 border border-moss-100/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shrink-0 shadow-sm">
                   <TreePine size={14} className="text-white" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[11px] font-semibold text-moss-600 uppercase tracking-wider leading-none">Leader</p>
-                  <p className="text-xs font-medium text-primary-700 truncate mt-0.5">{collectiveName}</p>
+                  <p className="text-[10px] font-semibold text-moss-500 uppercase tracking-[0.08em] leading-none">Leader</p>
+                  <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">{collectiveName}</p>
                 </div>
               </div>
             </div>
           )}
           {collapsed && (
-            <div className="flex justify-center py-2.5 border-b border-moss-100/50">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center">
+            <div className="flex justify-center py-2.5">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shadow-sm">
                 <TreePine size={14} className="text-white" />
               </div>
             </div>
           )}
 
-          <div className="flex-1 py-3 px-1.5 space-y-0.5">
+          <div className="flex-1 py-2 px-2 space-y-0.5">
             {leaderNavCategories.map((cat) => {
               const showLabel = cat.label !== 'Overview'
               return (
@@ -247,67 +370,44 @@ export function LeaderLayout() {
                   {showLabel && (
                     <>
                       {!collapsed && (
-                        <p className="text-[10px] uppercase tracking-wider text-primary-400 px-2.5 mt-4 mb-1">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-2.5 mt-4 mb-1.5">
                           {cat.label}
                         </p>
                       )}
-                      {collapsed && <div className="my-2 h-px bg-moss-100/40" />}
+                      {collapsed && <div className="my-2.5 mx-2 h-px bg-moss-100/30" />}
                     </>
                   )}
-                  {cat.items.map((item) => {
-                    const active = isActive(item.path)
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        className={cn(
-                          'relative flex items-center gap-2.5',
-                          'rounded-lg text-[13px]',
-                          'transition-colors duration-150',
-                          'cursor-pointer select-none',
-                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
-                          collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-8',
-                          active
-                            ? 'bg-moss-50 text-moss-800 font-medium'
-                            : 'text-primary-400 hover:bg-moss-50/60 hover:text-primary-800',
-                        )}
-                        aria-current={active ? 'page' : undefined}
-                        title={collapsed ? item.label : undefined}
-                      >
-                        {active && !collapsed && (
-                          <motion.span
-                            layoutId={shouldReduceMotion ? undefined : 'leader-sidebar-active'}
-                            className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-moss-600"
-                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                          />
-                        )}
-                        <span className="flex items-center justify-center shrink-0">
-                          {item.icon}
-                        </span>
-                        {!collapsed && <span className="truncate">{item.label}</span>}
-                      </Link>
-                    )
-                  })}
+                  {cat.items.map((item) => (
+                    <NavLink
+                      key={item.path}
+                      item={item}
+                      active={isActive(item.path)}
+                      collapsed={collapsed}
+                      shouldReduceMotion={shouldReduceMotion}
+                      layoutId="leader-sidebar-active"
+                      accentColor="moss"
+                    />
+                  ))}
                 </div>
               )
             })}
           </div>
 
-          <div className="bg-moss-50/40 p-1.5">
+          <div className="p-2 border-t border-moss-100/30">
             <button
               type="button"
               onClick={() => setCollapsed((p) => !p)}
               className={cn(
                 'flex items-center justify-center gap-2 w-full',
-                'h-8 rounded-lg text-[13px]',
-                'text-primary-400 hover:text-primary-800 hover:bg-moss-50',
+                'h-8 rounded-xl text-[13px]',
+                'text-primary-300 hover:text-primary-600 hover:bg-moss-50/50',
                 'cursor-pointer select-none',
-                'transition-colors duration-150',
+                'transition-all duration-200',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
               )}
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+              {collapsed ? <PanelLeftOpen size={15} strokeWidth={1.5} /> : <PanelLeftClose size={15} strokeWidth={1.5} />}
               {!collapsed && <span>Collapse</span>}
             </button>
           </div>
@@ -319,7 +419,7 @@ export function LeaderLayout() {
             <>
               <motion.div
                 key="leader-backdrop"
-                className="md:hidden fixed inset-0 z-40 bg-black/30"
+                className="md:hidden fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -328,50 +428,56 @@ export function LeaderLayout() {
               />
               <motion.aside
                 key="leader-drawer"
-                className="md:hidden fixed inset-y-0 right-0 z-50 w-[min(72vw,280px)] bg-white shadow-[-8px_0_30px_-12px_rgba(0,0,0,0.12)] flex flex-col overflow-y-auto"
+                className="md:hidden fixed inset-y-0 right-0 z-50 w-[min(76vw,300px)] bg-white shadow-[-12px_0_40px_-8px_rgba(51,63,43,0.15)] flex flex-col overflow-y-auto"
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 35 }}
               >
-                <div className="flex items-center justify-between px-4 py-3 bg-moss-50/40">
+                {/* Wordmark centered + close */}
+                <div className="flex items-center justify-between px-4 py-3">
                   <Link
                     to="/"
-                    className="flex items-center gap-2 text-[13px] text-primary-400 hover:text-primary-800 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-moss-50/50 transition-all"
+                    aria-label="Back to app"
                   >
-                    <ArrowLeft size={14} />
-                    <span>Back to app</span>
+                    <ArrowLeft size={15} strokeWidth={1.5} />
                   </Link>
+                  <img
+                    src="/logos/black-wordmark.png"
+                    alt="Co-Exist"
+                    className="h-5 w-auto"
+                  />
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-moss-50 cursor-pointer"
+                    className="p-1.5 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-all"
                     aria-label="Close menu"
                   >
-                    <X size={18} />
+                    <X size={16} strokeWidth={1.5} />
                   </button>
                 </div>
 
                 {/* Collective name badge — mobile */}
-                <div className="px-4 py-2.5 border-b border-moss-100/50">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shrink-0">
+                <div className="px-4 py-3 mx-3 mb-2 rounded-xl bg-gradient-to-br from-moss-50/80 to-moss-50/30 border border-moss-100/30">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shrink-0 shadow-sm">
                       <TreePine size={14} className="text-white" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-[11px] font-semibold text-moss-600 uppercase tracking-wider leading-none">Leader</p>
-                      <p className="text-xs font-medium text-primary-700 truncate mt-0.5">{collectiveName}</p>
+                      <p className="text-[10px] font-semibold text-moss-500 uppercase tracking-[0.08em] leading-none">Leader</p>
+                      <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">{collectiveName}</p>
                     </div>
                   </div>
                 </div>
 
-                <nav className="flex-1 py-3 px-2 space-y-0.5">
+                <nav className="flex-1 py-2 px-3 space-y-0.5">
                   {leaderNavCategories.map((cat) => {
                     const showLabel = cat.label !== 'Overview'
                     return (
                       <div key={cat.label}>
                         {showLabel && (
-                          <p className="text-[10px] uppercase tracking-wider text-primary-400 px-3 mt-4 mb-1">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-3 mt-4 mb-1.5">
                             {cat.label}
                           </p>
                         )}
@@ -382,20 +488,23 @@ export function LeaderLayout() {
                               key={item.path}
                               to={item.path}
                               className={cn(
-                                'relative flex items-center gap-2.5 px-3 h-9',
-                                'rounded-lg text-[13px]',
-                                'transition-colors duration-150',
+                                'relative flex items-center gap-2.5 px-3 h-10',
+                                'rounded-xl text-[13px]',
+                                'transition-all duration-200',
                                 'cursor-pointer select-none',
                                 active
-                                  ? 'bg-moss-50 text-moss-800 font-medium'
-                                  : 'text-primary-400 hover:bg-moss-50/60 hover:text-primary-800',
+                                  ? 'bg-moss-50/70 text-moss-800 font-medium'
+                                  : 'text-primary-400 hover:bg-moss-50/40 hover:text-moss-700',
                               )}
                               aria-current={active ? 'page' : undefined}
                             >
                               {active && (
-                                <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-moss-600" />
+                                <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-gradient-to-b from-moss-400 to-moss-600" />
                               )}
-                              <span className="flex items-center justify-center shrink-0">{item.icon}</span>
+                              <span className={cn(
+                                'flex items-center justify-center shrink-0 transition-transform duration-200',
+                                active && 'scale-105',
+                              )}>{item.icon}</span>
                               <span className="truncate">{item.label}</span>
                             </Link>
                           )
@@ -424,7 +533,7 @@ export function LeaderLayout() {
         </button>
 
         {/* ── Main content ── */}
-        <div ref={scrollRef} className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <div ref={scrollRef} className="flex-1 flex flex-col min-w-0 overflow-y-auto overscroll-contain bg-surface-1">
           {/* Shared hero bar */}
           {header.title === 'Dashboard' ? null : header.title ? (() => {
             const cfg = PAGE_HERO_CONFIG[header.title] ?? DEFAULT_HERO
@@ -467,7 +576,11 @@ export function LeaderLayout() {
           })() : null}
 
           {/* Content rendered by nested <Route> children */}
-          <div className={cn('flex-1', header.title === 'Dashboard' ? 'p-0' : 'p-6')}>
+          <div className={cn(
+            'flex-1',
+            header.title === 'Dashboard' ? 'p-0' : 'p-6',
+            showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
+          )}>
             <Suspense fallback={
               <div className="flex items-center justify-center py-24">
                 <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
@@ -477,6 +590,15 @@ export function LeaderLayout() {
             </Suspense>
           </div>
         </div>
+
+        {/* Leader bottom tab bar — mobile only */}
+        {showBottomTabs && (
+          <BottomTabBar
+            tabs={leaderBottomTabs}
+            layoutPrefix="leader-tab"
+            accent="moss"
+          />
+        )}
       </div>
     </LeaderHeaderContext.Provider>
   )

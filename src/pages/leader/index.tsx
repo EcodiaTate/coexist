@@ -386,7 +386,7 @@ function MiniCalendar({
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.6 } },
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
 }
 
 const fadeUp = {
@@ -441,17 +441,16 @@ function HeroStat({
   gradient: string
 }) {
   return (
-    <div className={cn('rounded-2xl p-5 relative overflow-hidden min-h-[110px] flex flex-col justify-end', gradient)}>
-      {/* Background icon — large, positioned */}
-      <div className="absolute top-2 right-2 opacity-[0.08]">
-        <span className="[&>svg]:w-16 [&>svg]:h-16">{icon}</span>
+    <div className={cn('rounded-2xl p-4 relative overflow-hidden min-h-[88px] flex flex-col justify-end', gradient)}>
+      {/* Background icon */}
+      <div className="absolute top-1.5 right-1.5 opacity-[0.08]">
+        <span className="[&>svg]:w-12 [&>svg]:h-12">{icon}</span>
       </div>
-      {/* Inner corner glow */}
-      <div className="absolute -bottom-4 -left-4 w-24 h-24 rounded-full bg-white/[0.06]" />
-      <p className="font-heading text-4xl font-extrabold text-white tabular-nums leading-none relative z-10">
+      <div className="absolute -bottom-3 -left-3 w-20 h-20 rounded-full bg-white/[0.06]" />
+      <p className="font-heading text-3xl font-extrabold text-white tabular-nums leading-none relative z-10">
         {value}
       </p>
-      <p className="mt-2 text-[11px] font-semibold text-white/70 uppercase tracking-wider relative z-10">{label}</p>
+      <p className="mt-1.5 text-[10px] font-semibold text-white/70 uppercase tracking-wider relative z-10">{label}</p>
     </div>
   )
 }
@@ -499,9 +498,9 @@ export default function LeaderDashboardPage() {
           {/* Ring bottom-right */}
           <div className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08]" />
 
-          <div className="relative z-10 px-6 pt-8 space-y-10 pb-20">
+          <div className="relative z-10 px-6 pt-4 space-y-6 pb-20">
             {/* Collective header shimmer */}
-            <div className="space-y-2 animate-pulse">
+            <div className="flex flex-col items-center pt-6 pb-2 space-y-2 animate-pulse">
               <div className="h-3 w-28 rounded-full bg-white/[0.06]" />
               <div className="h-8 w-48 rounded-xl bg-white/[0.08]" />
             </div>
@@ -690,26 +689,26 @@ export default function LeaderDashboardPage() {
 
         {/* Content */}
         <motion.div
-          className="relative z-10 px-6 pt-8 space-y-10 pb-20"
+          className="relative z-10 px-6 pt-4 space-y-6 pb-20"
           variants={shouldReduceMotion ? undefined : stagger}
           initial="hidden"
           animate="visible"
         >
-          {/* ── Full-screen hero title ── */}
+          {/* ── Hero title — compact, visible with stats ── */}
           <motion.div
             variants={shouldReduceMotion ? undefined : fadeUp}
-            className="flex flex-col items-center justify-center text-center h-dvh -mt-6 -mb-6"
+            className="flex flex-col items-center justify-center text-center pt-8 pb-4"
           >
             <p className="text-xs font-semibold text-white/50 uppercase tracking-[0.2em]">
-              Collective Dashboard
+              Leader Dashboard
             </p>
             <h1 className="font-heading text-3xl sm:text-4xl font-bold text-white mt-2 drop-shadow-md">
-              {collectiveDetail?.name ?? 'Your Collective'}
+              {(collectiveDetail?.name ?? 'Your Collective').replace(/\s+Collective$/i, '')}
             </h1>
           </motion.div>
 
           {/* ── Hero stats ── */}
-          <motion.div variants={fadeUp} className="grid grid-cols-2 gap-4">
+          <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">
             <HeroStat
               value={data?.activeMembers ?? 0}
               label="Active Members"
@@ -778,22 +777,22 @@ export default function LeaderDashboardPage() {
           )}
 
           {/* ── Quick actions ── */}
-          <motion.div variants={fadeUp}>
+          <motion.div variants={fadeUp} className="!mt-8">
             <SectionHeader>Quick Actions</SectionHeader>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-2.5">
               {quickActions.map((action) => (
                 <Link
                   key={action.label}
                   to={action.to}
-                  className="group flex flex-col items-center gap-3 rounded-2xl bg-white/[0.12] backdrop-blur-md p-5 hover:bg-white/[0.20] active:scale-[0.96] transition-all duration-200"
+                  className="group flex flex-col items-center gap-2 rounded-xl bg-white/[0.12] backdrop-blur-md p-3 hover:bg-white/[0.20] active:scale-[0.96] transition-all duration-200"
                 >
                   <div className={cn(
-                    'flex items-center justify-center w-12 h-12 rounded-xl transition-transform group-hover:scale-110',
+                    'flex items-center justify-center w-10 h-10 rounded-lg transition-transform group-hover:scale-110',
                     action.bg, action.text,
                   )}>
                     {action.icon}
                   </div>
-                  <span className="text-[11px] font-semibold text-white/80 text-center leading-tight">
+                  <span className="text-[10px] font-semibold text-white/80 text-center leading-tight">
                     {action.label}
                   </span>
                 </Link>

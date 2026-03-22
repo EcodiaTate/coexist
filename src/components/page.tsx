@@ -101,7 +101,7 @@ export function Page({
         id="main-content"
         ref={scrollRef}
         className={cn(
-          'flex-1',
+          'flex-1 bg-surface-1',
           // On mobile/native, use inner scroll container for tab-bar offset + scroll restore
           // On desktop, let the browser handle scrolling naturally
           !isDesktopNav && 'overflow-y-auto overflow-x-hidden overscroll-contain',

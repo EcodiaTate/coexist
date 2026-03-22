@@ -12,6 +12,8 @@ interface PullToRefreshProps {
   onRefresh: () => Promise<void>
   children: ReactNode
   className?: string
+  /** Set to true on dark backgrounds so the indicator text/icon is white */
+  dark?: boolean
   'aria-label'?: string
 }
 
@@ -22,6 +24,7 @@ export function PullToRefresh({
   onRefresh,
   children,
   className,
+  dark = false,
   'aria-label': ariaLabel = 'Pull to refresh',
 }: PullToRefreshProps) {
   const shouldReduceMotion = useReducedMotion()
@@ -86,6 +89,8 @@ export function PullToRefresh({
     }
   }, [pastThreshold, onRefresh, refreshing])
 
+  const active = pullDistance > 0 || refreshing
+
   return (
     <div
       ref={containerRef}
@@ -95,62 +100,9 @@ export function PullToRefresh({
       onTouchEnd={handleTouchEnd}
       className={cn('relative overflow-y-auto', className)}
     >
-      {/* Pull indicator */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-center overflow-hidden"
-        style={{ height: pullDistance > 0 || refreshing ? pullDistance : 0 }}
-      >
-        <motion.div
-          className="mt-3 flex flex-col items-center gap-1"
-          animate={{
-            opacity: pullDistance > 10 || refreshing ? 1 : 0,
-          }}
-          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.15 }}
-        >
-          <motion.div
-            animate={{
-              rotate: refreshing ? 360 : progress * 180,
-              scale: refreshing ? 1 : 0.6 + progress * 0.4,
-            }}
-            transition={
-              refreshing
-                ? { repeat: Infinity, duration: 1, ease: 'linear' }
-                : shouldReduceMotion
-                  ? { duration: 0 }
-                  : { type: 'spring', stiffness: 300, damping: 20 }
-            }
-          >
-            <Sprout
-              size={24}
-              className={cn(
-                'transition-colors duration-150',
-                pastThreshold || refreshing
-                  ? 'text-primary-400'
-                  : 'text-primary-400',
-              )}
-            />
-          </motion.div>
-          <span
-            className={cn(
-              'text-xs font-medium transition-colors duration-150',
-              pastThreshold || refreshing
-                ? 'text-primary-400'
-                : 'text-primary-400',
-            )}
-          >
-            {refreshing
-              ? 'Refreshing...'
-              : pastThreshold
-                ? 'Release to refresh'
-                : 'Pull to refresh'}
-          </span>
-        </motion.div>
-      </div>
-
-      {/* Content */}
+      {/* Content — pulls down, revealing the page's own background behind it */}
       <motion.div
-        animate={{ y: pullDistance > 0 || refreshing ? pullDistance : 0 }}
+        animate={{ y: active ? pullDistance : 0 }}
         transition={
           pulling.current
             ? { duration: 0 }
@@ -161,6 +113,47 @@ export function PullToRefresh({
       >
         {children}
       </motion.div>
+
+      {/* Pull indicator — positioned in the gap, no background of its own */}
+      {active && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-center"
+          style={{ height: pullDistance }}
+        >
+          <motion.div
+            className="mt-3 flex flex-col items-center gap-1"
+            animate={{ opacity: pullDistance > 10 || refreshing ? 1 : 0 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.15 }}
+          >
+            <motion.div
+              animate={{
+                rotate: refreshing ? 360 : progress * 180,
+                scale: refreshing ? 1 : 0.6 + progress * 0.4,
+              }}
+              transition={
+                refreshing
+                  ? { repeat: Infinity, duration: 1, ease: 'linear' }
+                  : shouldReduceMotion
+                    ? { duration: 0 }
+                    : { type: 'spring', stiffness: 300, damping: 20 }
+              }
+            >
+              <Sprout
+                size={24}
+                className={dark ? 'text-white/80' : 'text-primary-400'}
+              />
+            </motion.div>
+            <span className={cn('text-xs font-medium', dark ? 'text-white/70' : 'text-primary-400')}>
+              {refreshing
+                ? 'Refreshing…'
+                : pastThreshold
+                  ? 'Release to refresh'
+                  : 'Pull to refresh'}
+            </span>
+          </motion.div>
+        </div>
+      )}
 
       {/* Live region for screen readers */}
       <div aria-live="polite" className="sr-only">

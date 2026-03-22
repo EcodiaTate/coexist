@@ -7,6 +7,7 @@ import type {
   GlobalAnnouncement,
   Challenge,
   Profile,
+  Post,
 } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
@@ -36,6 +37,26 @@ export interface ActiveChallenge extends Challenge {
 
 interface EventWithCollective extends Event {
   collectives: Pick<Collective, 'id' | 'name'> | null
+}
+
+export interface MyUpcomingEvent extends Event {
+  collectives: Pick<Collective, 'id' | 'name'> | null
+  registration_status: string
+}
+
+export interface RecentPost extends Post {
+  author: Pick<Profile, 'id' | 'display_name' | 'avatar_url'> | null
+  collective: Pick<Collective, 'id' | 'name'> | null
+  like_count: number
+  comment_count: number
+}
+
+export interface TierProgress {
+  points: number
+  tier: string
+  nextTier: string | null
+  progress: number
+  pointsToNext: number
 }
 
 /* ------------------------------------------------------------------ */
@@ -269,6 +290,161 @@ export function useTrendingCollectives() {
       return (data ?? []) as Collective[]
     },
     staleTime: 10 * 60 * 1000,
+  })
+}
+
+/** Events the user has registered for, coming up soon */
+export function useMyUpcomingEvents() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['home', 'my-upcoming-events', user?.id],
+    queryFn: async () => {
+      if (!user) return []
+
+      const { data, error } = await supabase
+        .from('event_registrations')
+        .select('status, events(*, collectives(id, name))')
+        .eq('user_id', user.id)
+        .in('status', ['registered', 'waitlisted'])
+        .order('registered_at', { ascending: true })
+        .limit(5)
+
+      if (error) throw error
+
+      return (data ?? [])
+        .filter((r) => r.events !== null)
+        .map((r) => ({
+          ...(r.events as EventWithCollective),
+          registration_status: r.status,
+        }))
+        .filter((e) => new Date(e.date_start) >= new Date())
+        .sort((a, b) => new Date(a.date_start).getTime() - new Date(b.date_start).getTime()) as MyUpcomingEvent[]
+    },
+    enabled: !!user,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+/** Recent community posts from user's collective(s) */
+export function useRecentPosts() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['home', 'recent-posts', user?.id],
+    queryFn: async () => {
+      if (!user) return []
+
+      // Get user's collective ids
+      const { data: memberships } = await supabase
+        .from('collective_members')
+        .select('collective_id')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+
+      const collectiveIds = (memberships ?? []).map((m) => m.collective_id)
+      if (collectiveIds.length === 0) return []
+
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          author:profiles!posts_user_id_fkey(id, display_name, avatar_url),
+          collective:collectives!posts_collective_id_fkey(id, name)
+        `)
+        .in('collective_id', collectiveIds)
+        .order('created_at', { ascending: false })
+        .limit(3)
+
+      if (error) throw error
+
+      // Fetch like & comment counts in parallel
+      const postIds = (data ?? []).map((p) => p.id)
+      if (postIds.length === 0) return []
+
+      const [likesRes, commentsRes] = await Promise.all([
+        supabase
+          .from('post_likes')
+          .select('post_id')
+          .in('post_id', postIds),
+        supabase
+          .from('post_comments')
+          .select('post_id')
+          .in('post_id', postIds)
+          .eq('is_deleted', false),
+      ])
+
+      const likeCounts: Record<string, number> = {}
+      for (const l of likesRes.data ?? []) {
+        likeCounts[l.post_id] = (likeCounts[l.post_id] ?? 0) + 1
+      }
+      const commentCounts: Record<string, number> = {}
+      for (const c of commentsRes.data ?? []) {
+        commentCounts[c.post_id] = (commentCounts[c.post_id] ?? 0) + 1
+      }
+
+      return (data ?? []).map((p) => ({
+        ...p,
+        author: p.author as RecentPost['author'],
+        collective: p.collective as RecentPost['collective'],
+        like_count: likeCounts[p.id] ?? 0,
+        comment_count: commentCounts[p.id] ?? 0,
+      })) as RecentPost[]
+    },
+    enabled: !!user,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+/** User's points balance and tier progress for home card */
+export function useHomeTierProgress() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['home', 'tier-progress', user?.id],
+    queryFn: async () => {
+      if (!user) return null
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('points')
+        .eq('id', user.id)
+        .single()
+
+      if (error) throw error
+      const points = data.points ?? 0
+
+      // Mirror tier logic from use-points.ts
+      const tiers = [
+        { name: 'Seedling', min: 0, max: 499 },
+        { name: 'Sapling', min: 500, max: 1999 },
+        { name: 'Native', min: 2000, max: 4999 },
+        { name: 'Canopy', min: 5000, max: 9999 },
+        { name: 'Elder', min: 10000, max: Infinity },
+      ]
+
+      const tierIdx = tiers.findIndex((t) => points >= t.min && points <= t.max)
+      const currentTier = tiers[tierIdx]
+      const nextTier = tierIdx < tiers.length - 1 ? tiers[tierIdx + 1] : null
+
+      let progress = 100
+      let pointsToNext = 0
+      if (nextTier) {
+        const rangeSize = nextTier.min - currentTier.min
+        progress = Math.round(((points - currentTier.min) / rangeSize) * 100)
+        pointsToNext = nextTier.min - points
+      }
+
+      return {
+        points,
+        tier: currentTier.name,
+        nextTier: nextTier?.name ?? null,
+        progress: Math.min(progress, 100),
+        pointsToNext,
+      } as TierProgress
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
   })
 }
 

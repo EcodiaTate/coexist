@@ -24,9 +24,13 @@ import {
     X,
     Bug,
     Image,
+    Shield,
+    Home,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
+import { useLayout } from '@/hooks/use-layout'
+import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
 
 /* ------------------------------------------------------------------ */
 /*  Admin header context  lets child pages set title + actions        */
@@ -124,51 +128,95 @@ const adminNavCategories: AdminNavCategory[] = [
   {
     label: 'Overview',
     items: [
-      { label: 'Overview', path: '/admin', icon: <LayoutDashboard size={18} /> },
+      { label: 'Overview', path: '/admin', icon: <LayoutDashboard size={17} strokeWidth={1.5} /> },
     ],
   },
   {
     label: 'Content',
     items: [
-      { label: 'Collectives', path: '/admin/collectives', icon: <MapPin size={18} />, capability: 'manage_collectives' },
-      { label: 'Workflows', path: '/admin/workflows', icon: <ClipboardCheck size={18} />, capability: 'manage_workflows' },
-      { label: 'Events', path: '/admin/events', icon: <CalendarDays size={18} />, capability: 'manage_events' },
-      { label: 'Challenges', path: '/admin/challenges', icon: <Trophy size={18} />, capability: 'manage_challenges' },
-      { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={18} />, capability: 'manage_surveys' },
+      { label: 'Collectives', path: '/admin/collectives', icon: <MapPin size={17} strokeWidth={1.5} />, capability: 'manage_collectives' },
+      { label: 'Workflows', path: '/admin/workflows', icon: <ClipboardCheck size={17} strokeWidth={1.5} />, capability: 'manage_workflows' },
+      { label: 'Events', path: '/admin/events', icon: <CalendarDays size={17} strokeWidth={1.5} />, capability: 'manage_events' },
+      { label: 'Challenges', path: '/admin/challenges', icon: <Trophy size={17} strokeWidth={1.5} />, capability: 'manage_challenges' },
+      { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_surveys' },
     ],
   },
   {
     label: 'Community',
     items: [
-      { label: 'Partners', path: '/admin/partners', icon: <Handshake size={18} />, capability: 'manage_partners' },
-      { label: 'Moderation', path: '/admin/moderation', icon: <AlertCircle size={18} />, capability: 'manage_content' },
-      { label: 'Email', path: '/admin/email', icon: <Mail size={18} />, capability: 'manage_email' },
+      { label: 'Partners', path: '/admin/partners', icon: <Handshake size={17} strokeWidth={1.5} />, capability: 'manage_partners' },
+      { label: 'Moderation', path: '/admin/moderation', icon: <AlertCircle size={17} strokeWidth={1.5} />, capability: 'manage_content' },
+      { label: 'Email', path: '/admin/email', icon: <Mail size={17} strokeWidth={1.5} />, capability: 'manage_email' },
     ],
   },
   {
     label: 'Insights',
     items: [
-      { label: 'Reports', path: '/admin/reports', icon: <FileText size={18} />, capability: 'view_reports' },
-      { label: 'Impact', path: '/admin/national-impact', icon: <BarChart3 size={18} />, capability: 'view_reports' },
-      { label: 'Exports', path: '/admin/exports', icon: <Download size={18} />, capability: 'manage_exports' },
-      { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={18} />, capability: 'view_audit_log' },
+      { label: 'Reports', path: '/admin/reports', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_reports' },
+      { label: 'Impact', path: '/admin/national-impact', icon: <BarChart3 size={17} strokeWidth={1.5} />, capability: 'view_reports' },
+      { label: 'Exports', path: '/admin/exports', icon: <Download size={17} strokeWidth={1.5} />, capability: 'manage_exports' },
+      { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_audit_log' },
     ],
   },
   {
     label: 'Settings',
     items: [
-      { label: 'Charity', path: '/admin/charity', icon: <Heart size={18} />, capability: 'manage_charity' },
-      { label: 'Branding', path: '/admin/branding', icon: <Image size={18} />, capability: 'manage_system' },
-      { label: 'System', path: '/admin/system', icon: <Settings size={18} />, capability: 'manage_system' },
+      { label: 'Charity', path: '/admin/charity', icon: <Heart size={17} strokeWidth={1.5} />, capability: 'manage_charity' },
+      { label: 'Branding', path: '/admin/branding', icon: <Image size={17} strokeWidth={1.5} />, capability: 'manage_system' },
+      { label: 'System', path: '/admin/system', icon: <Settings size={17} strokeWidth={1.5} />, capability: 'manage_system' },
     ],
   },
   {
     label: 'Administration',
     superAdminOnly: true,
     items: [
-      { label: 'Users', path: '/admin/users', icon: <Users size={18} />, capability: 'manage_users' },
-      { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={18} /> },
+      { label: 'Users', path: '/admin/users', icon: <Users size={17} strokeWidth={1.5} />, capability: 'manage_users' },
+      { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={17} strokeWidth={1.5} /> },
     ],
+  },
+]
+
+/* ------------------------------------------------------------------ */
+/*  Mobile bottom tab bar tabs for admin suite                         */
+/* ------------------------------------------------------------------ */
+
+const adminBottomTabs: Tab[] = [
+  {
+    key: 'back',
+    label: 'App',
+    path: '/',
+    exact: true,
+    icon: <Home size={22} strokeWidth={1.5} />,
+    activeIcon: <Home size={22} strokeWidth={2} fill="currentColor" />,
+  },
+  {
+    key: 'admin-home',
+    label: 'Overview',
+    path: '/admin',
+    exact: true,
+    icon: <LayoutDashboard size={22} strokeWidth={1.5} />,
+    activeIcon: <LayoutDashboard size={22} strokeWidth={2} fill="currentColor" />,
+  },
+  {
+    key: 'admin-collectives',
+    label: 'Collectives',
+    path: '/admin/collectives',
+    icon: <MapPin size={22} strokeWidth={1.5} />,
+    activeIcon: <MapPin size={22} strokeWidth={2} fill="currentColor" />,
+  },
+  {
+    key: 'admin-events',
+    label: 'Events',
+    path: '/admin/events',
+    icon: <CalendarDays size={22} strokeWidth={1.5} />,
+    activeIcon: <CalendarDays size={22} strokeWidth={2} fill="currentColor" />,
+  },
+  {
+    key: 'admin-users',
+    label: 'Users',
+    path: '/admin/users',
+    icon: <Users size={22} strokeWidth={1.5} />,
+    activeIcon: <Users size={22} strokeWidth={2} fill="currentColor" />,
   },
 ]
 
@@ -180,6 +228,8 @@ export function AdminLayout() {
   const location = useLocation()
   const shouldReduceMotion = useReducedMotion()
   const { isSuperAdmin, hasCapability } = useAuth()
+  const { navMode } = useLayout()
+  const showBottomTabs = navMode === 'bottom-tabs'
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [header, setHeaderState] = useState<AdminHeaderState>({ title: '' })
@@ -214,34 +264,56 @@ export function AdminLayout() {
           className={cn(
             'hidden md:flex flex-col',
             'sticky top-0 self-start max-h-dvh z-50',
-            'bg-white shadow-2xl',
+            'bg-white border-r border-primary-100/40',
             'transition-[width] duration-250 ease-in-out',
             'overflow-y-auto',
-            collapsed ? 'w-14' : 'w-56',
+            collapsed ? 'w-[60px]' : 'w-[240px]',
           )}
           aria-label="Admin navigation"
         >
-          {/* Back to app */}
-          <div className="bg-primary-50/30 px-1.5 py-2">
+          {/* Back to app + Admin badge */}
+          <div className="px-2.5 py-2.5">
             <Link
               to="/"
               className={cn(
                 'flex items-center gap-2',
-                'rounded-lg text-[13px]',
-                'text-primary-400 hover:text-primary-800 hover:bg-primary-50',
-                'transition-colors duration-150',
+                'rounded-xl text-[13px]',
+                'text-primary-300 hover:text-primary-700 hover:bg-primary-50/50',
+                'transition-all duration-200',
                 'cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-8',
               )}
               title={collapsed ? 'Back to app' : undefined}
             >
-              <ArrowLeft size={16} className="shrink-0" />
+              <ArrowLeft size={15} strokeWidth={1.5} className="shrink-0" />
               {!collapsed && <span>Back to app</span>}
             </Link>
           </div>
 
-          <div className="flex-1 py-3 px-1.5 space-y-0.5">
+          {/* Admin badge */}
+          {!collapsed && (
+            <div className="px-3 py-3 mx-2.5 mb-1 rounded-xl bg-gradient-to-br from-primary-50/80 to-primary-50/30 border border-primary-100/30">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shrink-0 shadow-sm">
+                  <Shield size={14} className="text-white" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-[0.08em] leading-none">Admin</p>
+                  <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">Co-Exist</p>
+                </div>
+              </div>
+            </div>
+          )}
+          {collapsed && (
+            <div className="flex justify-center py-2.5">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shadow-sm">
+                <Shield size={14} className="text-white" />
+              </div>
+            </div>
+          )}
+
+          <div className="flex-1 py-2 px-2 space-y-0.5">
             {adminNavCategories.map((cat) => {
               if (cat.superAdminOnly && !isSuperAdmin) return null
               const visibleItems = cat.items.filter((item) => !item.capability || hasCapability(item.capability))
@@ -252,11 +324,11 @@ export function AdminLayout() {
                   {showLabel && (
                     <>
                       {!collapsed && (
-                        <p className="text-[10px] uppercase tracking-wider text-primary-400 px-2.5 mt-4 mb-1">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-2.5 mt-4 mb-1.5">
                           {cat.label}
                         </p>
                       )}
-                      {collapsed && <div className="my-2 h-px bg-primary-100/40" />}
+                      {collapsed && <div className="my-2.5 mx-2 h-px bg-primary-100/30" />}
                     </>
                   )}
                   {visibleItems.map((item) => {
@@ -267,14 +339,14 @@ export function AdminLayout() {
                         to={item.path}
                         className={cn(
                           'relative flex items-center gap-2.5',
-                          'rounded-lg text-[13px]',
-                          'transition-colors duration-150',
+                          'rounded-xl text-[13px]',
+                          'transition-all duration-200',
                           'cursor-pointer select-none',
                           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-                          collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-8',
+                          collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-9',
                           active
-                            ? 'bg-white text-primary-400 font-medium'
-                            : 'text-primary-400 hover:bg-primary-50 hover:text-primary-800',
+                            ? 'bg-primary-50/70 text-primary-800 font-medium'
+                            : 'text-primary-400 hover:bg-primary-50/40 hover:text-primary-700',
                         )}
                         aria-current={active ? 'page' : undefined}
                         title={collapsed ? item.label : undefined}
@@ -282,11 +354,21 @@ export function AdminLayout() {
                         {active && !collapsed && (
                           <motion.span
                             layoutId={shouldReduceMotion ? undefined : 'admin-sidebar-active'}
-                            className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-primary-800"
+                            className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-gradient-to-b from-primary-500 to-primary-700"
                             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                           />
                         )}
-                        <span className="flex items-center justify-center shrink-0">
+                        {active && collapsed && (
+                          <motion.span
+                            layoutId={shouldReduceMotion ? undefined : 'admin-sidebar-active-dot'}
+                            className="absolute left-0.5 top-1/2 -translate-y-1/2 w-1 h-1 rounded-full bg-primary-600"
+                            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                          />
+                        )}
+                        <span className={cn(
+                          'flex items-center justify-center shrink-0 transition-transform duration-200',
+                          active && 'scale-105',
+                        )}>
                           {item.icon}
                         </span>
                         {!collapsed && <span className="truncate">{item.label}</span>}
@@ -298,21 +380,21 @@ export function AdminLayout() {
             })}
           </div>
 
-          <div className="bg-primary-50/30 p-1.5">
+          <div className="p-2 border-t border-primary-100/30">
             <button
               type="button"
               onClick={() => setCollapsed((p) => !p)}
               className={cn(
                 'flex items-center justify-center gap-2 w-full',
-                'h-8 rounded-lg text-[13px]',
-                'text-primary-400 hover:text-primary-800 hover:bg-primary-50',
+                'h-8 rounded-xl text-[13px]',
+                'text-primary-300 hover:text-primary-600 hover:bg-primary-50/50',
                 'cursor-pointer select-none',
-                'transition-colors duration-150',
+                'transition-all duration-200',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               )}
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
-              {collapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+              {collapsed ? <PanelLeftOpen size={15} strokeWidth={1.5} /> : <PanelLeftClose size={15} strokeWidth={1.5} />}
               {!collapsed && <span>Collapse</span>}
             </button>
           </div>
@@ -325,7 +407,7 @@ export function AdminLayout() {
               {/* Backdrop */}
               <motion.div
                 key="admin-backdrop"
-                className="md:hidden fixed inset-0 z-40 bg-black/30"
+                className="md:hidden fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px]"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
@@ -335,30 +417,50 @@ export function AdminLayout() {
               {/* Drawer */}
               <motion.aside
                 key="admin-drawer"
-                className="md:hidden fixed inset-y-0 right-0 z-50 w-[min(72vw,280px)] bg-white shadow-[-8px_0_30px_-12px_rgba(0,0,0,0.12)] flex flex-col overflow-y-auto"
+                className="md:hidden fixed inset-y-0 right-0 z-50 w-[min(76vw,300px)] bg-white shadow-[-12px_0_40px_-8px_rgba(51,63,43,0.15)] flex flex-col overflow-y-auto"
                 initial={{ x: '100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '100%' }}
                 transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 400, damping: 35 }}
               >
-                <div className="flex items-center justify-between px-4 py-3 bg-primary-50/30">
+                {/* Wordmark centered + close */}
+                <div className="flex items-center justify-between px-4 py-3">
                   <Link
                     to="/"
-                    className="flex items-center gap-2 text-[13px] text-primary-400 hover:text-primary-800 transition-colors"
+                    className="flex items-center justify-center w-8 h-8 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-primary-50/50 transition-all"
+                    aria-label="Back to app"
                   >
-                    <ArrowLeft size={14} />
-                    <span>Back to app</span>
+                    <ArrowLeft size={15} strokeWidth={1.5} />
                   </Link>
+                  <img
+                    src="/logos/black-wordmark.png"
+                    alt="Co-Exist"
+                    className="h-5 w-auto"
+                  />
                   <button
                     type="button"
                     onClick={() => setMobileOpen(false)}
-                    className="p-1.5 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
+                    className="p-1.5 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-all"
                     aria-label="Close menu"
                   >
-                    <X size={18} />
+                    <X size={16} strokeWidth={1.5} />
                   </button>
                 </div>
-                <nav className="flex-1 py-3 px-2 space-y-0.5">
+
+                {/* Admin badge — mobile */}
+                <div className="px-3 py-3 mx-3 mb-2 rounded-xl bg-gradient-to-br from-primary-50/80 to-primary-50/30 border border-primary-100/30">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shrink-0 shadow-sm">
+                      <Shield size={14} className="text-white" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold text-primary-500 uppercase tracking-[0.08em] leading-none">Admin</p>
+                      <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">Co-Exist</p>
+                    </div>
+                  </div>
+                </div>
+
+                <nav className="flex-1 py-2 px-3 space-y-0.5">
                   {adminNavCategories.map((cat) => {
                     if (cat.superAdminOnly && !isSuperAdmin) return null
                     const visibleItems = cat.items.filter((item) => !item.capability || hasCapability(item.capability))
@@ -367,7 +469,7 @@ export function AdminLayout() {
                     return (
                       <div key={cat.label}>
                         {showLabel && (
-                          <p className="text-[10px] uppercase tracking-wider text-primary-400 px-3 mt-4 mb-1">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-3 mt-4 mb-1.5">
                             {cat.label}
                           </p>
                         )}
@@ -378,20 +480,23 @@ export function AdminLayout() {
                               key={item.path}
                               to={item.path}
                               className={cn(
-                                'relative flex items-center gap-2.5 px-3 h-9',
-                                'rounded-lg text-[13px]',
-                                'transition-colors duration-150',
+                                'relative flex items-center gap-2.5 px-3 h-10',
+                                'rounded-xl text-[13px]',
+                                'transition-all duration-200',
                                 'cursor-pointer select-none',
                                 active
-                                  ? 'bg-primary-50 text-primary-800 font-medium'
-                                  : 'text-primary-400 hover:bg-primary-50 hover:text-primary-800',
+                                  ? 'bg-primary-50/70 text-primary-800 font-medium'
+                                  : 'text-primary-400 hover:bg-primary-50/40 hover:text-primary-700',
                               )}
                               aria-current={active ? 'page' : undefined}
                             >
                               {active && (
-                                <span className="absolute left-0 top-1 bottom-1 w-0.5 rounded-full bg-primary-800" />
+                                <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-gradient-to-b from-primary-500 to-primary-700" />
                               )}
-                              <span className="flex items-center justify-center shrink-0">{item.icon}</span>
+                              <span className={cn(
+                                'flex items-center justify-center shrink-0 transition-transform duration-200',
+                                active && 'scale-105',
+                              )}>{item.icon}</span>
                               <span className="truncate">{item.label}</span>
                             </Link>
                           )
@@ -420,7 +525,7 @@ export function AdminLayout() {
         </button>
 
         {/* Main content */}
-        <div ref={scrollRef} className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <div ref={scrollRef} className="flex-1 flex flex-col min-w-0 overflow-y-auto overscroll-contain bg-surface-1">
           {/* ── Shared hero bar — never unmounts, gradient transitions between pages ── */}
           {header.title && header.title !== 'Dashboard' ? (() => {
             const cfg = PAGE_HERO_CONFIG[header.title] ?? DEFAULT_HERO
@@ -463,7 +568,11 @@ export function AdminLayout() {
           })() : null}
 
           {/* Content  rendered by nested <Route> children */}
-          <div className={cn('flex-1', header.title === 'Dashboard' ? 'p-0' : 'p-6')}>
+          <div className={cn(
+            'flex-1',
+            header.title === 'Dashboard' ? 'p-0' : 'p-6',
+            showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
+          )}>
             <Suspense fallback={
               <div className="flex items-center justify-center py-24">
                 <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
@@ -473,6 +582,15 @@ export function AdminLayout() {
             </Suspense>
           </div>
         </div>
+
+        {/* Admin bottom tab bar — mobile only */}
+        {showBottomTabs && (
+          <BottomTabBar
+            tabs={adminBottomTabs}
+            layoutPrefix="admin-tab"
+            accent="primary"
+          />
+        )}
       </div>
     </AdminHeaderContext.Provider>
   )

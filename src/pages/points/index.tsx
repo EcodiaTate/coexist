@@ -49,6 +49,10 @@ export default function PointsPage() {
   const { data: balanceData, isLoading: balanceLoading } = usePointsBalance()
   const { data: history, isLoading: historyLoading } = usePointsHistory()
 
+  const handleRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['points'] })
+  }, [queryClient])
+
   const isLoading = balanceLoading || historyLoading
 
   if (isLoading) {
@@ -58,10 +62,6 @@ export default function PointsPage() {
       </Page>
     )
   }
-
-  const handleRefresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ['points'] })
-  }, [queryClient])
 
   const points = balanceData?.points ?? 0
   const tierProgress = getTierProgress(points)

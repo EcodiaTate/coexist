@@ -47,9 +47,9 @@ function AppShellInner({ children }: { children: ReactNode }) {
   return (
     <div className={cn(
       'flex flex-col bg-surface-1',
-      // Chat pages need fixed viewport height to prevent scroll bleed
-      // Other pages can grow beyond viewport for natural page scrolling
-      isChatRoute ? 'h-dvh overflow-hidden' : 'min-h-dvh',
+      // Mobile/native: fixed viewport — only inner Page <main> scrolls (native app feel)
+      // Desktop web: document can grow for natural window scrolling + WebFooter
+      showBottomTabs ? 'h-dvh overflow-hidden' : 'min-h-dvh',
     )}>
       {/* Offline connectivity banner */}
       <OfflineBanner />
@@ -76,10 +76,9 @@ function AppShellInner({ children }: { children: ReactNode }) {
         <button
           type="button"
           onClick={openMenu}
-          className="fixed right-1 z-40 flex items-center justify-center w-11 h-11 text-white cursor-pointer select-none"
+          className="fixed right-1 z-40 flex items-center justify-center w-11 h-11 text-white mix-blend-difference cursor-pointer select-none"
           style={{
             top: 'calc(var(--safe-top, 0px) + 0.25rem)',
-            filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.4)) drop-shadow(0 0 8px rgba(0,0,0,0.15))',
           }}
           aria-label="Open menu"
         >

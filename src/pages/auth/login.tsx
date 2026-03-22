@@ -190,7 +190,7 @@ export default function LoginPage() {
               transition={{ duration: 0.6, delay: 0.8, ease: 'easeOut' }}
               className="mt-2 text-[15px] text-white/40"
             >
-              Sign in to continue your journey
+              Sign in to continue
             </motion.p>
           </div>
 
