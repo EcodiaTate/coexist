@@ -5,6 +5,7 @@ import { AppShell } from '@/components/app-shell'
 import { AdminLayout as AdminLayoutRoute } from '@/components/admin-layout'
 import { LeaderLayout as LeaderLayoutRoute } from '@/components/leader-layout'
 import { PageTransition } from '@/components/page-transition'
+import { KeepAlive } from '@/components/keep-alive'
 import { MaintenanceMode } from '@/components/maintenance-mode'
 import { useAppUpdate } from '@/hooks/use-app-update'
 import { useDeepLink } from '@/hooks/use-deep-link'
@@ -299,33 +300,7 @@ function App() {
           }
         />
 
-        {/* ---- Protected routes (full app shell) ---- */}
-        <Route
-          path="/"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <HomePage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-
-        {/* Placeholder routes for tab bar navigation */}
-        <Route
-          path="/explore"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <ExplorePage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
+        {/* ---- Map (auth required, bare shell — no sidebar/tabs) ---- */}
         <Route
           path="/map"
           element={
@@ -336,585 +311,97 @@ function App() {
             </RequireAuth>
           }
         />
-        <Route
-          path="/events"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <MyEventsPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/events/create"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <CreateEventPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/events/:id"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <EventDetailPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/events/:id/check-in"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <CheckInPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/events/:id/day"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <EventDayPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/events/:id/impact"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <LogImpactPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/events/:id/survey"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <PostEventSurveyPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/events/:id/edit"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <EditEventPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/community"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <FeedPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/community/create-post"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <CreatePostPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        {/* ---- Collective routes ---- */}
-        <Route
-          path="/collectives"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <DiscoverCollectivesPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/collectives/:slug"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <CollectiveDetailPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/collectives/:slug/manage"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <CollectiveManagePage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
 
-        {/* ---- Staff tasks route ---- */}
-        <Route
-          path="/tasks"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <TasksPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
+        {/* ============================================================ */}
+        {/*  Protected routes — AppShell mounted ONCE via layout route    */}
+        {/* ============================================================ */}
+        <Route element={<RequireAuth><AppShell><KeepAlive /></AppShell></RequireAuth>}>
 
-        {/* ---- Chat routes ---- */}
-        <Route
-          path="/chat"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <ChatListPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/chat/channel/:channelId"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <ChannelChatPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/chat/:collectiveId"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <CollectiveChatPage />
-              </AppShell>
-            </RequireAuth>
-          }
-        />
+          {/* ---- Member pages (with PageTransition) ---- */}
+          <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
+          <Route path="/explore" element={<PageTransition><ExplorePage /></PageTransition>} />
+          <Route path="/events" element={<PageTransition><MyEventsPage /></PageTransition>} />
+          <Route path="/events/create" element={<PageTransition><CreateEventPage /></PageTransition>} />
+          <Route path="/events/:id" element={<PageTransition><EventDetailPage /></PageTransition>} />
+          <Route path="/events/:id/check-in" element={<PageTransition><CheckInPage /></PageTransition>} />
+          <Route path="/events/:id/day" element={<PageTransition><EventDayPage /></PageTransition>} />
+          <Route path="/events/:id/impact" element={<PageTransition><LogImpactPage /></PageTransition>} />
+          <Route path="/events/:id/survey" element={<PageTransition><PostEventSurveyPage /></PageTransition>} />
+          <Route path="/events/:id/edit" element={<PageTransition><EditEventPage /></PageTransition>} />
+          <Route path="/community" element={<PageTransition><FeedPage /></PageTransition>} />
+          <Route path="/community/create-post" element={<PageTransition><CreatePostPage /></PageTransition>} />
+          <Route path="/collectives" element={<PageTransition><DiscoverCollectivesPage /></PageTransition>} />
+          <Route path="/collectives/:slug" element={<PageTransition><CollectiveDetailPage /></PageTransition>} />
+          <Route path="/collectives/:slug/manage" element={<PageTransition><CollectiveManagePage /></PageTransition>} />
+          <Route path="/tasks" element={<PageTransition><TasksPage /></PageTransition>} />
+          <Route path="/chat" element={<PageTransition><ChatListPage /></PageTransition>} />
+          <Route path="/chat/channel/:channelId" element={<ChannelChatPage />} />
+          <Route path="/chat/:collectiveId" element={<CollectiveChatPage />} />
+          <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
+          <Route path="/profile/edit" element={<PageTransition><EditProfilePage /></PageTransition>} />
+          <Route path="/profile/:userId" element={<PageTransition><ViewProfilePage /></PageTransition>} />
+          <Route path="/impact" element={<PageTransition><ImpactDashboardPage /></PageTransition>} />
+          <Route path="/leaderboard" element={<PageTransition><LeaderboardPage /></PageTransition>} />
+          <Route path="/points" element={<PageTransition><PointsPage /></PageTransition>} />
+          <Route path="/referral" element={<PageTransition><ReferralPage /></PageTransition>} />
+          <Route path="/notifications" element={<PageTransition><NotificationsPage /></PageTransition>} />
+          <Route path="/announcements" element={<PageTransition><AnnouncementsPage /></PageTransition>} />
+          <Route path="/announcements/create" element={<RequireRole minRole="national_staff"><PageTransition><CreateAnnouncementPage /></PageTransition></RequireRole>} />
+          <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
+          <Route path="/more" element={<PageTransition><MorePage /></PageTransition>} />
+          <Route path="/membership" element={<PageTransition><MembershipPage /></PageTransition>} />
+          <Route path="/donate" element={<PageTransition><DonatePage /></PageTransition>} />
+          <Route path="/donate/thank-you" element={<PageTransition><DonateThankYouPage /></PageTransition>} />
+          <Route path="/donate/donors" element={<PageTransition><DonorWallPage /></PageTransition>} />
+          <Route path="/shop" element={<PageTransition><ShopPage /></PageTransition>} />
+          <Route path="/shop/cart" element={<PageTransition><CartPage /></PageTransition>} />
+          <Route path="/shop/checkout" element={<PageTransition><CheckoutPage /></PageTransition>} />
+          <Route path="/shop/order-confirmation" element={<PageTransition><OrderConfirmationPage /></PageTransition>} />
+          <Route path="/shop/orders" element={<PageTransition><OrdersPage /></PageTransition>} />
+          <Route path="/shop/orders/:orderId" element={<PageTransition><OrderDetailPage /></PageTransition>} />
+          <Route path="/shop/:slug" element={<PageTransition><ProductDetailPage /></PageTransition>} />
+          <Route path="/reports" element={<PageTransition><ReportsPage /></PageTransition>} />
+          <Route path="/impact/national" element={<PageTransition><NationalImpactPage /></PageTransition>} />
 
-        <Route
-          path="/profile"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <ProfilePage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/profile/edit"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <EditProfilePage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/profile/:userId"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <ViewProfilePage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/impact"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <ImpactDashboardPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/leaderboard"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <LeaderboardPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/points"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <PointsPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/referral"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <ReferralPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/notifications"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <NotificationsPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/announcements"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <AnnouncementsPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/announcements/create"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <RequireRole minRole="national_staff">
-                  <PageTransition>
-                    <CreateAnnouncementPage />
-                  </PageTransition>
-                </RequireRole>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <SettingsPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
+          {/* ---- Leader Dashboard & sub-pages ---- */}
+          <Route path="/leader" element={<LeaderLayoutRoute />}>
+            <Route index element={<LeaderDashboardPage />} />
+            <Route path="events" element={<LeaderEventsPage />} />
+            <Route path="events/create" element={<CreateEventPage />} />
+            <Route path="members" element={<LeaderMembersPage />} />
+            <Route path="tasks" element={<LeaderTasksPage />} />
+            <Route path="announcements" element={<LeaderAnnouncementsPage />} />
+            <Route path="impact" element={<LeaderImpactPage />} />
+            <Route path="reports" element={<LeaderReportsPage />} />
+            <Route path="invite" element={<LeaderInvitePage />} />
+          </Route>
 
-        {/* ---- More hub ---- */}
-        <Route
-          path="/more"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <MorePage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
+          {/* ---- Admin routes (staff+) ---- */}
+          <Route path="/admin" element={<RequireRole minRole="national_staff"><AdminLayoutRoute /></RequireRole>}>
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="collectives" element={<AdminCollectivesPage />} />
+            <Route path="collectives/:collectiveId" element={<AdminCollectiveDetailPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="workflows" element={<AdminWorkflowsPage />} />
+            <Route path="events" element={<AdminEventsPage />} />
+            <Route path="partners" element={<AdminPartnersPage />} />
+            <Route path="challenges" element={<AdminChallengesPage />} />
+            <Route path="surveys" element={<AdminSurveysPage />} />
+            <Route path="surveys/create" element={<AdminCreateSurveyPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+            <Route path="national-impact" element={<NationalImpactPage />} />
+            <Route path="moderation" element={<ModerationQueuePage />} />
+            <Route path="email" element={<AdminEmailPage />} />
+            <Route path="charity" element={<AdminCharityPage />} />
+            <Route path="exports" element={<AdminExportsPage />} />
+            <Route path="audit-log" element={<AdminAuditLogPage />} />
+            <Route path="system" element={<AdminSystemPage />} />
+            <Route path="branding" element={<AdminBrandingPage />} />
+            <Route path="membership" element={<AdminMembershipPage />} />
+            <Route path="shop" element={<AdminMerchPage />} />
+            <Route path="dev-tools" element={<DevToolsPage />} />
+          </Route>
 
-        {/* ---- Membership ---- */}
-        <Route
-          path="/membership"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <MembershipPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-
-        {/* ---- Donate routes ---- */}
-        <Route
-          path="/donate"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <DonatePage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/donate/thank-you"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <DonateThankYouPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/donate/donors"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <DonorWallPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-
-        {/* ---- Shop routes ---- */}
-        <Route
-          path="/shop"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <ShopPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/shop/cart"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <CartPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/shop/checkout"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <CheckoutPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/shop/order-confirmation"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <OrderConfirmationPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/shop/orders"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <OrdersPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/shop/orders/:orderId"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <OrderDetailPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/shop/:slug"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <ProductDetailPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-
-        {/* ---- Leader Dashboard & sub-pages ---- */}
-        <Route
-          path="/leader"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <LeaderLayoutRoute />
-              </AppShell>
-            </RequireAuth>
-          }
-        >
-          <Route index element={<LeaderDashboardPage />} />
-          <Route path="events" element={<LeaderEventsPage />} />
-          <Route path="events/create" element={<CreateEventPage />} />
-          <Route path="members" element={<LeaderMembersPage />} />
-          <Route path="tasks" element={<LeaderTasksPage />} />
-          <Route path="announcements" element={<LeaderAnnouncementsPage />} />
-          <Route path="impact" element={<LeaderImpactPage />} />
-          <Route path="reports" element={<LeaderReportsPage />} />
-          <Route path="invite" element={<LeaderInvitePage />} />
-        </Route>
-
-        {/* ---- Reports (accessible to leaders + staff) ---- */}
-        <Route
-          path="/reports"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <ReportsPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-
-        {/* ---- National Impact (public-facing) ---- */}
-        <Route
-          path="/impact/national"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <PageTransition>
-                  <NationalImpactPage />
-                </PageTransition>
-              </AppShell>
-            </RequireAuth>
-          }
-        />
-
-        {/* ---- Admin routes (staff+) ---- */}
-        {/* Shared layout: AppShell + AdminLayout stay mounted across pages */}
-        <Route
-          path="/admin"
-          element={
-            <RequireAuth>
-              <AppShell>
-                <RequireRole minRole="national_staff">
-                  <AdminLayoutRoute />
-                </RequireRole>
-              </AppShell>
-            </RequireAuth>
-          }
-        >
-          <Route index element={<AdminDashboardPage />} />
-          <Route path="collectives" element={<AdminCollectivesPage />} />
-          <Route path="collectives/:collectiveId" element={<AdminCollectiveDetailPage />} />
-          <Route path="users" element={<AdminUsersPage />} />
-          <Route path="workflows" element={<AdminWorkflowsPage />} />
-          <Route path="events" element={<AdminEventsPage />} />
-          <Route path="partners" element={<AdminPartnersPage />} />
-          <Route path="challenges" element={<AdminChallengesPage />} />
-          <Route path="surveys" element={<AdminSurveysPage />} />
-          <Route path="surveys/create" element={<AdminCreateSurveyPage />} />
-          <Route path="reports" element={<ReportsPage />} />
-          <Route path="national-impact" element={<NationalImpactPage />} />
-          <Route path="moderation" element={<ModerationQueuePage />} />
-          <Route path="email" element={<AdminEmailPage />} />
-          <Route path="charity" element={<AdminCharityPage />} />
-          <Route path="exports" element={<AdminExportsPage />} />
-          <Route path="audit-log" element={<AdminAuditLogPage />} />
-          <Route path="system" element={<AdminSystemPage />} />
-          <Route path="branding" element={<AdminBrandingPage />} />
-          <Route path="membership" element={<AdminMembershipPage />} />
-          <Route path="shop" element={<AdminMerchPage />} />
-          <Route path="dev-tools" element={<DevToolsPage />} />
         </Route>
 
         {/* ---- Legal pages (no auth required) ---- */}
