@@ -197,31 +197,30 @@ function ShopHero({
   rm: boolean
 }) {
   /*
-   * On mobile the Page component scrolls via an inner <main> element,
-   * on desktop the window scrolls. We need to detect which one and
-   * pass it to useScroll, otherwise parallax won't fire.
+   * On mobile: Page scrolls via <main id="main-content"> (overflow-y-auto).
+   * On desktop: window scrolls naturally.
+   * Track both — one will always read 0, the other will move.
+   * Combine them so parallax works everywhere.
    */
-  const scrollContainerRef = useRef<HTMLElement | null>(null)
-  const [, forceUpdate] = useState(0)
+  const containerRef = useRef<HTMLElement>(null)
   useEffect(() => {
     const el = document.getElementById('main-content')
-    if (el) {
-      const style = window.getComputedStyle(el)
-      const isScrollable = style.overflowY === 'auto' || style.overflowY === 'scroll'
-      if (isScrollable) {
-        scrollContainerRef.current = el
-        forceUpdate((n) => n + 1)
-      }
-    }
+    if (el) (containerRef as React.MutableRefObject<HTMLElement>).current = el
   }, [])
 
-  const scrollOpts = scrollContainerRef.current
-    ? { container: scrollContainerRef as React.RefObject<HTMLElement> }
-    : undefined
-  const { scrollY } = useScroll(scrollOpts)
+  const { scrollY: windowScrollY } = useScroll()
+  const { scrollY: containerScrollY } = useScroll({
+    container: containerRef as React.RefObject<HTMLElement>,
+  })
+
+  // Whichever container is actually scrolling will produce non-zero values;
+  // the other stays at 0. Adding them gives us the active one.
+  const scrollY = useTransform(
+    [windowScrollY, containerScrollY],
+    ([w, c]: number[]) => Math.max(w, c),
+  )
 
   const textY = useTransform(scrollY, [0, 600], [0, 150])
-  const textScale = useTransform(scrollY, [0, 600], [1, 0.8])
   const textOpacity = useTransform(scrollY, [0, 400], [1, 0])
 
   return (
@@ -255,11 +254,6 @@ function ShopHero({
           </div>
         </div>
 
-        {/* Vignette — photographic depth */}
-        <div
-          className="absolute inset-0 z-[4] pointer-events-none"
-          style={{ boxShadow: 'inset 0 0 140px 50px rgba(0,0,0,0.3)' }}
-        />
 
         {/* Top bar: back + cart */}
         <div
@@ -300,9 +294,9 @@ function ShopHero({
         {/* Hero text — behind the people so they pass in front */}
         <motion.div
           className="absolute inset-x-0 top-[12%] z-[2] flex justify-center"
-          style={rm ? undefined : { y: textY, opacity: textOpacity, scale: textScale }}
+          style={rm ? undefined : { y: textY, opacity: textOpacity }}
         >
-          <h1 className="font-heading text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+          <h1 className="font-heading text-7xl sm:text-8xl md:text-9xl lg:text-[12rem] font-bold text-white tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
             Shop
           </h1>
         </motion.div>
