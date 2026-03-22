@@ -197,79 +197,62 @@ function ShopHero({
   rm: boolean
 }) {
   /*
-   * On mobile the Page component uses an inner <main id="main-content">
-   * as the scroll container (overflow-y-auto) - window.scrollY stays 0.
-   * We detect that container and pass it to useScroll so parallax works
-   * on both mobile and desktop.
+   * On mobile the Page component scrolls via an inner <main> element,
+   * on desktop the window scrolls. We need to detect which one and
+   * pass it to useScroll, otherwise parallax won't fire.
    */
   const scrollContainerRef = useRef<HTMLElement | null>(null)
+  const [, forceUpdate] = useState(0)
   useEffect(() => {
     const el = document.getElementById('main-content')
-    if (el && el.scrollHeight > el.clientHeight) {
-      scrollContainerRef.current = el
+    if (el) {
+      const style = window.getComputedStyle(el)
+      const isScrollable = style.overflowY === 'auto' || style.overflowY === 'scroll'
+      if (isScrollable) {
+        scrollContainerRef.current = el
+        forceUpdate((n) => n + 1)
+      }
     }
   }, [])
 
-  const { scrollY } = useScroll({
-    container: scrollContainerRef as React.RefObject<HTMLElement>,
-  })
+  const scrollOpts = scrollContainerRef.current
+    ? { container: scrollContainerRef as React.RefObject<HTMLElement> }
+    : undefined
+  const { scrollY } = useScroll(scrollOpts)
 
-  // Foreground (people) scrolls DOWN faster than background - sells the depth
-  const bgY = useTransform(scrollY, [0, 600], [0, 50])
-  const bgScale = useTransform(scrollY, [0, 600], [1, 1.05])
-  const fgY = useTransform(scrollY, [0, 600], [0, 130])
-  const textY = useTransform(scrollY, [0, 350], [0, 70])
-  const textOpacity = useTransform(scrollY, [0, 280], [1, 0])
+  const textY = useTransform(scrollY, [0, 600], [0, 150])
+  const textScale = useTransform(scrollY, [0, 600], [1, 0.8])
+  const textOpacity = useTransform(scrollY, [0, 400], [1, 0])
 
   return (
     <div className="relative">
       {/*
-       * NO overflow-hidden on the outer wrapper — the bg image and gradient
-       * need to bleed down behind the rocky SVG transition below.
+       * The bg (1920×1080) always fits full-width → container is
+       * sized by the bg's natural aspect ratio via the leading img.
+       * The fg (1080×1080) is 56.25% of the bg width to keep the
+       * ratio between the two constant at every screen size.
        */}
-      {/*
-       * aspect-video (16:9) makes the hero scale proportionally with
-       * screen width — wider screens get a shorter/wider hero,
-       * narrower screens get a taller/narrower one. Both images
-       * are w-full so they scale together.
-       */}
-      <div className="relative w-full aspect-video max-h-[560px]">
+      <div className="relative w-full overflow-hidden">
 
-        {/* ── Layer 0: Background landscape — slowest parallax ── */}
-        <motion.div
-          className="absolute inset-x-0 top-0 will-change-transform"
-          style={{
-            height: '160%',
-            ...(rm ? {} : { y: bgY, scale: bgScale }),
-          }}
-        >
+        {/* ── Layer 0: Background landscape — drives the container height ── */}
+        <div>
           <img
             src="/img/merch-hero-1.png"
             alt="Australian landscape"
-            className="absolute inset-0 w-full h-full object-cover object-[center_35%]"
+            className="w-full h-auto block"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-        </motion.div>
-
-        {/* Warm colour wash for cohesion */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-900/10 via-transparent to-primary-900/15 z-[1]" />
+        </div>
 
         {/* ── Layer 1: Foreground people ── */}
-        {/*
-         * w-full scales the people proportionally with the viewport.
-         * Bottom-aligned so they sit flush with the bg bottom.
-         */}
+        {/* 56.25% width = 1080/1920, centered, bottom-aligned */}
         <div className="absolute bottom-0 inset-x-0 z-[3] flex justify-center">
-          <motion.div
-            className="w-full will-change-transform"
-            style={rm ? undefined : { y: fgY }}
-          >
+          <div style={{ width: '56.25%' }}>
             <img
               src="/img/merch-hero-2.png"
               alt="Co-Exist members"
               className="w-full h-auto block"
             />
-          </motion.div>
+          </div>
         </div>
 
         {/* Vignette — photographic depth */}
@@ -314,17 +297,14 @@ function ShopHero({
           </button>
         </div>
 
-        {/* Hero text — parallaxes away as you scroll */}
+        {/* Hero text — behind the people so they pass in front */}
         <motion.div
-          className="absolute inset-x-0 bottom-0 z-[5] px-5 pb-6"
-          style={rm ? undefined : { y: textY, opacity: textOpacity }}
+          className="absolute inset-x-0 top-[12%] z-[2] flex justify-center"
+          style={rm ? undefined : { y: textY, opacity: textOpacity, scale: textScale }}
         >
-          <h1 className="font-heading text-[1.75rem] sm:text-3xl font-bold text-white leading-tight tracking-tight drop-shadow-lg">
-            Co-Exist Shop
+          <h1 className="font-heading text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold text-white tracking-tight drop-shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+            Shop
           </h1>
-          <p className="text-white/75 text-sm mt-1.5 max-w-xs drop-shadow-md">
-            Wear the movement. Every purchase funds conservation.
-          </p>
         </motion.div>
       </div>
 

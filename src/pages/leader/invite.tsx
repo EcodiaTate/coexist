@@ -308,9 +308,9 @@ export default function LeaderInvitePage() {
           <p className="text-[10px] font-semibold text-white/30 uppercase tracking-wider mb-3 px-1">Sharing tips</p>
           <div className="space-y-2">
             {[
-              { text: "Post the link in your collective's social media bio", icon: '🔗' },
-              { text: 'Share after events when energy is high', icon: '⚡' },
-              { text: 'Print the QR code for flyers and event signage', icon: '📋' },
+              { text: "Post the link in your collective's social media bio", icon: "\u{1F517}" },
+              { text: "Share after events when energy is high", icon: "\u26A1" },
+              { text: "Print the QR code for flyers and event signage", icon: "\u{1F4CB}" },
             ].map((tip) => (
               <div
                 key={tip.text}
