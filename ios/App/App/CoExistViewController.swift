@@ -1,6 +1,7 @@
 import UIKit
 import Capacitor
 
+@objc(CoExistViewController)
 class CoExistViewController: CAPBridgeViewController {
 
     // #f8f9f5 — must match --color-surface-1

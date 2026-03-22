@@ -198,7 +198,7 @@ function EventCard({
         onClick={() => navigate(`/events/${event.id}`)}
         aria-label={`${event.title} - ${status?.label}`}
         className={cn(
-          'bg-[#869e62]',
+          'bg-brand',
           'border border-primary-400/30',
           'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.22),0_2px_6px_rgba(61,77,51,0.08)]',
           past && 'opacity-70 saturate-[0.85]',

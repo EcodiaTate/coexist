@@ -51,59 +51,79 @@ function formatDate(dateStr: string): string {
 /*  Decorative background shapes                                       */
 /* ------------------------------------------------------------------ */
 
-function BackgroundShapes({ reduce }: { reduce: boolean }) {
-  if (reduce) return null
+function DecorativeBackground() {
+  const r = useReducedMotion()
 
   return (
-    <>
-      {/* Ring 1 — top-right breathing */}
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      {/* Multi-stop gradient — warm olive-moss canopy */}
+      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/60 via-primary-100/35 via-25% to-moss-50/20 to-60%" />
+      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-sprout-50/15 to-bark-50/15" />
+
+      {/* Concentrated hero glow — top center */}
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-gradient-to-b from-primary-300/30 via-primary-200/20 to-transparent blur-[60px]" />
+
+      {/* Warm accent — top right */}
+      <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-gradient-to-bl from-bark-200/20 to-transparent blur-[50px]" />
+
+      {/* Large breathing ring — top right */}
       <motion.div
-        aria-hidden="true"
-        className="absolute -top-16 -right-20 w-64 h-64 rounded-full border-[3px] border-secondary-200/25"
-        animate={{ scale: [1, 1.08, 1], opacity: [0.7, 1, 0.7] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/22"
+        animate={r ? {} : { scale: [1, 1.06, 1], opacity: [0.5, 0.8, 0.5] }}
+        transition={{ repeat: Infinity, duration: 8, ease: 'easeInOut' }}
+      />
+      {/* Concentric inner ring */}
+      <motion.div
+        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-bark-200/18"
+        animate={r ? {} : { scale: [1, 1.04, 1], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Ring 2 — mid-left breathing */}
+      {/* Medium ring — left side */}
       <motion.div
-        aria-hidden="true"
-        className="absolute top-48 -left-12 w-44 h-44 rounded-full border-[2.5px] border-secondary-200/25"
-        animate={{ scale: [1, 1.06, 1], opacity: [0.6, 0.9, 0.6] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+        className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/22"
+        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ repeat: Infinity, duration: 7, ease: 'easeInOut', delay: 2 }}
+      />
+      <motion.div
+        className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-bark-200/15"
+        animate={r ? {} : { rotate: -360 }}
+        transition={{ repeat: Infinity, duration: 50, ease: 'linear' }}
       />
 
-      {/* Blurred glow — bottom-left */}
+      {/* Bottom right ring */}
       <motion.div
-        aria-hidden="true"
-        className="absolute bottom-24 -left-10 w-56 h-56 rounded-full bg-secondary-100/25 blur-3xl"
-        animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+        className="absolute bottom-[16%] right-2 w-36 h-36 rounded-full border-2 border-secondary-200/18"
+        animate={r ? {} : { rotate: 360 }}
+        transition={{ repeat: Infinity, duration: 55, ease: 'linear' }}
       />
 
-      {/* Floating dot 1 */}
+      {/* Deep warm glow — mid left */}
       <motion.div
-        aria-hidden="true"
-        className="absolute top-32 right-12 w-3 h-3 rounded-full bg-secondary-300/20"
-        animate={{ y: [0, -10, 0], x: [0, 4, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-sprout-100/20 blur-[50px]"
+        animate={r ? {} : { scale: [1, 1.14, 1], opacity: [0.22, 0.4, 0.22] }}
+        transition={{ repeat: Infinity, duration: 9, ease: 'easeInOut', delay: 1 }}
       />
 
-      {/* Floating dot 2 */}
+      {/* Bottom gradient pool */}
       <motion.div
-        aria-hidden="true"
-        className="absolute top-72 left-8 w-2.5 h-2.5 rounded-full bg-secondary-300/20"
-        animate={{ y: [0, 8, 0], x: [0, -5, 0] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+        className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-bark-100/18 blur-[55px]"
+        animate={r ? {} : { scale: [1, 1.08, 1], opacity: [0.2, 0.35, 0.2] }}
+        transition={{ repeat: Infinity, duration: 11, ease: 'easeInOut', delay: 3 }}
       />
 
-      {/* Floating dot 3 */}
-      <motion.div
-        aria-hidden="true"
-        className="absolute bottom-40 right-20 w-2 h-2 rounded-full bg-primary-300/20"
-        animate={{ y: [0, -7, 0], x: [0, 3, 0] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-    </>
+      {/* Floating particles */}
+      <motion.div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-primary-400/18"
+        animate={r ? {} : { y: [-5, 5, -5], x: [0, 3, 0] }} transition={{ repeat: Infinity, duration: 5, ease: 'easeInOut' }} />
+      <motion.div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-bark-400/15"
+        animate={r ? {} : { y: [3, -5, 3] }} transition={{ repeat: Infinity, duration: 4.5, ease: 'easeInOut', delay: 1.5 }} />
+      <motion.div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-sprout-400/15"
+        animate={r ? {} : { y: [-3, 4, -3], x: [0, -2, 0] }} transition={{ repeat: Infinity, duration: 4, ease: 'easeInOut', delay: 0.5 }} />
+      <motion.div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-secondary-400/12"
+        animate={r ? {} : { y: [2, -3, 2] }} transition={{ repeat: Infinity, duration: 5.5, ease: 'easeInOut', delay: 2.5 }} />
+      <motion.div className="absolute top-[35%] right-[28%] w-1.5 h-1.5 rounded-full bg-moss-300/15"
+        animate={r ? {} : { y: [-2, 3, -2], x: [1, -1, 1] }} transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut', delay: 3.5 }} />
+    </div>
   )
 }
 
@@ -139,28 +159,31 @@ function AnnouncementCard({
       variants={fadeUp}
       onClick={handleTap}
       className={cn(
-        'rounded-2xl overflow-hidden cursor-pointer',
-        'transition-colors duration-150',
-        'bg-white shadow-sm border border-secondary-50/60',
-        announcement.is_pinned && 'ring-1 ring-moss-200',
-        isUrgent && 'bg-gradient-to-br from-warning-50/80 to-primary-100/60 border-warning-100/60',
-        isUnread && !isUrgent && 'shadow-md',
+        'rounded-[20px] overflow-hidden cursor-pointer',
+        'transition-all duration-200 active:scale-[0.98]',
+        'bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf]',
+        'border border-primary-200/35',
+        'shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12),0_1px_4px_rgba(61,77,51,0.05)]',
+        announcement.is_pinned && 'ring-2 ring-primary-400/50 shadow-[0_6px_28px_-4px_rgba(61,77,51,0.18)]',
+        isUrgent && 'bg-gradient-to-br from-warning-100/70 via-warning-50/50 to-[#eef2e8] border-warning-200/40 ring-2 ring-warning-300/40',
+        isUnread && !isUrgent && !announcement.is_pinned && 'shadow-[0_6px_24px_-4px_rgba(61,77,51,0.16)]',
+        !isUnread && 'opacity-85',
       )}
       role="article"
       aria-label={announcement.title}
     >
       {/* Pinned / Urgent badge */}
       {(announcement.is_pinned || isUrgent) && (
-        <div className="flex items-center gap-1.5 px-4 pt-3 pb-0">
+        <div className="flex items-center gap-2 px-4 pt-3.5 pb-0">
           {announcement.is_pinned && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-400">
-              <Pin size={12} aria-hidden="true" />
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary-600 bg-primary-100/60 px-2.5 py-0.5 rounded-full border border-primary-200/30">
+              <Pin size={11} aria-hidden="true" />
               Pinned
             </span>
           )}
           {isUrgent && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary-800">
-              <AlertTriangle size={12} aria-hidden="true" />
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-warning-700 bg-warning-100/60 px-2.5 py-0.5 rounded-full border border-warning-200/30">
+              <AlertTriangle size={11} aria-hidden="true" />
               Urgent
             </span>
           )}
@@ -169,7 +192,7 @@ function AnnouncementCard({
 
       {/* Image */}
       {announcement.image_url && (
-        <div className="mx-4 mt-3 rounded-xl overflow-hidden">
+        <div className="mx-4 mt-3.5 rounded-2xl overflow-hidden shadow-sm ring-1 ring-primary-200/20">
           <img
             src={announcement.image_url}
             alt=""
@@ -180,48 +203,47 @@ function AnnouncementCard({
       )}
 
       {/* Content */}
-      <div className="px-4 pt-3 pb-4">
+      <div className="px-4 pt-3.5 pb-4">
         <h3 className={cn(
-          'font-heading font-bold text-base leading-tight',
-          isUrgent ? 'text-primary-800' : 'text-primary-800',
+          'font-heading font-bold text-base leading-tight text-secondary-900',
         )}>
           {announcement.title}
         </h3>
 
         <p className={cn(
           'mt-2 text-sm leading-relaxed line-clamp-4',
-          isUrgent ? 'text-primary-800' : 'text-primary-400',
+          isUrgent ? 'text-secondary-700' : 'text-primary-500',
         )}>
           {announcement.content}
         </p>
 
         {/* Author + timestamp */}
-        <div className="flex items-center gap-2.5 mt-3 pt-3">
+        <div className="flex items-center gap-2.5 mt-3.5 pt-3 border-t border-primary-200/20">
           <Avatar
             src={announcement.author?.avatar_url}
             name={announcement.author?.display_name ?? 'Staff'}
             size="xs"
           />
           <div className="flex-1 min-w-0">
-            <span className="text-xs font-semibold text-primary-800">
+            <span className="text-xs font-bold text-secondary-800">
               {announcement.author?.display_name ?? 'Co-Exist Team'}
             </span>
             {announcement.author?.role && (
-              <span className="text-xs text-primary-400 ml-1">
+              <span className="text-[11px] text-primary-500 ml-1.5 font-medium">
                 {roleLabel(announcement.author.role)}
               </span>
             )}
           </div>
-          <span className="text-xs text-primary-400 shrink-0">
+          <span className="text-[11px] font-semibold text-primary-400 shrink-0">
             {formatDate(announcement.created_at)}
           </span>
         </div>
 
         {/* Unread indicator */}
         {isUnread && (
-          <div className="mt-2 flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-primary-500" aria-hidden="true" />
-            <span className="text-xs font-medium text-primary-400">New</span>
+          <div className="mt-2.5 flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 shadow-sm shadow-primary-300/40" aria-hidden="true" />
+            <span className="text-[11px] font-bold text-primary-600">New</span>
           </div>
         )}
       </div>
@@ -271,11 +293,7 @@ export default function AnnouncementsPage() {
   return (
     <Page noBackground className="!px-0 !bg-transparent">
       <div className="relative min-h-full">
-        {/* Full-bleed background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-secondary-50/40 via-white to-primary-50/15" />
-
-        {/* Animated decorative shapes */}
-        <BackgroundShapes reduce={!!shouldReduceMotion} />
+        <DecorativeBackground />
 
         {/* Back button */}
         <div className="relative z-20 px-4 pt-[var(--safe-top)]">
@@ -326,24 +344,26 @@ export default function AnnouncementsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.1 }}
               className={cn(
-                'flex items-center gap-3 w-full p-4 rounded-2xl text-left',
-                'bg-white/80 border border-secondary-50/60 shadow-sm',
-                'hover:bg-white/95',
-                'transition-colors duration-150 cursor-pointer',
+                'flex items-center gap-3.5 w-full p-4 rounded-[20px] text-left',
+                'bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf]',
+                'border border-primary-200/35',
+                'shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12),0_1px_4px_rgba(61,77,51,0.05)]',
+                'hover:shadow-[0_8px_32px_-6px_rgba(61,77,51,0.16)] hover:ring-1 hover:ring-primary-300/40',
+                'transition-all duration-200 cursor-pointer active:scale-[0.97]',
               )}
             >
-              <div className="w-10 h-10 rounded-xl bg-primary-200/60 flex items-center justify-center shrink-0">
-                <Megaphone size={18} className="text-primary-600" />
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-500 to-secondary-700 flex items-center justify-center shrink-0 shadow-md shadow-primary-400/25">
+                <Megaphone size={18} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-heading text-sm font-semibold text-primary-800">
+                <p className="font-heading text-sm font-bold text-secondary-900">
                   Create announcement
                 </p>
-                <p className="text-xs text-primary-400 mt-0.5">
+                <p className="text-xs text-primary-500 mt-0.5 font-medium">
                   Post an update to your collective or all members
                 </p>
               </div>
-              <ChevronRight size={18} className="text-primary-300 shrink-0" />
+              <ChevronRight size={18} strokeWidth={2.5} className="text-primary-400 shrink-0" />
             </motion.button>
           )}
 
@@ -385,12 +405,13 @@ export default function AnnouncementsPage() {
                 {filteredRegular.length > 0 && (
                   <div className="space-y-3">
                     {filteredPinned.length > 0 && (
-                      <motion.h2
-                        variants={fadeUp}
-                        className="text-xs font-semibold text-primary-400 uppercase tracking-wider px-1 pt-2"
-                      >
-                        Recent
-                      </motion.h2>
+                      <motion.div variants={fadeUp} className="flex items-center gap-2 px-1 pt-3 pb-1">
+                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-200/40 to-transparent" />
+                        <span className="text-[11px] font-bold text-primary-500 uppercase tracking-[0.12em]">
+                          Recent
+                        </span>
+                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-200/40 to-transparent" />
+                      </motion.div>
                     )}
                     {filteredRegular.map((a) => (
                       <AnnouncementCard

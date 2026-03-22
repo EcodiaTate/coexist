@@ -29,14 +29,14 @@ const CATEGORY_COLORS: Record<string, string> = {
   tree_planting: '#748b50',
   beach_cleanup: '#5ea198',
   habitat_restoration: '#47867d',
-  nature_walk: '#879e62',
+  nature_walk: '#869e62',
   education: '#9677ad',
   wildlife_survey: '#b89565',
   seed_collecting: '#5ea198',
   weed_removal: '#a07d4f',
   waterway_cleanup: '#396c65',
   community_garden: '#664c7b',
-  other: '#879e62',
+  other: '#869e62',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -270,7 +270,7 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
                 fill="none"
                 strokeWidth="11"
                 strokeLinecap="round"
-                stroke={CATEGORY_COLORS[item.category] ?? '#879e62'}
+                stroke={CATEGORY_COLORS[item.category] ?? '#869e62'}
                 strokeDasharray={`${dashLen} ${circumference - dashLen}`}
                 strokeDashoffset={offset}
                 initial={shouldReduceMotion ? {} : { opacity: 0, pathLength: 0 }}
@@ -304,7 +304,7 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
               <div className="h-2.5 rounded-full bg-primary-100/50 overflow-hidden">
                 <motion.div
                   className="h-full rounded-full shadow-sm"
-                  style={{ backgroundColor: CATEGORY_COLORS[item.category] ?? '#879e62' }}
+                  style={{ backgroundColor: CATEGORY_COLORS[item.category] ?? '#869e62' }}
                   initial={shouldReduceMotion ? { width: `${pct}%` } : { width: 0 }}
                   animate={{ width: `${pct}%` }}
                   transition={{ duration: 0.8, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
