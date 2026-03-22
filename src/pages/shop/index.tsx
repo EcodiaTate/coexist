@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { Fragment, useState, useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion'
@@ -62,7 +62,7 @@ const slideInRight: Variants = {
  * 5. Subtle dot grid in alternating bands
  * 6. Static blurred color orbs for depth
  */
-function ShopBackground() {
+function ShopBackground({ rm }: { rm: boolean }) {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       {/* Base gradient */}
@@ -82,9 +82,66 @@ function ShopBackground() {
         <rect width="100%" height="100%" fill="url(#shop-topo)" className="text-primary-900" />
       </svg>
 
-      {/* A couple of soft blurred color orbs for warmth */}
-      <div className="absolute top-[30%] -left-16 w-72 h-72 rounded-full bg-primary-200/15 blur-[100px]" />
-      <div className="absolute top-[65%] -right-20 w-64 h-64 rounded-full bg-moss-200/12 blur-[100px]" />
+      {/* Breathing blurred orbs — gentle depth */}
+      <motion.div
+        className="absolute top-[30%] -left-16 w-72 h-72 rounded-full bg-primary-200/15 blur-[100px]"
+        animate={rm ? undefined : { scale: [1, 1.15, 1], opacity: [0.15, 0.22, 0.15] }}
+        transition={rm ? undefined : { duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-[60%] -right-20 w-64 h-64 rounded-full bg-moss-200/12 blur-[100px]"
+        animate={rm ? undefined : { scale: [1, 1.12, 1], opacity: [0.12, 0.18, 0.12] }}
+        transition={rm ? undefined : { duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+      />
+      <motion.div
+        className="absolute top-[85%] left-[25%] w-56 h-56 rounded-full bg-bark-200/10 blur-[90px]"
+        animate={rm ? undefined : { scale: [1, 1.1, 1], opacity: [0.1, 0.16, 0.1] }}
+        transition={rm ? undefined : { duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+      />
+
+      {/* Breathing rings — large, thin, slow pulse */}
+      <motion.div
+        className="absolute top-[25%] -right-20 w-64 h-64 rounded-full border-[1.5px] border-primary-300/15"
+        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.15, 0.25, 0.15] }}
+        transition={rm ? undefined : { duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-[55%] -left-12 w-48 h-48 rounded-full border-[1.5px] border-moss-300/12"
+        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.12, 0.2, 0.12] }}
+        transition={rm ? undefined : { duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+      <motion.div
+        className="absolute top-[78%] right-[15%] w-36 h-36 rounded-full border-[1.5px] border-bark-300/10"
+        animate={rm ? undefined : { scale: [1, 1.1, 1], opacity: [0.1, 0.18, 0.1] }}
+        transition={rm ? undefined : { duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+      />
+
+      {/* Floating dots — tiny, drifting vertically */}
+      <motion.div
+        className="absolute top-[35%] left-[15%] w-2.5 h-2.5 rounded-full bg-primary-400/15"
+        animate={rm ? undefined : { y: [0, -14, 0], opacity: [0.15, 0.3, 0.15] }}
+        transition={rm ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-[50%] right-[22%] w-2 h-2 rounded-full bg-moss-400/12"
+        animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.12, 0.25, 0.12] }}
+        transition={rm ? undefined : { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+      />
+      <motion.div
+        className="absolute top-[70%] left-[40%] w-3 h-3 rounded-full bg-bark-300/10"
+        animate={rm ? undefined : { y: [0, -12, 0], opacity: [0.1, 0.22, 0.1] }}
+        transition={rm ? undefined : { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+      />
+      <motion.div
+        className="absolute top-[42%] right-[45%] w-2 h-2 rounded-full bg-primary-300/12"
+        animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.12, 0.2, 0.12] }}
+        transition={rm ? undefined : { duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+      <motion.div
+        className="absolute top-[88%] left-[65%] w-2.5 h-2.5 rounded-full bg-moss-300/10"
+        animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.1, 0.2, 0.1] }}
+        transition={rm ? undefined : { duration: 6.5, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+      />
     </div>
   )
 }
@@ -162,21 +219,23 @@ function CategoryPills({
 /*  SVG landscape layers — mountains, hills, trees                     */
 /* ------------------------------------------------------------------ */
 
-/** Far mountain range — tall jagged peaks, lightest tone */
+/** Far mountain range — broad peaks with smooth slopes, lightest tone */
 function MountainsFar({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 1440 320" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M0,320 L0,200
-           L40,195 L80,160 L120,180 L160,120 L200,150
-           L240,90 L280,130 L320,100 L360,140
-           L400,60 L440,110 L480,80 L520,130
-           L560,50 L600,100 L640,70 L680,120
-           L720,55 L760,105 L800,75 L840,130
-           L880,45 L920,95 L960,70 L1000,120
-           L1040,65 L1080,110 L1120,80 L1160,130
-           L1200,55 L1240,100 L1280,85 L1320,125
-           L1360,70 L1400,110 L1440,90
+        d="M0,320 L0,240
+           C40,235 70,200 120,170 C150,150 170,140 200,120
+           C220,108 240,130 280,160
+           C310,180 340,170 380,140 C410,115 430,90 460,80
+           C490,70 510,100 540,140
+           C570,175 600,180 640,155 C680,130 700,100 740,85
+           C770,72 790,110 820,145
+           C850,175 880,170 920,140 C950,115 980,95 1010,80
+           C1040,65 1060,90 1090,130
+           C1120,165 1150,175 1190,150 C1220,130 1250,110 1280,100
+           C1310,90 1340,120 1370,150
+           C1400,175 1420,180 1440,170
            L1440,320 Z"
         className="fill-primary-800/30"
       />
@@ -184,75 +243,52 @@ function MountainsFar({ className }: { className?: string }) {
   )
 }
 
-/** Near mountain range — craggy ridges, darker */
+/** Near hills — rounder, rolling, darker */
 function MountainsNear({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 1440 280" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 1440 260" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M0,280 L0,185
-           L30,180 L60,155 L90,165 L120,130 L150,150
-           L180,110 L210,140 L240,105 L270,135
-           L300,90 L330,125 L360,100 L390,130
-           L420,85 L450,120 L480,95 L510,130
-           L540,80 L570,115 L600,90 L630,125
-           L660,78 L690,110 L720,88 L750,120
-           L780,75 L810,115 L840,90 L870,125
-           L900,82 L930,118 L960,92 L990,128
-           L1020,80 L1050,112 L1080,88 L1110,122
-           L1140,78 L1170,115 L1200,90 L1230,125
-           L1260,85 L1290,118 L1320,95 L1350,125
-           L1380,88 L1410,115 L1440,105
-           L1440,280 Z"
+        d="M0,260 L0,200
+           C60,195 100,170 160,150
+           C200,138 240,155 300,170
+           C340,180 380,160 420,135
+           C460,110 500,120 540,145
+           C580,165 620,170 660,150
+           C700,130 730,110 780,105
+           C820,100 860,130 900,155
+           C940,175 980,165 1020,140
+           C1060,118 1100,125 1140,148
+           C1180,168 1220,170 1260,152
+           C1300,135 1340,140 1380,155
+           C1410,165 1430,160 1440,155
+           L1440,260 Z"
         className="fill-primary-900/40"
       />
     </svg>
   )
 }
 
-/** Rocky ridge & tree line — foreground, darkest, dramatic elevation */
+/** Eucalyptus tree line — rounded bushy canopies, Australian silhouette */
 function TreeLine({ className }: { className?: string }) {
+  // Gum trees: wide rounded crowns on thin trunks, varying heights
+  // Mix of tall and short, some overlapping — natural bush feel
   return (
-    <svg viewBox="0 0 1440 220" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 0 1440 160" preserveAspectRatio="none" className={cn('absolute bottom-0 left-0 w-full', className)} xmlns="http://www.w3.org/2000/svg">
       <path
-        d="M0,220 L0,155
-           C20,150 30,120 45,105 L50,108 L55,95 L62,100
-           C75,110 85,130 100,125
-           L110,100 L115,95 L120,98 L130,115
-           C145,130 155,140 170,135
-           L180,110 L185,90 L190,85 L198,92 L205,105
-           C215,115 225,125 240,118
-           L255,95 L260,80 L265,75 L272,82 L280,100
-           C290,120 305,135 320,128
-           L335,105 L340,98 L345,92 L348,88
-           L355,70 L360,65 L365,68 L370,78
-           C380,100 395,120 410,130
-           L425,120 L435,100 L440,90
-           L445,82 L450,78 L455,84 L465,100
-           C480,125 500,138 520,132
-           L530,110 L535,95 L540,88 L548,92 L555,108
-           C570,128 585,135 600,128
-           L615,105 L620,85 L625,75 L630,72 L638,80
-           L645,95 L655,110
-           C670,125 685,132 700,125
-           L715,100 L720,82 L728,70 L735,66 L740,72 L748,88
-           C758,110 775,130 795,135
-           L810,120 L820,100 L825,90 L830,85
-           L835,78 L840,72 L845,76 L852,88
-           C862,108 880,128 900,132
-           L915,118 L925,95 L930,82 L938,78 L945,85
-           C955,105 970,120 985,125
-           L1000,110 L1005,92 L1010,80 L1018,75 L1025,82
-           C1035,100 1050,125 1070,130
-           L1085,115 L1095,90 L1100,78 L1108,72 L1115,78
-           L1125,95 L1135,112
-           C1150,128 1165,135 1180,128
-           L1195,105 L1200,88 L1208,75 L1215,70 L1220,76
-           C1230,95 1248,118 1265,128
-           L1280,115 L1290,95 L1295,85 L1302,80 L1310,88
-           C1320,105 1340,125 1360,130
-           L1375,115 L1385,95 L1390,85 L1398,80 L1405,88
-           L1415,105 L1425,120
-           L1440,125 L1440,220 Z"
+        d="M0,160 L0,125
+           C10,124 15,120 20,115 C25,95 30,75 45,65 C60,55 75,58 85,68 C95,78 98,100 100,110 C102,115 108,118 115,120
+           C120,118 125,112 130,105 C138,85 148,60 165,50 C182,40 198,48 208,62 C218,76 222,100 224,112 C226,118 232,122 240,124
+           C248,122 252,115 258,108 C265,90 275,68 290,55 C305,42 318,50 328,65 C338,80 342,105 344,115 C346,120 352,124 360,125
+           C365,124 370,118 375,110 C382,92 392,72 408,60 C424,48 438,55 448,70 C458,85 460,108 462,118 C464,122 470,125 478,126
+           C485,124 490,116 496,106 C504,85 515,58 535,45 C555,32 572,42 582,60 C592,78 594,105 596,116 C598,122 605,126 615,127
+           C622,125 628,118 634,108 C642,88 652,65 668,52 C684,40 698,48 708,65 C718,80 720,106 722,116 C724,122 730,126 740,127
+           C748,125 754,118 760,108 C768,88 778,62 795,48 C812,35 828,45 838,62 C848,78 850,106 852,116 C854,122 860,126 870,127
+           C878,125 882,116 888,105 C896,82 908,55 928,42 C948,30 965,42 975,60 C985,78 988,108 990,118 C992,124 998,127 1008,128
+           C1015,126 1020,118 1026,108 C1034,88 1045,62 1062,48 C1080,35 1095,45 1105,62 C1115,78 1118,106 1120,116 C1122,122 1128,126 1138,127
+           C1145,125 1150,116 1156,105 C1164,82 1175,55 1195,42 C1215,30 1232,42 1242,60 C1252,78 1254,108 1256,118 C1258,124 1265,127 1275,128
+           C1282,126 1288,118 1294,108 C1302,88 1312,65 1328,52 C1344,40 1358,48 1368,65 C1378,80 1380,106 1382,116 C1384,122 1390,126 1400,127
+           C1408,125 1415,118 1422,108 C1428,95 1434,82 1440,78
+           L1440,160 Z"
         className="fill-secondary-900/60"
       />
     </svg>
@@ -317,8 +353,8 @@ function ShopHero({
                 <div className="absolute top-[5%] left-[35%] w-1 h-1 rounded-full bg-white/35" />
                 <div className="absolute top-[20%] left-[65%] w-1 h-1 rounded-full bg-white/25" />
                 <div className="absolute top-[25%] left-[50%] w-1.5 h-1.5 rounded-full bg-white/15" />
-                {/* Moon glow */}
-                <div className="absolute top-[8%] right-[18%] w-20 h-20 rounded-full bg-sky-200/8 blur-2xl" />
+                {/* Moon glow — warm amber */}
+                <div className="absolute top-[8%] right-[18%] w-20 h-20 rounded-full bg-amber-200/10 blur-2xl" />
               </div>
             </div>
           )}
@@ -404,24 +440,32 @@ function ShopHero({
         </motion.div>
       </div>
 
-      {/* Transition into content — rocky ridgeline edge */}
+      {/* Transition into content — rolling hills with occasional rocky crags */}
       <div className="relative -mt-1 z-20">
         <svg
-          viewBox="0 0 1440 80"
+          viewBox="0 0 1440 70"
           preserveAspectRatio="none"
-          className="w-full h-8 sm:h-12 block"
+          className="w-full h-7 sm:h-10 block"
           xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M0,12 L35,15 L50,8 L65,18 L90,5 L110,20 L130,10 L155,22
-               L175,6 L200,18 L225,3 L250,16 L270,8 L295,20 L320,4 L345,17
-               L365,10 L390,22 L415,5 L440,19 L460,8 L485,21 L510,3 L535,18
-               L555,7 L580,20 L605,4 L630,17 L650,9 L675,22 L700,5 L725,19
-               L745,8 L770,21 L795,3 L820,16 L840,10 L865,22 L890,4 L915,18
-               L935,7 L960,20 L985,3 L1010,17 L1030,9 L1055,22 L1080,5 L1105,19
-               L1125,8 L1150,21 L1175,4 L1200,18 L1220,7 L1245,20 L1270,3 L1295,16
-               L1315,10 L1340,22 L1365,5 L1390,18 L1410,8 L1440,14
-               L1440,80 L0,80 Z"
+            d="M0,25
+               C60,22 100,18 140,20
+               C180,22 200,15 220,18
+               L228,8 L234,5 L240,10
+               C280,18 340,24 400,20
+               C440,16 470,22 510,25
+               C560,28 600,20 640,22
+               C670,24 690,18 710,20
+               L718,10 L722,6 L728,12
+               C760,20 820,26 880,22
+               C920,18 950,24 990,26
+               C1020,28 1050,20 1080,18
+               C1100,16 1120,22 1140,24
+               L1148,12 L1153,7 L1158,9 L1165,16
+               C1200,22 1260,26 1320,22
+               C1360,18 1400,24 1440,22
+               L1440,70 L0,70 Z"
             className="fill-[#f0f4ec]"
           />
         </svg>
@@ -436,11 +480,11 @@ function ShopHero({
 
 const ACCENT_COLORS = [
   'from-primary-500 to-moss-500',
-  'from-moss-500 to-sky-500',
+  'from-moss-500 to-sprout-500',
   'from-bark-400 to-primary-500',
   'from-sprout-500 to-primary-500',
   'from-coral-400 to-amber-400',
-  'from-sky-400 to-moss-400',
+  'from-amber-400 to-primary-500',
 ] as const
 
 function ProductCard({ product, onClick, index }: { product: Product; onClick: () => void; index: number }) {
@@ -617,9 +661,9 @@ function ImpactStrip() {
 
   return (
     <motion.div variants={fadeUp}>
-      <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-moss-700 shadow-lg shadow-primary-800/15">
+      <div className="relative rounded-3xl overflow-visible bg-gradient-to-br from-primary-700 via-primary-600 to-moss-700 shadow-lg shadow-primary-800/15">
         {/* Dot pattern texture */}
-        <div className="absolute inset-0 opacity-[0.06]">
+        <div className="absolute inset-0 rounded-3xl overflow-hidden opacity-[0.06]">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="impact-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
@@ -630,10 +674,10 @@ function ImpactStrip() {
           </svg>
         </div>
 
-        <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-sprout-300/15 blur-2xl" />
-        <div className="absolute -bottom-6 -left-6 w-24 h-24 rounded-full bg-moss-300/10 blur-2xl" />
+        <div className="absolute top-0 right-0 w-28 h-28 rounded-full bg-sprout-300/15 blur-2xl" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-moss-300/10 blur-2xl" />
 
-        <div className="relative p-5">
+        <div className="relative p-5 pb-7">
           {/* Header */}
           <div className="flex items-center gap-2.5 mb-4">
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/15 border border-white/10">
@@ -647,23 +691,30 @@ function ImpactStrip() {
 
           {/* Live stats row */}
           {stats ? (
-            <div className="grid grid-cols-3 gap-2">
-              {stats.map(({ icon: Icon, value, label }) => (
-                <div key={label} className="rounded-2xl bg-white/10 border border-white/[0.06] px-3 py-3 text-center">
-                  <Icon size={16} className="text-sprout-300 mx-auto mb-1.5" />
-                  <p className="font-heading text-lg font-extrabold text-white leading-none">{value}</p>
-                  <p className="text-[10px] text-white/50 mt-1 leading-tight">{label}</p>
-                </div>
+            <div className="flex items-center">
+              {stats.map(({ icon: Icon, value, label }, i) => (
+                <Fragment key={label}>
+                  {i > 0 && <div className="w-px self-stretch bg-white/[0.1] shrink-0" />}
+                  <div className="relative flex-1 px-3 py-3.5 text-center">
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none rounded-full" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.14) 0%, transparent 65%)' }} />
+                    <Icon size={16} className="relative text-sprout-300 mx-auto mb-1.5" />
+                    <p className="relative font-heading text-lg font-extrabold text-white leading-none">{value}</p>
+                    <p className="relative text-[10px] text-white/50 mt-1 leading-tight">{label}</p>
+                  </div>
+                </Fragment>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-2">
+            <div className="flex items-center">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="rounded-2xl bg-white/10 border border-white/[0.06] px-3 py-3">
-                  <div className="w-4 h-4 rounded bg-white/10 mx-auto mb-1.5" />
-                  <div className="w-10 h-5 rounded bg-white/10 mx-auto" />
-                  <div className="w-14 h-2.5 rounded bg-white/10 mx-auto mt-1" />
-                </div>
+                <Fragment key={i}>
+                  {i > 1 && <div className="w-px self-stretch bg-white/[0.1] shrink-0" />}
+                  <div className="flex-1 px-3 py-3.5">
+                    <div className="w-4 h-4 rounded bg-white/10 mx-auto mb-1.5" />
+                    <div className="w-10 h-5 rounded bg-white/10 mx-auto" />
+                    <div className="w-14 h-2.5 rounded bg-white/10 mx-auto mt-1" />
+                  </div>
+                </Fragment>
               ))}
             </div>
           )}
@@ -945,7 +996,7 @@ export default function ShopPage() {
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="relative min-h-screen">
           {/* Rich layered background */}
-          <ShopBackground />
+          <ShopBackground rm={rm} />
 
           {/* Main content */}
           <div className="relative z-10">

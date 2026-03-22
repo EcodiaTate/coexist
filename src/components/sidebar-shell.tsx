@@ -52,6 +52,9 @@ const COLLAPSED_WIDTH = 'w-[60px]'
 
 const mountedSuites = new Set<string>()
 
+/** True once *any* sidebar has mounted — used to skip wordmark entry animation on suite switches */
+let anySidebarMounted = false
+
 /* ------------------------------------------------------------------ */
 /*  Stagger animation (first mount only)                               */
 /* ------------------------------------------------------------------ */
@@ -144,6 +147,10 @@ export function SidebarShell({
   const isFirstMount = !mountedSuites.has(layoutId)
   if (isFirstMount) mountedSuites.add(layoutId)
 
+  // Skip wordmark animation when switching between suites (not cold app load)
+  const skipWordmarkAnim = anySidebarMounted
+  anySidebarMounted = true
+
   /* ---- Pick animation set ---- */
   const containerV = reduced ? undefined : isFirstMount ? staggerContainer : quickFadeContainer
   const itemV = reduced ? instantVariants : isFirstMount ? staggerItem : quickFadeItem
@@ -182,32 +189,35 @@ export function SidebarShell({
       )}
       aria-label={ariaLabel}
     >
-      {/* ---- Wordmark (identical everywhere) ---- */}
-      <motion.div
-        className="flex items-center justify-center px-4 py-4"
-        variants={headerV}
-        initial="hidden"
-        animate="visible"
-      >
+      {/* ---- Wordmark (identical everywhere — no animation on suite switch) ---- */}
+      <div className="flex items-center justify-center px-4 py-4">
         <Link
           to="/"
           className={cn('focus-visible:outline-none focus-visible:ring-2 rounded-md', focusRing)}
           aria-label={`${APP_NAME} home`}
         >
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={collapsed ? 'icon' : 'wordmark'}
+          {skipWordmarkAnim ? (
+            <img
               src={collapsed ? '/logos/black-logo-transparent.png' : '/logos/black-wordmark.png'}
               alt={APP_NAME}
               className={cn(collapsed ? 'h-6 w-6 object-contain' : 'h-5 w-auto')}
-              initial={reduced ? false : { opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={reduced ? undefined : { opacity: 0, scale: 0.92 }}
-              transition={{ duration: 0.15 }}
             />
-          </AnimatePresence>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={collapsed ? 'icon' : 'wordmark'}
+                src={collapsed ? '/logos/black-logo-transparent.png' : '/logos/black-wordmark.png'}
+                alt={APP_NAME}
+                className={cn(collapsed ? 'h-6 w-6 object-contain' : 'h-5 w-auto')}
+                initial={{ opacity: 0, scale: 0.92 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.92 }}
+                transition={{ duration: 0.15 }}
+              />
+            </AnimatePresence>
+          )}
         </Link>
-      </motion.div>
+      </div>
 
       {/* ---- Suite-specific header (badges, "back to app", etc.) ---- */}
       <motion.div

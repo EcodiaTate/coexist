@@ -59,10 +59,10 @@ function useDonateNationalStats() {
 /*  Animations                                                         */
 /* ------------------------------------------------------------------ */
 
-const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.07 } } }
+const stagger: Variants = { hidden: {}, visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } } }
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 24 } },
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
 }
 const scaleIn: Variants = {
   hidden: { opacity: 0, scale: 0.92 },
@@ -74,10 +74,68 @@ const scaleIn: Variants = {
 /* ------------------------------------------------------------------ */
 
 const IMPACT_ICONS: Record<number, React.ReactNode> = {
-  5: <Leaf size={18} className="text-sprout-600" />,
-  10: <Waves size={18} className="text-sky-500" />,
-  25: <TreePine size={18} className="text-primary-600" />,
-  50: <MapPin size={18} className="text-moss-600" />,
+  5: <Leaf size={18} className="text-white" />,
+  10: <Waves size={18} className="text-white" />,
+  25: <TreePine size={18} className="text-white" />,
+  50: <MapPin size={18} className="text-white" />,
+}
+
+/* ------------------------------------------------------------------ */
+/*  Breathing decorative elements                                      */
+/* ------------------------------------------------------------------ */
+
+function PageDepthElements({ rm }: { rm: boolean }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* Large ring — upper right, slow breathing */}
+      <motion.div
+        className="absolute -top-16 -right-16 w-64 h-64 rounded-full border-2 border-primary-300/20"
+        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.2, 0.35, 0.2] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+
+      {/* Medium ring — left side, offset breathing */}
+      <motion.div
+        className="absolute top-[38%] -left-20 w-48 h-48 rounded-full border-[1.5px] border-moss-300/15"
+        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.15, 0.3, 0.15] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+
+      {/* Small ring — bottom right */}
+      <motion.div
+        className="absolute bottom-[25%] right-4 w-24 h-24 rounded-full border border-sprout-300/20"
+        animate={rm ? undefined : { scale: [1, 1.1, 1], opacity: [0.2, 0.35, 0.2] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+      />
+
+      {/* Floating dot cluster */}
+      <motion.div
+        className="absolute top-[22%] right-[18%] w-2 h-2 rounded-full bg-primary-300/30"
+        animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.25, 0.5, 0.25] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-[50%] left-[12%] w-1.5 h-1.5 rounded-full bg-sprout-400/25"
+        animate={rm ? undefined : { y: [0, -6, 0], opacity: [0.2, 0.4, 0.2] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+      />
+      <motion.div
+        className="absolute top-[72%] right-[28%] w-2.5 h-2.5 rounded-full bg-bark-300/20"
+        animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.15, 0.35, 0.15] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+      />
+      <motion.div
+        className="absolute bottom-[40%] left-[30%] w-1.5 h-1.5 rounded-full bg-moss-400/20"
+        animate={rm ? undefined : { y: [0, 6, 0], opacity: [0.2, 0.4, 0.2] }}
+        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+
+      {/* Soft blurred color orbs */}
+      <div className="absolute top-[12%] -right-16 w-72 h-72 rounded-full bg-sprout-200/20 blur-[100px]" />
+      <div className="absolute top-[50%] -left-20 w-64 h-64 rounded-full bg-moss-200/15 blur-[100px]" />
+      <div className="absolute bottom-[8%] right-[5%] w-56 h-56 rounded-full bg-bark-200/12 blur-[100px]" />
+    </div>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -89,7 +147,7 @@ function ImpactBadge({ amount }: { amount: number }) {
   if (amount < 5) return null
 
   const closest = [50, 25, 10, 5].find((t) => amount >= t) ?? 5
-  const icon = IMPACT_ICONS[closest] ?? <Leaf size={18} className="text-sprout-600" />
+  const icon = IMPACT_ICONS[closest] ?? <Leaf size={18} className="text-white" />
 
   return (
     <motion.div
@@ -97,23 +155,23 @@ function ImpactBadge({ amount }: { amount: number }) {
       initial={{ opacity: 0, y: 8, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.95 }}
-      className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-sprout-50 border border-sprout-200/60"
+      className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-sprout-50 to-primary-50 border border-sprout-200/50"
     >
-      <div className="w-10 h-10 rounded-xl bg-sprout-100 flex items-center justify-center shrink-0">
+      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sprout-500 to-primary-600 flex items-center justify-center shrink-0 shadow-sm">
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-semibold text-sprout-600 uppercase tracking-wider mb-0.5">
+        <p className="text-[10px] font-bold text-sprout-600 uppercase tracking-[0.15em] mb-0.5">
           Your impact
         </p>
-        <p className="text-sm font-medium text-primary-800">{message}</p>
+        <p className="text-sm font-semibold text-secondary-800">{message}</p>
       </div>
     </motion.div>
   )
 }
 
 /* ------------------------------------------------------------------ */
-/*  National stats strip                                               */
+/*  National stats — gradient cards (no blue)                          */
 /* ------------------------------------------------------------------ */
 
 function NationalStatsStrip() {
@@ -123,7 +181,7 @@ function NationalStatsStrip() {
     return (
       <div className="grid grid-cols-3 gap-2.5">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="py-5 rounded-2xl bg-white shadow-sm">
+          <div key={i} className="py-5 rounded-2xl bg-white/10">
             <Skeleton variant="text" className="w-12 mx-auto mb-1" />
             <Skeleton variant="text" className="w-16 mx-auto" />
           </div>
@@ -136,28 +194,22 @@ function NationalStatsStrip() {
 
   const stats = [
     {
-      icon: <TreePine size={16} />,
+      icon: <TreePine size={18} strokeWidth={2.5} />,
       value: data.totalTrees.toLocaleString(),
       label: 'Trees planted',
-      iconBg: 'bg-sprout-100',
-      iconColor: 'text-sprout-600',
-      valueColor: 'text-primary-800',
+      gradient: 'from-sprout-500 to-primary-600',
     },
     {
-      icon: <Waves size={16} />,
+      icon: <Waves size={18} strokeWidth={2.5} />,
       value: `${(data.totalRubbishKg ?? 0).toLocaleString()} kg`,
-      label: 'Rubbish collected',
-      iconBg: 'bg-sky-100',
-      iconColor: 'text-sky-600',
-      valueColor: 'text-primary-800',
+      label: 'Rubbish cleared',
+      gradient: 'from-moss-500 to-primary-700',
     },
     {
-      icon: <Users size={16} />,
+      icon: <Users size={18} strokeWidth={2.5} />,
       value: data.totalMembers.toLocaleString(),
       label: 'Members',
-      iconBg: 'bg-moss-100',
-      iconColor: 'text-moss-600',
-      valueColor: 'text-primary-800',
+      gradient: 'from-primary-500 to-secondary-700',
     },
   ]
 
@@ -166,13 +218,18 @@ function NationalStatsStrip() {
       {stats.map((s) => (
         <div
           key={s.label}
-          className="flex flex-col items-center gap-1.5 py-4 px-2 rounded-2xl bg-white shadow-sm"
+          className={cn(
+            'relative flex flex-col items-center gap-2 py-4 px-2 rounded-2xl overflow-hidden',
+            'bg-gradient-to-br text-white shadow-md',
+            s.gradient,
+          )}
         >
-          <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', s.iconBg, s.iconColor)}>
+          <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-white/10" />
+          <div className="relative w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
             {s.icon}
           </div>
-          <span className={cn('font-heading font-bold text-base', s.valueColor)}>{s.value}</span>
-          <span className="text-[11px] text-primary-400 text-center leading-tight">{s.label}</span>
+          <span className="relative font-heading font-bold text-lg tabular-nums">{s.value}</span>
+          <span className="relative text-[10px] text-white/70 text-center leading-tight font-medium uppercase tracking-wider">{s.label}</span>
         </div>
       ))}
     </div>
@@ -206,7 +263,7 @@ function ProjectThermometer({
         'w-full rounded-2xl text-left transition-all duration-200 overflow-hidden',
         selected
           ? 'shadow-md ring-2 ring-primary-400 bg-white'
-          : 'bg-white shadow-sm hover:shadow-md',
+          : 'bg-white shadow-sm hover:shadow-md hover:-translate-y-0.5',
       )}
     >
       {project.image_url && (
@@ -217,7 +274,7 @@ function ProjectThermometer({
             className="w-full h-full object-cover"
             loading="lazy"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-secondary-900/40 to-transparent" />
           {selected && (
             <motion.div
               initial={{ scale: 0 }}
@@ -230,7 +287,7 @@ function ProjectThermometer({
         </div>
       )}
       <div className="p-4">
-        <h3 className="font-heading font-semibold text-primary-800 text-sm">{project.name}</h3>
+        <h3 className="font-heading font-semibold text-secondary-800 text-sm">{project.name}</h3>
         <p className="text-xs text-primary-400 mt-1 line-clamp-2">{project.description}</p>
         <div className="mt-3">
           <ProgressBar
@@ -272,27 +329,28 @@ function AmountPill({
       onClick={onSelect}
       whileTap={{ scale: 0.93 }}
       className={cn(
-        'relative h-16 rounded-2xl font-heading font-bold text-lg',
-        'transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-0.5',
+        'relative h-[4.5rem] rounded-2xl font-heading font-bold',
+        'transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-1',
         selected
-          ? 'bg-primary-600 text-white shadow-md shadow-primary-600/25'
-          : 'bg-primary-50 text-primary-800 hover:bg-primary-100',
+          ? 'bg-gradient-to-br from-primary-600 to-moss-600 text-white shadow-lg shadow-primary-600/20'
+          : 'bg-white text-secondary-800 hover:bg-primary-50 border border-primary-100/60 shadow-sm',
       )}
     >
-      <span className="text-lg">${amount}</span>
-      {!selected && (
-        <span className="text-[10px] font-normal text-primary-400 leading-none">
-          {amount === 5 && '2 plants'}
-          {amount === 10 && 'cleanup kit'}
-          {amount === 25 && '10 trees'}
-          {amount === 50 && '5m\u00B2 habitat'}
-        </span>
-      )}
+      <span className="text-xl">${amount}</span>
+      <span className={cn(
+        'text-[10px] font-medium leading-none',
+        selected ? 'text-white/60' : 'text-primary-400',
+      )}>
+        {amount === 5 && '2 plants'}
+        {amount === 10 && 'cleanup kit'}
+        {amount === 25 && '10 trees'}
+        {amount === 50 && '5m\u00B2 habitat'}
+      </span>
       {selected && (
         <motion.span
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-sm"
+          className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md"
         >
           <Heart size={12} className="text-primary-600 fill-primary-600" />
         </motion.span>
@@ -302,26 +360,56 @@ function AmountPill({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Trust badges footer                                                */
+/*  Trust badges                                                        */
 /* ------------------------------------------------------------------ */
 
 function TrustBadges() {
   return (
-    <div className="flex items-center justify-center gap-4 py-3 px-4 rounded-2xl bg-white shadow-sm">
-      <div className="flex items-center gap-1.5 text-primary-400">
+    <div className="flex items-center justify-center gap-4 py-3 px-4 rounded-2xl bg-white shadow-sm border border-primary-100/40">
+      <div className="flex items-center gap-1.5 text-primary-500">
         <ShieldCheck size={14} />
-        <span className="text-[11px] font-medium">Secure</span>
+        <span className="text-[11px] font-semibold">Secure</span>
       </div>
       <div className="w-px h-3.5 bg-primary-200/60" />
-      <div className="flex items-center gap-1.5 text-primary-400">
+      <div className="flex items-center gap-1.5 text-primary-500">
         <Zap size={14} />
-        <span className="text-[11px] font-medium">Instant receipt</span>
+        <span className="text-[11px] font-semibold">Instant receipt</span>
       </div>
       <div className="w-px h-3.5 bg-primary-200/60" />
-      <div className="flex items-center gap-1.5 text-primary-400">
+      <div className="flex items-center gap-1.5 text-primary-500">
         <TrendingUp size={14} />
-        <span className="text-[11px] font-medium">Tax deductible</span>
+        <span className="text-[11px] font-semibold">Tax deductible</span>
       </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Section header with gradient icon badge                            */
+/* ------------------------------------------------------------------ */
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  badge,
+}: {
+  icon: React.ElementType
+  title: string
+  badge?: string
+}) {
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-moss-500 shadow-sm">
+          <Icon size={14} className="text-white" />
+        </div>
+        <h2 className="font-heading font-extrabold text-secondary-800 text-lg">{title}</h2>
+      </div>
+      {badge && (
+        <span className="text-[10px] font-semibold text-primary-400 uppercase tracking-wider">
+          {badge}
+        </span>
+      )}
     </div>
   )
 }
@@ -403,105 +491,102 @@ export default function DonatePage() {
         </div>
       }
     >
-      {/* ── Continuous light gradient background ── */}
-      <div className="relative min-h-full bg-gradient-to-b from-primary-100 via-sprout-50 to-moss-50">
+      <div className="relative min-h-full">
+        {/* ── Rich layered background ── */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Base warm sage gradient */}
+          <div className="absolute inset-0 bg-gradient-to-b from-[#f0f4ec] via-[#f4f6f1] to-[#eef3e9]" />
 
-        {/* ── Soft organic shapes ── */}
-        {!rm && (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <motion.div
-              animate={{ scale: [1, 1.06, 1], opacity: [0.4, 0.6, 0.4] }}
-              transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-              className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-primary-200/40 blur-3xl"
-            />
-            <motion.div
-              animate={{ scale: [1, 1.08, 1], opacity: [0.3, 0.5, 0.3] }}
-              transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
-              className="absolute top-[50%] -left-16 w-56 h-56 rounded-full bg-moss-200/30 blur-3xl"
-            />
-            <motion.div
-              animate={{ scale: [1, 1.05, 1], opacity: [0.25, 0.4, 0.25] }}
-              transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
-              className="absolute bottom-[20%] right-0 w-48 h-48 rounded-full bg-sprout-200/30 blur-3xl"
-            />
-          </div>
-        )}
+          {/* Topographic contour lines — earthy bushland feel */}
+          <svg className="absolute inset-0 w-full h-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="donate-topo" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+                <path d="M20 100c30-40 70-60 100-40s60 50 80 20" fill="none" stroke="currentColor" strokeWidth="1" />
+                <path d="M10 140c40-30 80-50 120-30s50 40 70 10" fill="none" stroke="currentColor" strokeWidth="1" />
+                <path d="M30 60c25-35 55-45 85-25s45 35 65 5" fill="none" stroke="currentColor" strokeWidth="0.8" />
+                <circle cx="160" cy="30" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" />
+                <circle cx="160" cy="30" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#donate-topo)" className="text-primary-900" />
+          </svg>
+        </div>
+
+        {/* ── Breathing rings, dots, orbs ── */}
+        <PageDepthElements rm={rm} />
 
         {/* ── Content ── */}
-        <div className="relative z-10">
-
-          {/* ══════════════════════════════════════════════════════ */}
-          {/*  HERO                                                  */}
-          {/* ══════════════════════════════════════════════════════ */}
-          <div className="relative w-full h-64 sm:h-72 lg:h-80 overflow-hidden">
-            <img
-              src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80&auto=format&fit=crop"
-              alt="Volunteers planting native trees"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary-950/80 via-primary-900/40 to-primary-800/10" />
-
-            {/* Back button */}
-            <motion.button
-              type="button"
-              onClick={() => navigate(-1)}
-              whileTap={{ scale: 0.9 }}
-              className="absolute top-4 left-4 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-black/25 backdrop-blur-sm text-white hover:bg-black/40 transition-colors cursor-pointer"
-              style={{ marginTop: 'var(--safe-top)' }}
-              aria-label="Go back"
-            >
-              <ArrowLeft size={20} />
-            </motion.button>
-
-            {/* Hero text */}
-            <div className="absolute bottom-0 left-0 right-0 px-5 pb-6 lg:px-8 lg:pb-8">
-              <motion.div
-                className="max-w-2xl mx-auto"
-                initial={rm ? undefined : { opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                <p className="text-xs font-semibold text-white/50 uppercase tracking-widest mb-2">
-                  Co-Exist Australia
-                </p>
-                <h2 className="font-heading font-bold text-white text-2xl lg:text-3xl leading-tight">
-                  Fund the future of
-                  <br />
-                  <span className="text-sprout-300">our wild places</span>
-                </h2>
-                <p className="text-sm text-white/70 mt-2 max-w-sm">
-                  100% of every donation goes directly to events, native plantings & habitat restoration
-                </p>
-              </motion.div>
-            </div>
-          </div>
-
-          {/* ══════════════════════════════════════════════════════ */}
-          {/*  FORM CONTENT                                          */}
-          {/* ══════════════════════════════════════════════════════ */}
-          <div className="max-w-2xl mx-auto w-full px-4 lg:px-6">
+        <div className="relative z-10 px-5 lg:px-6 py-4">
+          <div className="max-w-2xl mx-auto">
             <motion.div
               variants={rm ? undefined : stagger}
               initial="hidden"
               animate="visible"
-              className="pt-6 space-y-5"
+              className="space-y-5"
             >
-              {/* ── National impact stats ── */}
-              <motion.section variants={fadeUp}>
-                <NationalStatsStrip />
-              </motion.section>
+
+              {/* ═══════════════════════════════════════════════════ */}
+              {/*  HERO CARD                                         */}
+              {/* ═══════════════════════════════════════════════════ */}
+              <motion.div variants={fadeUp}>
+                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-moss-700 p-6 pb-5 shadow-2xl shadow-primary-800/15">
+                  {/* Dot grid texture */}
+                  <div className="absolute inset-0 opacity-[0.06]">
+                    <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <pattern id="donate-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                          <circle cx="2" cy="2" r="1" fill="white" />
+                        </pattern>
+                      </defs>
+                      <rect width="100%" height="100%" fill="url(#donate-dots)" />
+                    </svg>
+                  </div>
+
+                  {/* Decorative circles */}
+                  <div className="absolute top-0 right-0 w-44 h-44 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
+                  <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
+                  <div className="absolute top-1/2 right-[15%] w-16 h-16 rounded-full bg-sprout-300/10 blur-xl" />
+
+                  {/* Back button */}
+                  <motion.button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    whileTap={{ scale: 0.9 }}
+                    className="relative mb-6 flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 text-white border border-white/10 active:scale-[0.95] transition-transform cursor-pointer"
+                    aria-label="Go back"
+                  >
+                    <ArrowLeft size={20} />
+                  </motion.button>
+
+                  <div className="relative">
+                    <h2 className="font-heading font-bold text-white text-[1.75rem] leading-tight">
+                      Fund the future of
+                      <br />
+                      <span className="text-sprout-300">our wild places</span>
+                    </h2>
+                    <p className="text-sm text-white/50 mt-3 max-w-xs leading-relaxed">
+                      100% of every donation goes directly to conservation events, native plantings & habitat restoration
+                    </p>
+                  </div>
+
+                  {/* Stats inside hero */}
+                  <div className="relative mt-6">
+                    <NationalStatsStrip />
+                  </div>
+                </div>
+              </motion.div>
 
               {/* ── Donor wall link ── */}
-              <motion.section variants={fadeUp}>
+              <motion.div variants={fadeUp}>
                 <Link
                   to="/donate/donors"
-                  className="flex items-center gap-3 p-4 rounded-2xl bg-white shadow-sm transition-colors hover:bg-primary-50 active:scale-[0.98]"
+                  className="flex items-center gap-3 p-4 rounded-2xl bg-white shadow-sm border border-primary-100/40 transition-all hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] duration-200"
                 >
-                  <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
-                    <Users size={18} className="text-primary-600" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-moss-500 flex items-center justify-center shrink-0 shadow-sm">
+                    <Users size={18} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-heading text-sm font-semibold text-primary-800">
+                    <p className="font-heading text-sm font-bold text-secondary-800">
                       View donor wall
                     </p>
                     <p className="text-xs text-primary-400 mt-0.5">
@@ -510,180 +595,176 @@ export default function DonatePage() {
                   </div>
                   <ChevronRight size={18} className="text-primary-300 shrink-0" />
                 </Link>
-              </motion.section>
+              </motion.div>
 
-              {/* ── Amount selection ── */}
-              <motion.section variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5">
-                <div className="flex items-baseline justify-between mb-4">
-                  <h3 className="font-heading font-semibold text-primary-800 text-lg">
-                    Choose an amount
-                  </h3>
-                  <span className="text-xs text-primary-400">AUD</span>
-                </div>
-                <div className="grid grid-cols-4 gap-2.5 mb-4">
-                  {PRESET_AMOUNTS.map((amount) => (
-                    <AmountPill
-                      key={amount}
-                      amount={amount}
-                      selected={selectedAmount === amount}
-                      onSelect={() => handlePresetSelect(amount)}
-                    />
-                  ))}
-                </div>
-                <Input
-                  label="Custom amount"
-                  type="text"
-                  value={customAmount}
-                  onChange={handleCustomChange}
-                  placeholder="Enter amount"
-                  icon={<span className="text-primary-400 font-semibold">$</span>}
-                />
+              {/* ═══════════════════════════════════════════════════ */}
+              {/*  AMOUNT SELECTION                                  */}
+              {/* ═══════════════════════════════════════════════════ */}
+              <motion.div variants={fadeUp}>
+                <SectionHeader icon={Heart} title="Choose an amount" badge="AUD" />
+                <div className="rounded-2xl bg-white shadow-sm border border-primary-100/40 p-5">
+                  <div className="grid grid-cols-4 gap-2.5 mb-4">
+                    {PRESET_AMOUNTS.map((amount) => (
+                      <AmountPill
+                        key={amount}
+                        amount={amount}
+                        selected={selectedAmount === amount}
+                        onSelect={() => handlePresetSelect(amount)}
+                      />
+                    ))}
+                  </div>
+                  <Input
+                    label="Custom amount"
+                    type="text"
+                    value={customAmount}
+                    onChange={handleCustomChange}
+                    placeholder="Enter amount"
+                    icon={<span className="text-primary-400 font-semibold">$</span>}
+                  />
 
-                {/* Impact message */}
-                <div className="mt-4">
-                  <AnimatePresence mode="wait">
-                    {effectiveAmount >= 5 && (
-                      <ImpactBadge amount={effectiveAmount} />
-                    )}
-                  </AnimatePresence>
+                  <div className="mt-4">
+                    <AnimatePresence mode="wait">
+                      {effectiveAmount >= 5 && (
+                        <ImpactBadge amount={effectiveAmount} />
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
-              </motion.section>
+              </motion.div>
 
-              {/* ── Membership callout ── */}
-              <motion.section variants={fadeUp}>
+              {/* ═══════════════════════════════════════════════════ */}
+              {/*  MEMBERSHIP CALLOUT                                */}
+              {/* ═══════════════════════════════════════════════════ */}
+              <motion.div variants={fadeUp}>
                 <Link
                   to="/membership"
-                  className="flex items-center gap-3.5 p-4 rounded-2xl bg-amber-50 shadow-sm border border-amber-200/50 transition-colors hover:bg-amber-100/60 active:scale-[0.98]"
+                  className="relative flex items-center gap-4 p-5 rounded-3xl bg-gradient-to-r from-bark-100/80 via-bark-50 to-amber-50/60 shadow-sm border border-bark-200/40 transition-all hover:shadow-md active:scale-[0.98] duration-200 overflow-hidden"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
-                    <Crown size={20} className="text-amber-600" />
+                  <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-amber-200/20 blur-2xl" />
+                  <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-bark-500 flex items-center justify-center shrink-0 shadow-md shadow-amber-200/40">
+                    <Crown size={22} className="text-white" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-heading text-sm font-semibold text-primary-800">
+                  <div className="relative flex-1 min-w-0">
+                    <p className="font-heading text-sm font-bold text-secondary-800">
                       Want to give regularly?
                     </p>
-                    <p className="text-xs text-primary-400 mt-0.5">
+                    <p className="text-xs text-bark-500 mt-0.5">
                       Become a member for ongoing support + exclusive perks
                     </p>
                   </div>
-                  <ChevronRight size={18} className="text-primary-300 shrink-0" />
+                  <ChevronRight size={18} className="relative text-bark-400 shrink-0" />
                 </Link>
-              </motion.section>
+              </motion.div>
 
-              {/* ── Project selection ── */}
+              {/* ═══════════════════════════════════════════════════ */}
+              {/*  PROJECT SELECTION — tinted panel with wave        */}
+              {/* ═══════════════════════════════════════════════════ */}
               {loadingProjects ? (
-                <motion.section variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5">
-                  <div className="flex items-baseline justify-between mb-1">
-                    <h3 className="font-heading font-semibold text-primary-800 text-lg">
-                      Support a project
-                    </h3>
-                    <span className="text-xs text-primary-400">Optional</span>
+                <motion.div variants={fadeUp}>
+                  <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-moss-50/40 to-transparent">
+                    <div className="absolute top-0 left-0 right-0 -translate-y-[calc(100%-1px)]">
+                      <svg viewBox="0 0 1440 40" preserveAspectRatio="none" className="w-full h-5 block" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0,40 C480,0 960,30 1440,10 L1440,40 Z" className="fill-moss-50/40" />
+                      </svg>
+                    </div>
+                    <SectionHeader icon={TreePine} title="Support a project" badge="Optional" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Skeleton variant="card" />
+                      <Skeleton variant="card" />
+                    </div>
                   </div>
-                  <p className="text-sm text-primary-400 mb-4">
-                    Direct your donation to a specific initiative
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Skeleton variant="card" />
-                    <Skeleton variant="card" />
-                  </div>
-                </motion.section>
+                </motion.div>
               ) : projects && projects.length > 0 ? (
-                <motion.section variants={fadeUp}>
-                  <div className="flex items-baseline justify-between mb-3 px-1">
-                    <h3 className="font-heading font-semibold text-primary-800 text-lg">
-                      Support a project
-                    </h3>
-                    <span className="text-xs text-primary-400">Optional</span>
+                <motion.div variants={fadeUp}>
+                  <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-moss-50/40 to-transparent">
+                    <div className="absolute top-0 left-0 right-0 -translate-y-[calc(100%-1px)]">
+                      <svg viewBox="0 0 1440 40" preserveAspectRatio="none" className="w-full h-5 block" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0,40 C480,0 960,30 1440,10 L1440,40 Z" className="fill-moss-50/40" />
+                      </svg>
+                    </div>
+                    <SectionHeader icon={TreePine} title="Support a project" badge="Optional" />
+                    <motion.div
+                      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.07 } } }}
+                      initial="hidden"
+                      animate="visible"
+                      className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    >
+                      {projects.map((p) => (
+                        <ProjectThermometer
+                          key={p.id}
+                          project={p}
+                          selected={selectedProject === p.id}
+                          onSelect={() =>
+                            setSelectedProject(selectedProject === p.id ? null : p.id)
+                          }
+                        />
+                      ))}
+                    </motion.div>
                   </div>
-                  <motion.div
-                    variants={stagger}
-                    initial="hidden"
-                    animate="visible"
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-                  >
-                    {projects.map((p) => (
-                      <ProjectThermometer
-                        key={p.id}
-                        project={p}
-                        selected={selectedProject === p.id}
-                        onSelect={() =>
-                          setSelectedProject(selectedProject === p.id ? null : p.id)
-                        }
-                      />
-                    ))}
-                  </motion.div>
-                </motion.section>
+                </motion.div>
               ) : null}
 
-              {/* ── Personal touches ── */}
-              <motion.section variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5 space-y-4">
-                <div>
-                  <div className="flex items-baseline justify-between mb-1">
-                    <h3 className="font-heading font-semibold text-primary-800 text-lg">
-                      Personal touches
-                    </h3>
-                    <span className="text-xs text-primary-400">Optional</span>
-                  </div>
-                  <p className="text-sm text-primary-400">
-                    Add a message or donate on behalf of a group
-                  </p>
-                </div>
-
-                <Input
-                  type="textarea"
-                  label="Leave a message"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows={3}
-                />
-
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
-                    <Users size={16} className="text-primary-500" />
-                  </div>
-                  <Toggle
-                    label="On behalf of an organisation"
-                    checked={showOrg}
-                    onChange={setShowOrg}
-                    size="sm"
+              {/* ═══════════════════════════════════════════════════ */}
+              {/*  PERSONAL TOUCHES                                  */}
+              {/* ═══════════════════════════════════════════════════ */}
+              <motion.div variants={fadeUp}>
+                <SectionHeader icon={Sparkles} title="Personal touches" badge="Optional" />
+                <div className="rounded-2xl bg-white shadow-sm border border-primary-100/40 p-5 space-y-4">
+                  <Input
+                    type="textarea"
+                    label="Leave a message"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    rows={3}
                   />
-                </div>
-                <AnimatePresence>
-                  {showOrg && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <Input
-                        label="Organisation name"
-                        value={onBehalfOf}
-                        onChange={(e) => setOnBehalfOf(e.target.value)}
-                      />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
 
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
-                    <Sparkles size={16} className="text-primary-500" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-100 to-moss-100 flex items-center justify-center shrink-0">
+                      <Users size={16} className="text-primary-600" />
+                    </div>
+                    <Toggle
+                      label="On behalf of an organisation"
+                      checked={showOrg}
+                      onChange={setShowOrg}
+                      size="sm"
+                    />
                   </div>
-                  <Toggle
-                    label="Show on donor wall"
-                    description="Your name appears on our public recognition page"
-                    checked={isPublic}
-                    onChange={setIsPublic}
-                  />
+                  <AnimatePresence>
+                    {showOrg && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <Input
+                          label="Organisation name"
+                          value={onBehalfOf}
+                          onChange={(e) => setOnBehalfOf(e.target.value)}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-100 to-moss-100 flex items-center justify-center shrink-0">
+                      <Sparkles size={16} className="text-primary-600" />
+                    </div>
+                    <Toggle
+                      label="Show on donor wall"
+                      description="Your name appears on our public recognition page"
+                      checked={isPublic}
+                      onChange={setIsPublic}
+                    />
+                  </div>
                 </div>
-              </motion.section>
+              </motion.div>
 
               {/* ── Trust footer ── */}
-              <motion.section variants={fadeUp}>
+              <motion.div variants={fadeUp}>
                 <TrustBadges />
-              </motion.section>
+              </motion.div>
 
-              {/* Bottom spacer for sticky footer */}
               <div className="h-2" />
             </motion.div>
           </div>

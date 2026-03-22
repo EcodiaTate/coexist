@@ -29,6 +29,8 @@ interface PageProps {
   className?: string
   /** Disable scroll restoration (e.g. for modals, sheets) */
   noScrollRestore?: boolean
+  /** Hide the default atmospheric background (when the page provides its own) */
+  noBackground?: boolean
 }
 
 export function Page({
@@ -37,6 +39,7 @@ export function Page({
   children,
   className,
   noScrollRestore = false,
+  noBackground = false,
 }: PageProps) {
   const location = useLocation()
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -101,7 +104,7 @@ export function Page({
         id="main-content"
         ref={scrollRef}
         className={cn(
-          'flex-1 bg-surface-1',
+          'relative flex-1',
           // On mobile/native, use inner scroll container for tab-bar offset + scroll restore
           // On desktop, let the browser handle scrolling naturally
           !isDesktopNav && 'overflow-y-auto overflow-x-hidden overscroll-contain',
@@ -116,7 +119,32 @@ export function Page({
           className,
         )}
       >
-        {children}
+        {/* Atmospheric background — gentle gradient + soft decorative shapes */}
+        {!noBackground && (
+          <div className="pointer-events-none absolute inset-0 -z-10" aria-hidden="true">
+            <div className="absolute inset-0 bg-gradient-to-b from-primary-50/50 via-white to-moss-50/20" />
+            {/* Large soft ring — top right */}
+            <div className="absolute -top-20 -right-20 w-[340px] h-[340px] rounded-full border-2 border-moss-200/25" />
+            {/* Concentric inner ring */}
+            <div className="absolute -top-6 -right-6 w-[220px] h-[220px] rounded-full border border-primary-200/15" />
+            {/* Blurred glow — bottom left */}
+            <div className="absolute -bottom-20 -left-16 w-[300px] h-[300px] rounded-full bg-moss-100/30 blur-3xl" />
+            {/* Small ring — mid left */}
+            <div className="absolute top-[45%] -left-8 w-[100px] h-[100px] rounded-full border border-primary-100/25" />
+            {/* Warm glow — center right */}
+            <div className="absolute top-[20%] -right-10 w-[200px] h-[200px] rounded-full bg-primary-50/20 blur-3xl" />
+            {/* Small filled accent — lower right */}
+            <div className="absolute bottom-[15%] right-[8%] w-[60px] h-[60px] rounded-full bg-moss-100/20" />
+            {/* Dots */}
+            <div className="absolute top-16 left-[14%] w-2 h-2 rounded-full bg-moss-200/30" />
+            <div className="absolute top-[30%] right-[10%] w-1.5 h-1.5 rounded-full bg-primary-200/25" />
+            <div className="absolute bottom-[22%] left-[20%] w-2 h-2 rounded-full bg-moss-200/20" />
+          </div>
+        )}
+
+        <div className="relative">
+          {children}
+        </div>
       </main>
 
       {footer && (

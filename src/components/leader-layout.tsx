@@ -450,10 +450,25 @@ export function LeaderLayout() {
 
           {/* Content rendered by nested <Route> children */}
           <div className={cn(
-            'flex-1',
+            'relative flex-1',
             header.fullBleed ? 'p-0' : 'p-6',
             showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
           )}>
+            {/* Atmospheric background for non-fullBleed pages */}
+            {!header.fullBleed && (
+              <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+                <div className="absolute inset-0 bg-gradient-to-b from-moss-50/40 via-white to-primary-50/20" />
+                <div className="absolute -top-16 -right-20 w-[300px] h-[300px] rounded-full border-2 border-moss-200/20" />
+                <div className="absolute -top-4 -right-6 w-[200px] h-[200px] rounded-full border border-moss-200/12" />
+                <div className="absolute -bottom-20 -left-16 w-[280px] h-[280px] rounded-full bg-moss-100/25 blur-3xl" />
+                <div className="absolute top-[40%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-100/20" />
+                <div className="absolute top-[18%] -right-8 w-[180px] h-[180px] rounded-full bg-primary-50/15 blur-3xl" />
+                <div className="absolute bottom-[12%] right-[10%] w-[50px] h-[50px] rounded-full bg-moss-100/15" />
+                <div className="absolute top-12 left-[12%] w-1.5 h-1.5 rounded-full bg-moss-200/25" />
+                <div className="absolute top-[28%] right-[8%] w-2 h-2 rounded-full bg-primary-200/20" />
+              </div>
+            )}
+
             <Suspense fallback={
               <div className="flex items-center justify-center py-24">
                 <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" />

@@ -10,6 +10,7 @@ import { OfflineBanner } from '@/components/offline-banner'
 import { MenuSheet } from '@/components/menu-sheet'
 import { MenuSheetProvider, useMenuSheet } from '@/hooks/use-menu-sheet'
 import { useSyncManager } from '@/hooks/use-sync-manager'
+import { usePushRegistration } from '@/hooks/use-push'
 
 interface AppShellProps {
   children: ReactNode
@@ -38,6 +39,11 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
   // Handles auto-sync on reconnect + toast notifications
   useSyncManager()
+
+  // Push notification registration — sets up FCM/APNs listeners,
+  // stores token in DB, handles deep-link routing on tap,
+  // re-registers on app resume. Runs once for all authenticated users.
+  usePushRegistration()
 
   const showBottomTabs = navMode === 'bottom-tabs'
   const showSidebar = navMode === 'sidebar'

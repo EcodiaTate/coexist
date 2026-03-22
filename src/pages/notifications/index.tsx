@@ -1,9 +1,8 @@
 import { useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion, type PanInfo, type Variants } from 'framer-motion'
-import { CheckCheck, Bell, Leaf } from 'lucide-react'
+import { ArrowLeft, CheckCheck, Bell, Leaf } from 'lucide-react'
 import { Page } from '@/components/page'
-import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { EmptyState } from '@/components/empty-state'
 import { Skeleton } from '@/components/skeleton'
@@ -402,38 +401,51 @@ export default function NotificationsPage() {
   }
 
   return (
-    <Page
-      header={
-        <Header
-          title="Notifications"
-          back
-          rightActions={
-            hasNotifications && !allRead ? (
-              <button
-                type="button"
-                onClick={handleMarkAllRead}
-                disabled={markAllRead.isPending}
-                className={cn(
-                  'flex items-center justify-center w-9 h-9 rounded-full',
-                  'text-primary-500 hover:bg-primary-50',
-                  'transition-colors duration-150 cursor-pointer select-none',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-                )}
-                aria-label="Mark all as read"
-              >
-                <CheckCheck size={20} />
-              </button>
-            ) : undefined
-          }
-        />
-      }
-    >
+    <Page noBackground className="!px-0">
       {/* Full-bleed background container */}
       <div className="relative min-h-full">
         <DecorativeBackground />
 
+        {/* Floating nav row */}
+        <div className="relative z-20 flex items-center justify-between pt-[var(--safe-top)] px-4">
+          <motion.button
+            type="button"
+            onClick={() => navigate(-1)}
+            whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            className={cn(
+              'flex items-center justify-center',
+              'w-9 h-9 rounded-full',
+              'text-primary-800 hover:bg-primary-50/80',
+              'cursor-pointer select-none',
+              'transition-colors duration-150',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+            )}
+            aria-label="Go back"
+          >
+            <ArrowLeft size={22} />
+          </motion.button>
+
+          {hasNotifications && !allRead && (
+            <button
+              type="button"
+              onClick={handleMarkAllRead}
+              disabled={markAllRead.isPending}
+              className={cn(
+                'flex items-center justify-center w-9 h-9 rounded-full',
+                'text-primary-500 hover:bg-primary-50',
+                'transition-colors duration-150 cursor-pointer select-none',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+              )}
+              aria-label="Mark all as read"
+            >
+              <CheckCheck size={20} />
+            </button>
+          )}
+        </div>
+
         {/* Content layer */}
-        <div className="relative z-10">
+        <div className="relative z-10 px-4 lg:px-6">
           {isLoading ? (
             <div className="space-y-4 py-6">
               {Array.from({ length: 5 }, (_, i) => (

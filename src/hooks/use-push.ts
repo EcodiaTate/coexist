@@ -1,7 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
-// App is dynamically imported below to avoid breaking web builds
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { resolveNotificationRoute } from '@/hooks/use-notifications'
@@ -48,13 +47,7 @@ async function loadPushPlugin() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Deep link routing from notification tap                            */
-/*  Uses resolveNotificationRoute from use-notifications (single       */
-/*  source of truth for all notification → route mapping)              */
-/* ------------------------------------------------------------------ */
-
-/* ------------------------------------------------------------------ */
-/*  Token storage                                                      */
+/*  Token storage (module-level, shared by both hooks)                 */
 /* ------------------------------------------------------------------ */
 
 function getDeviceInfo(): Record<string, string> {
@@ -98,10 +91,6 @@ async function removeAllTokensForUser(userId: string) {
     .eq('user_id', userId)
 }
 
-/* ------------------------------------------------------------------ */
-/*  Badge count management                                             */
-/* ------------------------------------------------------------------ */
-
 async function clearBadgeCount() {
   if (!Capacitor.isNativePlatform()) return
   try {
@@ -113,29 +102,22 @@ async function clearBadgeCount() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Hook                                                               */
+/*  usePushRegistration — mount ONCE at app root (AppShell)            */
+/*                                                                     */
+/*  Handles:                                                           */
+/*    - Requesting permission + registering with FCM/APNs              */
+/*    - Listening for token refresh and persisting to push_tokens      */
+/*    - Deep-link routing when user taps a notification                */
+/*    - Re-registering on app resume (handles token rotation)          */
+/*    - Clearing badge count on foreground                             */
 /* ------------------------------------------------------------------ */
 
-export function usePush() {
+export function usePushRegistration() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const tokenRef = useRef<string | null>(null)
   const listenersRef = useRef<Array<{ remove: () => void }>>([])
 
-  /** Request permission (call at strategic time, not first launch) */
-  const requestPermission = useCallback(async () => {
-    const plugin = await loadPushPlugin()
-    if (!plugin) return false
-
-    const result = await plugin.requestPermissions()
-    if (result.receive === 'granted') {
-      await plugin.register()
-      return true
-    }
-    return false
-  }, [])
-
-  /** Setup listeners + register */
   useEffect(() => {
     if (!user) return
 
@@ -165,16 +147,15 @@ export function usePush() {
         },
       )
 
-      // Notification received while app is open (silent / foreground)
+      // Notification received while app is open (foreground)
       const receivedListener = await plugin.addListener(
         'pushNotificationReceived',
         (_notification: unknown) => {
-          // Could show in-app toast here
-          // For silent notifications: trigger data sync
+          // Foreground notifications - could show in-app toast
         },
       )
 
-      // Notification tapped - deep link routing
+      // Notification tapped — deep link routing
       const actionListener = await plugin.addListener(
         'pushNotificationActionPerformed',
         (action: unknown) => {
@@ -189,16 +170,14 @@ export function usePush() {
 
       listenersRef.current = [regListener, errListener, receivedListener, actionListener]
 
-      // Try to register (will use existing permission or silently fail)
-      // This also handles token refresh - if the token changed, the
-      // 'registration' listener fires and upserts the new token.
+      // Try to register (will use existing permission or silently succeed)
       try {
         const perm = await plugin.requestPermissions()
         if (perm.receive === 'granted') {
           await plugin.register()
         }
       } catch {
-        // Permission not yet granted - that's fine
+        // Permission not yet granted — that's fine, we'll prompt later
       }
     }
 
@@ -245,22 +224,48 @@ export function usePush() {
     }
   }, [user, navigate])
 
-  /** Cleanup token on logout - removes all tokens for this user */
+  return { tokenRef }
+}
+
+/* ------------------------------------------------------------------ */
+/*  usePush — imperative actions (settings page, logout, dev tools)    */
+/*                                                                     */
+/*  NOT responsible for registration side-effects — that's             */
+/*  usePushRegistration above. This hook is for explicit user actions. */
+/* ------------------------------------------------------------------ */
+
+export function usePush() {
+  const { user } = useAuth()
+
+  /** Prompt for permission (call at a strategic moment, e.g. after onboarding) */
+  const requestPermission = useCallback(async () => {
+    const plugin = await loadPushPlugin()
+    if (!plugin) return false
+
+    const result = await plugin.requestPermissions()
+    if (result.receive === 'granted') {
+      await plugin.register()
+      return true
+    }
+    return false
+  }, [])
+
+  /** Remove this device's token on logout */
   const unregister = useCallback(async () => {
     if (user) {
-      if (tokenRef.current) {
-        await removeToken(user.id, tokenRef.current)
-      } else {
-        // Fallback: remove all tokens for user (covers multi-device)
-        await removeAllTokensForUser(user.id)
-      }
-      tokenRef.current = null
+      // Best-effort: remove all tokens for this user (covers multi-device)
+      await removeAllTokensForUser(user.id)
     }
   }, [user])
+
+  /** Clear badge/notification tray */
+  const clearBadge = useCallback(async () => {
+    await clearBadgeCount()
+  }, [])
 
   return {
     requestPermission,
     unregister,
-    clearBadgeCount,
+    clearBadgeCount: clearBadge,
   }
 }

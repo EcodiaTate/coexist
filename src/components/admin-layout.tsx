@@ -497,34 +497,30 @@ export function AdminLayout() {
           {/* Content rendered by nested <Route> children */}
           <div className={cn(
             'relative flex-1',
-            header.fullBleed ? 'p-0' : header.title === 'Dashboard' ? 'p-0' : 'p-6',
+            header.fullBleed ? 'p-0' : 'p-6',
             showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
           )}>
-            {/* Decorative background for non-fullBleed, non-Dashboard pages */}
-            {!header.fullBleed && header.title !== 'Dashboard' && (
-              <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-                <div className="absolute inset-0 bg-gradient-to-b from-primary-50/30 via-white to-white" />
-                <div className="absolute -top-16 -right-20 w-[300px] h-[300px] rounded-full border border-primary-100/30" />
-                <div className="absolute -top-4 -right-8 w-[200px] h-[200px] rounded-full border border-primary-100/20" />
-                <div className="absolute -bottom-24 -left-16 w-[250px] h-[250px] rounded-full bg-primary-50/25 blur-2xl" />
-                <div className="absolute top-[40%] -left-6 w-[80px] h-[80px] rounded-full border border-primary-100/25" />
-                <div className="absolute top-12 left-[12%] w-2 h-2 rounded-full bg-primary-200/25" />
-                <div className="absolute top-[28%] right-[8%] w-1.5 h-1.5 rounded-full bg-primary-200/20" />
-                <div className="absolute bottom-[18%] left-[20%] w-2 h-2 rounded-full bg-primary-100/30" />
-                <div className="absolute top-8 right-[18%] w-[180px] h-[180px] rounded-full bg-primary-50/15 blur-3xl" />
-                <div className="absolute bottom-[12%] right-[10%] w-[60px] h-[60px] rounded-full bg-primary-50/30" />
+            {/* Atmospheric background for non-fullBleed pages */}
+            {!header.fullBleed && (
+              <div className="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+                <div className="absolute inset-0 bg-gradient-to-b from-primary-50/30 via-white to-primary-50/15" />
+                <div className="absolute -top-16 -right-20 w-[300px] h-[300px] rounded-full border border-primary-100/20" />
+                <div className="absolute -top-4 -right-8 w-[200px] h-[200px] rounded-full border border-primary-100/12" />
+                <div className="absolute -bottom-24 -left-16 w-[260px] h-[260px] rounded-full bg-primary-50/20 blur-3xl" />
+                <div className="absolute top-[40%] -left-6 w-[80px] h-[80px] rounded-full border border-primary-100/15" />
+                <div className="absolute top-[18%] -right-8 w-[180px] h-[180px] rounded-full bg-primary-50/12 blur-3xl" />
+                <div className="absolute top-12 left-[12%] w-1.5 h-1.5 rounded-full bg-primary-200/20" />
+                <div className="absolute top-[28%] right-[8%] w-2 h-2 rounded-full bg-primary-200/15" />
               </div>
             )}
 
-            <div className="relative">
-              <Suspense fallback={
-                <div className="flex items-center justify-center py-24">
-                  <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
-                </div>
-              }>
-                <Outlet key={location.pathname} />
-              </Suspense>
-            </div>
+            <Suspense fallback={
+              <div className="flex items-center justify-center py-24">
+                <div className="w-8 h-8 border-3 border-primary-200 border-t-primary-500 rounded-full animate-spin" />
+              </div>
+            }>
+              <Outlet key={location.pathname} />
+            </Suspense>
           </div>
         </div>
 
