@@ -27,6 +27,7 @@ import {
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
+import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
@@ -360,28 +361,6 @@ function StatusBadge({ status }: { status: string }) {
     >
       {config.label}
     </span>
-  )
-}
-
-function StatCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string
-  value: number | string
-  icon?: React.ReactNode
-}) {
-  return (
-    <div className="rounded-xl bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3 min-w-0 flex-1">
-      <div className="flex items-center gap-1 mb-0.5">
-        {icon && <span className="text-white/50">{icon}</span>}
-        <p className="text-[9px] sm:text-[11px] font-semibold uppercase tracking-wider text-white/50 truncate">
-          {label}
-        </p>
-      </div>
-      <p className="text-base sm:text-xl font-bold text-white tabular-nums">{value}</p>
-    </div>
   )
 }
 
@@ -2141,12 +2120,12 @@ export default function AdminEmailPage() {
           <Skeleton variant="stat-card" />
         </div>
       ) : stats ? (
-        <div className="flex items-center gap-2 sm:gap-3">
-          <StatCard label="Subscribers" value={stats.subscribers} icon={<Users size={12} />} />
-          <StatCard label="Campaigns Sent" value={stats.campaignsSent} icon={<Send size={12} />} />
-          <StatCard label="Bounces" value={stats.bounces} icon={<XCircle size={12} />} />
-          <StatCard label="Suppressed" value={stats.suppressed} icon={<AlertTriangle size={12} />} />
-        </div>
+        <AdminHeroStatRow>
+          <AdminHeroStat value={stats.subscribers} label="Subscribers" icon={<Users size={18} />} color="primary" delay={0} reducedMotion={!!shouldReduceMotion} />
+          <AdminHeroStat value={stats.campaignsSent} label="Campaigns Sent" icon={<Send size={18} />} color="info" delay={1} reducedMotion={!!shouldReduceMotion} />
+          <AdminHeroStat value={stats.bounces} label="Bounces" icon={<XCircle size={18} />} color="warning" delay={2} reducedMotion={!!shouldReduceMotion} />
+          <AdminHeroStat value={stats.suppressed} label="Suppressed" icon={<AlertTriangle size={18} />} color="error" delay={3} reducedMotion={!!shouldReduceMotion} />
+        </AdminHeroStatRow>
       ) : (
         <div className="flex items-center gap-2 sm:gap-3">
           <Skeleton variant="stat-card" />
@@ -2155,7 +2134,7 @@ export default function AdminEmailPage() {
           <Skeleton variant="stat-card" />
         </div>
       ),
-    [stats, statsLoading, showStatsLoading],
+    [stats, statsLoading, showStatsLoading, shouldReduceMotion],
   )
 
   useAdminHeader('Email Marketing', { heroContent: heroStats })

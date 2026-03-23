@@ -1,41 +1,47 @@
-import { useRef, useCallback, useEffect, type RefObject } from 'react'
+import { useRef, useCallback, useEffect, useState, type RefObject } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useLayout } from './use-layout'
+
+interface SwipeBackState {
+  /** Current horizontal drag offset (0 = resting) */
+  offsetX: number
+  /** Whether a swipe gesture is actively in progress */
+  swiping: boolean
+}
 
 interface SwipeBackOptions {
   /** Enable/disable the gesture (default: true) */
   enabled?: boolean
-  /** Min horizontal distance in px to trigger navigation (default: 80) */
+  /** Min horizontal distance in px to commit navigation (default: 100) */
   threshold?: number
-  /** Max vertical movement before cancelling (default: 60) */
+  /** Max vertical movement before cancelling (default: 50) */
   verticalTolerance?: number
-  /** Edge zone width in px — swipe must start within this zone (default: 32) */
+  /** Edge zone width in px — swipe must start within this zone (default: 28) */
   edgeWidth?: number
   /** Custom back handler instead of navigate(-1) */
   onBack?: () => void
-  /** Existing ref to attach to (otherwise creates its own) */
+  /** Existing ref to attach to (otherwise uses document) */
   targetRef?: RefObject<HTMLElement | null>
 }
 
 /**
- * Enables swipe-right-from-left-edge to navigate back on mobile/native.
- * Attach to a container element via the returned ref, or pass targetRef.
+ * Live swipe-right-from-left-edge to navigate back on mobile/native.
+ * Returns real-time drag state so the UI can translate the page.
  */
 export function useSwipeBack({
   enabled = true,
-  threshold = 80,
-  verticalTolerance = 60,
-  edgeWidth = 32,
+  threshold = 100,
+  verticalTolerance = 50,
+  edgeWidth = 28,
   onBack,
   targetRef,
-}: SwipeBackOptions = {}) {
+}: SwipeBackOptions = {}): SwipeBackState {
   const navigate = useNavigate()
   const { isMobile, isNative } = useLayout()
-  const ownRef = useRef<HTMLElement>(null)
-  const ref = targetRef ?? ownRef
+  const [state, setState] = useState<SwipeBackState>({ offsetX: 0, swiping: false })
+
   const touchStart = useRef<{ x: number; y: number } | null>(null)
   const cancelled = useRef(false)
-
   const active = enabled && (isMobile || isNative)
 
   const handleTouchStart = useCallback(
@@ -57,8 +63,17 @@ export function useSwipeBack({
       if (!touchStart.current || cancelled.current) return
       const touch = e.touches[0]
       if (!touch) return
-      if (Math.abs(touch.clientY - touchStart.current.y) > verticalTolerance) {
+
+      const dy = Math.abs(touch.clientY - touchStart.current.y)
+      if (dy > verticalTolerance) {
         cancelled.current = true
+        setState({ offsetX: 0, swiping: false })
+        return
+      }
+
+      const dx = Math.max(0, touch.clientX - touchStart.current.x)
+      if (dx > 4) {
+        setState({ offsetX: dx, swiping: true })
       }
     },
     [verticalTolerance],
@@ -66,36 +81,47 @@ export function useSwipeBack({
 
   const handleTouchEnd = useCallback(
     (e: TouchEvent) => {
-      if (!touchStart.current || cancelled.current) return
+      if (!touchStart.current || cancelled.current) {
+        setState({ offsetX: 0, swiping: false })
+        return
+      }
       const touch = e.changedTouches[0]
-      if (!touch) return
-      if (touch.clientX - touchStart.current.x >= threshold) {
+      if (!touch) {
+        setState({ offsetX: 0, swiping: false })
+        return
+      }
+
+      const dx = touch.clientX - touchStart.current.x
+      setState({ offsetX: 0, swiping: false })
+      touchStart.current = null
+
+      if (dx >= threshold) {
         if (onBack) {
           onBack()
         } else {
           navigate(-1)
         }
       }
-      touchStart.current = null
     },
     [threshold, onBack, navigate],
   )
 
   useEffect(() => {
     if (!active) return
-    const el = ref.current
-    if (!el) return
 
-    el.addEventListener('touchstart', handleTouchStart, { passive: true })
-    el.addEventListener('touchmove', handleTouchMove, { passive: true })
-    el.addEventListener('touchend', handleTouchEnd, { passive: true })
+    const el = targetRef?.current ?? document
+    el.addEventListener('touchstart', handleTouchStart as EventListener, { passive: true })
+    el.addEventListener('touchmove', handleTouchMove as EventListener, { passive: true })
+    el.addEventListener('touchend', handleTouchEnd as EventListener, { passive: true })
 
     return () => {
-      el.removeEventListener('touchstart', handleTouchStart)
-      el.removeEventListener('touchmove', handleTouchMove)
-      el.removeEventListener('touchend', handleTouchEnd)
+      el.removeEventListener('touchstart', handleTouchStart as EventListener)
+      el.removeEventListener('touchmove', handleTouchMove as EventListener)
+      el.removeEventListener('touchend', handleTouchEnd as EventListener)
     }
-  }, [active, handleTouchStart, handleTouchMove, handleTouchEnd, ref])
+  }, [active, handleTouchStart, handleTouchMove, handleTouchEnd, targetRef])
 
-  return ref
+  // Return idle state if not active
+  if (!active) return { offsetX: 0, swiping: false }
+  return state
 }

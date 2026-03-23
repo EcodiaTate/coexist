@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
+import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -728,30 +729,19 @@ export default function AdminApplicationsPage() {
   }, [applications, statusFilter, searchQuery])
 
   const rejected = useMemo(() => (applications ?? []).filter(a => a.status === 'rejected').length, [applications])
+  const rm = !!shouldReduceMotion
 
   // Hero stats
   const heroStats = useMemo(() => (
-    <div className="flex items-center gap-2.5">
-      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3 border border-white/10 min-w-[72px] text-center">
-        <p className="text-[22px] font-bold text-white tabular-nums">{stats.total}</p>
-        <p className="text-[10px] text-white/50 font-semibold uppercase tracking-wider">Total</p>
-      </div>
-      <div className="rounded-xl bg-warning-500/20 backdrop-blur-sm px-4 py-3 border border-warning-400/20 min-w-[72px] text-center">
-        <p className="text-[22px] font-bold text-warning-300 tabular-nums">{stats.pending}</p>
-        <p className="text-[10px] text-warning-200/70 font-semibold uppercase tracking-wider">Pending</p>
-      </div>
-      <div className="rounded-xl bg-success-500/20 backdrop-blur-sm px-4 py-3 border border-success-400/20 min-w-[72px] text-center">
-        <p className="text-[22px] font-bold text-success-300 tabular-nums">{stats.accepted}</p>
-        <p className="text-[10px] text-success-200/70 font-semibold uppercase tracking-wider">Accepted</p>
-      </div>
+    <AdminHeroStatRow>
+      <AdminHeroStat value={stats.total} label="Total" icon={<Users size={18} />} color="primary" delay={0} reducedMotion={rm} />
+      <AdminHeroStat value={stats.pending} label="Pending" icon={<Clock size={18} />} color="warning" delay={1} reducedMotion={rm} />
+      <AdminHeroStat value={stats.accepted} label="Accepted" icon={<CheckCircle2 size={18} />} color="success" delay={2} reducedMotion={rm} />
       {rejected > 0 && (
-        <div className="rounded-xl bg-error-500/15 backdrop-blur-sm px-4 py-3 border border-error-400/15 min-w-[72px] text-center">
-          <p className="text-[22px] font-bold text-error-300 tabular-nums">{rejected}</p>
-          <p className="text-[10px] text-error-200/60 font-semibold uppercase tracking-wider">Declined</p>
-        </div>
+        <AdminHeroStat value={rejected} label="Declined" icon={<XCircle size={18} />} color="error" delay={3} reducedMotion={rm} />
       )}
-    </div>
-  ), [stats, rejected])
+    </AdminHeroStatRow>
+  ), [stats, rejected, rm])
 
   useAdminHeader('Applications', {
     subtitle: 'Collective leadership applications',

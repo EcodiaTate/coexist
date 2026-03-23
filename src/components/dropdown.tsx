@@ -180,7 +180,7 @@ export function Dropdown({
     >
       <span
         className={cn(
-          'truncate',
+          'truncate min-w-0',
           selectedOption ? 'text-primary-800' : 'text-primary-400',
         )}
       >

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
+import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -112,16 +113,10 @@ export default function AdminPartnersPage() {
   const showOffersLoading = useDelayedLoading(offersLoading)
 
   const heroStats = useMemo(() => (
-    <div className="flex items-center gap-3">
-      <div className="rounded-xl bg-white/10 px-4 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Organisations</p>
-        <p className="text-xl font-bold text-white tabular-nums">{organisations?.length ?? 0}</p>
-      </div>
-      <div className="rounded-xl bg-white/10 px-4 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Offers</p>
-        <p className="text-xl font-bold text-white tabular-nums">{offers?.length ?? 0}</p>
-      </div>
-    </div>
+    <AdminHeroStatRow>
+      <AdminHeroStat value={organisations?.length ?? 0} label="Organisations" icon={<Building2 size={18} />} color="bark" delay={0} reducedMotion={false} />
+      <AdminHeroStat value={offers?.length ?? 0} label="Offers" icon={<Gift size={18} />} color="sprout" delay={1} reducedMotion={false} />
+    </AdminHeroStatRow>
   ), [organisations?.length, offers?.length])
 
   useAdminHeader('Partners & Sponsors', { heroContent: heroStats })

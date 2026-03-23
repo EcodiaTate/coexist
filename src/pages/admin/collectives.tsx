@@ -14,6 +14,7 @@ import {
   Crown,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
+import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { SearchBar } from '@/components/search-bar'
@@ -24,7 +25,6 @@ import { Modal } from '@/components/modal'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
-import { useCountUp } from '@/components/stat-card'
 import {
   useAdminCollectives,
   useCreateCollective,
@@ -49,50 +49,6 @@ const AUSTRALIAN_STATES = [
 type StatusFilter = 'all' | 'active' | 'archived'
 
 /* ------------------------------------------------------------------ */
-/*  Hero stat card (matches /admin dashboard)                          */
-/* ------------------------------------------------------------------ */
-
-function HeroStatCard({
-  value,
-  label,
-  icon,
-  reducedMotion,
-  delay = 0,
-}: {
-  value: number
-  label: string
-  icon: React.ReactNode
-  reducedMotion: boolean
-  delay?: number
-}) {
-  const display = useCountUp(value, 1200, !reducedMotion)
-
-  return (
-    <motion.div
-      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.5,
-        delay: reducedMotion ? 0 : 0.2 + delay * 0.8,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      }}
-      className="flex flex-col items-center text-center py-6 px-3"
-      aria-label={`${label}: ${value}`}
-    >
-      <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-3" aria-hidden="true">
-        {icon}
-      </span>
-      <p
-        style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-        className="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums text-white"
-      >
-        {display.toLocaleString()}
-      </p>
-      <p className="mt-1.5 text-xs font-medium text-white/45 tracking-wide uppercase">{label}</p>
-    </motion.div>
-  )
-}
-
 /* ------------------------------------------------------------------ */
 /*  Create collective modal                                            */
 /* ------------------------------------------------------------------ */
@@ -254,38 +210,12 @@ export default function AdminCollectivesPage() {
   const rm = !!shouldReduceMotion
 
   const heroStats = useMemo(() => (
-    <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-      <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-white/[0.06]">
-        <HeroStatCard
-          value={stats?.total ?? 0}
-          label="Total"
-          icon={<MapPin size={20} />}
-          reducedMotion={rm}
-          delay={0}
-        />
-        <HeroStatCard
-          value={stats?.active ?? 0}
-          label="Active"
-          icon={<Users size={20} />}
-          reducedMotion={rm}
-          delay={0.1}
-        />
-        <HeroStatCard
-          value={stats?.totalMembers ?? 0}
-          label="Members"
-          icon={<Users size={20} />}
-          reducedMotion={rm}
-          delay={0.2}
-        />
-        <HeroStatCard
-          value={stats?.totalEvents ?? 0}
-          label="Events"
-          icon={<CalendarDays size={20} />}
-          reducedMotion={rm}
-          delay={0.3}
-        />
-      </div>
-    </div>
+    <AdminHeroStatRow>
+      <AdminHeroStat value={stats?.total ?? 0} label="Total" icon={<MapPin size={18} />} color="primary" delay={0} reducedMotion={rm} />
+      <AdminHeroStat value={stats?.active ?? 0} label="Active" icon={<Users size={18} />} color="success" delay={1} reducedMotion={rm} />
+      <AdminHeroStat value={stats?.totalMembers ?? 0} label="Members" icon={<Users size={18} />} color="info" delay={2} reducedMotion={rm} />
+      <AdminHeroStat value={stats?.totalEvents ?? 0} label="Events" icon={<CalendarDays size={18} />} color="sprout" delay={3} reducedMotion={rm} />
+    </AdminHeroStatRow>
   ), [stats, rm])
 
   useAdminHeader('Collectives', { actions: heroActions, heroContent: heroStats })

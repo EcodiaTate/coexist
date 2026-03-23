@@ -81,15 +81,18 @@ export function AdminHeroStat({
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
       className={cn(
-        'flex flex-col items-center text-center rounded-2xl px-4 py-3.5 min-w-[76px]',
+        'flex flex-col items-center text-center rounded-2xl',
+        // Compact on mobile, spacious on sm+
+        'px-3 py-2.5 sm:px-4 sm:py-3.5',
         c.bg, c.shadow,
         className,
       )}
       aria-label={`${label}: ${value}`}
     >
+      {/* Icon hidden on mobile to save space, visible sm+ */}
       {icon && (
         <span
-          className={cn('flex items-center justify-center w-9 h-9 rounded-xl mb-2', c.icon)}
+          className={cn('hidden sm:flex items-center justify-center w-9 h-9 rounded-xl mb-2', c.icon)}
           aria-hidden="true"
         >
           {icon}
@@ -97,11 +100,11 @@ export function AdminHeroStat({
       )}
       <p
         style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-        className={cn('text-2xl font-bold tracking-tight tabular-nums leading-none', c.value)}
+        className={cn('text-xl sm:text-2xl font-bold tracking-tight tabular-nums leading-none', c.value)}
       >
         {display.toLocaleString()}
       </p>
-      <p className="mt-1 text-[10px] font-semibold text-white/50 tracking-wider uppercase">
+      <p className="mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] font-semibold text-white/50 tracking-wider uppercase truncate max-w-full">
         {label}
       </p>
       {sub && (

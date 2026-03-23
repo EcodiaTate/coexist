@@ -599,7 +599,7 @@ export default function LeadACollectivePage() {
           ) : (
             <label className={cn(
               'flex items-center gap-3 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50',
-              'px-4 py-4 cursor-pointer transition-all',
+              'px-4 py-4 cursor-pointer transition-colors',
               'hover:border-primary-400 hover:bg-primary-100/50',
             )}>
               <Upload size={18} className="text-primary-400" />

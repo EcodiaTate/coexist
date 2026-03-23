@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
+import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -520,31 +521,12 @@ export default function AdminEventsPage() {
   const showLoading = useDelayedLoading(isLoading)
 
   const heroStats = useMemo(() => (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      {(data?.stats
-        ? [
-            { label: 'Upcoming', value: data.stats.upcoming },
-            { label: 'Total Events', value: data.stats.total },
-            { label: 'Registrations', value: data.stats.totalRegistrations },
-            { label: 'Active Collectives', value: data.stats.activeCollectives },
-          ]
-        : [
-            { label: 'Upcoming', value: null },
-            { label: 'Total Events', value: null },
-            { label: 'Registrations', value: null },
-            { label: 'Active Collectives', value: null },
-          ]
-      ).map((s) => (
-        <div key={s.label} className="rounded-xl bg-white/10 p-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-1">{s.label}</p>
-          {s.value !== null ? (
-            <p className="text-xl font-bold text-white tabular-nums">{s.value.toLocaleString()}</p>
-          ) : (
-            <div className="h-7 w-12 rounded-lg bg-white/[0.08] animate-pulse" />
-          )}
-        </div>
-      ))}
-    </div>
+    <AdminHeroStatRow>
+      <AdminHeroStat value={data?.stats?.upcoming ?? 0} label="Upcoming" icon={<Flame size={18} />} color="warning" delay={0} reducedMotion={false} />
+      <AdminHeroStat value={data?.stats?.total ?? 0} label="Total Events" icon={<CalendarDays size={18} />} color="primary" delay={1} reducedMotion={false} />
+      <AdminHeroStat value={data?.stats?.totalRegistrations ?? 0} label="Registrations" icon={<ClipboardList size={18} />} color="sprout" delay={2} reducedMotion={false} />
+      <AdminHeroStat value={data?.stats?.activeCollectives ?? 0} label="Active Collectives" icon={<MapPin size={18} />} color="moss" delay={3} reducedMotion={false} />
+    </AdminHeroStatRow>
   ), [data?.stats])
 
   useAdminHeader('Events', { heroContent: heroStats })

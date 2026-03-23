@@ -15,6 +15,7 @@ import {
   Calendar,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
+import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
 import { Dropdown } from '@/components/dropdown'
 import { Input } from '@/components/input'
@@ -169,12 +170,9 @@ export default function AdminExportsPage() {
   const { toast } = useToast()
 
   const heroStats = useMemo(() => (
-    <div className="flex items-center gap-3">
-      <div className="rounded-xl bg-white/10 px-4 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Available Exports</p>
-        <p className="text-xl font-bold text-white tabular-nums">{exportTypes.length}</p>
-      </div>
-    </div>
+    <AdminHeroStatRow>
+      <AdminHeroStat value={exportTypes.length} label="Available Exports" icon={<Download size={18} />} color="info" delay={0} reducedMotion={false} />
+    </AdminHeroStatRow>
   ), [])
 
   useAdminHeader('Export Centre', { heroContent: heroStats })

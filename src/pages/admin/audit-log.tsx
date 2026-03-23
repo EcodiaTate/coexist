@@ -4,9 +4,11 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
   Clock,
+  FileSearch,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
+import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { SearchBar } from '@/components/search-bar'
 import { Dropdown } from '@/components/dropdown'
 import { Skeleton } from '@/components/skeleton'
@@ -98,14 +100,12 @@ export default function AdminAuditLogPage() {
 
   const shouldReduceMotion = useReducedMotion()
 
+  const rm = !!shouldReduceMotion
   const heroStats = useMemo(() => (
-    <div className="flex items-center gap-3">
-      <div className="rounded-xl bg-white/10 px-4 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Total Entries</p>
-        <p className="text-xl font-bold text-white tabular-nums">{(data?.total ?? 0).toLocaleString()}</p>
-      </div>
-    </div>
-  ), [data?.total])
+    <AdminHeroStatRow>
+      <AdminHeroStat value={data?.total ?? 0} label="Total Entries" icon={<FileSearch size={18} />} color="plum" delay={0} reducedMotion={rm} />
+    </AdminHeroStatRow>
+  ), [data?.total, rm])
 
   useAdminHeader('Audit Log', { heroContent: heroStats })
 

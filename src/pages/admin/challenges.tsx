@@ -8,9 +8,11 @@ import {
   Calendar,
   Target,
   Trash2,
+  Zap,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
+import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -69,16 +71,10 @@ export default function AdminChallengesPage() {
   ), [])
 
   const heroStats = useMemo(() => (
-    <div className="flex items-center gap-3">
-      <div className="rounded-xl bg-white/10 px-4 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Total</p>
-        <p className="text-xl font-bold text-white tabular-nums">{challenges?.length ?? 0}</p>
-      </div>
-      <div className="rounded-xl bg-white/10 px-4 py-3">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Active</p>
-        <p className="text-xl font-bold text-white tabular-nums">{challenges?.filter((c: any) => (c as any).status === 'active').length ?? 0}</p>
-      </div>
-    </div>
+    <AdminHeroStatRow>
+      <AdminHeroStat value={challenges?.length ?? 0} label="Total" icon={<Trophy size={18} />} color="warning" delay={0} reducedMotion={false} />
+      <AdminHeroStat value={challenges?.filter((c: any) => (c as any).status === 'active').length ?? 0} label="Active" icon={<Zap size={18} />} color="success" delay={1} reducedMotion={false} />
+    </AdminHeroStatRow>
   ), [challenges])
 
   useAdminHeader('Challenges', { actions: heroActions, heroContent: heroStats })
