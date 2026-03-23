@@ -146,8 +146,20 @@ export function useRequestReturn() {
         .insert({ order_id: orderId, reason, user_id: user.id })
       if (error) throw error
     },
-    onSuccess: () => {
+    onMutate: async ({ orderId }) => {
+      await queryClient.cancelQueries({ queryKey: ['my-orders'] })
+      const previous = queryClient.getQueryData<Order[]>(['my-orders', user?.id])
+      queryClient.setQueryData<Order[]>(['my-orders', user?.id], (old) =>
+        old?.map((o) => (o.id === orderId ? { ...o, return_requested: true } : o)),
+      )
+      return { previous }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previous) queryClient.setQueryData(['my-orders', user?.id], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['my-orders'] })
+      queryClient.invalidateQueries({ queryKey: ['my-returns'] })
     },
   })
 }

@@ -119,7 +119,7 @@ export function useCollectiveTasks(collectiveId: string | undefined) {
 
 export function useCompleteTask() {
   const queryClient = useQueryClient()
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
 
   return useMutation({
     mutationFn: async ({
@@ -143,7 +143,33 @@ export function useCompleteTask() {
 
       if (error) throw error
     },
-    onSuccess: () => {
+    onMutate: async ({ instanceId, notes }) => {
+      await queryClient.cancelQueries({ queryKey: ['my-tasks'] })
+      await queryClient.cancelQueries({ queryKey: ['collective-tasks'] })
+      const previousMyTasks = queryClient.getQueryData(['my-tasks', user?.id])
+      const now = new Date().toISOString()
+      const updater = (old: MyTask[] | undefined) =>
+        old?.map((t) =>
+          t.id === instanceId
+            ? {
+                ...t,
+                status: 'completed' as const,
+                completed_at: now,
+                completed_by: user!.id,
+                completion_notes: notes || null,
+                completer: { display_name: profile?.display_name ?? null, avatar_url: profile?.avatar_url ?? null },
+              }
+            : t,
+        )
+      queryClient.setQueriesData<MyTask[]>({ queryKey: ['my-tasks'] }, updater)
+      queryClient.setQueriesData<MyTask[]>({ queryKey: ['collective-tasks'] }, updater)
+      return { previousMyTasks }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previousMyTasks) queryClient.setQueryData(['my-tasks', user?.id], context.previousMyTasks)
+      queryClient.invalidateQueries({ queryKey: ['collective-tasks'] })
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
       queryClient.invalidateQueries({ queryKey: ['collective-tasks'] })
       queryClient.invalidateQueries({ queryKey: ['admin-kpi-dashboard'] })
@@ -167,7 +193,15 @@ export function useSkipTask() {
 
       if (error) throw error
     },
-    onSuccess: () => {
+    onMutate: async (instanceId) => {
+      await queryClient.cancelQueries({ queryKey: ['my-tasks'] })
+      await queryClient.cancelQueries({ queryKey: ['collective-tasks'] })
+      const updater = (old: MyTask[] | undefined) =>
+        old?.map((t) => (t.id === instanceId ? { ...t, status: 'skipped' as const } : t))
+      queryClient.setQueriesData<MyTask[]>({ queryKey: ['my-tasks'] }, updater)
+      queryClient.setQueriesData<MyTask[]>({ queryKey: ['collective-tasks'] }, updater)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
       queryClient.invalidateQueries({ queryKey: ['collective-tasks'] })
     },

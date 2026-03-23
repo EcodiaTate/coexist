@@ -406,9 +406,21 @@ export function useUpdateCollective() {
         .eq('id', collectiveId)
       if (error) throw error
     },
-    onSuccess: (_, { collectiveId }) => {
+    onMutate: async ({ collectiveId, updates }) => {
+      await queryClient.cancelQueries({ queryKey: ['collective', collectiveId] })
+      const previous = queryClient.getQueryData<CollectiveWithLeader>(['collective', collectiveId])
+      queryClient.setQueryData<CollectiveWithLeader>(['collective', collectiveId], (old) =>
+        old ? { ...old, ...updates } : old,
+      )
+      return { previous }
+    },
+    onError: (_err, { collectiveId }, context) => {
+      if (context?.previous) queryClient.setQueryData(['collective', collectiveId], context.previous)
+    },
+    onSettled: (_, __, { collectiveId }) => {
       queryClient.invalidateQueries({ queryKey: ['collective', collectiveId] })
       queryClient.invalidateQueries({ queryKey: ['collectives'] })
+      queryClient.invalidateQueries({ queryKey: ['my-collectives'] })
     },
   })
 }

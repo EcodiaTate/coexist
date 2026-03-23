@@ -17,12 +17,6 @@ html {
   }
 }
 
-/* ===== Page Transition GPU Compositing ===== */
-/* Promote the main content area to its own compositor layer
-   so page transitions don't trigger repaints on the sidebar/tabs */
-main {
-  contain: layout style paint;
-}
 
 /* ===== Self-Hosted Fonts ===== */
 

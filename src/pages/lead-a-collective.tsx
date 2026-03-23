@@ -226,13 +226,12 @@ export default function LeadACollectivePage() {
 
   if (submitted) {
     return (
-      <Page noBackground className="!px-0 bg-primary-50">
-        <Header title="" back transparent className="-mb-14" />
+      <Page noBackground className="!px-0 bg-primary-50" stickyOverlay={<Header title="" back transparent className="-mb-14" />}>
         <div className="relative overflow-hidden bg-gradient-to-br from-sprout-600 via-primary-700 to-secondary-800">
           <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5" />
           <div
             className="relative z-10 px-6 pt-14 pb-16 text-center"
-            style={{ paddingTop: 'calc(var(--safe-top, 0px) + 1rem)' }}
+            style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}
           >
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 mb-5">
               <Star size={32} className="text-white" />
@@ -264,8 +263,7 @@ export default function LeadACollectivePage() {
   }
 
   return (
-    <Page noBackground className="!px-0 bg-primary-50">
-      <Header title="" back transparent className="-mb-14" />
+    <Page noBackground className="!px-0 bg-primary-50" stickyOverlay={<Header title="" back transparent className="-mb-14" />}>
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-br from-sprout-600 via-primary-700 to-secondary-800">
         <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5" />

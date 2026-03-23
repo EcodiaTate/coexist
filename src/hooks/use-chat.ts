@@ -737,9 +737,26 @@ export function usePollVote() {
       if (error) throw error
       return { pollId, collectiveId }
     },
-    onSuccess: ({ pollId, collectiveId }) => {
-      queryClient.invalidateQueries({ queryKey: ['chat-poll', pollId] })
-      queryClient.invalidateQueries({ queryKey: ['chat-polls', collectiveId] })
+    onMutate: async ({ pollId, optionId }) => {
+      await queryClient.cancelQueries({ queryKey: ['chat-poll', pollId] })
+      const previous = queryClient.getQueryData<ChatPoll>(['chat-poll', pollId])
+      queryClient.setQueryData<ChatPoll>(['chat-poll', pollId], (old) => {
+        if (!old) return old
+        const counts = { ...(old._vote_counts ?? {}) }
+        counts[optionId] = (counts[optionId] ?? 0) + 1
+        const userVotes = [...(old._user_votes ?? []), optionId]
+        return { ...old, _vote_counts: counts, _user_votes: userVotes, _total_votes: (old._total_votes ?? 0) + (old._user_votes?.length ? 0 : 1) }
+      })
+      return { previous }
+    },
+    onError: (_err, { pollId }, context) => {
+      if (context?.previous) queryClient.setQueryData(['chat-poll', pollId], context.previous)
+    },
+    onSettled: (result) => {
+      if (result) {
+        queryClient.invalidateQueries({ queryKey: ['chat-poll', result.pollId] })
+        queryClient.invalidateQueries({ queryKey: ['chat-polls', result.collectiveId] })
+      }
     },
   })
 }
@@ -762,9 +779,26 @@ export function useRemovePollVote() {
       if (error) throw error
       return { pollId, collectiveId }
     },
-    onSuccess: ({ pollId, collectiveId }) => {
-      queryClient.invalidateQueries({ queryKey: ['chat-poll', pollId] })
-      queryClient.invalidateQueries({ queryKey: ['chat-polls', collectiveId] })
+    onMutate: async ({ pollId, optionId }) => {
+      await queryClient.cancelQueries({ queryKey: ['chat-poll', pollId] })
+      const previous = queryClient.getQueryData<ChatPoll>(['chat-poll', pollId])
+      queryClient.setQueryData<ChatPoll>(['chat-poll', pollId], (old) => {
+        if (!old) return old
+        const counts = { ...(old._vote_counts ?? {}) }
+        counts[optionId] = Math.max(0, (counts[optionId] ?? 0) - 1)
+        const userVotes = (old._user_votes ?? []).filter((v) => v !== optionId)
+        return { ...old, _vote_counts: counts, _user_votes: userVotes, _total_votes: Math.max(0, (old._total_votes ?? 0) - (userVotes.length === 0 ? 1 : 0)) }
+      })
+      return { previous }
+    },
+    onError: (_err, { pollId }, context) => {
+      if (context?.previous) queryClient.setQueryData(['chat-poll', pollId], context.previous)
+    },
+    onSettled: (result) => {
+      if (result) {
+        queryClient.invalidateQueries({ queryKey: ['chat-poll', result.pollId] })
+        queryClient.invalidateQueries({ queryKey: ['chat-polls', result.collectiveId] })
+      }
     },
   })
 }

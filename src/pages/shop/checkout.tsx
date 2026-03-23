@@ -158,7 +158,7 @@ export default function CheckoutPage() {
       swipeBack
       noBackground
       className="!px-0"
-      header={<Header title="Checkout" back transparent />}
+      stickyOverlay={<Header title="" back transparent className="-mb-14" />}
       footer={
         <div className="space-y-2">
           <div className="flex items-center justify-between">

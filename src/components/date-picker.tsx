@@ -137,7 +137,7 @@ export function DatePicker({
           aria-label={label ?? defaultPlaceholder}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            'flex items-center w-full rounded-lg bg-primary-50/50 px-4 py-3',
+            'flex items-center w-full rounded-lg bg-primary-50/50 px-4 py-3 min-h-12',
             'text-[16px] leading-normal text-left',
             'cursor-pointer select-none',
             'transition-all duration-150',

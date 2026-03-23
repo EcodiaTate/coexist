@@ -269,7 +269,7 @@ export function SidebarShell({
                           'cursor-pointer select-none',
                           'focus-visible:outline-none focus-visible:ring-2',
                           focusRing,
-                          collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-9',
+                          collapsed ? 'justify-center h-10 w-10 mx-auto' : 'px-2.5 h-10',
                           active ? activeClasses : hoverClasses,
                         )}
                         aria-current={active ? 'page' : undefined}
@@ -340,7 +340,7 @@ export function SidebarShell({
           onClick={() => setCollapsed((p) => !p)}
           className={cn(
             'flex items-center justify-center gap-2 w-full',
-            'h-8 rounded-xl text-[13px]',
+            'h-10 rounded-xl text-[13px]',
             'text-primary-300',
             collapseHover,
             'cursor-pointer select-none',

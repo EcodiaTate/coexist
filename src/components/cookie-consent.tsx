@@ -169,7 +169,7 @@ export function CookieConsentBanner({ className }: { className?: string }) {
             <div className="flex gap-2 p-4 pt-2">
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-xs font-medium text-primary-400 hover:text-primary-800 transition-colors px-2 py-1.5"
+                className="text-xs font-medium text-primary-400 hover:text-primary-800 transition-colors px-3 min-h-11 flex items-center justify-center"
               >
                 {showDetails ? 'Hide details' : 'Customise'}
               </button>

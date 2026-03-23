@@ -44,7 +44,7 @@ export function Toggle({
   const config = sizeConfig[size]
 
   return (
-    <div className={cn('flex items-start gap-3', className)}>
+    <div className={cn('flex items-start gap-3 min-h-11', className)}>
       {/* Label area (left side) */}
       {(label || description) && (
         <div className="flex-1 min-w-0 select-none">
@@ -74,7 +74,7 @@ export function Toggle({
         </div>
       )}
 
-      {/* Switch */}
+      {/* Switch - outer tap area wraps the visual track for easy touch */}
       <button
         id={`${id}-switch`}
         type="button"
@@ -86,14 +86,20 @@ export function Toggle({
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={cn(
-          'relative inline-flex shrink-0 rounded-full cursor-pointer',
-          'transition-colors duration-150',
+          'relative inline-flex items-center justify-center shrink-0 cursor-pointer',
+          'min-w-11 min-h-11',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
           'disabled:opacity-50 disabled:cursor-not-allowed',
-          config.track,
-          checked ? 'bg-primary-500' : 'bg-primary-200',
         )}
       >
+        <span
+          className={cn(
+            'relative inline-flex shrink-0 rounded-full',
+            'transition-colors duration-150',
+            config.track,
+            checked ? 'bg-primary-500' : 'bg-primary-200',
+          )}
+        >
         <motion.span
           aria-hidden="true"
           className={cn(

@@ -39,7 +39,7 @@ export function Checkbox({
   return (
     <label
       className={cn(
-        'flex items-start gap-3 min-h-11 cursor-pointer select-none',
+        'relative flex items-start gap-3 min-h-11 cursor-pointer select-none',
         disabled && 'opacity-50 cursor-not-allowed',
         className,
       )}
@@ -53,7 +53,7 @@ export function Checkbox({
         disabled={disabled}
         aria-label={!label ? 'Checkbox' : undefined}
         aria-describedby={description ? descriptionId : undefined}
-        className="sr-only peer"
+        className="absolute opacity-0 w-0 h-0 peer"
       />
 
       {/* Visual checkbox */}

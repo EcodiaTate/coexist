@@ -182,7 +182,7 @@ export function useChannelMessages(channelId: string | undefined) {
 /* ------------------------------------------------------------------ */
 
 export function useSendChannelMessage() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -214,7 +214,42 @@ export function useSendChannelMessage() {
 
       if (error) throw error
     },
-    onSuccess: (_data, variables) => {
+    onMutate: async ({ channelId, collectiveId, content, imageUrl, replyToId }) => {
+      await queryClient.cancelQueries({ queryKey: ['channel-messages', channelId] })
+
+      const optimisticMessage: ChannelMessageWithSender = {
+        id: `optimistic-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        channel_id: channelId,
+        collective_id: collectiveId || null,
+        user_id: user!.id,
+        content: content || null,
+        image_url: imageUrl || null,
+        voice_url: null,
+        video_url: null,
+        reply_to_id: replyToId || null,
+        is_pinned: false,
+        is_deleted: false,
+        created_at: new Date().toISOString(),
+        profiles: { id: user!.id, display_name: profile?.display_name ?? null, avatar_url: profile?.avatar_url ?? null },
+        reply_message: null,
+        _optimistic: true,
+      }
+
+      queryClient.setQueryData<{ pages: ChannelMessageWithSender[][]; pageParams: unknown[] }>(
+        ['channel-messages', channelId],
+        (old) => {
+          if (!old) return old
+          return {
+            ...old,
+            pages: [[optimisticMessage, ...old.pages[0]], ...old.pages.slice(1)],
+          }
+        },
+      )
+    },
+    onError: (_err, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['channel-messages', variables.channelId] })
+    },
+    onSettled: (_data, _err, variables) => {
       queryClient.invalidateQueries({ queryKey: ['channel-messages', variables.channelId] })
       queryClient.invalidateQueries({ queryKey: ['channel-unread'] })
     },
@@ -311,7 +346,21 @@ export function useMarkChannelRead() {
           last_read_at: new Date().toISOString(),
         }, { onConflict: 'collective_id,user_id' })
     },
-    onSuccess: () => {
+    onMutate: async ({ channelId }) => {
+      await queryClient.cancelQueries({ queryKey: ['channel-unread'] })
+      const previous = queryClient.getQueryData<Record<string, number>>(['channel-unread', user?.id])
+      queryClient.setQueryData<Record<string, number>>(['channel-unread', user?.id], (old) => {
+        if (!old) return old
+        const updated = { ...old }
+        delete updated[channelId]
+        return updated
+      })
+      return { previous }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previous) queryClient.setQueryData(['channel-unread', user?.id], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['channel-unread'] })
     },
   })

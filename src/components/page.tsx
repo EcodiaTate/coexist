@@ -21,6 +21,9 @@ function saveScrollPosition(key: string, pos: number) {
 interface PageProps {
   /** Optional header component (e.g. <Header />) */
   header?: ReactNode
+  /** Sticky header rendered inside the scroll container — floats over content
+   *  (use for full-bleed hero pages where header must overlay the hero) */
+  stickyOverlay?: ReactNode
   /** Optional sticky bottom CTA */
   footer?: ReactNode
   /** Page content */
@@ -37,6 +40,7 @@ interface PageProps {
 
 export function Page({
   header,
+  stickyOverlay,
   footer,
   children,
   className,
@@ -146,6 +150,11 @@ export function Page({
             <div className="absolute bottom-[22%] left-[20%] w-2 h-2 rounded-full bg-moss-200/20" />
           </div>
         )}
+
+        {/* Overlay header — direct child of <main> so sticky positioning works
+            within the scroll container. The Header component handles its own
+            sticky/z-index/safe-area. Use -mb-14 on the Header to collapse space. */}
+        {stickyOverlay}
 
         <div className="relative">
           {children}

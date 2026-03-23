@@ -536,7 +536,18 @@ function NotificationSettingsTab() {
         .eq('id', id)
       if (error) throw error
     },
-    onSuccess: () => {
+    onMutate: async ({ id, field, value }) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-application-recipients'] })
+      const previous = queryClient.getQueryData<NotificationRecipient[]>(['admin-application-recipients'])
+      queryClient.setQueryData<NotificationRecipient[]>(['admin-application-recipients'], (old) =>
+        old?.map((r) => (r.id === id ? { ...r, [field]: value } : r)),
+      )
+      return { previous }
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(['admin-application-recipients'], ctx.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-application-recipients'] })
     },
   })

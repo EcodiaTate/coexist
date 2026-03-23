@@ -125,7 +125,20 @@ export function useCancelRecurringDonation() {
       })
       if (res.error) throw res.error
     },
-    onSuccess: () => {
+    onMutate: async (subscriptionId) => {
+      await queryClient.cancelQueries({ queryKey: ['my-recurring-donations', user?.id] })
+      const previous = queryClient.getQueryData<RecurringDonation[]>(['my-recurring-donations', user?.id])
+      queryClient.setQueryData<RecurringDonation[]>(['my-recurring-donations', user?.id], (old) =>
+        old?.map((d) =>
+          d.stripe_subscription_id === subscriptionId ? { ...d, status: 'cancelled' as const } : d,
+        ),
+      )
+      return { previous }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previous) queryClient.setQueryData(['my-recurring-donations', user?.id], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['my-recurring-donations', user?.id] })
     },
   })

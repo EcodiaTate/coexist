@@ -156,7 +156,7 @@ interface CreatePostParams {
 }
 
 export function useCreatePost() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -179,7 +179,48 @@ export function useCreatePost() {
       if (error) throw error
       return data
     },
-    onSuccess: () => {
+    onMutate: async ({ content, images, collectiveId, eventId, type }) => {
+      await queryClient.cancelQueries({ queryKey: ['feed'] })
+
+      const optimisticPost: PostWithDetails = {
+        id: `optimistic-${Date.now()}`,
+        user_id: user!.id,
+        content,
+        images: images ?? [],
+        collective_id: collectiveId,
+        event_id: eventId ?? null,
+        type: type ?? 'photo',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        author: {
+          id: user!.id,
+          display_name: profile?.display_name ?? null,
+          avatar_url: profile?.avatar_url ?? null,
+          membership_level: profile?.membership_level ?? 'new',
+        },
+        collective: null,
+        event: null,
+        like_count: 0,
+        comment_count: 0,
+        is_liked: false,
+      } as PostWithDetails
+
+      // Prepend to matching feed queries
+      queryClient.setQueriesData<{ pages: PostWithDetails[][]; pageParams: unknown[] }>(
+        { queryKey: ['feed'] },
+        (old) => {
+          if (!old) return old
+          return {
+            ...old,
+            pages: [[optimisticPost, ...old.pages[0]], ...old.pages.slice(1)],
+          }
+        },
+      )
+    },
+    onError: () => {
+      queryClient.invalidateQueries({ queryKey: ['feed'] })
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['feed'] })
     },
   })

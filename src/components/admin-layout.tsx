@@ -344,8 +344,12 @@ function AdminBottomTabs() {
 function AdminOutletTransition() {
   const location = useLocation()
   const shouldReduceMotion = useReducedMotion()
+  // Skip animation on initial mount — KeepAlive handles the page entrance.
+  // Only animate sub-page changes within the admin suite.
+  const mountedPathRef = useRef(location.pathname)
+  const isInitialMount = mountedPathRef.current === location.pathname
 
-  if (shouldReduceMotion) {
+  if (shouldReduceMotion || isInitialMount) {
     return <Outlet />
   }
 

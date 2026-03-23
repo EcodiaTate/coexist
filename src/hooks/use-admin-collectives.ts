@@ -335,7 +335,23 @@ export function useArchiveCollective() {
       if (error) throw error
       await logAudit({ action: archive ? 'collective_archived' : 'collective_restored', target_type: 'collective', target_id: collectiveId })
     },
-    onSuccess: (_, { collectiveId }) => {
+    onMutate: async ({ collectiveId, archive }) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-collective-detail', collectiveId] })
+      const previousDetail = queryClient.getQueryData<AdminCollectiveDetail>(['admin-collective-detail', collectiveId])
+      if (previousDetail) {
+        queryClient.setQueryData<AdminCollectiveDetail>(['admin-collective-detail', collectiveId], {
+          ...previousDetail,
+          is_active: !archive,
+        })
+      }
+      return { previousDetail }
+    },
+    onError: (_err, { collectiveId }, ctx) => {
+      if (ctx?.previousDetail) {
+        queryClient.setQueryData(['admin-collective-detail', collectiveId], ctx.previousDetail)
+      }
+    },
+    onSettled: (_, __, { collectiveId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-collectives'] })
       queryClient.invalidateQueries({ queryKey: ['admin-collective-detail', collectiveId] })
     },

@@ -64,7 +64,7 @@ function MenuSection({
             type="button"
             onClick={() => navigate(to)}
             className={cn(
-              'w-full flex items-center gap-3.5 px-4 py-3',
+              'w-full flex items-center gap-3.5 px-4 py-3 min-h-12',
               'text-left transition-all duration-150',
               'active:bg-surface-3',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',

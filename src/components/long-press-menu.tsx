@@ -125,7 +125,7 @@ export function LongPressMenu({
                     role="menuitem"
                     onClick={() => handleActionClick(action)}
                     className={cn(
-                      'flex items-center gap-3 w-full px-4 py-3 text-left',
+                      'flex items-center gap-3 w-full px-4 py-3 min-h-12 text-left',
                       'text-sm font-medium transition-colors duration-100',
                       'focus-visible:outline-none focus-visible:bg-white',
                       action.destructive

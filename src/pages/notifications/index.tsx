@@ -373,7 +373,7 @@ export default function NotificationsPage() {
                 onClick={handleMarkAllRead}
                 disabled={markAllRead.isPending}
                 className={cn(
-                  'flex items-center justify-center w-9 h-9 rounded-full',
+                  'flex items-center justify-center w-11 h-11 rounded-full',
                   'text-primary-500 hover:bg-primary-50',
                   'transition-colors duration-150 cursor-pointer select-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',

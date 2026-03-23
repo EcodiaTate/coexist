@@ -536,30 +536,30 @@ export default function EventDetailPage() {
       swipeBack
       footer={renderCta()}
       noBackground={!!event.cover_image_url}
+      stickyOverlay={
+        event.cover_image_url ? (
+          <Header
+            title=""
+            back
+            transparent
+            className="-mb-14"
+            rightActions={
+              <motion.button
+                type="button"
+                onClick={handleShare}
+                whileTap={{ scale: 0.9 }}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/40 text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
+                aria-label="Share event"
+              >
+                <Share2 size={18} />
+              </motion.button>
+            }
+          />
+        ) : (
+          <Header title="" back className="-mb-14" />
+        )
+      }
     >
-      {/* Sticky back button — floats over hero or page content */}
-      {event.cover_image_url ? (
-        <Header
-          title=""
-          back
-          transparent
-          className="-mb-14"
-          rightActions={
-            <motion.button
-              type="button"
-              onClick={handleShare}
-              whileTap={{ scale: 0.9 }}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-black/40 text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
-              aria-label="Share event"
-            >
-              <Share2 size={18} />
-            </motion.button>
-          }
-        />
-      ) : (
-        <Header title="" back className="-mb-14" />
-      )}
-
       {/* ── Full-bleed hero image ── */}
       {event.cover_image_url && (
         <div className="relative -mx-4 lg:-mx-6">

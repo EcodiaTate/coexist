@@ -855,6 +855,7 @@ export default function SettingsPage() {
     (key: keyof NotificationPreferences, value: boolean | string) => {
       setPrefs((prev) => {
         const updated = { ...prev, [key]: value }
+        const rollback = prev
         // Persist to Supabase using the freshly computed value
         supabase
           .from('profiles')
@@ -863,7 +864,10 @@ export default function SettingsPage() {
           } as any)
           .eq('id', user?.id ?? '')
           .then(({ error }) => {
-            if (error) console.error('Failed to save preferences:', error)
+            if (error) {
+              console.error('Failed to save preferences:', error)
+              setPrefs(rollback)
+            }
           })
         return updated
       })
