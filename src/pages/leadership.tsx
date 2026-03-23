@@ -1,14 +1,14 @@
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import {
-  Users,
-  TreePine,
-  CalendarDays,
-  Heart,
-  Star,
-  ChevronRight,
-  Megaphone,
-  CheckCircle2,
-  Sparkles,
+    Users,
+    TreePine,
+    CalendarDays,
+    Heart,
+    Star,
+    ChevronRight,
+    Megaphone,
+    CheckCircle2,
+    Sparkles,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '@/components/page'
@@ -49,7 +49,7 @@ const WHAT_LEADERS_DO = [
   {
     icon: <TreePine size={22} />,
     title: 'Track Impact',
-    description: 'Log conservation outcomes — trees planted, rubbish removed, species identified — to show real change.',
+    description: 'Log conservation outcomes - trees planted, rubbish removed, species identified - to show real change.',
     gradient: 'from-moss-500 to-moss-700',
   },
   {
@@ -139,7 +139,7 @@ export default function LeadershipPage() {
         animate="visible"
         variants={shouldReduceMotion ? undefined : stagger}
       >
-        {/* What leaders do — rich colored cards */}
+        {/* What leaders do - rich colored cards */}
         <motion.section variants={shouldReduceMotion ? undefined : fadeUp}>
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-700/60 mb-3 px-1">
             What leaders do
