@@ -592,7 +592,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
                   <Badge variant="default" size="sm">Pinned</Badge>
                 )}
                 {item.priority === 'urgent' && (
-                  <Badge variant="destructive" size="sm">Urgent</Badge>
+                  <Badge variant="default" size="sm">Urgent</Badge>
                 )}
                 <span className="text-[10px] text-white/40 ml-auto">
                   {relativeTime(item.created_at)}
@@ -872,7 +872,7 @@ function CtaCards({ rm }: { rm: boolean }) {
             Donate
           </p>
           <p className="mt-1 text-xs text-white/70">
-            Support conservation
+            Support young adults & conservation
           </p>
         </div>
 
@@ -897,7 +897,7 @@ function CtaCards({ rm }: { rm: boolean }) {
             Shop Merch
           </p>
           <p className="mt-1 text-xs text-white/70">
-            Wear the movement
+            Wear Co-Exist
           </p>
         </div>
       </div>

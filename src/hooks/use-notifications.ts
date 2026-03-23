@@ -36,6 +36,7 @@ export interface NotificationPreferences {
   challenge_update: boolean
   chat_mention: boolean
   chat_messages: boolean
+  survey_request: boolean
   quiet_hours_enabled: boolean
   quiet_hours_start: string // "22:00"
   quiet_hours_end: string   // "07:00"
@@ -55,6 +56,7 @@ export const DEFAULT_PREFERENCES: NotificationPreferences = {
   challenge_update: true,
   chat_mention: true,
   chat_messages: true,
+  survey_request: true,
   quiet_hours_enabled: false,
   quiet_hours_start: '22:00',
   quiet_hours_end: '07:00',

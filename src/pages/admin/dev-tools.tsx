@@ -288,6 +288,7 @@ const TYPE_META: Record<NotificationType, string> = {
   challenge_update: 'Challenge Update',
   chat_mention: 'Chat @Mention',
   chat_messages: 'Chat Message',
+  survey_request: 'Survey Request',
 }
 
 const ALL_TYPES = Object.keys(TYPE_META) as NotificationType[]

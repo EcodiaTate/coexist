@@ -120,7 +120,7 @@ export default function PartnersPage() {
         <PartnersSkeleton />
       ) : !partners?.length ? (
         <EmptyState
-          icon={<Handshake size={40} className="text-primary-300" />}
+          illustration={<Handshake size={40} className="text-primary-300" />}
           title="No partners yet"
           description="Check back soon — we're growing our network of conservation partners."
         />

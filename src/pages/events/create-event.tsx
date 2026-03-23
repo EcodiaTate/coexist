@@ -32,6 +32,7 @@ import {
   Send,
   Camera,
   Upload,
+  HelpCircle,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'

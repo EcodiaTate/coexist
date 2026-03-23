@@ -72,7 +72,7 @@ export default function ContactPage() {
   const toast = useToast()
 
   const [name, setName] = useState(profile?.display_name ?? '')
-  const [email, setEmail] = useState(profile?.email ?? '')
+  const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
 
@@ -84,7 +84,7 @@ export default function ContactPage() {
 
     setSending(true)
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('contact_submissions')
         .insert({
           name: name.trim(),
@@ -95,10 +95,10 @@ export default function ContactPage() {
 
       if (error) throw error
 
-      toast.success('Message sent! We\'ll get back to you soon.')
+      toast.toast.success('Message sent! We\'ll get back to you soon.')
       setMessage('')
     } catch {
-      toast.error('Something went wrong. Please try emailing us directly.')
+      toast.toast.error('Something went wrong. Please try emailing us directly.')
     } finally {
       setSending(false)
     }
