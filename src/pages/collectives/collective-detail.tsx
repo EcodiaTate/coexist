@@ -147,17 +147,20 @@ export default function CollectiveDetailPage() {
   return (
     <Page
       swipeBack
-      header={
+      noBackground
+      stickyOverlay={
         <Header
-          title={collective.name}
+          title=""
           back
+          transparent
+          className="-mb-14"
           rightActions={
             isLeader ? (
               <button
                 type="button"
                 onClick={() => navigate(`/collectives/${slug}/manage`)}
                 aria-label="Manage collective"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-surface-3 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full bg-black/40 text-white hover:bg-black/50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               >
                 <Settings size={20} />
               </button>

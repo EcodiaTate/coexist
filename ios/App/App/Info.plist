@@ -60,6 +60,9 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Co-Exist uses your location to find nearby conservation events and verify event check-ins.</string>
 
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Co-Exist uses your location to find nearby conservation events and verify event check-ins.</string>
+
 	<!-- Calendar -->
 	<key>NSCalendarsUsageDescription</key>
 	<string>Co-Exist can add conservation events to your calendar so you never miss one.</string>

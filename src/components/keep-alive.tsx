@@ -66,10 +66,8 @@ export function KeepAlive() {
         const isPrev = prevPage?.path === cached.path && !isActive
         const gridStyle = { gridArea: '1 / 1' } as const
 
-        // During swipe: show previous page underneath with parallax
+        // During swipe: show previous page underneath — fully visible, no movement
         if (isPrev && swiping) {
-          const vw = window.innerWidth || 375
-          const progress = Math.min(offsetX / vw, 1)
           return (
             <div
               key={cached.path}
@@ -78,8 +76,6 @@ export function KeepAlive() {
                 ...gridStyle,
                 zIndex: 0,
                 pointerEvents: 'none',
-                transform: `translateX(${-70 + progress * 70}px)`,
-                opacity: 0.5 + progress * 0.5,
               }}
             >
               {cached.element}
@@ -101,10 +97,12 @@ export function KeepAlive() {
         }
 
         // Active page
+        const vw = typeof window !== 'undefined' ? window.innerWidth || 375 : 375
+        const isCompleting = swiping && offsetX >= vw
         const swipeStyle = swiping
           ? {
               transform: `translateX(${offsetX}px)`,
-              transition: 'none' as const,
+              transition: isCompleting ? 'transform 250ms ease-out' : ('none' as const),
               boxShadow: offsetX > 0 ? '-8px 0 24px -4px rgba(0,0,0,0.1)' : undefined,
             }
           : {}

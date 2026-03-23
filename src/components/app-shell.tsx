@@ -66,7 +66,7 @@ function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
   const location = useLocation()
   const { openMenu } = useMenuSheet()
   const isAdminRoute = location.pathname.startsWith('/admin')
-  const isLeaderRoute = location.pathname.startsWith('/leader') && !location.pathname.startsWith('/leaderboard')
+  const isLeaderRoute = location.pathname.startsWith('/leader') && !location.pathname.startsWith('/leaderboard') && !location.pathname.startsWith('/leadership')
   const isChatRoute = location.pathname.startsWith('/chat/')
 
   return (

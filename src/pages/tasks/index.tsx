@@ -15,7 +15,6 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Page } from '@/components/page'
-import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Skeleton } from '@/components/skeleton'
@@ -323,7 +322,7 @@ export default function TasksPage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Tasks" />}>
+      <Page>
         <div className="py-4">
           <Skeleton variant="list-item" count={6} />
         </div>
@@ -332,7 +331,7 @@ export default function TasksPage() {
   }
   if (!groups.length) {
     return (
-      <Page header={<Header title="Tasks" />}>
+      <Page>
         <EmptyState
           illustration="empty"
           title="All caught up!"
@@ -343,7 +342,7 @@ export default function TasksPage() {
   }
 
   return (
-    <Page header={<Header title="Tasks" />}>
+    <Page>
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="py-4 space-y-6">
           {/* Summary bar */}

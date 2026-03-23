@@ -92,15 +92,25 @@ export function useSwipeBack({
       }
 
       const dx = touch.clientX - touchStart.current.x
-      setState({ offsetX: 0, swiping: false })
       touchStart.current = null
 
       if (dx >= threshold) {
-        if (onBack) {
-          onBack()
-        } else {
-          navigate(-1)
-        }
+        // Animate page fully off-screen, then navigate
+        const vw = window.innerWidth || 375
+        setState({ offsetX: vw, swiping: true })
+        // Let the CSS transition play, then navigate
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            setState({ offsetX: 0, swiping: false })
+            if (onBack) {
+              onBack()
+            } else {
+              navigate(-1)
+            }
+          }, 250)
+        })
+      } else {
+        setState({ offsetX: 0, swiping: false })
       }
     },
     [threshold, onBack, navigate],

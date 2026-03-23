@@ -244,9 +244,9 @@ export default function EditProfilePage() {
   return (
     <Page
       swipeBack
-      header={<Header title="Edit Profile" back />}
       noBackground
       className="bg-gradient-to-b from-surface-2 via-primary-50/30 to-moss-50/20"
+      stickyOverlay={<Header title="" back transparent className="-mb-14" />}
       footer={
         <Button
           variant="primary"

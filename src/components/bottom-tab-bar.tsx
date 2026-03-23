@@ -134,7 +134,7 @@ export function BottomTabBar({
       <nav
         className={cn(
           'pointer-events-auto',
-          'mx-4 mb-[max(1rem,calc(var(--safe-bottom)+0.5rem))] rounded-[20px]',
+          'mx-4 mb-[max(0.25rem,var(--safe-bottom))] rounded-[20px]',
           'bg-white shadow-[0_-1px_3px_rgb(0_0_0/0.08)]',
           'shadow-[0_2px_20px_-4px_rgba(30,40,25,0.10),0_0_0_1px_rgba(30,40,25,0.04)]',
         )}

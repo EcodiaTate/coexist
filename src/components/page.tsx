@@ -102,10 +102,13 @@ export function Page({
 
   const hasBottomTabs = navMode === 'bottom-tabs'
 
+  // header is rendered inside the scroll container as a sticky overlay so it
+  // never pushes content down. When header is present (without stickyOverlay)
+  // we add top padding so non-hero content clears the back-button area.
+  const hasInlineHeader = !!header && !stickyOverlay
+
   return (
     <div className={cn('flex flex-col flex-1', !isDesktopNav && 'min-h-0')}>
-      {header}
-
       <main
         id="main-content"
         ref={scrollRef}
@@ -151,12 +154,20 @@ export function Page({
           </div>
         )}
 
-        {/* Overlay header — direct child of <main> so sticky positioning works
-            within the scroll container. The Header component handles its own
-            sticky/z-index/safe-area. Use -mb-14 on the Header to collapse space. */}
+        {/* Header rendered as sticky overlay inside the scroll container.
+            -mb-14 collapses layout space so it floats over content.
+            stickyOverlay pages supply their own (usually transparent). */}
         {stickyOverlay}
+        {hasInlineHeader && (
+          <div className="-mb-14">
+            {header}
+          </div>
+        )}
 
-        <div className="relative">
+        <div
+          className="relative"
+          style={hasInlineHeader ? { paddingTop: 'calc(3.5rem + var(--safe-top))' } : undefined}
+        >
           {children}
         </div>
       </main>

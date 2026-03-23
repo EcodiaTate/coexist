@@ -848,7 +848,7 @@ export default function LeaderDashboardPage() {
     if (isInLeaderLayout) {
       return ({ children }: { children: React.ReactNode }) => <>{children}</>
     }
-    return ({ children }: { children: React.ReactNode }) => <Page swipeBack header={<Header title="Leader Dashboard" back />}>{children}</Page>
+    return ({ children }: { children: React.ReactNode }) => <Page swipeBack noBackground stickyOverlay={<Header title="" back transparent className="-mb-14" />}>{children}</Page>
   }, [isInLeaderLayout])
 
   // Find an event within ±3 hours of now (must be before early returns)

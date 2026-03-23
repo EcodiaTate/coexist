@@ -1129,7 +1129,7 @@ function MobileSidebarOverlay({
 
             {/* ── Nav items - single flat list, no suite switching ── */}
             <div
-              className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
+              className="flex-1 min-h-0 overflow-y-auto overscroll-none"
               style={{
                 paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 2rem)',
               }}

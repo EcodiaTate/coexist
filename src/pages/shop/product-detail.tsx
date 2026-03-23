@@ -516,7 +516,8 @@ export default function ProductDetailPage() {
   return (
     <Page
       swipeBack
-      header={<Header title="" back />}
+      noBackground
+      stickyOverlay={<Header title="" back transparent className="-mb-14" />}
       footer={
         <div className="flex items-center gap-3">
           {/* Price + quantity - compact inline */}

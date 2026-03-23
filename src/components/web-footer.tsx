@@ -9,10 +9,10 @@ import {
 } from '@/lib/constants'
 
 const footerLinks = [
-  { label: 'About', to: '/about' },
+  { label: 'About', href: 'https://coexistaus.org/about' },
   { label: 'Privacy', to: '/privacy' },
   { label: 'Terms', to: '/terms' },
-  { label: 'Contact', href: `mailto:${CONTACT_EMAIL}` },
+  { label: 'Contact', to: '/contact' },
   {
     label: 'Manage Cookies',
     onClick: () => window.dispatchEvent(new CustomEvent('coexist:open-cookie-consent')),
