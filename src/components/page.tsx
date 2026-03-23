@@ -130,7 +130,7 @@ export function Page({
         {/* Atmospheric background - sticky so it stays viewport-pinned while
             content scrolls over it. Negative margin collapses it out of flow. */}
         {!noBackground && (
-          <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 -mx-4 lg:-mx-6" aria-hidden="true">
+          <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 -mx-4 lg:-mx-6 overflow-hidden" aria-hidden="true">
             <div className="absolute inset-0 bg-gradient-to-b from-primary-50/50 via-white to-moss-50/20" />
             {/* Large soft ring - top right */}
             <div className="absolute -top-20 -right-20 w-[340px] h-[340px] rounded-full border-2 border-moss-200/25" />
