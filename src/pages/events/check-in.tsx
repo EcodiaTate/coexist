@@ -2,13 +2,13 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Camera,
-  Keyboard,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
-  XCircle,
-  WifiOff,
+    Camera,
+    Keyboard,
+    CheckCircle2,
+    AlertCircle,
+    Sparkles,
+    XCircle,
+    WifiOff,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useEventDetail, useCheckIn } from '@/hooks/use-events'
@@ -16,14 +16,14 @@ import { useOffline } from '@/hooks/use-offline'
 import { queueOfflineCheckIn } from '@/lib/offline-sync'
 import { supabase } from '@/lib/supabase'
 import {
-  Page,
-  Header,
-  Button,
-  Input,
-  Skeleton,
-  EmptyState,
-  Celebration,
-  WhatsNext,
+    Page,
+    Header,
+    Button,
+    Input,
+    Skeleton,
+    EmptyState,
+    Celebration,
+    WhatsNext,
 } from '@/components'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
@@ -569,7 +569,7 @@ export default function CheckInPage() {
         open={showCelebration}
         onClose={() => setShowCelebration(false)}
         title="Amazing work!"
-        subtitle="Thanks for checking in — enjoy making an impact!"
+        subtitle="Thanks for checking in - enjoy making an impact!"
         icon={<Sparkles size={36} className="text-white" />}
         autoDismiss={4000}
       />

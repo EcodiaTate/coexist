@@ -30,7 +30,7 @@ export function AppShell({ children, bare = false }: AppShellProps) {
 }
 
 /**
- * Stable sidebar wrapper — never re-renders on navigation because it
+ * Stable sidebar wrapper - never re-renders on navigation because it
  * has no location/path dependencies. The UnifiedSidebar reads
  * useLocation() internally for active-link highlighting.
  */
@@ -39,7 +39,7 @@ const StableSidebar = memo(function StableSidebar() {
 })
 
 /**
- * Stable mobile sidebar + hamburger — only depends on menu open/close
+ * Stable mobile sidebar + hamburger - only depends on menu open/close
  * state, not on the current pathname.
  */
 const MobileNav = memo(function MobileNav() {
@@ -60,14 +60,14 @@ const MobileNav = memo(function MobileNav() {
         <Menu size={22} />
       </button>
 
-      {/* Unified sidebar — mobile: slide-in overlay from right with suite switcher */}
+      {/* Unified sidebar - mobile: slide-in overlay from right with suite switcher */}
       <UnifiedSidebar mobileOpen={open} onMobileClose={closeMenu} />
     </>
   )
 })
 
 /**
- * Location-aware chrome (footer, bottom tabs) — isolated so that
+ * Location-aware chrome (footer, bottom tabs) - isolated so that
  * pathname changes only re-render this leaf, not the sidebar.
  */
 function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
@@ -114,7 +114,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
       {/* Sidebar + content row */}
       <div className="flex flex-1 min-h-0">
-        {/* Unified sidebar — desktop: permanent left sidebar (stable, no remount) */}
+        {/* Unified sidebar - desktop: permanent left sidebar (stable, no remount) */}
         {showSidebar && <StableSidebar />}
 
         {/* Content */}
@@ -123,7 +123,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Location-aware chrome (footer + bottom tabs) — isolated to prevent sidebar re-renders */}
+      {/* Location-aware chrome (footer + bottom tabs) - isolated to prevent sidebar re-renders */}
       <LocationAwareChrome showBottomTabs={showBottomTabs} />
 
       {/* Mobile nav (hamburger + overlay sidebar) */}

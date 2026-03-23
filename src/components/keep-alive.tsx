@@ -14,7 +14,7 @@ interface CachedPage {
  * Keeps the last N route outlets alive in the DOM (hidden) so that
  * navigating back renders instantly with no re-mount or data refetch.
  *
- * Only the active route is visible — cached routes are hidden via
+ * Only the active route is visible - cached routes are hidden via
  * CSS `display: none` which preserves scroll position, DOM state,
  * and React component state (including hooks / query caches).
  */
@@ -23,7 +23,7 @@ export function KeepAlive() {
   const outlet = useOutlet()
   const path = location.pathname
 
-  // Stable cache — survives re-renders
+  // Stable cache - survives re-renders
   const cacheRef = useRef<CachedPage[]>([])
   const [, forceUpdate] = useState(0)
 
@@ -39,7 +39,7 @@ export function KeepAlive() {
       entry.element = outlet as ReactElement
       cache.push(entry)
     } else {
-      // New entry — evict oldest if over limit
+      // New entry - evict oldest if over limit
       if (cache.length >= MAX_CACHED) {
         cache.shift()
       }

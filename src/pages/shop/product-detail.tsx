@@ -451,14 +451,14 @@ export default function ProductDetailPage() {
     if (!product || !activeVariant) return
     setReserving(true)
     try {
-      // Reserve stock first — prevents overselling
+      // Reserve stock first - prevents overselling
       const result = await reserve(product.id, activeVariant.id, quantity)
       if (!result.success) {
         if (result.error === 'insufficient_stock') {
           toast.error(
             result.available === 0
               ? 'Sorry, this item just sold out!'
-              : `Only ${result.available} available — please reduce quantity`,
+              : `Only ${result.available} available - please reduce quantity`,
           )
         } else {
           toast.error('Could not reserve stock. Please try again.')
@@ -467,7 +467,7 @@ export default function ProductDetailPage() {
       }
       addItem(product, activeVariant, quantity)
       setAddedToCart(true)
-      toast.success(`${product.name} added to cart — reserved for 15 min`)
+      toast.success(`${product.name} added to cart - reserved for 15 min`)
       setShowCartModal(true)
       setTimeout(() => setAddedToCart(false), 2000)
     } finally {
@@ -484,7 +484,7 @@ export default function ProductDetailPage() {
         toast.error(
           result.available === 0
             ? 'Sorry, this item just sold out!'
-            : `Only ${result.available} available — please reduce quantity`,
+            : `Only ${result.available} available - please reduce quantity`,
         )
         return
       }
@@ -525,7 +525,7 @@ export default function ProductDetailPage() {
       }
       footer={
         <div className="flex items-center gap-3">
-          {/* Price + quantity — compact inline */}
+          {/* Price + quantity - compact inline */}
           <div className="shrink-0">
             <p className="font-heading text-lg font-bold text-primary-800 leading-none">
               {formatPrice((activeVariant?.price_cents ?? product.base_price_cents) * quantity)}
@@ -603,7 +603,7 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Stock status badges — uses realtime available stock */}
+          {/* Stock status badges - uses realtime available stock */}
           <AnimatePresence mode="wait">
             {activeVariant && !stockLoading && availableStock === 0 && (
               <motion.div

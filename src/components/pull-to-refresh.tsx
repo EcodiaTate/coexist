@@ -14,7 +14,7 @@ interface PullToRefreshProps {
   className?: string
   /** Set to true on dark backgrounds so the indicator text/icon is white */
   dark?: boolean
-  /** Stationary background layer — rendered behind the content and never moves.
+  /** Stationary background layer - rendered behind the content and never moves.
    *  Move your decorative / sticky background here so pull-to-refresh only
    *  translates the foreground content, keeping backgrounds 100 % locked. */
   background?: ReactNode
@@ -121,10 +121,10 @@ export function PullToRefresh({
       onTouchEnd={handleTouchEnd}
       className={cn('relative', className)}
     >
-      {/* Background layer — completely stationary, never translated */}
+      {/* Background layer - completely stationary, never translated */}
       {background}
 
-      {/* Pull indicator — absolutely positioned, revealed as content slides down */}
+      {/* Pull indicator - absolutely positioned, revealed as content slides down */}
       {active && (
         <div
           aria-hidden="true"
@@ -165,7 +165,7 @@ export function PullToRefresh({
         </div>
       )}
 
-      {/* Content — only this translates down, background stays locked */}
+      {/* Content - only this translates down, background stays locked */}
       <motion.div
         className="relative will-change-transform"
         animate={{ y: currentPull }}

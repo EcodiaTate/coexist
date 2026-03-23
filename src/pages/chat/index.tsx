@@ -23,7 +23,7 @@ const ROLE_RANK: Record<string, number> = {
   leader: 3,
 }
 
-/** Session-level flag — redirect to primary chat only once per session */
+/** Session-level flag - redirect to primary chat only once per session */
 let hasRedirectedThisSession = false
 
 const CHANNEL_TYPE_CONFIG: Record<string, {
@@ -94,7 +94,7 @@ function DecorativeBackground() {
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/65 via-plum-100/30 via-30% to-primary-100/25 to-65%" />
       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-secondary-100/20 to-plum-50/20" />
 
-      {/* Top hero glow — radial gradient instead of blur filter */}
+      {/* Top hero glow - radial gradient instead of blur filter */}
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary-300/30 via-secondary-200/15 to-transparent" />
 
       {/* Warm plum accent - top right */}
@@ -103,14 +103,14 @@ function DecorativeBackground() {
       {/* Deep moss glow - bottom left */}
       <div className="absolute -bottom-20 -left-10 w-[280px] h-[260px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-200/18 to-transparent" />
 
-      {/* Static decorative rings — no animation, no blur */}
+      {/* Static decorative rings - no animation, no blur */}
       <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/18 opacity-60" />
       <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-plum-200/14 opacity-40" />
       <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-secondary-200/18 opacity-50" />
       <div className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-plum-200/12" />
       <div className="absolute bottom-[16%] right-2 w-36 h-36 rounded-full border-2 border-secondary-200/14" />
 
-      {/* Soft glows — radial gradient instead of blur filter */}
+      {/* Soft glows - radial gradient instead of blur filter */}
       <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary-100/22 to-transparent opacity-35" />
       <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-plum-100/20 to-transparent opacity-35" />
 

@@ -73,13 +73,13 @@ const fadeUp = {
 function Shapes() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-      {/* Large ring — CSS breathe */}
+      {/* Large ring - CSS breathe */}
       <div className="absolute -top-20 -right-20 h-64 w-64 rounded-full border-[3px] border-primary-200/40 animate-[breatheWide_7s_ease-in-out_infinite]" />
       {/* Filled glow - bottom-left */}
       <div className="absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-100/25 to-transparent opacity-30" />
       {/* Small ring - mid-left */}
       <div className="absolute top-1/3 -left-8 h-24 w-24 rounded-full border-2 border-primary-100/25 animate-[breatheWide_6s_ease-in-out_infinite]" />
-      {/* Floating dots — CSS-only */}
+      {/* Floating dots - CSS-only */}
       <div className="absolute top-28 right-12 h-2.5 w-2.5 rounded-full bg-primary-200/50 animate-[float_4s_ease-in-out_infinite]" />
       <div className="absolute top-1/2 right-1/4 h-2 w-2 rounded-full bg-bark-200/40 animate-[floatDown_5s_ease-in-out_1s_infinite]" />
       <div className="absolute bottom-40 left-16 h-1.5 w-1.5 rounded-full bg-primary-300/30 animate-[float_4.5s_ease-in-out_2s_infinite]" />

@@ -410,7 +410,7 @@ export default function LeaderTasksPage() {
       <div className="relative min-h-dvh overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
 
-        {/* Decorative shapes — CSS-only */}
+        {/* Decorative shapes - CSS-only */}
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full border border-amber-200/35 animate-[gentleSpin_50s_linear_infinite]" />
         <div className="absolute top-32 -left-8 w-24 h-24 rounded-full bg-amber-100/25 animate-[floatDown_6s_ease-in-out_infinite]" />
         <div className="absolute top-52 right-8 w-3 h-3 rounded-full bg-amber-300/30 animate-[float_4s_ease-in-out_infinite]" />
@@ -440,12 +440,12 @@ export default function LeaderTasksPage() {
       {/* Full-bleed gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
 
-      {/* Decorative shapes — CSS-only for GPU compositing */}
+      {/* Decorative shapes - CSS-only for GPU compositing */}
       <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full border border-amber-200/35 animate-[gentleSpin_50s_linear_infinite]" />
       <div className="absolute top-20 -left-12 w-32 h-32 rounded-full border border-amber-200/35 animate-[gentleSpin_60s_linear_infinite] [animation-direction:reverse]" />
       <div className="absolute top-40 -right-6 w-20 h-20 rounded-full bg-amber-100/25 animate-[floatDown_7s_ease-in-out_infinite]" />
       <div className="absolute top-72 -left-4 w-16 h-16 rounded-full bg-moss-100/20 animate-[float_5s_ease-in-out_infinite]" />
-      {/* Floating dots — CSS-only */}
+      {/* Floating dots - CSS-only */}
       <div className="absolute top-28 right-12 w-2.5 h-2.5 rounded-full bg-amber-300/30 animate-[float_4s_ease-in-out_infinite]" />
       <div className="absolute top-56 left-10 w-2 h-2 rounded-full bg-moss-300/25 animate-[floatDown_5s_ease-in-out_1s_infinite]" />
       <div className="absolute top-96 right-20 w-3 h-3 rounded-full bg-amber-300/30 animate-[float_6s_ease-in-out_2s_infinite]" />

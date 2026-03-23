@@ -107,7 +107,7 @@ export function Modal({
             if (e.target === e.currentTarget) onClose()
           }}
         >
-          {/* Backdrop — GPU-promoted for blur perf */}
+          {/* Backdrop - GPU-promoted for blur perf */}
           <motion.div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm pointer-events-none gpu-backdrop"
             initial={{ opacity: 0 }}
@@ -116,7 +116,7 @@ export function Modal({
             aria-hidden="true"
           />
 
-          {/* Panel — GPU-promoted for smooth scale+fade */}
+          {/* Panel - GPU-promoted for smooth scale+fade */}
           <motion.div
             ref={contentRef}
             role="dialog"

@@ -1,5 +1,5 @@
 import { type ReactNode, useState, useEffect, useRef, createContext, useContext, useCallback, useMemo, Suspense } from 'react'
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import {
     LayoutDashboard,
     Users,
@@ -17,10 +17,8 @@ import {
     BarChart3,
     AlertCircle,
     Bug,
-    Image,
-    Shield,
-    Home,
-    ShoppingBag,
+    Image, Home,
+    ShoppingBag
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
@@ -246,7 +244,7 @@ export function AdminLayout() {
       <div className="flex flex-1 min-h-0">
         {/* Desktop sidebar is handled by UnifiedSidebar in AppShell */}
 
-        {/* Mobile drawer + hamburger removed — handled by UnifiedSidebar in AppShell */}
+        {/* Mobile drawer + hamburger removed - handled by UnifiedSidebar in AppShell */}
 
         {/* Main content */}
         <div ref={scrollRef} className={cn(

@@ -4,27 +4,27 @@ import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import DOMPurify from 'dompurify'
 import {
-  FileText,
-  Save,
-  CheckCircle,
-  ArrowLeft,
-  Eye,
-  Bold,
-  Italic,
-  Underline as UnderlineIcon,
-  List,
-  ListOrdered,
-  Link2,
-  Heading2,
-  Heading3,
-  Quote,
-  Minus,
-  Undo2,
-  Redo2,
-  Globe,
-  Pencil,
-  Clock,
-  AlignLeft,
+    FileText,
+    Save,
+    CheckCircle,
+    ArrowLeft,
+    Eye,
+    Bold,
+    Italic,
+    Underline as UnderlineIcon,
+    List,
+    ListOrdered,
+    Link2,
+    Heading2,
+    Heading3,
+    Quote,
+    Minus,
+    Undo2,
+    Redo2,
+    Globe,
+    Pencil,
+    Clock,
+    AlignLeft,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -76,7 +76,7 @@ function ToolbarBtn({
 /* ------------------------------------------------------------------ */
 
 /**
- * Wrapper around document.execCommand — this is the browser DOM rich-text
+ * Wrapper around document.execCommand - this is the browser DOM rich-text
  * editing API, NOT Node.js child_process.exec.
  */
 function browserExecCommand(command: string, value?: string) {
@@ -219,7 +219,7 @@ function PageCard({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Sanitise helper — all HTML rendered via innerHTML is sanitised     */
+/*  Sanitise helper - all HTML rendered via innerHTML is sanitised     */
 /*  with DOMPurify as defence-in-depth against stored XSS.            */
 /* ------------------------------------------------------------------ */
 

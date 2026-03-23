@@ -99,7 +99,7 @@ export function useAutoSurveyConfig() {
   return useQuery({
     queryKey: ['auto-survey-config'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('app_settings')
         .select('value')
         .eq('key', 'auto_survey_config')
@@ -113,8 +113,8 @@ export function useAutoSurveyConfig() {
         default_questions_enabled: true,
       }
 
-      if (!data?.value) return defaults
-      return { ...defaults, ...(data.value as Partial<AutoSurveyConfig>) }
+      if (!(data as any)?.value) return defaults
+      return { ...defaults, ...((data as any).value as Partial<AutoSurveyConfig>) }
     },
     staleTime: 10 * 60 * 1000,
   })
@@ -128,7 +128,7 @@ export function useUpdateAutoSurveyConfig() {
 
   return useMutation({
     mutationFn: async (config: AutoSurveyConfig) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('app_settings')
         .upsert(
           { key: 'auto_survey_config', value: config as any },

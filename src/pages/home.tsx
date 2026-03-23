@@ -185,16 +185,16 @@ function HomeHero({ rm }: { rm: boolean }) {
     ([w, c]: number[]) => Math.max(w, c),
   )
 
-  /* Parallax layers — each moves at a different rate for depth */
-  const bgY = useTransform(scrollY, [0, 500], [0, 80])         // slowest — far background
+  /* Parallax layers - each moves at a different rate for depth */
+  const bgY = useTransform(scrollY, [0, 500], [0, 80])         // slowest - far background
   const bgScale = useTransform(scrollY, [0, 400], [1, 1.08])
-  const fgY = useTransform(scrollY, [0, 500], [0, 25])        // mid — foreground subjects
-  const textY = useTransform(scrollY, [0, 500], [0, 120])     // fastest — text recedes quickly
+  const fgY = useTransform(scrollY, [0, 500], [0, 25])        // mid - foreground subjects
+  const textY = useTransform(scrollY, [0, 500], [0, 120])     // fastest - text recedes quickly
 
   return (
     <div className="relative">
       <div className="relative w-full h-[110vw] min-h-[480px] sm:h-auto overflow-hidden">
-        {/* Layer 0: Background landscape — slowest parallax */}
+        {/* Layer 0: Background landscape - slowest parallax */}
         <motion.div
           className="h-full will-change-transform"
           style={rm ? undefined : { y: bgY, scale: bgScale }}
@@ -206,7 +206,7 @@ function HomeHero({ rm }: { rm: boolean }) {
           />
         </motion.div>
 
-        {/* Layer 1: Foreground elements — medium parallax */}
+        {/* Layer 1: Foreground elements - medium parallax */}
         <motion.div
           className="absolute bottom-0 inset-x-0 z-[3] flex justify-center will-change-transform"
           style={rm ? undefined : { y: fgY }}
@@ -220,7 +220,7 @@ function HomeHero({ rm }: { rm: boolean }) {
           </div>
         </motion.div>
 
-        {/* Hero text — fastest parallax, recedes behind fg */}
+        {/* Hero text - fastest parallax, recedes behind fg */}
         <motion.div
           className="absolute inset-x-0 top-[18%] sm:top-[7%] z-[2] flex flex-col items-center px-6 will-change-transform"
           style={rm ? undefined : { y: textY }}
@@ -242,7 +242,7 @@ function HomeHero({ rm }: { rm: boolean }) {
         />
       </div>
 
-      {/* Wave transition — pinned to bottom of image */}
+      {/* Wave transition - pinned to bottom of image */}
       <div className="absolute bottom-0 left-0 right-0 z-20">
         <svg
           viewBox="0 0 1440 70"
@@ -277,7 +277,7 @@ function HomeHero({ rm }: { rm: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Your Next Event — prominent card with "Tap to Sign In" or CTA      */
+/*  Your Next Event - prominent card with "Tap to Sign In" or CTA      */
 /* ------------------------------------------------------------------ */
 
 function NextEventCard({
@@ -644,7 +644,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
 /*  Impact stat card                                                    */
 /* ------------------------------------------------------------------ */
 
-function ImpactStatCard({
+function ImpactFoundational({
   value,
   label,
   icon,
@@ -659,7 +659,7 @@ function ImpactStatCard({
   delay?: number
   rm: boolean
 }) {
-  const formatted = typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '—') : value
+  const formatted = typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '-') : value
   return (
     <motion.div
       initial={rm ? false : { opacity: 0, y: 12, scale: 0.95 }}
@@ -707,7 +707,7 @@ function ImpactHeroStat({
   accent: string
   rm: boolean
 }) {
-  const formatted = typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '—') : value
+  const formatted = typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '-') : value
   return (
     <motion.div
       initial={rm ? false : { opacity: 0, scale: 0.9 }}
@@ -848,7 +848,7 @@ function HomeImpactSection({
               </div>
             ) : data ? (
               <div className="space-y-3">
-                {/* Hero row — two featured stats */}
+                {/* Hero row - two featured stats */}
                 <div className="grid grid-cols-2 gap-3">
                   <ImpactHeroStat
                     value={data.treesPlanted}
@@ -867,7 +867,7 @@ function HomeImpactSection({
                   />
                 </div>
 
-                {/* Secondary grid — 2x2 */}
+                {/* Secondary grid - 2x2 */}
                 <div className="grid grid-cols-2 gap-3">
                   <ImpactStatCard
                     value={data.eventsAttended}
@@ -903,7 +903,7 @@ function HomeImpactSection({
                   />
                 </div>
 
-                {/* Bottom row — leaders trained */}
+                {/* Bottom row - leaders trained */}
                 <motion.div
                   initial={rm ? false : { opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -919,7 +919,7 @@ function HomeImpactSection({
                       Leaders Trained
                     </span>
                     <span className="block font-heading text-2xl font-extrabold text-white tabular-nums leading-none mt-0.5">
-                      {data.leadersTrainedCount > 0 ? data.leadersTrainedCount.toLocaleString() : '—'}
+                      {data.leadersTrainedCount > 0 ? data.leadersTrainedCount.toLocaleString() : '-'}
                     </span>
                   </div>
                   <div className="text-white/20">

@@ -1,16 +1,16 @@
 import { type ReactNode, useState, useEffect, useRef, createContext, useContext, useCallback, useMemo, Suspense } from 'react'
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard,
-  Users,
-  CalendarDays,
-  ClipboardCheck,
-  Plus,
-  Megaphone,
-  BarChart3,
-  TreePine,
-  Send,
-  Home,
+    LayoutDashboard,
+    Users,
+    CalendarDays,
+    ClipboardCheck,
+    Plus,
+    Megaphone,
+    BarChart3,
+    TreePine,
+    Send,
+    Home,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -48,7 +48,7 @@ export function useLeaderHeader(
   opts?: { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean } | ReactNode,
 ) {
   const ctx = useContext(LeaderHeaderContext)
-  // Destructure opts to get stable primitive deps — avoids re-firing on every render
+  // Destructure opts to get stable primitive deps - avoids re-firing on every render
   // when callers pass an inline object literal like { fullBleed: true }
   const isOptsObject = opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any) || 'fullBleed' in (opts as any))
   const subtitle = isOptsObject ? (opts as any).subtitle : undefined
@@ -211,7 +211,7 @@ export function LeaderLayout() {
 
   const setHeader = useCallback((opts: LeaderHeaderState) => {
     setHeaderState((prev) => {
-      // Skip state update if nothing changed — prevents cascading re-renders
+      // Skip state update if nothing changed - prevents cascading re-renders
       if (
         prev.title === opts.title &&
         prev.subtitle === opts.subtitle &&
@@ -230,7 +230,7 @@ export function LeaderLayout() {
       <div className="flex flex-1 min-h-0">
         {/* Desktop sidebar is handled by UnifiedSidebar in AppShell */}
 
-        {/* Mobile drawer + hamburger removed — handled by UnifiedSidebar in AppShell */}
+        {/* Mobile drawer + hamburger removed - handled by UnifiedSidebar in AppShell */}
 
         {/* ── Main content ── */}
         <div ref={scrollRef} className={cn(

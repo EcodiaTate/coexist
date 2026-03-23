@@ -1,12 +1,12 @@
 import { useEffect, useRef, useCallback, useState, useMemo, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  motion,
-  AnimatePresence,
-  useMotionValue,
-  useTransform,
-  useReducedMotion,
-  type PanInfo,
+    motion,
+    AnimatePresence,
+    useMotionValue,
+    useTransform,
+    useReducedMotion,
+    type PanInfo,
 } from 'framer-motion'
 import { cn } from '@/lib/cn'
 
@@ -70,7 +70,7 @@ export function BottomSheet({
   const vh = getVh()
   const maxHeight = vh * MAX_HEIGHT_FRACTION
 
-  // Target y when the sheet is open — this is the declarative animate target
+  // Target y when the sheet is open - this is the declarative animate target
   const snapFraction = stableSnapPoints[Math.min(initialSnap, stableSnapPoints.length - 1)]
   const clampedFraction = Math.min(snapFraction, MAX_HEIGHT_FRACTION)
   const openY = maxHeight - vh * clampedFraction
@@ -232,7 +232,7 @@ export function BottomSheet({
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-50" aria-label="Dialog">
-          {/* Backdrop — GPU-promoted for blur perf */}
+          {/* Backdrop - GPU-promoted for blur perf */}
           <motion.div
             className="fixed inset-0 bg-black/40 backdrop-blur-sm gpu-backdrop"
             initial={{ opacity: 0 }}
@@ -311,7 +311,7 @@ export function BottomSheet({
               onDragEnd={handleDragEnd}
               onKeyDown={handleKeyDown}
             >
-              {/* Handle bar — respects safe area */}
+              {/* Handle bar - respects safe area */}
               <div
                 className="flex justify-center pb-2 cursor-grab active:cursor-grabbing"
                 style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 0.75rem)' }}

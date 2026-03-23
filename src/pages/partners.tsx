@@ -122,7 +122,7 @@ export default function PartnersPage() {
         <EmptyState
           illustration={<Handshake size={40} className="text-primary-300" />}
           title="No partners yet"
-          description="Check back soon — we're growing our network of conservation partners."
+          description="Check back soon - we're growing our network of conservation partners."
         />
       ) : (
         <motion.div

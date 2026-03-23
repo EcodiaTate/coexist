@@ -1,37 +1,37 @@
-import { useState, useRef, useMemo, useEffect, useCallback, memo, type ReactNode } from 'react'
+import { useState, useRef, useMemo, useEffect, useCallback, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  CalendarDays,
-  Users,
-  BarChart3,
-  Settings,
-  Shield,
-  Trophy,
-  ShoppingBag,
-  Heart,
-  Megaphone,
-  PanelLeftClose,
-  LayoutDashboard,
-  MapPin,
-  Handshake,
-  ClipboardList,
-  ClipboardCheck,
-  FileText,
-  Download,
-  Mail,
-  AlertCircle,
-  Bug,
-  Image,
-  Plus,
-  Send,
-  TreePine,
-  Leaf,
-  X,
-  ChevronRight,
-  Home,
-  MessageCircle,
+    CalendarDays,
+    Users,
+    BarChart3,
+    Settings,
+    Shield,
+    Trophy,
+    ShoppingBag,
+    Heart,
+    Megaphone,
+    PanelLeftClose,
+    LayoutDashboard,
+    MapPin,
+    Handshake,
+    ClipboardList,
+    ClipboardCheck,
+    FileText,
+    Download,
+    Mail,
+    AlertCircle,
+    Bug,
+    Image,
+    Plus,
+    Send,
+    TreePine,
+    Leaf,
+    X,
+    ChevronRight,
+    Home,
+    MessageCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { APP_NAME } from '@/lib/constants'
@@ -185,7 +185,7 @@ const leaderNavCategories: NavCategory[] = [
 ]
 
 /* ------------------------------------------------------------------ */
-/*  Suite identity config — every suite gets a card                     */
+/*  Suite identity config - every suite gets a card                     */
 /* ------------------------------------------------------------------ */
 
 interface SuiteIdentity {
@@ -250,7 +250,7 @@ function getSuiteIdentity(suite: Suite, collectiveName: string): SuiteIdentity {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Suite Switcher — inactive pills + active card                      */
+/*  Suite Switcher - inactive pills + active card                      */
 /* ------------------------------------------------------------------ */
 
 const EASE = [0.25, 0.1, 0.25, 1] as const
@@ -269,7 +269,7 @@ function SuiteSwitcher({
   collectiveName: string
   availableSuites: Suite[]
   reduced: boolean
-  /** True on very first render — suppresses entry animation */
+  /** True on very first render - suppresses entry animation */
   skipInitial: boolean
   /** If provided, switch suite locally instead of navigating */
   onSuiteChange?: (suite: Suite) => void
@@ -292,7 +292,7 @@ function SuiteSwitcher({
   const active = getSuiteIdentity(suite, collectiveName)
   const inactive = allIdentities.filter((id) => id.key !== suite)
 
-  // Only one suite available — no switcher, just the card
+  // Only one suite available - no switcher, just the card
   if (availableSuites.length <= 1) {
     return collapsed ? (
       <div className="flex justify-center py-2.5">
@@ -326,7 +326,7 @@ function SuiteSwitcher({
 
   return (
     <div className="mx-2.5 mb-1">
-      {/* ── Inactive suite pills — compact, clickable ── */}
+      {/* ── Inactive suite pills - compact, clickable ── */}
       <motion.div
         layout={!reduced}
         transition={{ layout: { type: 'spring', stiffness: 400, damping: 30 } }}
@@ -391,7 +391,7 @@ function SuiteSwitcher({
         </AnimatePresence>
       </motion.div>
 
-      {/* ── Active suite card — persistent structure, content cross-dissolves ── */}
+      {/* ── Active suite card - persistent structure, content cross-dissolves ── */}
       {collapsed ? (
         <div className="flex justify-center">
           <AnimatePresence>
@@ -416,7 +416,7 @@ function SuiteSwitcher({
           )}
         >
           <div className="flex items-center gap-2.5">
-            {/* Icon — cross-dissolves */}
+            {/* Icon - cross-dissolves */}
             <div className="relative w-8 h-8 shrink-0">
               <AnimatePresence>
                 <motion.div
@@ -431,7 +431,7 @@ function SuiteSwitcher({
                 </motion.div>
               </AnimatePresence>
             </div>
-            {/* Text — cross-dissolves */}
+            {/* Text - cross-dissolves */}
             <div className="relative min-w-0 flex-1 h-[30px]">
               <AnimatePresence>
                 <motion.div
@@ -702,7 +702,7 @@ function MobileProfileCard({ onNavigate }: { onNavigate: (path: string) => void 
 }
 
 /* ------------------------------------------------------------------ */
-/*  Mobile suite icon switcher — compact 3-icon toggle                 */
+/*  Mobile suite icon switcher - compact 3-icon toggle                 */
 /* ------------------------------------------------------------------ */
 
 function MobileSuiteSwitcher({
@@ -794,7 +794,7 @@ function MobileSuiteSwitcher({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Desktop suite icon switcher — works expanded & collapsed           */
+/*  Desktop suite icon switcher - works expanded & collapsed           */
 /* ------------------------------------------------------------------ */
 
 function DesktopSuiteSwitcher({
@@ -959,7 +959,7 @@ function MobileSidebarOverlay({
   const sheetRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
 
-  // Local suite state — lets user switch views without closing the sheet
+  // Local suite state - lets user switch views without closing the sheet
   const [mobileSuite, setMobileSuite] = useState<Suite>(urlSuite)
 
   // Sync local suite when the sheet opens (in case user navigated while closed)
@@ -1042,7 +1042,7 @@ function MobileSidebarOverlay({
             aria-hidden="true"
           />
 
-          {/* Sidebar panel — slides from right */}
+          {/* Sidebar panel - slides from right */}
           <motion.div
             ref={sheetRef}
             role="dialog"
@@ -1101,7 +1101,7 @@ function MobileSidebarOverlay({
               <MobileProfileCard onNavigate={handleNavigate} />
             </div>
 
-            {/* ── Suite switcher — compact icon toggle ── */}
+            {/* ── Suite switcher - compact icon toggle ── */}
             <MobileSuiteSwitcher
               suite={mobileSuite}
               availableSuites={availableSuites}
@@ -1110,7 +1110,7 @@ function MobileSidebarOverlay({
               onSuiteChange={setMobileSuite}
             />
 
-            {/* ── Nav items — scrollable ── */}
+            {/* ── Nav items - scrollable ── */}
             <div
               className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
               style={{
@@ -1168,7 +1168,7 @@ function MobileSidebarOverlay({
 /* ------------------------------------------------------------------ */
 
 interface UnifiedSidebarProps {
-  /** Mobile overlay mode — controlled open state */
+  /** Mobile overlay mode - controlled open state */
   mobileOpen?: boolean
   /** Callback to close mobile overlay */
   onMobileClose?: () => void
@@ -1220,7 +1220,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
   const allSuiteCategories = useMemo(() => {
     const result: Record<Suite, NavCategory[]> = { main: [], admin: [], leader: [] }
 
-    // Main — Settings is in the sticky footer, no need for duplicate
+    // Main - Settings is in the sticky footer, no need for duplicate
     result.main = [...mainNavCategories]
 
     // Admin (if accessible)
@@ -1253,7 +1253,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
   const reduced = !!shouldReduceMotion
   const isMobileMode = navMode === 'bottom-tabs'
 
-  // Local suite state for desktop — must be declared before any early returns
+  // Local suite state for desktop - must be declared before any early returns
   const [desktopSuite, setDesktopSuite] = useState<Suite>(suite)
 
   // Sync local suite when the URL-derived suite changes
@@ -1324,7 +1324,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
         </Link>
       </div>
 
-      {/* ── Suite switcher — icon toggle, same as mobile ── */}
+      {/* ── Suite switcher - icon toggle, same as mobile ── */}
       {availableSuites.length > 1 && (
         <DesktopSuiteSwitcher
           suite={desktopSuite}
@@ -1364,7 +1364,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
 
       {/* ── Sticky footer: settings + profile + collapse ── */}
       <div className={cn('border-t transition-colors duration-250', dAccent.borderColor)}>
-        {/* Settings link — always visible */}
+        {/* Settings link - always visible */}
         <div className="px-2 pt-2">
           <Link
             to="/settings"
@@ -1387,7 +1387,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
           </Link>
         </div>
 
-        {/* Profile link — all suites */}
+        {/* Profile link - all suites */}
         <div className="px-2.5 pt-1 pb-1">
           <Link
             to="/profile"

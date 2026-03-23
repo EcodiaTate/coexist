@@ -71,7 +71,7 @@ export function Celebration({
         >
           <Confetti active={showConfetti} count={50} duration={3000} />
 
-          {/* Glow ring — GPU-promoted */}
+          {/* Glow ring - GPU-promoted */}
           {!shouldReduceMotion && (
             <motion.div
               className="absolute w-64 h-64 rounded-full bg-primary-400/10 gpu-panel"

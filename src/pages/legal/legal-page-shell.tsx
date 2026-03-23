@@ -25,7 +25,7 @@ export default function LegalPageShell({ slug, fallbackTitle, fallbackDescriptio
   const title = page?.title ?? fallbackTitle
   const description = page?.summary ?? fallbackDescription
 
-  // Sanitise HTML content with DOMPurify — only staff can author content
+  // Sanitise HTML content with DOMPurify - only staff can author content
   // but we still sanitise as defence-in-depth against stored XSS.
   const sanitisedHtml = page?.content ? DOMPurify.sanitize(page.content) : ''
 

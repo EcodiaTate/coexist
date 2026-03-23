@@ -178,14 +178,14 @@ export default function LeaderEventsPage() {
       {/* ── Bright airy background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-moss-50 via-white to-primary-50/30" />
 
-      {/* ── Decorative geometric shapes — CSS-only for GPU compositing ── */}
+      {/* ── Decorative geometric shapes - CSS-only for GPU compositing ── */}
       <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-moss-200/40 animate-[breathe_20s_ease-in-out_infinite]" />
       <div className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-moss-200/25 animate-[breathe_22s_ease-in-out_0.5s_infinite]" />
       <div className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/34 to-transparent opacity-30" />
       <div className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-200/35" />
       <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/21 to-transparent opacity-30" />
       <div className="absolute bottom-[15%] right-[10%] w-[60px] h-[60px] rounded-full bg-primary-100/30" />
-      {/* Floating dots — CSS-only */}
+      {/* Floating dots - CSS-only */}
       <div className="absolute left-[15%] top-[16%] w-2 h-2 rounded-full bg-moss-300/40 animate-[float_4.5s_ease-in-out_infinite]" />
       <div className="absolute right-[14%] top-[35%] w-1.5 h-1.5 rounded-full bg-primary-300/30 animate-[floatDown_5.5s_ease-in-out_1.5s_infinite]" />
       <div className="absolute left-[35%] bottom-[20%] w-2.5 h-2.5 rounded-full bg-moss-300/25 animate-[float_6s_ease-in-out_3s_infinite]" />

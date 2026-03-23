@@ -1,17 +1,17 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Copy,
-  Check,
-  Share2,
-  Users,
-  Link as LinkIcon,
-  QrCode,
-  ExternalLink,
-  Sparkles,
-  MapPin,
-  Calendar,
-  Eye,
+    Copy,
+    Check,
+    Share2,
+    Users,
+    Link as LinkIcon,
+    QrCode,
+    ExternalLink,
+    Sparkles,
+    MapPin,
+    Calendar,
+    Eye,
 } from 'lucide-react'
 import { useLeaderHeader, useLeaderContext } from '@/components/leader-layout'
 import { useToast } from '@/components/toast'
@@ -99,12 +99,12 @@ export default function LeaderInvitePage() {
       {/* ── Rich gradient background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-moss-800 via-moss-700 to-primary-900" />
 
-      {/* Decorative ambient shapes — CSS-only for GPU compositing */}
+      {/* Decorative ambient shapes - CSS-only for GPU compositing */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
         <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/[0.03] to-transparent opacity-30" />
         <div className="absolute top-1/3 -left-24 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-400/[0.05] to-transparent opacity-30" />
         <div className="absolute bottom-20 right-10 w-48 h-48 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sky-400/[0.04] to-transparent opacity-30" />
-        {/* Floating particles — CSS-only */}
+        {/* Floating particles - CSS-only */}
         <div className="absolute top-28 left-1/4 w-1.5 h-1.5 rounded-full bg-white/20 animate-[float_4s_ease-in-out_infinite]" />
         <div className="absolute top-48 right-1/3 w-2 h-2 rounded-full bg-moss-300/15 animate-[floatDown_5s_ease-in-out_1.5s_infinite]" />
         <div className="absolute top-72 left-[15%] w-1 h-1 rounded-full bg-white/25 animate-[float_3.5s_ease-in-out_0.8s_infinite]" />

@@ -121,7 +121,7 @@ export function Page({
           className,
         )}
       >
-        {/* Atmospheric background — sticky so it stays viewport-pinned while
+        {/* Atmospheric background - sticky so it stays viewport-pinned while
             content scrolls over it. Negative margin collapses it out of flow. */}
         {!noBackground && (
           <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 -mx-4 lg:-mx-6" aria-hidden="true">

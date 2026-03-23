@@ -517,7 +517,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="relative min-h-dvh">
-      {/* ── Background — sticky keeps it viewport-pinned ── */}
+      {/* ── Background - sticky keeps it viewport-pinned ── */}
       <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary-700 via-primary-800 to-primary-950" />
 

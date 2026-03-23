@@ -2,23 +2,23 @@ import { useState, useMemo, useRef, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Users,
-  CalendarDays,
-  Clock,
-  CalendarCheck,
-  Plus,
-  Megaphone,
-  TreePine,
-  ChevronRight,
-  ChevronLeft,
-  Bell,
-  BarChart3,
-  UserPlus,
-  CheckCircle2,
-  AlertTriangle,
-  Send,
-  TrendingUp,
-  MapPin,
+    Users,
+    CalendarDays,
+    Clock,
+    CalendarCheck,
+    Plus,
+    Megaphone,
+    TreePine,
+    ChevronRight,
+    ChevronLeft,
+    Bell,
+    BarChart3,
+    UserPlus,
+    CheckCircle2,
+    AlertTriangle,
+    Send,
+    TrendingUp,
+    MapPin,
 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -444,7 +444,7 @@ export default function LeaderDashboardPage() {
   const fullBleedOpts = useRef({ fullBleed: true as const }).current
   useLeaderHeader('Dashboard', fullBleedOpts)
 
-  // Stable Wrapper — useMemo keeps the same component identity across renders
+  // Stable Wrapper - useMemo keeps the same component identity across renders
   const Wrapper = useMemo(() => {
     if (isInLeaderLayout) {
       return ({ children }: { children: React.ReactNode }) => <>{children}</>

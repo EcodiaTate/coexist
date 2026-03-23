@@ -197,7 +197,7 @@ function ShopHero({
   /*
    * On mobile: Page scrolls via <main id="main-content"> (overflow-y-auto).
    * On desktop: window scrolls naturally.
-   * Track both — one will always read 0, the other will move.
+   * Track both - one will always read 0, the other will move.
    * Combine them so parallax works everywhere.
    */
   const containerRef = useRef<HTMLElement>(null)
@@ -230,7 +230,7 @@ function ShopHero({
        */}
       <div className="relative w-full overflow-hidden">
 
-        {/* ── Layer 0: Background landscape — drives the container height ── */}
+        {/* ── Layer 0: Background landscape - drives the container height ── */}
         <div>
           <img
             src="/img/merch-hero-1.png"
@@ -268,11 +268,11 @@ function ShopHero({
               <path d="M12 19l-7-7 7-7" />
             </svg>
           </button>
-          {/* spacer — cart moved outside hero */}
+          {/* spacer - cart moved outside hero */}
           <div className="w-10" />
         </div>
 
-        {/* Hero text — behind the people so they pass in front */}
+        {/* Hero text - behind the people so they pass in front */}
         <motion.div
           className="absolute inset-x-0 top-[12%] z-[2] flex justify-center"
           style={rm ? undefined : { y: textY }}
@@ -283,7 +283,7 @@ function ShopHero({
         </motion.div>
       </div>
 
-      {/* Smooth transition into content — sits on top of the overflowing bg */}
+      {/* Smooth transition into content - sits on top of the overflowing bg */}
       <div className="relative z-20">
         <svg
           viewBox="0 0 1440 70"
@@ -925,7 +925,7 @@ export default function ShopPage() {
         </div>
       </PullToRefresh>
 
-      {/* Floating cart button — outside hero so hamburger doesn't cover it */}
+      {/* Floating cart button - outside hero so hamburger doesn't cover it */}
       <button
         type="button"
         onClick={() => navigate('/shop/cart')}

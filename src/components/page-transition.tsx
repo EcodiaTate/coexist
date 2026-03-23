@@ -24,7 +24,7 @@ const pushTransition = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Revisit: instant — pages have their own entrance animations        */
+/*  Revisit: instant - pages have their own entrance animations        */
 /* ------------------------------------------------------------------ */
 
 const revisitVariants = {
@@ -74,7 +74,7 @@ export function PageTransition({ children, mode = 'push' }: PageTransitionProps)
   const location = useLocation()
   const path = location.pathname
 
-  // Track a generation counter that bumps on path change —
+  // Track a generation counter that bumps on path change -
   // used as key to re-trigger the entry animation without
   // destroying the wrapper div's DOM node position in the tree.
   const [gen, setGen] = useState(0)

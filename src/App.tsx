@@ -299,7 +299,7 @@ function App() {
           }
         />
 
-        {/* ---- Map (auth required, bare shell — no sidebar/tabs) ---- */}
+        {/* ---- Map (auth required, bare shell - no sidebar/tabs) ---- */}
         <Route
           path="/map"
           element={
@@ -312,7 +312,7 @@ function App() {
         />
 
         {/* ============================================================ */}
-        {/*  Protected routes — AppShell mounted ONCE via layout route    */}
+        {/*  Protected routes - AppShell mounted ONCE via layout route    */}
         {/* ============================================================ */}
         <Route element={<RequireAuth><AppShell><KeepAlive /></AppShell></RequireAuth>}>
 

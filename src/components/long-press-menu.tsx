@@ -96,10 +96,10 @@ export function LongPressMenu({
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
             >
-              {/* Backdrop — GPU-promoted for blur perf */}
+              {/* Backdrop - GPU-promoted for blur perf */}
               <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] gpu-backdrop" />
 
-              {/* Menu — GPU-promoted for smooth scale */}
+              {/* Menu - GPU-promoted for smooth scale */}
               <motion.div
                 className={cn(
                   'absolute z-10 min-w-[180px] rounded-xl gpu-panel',

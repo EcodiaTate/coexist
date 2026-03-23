@@ -2,8 +2,8 @@ import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
-  Plus, Edit3, Archive, AlertTriangle, X,
-  ChevronDown, ImagePlus, GripVertical, Trash2,
+    Plus, Edit3, Archive, AlertTriangle, X,
+    ChevronDown, ImagePlus, GripVertical, Trash2,
 } from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useAppImage } from '@/hooks/use-app-images'
@@ -18,17 +18,17 @@ import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { Divider } from '@/components/divider'
 import {
-  useAdminProducts,
-  useCreateProduct,
-  useUpdateProduct,
-  useAdjustStock,
+    useAdminProducts,
+    useCreateProduct,
+    useUpdateProduct,
+    useAdjustStock,
 } from '@/hooks/use-admin-merch'
 import { formatPrice, variantLabel, type Product, type ProductStatus, type ProductVariant } from '@/types/merch'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
-/*  Variant option input — type values, press Enter/comma to add       */
+/*  Variant option input - type values, press Enter/comma to add       */
 /* ------------------------------------------------------------------ */
 
 interface VariantOption {
@@ -552,7 +552,7 @@ function ProductFormSheet({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Variant summary — expandable on product cards                      */
+/*  Variant summary - expandable on product cards                      */
 /* ------------------------------------------------------------------ */
 
 function VariantSummary({
@@ -621,7 +621,7 @@ function VariantSummary({
         </div>
       </button>
 
-      {/* Expandable variant rows — pure CSS, no JS layout */}
+      {/* Expandable variant rows - pure CSS, no JS layout */}
       <div
         className={cn(
           'grid transition-[grid-template-rows,opacity] duration-200 ease-out',
@@ -648,7 +648,7 @@ function VariantSummary({
                     <span className="text-[10px] text-primary-300 font-mono truncate hidden sm:inline">{v.sku}</span>
                   </div>
 
-                  {/* Price — desktop only */}
+                  {/* Price - desktop only */}
                   <span className="text-[11px] text-primary-400 tabular-nums mr-2 hidden sm:block">
                     {formatPrice(v.price_cents)}
                   </span>
@@ -665,7 +665,7 @@ function VariantSummary({
                     {v.stock}
                   </span>
 
-                  {/* Adjust button — full touch target */}
+                  {/* Adjust button - full touch target */}
                   <button
                     type="button"
                     onClick={() => onAdjustStock(v.id, v.stock)}
@@ -866,7 +866,7 @@ export default function ProductsTab() {
                   product.status === 'archived' && 'opacity-60',
                 )}
               >
-                {/* Main row — tappable to edit */}
+                {/* Main row - tappable to edit */}
                 <div className="flex items-center gap-2.5 p-2.5 sm:p-3">
                   {/* Thumbnail */}
                   <img
@@ -910,7 +910,7 @@ export default function ProductsTab() {
                     )}
                   </div>
 
-                  {/* Quick actions — icon buttons */}
+                  {/* Quick actions - icon buttons */}
                   <div className="flex items-center gap-0.5 shrink-0">
                     <button
                       type="button"

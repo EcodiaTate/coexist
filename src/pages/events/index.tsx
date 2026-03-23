@@ -1,16 +1,10 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import {
-    Calendar,
-    Clock,
-    MapPin,
+    Calendar, MapPin,
     Users,
-    X,
-    Compass,
-    Leaf,
-    Search,
-    Filter,
+    X, Leaf, Filter
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -92,7 +86,7 @@ function EventsHero({ rm }: { rm: boolean }) {
     <div className="relative">
       {/* Container: portrait aspect on mobile, capped on desktop */}
       <div className="relative w-full h-[100vw] max-h-[480px] sm:max-h-[420px] overflow-hidden">
-        {/* Background — fills container, pulled up on laptop to show upper portion */}
+        {/* Background - fills container, pulled up on laptop to show upper portion */}
         <motion.div
           className="absolute inset-x-0 top-0 lg:-top-[60%] will-change-transform"
           style={rm ? undefined : { y: bgY, scale: bgScale }}
@@ -104,7 +98,7 @@ function EventsHero({ rm }: { rm: boolean }) {
           />
         </motion.div>
 
-        {/* Foreground cutout — matches bg position exactly */}
+        {/* Foreground cutout - matches bg position exactly */}
         <motion.div
           className="absolute inset-x-0 top-0 lg:-top-[60%] z-[3] will-change-transform"
           style={rm ? undefined : { y: fgY }}
