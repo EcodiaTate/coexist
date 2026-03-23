@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, useInView } from 'framer-motion'
 import {
     Users,
     MapPin,
@@ -9,13 +9,42 @@ import {
     Leaf,
     Eye,
     ArrowUpRight,
-    Globe
+    Globe,
+    TrendingUp,
+    ChevronRight,
+    Trash2,
+    BarChart3,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Dropdown } from '@/components/dropdown'
 import { supabase } from '@/lib/supabase'
 import { useCountUp } from '@/components/stat-card'
+import { cn } from '@/lib/cn'
+import { Link } from 'react-router-dom'
+
+/* ------------------------------------------------------------------ */
+/*  Animation helpers                                                  */
+/* ------------------------------------------------------------------ */
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const } },
+}
+
+const statFadeUp = {
+  hidden: { opacity: 0, y: 18 },
+  show: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.07, duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
+  }),
+}
 
 /* ------------------------------------------------------------------ */
 /*  Date range helpers                                                 */
@@ -156,7 +185,44 @@ function useTrendData() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Bar chart                                                          */
+/*  Section heading (light mode - matching leader/home style)          */
+/* ------------------------------------------------------------------ */
+
+function SectionHeader({
+  children,
+  action,
+  icon,
+  sub,
+}: {
+  children: React.ReactNode
+  action?: { label: string; to: string }
+  icon?: React.ReactNode
+  sub?: string
+}) {
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <div className="flex items-baseline gap-2">
+        <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest">
+          {icon && <span className="text-primary-400">{icon}</span>}
+          {children}
+        </h2>
+        {sub && <span className="text-xs text-primary-300 font-medium">{sub}</span>}
+      </div>
+      {action && (
+        <Link
+          to={action.to}
+          className="flex items-center gap-0.5 text-xs text-primary-500 font-semibold hover:text-primary-700 transition-colors"
+        >
+          {action.label}
+          <ChevronRight size={14} />
+        </Link>
+      )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Bar chart (light theme)                                            */
 /* ------------------------------------------------------------------ */
 
 function TrendChart({
@@ -164,12 +230,15 @@ function TrendChart({
   dataKey,
   label,
   icon,
+  color,
+  barColor,
 }: {
   data: { month: string; [key: string]: any }[]
   dataKey: string
   label: string
-  gradient?: string
   icon: React.ReactNode
+  color: string
+  barColor: string
 }) {
   const shouldReduceMotion = useReducedMotion()
   const values = data.map((d) => d[dataKey] as number)
@@ -183,16 +252,16 @@ function TrendChart({
       initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="rounded-2xl bg-white/[0.06] p-5 sm:p-6"
+      className="rounded-2xl bg-white shadow-md border border-primary-100/50 p-5 sm:p-6"
     >
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2.5">
-          <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/10 text-white/80">
+          <span className={cn('flex items-center justify-center w-9 h-9 rounded-lg', color)}>
             {icon}
           </span>
           <div>
-            <h3 className="font-heading text-sm font-semibold text-white/90">{label}</h3>
-            <p className="text-xs text-white/40 mt-0.5">{total.toLocaleString()} total</p>
+            <h3 className="font-heading text-sm font-semibold text-primary-800">{label}</h3>
+            <p className="text-xs text-primary-400 mt-0.5">{total.toLocaleString()} total</p>
           </div>
         </div>
       </div>
@@ -203,19 +272,19 @@ function TrendChart({
           const height = val > 0 ? Math.max((val / scale) * 100, 6) : 0
           return (
             <div key={d.month} className="flex-1 flex flex-col items-center gap-1.5">
-              <span className="text-[11px] sm:text-xs font-medium text-white/60 tabular-nums">
+              <span className="text-[11px] sm:text-xs font-medium text-primary-500 tabular-nums">
                 {val > 0 ? val : ''}
               </span>
               <div className="w-full flex flex-col justify-end" style={{ height: `${height}%`, minHeight: height > 0 ? 4 : 0 }}>
                 <motion.div
-                  className="w-full rounded-md bg-white/20"
+                  className={cn('w-full rounded-md', barColor)}
                   initial={shouldReduceMotion ? { scaleY: 1 } : { scaleY: 0 }}
                   animate={{ scaleY: 1 }}
                   transition={{ duration: 0.6, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
                   style={{ height: '100%', transformOrigin: 'bottom', willChange: 'transform' }}
                 />
               </div>
-              <span className="text-[11px] sm:text-[11px] text-white/40 font-medium">{d.month}</span>
+              <span className="text-[11px] sm:text-[11px] text-primary-300 font-medium">{d.month}</span>
             </div>
           )
         })}
@@ -225,7 +294,7 @@ function TrendChart({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Hero stat card                                                     */
+/*  Hero stat (count-up, used in the hero gradient cards)              */
 /* ------------------------------------------------------------------ */
 
 function HeroStatCard({
@@ -233,6 +302,7 @@ function HeroStatCard({
   label,
   icon,
   sub,
+  bg,
   reducedMotion,
   delay = 0,
 }: {
@@ -240,7 +310,7 @@ function HeroStatCard({
   label: string
   icon: React.ReactNode
   sub?: string
-  variant?: string
+  bg: string
   reducedMotion: boolean
   delay?: number
 }) {
@@ -255,21 +325,21 @@ function HeroStatCard({
         delay: reducedMotion ? 0 : 0.2 + delay * 0.8,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
-      className="flex flex-col items-center text-center py-6 px-3"
+      className={cn('rounded-2xl p-4 text-center shadow-lg', bg)}
       aria-label={`${label}: ${value}`}
     >
-      <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-3" aria-hidden="true">
+      <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 text-white mx-auto mb-2" aria-hidden="true">
         {icon}
       </span>
       <p
         style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-        className="text-3xl sm:text-4xl font-bold tracking-tight tabular-nums text-white"
+        className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums text-white leading-none"
       >
         {display.toLocaleString()}
       </p>
-      <p className="mt-1.5 text-xs font-medium text-white/45 tracking-wide uppercase">{label}</p>
+      <p className="mt-1.5 text-[11px] font-semibold text-white/50 tracking-wider uppercase">{label}</p>
       {sub && (
-        <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold mt-1.5 text-success-300">
+        <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold mt-1.5 text-white/80 bg-white/15 px-2 py-0.5 rounded-full">
           <ArrowUpRight size={10} />
           {sub}
         </span>
@@ -279,59 +349,45 @@ function HeroStatCard({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Impact metric item                                                 */
+/*  Impact stat (light theme, like leader ImpactMini)                  */
 /* ------------------------------------------------------------------ */
 
-function ImpactItem({
+function ImpactStat({
   value,
   label,
   icon,
-  reducedMotion,
-  delay = 0,
+  color,
+  inView,
+  index = 0,
 }: {
   value: number
   label: string
   icon: React.ReactNode
-  color?: string
-  reducedMotion: boolean
-  delay?: number
+  color: string
+  inView: boolean
+  index?: number
 }) {
-  const display = useCountUp(value, 1200, !reducedMotion)
+  const rm = useReducedMotion()
+  const display = useCountUp(value, 1200, inView && !rm)
 
   return (
     <motion.div
-      initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: reducedMotion ? 0 : delay }}
-      className="flex items-center gap-3 py-3 px-4 rounded-xl bg-white/[0.05]"
-      aria-label={`${label}: ${value}`}
+      className="flex items-center gap-3 rounded-xl bg-white/15 backdrop-blur-sm p-3.5"
+      variants={rm ? undefined : statFadeUp}
+      initial="hidden"
+      animate={inView ? 'show' : 'hidden'}
+      custom={index}
     >
-      <span className="flex items-center justify-center w-9 h-9 rounded-lg shrink-0 bg-white/[0.08]" aria-hidden="true">
+      <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm', color)}>
         {icon}
-      </span>
-      <div className="min-w-0">
-        <p
-          style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-          className="text-lg font-bold text-white tabular-nums leading-tight"
-        >
-          {display.toLocaleString()}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-heading text-lg font-extrabold text-white tabular-nums leading-tight">
+          {value > 0 ? display.toLocaleString() : '—'}
         </p>
-        <p className="text-[11px] text-white/40 font-medium">{label}</p>
+        <p className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">{label}</p>
       </div>
     </motion.div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Section heading                                                    */
-/* ------------------------------------------------------------------ */
-
-function SectionHeading({ children, sub }: { children: React.ReactNode; sub?: string }) {
-  return (
-    <div className="flex items-baseline gap-2 mb-4">
-      <h2 className="font-heading text-base font-bold text-white/80">{children}</h2>
-      {sub && <span className="text-xs text-white/30 font-medium">{sub}</span>}
-    </div>
   )
 }
 
@@ -348,85 +404,49 @@ export default function AdminDashboardPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
 
+  const impactRef = useRef<HTMLDivElement>(null)
+  const impactInView = useInView(impactRef, { once: true, margin: '-60px' })
+
   useAdminHeader('Dashboard', { fullBleed: true })
 
   if (showLoading) {
     return (
-      <div className="relative min-h-dvh overflow-x-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-700 via-primary-800 to-primary-950" />
+      <div className="relative min-h-dvh overflow-x-hidden bg-white">
+        {/* Hero skeleton */}
+        <div className="relative h-[280px] bg-gradient-to-br from-primary-200 via-moss-200 to-primary-300 animate-pulse" />
 
-        <div className="relative z-10">
-          {/* Hero wordmark area */}
-          <div className="flex flex-col items-center justify-center min-h-[220px] sm:min-h-[280px] lg:min-h-[320px]" style={{ paddingTop: 'calc(var(--safe-top, 0px) + 2.5rem)' }}>
-            <div className="h-20 sm:h-28 lg:h-36 w-44 sm:w-56 lg:w-72 rounded-2xl bg-white/[0.06] animate-pulse" />
-            <div className="mt-4 h-3 w-32 rounded-full bg-white/[0.04] animate-pulse" />
+        <div className="relative z-10 px-6 -mt-6 space-y-6 pb-20">
+          {/* Stat cards */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-28 rounded-2xl bg-primary-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+            ))}
           </div>
 
-          {/* Filter bar */}
-          <div className="px-6 sm:px-8 py-4 flex items-center justify-between">
-            <div className="h-3 w-20 rounded-full bg-white/[0.05] animate-pulse" />
-            <div className="h-9 w-36 rounded-xl bg-white/[0.05] animate-pulse" />
-          </div>
-
-          {/* Body */}
-          <div className="px-6 sm:px-8 space-y-8 pb-20">
-            {/* Stat cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.06] rounded-2xl overflow-hidden">
+          {/* Impact section */}
+          <div className="space-y-3">
+            <div className="h-4 w-36 rounded-full bg-primary-100 animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="bg-primary-800/80 p-6 space-y-3 animate-pulse" style={{ animationDelay: `${i * 120}ms` }}>
-                  <div className="w-10 h-10 rounded-xl bg-white/[0.06] mx-auto" />
-                  <div className="h-8 w-16 rounded-lg bg-white/[0.05] mx-auto" />
-                  <div className="h-2.5 w-14 rounded-full bg-white/[0.04] mx-auto" />
-                </div>
+                <div key={i} className="h-16 rounded-xl bg-primary-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
               ))}
             </div>
+          </div>
 
-            {/* Impact section */}
-            <div className="space-y-3">
-              <div className="h-4 w-36 rounded-full bg-white/[0.05] animate-pulse" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 rounded-xl bg-white/[0.05] px-4 py-3.5 animate-pulse" style={{ animationDelay: `${i * 80}ms` }}>
-                    <div className="w-9 h-9 rounded-lg bg-white/[0.06] shrink-0" />
-                    <div className="space-y-1.5 flex-1">
-                      <div className="h-5 w-10 rounded bg-white/[0.05]" />
-                      <div className="h-2.5 w-16 rounded-full bg-white/[0.04]" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Trend charts */}
-            <div className="space-y-3">
-              <div className="h-4 w-28 rounded-full bg-white/[0.05] animate-pulse" />
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                {Array.from({ length: 2 }).map((_, i) => (
-                  <div key={i} className="rounded-2xl bg-white/[0.05] p-5 sm:p-6 animate-pulse" style={{ animationDelay: `${i * 150}ms` }}>
-                    <div className="flex items-center gap-2.5 mb-6">
-                      <div className="w-8 h-8 rounded-lg bg-white/[0.06]" />
-                      <div className="space-y-1.5">
-                        <div className="h-3.5 w-24 rounded-full bg-white/[0.05]" />
-                        <div className="h-2.5 w-14 rounded-full bg-white/[0.04]" />
-                      </div>
-                    </div>
-                    <div className="flex items-end gap-2 h-28 sm:h-36">
-                      {Array.from({ length: 6 }).map((_, j) => (
-                        <div key={j} className="flex-1 flex flex-col items-center gap-1.5 justify-end h-full">
-                          <div className="w-full rounded-md bg-white/[0.06]" style={{ height: `${20 + Math.random() * 50}%` }} />
-                          <div className="h-2 w-5 rounded-full bg-white/[0.04]" />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {/* Trend charts */}
+          <div className="space-y-3">
+            <div className="h-4 w-28 rounded-full bg-primary-100 animate-pulse" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {Array.from({ length: 2 }).map((_, i) => (
+                <div key={i} className="h-52 rounded-2xl bg-primary-50 animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
+              ))}
             </div>
           </div>
         </div>
       </div>
     )
   }
+
   // Build impact items (only show non-zero)
   const impactItems: {
     value: number
@@ -437,107 +457,68 @@ export default function AdminDashboardPage() {
     {
       value: data?.totalTrees ?? 0,
       label: 'Trees Planted',
-      icon: <TreePine size={18} className="text-success-300" />,
-      color: 'bg-white/10',
+      icon: <TreePine size={16} className="text-white" />,
+      color: 'bg-gradient-to-br from-moss-500 to-moss-600',
+    },
+    {
+      value: data?.totalHours ?? 0,
+      label: 'Volunteer Hours',
+      icon: <Clock size={16} className="text-white" />,
+      color: 'bg-gradient-to-br from-bark-500 to-bark-600',
     },
     {
       value: data?.totalRubbish ?? 0,
       label: 'Rubbish (kg)',
-      icon: <span className="text-base text-white/60" aria-hidden="true">&#9851;</span>,
-      color: 'bg-white/10',
+      icon: <Trash2 size={16} className="text-white" />,
+      color: 'bg-gradient-to-br from-sky-500 to-sky-600',
     },
     ...(data?.totalArea ?? 0) > 0
       ? [{
           value: data?.totalArea ?? 0,
           label: 'Area (sqm)',
-          icon: <Globe size={18} className="text-white/60" />,
-          color: 'bg-white/10',
+          icon: <Globe size={16} className="text-white" />,
+          color: 'bg-gradient-to-br from-primary-500 to-primary-600',
         }]
       : [],
     ...(data?.totalNativePlants ?? 0) > 0
       ? [{
           value: data?.totalNativePlants ?? 0,
           label: 'Native Plants',
-          icon: <Leaf size={18} className="text-success-300" />,
-          color: 'bg-white/10',
+          icon: <Leaf size={16} className="text-white" />,
+          color: 'bg-gradient-to-br from-sprout-500 to-sprout-600',
         }]
       : [],
     ...(data?.totalWildlife ?? 0) > 0
       ? [{
           value: data?.totalWildlife ?? 0,
           label: 'Wildlife Sightings',
-          icon: <Eye size={18} className="text-warning-300" />,
-          color: 'bg-white/10',
+          icon: <Eye size={16} className="text-white" />,
+          color: 'bg-gradient-to-br from-warning-500 to-warning-600',
         }]
       : [],
   ]
 
   return (
-    <div className="relative min-h-dvh">
-      {/* ── Background - sticky keeps it viewport-pinned ── */}
-      <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary-700 via-primary-800 to-primary-950" />
+    <div className="relative min-h-dvh bg-white">
+      {/* ── Hero with gradient + wordmark + wave ── */}
+      <div className="relative">
+        <div className="relative w-full overflow-hidden" style={{ minHeight: '280px' }}>
+          <div className="absolute inset-0 bg-gradient-to-br from-secondary-600 via-primary-800 to-primary-950" />
 
-        {/* ── Background geometric shapes (CSS-only animations) ── */}
-        <style>{`
-          @keyframes blob-breathe-1 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
-          @keyframes blob-breathe-2 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-          @keyframes blob-breathe-3 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-          @keyframes blob-breathe-4 { 0%,100% { transform: scale(1); } 50% { transform: scale(1.04); } }
-          @keyframes blob-fade-in { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: scale(1); } }
-          @keyframes blob-fade-in-2 { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
-          @keyframes dot-float-1 { 0%,100% { transform: translateY(0); opacity: 0.3; } 50% { transform: translateY(-8px); opacity: 0.6; } }
-          @keyframes dot-float-2 { 0%,100% { transform: translateY(0); opacity: 0.2; } 50% { transform: translateY(6px); opacity: 0.5; } }
-          @keyframes dot-float-3 { 0%,100% { transform: translateY(0); opacity: 0.25; } 50% { transform: translateY(-5px); opacity: 0.5; } }
-          @media (prefers-reduced-motion: reduce) {
-            .admin-blob, .admin-dot { animation: none !important; }
-          }
-        `}</style>
-        <div
-          className="admin-blob absolute -left-[8%] -top-[8%] w-[45vw] h-[45vw] max-w-[420px] max-h-[420px] rounded-full bg-white/[0.06]"
-          style={{ animation: 'blob-fade-in 1.2s ease-out forwards, blob-breathe-1 16s ease-in-out 1.2s infinite', willChange: 'transform, opacity' }}
-        />
-        <div
-          className="admin-blob absolute -right-[15%] -top-[10%] w-[70vw] h-[70vw] max-w-[700px] max-h-[700px] rounded-full border border-white/[0.08]"
-          style={{ animation: 'blob-fade-in-2 1.5s ease-out 0.3s forwards, blob-breathe-2 20s ease-in-out 1.8s infinite', opacity: 0, willChange: 'transform, opacity' }}
-        />
-        <div
-          className="admin-blob absolute -right-[10%] -top-[5%] w-[50vw] h-[50vw] max-w-[500px] max-h-[500px] rounded-full border border-white/[0.06]"
-          style={{ animation: 'blob-fade-in-2 1.5s ease-out 0.5s forwards, blob-breathe-3 20s ease-in-out 2s infinite', opacity: 0, willChange: 'transform, opacity' }}
-        />
-        <div
-          className="admin-blob absolute -left-[20%] bottom-[5%] w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-full border border-white/[0.07]"
-          style={{ animation: 'blob-fade-in-2 2s ease-out 0.8s forwards, blob-breathe-4 18s ease-in-out 2.8s infinite', opacity: 0, willChange: 'transform, opacity' }}
-        />
-        <div
-          className="admin-blob absolute right-[8%] bottom-[12%] w-[100px] h-[100px] rounded-full bg-white/[0.04]"
-          style={{ animation: 'blob-fade-in-2 1.2s cubic-bezier(0.25,0.46,0.45,0.94) 1s forwards', opacity: 0 }}
-        />
-        {/* Accent dots (CSS-only float) */}
-        <div
-          className="admin-dot absolute left-[18%] top-[22%] w-2 h-2 rounded-full bg-white/30"
-          style={{ animation: 'dot-float-1 4s ease-in-out 1.5s infinite', opacity: 0.3 }}
-        />
-        <div
-          className="admin-dot absolute right-[25%] top-[65%] w-1.5 h-1.5 rounded-full bg-white/25"
-          style={{ animation: 'dot-float-2 5s ease-in-out 1.8s infinite', opacity: 0.2 }}
-        />
-        <div
-          className="admin-dot absolute left-[55%] bottom-[20%] w-2 h-2 rounded-full bg-white/20"
-          style={{ animation: 'dot-float-3 6s ease-in-out 2s infinite', opacity: 0.25 }}
-        />
-      </div>
+          {/* Decorative shapes */}
+          <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/[0.07]" />
+          <div className="absolute -right-4 top-2 w-36 h-36 rounded-full border border-white/[0.10]" />
+          <div className="absolute -left-10 bottom-4 w-40 h-40 rounded-full bg-white/[0.05]" />
+          <div className="absolute left-[30%] top-[20%] w-20 h-20 rounded-full border border-white/[0.08]" />
 
-      {/* ── Content ── */}
-      <div className="relative z-10">
-        {/* ── Hero ── */}
-        <motion.div
-          initial={rm ? {} : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          className="flex flex-col items-center justify-center min-h-[220px] sm:min-h-[280px] lg:min-h-[320px]" style={{ paddingTop: 'calc(var(--safe-top, 0px) + 2.5rem)' }}
-        >
-          <div className="flex flex-col items-center text-center px-6">
+          {/* Hero text */}
+          <motion.div
+            className="relative z-[2] flex flex-col items-center text-center px-6"
+            style={{ paddingTop: 'calc(var(--safe-top, 0px) + 2.5rem)', paddingBottom: '7rem' }}
+            initial={rm ? {} : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          >
             <motion.img
               src="/logos/white-wordmark.webp"
               alt="Co-Exist"
@@ -550,21 +531,55 @@ export default function AdminDashboardPage() {
               initial={rm ? {} : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.4, ease: 'easeOut' }}
-              className="mt-3 text-xs sm:text-sm text-white/25 font-medium tracking-widest uppercase"
+              className="mt-3 text-xs sm:text-sm text-white/30 font-medium tracking-widest uppercase"
             >
               National Dashboard
             </motion.p>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
+        {/* Wave transition */}
+        <div className="absolute bottom-0 left-0 right-0 z-[3]">
+          <svg
+            viewBox="0 0 1440 70"
+            preserveAspectRatio="none"
+            className="w-full h-7 sm:h-10 block"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0,25
+                 C60,22 100,18 140,20
+                 C180,22 200,15 220,18
+                 L228,8 L234,5 L240,10
+                 C280,18 340,24 400,20
+                 C440,16 470,22 510,25
+                 C560,28 600,20 640,22
+                 C670,24 690,18 710,20
+                 L718,10 L722,6 L728,12
+                 C760,20 820,26 880,22
+                 C920,18 950,24 990,26
+                 C1020,28 1050,20 1080,18
+                 C1100,16 1120,22 1140,24
+                 L1148,12 L1153,7 L1158,9 L1165,16
+                 C1200,22 1260,26 1320,22
+                 C1360,18 1400,24 1440,22
+                 L1440,70 L0,70 Z"
+              className="fill-white"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* ── Content on white background ── */}
+      <motion.div
+        className="relative z-10 px-6 sm:px-8 -mt-1 space-y-8 pb-24"
+        variants={rm ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
         {/* ── Period filter ── */}
-        <motion.div
-          initial={rm ? {} : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.5 }}
-          className="px-6 sm:px-8 py-3 sm:py-4 flex items-center justify-between gap-3"
-        >
-          <p className="text-xs font-medium text-white/35">
+        <motion.div variants={rm ? undefined : fadeUp} className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
             {dateRangeOptions.find((o) => o.value === dateRange)?.label}
           </p>
           <Dropdown
@@ -572,27 +587,18 @@ export default function AdminDashboardPage() {
             value={dateRange}
             onChange={(v) => setDateRange(v as DateRange)}
             className="w-40"
-            triggerClassName="bg-transparent border border-white/10 [&>span]:text-white/60 [&>svg]:text-white/30"
           />
         </motion.div>
 
-        {/* ── Body ── */}
-        <motion.div
-          initial={rm ? {} : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-          className="px-6 sm:px-8 space-y-8 sm:space-y-10 pb-20"
-        >
-
-        {/* ── Primary stats ── */}
-        <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-          <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-y lg:divide-y-0 divide-white/[0.06]">
+        {/* ── Primary stats (gradient cards like leader page) ── */}
+        <motion.div variants={rm ? undefined : fadeUp}>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <HeroStatCard
               value={data?.totalMembers ?? 0}
               label="Members"
               icon={<Users size={20} />}
               sub={data?.periodMembers ? `+${data.periodMembers}` : undefined}
-              variant="primary"
+              bg="bg-gradient-to-br from-primary-600 to-secondary-700 shadow-primary-700/30"
               reducedMotion={rm}
               delay={0}
             />
@@ -600,7 +606,7 @@ export default function AdminDashboardPage() {
               value={data?.totalCollectives ?? 0}
               label="Collectives"
               icon={<MapPin size={20} />}
-              variant="dark"
+              bg="bg-gradient-to-br from-moss-500 to-moss-700 shadow-moss-600/30"
               reducedMotion={rm}
               delay={0.1}
             />
@@ -609,7 +615,7 @@ export default function AdminDashboardPage() {
               label="Events Run"
               icon={<CalendarDays size={20} />}
               sub={data?.periodEvents ? `+${data.periodEvents}` : undefined}
-              variant="accent"
+              bg="bg-gradient-to-br from-sprout-500 to-primary-700 shadow-sprout-600/30"
               reducedMotion={rm}
               delay={0.2}
             />
@@ -617,60 +623,71 @@ export default function AdminDashboardPage() {
               value={data?.totalHours ?? 0}
               label="Vol. Hours"
               icon={<Clock size={20} />}
-              variant="default"
+              bg="bg-gradient-to-br from-bark-500 to-bark-800 shadow-bark-600/30"
               reducedMotion={rm}
               delay={0.3}
             />
           </div>
-        </div>
+        </motion.div>
 
-        {/* ── Environmental impact ── */}
-        <motion.div
-          initial={rm ? { opacity: 1 } : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.15 }}
-        >
-          <SectionHeading sub={dateRangeOptions.find((o) => o.value === dateRange)?.label}>
-            Environmental Impact
-          </SectionHeading>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            {impactItems.map((item, i) => (
-              <ImpactItem
-                key={item.label}
-                value={item.value}
-                label={item.label}
-                icon={item.icon}
-                color={item.color}
-                reducedMotion={rm}
-                delay={0.2 + i * 0.04}
-              />
-            ))}
+        {/* ── Environmental Impact (rich branded section) ── */}
+        <motion.div variants={rm ? undefined : fadeUp} ref={impactRef} className="-mx-6 sm:-mx-8">
+          <div className="relative overflow-hidden" style={{ backgroundColor: '#869d61' }}>
+            <div className="relative px-6 sm:px-8 pt-14 pb-16">
+              <div className="flex items-center justify-between mb-1.5">
+                <h2 className="font-heading text-xs font-bold text-white/90 uppercase tracking-[0.2em]">
+                  Environmental Impact
+                </h2>
+                <span className="text-[11px] font-semibold text-white/50">
+                  {dateRangeOptions.find((o) => o.value === dateRange)?.label}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 mt-5">
+                {impactItems.map((item, i) => (
+                  <ImpactStat
+                    key={item.label}
+                    value={item.value}
+                    label={item.label}
+                    icon={item.icon}
+                    color={item.color}
+                    inView={impactInView}
+                    index={i}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </motion.div>
 
-        {/* ── Trend charts ── */}
+        {/* ── Trend charts (light theme) ── */}
         {trends && trends.length > 0 && (
-          <div>
-            <SectionHeading sub="Last 6 months">Growth Trends</SectionHeading>
+          <motion.div variants={rm ? undefined : fadeUp}>
+            <SectionHeader icon={<BarChart3 size={14} />} sub="Last 6 months">
+              Growth Trends
+            </SectionHeader>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               <TrendChart
                 data={trends}
                 dataKey="members"
                 label="Member Growth"
-                icon={<Users size={16} />}
+                icon={<TrendingUp size={16} className="text-white" />}
+                color="bg-gradient-to-br from-primary-500 to-primary-600"
+                barColor="bg-gradient-to-t from-primary-500 to-primary-300"
               />
               <TrendChart
                 data={trends}
                 dataKey="events"
                 label="Event Frequency"
-                icon={<CalendarDays size={16} />}
+                icon={<CalendarDays size={16} className="text-white" />}
+                color="bg-gradient-to-br from-moss-500 to-moss-600"
+                barColor="bg-gradient-to-t from-moss-500 to-moss-300"
               />
             </div>
-          </div>
+          </motion.div>
         )}
 
-        </motion.div>{/* end body wrapper */}
-      </div>{/* end content z-10 */}
+      </motion.div>
     </div>
   )
 }

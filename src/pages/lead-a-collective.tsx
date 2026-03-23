@@ -172,8 +172,8 @@ export default function LeadACollectivePage() {
         }
       }
 
-      const { error } = await supabase
-        .from('collective_applications')
+      const { error } = await (supabase
+        .from as any)('collective_applications')
         .insert({
           first_name: firstName.trim(),
           last_name: lastName.trim(),

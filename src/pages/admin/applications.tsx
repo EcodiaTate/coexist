@@ -123,8 +123,8 @@ function useApplications() {
   return useQuery({
     queryKey: ['admin-applications'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('collective_applications')
+      const { data, error } = await (supabase
+        .from as any)('collective_applications')
         .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -138,8 +138,8 @@ function useNotificationRecipients() {
   return useQuery({
     queryKey: ['admin-application-recipients'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('notification_recipients')
+      const { data, error } = await (supabase
+        .from as any)('notification_recipients')
         .select('*, profile:profiles!notification_recipients_user_id_fkey(display_name)')
         .eq('event_type', 'collective_application')
       if (error) throw error
@@ -378,8 +378,8 @@ function NotificationSettingsTab() {
 
   const addRecipient = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase
-        .from('notification_recipients')
+      const { error } = await (supabase
+        .from as any)('notification_recipients')
         .insert({ event_type: 'collective_application', user_id: userId })
       if (error) throw error
     },
@@ -393,8 +393,8 @@ function NotificationSettingsTab() {
 
   const removeRecipient = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('notification_recipients')
+      const { error } = await (supabase
+        .from as any)('notification_recipients')
         .delete()
         .eq('id', id)
       if (error) throw error
@@ -408,8 +408,8 @@ function NotificationSettingsTab() {
 
   const toggleNotifType = useMutation({
     mutationFn: async ({ id, field, value }: { id: string; field: 'notify_email' | 'notify_push'; value: boolean }) => {
-      const { error } = await supabase
-        .from('notification_recipients')
+      const { error } = await (supabase
+        .from as any)('notification_recipients')
         .update({ [field]: value })
         .eq('id', id)
       if (error) throw error
@@ -456,13 +456,13 @@ function NotificationSettingsTab() {
                 </div>
                 <Toggle
                   label="Email"
-                  compact
+                  size="sm"
                   checked={r.notify_email}
                   onChange={(v) => toggleNotifType.mutate({ id: r.id, field: 'notify_email', value: v })}
                 />
                 <Toggle
                   label="Push"
-                  compact
+                  size="sm"
                   checked={r.notify_push}
                   onChange={(v) => toggleNotifType.mutate({ id: r.id, field: 'notify_push', value: v })}
                 />
@@ -523,7 +523,7 @@ const STATUS_FILTERS = [
 
 export default function AdminApplicationsPage() {
   const shouldReduceMotion = useReducedMotion()
-  const { stagger, fadeUp } = adminVariants(shouldReduceMotion)
+  const { stagger, fadeUp } = adminVariants(shouldReduceMotion ?? false)
   const [activeTab, setActiveTab] = useState('applications')
   const [statusFilter, setStatusFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -536,8 +536,8 @@ export default function AdminApplicationsPage() {
   const updateStatus = useMutation({
     mutationFn: async ({ id, status, notes }: { id: string; status: string; notes?: string }) => {
       const { data: { user } } = await supabase.auth.getUser()
-      const { error } = await supabase
-        .from('collective_applications')
+      const { error } = await (supabase
+        .from as any)('collective_applications')
         .update({
           status,
           notes: notes || null,
@@ -655,7 +655,7 @@ export default function AdminApplicationsPage() {
             </div>
           ) : filtered.length === 0 ? (
             <EmptyState
-              icon={<Users size={40} />}
+              illustration={<Users size={40} />}
               title="No applications"
               description={statusFilter !== 'all' ? 'No applications match the current filter.' : 'Applications will appear here when people apply to lead a collective.'}
             />

@@ -299,7 +299,7 @@ export function useEventDetail(eventId: string | undefined) {
 
       const collaborators = (collabData ?? [])
         .map((c) => c.collectives)
-        .filter(Boolean) as Pick<Collective, 'id' | 'name' | 'slug' | 'cover_image_url'>[]
+        .filter(Boolean) as unknown as Pick<Collective, 'id' | 'name' | 'slug' | 'cover_image_url'>[]
 
       // Check if collective has already been invited to this event
       const { count: inviteCount } = await supabase
@@ -1081,7 +1081,7 @@ export function useInviteCollective() {
           content: announcement.title,
           message_type: 'announcement',
           announcement_id: announcement.id,
-        } as any).catch(console.error)
+        } as any).then(undefined, console.error)
       }
 
       // Get all collective members
