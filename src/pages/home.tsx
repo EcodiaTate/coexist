@@ -186,10 +186,10 @@ function HomeHero({ rm }: { rm: boolean }) {
   )
 
   /* Parallax layers — each moves at a different rate for depth */
-  const bgY = useTransform(scrollY, [0, 600], [0, 80])        // slowest — far background
+  const bgY = useTransform(scrollY, [0, 500], [0, 80])         // slowest — far background
   const bgScale = useTransform(scrollY, [0, 400], [1, 1.08])
-  const fgY = useTransform(scrollY, [0, 600], [0, 30])        // mid — foreground subjects
-  const textY = useTransform(scrollY, [0, 600], [0, 100])     // fastest — text recedes quickly
+  const fgY = useTransform(scrollY, [0, 500], [0, 25])        // mid — foreground subjects
+  const textY = useTransform(scrollY, [0, 500], [0, 120])     // fastest — text recedes quickly
 
   return (
     <div className="relative">
@@ -344,7 +344,7 @@ function NextEventCard({
       <Section title="Your Next Event">
         <div
           className={cn(
-            'relative rounded-2xl overflow-hidden p-6 shadow-md',
+            'relative rounded-2xl overflow-hidden shadow-md',
             'active:scale-[0.98] transition-all duration-150 cursor-pointer',
             happeningNow
               ? 'bg-gradient-to-br from-primary-500 to-primary-700 ring-1 ring-primary-400/50'
@@ -361,8 +361,23 @@ function NextEventCard({
           tabIndex={0}
           aria-label={nextEvent.title}
         >
+          {/* Cover image */}
+          {nextEvent.cover_image_url && (
+            <div className="relative w-full h-32 sm:h-40">
+              <img
+                src={nextEvent.cover_image_url}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            </div>
+          )}
+
+          <div className="p-6">
           {/* Decorative circle */}
-          <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-white/10" />
+          {!nextEvent.cover_image_url && (
+            <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-white/10" />
+          )}
 
           {/* Status badge */}
           {happeningNow && (
@@ -420,6 +435,7 @@ function NextEventCard({
               <ChevronRight size={16} className="ml-0.5" />
             </div>
           )}
+          </div>
         </div>
       </Section>
     </motion.div>

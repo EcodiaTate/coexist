@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import {
     Calendar,
     Clock,
@@ -54,32 +54,118 @@ const fadeUp = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Decorative background - earthy warm tones, distinct from feed      */
+/*  Parallax Hero                                                      */
 /* ------------------------------------------------------------------ */
 
-function DecorativeBackground() {
+function EventsHero({ rm }: { rm: boolean }) {
+  const containerRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const el = document.getElementById('main-content')
+    if (el) (containerRef as React.MutableRefObject<HTMLElement>).current = el
+  }, [])
+
+  const { scrollY: windowScrollY } = useScroll()
+  const { scrollY: containerScrollY } = useScroll({
+    container: containerRef as React.RefObject<HTMLElement>,
+  })
+
+  const scrollY = useTransform(
+    [windowScrollY, containerScrollY],
+    ([w, c]: number[]) => Math.max(w, c),
+  )
+
+  /* Both layers start at the same Y so they marry up at scroll=0.
+     Parallax comes from them moving at different rates on scroll. */
+  const bgY = useTransform(scrollY, [0, 500], [0, 80])
+  const bgScale = useTransform(scrollY, [0, 400], [1, 1.08])
+  const fgY = useTransform(scrollY, [0, 500], [0, 25])
+  const textY = useTransform(scrollY, [0, 500], [0, 120])
+  const textOpacity = useTransform(scrollY, [0, 300], [1, 0])
+
+  /* Both images are 904×1080 (portrait). On mobile they fill the width
+     and we crop the bottom via a fixed viewport height. On laptop the
+     container caps at a max-height so the portrait image doesn't
+     dominate the page. The fg cutout is absolutely positioned over
+     the bg at the exact same size so they marry up pixel-perfect. */
+
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/60 via-primary-100/35 via-30% to-moss-50/25 to-65%" />
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-moss-50/20 to-sprout-50/20" />
+    <div className="relative">
+      {/* Container: portrait aspect on mobile, capped on desktop */}
+      <div className="relative w-full h-[100vw] max-h-[480px] sm:max-h-[420px] overflow-hidden">
+        {/* Background — fills container, pulled up on laptop to show upper portion */}
+        <motion.div
+          className="absolute inset-x-0 top-0 lg:-top-[60%] will-change-transform"
+          style={rm ? undefined : { y: bgY, scale: bgScale }}
+        >
+          <img
+            src="/img/events-hero-bg.png"
+            alt="Conservation events"
+            className="w-full h-auto block"
+          />
+        </motion.div>
 
-      <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-300/28 via-primary-200/14 to-transparent" />
-      <div className="absolute -top-16 -left-16 w-[280px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-200/22 to-transparent" />
+        {/* Foreground cutout — matches bg position exactly */}
+        <motion.div
+          className="absolute inset-x-0 top-0 lg:-top-[60%] z-[3] will-change-transform"
+          style={rm ? undefined : { y: fgY }}
+        >
+          <img
+            src="/img/events-hero-fg.png"
+            alt=""
+            className="w-full h-auto block"
+          />
+        </motion.div>
 
-      <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/18 opacity-60" />
-      <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-primary-200/14 opacity-40" />
-      <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/18 opacity-50" />
-      <div className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-primary-200/12" />
-      <div className="absolute bottom-[16%] right-2 w-36 h-36 rounded-full border-2 border-secondary-200/14" />
+        {/* Hero text */}
+        <motion.div
+          className="absolute inset-x-0 top-[25%] sm:top-[18%] z-[2] flex flex-col items-center px-6 will-change-transform"
+          style={rm ? undefined : { y: textY }}
+        >
+          <span className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-[0.3em] text-white/80 mb-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
+            Discover
+          </span>
+          <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.4)] leading-[0.85] block">
+            Events
+          </span>
+        </motion.div>
 
-      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-100/18 to-transparent opacity-30" />
-      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-200/18 to-transparent opacity-35" />
+        {/* Safe area spacer */}
+        <div
+          className="absolute top-0 left-0 right-0 z-40"
+          style={{ paddingTop: 'var(--safe-top, 0px)' }}
+        />
+      </div>
 
-      <div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-primary-400/15" />
-      <div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-moss-400/12" />
-      <div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-sprout-400/12" />
-      <div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-secondary-400/10" />
-      <div className="absolute top-[35%] right-[28%] w-1.5 h-1.5 rounded-full bg-primary-300/12" />
+      {/* Wave transition */}
+      <div className="absolute bottom-0 left-0 right-0 z-20">
+        <svg
+          viewBox="0 0 1440 70"
+          preserveAspectRatio="none"
+          className="w-full h-7 sm:h-10 block"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M0,25
+               C60,22 100,18 140,20
+               C180,22 200,15 220,18
+               L228,8 L234,5 L240,10
+               C280,18 340,24 400,20
+               C440,16 470,22 510,25
+               C560,28 600,20 640,22
+               C670,24 690,18 710,20
+               L718,10 L722,6 L728,12
+               C760,20 820,26 880,22
+               C920,18 950,24 990,26
+               C1020,28 1050,20 1080,18
+               C1100,16 1120,22 1140,24
+               L1148,12 L1153,7 L1158,9 L1165,16
+               C1200,22 1260,26 1320,22
+               C1360,18 1400,24 1440,22
+               L1440,70 L0,70 Z"
+            className="fill-white"
+          />
+        </svg>
+      </div>
     </div>
   )
 }
@@ -403,33 +489,16 @@ export default function EventsPage() {
   }, [cancelTarget, cancelMutation])
 
   return (
-    <Page noBackground className="!px-0 bg-surface-1">
+    <Page noBackground className="!px-0 bg-white">
       <div className="relative min-h-full">
-        <DecorativeBackground />
+        <EventsHero rm={!!shouldReduceMotion} />
 
-        <div className="relative z-10 px-4 lg:px-6">
-          {/* Hero title */}
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="pt-14 pb-2"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-secondary-700 shadow-sm shadow-primary-400/25">
-                  <Compass size={15} className="text-white" />
-                </div>
-                <h1 className="font-heading text-[22px] font-bold text-secondary-900 tracking-tight">
-                  Events
-                </h1>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <OfflineIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} className="text-primary-400" />
-                <PendingSyncBadge />
-              </div>
-            </div>
-          </motion.div>
+        <div className="relative z-10 px-4 lg:px-6 pt-6">
+          {/* Status indicators */}
+          <div className="flex items-center justify-end gap-1.5 mb-4">
+            <OfflineIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} className="text-primary-400" />
+            <PendingSyncBadge />
+          </div>
 
           <PullToRefresh onRefresh={handleRefresh}>
             <div className="space-y-6 pb-6">

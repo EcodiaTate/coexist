@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback, Fragment } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { ArrowDown, Lock, X, Reply } from 'lucide-react'
+import { ArrowDown, Lock, X, Reply, Search } from 'lucide-react'
 import { Header } from '@/components/header'
+import { ChatSwitcherDropdown } from '@/components/chat-switcher-dropdown'
 import { ChatBubble, PollCard, AnnouncementCard } from '@/components/chat-bubble'
 import { MessageInput } from '@/components/message-input'
 import { Skeleton } from '@/components/skeleton'
@@ -405,6 +406,19 @@ export default function ChannelChatPage() {
       <Header
         title={channelName}
         back
+        rightActions={
+          <div className="flex items-center gap-1">
+            <ChatSwitcherDropdown currentChannelId={channelId} />
+            <button
+              type="button"
+              onClick={() => {/* TODO: channel search */}}
+              aria-label="Search messages"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+            >
+              <Search size={20} />
+            </button>
+          </div>
+        }
       />
 
       {/* Messages area */}
