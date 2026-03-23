@@ -221,6 +221,25 @@ function UserSettingsSheet({
     [capsData, user, userRole, updateCaps, toast],
   )
 
+  /* ---- Optimistic cache helpers ---- */
+  const patchUserInCache = useCallback(
+    (userId: string, patch: Record<string, unknown>) => {
+      queryClient.setQueriesData<any[]>({ queryKey: ['admin-users'] }, (old) =>
+        old?.map((u) => (u.id === userId ? { ...u, ...patch } : u)),
+      )
+    },
+    [queryClient],
+  )
+
+  const removeUserFromCache = useCallback(
+    (userId: string) => {
+      queryClient.setQueriesData<any[]>({ queryKey: ['admin-users'] }, (old) =>
+        old?.filter((u) => u.id !== userId),
+      )
+    },
+    [queryClient],
+  )
+
   /* ---- Mutations ---- */
   const changeRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
@@ -234,12 +253,19 @@ function UserSettingsSheet({
       if (error) throw error
       await logAudit({ action: 'role_changed', target_type: 'user', target_id: userId, details: { new_role: role } })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    onMutate: async ({ userId, role }) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueriesData<any[]>({ queryKey: ['admin-users'] })
+      patchUserInCache(userId, { role })
       setShowRoleChange(false)
-      toast.success('Role updated')
+      return { previous }
     },
-    onError: () => toast.error('Failed to update role'),
+    onSuccess: () => toast.success('Role updated'),
+    onError: (_err, _vars, ctx) => {
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as any, data))
+      toast.error('Failed to update role')
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
   })
 
   const suspendMutation = useMutation({
@@ -251,13 +277,20 @@ function UserSettingsSheet({
       if (error) throw error
       await logAudit({ action: 'user_suspended', target_type: 'user', target_id: userId, details: { reason } })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    onMutate: async ({ userId }) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueriesData<any[]>({ queryKey: ['admin-users'] })
+      patchUserInCache(userId, { is_suspended: true })
       setShowSuspendForm(false)
       setSuspendReason('')
-      toast.success('User suspended')
+      return { previous }
     },
-    onError: () => toast.error('Failed to suspend user'),
+    onSuccess: () => toast.success('User suspended'),
+    onError: (_err, _vars, ctx) => {
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as any, data))
+      toast.error('Failed to suspend user')
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
   })
 
   const unsuspendMutation = useMutation({
@@ -269,11 +302,18 @@ function UserSettingsSheet({
       if (error) throw error
       await logAudit({ action: 'user_unsuspended', target_type: 'user', target_id: userId })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
-      toast.success('User unsuspended')
+    onMutate: async (userId) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueriesData<any[]>({ queryKey: ['admin-users'] })
+      patchUserInCache(userId, { is_suspended: false })
+      return { previous }
     },
-    onError: () => toast.error('Failed to unsuspend user'),
+    onSuccess: () => toast.success('User unsuspended'),
+    onError: (_err, _vars, ctx) => {
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as any, data))
+      toast.error('Failed to unsuspend user')
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
   })
 
   const deleteMutation = useMutation({
@@ -282,22 +322,33 @@ function UserSettingsSheet({
       if (error) throw error
       await logAudit({ action: 'user_deleted', target_type: 'user', target_id: userId })
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-users'] })
+    onMutate: async (userId) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueriesData<any[]>({ queryKey: ['admin-users'] })
+      removeUserFromCache(userId)
       setShowDeleteConfirm(false)
       onClose()
-      toast.success('User deleted')
+      return { previous }
     },
-    onError: () => toast.error('Failed to delete user'),
+    onSuccess: () => toast.success('User deleted'),
+    onError: (_err, _vars, ctx) => {
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as any, data))
+      toast.error('Failed to delete user')
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
   })
 
   const resetPasswordMutation = useMutation({
     mutationFn: async (email: string) => {
-      const { error } = await supabase.auth.resetPasswordForEmail(email)
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
       if (error) throw error
     },
-    onSuccess: () => toast.success('Password reset email sent'),
-    onError: () => toast.error('Failed to send reset email'),
+    onMutate: () => {
+      toast.success('Password reset email sent')
+    },
+    onError: () => toast.error('Failed to send reset email — check Supabase SMTP config'),
   })
 
   if (!user) return null
@@ -839,11 +890,11 @@ export default function AdminUsersPage() {
             <StaggeredItem
               key={user.id}
               className={cn(
-                'flex items-center gap-3 p-3 rounded-xl',
+                'flex items-center gap-3 p-3.5 rounded-xl',
                 'transition-[color,background-color,box-shadow] duration-200',
                 user.is_suspended
-                  ? 'bg-error-50 ring-1 ring-error-200/50 opacity-70'
-                  : 'bg-white ring-1 ring-primary-100/50 shadow-sm',
+                  ? 'bg-error-50 ring-1 ring-error-200/60 opacity-70'
+                  : 'bg-gradient-to-r from-primary-50 to-moss-50/60 ring-1 ring-primary-200/50 shadow-sm',
                 selectedUsers.has(user.id) && 'ring-2 ring-primary-500 shadow-md',
               )}
             >

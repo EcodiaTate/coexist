@@ -9,6 +9,19 @@ html {
   html {
     scroll-behavior: auto;
   }
+
+  /* Collapse all animation durations for reduced motion */
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ===== Page Transition GPU Compositing ===== */
+/* Promote the main content area to its own compositor layer
+   so page transitions don't trigger repaints on the sidebar/tabs */
+main {
+  contain: layout style paint;
 }
 
 /* ===== Self-Hosted Fonts ===== */

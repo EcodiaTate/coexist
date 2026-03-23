@@ -1,5 +1,6 @@
 import { type ReactNode, useState, useEffect, useRef, createContext, useContext, useCallback, useMemo, Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
     LayoutDashboard,
     Users,
@@ -337,6 +338,36 @@ function AdminBottomTabs() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Animated outlet — smooth transition between admin sub-pages        */
+/* ------------------------------------------------------------------ */
+
+function AdminOutletTransition() {
+  const location = useLocation()
+  const shouldReduceMotion = useReducedMotion()
+
+  if (shouldReduceMotion) {
+    return <Outlet />
+  }
+
+  return (
+    <motion.div
+      key={location.pathname}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        type: 'spring',
+        stiffness: 380,
+        damping: 36,
+        mass: 0.5,
+      }}
+      style={{ backfaceVisibility: 'hidden' }}
+    >
+      <Outlet />
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  AdminLayout  route-level layout, renders <Outlet />              */
 /* ------------------------------------------------------------------ */
 
@@ -347,9 +378,10 @@ export function AdminLayout() {
   const [header, setHeaderState] = useState<AdminHeaderState>({ title: '' })
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Scroll admin content area to top on route change
+  // Scroll content to top on route change — instant to avoid fighting
+  // with page transition animations
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' })
   }, [location.pathname])
 
   const setHeader = useCallback((opts: { title: string; subtitle?: string; actions?: ReactNode; heroContent?: ReactNode }) => {
@@ -443,7 +475,7 @@ export function AdminLayout() {
           )}>
 
             <Suspense fallback={null}>
-              <Outlet />
+              <AdminOutletTransition />
             </Suspense>
           </div>
         </div>

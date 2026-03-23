@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react'
 import {
   MapPin,
   Instagram,
@@ -9,6 +10,12 @@ import {
   Sprout,
   Bird,
   Ruler,
+  User,
+  Mail,
+  Phone,
+  Shield,
+  Heart,
+  Accessibility,
 } from 'lucide-react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { BottomSheet } from '@/components/bottom-sheet'
@@ -16,6 +23,7 @@ import { Avatar } from '@/components/avatar'
 import { Chip } from '@/components/chip'
 import { StatCard } from '@/components/stat-card'
 import { Skeleton } from '@/components/skeleton'
+import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import { MapView } from '@/components'
 import { useProfile, useProfileCollectives, useProfileStats, useMutualConnections } from '@/hooks/use-profile'
@@ -33,6 +41,30 @@ function ProfileModalSkeleton() {
         <Skeleton variant="stat-card" />
         <Skeleton variant="stat-card" />
         <Skeleton variant="stat-card" />
+      </div>
+      <Skeleton variant="card" className="h-24" />
+      <Skeleton variant="card" className="h-16" />
+    </div>
+  )
+}
+
+const TINT_COLORS = {
+  primary: 'bg-primary-100 text-primary-600',
+  sky: 'bg-sky-100 text-sky-600',
+  moss: 'bg-moss-100 text-moss-600',
+  sprout: 'bg-sprout-100 text-sprout-600',
+  plum: 'bg-plum-100 text-plum-600',
+} as const
+
+function DetailRow({ icon, label, value, tint = 'primary' }: { icon: ReactNode; label: string; value: string; tint?: keyof typeof TINT_COLORS }) {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 border-b border-primary-50 last:border-b-0">
+      <div className={cn('flex items-center justify-center w-7 h-7 rounded-lg shrink-0', TINT_COLORS[tint])}>
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-medium text-primary-400 uppercase tracking-wider">{label}</p>
+        <p className="text-sm font-semibold text-primary-800 truncate">{value}</p>
       </div>
     </div>
   )
@@ -69,8 +101,10 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
       })
     : ''
 
+  const hasDetails = profile && (profile.first_name || profile.email || profile.phone || profile.age || profile.postcode || profile.gender)
+
   return (
-    <BottomSheet open={open} onClose={onClose} snapPoints={[0.85]}>
+    <BottomSheet open={open} onClose={onClose} snapPoints={[0.92]}>
       {showLoading || !profile ? (
         <ProfileModalSkeleton />
       ) : (
@@ -166,6 +200,78 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
               <StatCard value={stats?.wildlifeSightings ?? 0} label="Wildlife" icon={<Bird size={20} />} />
             )}
           </motion.div>
+
+          {/* Personal Details */}
+          {hasDetails && (
+            <motion.section variants={fadeUp} className="mt-6">
+              <h3 className="font-heading text-base font-semibold text-primary-800 mb-3 flex items-center gap-2">
+                <div className="flex items-center justify-center w-6 h-6 rounded-md bg-primary-600 text-white">
+                  <User size={13} />
+                </div>
+                Details
+              </h3>
+              <div className="rounded-2xl bg-white shadow-sm border border-primary-100 overflow-hidden">
+                {(profile.first_name || profile.last_name) && (
+                  <DetailRow icon={<User size={14} />} label="Name" value={[profile.first_name, profile.last_name].filter(Boolean).join(' ')} tint="primary" />
+                )}
+                {profile.email && (
+                  <DetailRow icon={<Mail size={14} />} label="Email" value={profile.email} tint="sky" />
+                )}
+                {profile.phone && (
+                  <DetailRow icon={<Phone size={14} />} label="Phone" value={profile.phone} tint="moss" />
+                )}
+                {(profile.age || profile.gender) && (
+                  <DetailRow
+                    icon={<Calendar size={14} />}
+                    label="Age / Gender"
+                    value={[profile.age && `Age ${profile.age}`, profile.gender].filter(Boolean).join(' · ')}
+                    tint="sprout"
+                  />
+                )}
+                {profile.postcode && (
+                  <DetailRow icon={<MapPin size={14} />} label="Postcode" value={profile.postcode} tint="plum" />
+                )}
+                {profile.accessibility_requirements && (
+                  <DetailRow icon={<Accessibility size={14} />} label="Accessibility" value={profile.accessibility_requirements} tint="moss" />
+                )}
+              </div>
+            </motion.section>
+          )}
+
+          {/* Emergency Contact */}
+          {profile.emergency_contact_name && (
+            <motion.section variants={fadeUp} className="mt-5">
+              <h3 className="font-heading text-base font-semibold text-primary-800 mb-3 flex items-center gap-2">
+                <div className="flex items-center justify-center w-6 h-6 rounded-md bg-warning-600 text-white">
+                  <Shield size={13} />
+                </div>
+                Emergency Contact
+              </h3>
+              <div className="rounded-2xl overflow-hidden shadow-sm">
+                <div className="bg-gradient-to-r from-warning-100 via-warning-50 to-white p-4 border border-warning-200">
+                  <div className="flex items-start gap-3">
+                    <div className="shrink-0 w-10 h-10 rounded-full bg-warning-500 flex items-center justify-center shadow-sm">
+                      <Heart size={18} className="text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-primary-800">
+                        {profile.emergency_contact_name}
+                      </p>
+                      {profile.emergency_contact_relationship && (
+                        <p className="text-xs text-warning-700 font-medium">{profile.emergency_contact_relationship}</p>
+                      )}
+                      {profile.emergency_contact_phone && (
+                        <p className="text-sm text-primary-700 flex items-center gap-1.5 mt-1 font-medium">
+                          <Phone size={13} className="text-warning-600" />
+                          {profile.emergency_contact_phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.section>
+          )}
 
           {/* Collectives */}
           {collectives && collectives.length > 0 && (

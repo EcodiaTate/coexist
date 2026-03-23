@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
+import { useSwipeBack } from '@/hooks/use-swipe-back'
 
 /** Global scroll-position cache keyed by history entry */
 const scrollPositions = new Map<string, number>()
@@ -31,6 +32,8 @@ interface PageProps {
   noScrollRestore?: boolean
   /** Hide the default atmospheric background (when the page provides its own) */
   noBackground?: boolean
+  /** Enable swipe-right-from-left-edge to go back (auto-enabled on mobile) */
+  swipeBack?: boolean
 }
 
 export function Page({
@@ -40,10 +43,14 @@ export function Page({
   className,
   noScrollRestore = false,
   noBackground = false,
+  swipeBack = false,
 }: PageProps) {
   const location = useLocation()
   const scrollRef = useRef<HTMLDivElement>(null)
   const { navMode } = useLayout()
+
+  // Swipe-right-from-left-edge to go back on mobile/native
+  useSwipeBack({ enabled: swipeBack, targetRef: scrollRef })
 
   // Use location.key (unique per history entry) so back-nav restores position
   // while forward-nav starts at top (no saved position for new keys)

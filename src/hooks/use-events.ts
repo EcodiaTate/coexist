@@ -722,15 +722,45 @@ export function useUpdateEvent() {
       if (error) throw error
       return data as Event
     },
-    onMutate: async ({ eventId }) => {
+    onMutate: async ({ eventId, ...updates }) => {
       await queryClient.cancelQueries({ queryKey: ['event', eventId] })
       await queryClient.cancelQueries({ queryKey: ['collective-events'] })
       await queryClient.cancelQueries({ queryKey: ['nearby-events'] })
+      await queryClient.cancelQueries({ queryKey: ['leader-events'] })
+
+      // Snapshot for rollback
+      const previousLeaderEvents = queryClient.getQueriesData<any[]>({ queryKey: ['leader-events'] })
+
+      // Optimistically update all leader-events cache entries
+      queryClient.setQueriesData<any[]>(
+        { queryKey: ['leader-events'] },
+        (old) => old?.map((ev: any) =>
+          ev.id === eventId ? { ...ev, ...updates } : ev,
+        ),
+      )
+
+      // Optimistically update event detail cache
+      queryClient.setQueriesData<any>(
+        { queryKey: ['event', eventId] },
+        (old: any) => old ? { ...old, ...updates } : old,
+      )
+
+      return { previousLeaderEvents }
+    },
+    onError: (_err, { eventId }, context) => {
+      // Rollback leader-events on failure
+      if (context?.previousLeaderEvents) {
+        for (const [key, data] of context.previousLeaderEvents) {
+          queryClient.setQueryData(key, data)
+        }
+      }
     },
     onSettled: (data) => {
       if (data) {
         queryClient.invalidateQueries({ queryKey: ['event', data.id] })
         queryClient.invalidateQueries({ queryKey: ['collective-events', data.collective_id] })
+        queryClient.invalidateQueries({ queryKey: ['leader-events'] })
+        queryClient.invalidateQueries({ queryKey: ['leader-event-stats'] })
       }
       queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
     },
@@ -783,23 +813,38 @@ export function useCancelEvent() {
     },
     onMutate: async ({ eventId }) => {
       await queryClient.cancelQueries({ queryKey: ['event', eventId] })
+      await queryClient.cancelQueries({ queryKey: ['leader-events'] })
       // Optimistically set status to cancelled
       const previous = queryClient.getQueryData(['event', eventId])
+      const previousLeaderEvents = queryClient.getQueriesData<any[]>({ queryKey: ['leader-events'] })
       queryClient.setQueriesData<EventDetailData>(
         { queryKey: ['event', eventId] },
         (old) => old ? { ...old, status: 'cancelled' } : old,
       )
-      return { previous, eventId }
+      queryClient.setQueriesData<any[]>(
+        { queryKey: ['leader-events'] },
+        (old) => old?.map((ev: any) =>
+          ev.id === eventId ? { ...ev, status: 'cancelled' } : ev,
+        ),
+      )
+      return { previous, previousLeaderEvents, eventId }
     },
     onError: (_err, { eventId }, context) => {
       if (context?.previous) {
         queryClient.setQueriesData({ queryKey: ['event', eventId] }, () => context.previous)
+      }
+      if (context?.previousLeaderEvents) {
+        for (const [key, data] of context.previousLeaderEvents) {
+          queryClient.setQueryData(key, data)
+        }
       }
     },
     onSettled: (_, __, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
+      queryClient.invalidateQueries({ queryKey: ['leader-events'] })
+      queryClient.invalidateQueries({ queryKey: ['leader-event-stats'] })
     },
   })
 }

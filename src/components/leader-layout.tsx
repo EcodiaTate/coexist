@@ -1,5 +1,6 @@
 import { type ReactNode, useState, useEffect, useRef, createContext, useContext, useCallback, useMemo, Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
     LayoutDashboard,
     CalendarDays,
@@ -203,6 +204,36 @@ function LeaderBottomTabs() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Animated outlet — smooth transition between leader sub-pages       */
+/* ------------------------------------------------------------------ */
+
+function LeaderOutletTransition() {
+  const location = useLocation()
+  const shouldReduceMotion = useReducedMotion()
+
+  if (shouldReduceMotion) {
+    return <Outlet />
+  }
+
+  return (
+    <motion.div
+      key={location.pathname}
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        type: 'spring',
+        stiffness: 380,
+        damping: 36,
+        mass: 0.5,
+      }}
+      style={{ backfaceVisibility: 'hidden' }}
+    >
+      <Outlet />
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  LeaderLayout  route-level layout, renders <Outlet />              */
 /* ------------------------------------------------------------------ */
 
@@ -228,9 +259,10 @@ export function LeaderLayout() {
   // Strip trailing "Collective" - e.g. "Byron Bay Collective" → "Byron Bay"
   const collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
 
-  // Scroll content to top on route change
+  // Scroll content to top on route change — instant to avoid fighting
+  // with page transition animations
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' })
   }, [location.pathname])
 
   const setHeader = useCallback((opts: LeaderHeaderState) => {
@@ -325,7 +357,7 @@ export function LeaderLayout() {
           )}>
 
             <Suspense fallback={null}>
-              <Outlet />
+              <LeaderOutletTransition />
             </Suspense>
           </div>
         </div>

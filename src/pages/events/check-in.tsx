@@ -286,7 +286,7 @@ export default function CheckInPage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Check In" back />}>
+      <Page swipeBack header={<Header title="Check In" back />}>
         <div className="pt-8 space-y-4">
           <Skeleton variant="title" />
           <Skeleton variant="card" />
@@ -296,7 +296,7 @@ export default function CheckInPage() {
   }
   if (!event) {
     return (
-      <Page header={<Header title="Check In" back />}>
+      <Page swipeBack header={<Header title="Check In" back />}>
         <EmptyState
           illustration="error"
           title="Event not found"
@@ -308,7 +308,7 @@ export default function CheckInPage() {
   }
 
   return (
-    <Page header={<Header title="Check In" back />}>
+    <Page swipeBack header={<Header title="Check In" back />}>
       <AnimatePresence mode="wait">
         {state === 'success' ? (
           <motion.div

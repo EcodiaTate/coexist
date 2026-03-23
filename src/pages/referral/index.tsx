@@ -90,7 +90,7 @@ export default function ReferralPage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Invite Friends" back />}>
+      <Page swipeBack header={<Header title="Invite Friends" back />}>
         <ReferralSkeleton />
       </Page>
     )
@@ -98,7 +98,7 @@ export default function ReferralPage() {
   if (codeLoading) return null
 
   return (
-    <Page header={<Header title="Invite Friends" back />}>
+    <Page swipeBack header={<Header title="Invite Friends" back />}>
       <div className="relative min-h-[calc(100dvh-4rem)] overflow-x-hidden">
         {/* Full-bleed gradient background */}
         <div className="absolute inset-0 bg-gradient-to-b from-moss-50/50 via-white to-sky-50/15" />

@@ -294,7 +294,7 @@ export default function NationalImpactPage() {
     )
     if (isAdmin) return skeleton
     return (
-      <Page header={<Header title="National Impact" back />}>
+      <Page swipeBack header={<Header title="National Impact" back />}>
         {skeleton}
       </Page>
     )
@@ -635,6 +635,7 @@ export default function NationalImpactPage() {
 
   return (
     <Page
+      swipeBack
       header={
         <Header
           title="National Impact"

@@ -20,6 +20,14 @@ import {
   Plus,
   Trash2,
   Bell,
+  Sparkles,
+  Heart,
+  Briefcase,
+  MessageSquare,
+  ExternalLink,
+  Shield,
+  Star,
+  Megaphone,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -108,11 +116,34 @@ const HOW_HEARD_LABELS: Record<string, string> = {
   other: 'Other',
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  pending: { label: 'Pending', color: 'text-amber-700', bg: 'bg-amber-50' },
-  reviewed: { label: 'Reviewed', color: 'text-blue-700', bg: 'bg-blue-50' },
-  accepted: { label: 'Accepted', color: 'text-green-700', bg: 'bg-green-50' },
-  rejected: { label: 'Rejected', color: 'text-red-700', bg: 'bg-red-50' },
+const STATUS_CONFIG: Record<string, {
+  label: string; color: string; bg: string; border: string;
+  icon: React.ReactNode; strip: string; glow: string;
+}> = {
+  pending: {
+    label: 'Pending Review', color: 'text-warning-800', bg: 'bg-warning-100',
+    border: 'border-warning-200', icon: <Clock size={12} />,
+    strip: 'bg-gradient-to-r from-warning-400 to-warning-500',
+    glow: 'shadow-[0_0_0_1px_rgba(251,191,36,0.15)]',
+  },
+  reviewed: {
+    label: 'Under Review', color: 'text-info-800', bg: 'bg-info-100',
+    border: 'border-info-200', icon: <Eye size={12} />,
+    strip: 'bg-gradient-to-r from-info-400 to-info-500',
+    glow: 'shadow-[0_0_0_1px_rgba(96,165,250,0.15)]',
+  },
+  accepted: {
+    label: 'Accepted', color: 'text-success-800', bg: 'bg-success-100',
+    border: 'border-success-200', icon: <CheckCircle2 size={12} />,
+    strip: 'bg-gradient-to-r from-success-500 to-sprout-500',
+    glow: 'shadow-[0_0_0_1px_rgba(74,222,128,0.15)]',
+  },
+  rejected: {
+    label: 'Not Accepted', color: 'text-error-800', bg: 'bg-error-100',
+    border: 'border-error-200', icon: <XCircle size={12} />,
+    strip: 'bg-gradient-to-r from-error-400 to-error-500',
+    glow: 'shadow-[0_0_0_1px_rgba(248,113,113,0.15)]',
+  },
 }
 
 /* ------------------------------------------------------------------ */
@@ -178,6 +209,26 @@ const tabs = [
 /*  Application Detail Card                                            */
 /* ------------------------------------------------------------------ */
 
+/* ------------------------------------------------------------------ */
+/*  Section header helper                                              */
+/* ------------------------------------------------------------------ */
+
+function SectionHeader({ icon, label, color = 'text-primary-400' }: {
+  icon: React.ReactNode; label: string; color?: string
+}) {
+  return (
+    <div className="flex items-center gap-2 mb-2.5">
+      <span className={cn('shrink-0', color)}>{icon}</span>
+      <p className={cn('text-[11px] font-bold uppercase tracking-widest', color)}>{label}</p>
+      <div className="flex-1 h-px bg-primary-100/40" />
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Application Detail Card                                            */
+/* ------------------------------------------------------------------ */
+
 function ApplicationCard({
   app,
   onUpdateStatus,
@@ -189,32 +240,75 @@ function ApplicationCard({
   const [notes, setNotes] = useState(app.notes ?? '')
   const statusCfg = STATUS_CONFIG[app.status] ?? STATUS_CONFIG.pending
 
+  const initials = `${app.first_name[0] ?? ''}${app.last_name[0] ?? ''}`.toUpperCase()
+  const daysAgo = Math.floor((Date.now() - new Date(app.created_at).getTime()) / 86400000)
+  const timeLabel = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : `${daysAgo}d ago`
+
   return (
-    <div className="rounded-2xl bg-surface-0 shadow-sm overflow-hidden">
+    <div className={cn(
+      'rounded-2xl bg-surface-0 overflow-hidden transition-shadow duration-200',
+      'shadow-md hover:shadow-lg',
+      statusCfg.glow,
+    )}>
+      {/* Colored status strip */}
+      <div className={cn('h-1', statusCfg.strip)} />
+
       {/* Header row */}
       <button
         onClick={() => setExpanded(!expanded)}
         className={cn(
           'w-full flex items-center gap-3.5 px-4 py-3.5 text-left',
           'transition-colors duration-150 cursor-pointer',
-          'hover:bg-surface-2',
+          'hover:bg-surface-1/50',
         )}
       >
-        <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary-50 text-primary-600 shrink-0">
-          <Users size={18} />
+        {/* Avatar with initials */}
+        <div className={cn(
+          'flex items-center justify-center w-11 h-11 rounded-xl shrink-0',
+          'font-heading text-[14px] font-bold tracking-wide',
+          app.status === 'accepted' ? 'bg-success-100 text-success-700' :
+          app.status === 'rejected' ? 'bg-error-100 text-error-600' :
+          app.status === 'reviewed' ? 'bg-info-100 text-info-700' :
+          'bg-warning-100 text-warning-700',
+        )}>
+          {initials}
         </div>
+
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-semibold text-primary-900 truncate">
-            {app.first_name} {app.last_name}
-          </p>
-          <p className="text-[12px] text-primary-400 mt-0.5">
-            {app.suburb}, {app.state} &middot; {new Date(app.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-[15px] font-semibold text-primary-900 truncate">
+              {app.first_name} {app.last_name}
+            </p>
+            {app.roles.includes('collective_leader') && (
+              <Star size={13} className="text-warning-500 shrink-0 fill-warning-400" />
+            )}
+          </div>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <MapPin size={11} className="text-primary-300 shrink-0" />
+            <p className="text-[12px] text-primary-400 truncate">
+              {app.suburb}, {app.state}
+            </p>
+            <span className="text-primary-200">&middot;</span>
+            <p className="text-[12px] text-primary-300 shrink-0">{timeLabel}</p>
+          </div>
         </div>
-        <span className={cn('text-[11px] font-semibold px-2.5 py-1 rounded-full', statusCfg.bg, statusCfg.color)}>
+
+        {/* Status badge */}
+        <span className={cn(
+          'inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full border',
+          statusCfg.bg, statusCfg.color, statusCfg.border,
+        )}>
+          {statusCfg.icon}
           {statusCfg.label}
         </span>
-        {expanded ? <ChevronUp size={16} className="text-primary-400 shrink-0" /> : <ChevronDown size={16} className="text-primary-400 shrink-0" />}
+
+        <motion.div
+          animate={{ rotate: expanded ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="shrink-0"
+        >
+          <ChevronDown size={16} className="text-primary-300" />
+        </motion.div>
       </button>
 
       {/* Expandable detail */}
@@ -224,96 +318,116 @@ function ApplicationCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 space-y-4 border-t border-primary-100/20 pt-4">
-              {/* Contact info */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <DetailRow icon={<Mail size={14} />} label="Email" value={app.email} />
-                {app.phone && <DetailRow icon={<Phone size={14} />} label="Phone" value={app.phone} />}
-                {app.date_of_birth && <DetailRow icon={<Calendar size={14} />} label="Date of Birth" value={app.date_of_birth} />}
-                <DetailRow icon={<MapPin size={14} />} label="Location" value={`${app.address_line1}${app.address_line2 ? `, ${app.address_line2}` : ''}, ${app.suburb} ${app.state} ${app.postcode}`} />
-                <DetailRow icon={<Clock size={14} />} label="Time Commitment" value={app.time_commitment} />
-                {app.attended_events && <DetailRow icon={<Users size={14} />} label="Attended Events" value={app.attended_events} />}
-                <DetailRow icon={<Users size={14} />} label="How Heard" value={HOW_HEARD_LABELS[app.how_heard] ?? app.how_heard} />
-              </div>
-
-              {/* Roles */}
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-primary-400 mb-1.5">Interested Roles</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {app.roles.map(r => (
-                    <span key={r} className="text-[12px] font-medium px-2.5 py-1 rounded-full bg-primary-100 text-primary-700">
-                      {ROLE_LABELS[r] ?? r}
-                    </span>
-                  ))}
+            <div className="px-4 pb-5 space-y-5">
+              {/* ── Contact & Details ── */}
+              <div className="rounded-xl bg-surface-1 p-4">
+                <SectionHeader icon={<Mail size={13} />} label="Contact & Details" color="text-info-500" />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <DetailRow icon={<Mail size={14} />} label="Email" value={app.email} iconColor="text-info-400" />
+                  {app.phone && <DetailRow icon={<Phone size={14} />} label="Phone" value={app.phone} iconColor="text-sprout-500" />}
+                  {app.date_of_birth && <DetailRow icon={<Calendar size={14} />} label="Date of Birth" value={app.date_of_birth} iconColor="text-plum-400" />}
+                  <DetailRow icon={<MapPin size={14} />} label="Address" value={`${app.address_line1}${app.address_line2 ? `, ${app.address_line2}` : ''}, ${app.suburb} ${app.state} ${app.postcode}`} iconColor="text-bark-400" />
+                  <DetailRow icon={<Clock size={14} />} label="Availability" value={app.time_commitment} iconColor="text-moss-500" />
+                  {app.attended_events && <DetailRow icon={<Users size={14} />} label="Attended Events" value={app.attended_events} iconColor="text-sky-500" />}
+                  <DetailRow icon={<Megaphone size={14} />} label="How They Found Us" value={HOW_HEARD_LABELS[app.how_heard] ?? app.how_heard} iconColor="text-warning-500" />
                 </div>
               </div>
 
-              {/* Why volunteer */}
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-primary-400 mb-1.5">Why They Want to Volunteer</p>
-                <p className="text-[14px] text-primary-800 leading-relaxed bg-primary-50/50 rounded-xl p-3">
+              {/* ── Roles & Skills ── */}
+              <div className="rounded-xl bg-gradient-to-br from-primary-50/80 to-sprout-50/60 p-4">
+                <SectionHeader icon={<Briefcase size={13} />} label="Roles & Skills" color="text-primary-500" />
+                <div className="space-y-3">
+                  {/* Roles */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {app.roles.map(r => (
+                      <span key={r} className={cn(
+                        'inline-flex items-center gap-1 text-[12px] font-semibold px-3 py-1.5 rounded-full',
+                        r === 'collective_leader' ? 'bg-warning-100 text-warning-800 border border-warning-200' :
+                        r === 'assistant_leader' ? 'bg-info-100 text-info-800 border border-info-200' :
+                        r === 'social_media' ? 'bg-plum-100 text-plum-700 border border-plum-200' :
+                        'bg-primary-100 text-primary-700 border border-primary-200',
+                      )}>
+                        {r === 'collective_leader' && <Star size={11} className="fill-warning-400" />}
+                        {r === 'assistant_leader' && <Shield size={11} />}
+                        {ROLE_LABELS[r] ?? r}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Skills */}
+                  {app.skills.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {app.skills.map(s => (
+                        <span key={s} className="inline-flex items-center gap-1 text-[12px] font-medium px-2.5 py-1 rounded-full bg-sprout-100 text-sprout-700 border border-sprout-200">
+                          <Sparkles size={10} />
+                          {SKILL_LABELS[s] ?? s}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* ── Motivation ── */}
+              <div className="rounded-xl bg-gradient-to-br from-moss-50/60 to-success-50/40 p-4">
+                <SectionHeader icon={<Heart size={13} />} label="Why They Want to Volunteer" color="text-success-500" />
+                <p className="text-[14px] text-primary-800 leading-relaxed">
                   {app.why_volunteer}
                 </p>
               </div>
 
-              {/* Skills */}
-              {app.skills.length > 0 && (
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-primary-400 mb-1.5">Skills</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {app.skills.map(s => (
-                      <span key={s} className="text-[12px] font-medium px-2.5 py-1 rounded-full bg-sprout-100 text-sprout-700">
-                        {SKILL_LABELS[s] ?? s}
-                      </span>
-                    ))}
-                  </div>
+              {/* ── Resume & Additional ── */}
+              {(app.resume_url || app.additional_info) && (
+                <div className="rounded-xl bg-surface-1 p-4 space-y-3">
+                  <SectionHeader icon={<FileText size={13} />} label="Attachments & Notes" color="text-bark-400" />
+                  {app.resume_url && (
+                    <a
+                      href={app.resume_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        'inline-flex items-center gap-2 text-[13px] font-semibold',
+                        'text-primary-600 hover:text-primary-800 transition-colors',
+                        'bg-surface-0 rounded-lg px-3.5 py-2.5 shadow-sm hover:shadow-md',
+                        'border border-primary-100',
+                      )}
+                    >
+                      <FileText size={14} />
+                      View Resume
+                      <ExternalLink size={12} className="text-primary-300" />
+                    </a>
+                  )}
+                  {app.additional_info && (
+                    <p className="text-[14px] text-primary-700 leading-relaxed italic">
+                      &ldquo;{app.additional_info}&rdquo;
+                    </p>
+                  )}
                 </div>
               )}
 
-              {/* Resume */}
-              {app.resume_url && (
-                <a
-                  href={app.resume_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-[13px] font-medium text-primary-600 hover:text-primary-800 transition-colors"
-                >
-                  <FileText size={14} />
-                  View Resume
-                </a>
-              )}
-
-              {/* Additional info */}
-              {app.additional_info && (
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-widest text-primary-400 mb-1.5">Additional Notes from Applicant</p>
-                  <p className="text-[14px] text-primary-700 leading-relaxed">{app.additional_info}</p>
-                </div>
-              )}
-
-              {/* Staff notes */}
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-widest text-primary-400 mb-1.5">Staff Notes</p>
+              {/* ── Staff Notes ── */}
+              <div className="rounded-xl bg-warning-50/40 border border-warning-100/60 p-4">
+                <SectionHeader icon={<MessageSquare size={13} />} label="Staff Notes (Internal)" color="text-warning-600" />
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   rows={2}
-                  placeholder="Add internal notes..."
+                  placeholder="Add internal notes about this applicant..."
                   className={cn(
-                    'w-full rounded-xl border border-primary-200 bg-white',
+                    'w-full rounded-xl border border-warning-200/60 bg-white',
                     'px-3.5 py-2.5 text-[14px] text-primary-900',
                     'placeholder:text-primary-300',
-                    'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
-                    'resize-none',
+                    'focus:outline-none focus:ring-2 focus:ring-warning-300 focus:border-transparent',
+                    'resize-none transition-shadow',
                   )}
                 />
               </div>
 
-              {/* Actions */}
-              <div className="flex gap-2">
+              {/* ── Actions ── */}
+              <div className="flex items-center gap-2 pt-1">
                 {app.status !== 'accepted' && (
                   <Button
                     variant="primary"
@@ -344,6 +458,11 @@ function ApplicationCard({
                     Mark Reviewed
                   </Button>
                 )}
+                {app.reviewed_at && (
+                  <p className="ml-auto text-[11px] text-primary-300">
+                    Last updated {new Date(app.reviewed_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                  </p>
+                )}
               </div>
             </div>
           </motion.div>
@@ -353,13 +472,15 @@ function ApplicationCard({
   )
 }
 
-function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function DetailRow({ icon, label, value, iconColor = 'text-primary-400' }: {
+  icon: React.ReactNode; label: string; value: string; iconColor?: string
+}) {
   return (
-    <div className="flex items-start gap-2">
-      <span className="text-primary-400 mt-0.5 shrink-0">{icon}</span>
+    <div className="flex items-start gap-2.5">
+      <span className={cn('mt-0.5 shrink-0', iconColor)}>{icon}</span>
       <div className="min-w-0">
         <p className="text-[11px] font-medium text-primary-400 leading-tight">{label}</p>
-        <p className="text-[14px] text-primary-800 break-words">{value}</p>
+        <p className="text-[14px] text-primary-800 break-words leading-snug">{value}</p>
       </div>
     </div>
   )
@@ -425,81 +546,97 @@ function NotificationSettingsTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl bg-surface-0 shadow-sm p-5 space-y-4">
-        <div>
-          <h3 className="font-heading text-[15px] font-semibold text-primary-900">
-            Who gets notified?
-          </h3>
-          <p className="text-[13px] text-primary-400 mt-0.5">
-            Configure which staff members receive email and push notifications when a new collective application is submitted.
-          </p>
+      <div className="rounded-2xl bg-surface-0 shadow-md overflow-hidden">
+        {/* Header band */}
+        <div className="bg-gradient-to-r from-info-50 to-plum-50/40 px-5 py-4 border-b border-primary-100/30">
+          <div className="flex items-center gap-2.5">
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-info-100 text-info-600">
+              <Bell size={16} />
+            </div>
+            <div>
+              <h3 className="font-heading text-[15px] font-semibold text-primary-900">
+                Who gets notified?
+              </h3>
+              <p className="text-[12px] text-primary-400 mt-0.5">
+                Staff members who receive alerts when new applications are submitted.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Current recipients */}
-        {isLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-14 w-full rounded-xl" />
-            <Skeleton className="h-14 w-full rounded-xl" />
-          </div>
-        ) : (recipients ?? []).length === 0 ? (
-          <div className="rounded-xl bg-amber-50 px-4 py-3 text-[13px] text-amber-700">
-            No staff members configured. Add someone below to receive notifications.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {(recipients ?? []).map(r => (
-              <div key={r.id} className="flex items-center gap-3 rounded-xl bg-primary-50/50 px-4 py-3">
-                <div className="flex-1 min-w-0">
-                  <p className="text-[14px] font-medium text-primary-800 truncate">
-                    {(r as any).profile?.display_name ?? r.user_id.slice(0, 8)}
-                  </p>
-                </div>
-                <Toggle
-                  label="Email"
-                  size="sm"
-                  checked={r.notify_email}
-                  onChange={(v) => toggleNotifType.mutate({ id: r.id, field: 'notify_email', value: v })}
-                />
-                <Toggle
-                  label="Push"
-                  size="sm"
-                  checked={r.notify_push}
-                  onChange={(v) => toggleNotifType.mutate({ id: r.id, field: 'notify_push', value: v })}
-                />
-                <button
-                  onClick={() => removeRecipient.mutate(r.id)}
-                  className="text-primary-400 hover:text-error transition-colors cursor-pointer"
-                >
-                  <Trash2 size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Add recipient */}
-        {availableStaff.length > 0 && (
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Dropdown
-                options={availableStaff.map(s => ({ value: s.id, label: s.display_name ?? s.id }))}
-                value={addingUserId}
-                onChange={setAddingUserId}
-                placeholder="Select staff member..."
-              />
+        <div className="p-5 space-y-4">
+          {/* Current recipients */}
+          {isLoading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-14 w-full rounded-xl" />
+              <Skeleton className="h-14 w-full rounded-xl" />
             </div>
-            <Button
-              variant="primary"
-              size="sm"
-              icon={<Plus size={14} />}
-              disabled={!addingUserId}
-              onClick={() => addRecipient.mutate(addingUserId)}
-              loading={addRecipient.isPending}
-            >
-              Add
-            </Button>
-          </div>
-        )}
+          ) : (recipients ?? []).length === 0 ? (
+            <div className="rounded-xl bg-warning-50 border border-warning-100 px-4 py-3.5 flex items-center gap-2.5">
+              <Bell size={16} className="text-warning-500 shrink-0" />
+              <p className="text-[13px] text-warning-700">
+                No staff members configured. Add someone below to receive notifications.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {(recipients ?? []).map(r => (
+                <div key={r.id} className="flex items-center gap-3 rounded-xl bg-surface-1 border border-primary-100/40 px-4 py-3 hover:bg-surface-2/50 transition-colors">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-100 text-primary-600 shrink-0">
+                    <Users size={14} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-medium text-primary-800 truncate">
+                      {(r as any).profile?.display_name ?? r.user_id.slice(0, 8)}
+                    </p>
+                  </div>
+                  <Toggle
+                    label="Email"
+                    size="sm"
+                    checked={r.notify_email}
+                    onChange={(v) => toggleNotifType.mutate({ id: r.id, field: 'notify_email', value: v })}
+                  />
+                  <Toggle
+                    label="Push"
+                    size="sm"
+                    checked={r.notify_push}
+                    onChange={(v) => toggleNotifType.mutate({ id: r.id, field: 'notify_push', value: v })}
+                  />
+                  <button
+                    onClick={() => removeRecipient.mutate(r.id)}
+                    className="text-primary-300 hover:text-error transition-colors cursor-pointer p-1 rounded-lg hover:bg-error-50"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Add recipient */}
+          {availableStaff.length > 0 && (
+            <div className="flex gap-2 pt-2 border-t border-primary-100/30">
+              <div className="flex-1">
+                <Dropdown
+                  options={availableStaff.map(s => ({ value: s.id, label: s.display_name ?? s.id }))}
+                  value={addingUserId}
+                  onChange={setAddingUserId}
+                  placeholder="Select staff member..."
+                />
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<Plus size={14} />}
+                disabled={!addingUserId}
+                onClick={() => addRecipient.mutate(addingUserId)}
+                loading={addRecipient.isPending}
+              >
+                Add
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -590,23 +727,31 @@ export default function AdminApplicationsPage() {
     return list
   }, [applications, statusFilter, searchQuery])
 
+  const rejected = useMemo(() => (applications ?? []).filter(a => a.status === 'rejected').length, [applications])
+
   // Hero stats
   const heroStats = useMemo(() => (
-    <div className="flex items-center gap-3">
-      <div className="rounded-xl bg-white/10 px-4 py-3">
-        <p className="text-[20px] font-bold text-white">{stats.total}</p>
-        <p className="text-[11px] text-white/60 font-medium">Total</p>
+    <div className="flex items-center gap-2.5">
+      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3 border border-white/10 min-w-[72px] text-center">
+        <p className="text-[22px] font-bold text-white tabular-nums">{stats.total}</p>
+        <p className="text-[10px] text-white/50 font-semibold uppercase tracking-wider">Total</p>
       </div>
-      <div className="rounded-xl bg-white/10 px-4 py-3">
-        <p className="text-[20px] font-bold text-amber-300">{stats.pending}</p>
-        <p className="text-[11px] text-white/60 font-medium">Pending</p>
+      <div className="rounded-xl bg-warning-500/20 backdrop-blur-sm px-4 py-3 border border-warning-400/20 min-w-[72px] text-center">
+        <p className="text-[22px] font-bold text-warning-300 tabular-nums">{stats.pending}</p>
+        <p className="text-[10px] text-warning-200/70 font-semibold uppercase tracking-wider">Pending</p>
       </div>
-      <div className="rounded-xl bg-white/10 px-4 py-3">
-        <p className="text-[20px] font-bold text-green-300">{stats.accepted}</p>
-        <p className="text-[11px] text-white/60 font-medium">Accepted</p>
+      <div className="rounded-xl bg-success-500/20 backdrop-blur-sm px-4 py-3 border border-success-400/20 min-w-[72px] text-center">
+        <p className="text-[22px] font-bold text-success-300 tabular-nums">{stats.accepted}</p>
+        <p className="text-[10px] text-success-200/70 font-semibold uppercase tracking-wider">Accepted</p>
       </div>
+      {rejected > 0 && (
+        <div className="rounded-xl bg-error-500/15 backdrop-blur-sm px-4 py-3 border border-error-400/15 min-w-[72px] text-center">
+          <p className="text-[22px] font-bold text-error-300 tabular-nums">{rejected}</p>
+          <p className="text-[10px] text-error-200/60 font-semibold uppercase tracking-wider">Declined</p>
+        </div>
+      )}
     </div>
-  ), [stats])
+  ), [stats, rejected])
 
   useAdminHeader('Applications', {
     subtitle: 'Collective leadership applications',
@@ -628,22 +773,62 @@ export default function AdminApplicationsPage() {
       {activeTab === 'applications' ? (
         <>
           {/* Filters */}
-          <motion.div variants={fadeUp} className="flex gap-2 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
-              <Input
-                type="search"
-                placeholder="Search by name, email, suburb..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+          <motion.div variants={fadeUp} className="space-y-3">
+            {/* Search + dropdown row */}
+            <div className="flex gap-2 flex-wrap">
+              <div className="flex-1 min-w-[200px]">
+                <Input
+                  type="search"
+                  placeholder="Search by name, email, suburb..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Dropdown
+                options={STATUS_FILTERS}
+                value={statusFilter}
+                onChange={setStatusFilter}
+                placeholder="Status"
+                triggerClassName="!w-auto min-w-[140px]"
               />
             </div>
-            <Dropdown
-              options={STATUS_FILTERS}
-              value={statusFilter}
-              onChange={setStatusFilter}
-              placeholder="Status"
-              triggerClassName="!w-auto min-w-[140px]"
-            />
+
+            {/* Quick-filter pills */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-0.5 -mb-0.5">
+              {STATUS_FILTERS.map(f => {
+                const count = f.value === 'all' ? (applications ?? []).length
+                  : (applications ?? []).filter(a => a.status === f.value).length
+                const isActive = statusFilter === f.value
+                const cfg = f.value !== 'all' ? STATUS_CONFIG[f.value] : null
+                return (
+                  <button
+                    key={f.value}
+                    onClick={() => setStatusFilter(f.value)}
+                    className={cn(
+                      'inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-full',
+                      'transition-all duration-150 cursor-pointer shrink-0 border',
+                      isActive
+                        ? cfg
+                          ? `${cfg.bg} ${cfg.color} ${cfg.border}`
+                          : 'bg-primary-100 text-primary-800 border-primary-200'
+                        : 'bg-surface-0 text-primary-400 border-primary-100/50 hover:bg-surface-2 hover:text-primary-600',
+                    )}
+                  >
+                    {f.label}
+                    <span className={cn(
+                      'text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center',
+                      isActive
+                        ? cfg
+                          ? 'bg-white/60 text-inherit'
+                          : 'bg-primary-200/60 text-primary-700'
+                        : 'bg-primary-100/60 text-primary-400',
+                    )}>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
           </motion.div>
 
           {/* List */}

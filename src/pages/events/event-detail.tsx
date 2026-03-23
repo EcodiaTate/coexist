@@ -133,7 +133,7 @@ const stagger = {
 
 function EventDetailSkeleton() {
   return (
-    <Page header={<Header title="" back />}>
+    <Page swipeBack header={<Header title="" back />}>
       <div>
         {/* Hero shimmer */}
         <div className="relative -mx-4 lg:-mx-6" style={{ marginTop: 'calc(-1 * var(--safe-top, 0px))' }}>
@@ -383,7 +383,7 @@ export default function EventDetailPage() {
   if (showLoading || isLoading) return <EventDetailSkeleton />
   if (!event) {
     return (
-      <Page header={<Header title="Event" back />}>
+      <Page swipeBack header={<Header title="Event" back />}>
         <EmptyState
           illustration="error"
           title="Event not found"
@@ -534,6 +534,7 @@ export default function EventDetailPage() {
 
   return (
     <Page
+      swipeBack
       footer={renderCta()}
       noBackground={!!event.cover_image_url}
     >

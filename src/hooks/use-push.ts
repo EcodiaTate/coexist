@@ -27,6 +27,7 @@ interface PushNotificationActionPerformed {
 /* ------------------------------------------------------------------ */
 
 let PushNotifications: {
+  checkPermissions: () => Promise<{ receive: string }>
   requestPermissions: () => Promise<{ receive: string }>
   register: () => Promise<void>
   getDeliveredNotifications: () => Promise<{ notifications: unknown[] }>
@@ -36,6 +37,7 @@ let PushNotifications: {
 
 async function loadPushPlugin() {
   if (!Capacitor.isNativePlatform()) return null
+  if (PushNotifications) return PushNotifications
   try {
     const mod = await import('@capacitor/push-notifications')
     PushNotifications = mod.PushNotifications as typeof PushNotifications
@@ -50,6 +52,9 @@ async function loadPushPlugin() {
 /*  Token storage (module-level, shared by both hooks)                 */
 /* ------------------------------------------------------------------ */
 
+/** Current device's token — kept in memory so logout can remove just this one */
+let currentDeviceToken: string | null = null
+
 function getDeviceInfo(): Record<string, string> {
   return {
     platform: Capacitor.getPlatform(),
@@ -58,6 +63,7 @@ function getDeviceInfo(): Record<string, string> {
 }
 
 async function storeToken(userId: string, token: string, platform: string) {
+  console.info('[push] storing token for user', userId.slice(0, 8), '…', 'platform:', platform, 'token:', token.slice(0, 12) + '…')
   const { error } = await supabase
     .from('push_tokens')
     .upsert(
@@ -73,7 +79,11 @@ async function storeToken(userId: string, token: string, platform: string) {
 
   if (error) {
     console.error('[push] Failed to store token:', error)
+    return false
   }
+  console.info('[push] token stored successfully')
+  currentDeviceToken = token
+  return true
 }
 
 async function removeToken(userId: string, token: string) {
@@ -101,6 +111,54 @@ async function clearBadgeCount() {
   }
 }
 
+/**
+ * Attempt to get push permission and register with FCM/APNs.
+ * Returns true if registration was triggered (token will arrive via listener).
+ */
+async function requestAndRegister(plugin: NonNullable<typeof PushNotifications>): Promise<boolean> {
+  // Check current permission state first
+  let permState: string
+  try {
+    const check = await plugin.checkPermissions()
+    permState = check.receive
+  } catch {
+    permState = 'prompt'
+  }
+
+  // If denied, we can't do anything — user must enable in system settings
+  if (permState === 'denied') {
+    console.warn('[push] permission denied — user must enable in system settings')
+    return false
+  }
+
+  // If not yet granted, request permission (shows OS prompt on 'prompt')
+  if (permState !== 'granted') {
+    try {
+      const result = await plugin.requestPermissions()
+      permState = result.receive
+      console.info('[push] permission request result:', permState)
+    } catch {
+      console.warn('[push] permission request failed')
+      return false
+    }
+  }
+
+  if (permState !== 'granted') {
+    console.warn('[push] permission not granted:', permState)
+    return false
+  }
+
+  // Permission granted — register with FCM/APNs to get a token
+  try {
+    await plugin.register()
+    console.info('[push] register() called — waiting for token via listener')
+    return true
+  } catch (err) {
+    console.error('[push] register() failed:', err)
+    return false
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /*  usePushRegistration — mount ONCE at app root (AppShell)            */
 /*                                                                     */
@@ -110,6 +168,7 @@ async function clearBadgeCount() {
 /*    - Deep-link routing when user taps a notification                */
 /*    - Re-registering on app resume (handles token rotation)          */
 /*    - Clearing badge count on foreground                             */
+/*    - Retry on transient failures                                    */
 /* ------------------------------------------------------------------ */
 
 export function usePushRegistration() {
@@ -132,10 +191,21 @@ export function usePushRegistration() {
       // Token received (initial registration or refresh)
       const regListener = await plugin.addListener(
         'registration',
-        (token: unknown) => {
+        async (token: unknown) => {
           const t = token as PushNotificationToken
+          console.info('[push] token received:', t.value.slice(0, 12) + '…')
           tokenRef.current = t.value
-          storeToken(user!.id, t.value, platform)
+
+          const stored = await storeToken(user!.id, t.value, platform)
+          if (!stored && mounted) {
+            // Retry once after a short delay on storage failure
+            setTimeout(async () => {
+              if (mounted) {
+                console.info('[push] retrying token storage…')
+                await storeToken(user!.id, t.value, platform)
+              }
+            }, 3000)
+          }
         },
       )
 
@@ -144,6 +214,15 @@ export function usePushRegistration() {
         'registrationError',
         (err: unknown) => {
           console.error('[push] registration error:', err)
+          // Retry registration after a delay
+          if (mounted) {
+            setTimeout(async () => {
+              if (mounted) {
+                console.info('[push] retrying registration after error…')
+                await requestAndRegister(plugin)
+              }
+            }, 5000)
+          }
         },
       )
 
@@ -170,15 +249,8 @@ export function usePushRegistration() {
 
       listenersRef.current = [regListener, errListener, receivedListener, actionListener]
 
-      // Try to register (will use existing permission or silently succeed)
-      try {
-        const perm = await plugin.requestPermissions()
-        if (perm.receive === 'granted') {
-          await plugin.register()
-        }
-      } catch {
-        // Permission not yet granted — that's fine, we'll prompt later
-      }
+      // Register — listeners are already attached so the token callback will fire
+      await requestAndRegister(plugin)
     }
 
     setup()
@@ -194,16 +266,9 @@ export function usePushRegistration() {
         App.addListener('appStateChange', async ({ isActive }) => {
           if (isActive && mounted) {
             clearBadgeCount()
-            try {
-              const plugin = await loadPushPlugin()
-              if (plugin) {
-                const perm = await plugin.requestPermissions()
-                if (perm.receive === 'granted') {
-                  await plugin.register()
-                }
-              }
-            } catch {
-              // ignore
+            const plugin = await loadPushPlugin()
+            if (plugin && mounted) {
+              await requestAndRegister(plugin)
             }
           }
         }).then((l) => {
@@ -242,18 +307,19 @@ export function usePush() {
     const plugin = await loadPushPlugin()
     if (!plugin) return false
 
-    const result = await plugin.requestPermissions()
-    if (result.receive === 'granted') {
-      await plugin.register()
-      return true
-    }
-    return false
+    return requestAndRegister(plugin)
   }, [])
 
-  /** Remove this device's token on logout */
+  /** Remove this device's token on logout (preserves other devices) */
   const unregister = useCallback(async () => {
-    if (user) {
-      // Best-effort: remove all tokens for this user (covers multi-device)
+    if (!user) return
+    if (currentDeviceToken) {
+      // Only remove this device's token — other devices keep theirs
+      await removeToken(user.id, currentDeviceToken)
+      currentDeviceToken = null
+    } else {
+      // Fallback: if we don't know the current token, remove all
+      // (shouldn't happen in normal flow, but safer than leaving stale tokens)
       await removeAllTokensForUser(user.id)
     }
   }, [user])

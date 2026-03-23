@@ -291,7 +291,7 @@ function Divider() {
 
 function ProductDetailSkeleton() {
   return (
-    <Page header={<Header title="" back />}>
+    <Page swipeBack header={<Header title="" back />}>
       <div className="-mx-4 lg:mx-0">
         <Skeleton variant="image" className="rounded-none lg:rounded-2xl aspect-[4/5] sm:aspect-square" />
       </div>
@@ -498,7 +498,7 @@ export default function ProductDetailPage() {
   if (showLoading) return <ProductDetailSkeleton />
   if (!product) {
     return (
-      <Page header={<Header title="Product" back />}>
+      <Page swipeBack header={<Header title="Product" back />}>
         <EmptyState
           illustration="error"
           title="Product not found"
@@ -511,6 +511,7 @@ export default function ProductDetailPage() {
 
   return (
     <Page
+      swipeBack
       header={
         <div className="px-2 py-2">
           <button

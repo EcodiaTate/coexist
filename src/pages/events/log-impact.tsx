@@ -393,7 +393,7 @@ export default function LogImpactPage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Log Impact" back />}>
+      <Page swipeBack header={<Header title="Log Impact" back />}>
         <div className="pt-4 space-y-4">
           <Skeleton variant="title" />
           <Skeleton variant="text" count={3} />
@@ -404,7 +404,7 @@ export default function LogImpactPage() {
   }
   if (!event) {
     return (
-      <Page header={<Header title="Log Impact" back />}>
+      <Page swipeBack header={<Header title="Log Impact" back />}>
         <EmptyState
           illustration="error"
           title="Event not found"
@@ -418,7 +418,7 @@ export default function LogImpactPage() {
   // Success state
   if (submitted) {
     return (
-      <Page header={<Header title="Log Impact" back />}>
+      <Page swipeBack header={<Header title="Log Impact" back />}>
         <motion.div
           initial={shouldReduceMotion ? undefined : { opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -472,6 +472,7 @@ export default function LogImpactPage() {
 
   return (
     <Page
+      swipeBack
       header={<Header title="Log Impact" back />}
       footer={
         <Button

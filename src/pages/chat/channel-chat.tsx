@@ -9,6 +9,7 @@ import { MessageInput } from '@/components/message-input'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { UploadProgress } from '@/components/upload-progress'
+import { ProfileModal } from '@/components/profile-modal'
 import { CreatePollSheet } from '@/components/create-poll-sheet'
 import { CreateAnnouncementSheet } from '@/components/create-announcement-sheet'
 import { BroadcastNotificationSheet } from '@/components/broadcast-notification-sheet'
@@ -310,6 +311,7 @@ export default function ChannelChatPage() {
   const [showPollSheet, setShowPollSheet] = useState(false)
   const [showAnnouncementSheet, setShowAnnouncementSheet] = useState(false)
   const [showBroadcastSheet, setShowBroadcastSheet] = useState(false)
+  const [profileUserId, setProfileUserId] = useState<string | null>(null)
 
   // Mark as read on mount and when new messages arrive
   useEffect(() => {
@@ -612,8 +614,8 @@ export default function ChannelChatPage() {
                         senderId={msg.user_id ?? undefined}
                         photo={msg.image_url ?? undefined}
                         skipAnimation={msg._confirmed}
-                        onAvatarTap={(userId) => navigate(`/profile/${userId}`)}
-                        onSenderTap={(userId) => navigate(`/profile/${userId}`)}
+                        onAvatarTap={(userId) => setProfileUserId(userId)}
+                        onSenderTap={(userId) => setProfileUserId(userId)}
                         onLongPress={() => {
                           if (!msg._optimistic) setReplyTo(msg)
                         }}
@@ -739,6 +741,9 @@ export default function ChannelChatPage() {
         recentBroadcasts={broadcastLog}
         collectiveName={channel?.name}
       />
+
+      {/* Profile modal */}
+      <ProfileModal userId={profileUserId} open={!!profileUserId} onClose={() => setProfileUserId(null)} />
     </div>
   )
 }

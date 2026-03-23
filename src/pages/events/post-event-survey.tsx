@@ -239,7 +239,7 @@ export default function PostEventSurveyPage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Survey" back />}>
+      <Page swipeBack header={<Header title="Survey" back />}>
         <div className="p-4 space-y-4">
           <Skeleton className="h-20 rounded-2xl" />
           <Skeleton className="h-32 rounded-2xl" />
@@ -250,7 +250,7 @@ export default function PostEventSurveyPage() {
   }
   if (!event) {
     return (
-      <Page header={<Header title="Survey" back />}>
+      <Page swipeBack header={<Header title="Survey" back />}>
         <EmptyState
           illustration="error"
           title="Event not found"
@@ -263,7 +263,7 @@ export default function PostEventSurveyPage() {
 
   if (!questions?.length) {
     return (
-      <Page header={<Header title="Survey" back />}>
+      <Page swipeBack header={<Header title="Survey" back />}>
         <EmptyState
           illustration="success"
           title="No survey for this event type"
@@ -277,7 +277,7 @@ export default function PostEventSurveyPage() {
   if (submitted || (existingResponse && Object.keys(answers).length === 0)) {
     if (submitted) {
       return (
-        <Page header={<Header title="Survey" back />}>
+        <Page swipeBack header={<Header title="Survey" back />}>
           <div className="p-4">
             <motion.div
               initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
@@ -308,6 +308,7 @@ export default function PostEventSurveyPage() {
 
   return (
     <Page
+      swipeBack
       header={<Header title="Post-Event Survey" back />}
       footer={
         <Button

@@ -1396,6 +1396,9 @@ export default function CollectiveChatPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Profile modal */}
+      <ProfileModal userId={profileUserId} open={!!profileUserId} onClose={() => setProfileUserId(null)} />
     </div>
   )
 }

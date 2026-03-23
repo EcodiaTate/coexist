@@ -37,6 +37,7 @@ import {
   BottomSheet,
 } from '@/components'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { ProfileModal } from '@/components/profile-modal'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -100,9 +101,14 @@ function AttendeeRow({
     <motion.div
       layout
       className={cn(
-        'flex items-center gap-3 px-4 py-3 cursor-pointer',
-        'border-b border-primary-100/40 last:border-b-0',
-        'active:bg-primary-50/50 transition-colors',
+        'flex items-center gap-3 px-4 py-3.5 cursor-pointer rounded-xl mb-1.5',
+        'transition-[color,background-color,box-shadow] duration-200',
+        isCheckedIn
+          ? 'bg-gradient-to-r from-success-50 to-moss-50/50 ring-1 ring-success-200/50'
+          : isWaitlisted
+            ? 'bg-gradient-to-r from-warning-50 to-warning-50/30 ring-1 ring-warning-200/50'
+            : 'bg-gradient-to-r from-primary-50 to-moss-50/60 ring-1 ring-primary-200/50',
+        'active:opacity-80',
       )}
       onClick={onViewDetails}
       role="button"
@@ -291,6 +297,7 @@ export default function EventDayPage() {
   const [checkingInUserId, setCheckingInUserId] = useState<string | null>(null)
   const [promotingUserId, setPromotingUserId] = useState<string | null>(null)
   const [selectedAttendee, setSelectedAttendee] = useState<AttendeeWithStatus | null>(null)
+  const [profileUserId, setProfileUserId] = useState<string | null>(null)
 
   const filteredAttendees = useMemo(() => {
     if (!attendees) return []
@@ -345,7 +352,7 @@ export default function EventDayPage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Event Day" back />}>
+      <Page swipeBack header={<Header title="Event Day" back />}>
         <div className="pt-4 space-y-4">
           <Skeleton variant="title" />
           <div className="flex gap-3">
@@ -359,7 +366,7 @@ export default function EventDayPage() {
   }
   if (!event) {
     return (
-      <Page header={<Header title="Event Day" back />}>
+      <Page swipeBack header={<Header title="Event Day" back />}>
         <EmptyState
           illustration="error"
           title="Event not found"
@@ -372,6 +379,7 @@ export default function EventDayPage() {
 
   return (
     <Page
+      swipeBack
       header={<Header title="Event Day" back />}
       footer={
         <div className="flex gap-2">
@@ -470,14 +478,14 @@ export default function EventDayPage() {
             description={searchQuery ? 'Try a different search' : 'No one has registered yet'}
           />
         ) : (
-          <div className="rounded-xl shadow-sm overflow-hidden">
+          <div className="space-y-0">
             {filteredAttendees.map((attendee) => (
               <AttendeeRow
                 key={attendee.user_id}
                 attendee={attendee}
                 onCheckIn={() => handleCheckIn(attendee.user_id)}
                 onPromote={attendee.status === 'waitlisted' ? () => handlePromote(attendee.user_id) : undefined}
-                onViewDetails={() => setSelectedAttendee(attendee)}
+                onViewDetails={() => setProfileUserId(attendee.user_id)}
                 isPending={checkingInUserId === attendee.user_id}
                 isPromoting={promotingUserId === attendee.user_id}
               />
@@ -525,6 +533,9 @@ export default function EventDayPage() {
         open={!!selectedAttendee}
         onClose={() => setSelectedAttendee(null)}
       />
+
+      {/* Profile modal */}
+      <ProfileModal userId={profileUserId} open={!!profileUserId} onClose={() => setProfileUserId(null)} />
     </Page>
   )
 }
