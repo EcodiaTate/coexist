@@ -108,28 +108,28 @@ const WAVE_PATHS = [
 type LeaderShapeFormation = Array<{ className: string }>
 
 const LEADER_FORMATIONS: LeaderShapeFormation[] = [
-  // 0 — Canopy cluster (top-heavy)
+  // 0 - Canopy cluster (top-heavy)
   [
     { className: 'absolute -right-14 -top-14 w-60 h-60 rounded-full bg-white/[0.06]' },
     { className: 'absolute -right-2 top-4 w-32 h-32 rounded-full border border-white/[0.09]' },
     { className: 'absolute -left-8 bottom-2 w-36 h-36 rounded-full bg-white/[0.04]' },
     { className: 'absolute right-10 bottom-8 w-14 h-14 rounded-full border border-white/[0.10]' },
   ],
-  // 1 — Understory scatter
+  // 1 - Understory scatter
   [
     { className: 'absolute -left-16 -top-16 w-52 h-52 rounded-full bg-white/[0.05]' },
     { className: 'absolute left-[35%] top-[25%] w-20 h-20 rounded-full border border-white/[0.10]' },
     { className: 'absolute -right-10 -bottom-10 w-44 h-44 rounded-full border border-white/[0.06]' },
     { className: 'absolute right-[15%] top-2 w-12 h-12 rounded-full bg-white/[0.07]' },
   ],
-  // 2 — Root system (bottom-heavy rings)
+  // 2 - Root system (bottom-heavy rings)
   [
     { className: 'absolute -right-20 -bottom-16 w-64 h-64 rounded-full border border-white/[0.07]' },
     { className: 'absolute -right-6 -bottom-4 w-40 h-40 rounded-full border border-white/[0.04]' },
     { className: 'absolute -left-12 -top-12 w-40 h-40 rounded-full bg-white/[0.05]' },
     { className: 'absolute left-[50%] top-6 w-10 h-10 rounded-full bg-white/[0.06]' },
   ],
-  // 3 — Creek stones (scattered small)
+  // 3 - Creek stones (scattered small)
   [
     { className: 'absolute -right-8 -top-8 w-44 h-44 rounded-full bg-white/[0.04]' },
     { className: 'absolute left-[12%] top-[18%] w-10 h-10 rounded-full bg-white/[0.08]' },
@@ -276,7 +276,7 @@ export function LeaderLayout() {
                   'before:absolute before:inset-x-0 before:bottom-full before:h-[200px] before:bg-inherit',
                 )}
               >
-                {/* Decorative shapes — unique formation per page */}
+                {/* Decorative shapes - unique formation per page */}
                 {shapes.map((s, i) => (
                   <div key={i} className={cn('pointer-events-none', s.className)} />
                 ))}

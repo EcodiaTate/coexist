@@ -9,6 +9,7 @@ import { OfflineBanner } from '@/components/offline-banner'
 import { MenuSheetProvider, useMenuSheet } from '@/hooks/use-menu-sheet'
 import { useSyncManager } from '@/hooks/use-sync-manager'
 import { usePushRegistration } from '@/hooks/use-push'
+import { useKeyboard } from '@/hooks/use-keyboard'
 
 interface AppShellProps {
   children: ReactNode
@@ -79,6 +80,9 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
   // Handles auto-sync on reconnect + toast notifications
   useSyncManager()
+
+  // Scroll focused inputs into view when native keyboard opens
+  useKeyboard()
 
   // Push notification registration - sets up FCM/APNs listeners,
   // stores token in DB, handles deep-link routing on tap,

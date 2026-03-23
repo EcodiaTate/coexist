@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, startTransition } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { APP_NAME, TAGLINE } from '@/lib/constants'
 import { useAuth } from '@/hooks/use-auth'
@@ -16,16 +16,14 @@ export default function SplashPage({ onReady }: SplashProps) {
 
   // Minimum display time of 1.5s
   useEffect(() => {
-    const timer = setTimeout(() => setMinTimePassed(true), 1500)
+    const timer = setTimeout(() => startTransition(() => setMinTimePassed(true)), 1500)
     return () => clearTimeout(timer)
   }, [])
 
   // Start fade-out when both auth resolves AND minimum time passes
-  useEffect(() => {
-    if (minTimePassed && !authLoading && !dismissing) {
-      setDismissing(true)
-    }
-  }, [minTimePassed, authLoading, dismissing])
+  if (minTimePassed && !authLoading && !dismissing) {
+    setDismissing(true)
+  }
 
   return (
     <AnimatePresence onExitComplete={onReady}>

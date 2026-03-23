@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
@@ -45,43 +45,45 @@ const CONFETTI_COLORS = [
 
 function Confetti() {
   const shouldReduceMotion = useReducedMotion()
+  const particles = useMemo(() => Array.from({ length: 40 }, (_, i) => ({
+    left: Math.random() * 100,
+    delay: Math.random() * 0.5,
+    size: 6 + Math.random() * 8,
+    rotation: Math.random() * 360,
+    direction: Math.random() > 0.5 ? 1 : -1,
+    xDrift: (Math.random() - 0.5) * 200,
+    duration: 1.5 + Math.random(),
+    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+  })), [])
   if (shouldReduceMotion) return null
 
   return (
     <div className="fixed inset-0 pointer-events-none z-50" aria-hidden="true">
-      {Array.from({ length: 40 }, (_, i) => {
-        const left = Math.random() * 100
-        const delay = Math.random() * 0.5
-        const size = 6 + Math.random() * 8
-        const rotation = Math.random() * 360
-        const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length]
-
-        return (
-          <motion.div
-            key={i}
-            className={cn('absolute rounded-sm', color)}
-            style={{
-              width: size,
-              height: size * 0.6,
-              left: `${left}%`,
-              top: -20,
-              rotate: rotation,
-            }}
-            initial={{ y: -20, opacity: 1 }}
-            animate={{
-              y: window.innerHeight + 50,
-              opacity: [1, 1, 0],
-              rotate: rotation + 360 * (Math.random() > 0.5 ? 1 : -1),
-              x: (Math.random() - 0.5) * 200,
-            }}
-            transition={{
-              duration: 1.5 + Math.random(),
-              delay,
-              ease: 'easeIn',
-            }}
-          />
-        )
-      })}
+      {particles.map((p, i) => (
+        <motion.div
+          key={i}
+          className={cn('absolute rounded-sm', p.color)}
+          style={{
+            width: p.size,
+            height: p.size * 0.6,
+            left: `${p.left}%`,
+            top: -20,
+            rotate: p.rotation,
+          }}
+          initial={{ y: -20, opacity: 1 }}
+          animate={{
+            y: window.innerHeight + 50,
+            opacity: [1, 1, 0],
+            rotate: p.rotation + 360 * p.direction,
+            x: p.xDrift,
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            ease: 'easeIn',
+          }}
+        />
+      ))}
     </div>
   )
 }
@@ -245,7 +247,7 @@ export default function CheckInPage() {
         setState('idle')
       }
     } catch {
-      // BarcodeScanner plugin failed — fall back to manual mode, don't auto-check-in
+      // BarcodeScanner plugin failed - fall back to manual mode, don't auto-check-in
       document.querySelector('body')?.classList.remove('scanner-active')
       setState('manual')
     }
@@ -372,7 +374,7 @@ export default function CheckInPage() {
                     Quick profile setup
                   </p>
                   <p className="text-xs text-primary-400 mt-1">
-                    Help us keep you safe — takes 1 minute
+                    Help us keep you safe - takes 1 minute
                   </p>
                   <Button
                     variant="primary"

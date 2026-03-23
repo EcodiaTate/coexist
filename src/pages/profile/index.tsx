@@ -218,7 +218,7 @@ export default function ProfilePage() {
       {/* Hero banner */}
       <div className="-mx-4 lg:-mx-6">
         <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-moss-600 pb-20 pt-8">
-          {/* Decorative shapes — bolder */}
+          {/* Decorative shapes - bolder */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-moss-400/15" />
             <div className="absolute top-6 -left-12 w-40 h-40 rounded-full bg-sprout-400/10" />

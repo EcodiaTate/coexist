@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, startTransition } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -21,12 +21,14 @@ export default function ShippingTab() {
 
   useEffect(() => {
     if (config) {
-      setFlatRate(String(config.flat_rate_cents / 100))
-      setFreeThreshold(
-        config.free_shipping_threshold_cents
-          ? String(config.free_shipping_threshold_cents / 100)
-          : '',
-      )
+      startTransition(() => {
+        setFlatRate(String(config.flat_rate_cents / 100))
+        setFreeThreshold(
+          config.free_shipping_threshold_cents
+            ? String(config.free_shipping_threshold_cents / 100)
+            : '',
+        )
+      })
     }
   }, [config])
 

@@ -5,9 +5,7 @@ import {
     Users,
     CalendarDays,
     MapPin,
-    ClipboardList,
-    ClipboardCheck,
-    FileText,
+    ClipboardList, FileText,
     Settings,
     Download,
     Heart,
@@ -16,7 +14,7 @@ import {
     ShoppingBag,
     MoreHorizontal,
     Handshake,
-    Sparkles,
+    Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
@@ -122,35 +120,35 @@ const WAVE_PATHS = [
 type ShapeFormation = Array<{ className: string }>
 
 const SHAPE_FORMATIONS: ShapeFormation[] = [
-  // 0 — Top-right cluster + bottom-left accent
+  // 0 - Top-right cluster + bottom-left accent
   [
     { className: 'absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/[0.05]' },
     { className: 'absolute -right-4 top-2 w-36 h-36 rounded-full border border-white/[0.08]' },
     { className: 'absolute -left-10 bottom-0 w-40 h-40 rounded-full bg-white/[0.04]' },
     { className: 'absolute right-12 bottom-6 w-16 h-16 rounded-full border border-white/[0.10]' },
   ],
-  // 1 — Diagonal drift (top-left → bottom-right)
+  // 1 - Diagonal drift (top-left → bottom-right)
   [
     { className: 'absolute -left-12 -top-12 w-56 h-56 rounded-full bg-white/[0.06]' },
     { className: 'absolute left-[30%] top-[20%] w-20 h-20 rounded-full border border-white/[0.08]' },
     { className: 'absolute right-[15%] bottom-[10%] w-32 h-32 rounded-full bg-white/[0.04]' },
     { className: 'absolute -right-8 -bottom-8 w-48 h-48 rounded-full border border-white/[0.06]' },
   ],
-  // 2 — Centre constellation
+  // 2 - Centre constellation
   [
     { className: 'absolute left-[40%] -top-10 w-52 h-52 rounded-full bg-white/[0.05]' },
     { className: 'absolute left-[25%] top-[35%] w-16 h-16 rounded-full border border-white/[0.10]' },
     { className: 'absolute right-[20%] bottom-4 w-24 h-24 rounded-full bg-white/[0.04]' },
     { className: 'absolute -left-6 bottom-[20%] w-28 h-28 rounded-full border border-white/[0.07]' },
   ],
-  // 3 — Bottom-heavy ring pair
+  // 3 - Bottom-heavy ring pair
   [
     { className: 'absolute -right-20 -bottom-20 w-72 h-72 rounded-full border border-white/[0.06]' },
     { className: 'absolute -right-8 -bottom-8 w-44 h-44 rounded-full border border-white/[0.04]' },
     { className: 'absolute -left-14 -top-14 w-44 h-44 rounded-full bg-white/[0.05]' },
     { className: 'absolute right-[30%] top-4 w-14 h-14 rounded-full bg-white/[0.06]' },
   ],
-  // 4 — Scattered pebbles
+  // 4 - Scattered pebbles
   [
     { className: 'absolute -right-10 -top-10 w-48 h-48 rounded-full bg-white/[0.04]' },
     { className: 'absolute left-[10%] top-[15%] w-12 h-12 rounded-full bg-white/[0.08]' },
@@ -158,14 +156,14 @@ const SHAPE_FORMATIONS: ShapeFormation[] = [
     { className: 'absolute -left-8 -bottom-8 w-36 h-36 rounded-full border border-white/[0.06]' },
     { className: 'absolute left-[50%] bottom-3 w-8 h-8 rounded-full bg-white/[0.06]' },
   ],
-  // 5 — Left pillar + right accent
+  // 5 - Left pillar + right accent
   [
     { className: 'absolute -left-20 -top-20 w-72 h-72 rounded-full border border-white/[0.07]' },
     { className: 'absolute -left-8 -top-8 w-44 h-44 rounded-full bg-white/[0.05]' },
     { className: 'absolute right-6 top-6 w-20 h-20 rounded-full border border-white/[0.10]' },
     { className: 'absolute right-[10%] -bottom-6 w-32 h-32 rounded-full bg-white/[0.03]' },
   ],
-  // 6 — Floating archipelago
+  // 6 - Floating archipelago
   [
     { className: 'absolute right-[5%] -top-6 w-36 h-36 rounded-full bg-white/[0.05]' },
     { className: 'absolute -left-14 top-[30%] w-40 h-40 rounded-full border border-white/[0.06]' },
@@ -173,28 +171,28 @@ const SHAPE_FORMATIONS: ShapeFormation[] = [
     { className: 'absolute right-4 bottom-10 w-12 h-12 rounded-full border border-white/[0.10]' },
     { className: 'absolute left-[20%] -bottom-4 w-24 h-24 rounded-full bg-white/[0.04]' },
   ],
-  // 7 — Twin moons
+  // 7 - Twin moons
   [
     { className: 'absolute -right-16 top-[10%] w-56 h-56 rounded-full bg-white/[0.05]' },
     { className: 'absolute -left-16 bottom-[5%] w-56 h-56 rounded-full bg-white/[0.05]' },
     { className: 'absolute left-[45%] top-2 w-14 h-14 rounded-full border border-white/[0.10]' },
     { className: 'absolute right-[30%] bottom-8 w-10 h-10 rounded-full border border-white/[0.08]' },
   ],
-  // 8 — Crescent sweep (right arc)
+  // 8 - Crescent sweep (right arc)
   [
     { className: 'absolute -right-24 top-[5%] w-72 h-72 rounded-full border border-white/[0.06]' },
     { className: 'absolute -right-12 top-[15%] w-48 h-48 rounded-full bg-white/[0.04]' },
     { className: 'absolute left-[8%] top-[10%] w-16 h-16 rounded-full bg-white/[0.07]' },
     { className: 'absolute left-[25%] bottom-6 w-20 h-20 rounded-full border border-white/[0.09]' },
   ],
-  // 9 — Horizon line (mid-band emphasis)
+  // 9 - Horizon line (mid-band emphasis)
   [
     { className: 'absolute -left-16 top-[30%] w-60 h-60 rounded-full bg-white/[0.05]' },
     { className: 'absolute right-[10%] top-[25%] w-36 h-36 rounded-full border border-white/[0.07]' },
     { className: 'absolute left-[45%] top-[40%] w-12 h-12 rounded-full bg-white/[0.08]' },
     { className: 'absolute -right-6 -bottom-10 w-40 h-40 rounded-full border border-white/[0.05]' },
   ],
-  // 10 — Ascending bubbles (bottom-left → top-right)
+  // 10 - Ascending bubbles (bottom-left → top-right)
   [
     { className: 'absolute -left-10 -bottom-14 w-52 h-52 rounded-full bg-white/[0.05]' },
     { className: 'absolute left-[20%] bottom-[30%] w-18 h-18 rounded-full border border-white/[0.09]' },
@@ -202,7 +200,7 @@ const SHAPE_FORMATIONS: ShapeFormation[] = [
     { className: 'absolute right-[10%] -top-8 w-44 h-44 rounded-full border border-white/[0.06]' },
     { className: 'absolute right-[30%] top-[15%] w-10 h-10 rounded-full bg-white/[0.07]' },
   ],
-  // 11 — Solitary giant + orbiting specs
+  // 11 - Solitary giant + orbiting specs
   [
     { className: 'absolute left-[15%] -top-20 w-80 h-80 rounded-full bg-white/[0.04]' },
     { className: 'absolute right-[5%] top-[20%] w-12 h-12 rounded-full border border-white/[0.12]' },
@@ -395,7 +393,7 @@ export function AdminLayout() {
                     : 'calc(var(--safe-top, 0px) + 2rem)',
                 }}
               >
-                {/* Decorative shapes — unique formation per page */}
+                {/* Decorative shapes - unique formation per page */}
                 {shapes.map((s, i) => (
                   <div key={i} className={cn('pointer-events-none', s.className)} />
                 ))}

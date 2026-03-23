@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -672,6 +672,7 @@ function PushTestSuite() {
   const infraResults = results.filter((r) => r.category === 'infra')
   const deliveryResults = results.filter((r) => r.category === 'delivery')
   const filterResults = results.filter((r) => r.category === 'filtering')
+  const tokenNow = useMemo(() => Date.now(), [tokens])
 
   return (
     <div className="space-y-4">
@@ -703,7 +704,7 @@ function PushTestSuite() {
         ) : (
           <div className="flex flex-wrap gap-1.5">
             {tokens.map((t: any, i: number) => {
-              const ageMins = Math.round((Date.now() - new Date(t.updated_at).getTime()) / 60_000)
+              const ageMins = Math.round((tokenNow - new Date(t.updated_at).getTime()) / 60_000)
               const stale = ageMins > 60 * 24 * 7
               return (
                 <span key={i} className={cn(

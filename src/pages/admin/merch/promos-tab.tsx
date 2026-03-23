@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, startTransition } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import { Plus, Edit3, Percent, DollarSign, Truck } from 'lucide-react'
@@ -63,12 +63,14 @@ function PromoFormSheet({
   // Populate form when opening
   useEffect(() => {
     if (open) {
-      setCode(promo?.code ?? '')
-      setType(promo?.type ?? 'percentage')
-      setValue(promo ? String(promo.value) : '')
-      setMaxUses(promo?.max_uses ? String(promo.max_uses) : '')
-      setExpiresAt(promo?.expires_at?.slice(0, 10) ?? '')
-      setIsActive(promo?.is_active ?? true)
+      startTransition(() => {
+        setCode(promo?.code ?? '')
+        setType(promo?.type ?? 'percentage')
+        setValue(promo ? String(promo.value) : '')
+        setMaxUses(promo?.max_uses ? String(promo.max_uses) : '')
+        setExpiresAt(promo?.expires_at?.slice(0, 10) ?? '')
+        setIsActive(promo?.is_active ?? true)
+      })
     }
   }, [open, promo])
 

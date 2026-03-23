@@ -2,50 +2,50 @@ import { useState, useCallback, useMemo, useRef, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  X,
-  MapIcon,
-  List,
-  SlidersHorizontal,
-  Clock,
-  Calendar,
-  Users,
-  TreePine,
-  Waves,
-  Sprout,
-  Flower2,
-  GraduationCap,
-  Bird,
-  Leaf,
-  Droplets,
-  CircleDot,
-  ChevronDown,
-  MapPin,
-  CalendarRange,
-  Compass,
-  Check,
-  ArrowRight,
-  Heart,
-  TrendingUp,
+    X,
+    MapIcon,
+    List,
+    SlidersHorizontal,
+    Clock,
+    Calendar,
+    Users,
+    TreePine,
+    Waves,
+    Sprout,
+    Flower2,
+    GraduationCap,
+    Bird,
+    Leaf,
+    Droplets,
+    CircleDot,
+    ChevronDown,
+    MapPin,
+    CalendarRange,
+    Compass,
+    Check,
+    ArrowRight,
+    Heart,
+    TrendingUp,
 } from 'lucide-react'
 import {
-  useSearch,
-  type SearchFilters,
+    useSearch,
+    type SearchFilters,
 } from '@/hooks/use-search'
 import { useNearbyEvents, useNearbyCollectives, useUserLocation, AU_STATES } from '@/hooks/use-nearby'
 import { useNationalImpact } from '@/hooks/use-impact'
 import { ACTIVITY_TYPE_LABELS } from '@/hooks/use-home-feed'
 import {
-  Page,
-  Card,
-  Avatar,
-  Chip,
-  Badge,
-  MapView,
-  Skeleton,
-  EmptyState,
-  Button,
-  BottomSheet,
-  CountUp,
+    Page,
+    Card,
+    Avatar,
+    Chip,
+    Badge,
+    MapView,
+    Skeleton,
+    EmptyState,
+    Button,
+    BottomSheet,
+    CountUp,
 } from '@/components'
 import { SearchBar } from '@/components/search-bar'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -1369,7 +1369,7 @@ export default function ExplorePage() {
                     {/* ======== Hero Banner ======== */}
                     <motion.div variants={fadeUp} className="mb-6">
                       <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-secondary-700">
-                        {/* Decorative shapes — "explorer's horizon" formation */}
+                        {/* Decorative shapes - "explorer's horizon" formation */}
                         <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full border border-white/[0.07]" aria-hidden="true" />
                         <div className="absolute -top-4 -left-2 w-40 h-40 rounded-full bg-white/[0.04]" aria-hidden="true" />
                         <div className="absolute -bottom-12 -right-12 w-56 h-56 rounded-full bg-white/[0.05]" aria-hidden="true" />
@@ -1794,7 +1794,7 @@ export default function ExplorePage() {
                       <div className="relative overflow-hidden bg-gradient-to-br from-secondary-700 via-primary-700 to-primary-600 px-6 pt-10 lg:px-10"
                         style={{ paddingBottom: 'calc(var(--safe-bottom) + 3.5rem)' }}
                       >
-                        {/* Decorative shapes — "gathering circle" */}
+                        {/* Decorative shapes - "gathering circle" */}
                         <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full border border-white/[0.08]" aria-hidden="true" />
                         <div className="absolute -top-2 right-4 w-24 h-24 rounded-full bg-white/[0.05]" aria-hidden="true" />
                         <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-white/[0.04]" aria-hidden="true" />

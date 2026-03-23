@@ -1,19 +1,16 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Camera,
-  Keyboard,
-  CheckCircle2,
-  AlertCircle,
-  XCircle,
-  WifiOff,
-  Sparkles,
-  User,
-  AlertTriangle,
-  QrCode,
-  ChevronLeft,
-  ScanLine,
+    Camera,
+    Keyboard,
+    CheckCircle2, XCircle,
+    WifiOff,
+    Sparkles,
+    User,
+    AlertTriangle,
+    QrCode,
+    ChevronLeft
 } from 'lucide-react'
 import jsQR from 'jsqr'
 import { Capacitor } from '@capacitor/core'
@@ -41,26 +38,29 @@ const CONFETTI_COLORS = [
 
 function Confetti() {
   const rm = useReducedMotion()
+  const [particles] = useState(() => Array.from({ length: 40 }, (_, i) => ({
+    left: Math.random() * 100,
+    delay: Math.random() * 0.5,
+    size: 6 + Math.random() * 8,
+    rotation: Math.random() * 360,
+    direction: Math.random() > 0.5 ? 1 : -1,
+    xDrift: (Math.random() - 0.5) * 200,
+    duration: 1.5 + Math.random(),
+    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+  })))
   if (rm) return null
   return (
     <div className="fixed inset-0 pointer-events-none z-50" aria-hidden="true">
-      {Array.from({ length: 40 }, (_, i) => {
-        const left = Math.random() * 100
-        const delay = Math.random() * 0.5
-        const size = 6 + Math.random() * 8
-        const rotation = Math.random() * 360
-        const color = CONFETTI_COLORS[i % CONFETTI_COLORS.length]
-        return (
-          <motion.div
-            key={i}
-            className={cn('absolute rounded-sm', color)}
-            style={{ width: size, height: size * 0.6, left: `${left}%`, top: -20, rotate: rotation }}
-            initial={{ y: -20, opacity: 1 }}
-            animate={{ y: window.innerHeight + 50, opacity: [1, 1, 0], rotate: rotation + 360 * (Math.random() > 0.5 ? 1 : -1), x: (Math.random() - 0.5) * 200 }}
-            transition={{ duration: 1.5 + Math.random(), delay, ease: 'easeIn' }}
-          />
-        )
-      })}
+      {particles.map((p, i) => (
+        <motion.div
+          key={i}
+          className={cn('absolute rounded-sm', p.color)}
+          style={{ width: p.size, height: p.size * 0.6, left: `${p.left}%`, top: -20, rotate: p.rotation }}
+          initial={{ y: -20, opacity: 1 }}
+          animate={{ y: window.innerHeight + 50, opacity: [1, 1, 0], rotate: p.rotation + 360 * p.direction, x: p.xDrift }}
+          transition={{ duration: p.duration, delay: p.delay, ease: 'easeIn' }}
+        />
+      ))}
     </div>
   )
 }
@@ -363,7 +363,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
         }
       } else {
         // Web: use browser getUserMedia + jsQR for camera scanning
-        // (stays in 'scanning' mode — the UI renders the <video> camera view)
+        // (stays in 'scanning' mode - the UI renders the <video> camera view)
       }
     } catch {
       document.querySelector('body')?.classList.remove('scanner-active')
@@ -401,7 +401,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
   }, [eventId, isOffline, validateAndCheckIn, handleOfflineCheckIn])
 
   const handleWebCameraError = useCallback(() => {
-    // Camera not available — fall back to manual mode
+    // Camera not available - fall back to manual mode
     setMode('manual')
   }, [])
 

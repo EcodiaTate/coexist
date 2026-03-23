@@ -26,7 +26,7 @@ const DISMISS_THRESHOLD_FRACTION = 0.25
 const MAX_HEIGHT_FRACTION = 0.92
 const DESKTOP_BREAKPOINT = 640
 
-const springConfig = { type: 'spring' as const, stiffness: 400, damping: 34, mass: 0.8 }
+const springConfig = { type: 'spring' as const, stiffness: 280, damping: 30, mass: 0.6 }
 const instantTransition = { duration: 0 }
 
 function useIsDesktop() {
@@ -258,7 +258,7 @@ export function BottomSheet({
                 initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.96, y: 12 }}
                 animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
                 exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.97, y: 8 }}
-                transition={shouldReduceMotion ? instantTransition : { type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }}
+                transition={shouldReduceMotion ? instantTransition : { type: 'spring', stiffness: 260, damping: 28, mass: 0.6 }}
                 onKeyDown={handleKeyDown}
               >
                 <motion.div

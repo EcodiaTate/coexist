@@ -799,12 +799,14 @@ export default function LeaderDashboardPage() {
   const leaderCtx = useLeaderContext()
   const queryClient = useQueryClient()
 
-  const collectiveId = leaderCtx.collectiveId ?? useMemo(() => {
+  const fallbackCollectiveId = useMemo(() => {
     const membership = collectiveRoles.find(
       (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
     )
     return membership?.collective_id
   }, [collectiveRoles])
+
+  const collectiveId = leaderCtx.collectiveId ?? fallbackCollectiveId
 
   const { data, isLoading } = useLeaderDashboard(collectiveId)
   const { data: impactStats } = useCollectiveFullStats(collectiveId)
@@ -849,6 +851,17 @@ export default function LeaderDashboardPage() {
     return ({ children }: { children: React.ReactNode }) => <Page header={<Header title="Leader Dashboard" back />}>{children}</Page>
   }, [isInLeaderLayout])
 
+  // Find an event within ±3 hours of now (must be before early returns)
+  const [mountTime] = useState(() => Date.now())
+  const currentEvent = useMemo(() => {
+    if (!data?.upcomingEvents) return null
+    const THREE_HOURS = 3 * 60 * 60 * 1000
+    return (data.upcomingEvents as any[]).find((e: any) => {
+      const start = new Date(e.date_start).getTime()
+      return mountTime >= start - THREE_HOURS && mountTime <= start + THREE_HOURS
+    }) ?? null
+  }, [data?.upcomingEvents, mountTime])
+
   if (showLoading) {
     return (
       <Wrapper>
@@ -885,17 +898,6 @@ export default function LeaderDashboardPage() {
       </Wrapper>
     )
   }
-
-  // Find an event within ±3 hours of now
-  const currentEvent = useMemo(() => {
-    if (!data?.upcomingEvents) return null
-    const now = Date.now()
-    const THREE_HOURS = 3 * 60 * 60 * 1000
-    return (data.upcomingEvents as any[]).find((e: any) => {
-      const start = new Date(e.date_start).getTime()
-      return now >= start - THREE_HOURS && now <= start + THREE_HOURS
-    }) ?? null
-  }, [data?.upcomingEvents])
 
   const quickActions: { label: string; icon: React.ReactNode; to: string; bg: string; text: string; badge: number; pulse?: boolean }[] = [
     ...(currentEvent ? [{

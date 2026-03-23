@@ -306,7 +306,7 @@ function UserSettingsSheet({
 
   return (
     <>
-      <BottomSheet open={open} onClose={onClose}>
+      <BottomSheet open={open} onClose={onClose} snapPoints={[0.92]}>
         <div className="space-y-5 pb-6">
           {/* User header */}
           <div className="flex items-center gap-4 p-4 -mx-1 rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100/60 ring-1 ring-primary-200/40">

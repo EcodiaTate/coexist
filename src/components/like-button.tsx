@@ -13,7 +13,7 @@ interface LikeButtonProps {
 function LeafParticle({ index, total }: { index: number; total: number }) {
   const angle = (index / total) * 360
   const rad = (angle * Math.PI) / 180
-  const distance = 18 + Math.random() * 8
+  const distance = useMemo(() => 18 + Math.random() * 8, [])
 
   return (
     <motion.span

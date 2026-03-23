@@ -86,7 +86,7 @@ export default function AnalyticsTab() {
         />
       </motion.div>
 
-      {/* By product — rich colored cards */}
+      {/* By product - rich colored cards */}
       {analytics.by_product.length > 0 && (
         <motion.div variants={fadeUp}><section>
           <h3 className="font-heading font-semibold text-primary-800 mb-3">By product</h3>
@@ -107,7 +107,7 @@ export default function AnalyticsTab() {
         </section></motion.div>
       )}
 
-      {/* By period — alternating warm tones */}
+      {/* By period - alternating warm tones */}
       {analytics.by_period.length > 0 && (
         <motion.div variants={fadeUp}><section>
           <h3 className="font-heading font-semibold text-primary-800 mb-3">Timeline</h3>

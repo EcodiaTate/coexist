@@ -4,9 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
     CalendarDays,
-    Users,
-    BarChart3,
-    Settings,
+    Users, Settings,
     Shield,
 
     ShoppingBag,
@@ -29,7 +27,7 @@ import {
     ChevronRight,
     Home,
     MessageCircle,
-    Sparkles,
+    Sparkles
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { APP_NAME } from '@/lib/constants'
@@ -536,7 +534,7 @@ function SidebarNavList({
           const showLabel = catIdx > 0
           return (
             <div key={cat.label || `cat-${catIdx}`}>
-              {/* Section header — prominent group divider for role groups */}
+              {/* Section header - prominent group divider for role groups */}
               {cat.sectionHeader && !collapsed && (
                 <div className={cn(
                   'mx-2.5 mt-6 mb-2.5 pl-3 border-l-[3px]',
@@ -1256,7 +1254,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
     return result
   }, [isSuperAdmin, hasCapability, isAnyLeader, isStaff])
 
-  // Flattened categories — highest-role home + chat/updates at top,
+  // Flattened categories - highest-role home + chat/updates at top,
   // other homes lead their own sections
   const flatCategories = useMemo(() => {
     // Determine highest role home item
@@ -1268,7 +1266,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
 
     const cats: NavCategory[] = [{ label: '', items: [highestHome, updatesItem, chatItem] }]
 
-    // Admin categories — prepend Admin Home if not the highest role
+    // Admin categories - prepend Admin Home if not the highest role
     if (isStaff) {
       const adminCats = adminNavCategories
         .filter((cat) => !cat.superAdminOnly || isSuperAdmin)
@@ -1287,7 +1285,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
       cats.push(...adminCats)
     }
 
-    // Leader categories — prepend Leader Home if not the highest role
+    // Leader categories - prepend Leader Home if not the highest role
     if (isAnyLeader) {
       const leaderCats = leaderNavCategories.map((cat, i) => ({
         ...cat,
@@ -1299,7 +1297,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
       cats.push(...leaderCats)
     }
 
-    // Member categories — prepend Member Home if not the highest role,
+    // Member categories - prepend Member Home if not the highest role,
     // and strip Updates/Chat (they're already at the top)
     const memberCats = mainNavCategories.map((cat, i) => ({
       ...cat,

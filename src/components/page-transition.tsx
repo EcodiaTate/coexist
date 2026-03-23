@@ -1,4 +1,4 @@
-import { type ReactNode, useRef, useEffect, useState } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { useLocation } from 'react-router-dom'
 
@@ -74,17 +74,12 @@ export function PageTransition({ children, mode = 'push' }: PageTransitionProps)
   const location = useLocation()
   const path = location.pathname
 
-  // Track a generation counter that bumps on path change -
-  // used as key to re-trigger the entry animation without
-  // destroying the wrapper div's DOM node position in the tree.
-  const [gen, setGen] = useState(0)
-  const prevPath = useRef(path)
-  useEffect(() => {
-    if (prevPath.current !== path) {
-      prevPath.current = path
-      setGen((g) => g + 1)
-    }
-  }, [path])
+  // Use path change count as key to re-trigger entry animation
+  const genRef = useRef({ path, gen: 0 })
+  if (genRef.current.path !== path) {
+    genRef.current = { path, gen: genRef.current.gen + 1 }
+  }
+  const gen = genRef.current.gen
 
   const isFirstVisit = !visitedPaths.has(path)
   if (!visitedPaths.has(path)) {

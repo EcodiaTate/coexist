@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, startTransition } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
@@ -60,13 +60,15 @@ export default function AdminCharityPage() {
 
   useEffect(() => {
     if (settings) {
-      setForm({
-        abn: settings.abn ?? '',
-        dgr_status: settings.dgr_status ?? 'no',
-        charity_subtype: settings.charity_subtype ?? '',
-        registration_date: settings.registration_date ?? '',
-        charity_name: settings.charity_name ?? 'Co-Exist Australia',
-        acnc_registration_number: settings.acnc_registration_number ?? '',
+      startTransition(() => {
+        setForm({
+          abn: settings.abn ?? '',
+          dgr_status: settings.dgr_status ?? 'no',
+          charity_subtype: settings.charity_subtype ?? '',
+          registration_date: settings.registration_date ?? '',
+          charity_name: settings.charity_name ?? 'Co-Exist Australia',
+          acnc_registration_number: settings.acnc_registration_number ?? '',
+        })
       })
     }
   }, [settings])

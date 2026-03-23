@@ -84,7 +84,7 @@ export default function LeadershipPage() {
     <Page noBackground className="!px-0 bg-white">
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-secondary-800">
-        {/* Decorative shapes — "rising leaders" formation */}
+        {/* Decorative shapes - "rising leaders" formation */}
         <div className="absolute -left-14 -top-14 w-72 h-72 rounded-full border border-white/[0.07]" />
         <div className="absolute -left-4 -top-4 w-44 h-44 rounded-full bg-white/[0.05]" />
         <div className="absolute -right-10 bottom-[10%] w-52 h-52 rounded-full bg-white/[0.04]" />

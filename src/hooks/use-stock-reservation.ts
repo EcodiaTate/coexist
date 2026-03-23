@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, startTransition } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
@@ -110,15 +110,17 @@ export function useAvailableStock(productId: string | undefined) {
       p_exclude_user_id: user?.id ?? null,
     })
 
-    if (!error && data) {
-      const entries = data as unknown as AvailableStockEntry[]
-      const map = new Map<string, AvailableStockEntry>()
-      for (const entry of entries) {
-        map.set(entry.variant_key, entry)
+    startTransition(() => {
+      if (!error && data) {
+        const entries = data as unknown as AvailableStockEntry[]
+        const map = new Map<string, AvailableStockEntry>()
+        for (const entry of entries) {
+          map.set(entry.variant_key, entry)
+        }
+        setStockMap(map)
       }
-      setStockMap(map)
-    }
-    setLoading(false)
+      setLoading(false)
+    })
   }, [productId, user?.id])
 
   // Initial fetch
@@ -192,7 +194,9 @@ export function useMyReservations() {
       .eq('user_id', user.id)
       .gt('expires_at', new Date().toISOString())
 
-    setReservations((data as unknown as MyReservation[]) ?? [])
+    startTransition(() => {
+      setReservations((data as unknown as MyReservation[]) ?? [])
+    })
   }, [user])
 
   useEffect(() => {
@@ -239,13 +243,13 @@ export function useReservationCountdown(expiresAt: string | undefined) {
 
   useEffect(() => {
     if (!expiresAt) {
-      setSecondsLeft(null)
+      startTransition(() => setSecondsLeft(null))
       return
     }
 
     const update = () => {
       const diff = Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000))
-      setSecondsLeft(diff)
+      startTransition(() => setSecondsLeft(diff))
     }
 
     update()

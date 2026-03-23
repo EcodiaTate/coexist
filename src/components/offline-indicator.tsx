@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { WifiOff, Clock, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useOffline } from '@/hooks/use-offline'
@@ -46,8 +47,9 @@ export function OfflineIndicator({
   }
 
   // Show "stale" hint if data is older than 5 minutes
+  const now = useMemo(() => Date.now(), [dataUpdatedAt])
   if (dataUpdatedAt) {
-    const age = Date.now() - dataUpdatedAt
+    const age = now - dataUpdatedAt
     if (age > 5 * 60 * 1000) {
       const mins = Math.round(age / 60_000)
       const label = mins >= 60 ? `${Math.round(mins / 60)}h ago` : `${mins}m ago`

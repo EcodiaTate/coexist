@@ -2,17 +2,15 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  ClipboardCheck,
-  ClipboardList,
-  Mail,
-  Plus,
-  Send,
-  ChevronRight,
-  Zap,
-  BarChart3,
-  Copy,
-  Users,
-  ArrowRight,
+    ClipboardCheck,
+    ClipboardList,
+    Mail,
+    Plus,
+    Send, Zap,
+    BarChart3,
+    Copy,
+    Users,
+    ArrowRight
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -277,7 +275,7 @@ export default function AdminCreatePage() {
         </div>
       </div>
 
-      {/* ── Section Cards — 3-up on desktop, stacked on mobile ── */}
+      {/* ── Section Cards - 3-up on desktop, stacked on mobile ── */}
       <div>
         <SectionHeading reducedMotion={rm} delay={0.1}>
           Manage

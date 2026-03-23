@@ -58,12 +58,10 @@ import {
     Header,
     Button,
     Avatar,
-    Badge,
-    Skeleton,
-    EmptyState,
+    Badge, EmptyState,
     ConfirmationSheet,
     BottomSheet, StatCard,
-    CheckInSheet,
+    CheckInSheet
 } from '@/components'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
@@ -280,14 +278,14 @@ export default function EventDetailPage() {
   const isAtCapacity = event?.capacity ? event.registration_count >= event.capacity : false
 
   // Event is "active" if it started (or starts within 1 hour) and hasn't ended
-  const isEventActive = (() => {
+  const isEventActive = useMemo(() => {
     if (!event) return false
     const now = Date.now()
     const start = new Date(event.date_start).getTime()
     const end = event.date_end ? new Date(event.date_end).getTime() : start + 3 * 60 * 60 * 1000
     const earlyWindow = start - 60 * 60 * 1000 // 1 hour before
     return now >= earlyWindow && now <= end
-  })()
+  }, [event])
   const userStatus = event?.user_registration?.status ?? null
   // Only show leader tools if user has a role in THIS event's collective (or is global staff)
   const belongsToCollective = collectiveRole.role !== null
@@ -612,7 +610,7 @@ export default function EventDetailPage() {
             </div>
           </div>
 
-          {/* Organic wave transition — matches homepage hero */}
+          {/* Organic wave transition - matches homepage hero */}
           <div className="absolute -bottom-px left-0 right-0 z-10">
             <svg
               viewBox="0 0 1440 70"

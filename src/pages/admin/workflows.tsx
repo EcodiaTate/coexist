@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, startTransition } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useQuery } from '@tanstack/react-query'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
@@ -342,12 +342,14 @@ function TemplateModal({
   const { data: existingRule } = useTimelineRule(template?.id)
   useEffect(() => {
     if (existingRule) {
-      setUseDynamicTimeline(true)
-      setTlAnchor(existingRule.anchor)
-      setTlActivityTypeFilter(existingRule.activity_type_filter ?? '')
-      setTlOffsetDays(String(existingRule.offset_days))
-      setTlLookaheadDays(String(existingRule.lookahead_days))
-      setTlMatchAllEvents(existingRule.match_all_events)
+      startTransition(() => {
+        setUseDynamicTimeline(true)
+        setTlAnchor(existingRule.anchor)
+        setTlActivityTypeFilter(existingRule.activity_type_filter ?? '')
+        setTlOffsetDays(String(existingRule.offset_days))
+        setTlLookaheadDays(String(existingRule.lookahead_days))
+        setTlMatchAllEvents(existingRule.match_all_events)
+      })
     }
   }, [existingRule])
 

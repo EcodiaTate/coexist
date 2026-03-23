@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Heart, Share2, ArrowRight, PartyPopper, Calendar, Users, Trophy } from 'lucide-react'
@@ -17,41 +17,42 @@ const COLORS = ['#5a835a', '#b07d46', '#e97c28', '#4ade80', '#60a5fa']
 
 function Confetti() {
   const shouldReduceMotion = useReducedMotion()
+  const particles = useMemo(() => Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
+    x: Math.random() * 100,
+    delay: Math.random() * 0.4,
+    size: 6 + Math.random() * 8,
+    color: COLORS[i % COLORS.length],
+    rotation: Math.random() * 360,
+    duration: 2.5 + Math.random(),
+    borderRadius: Math.random() > 0.5 ? '50%' : '2px',
+  })), [])
   if (shouldReduceMotion) return null
 
   return (
     <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden" aria-hidden="true">
-      {Array.from({ length: PARTICLE_COUNT }).map((_, i) => {
-        const x = Math.random() * 100
-        const delay = Math.random() * 0.4
-        const size = 6 + Math.random() * 8
-        const color = COLORS[i % COLORS.length]
-        const rotation = Math.random() * 360
-
-        return (
-          <motion.div
-            key={i}
-            initial={{ y: -20, x: `${x}vw`, opacity: 1, rotate: 0 }}
-            animate={{
-              y: '110vh',
-              rotate: rotation + 360,
-              opacity: [1, 1, 0],
-            }}
-            transition={{
-              duration: 2.5 + Math.random(),
-              delay,
-              ease: 'easeIn',
-            }}
-            className="absolute"
-            style={{
-              width: size,
-              height: size,
-              borderRadius: Math.random() > 0.5 ? '50%' : '2px',
-              backgroundColor: color,
-            }}
-          />
-        )
-      })}
+      {particles.map((p, i) => (
+        <motion.div
+          key={i}
+          initial={{ y: -20, x: `${p.x}vw`, opacity: 1, rotate: 0 }}
+          animate={{
+            y: '110vh',
+            rotate: p.rotation + 360,
+            opacity: [1, 1, 0],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            ease: 'easeIn',
+          }}
+          className="absolute"
+          style={{
+            width: p.size,
+            height: p.size,
+            borderRadius: p.borderRadius,
+            backgroundColor: p.color,
+          }}
+        />
+      ))}
     </div>
   )
 }

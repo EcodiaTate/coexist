@@ -50,8 +50,9 @@ export function BroadcastNotificationSheet({
   }
 
   // Recent broadcasts within last 24h for dedup awareness
+  const [now] = useState(() => Date.now())
   const recentBroadcasts24h = recentBroadcasts.filter(
-    (b) => Date.now() - new Date(b.created_at).getTime() < 24 * 60 * 60 * 1000,
+    (b) => now - new Date(b.created_at).getTime() < 24 * 60 * 60 * 1000,
   )
 
   return (

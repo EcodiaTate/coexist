@@ -32,13 +32,17 @@ export function PhotoViewer({
   onRemove,
   className,
 }: PhotoViewerProps) {
-  const [index, setIndex] = useState(initialIndex)
   const shouldReduceMotion = useReducedMotion()
 
   // Reset index when reopened
-  useEffect(() => {
-    if (open) setIndex(initialIndex)
-  }, [open, initialIndex])
+  const [index, setIndex] = useState(initialIndex)
+  const [prevOpen, setPrevOpen] = useState(open)
+  if (open && !prevOpen) {
+    setIndex(initialIndex)
+  }
+  if (open !== prevOpen) {
+    setPrevOpen(open)
+  }
 
   const prev = useCallback(() => {
     setIndex((i) => (i > 0 ? i - 1 : photos.length - 1))

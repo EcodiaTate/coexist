@@ -70,16 +70,16 @@ export const expandCollapse: Variants = {
     opacity: 1,
     height: 'auto',
     transition: {
-      height: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] },
-      opacity: { duration: 0.15, delay: 0.05 },
+      height: { type: 'spring', stiffness: 200, damping: 24, mass: 0.6 },
+      opacity: { duration: 0.25, ease: [0.0, 0.0, 0.2, 1], delay: 0.04 },
     },
   },
   exit: {
     opacity: 0,
     height: 0,
     transition: {
-      height: { duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] },
-      opacity: { duration: 0.1 },
+      height: { type: 'spring', stiffness: 280, damping: 26, mass: 0.5 },
+      opacity: { duration: 0.15, ease: [0.4, 0, 1, 1] },
     },
   },
 }

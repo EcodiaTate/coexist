@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, startTransition } from 'react'
 
 /**
  * Returns true only when `isLoading` has been true for longer than `delayMs`.
@@ -11,11 +11,13 @@ export function useDelayedLoading(isLoading: boolean, delayMs = 1000): boolean {
 
   useEffect(() => {
     if (isLoading) {
-      timerRef.current = setTimeout(() => setShow(true), delayMs)
+      timerRef.current = setTimeout(() => {
+        startTransition(() => setShow(true))
+      }, delayMs)
     } else {
       if (timerRef.current) clearTimeout(timerRef.current)
       timerRef.current = null
-      setShow(false)
+      startTransition(() => setShow(false))
     }
 
     return () => {

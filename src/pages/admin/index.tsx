@@ -383,7 +383,7 @@ function ImpactStat({
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-heading text-lg font-extrabold text-white tabular-nums leading-tight">
-          {value > 0 ? display.toLocaleString() : '—'}
+          {value > 0 ? display.toLocaleString() : '-'}
         </p>
         <p className="text-[11px] font-semibold text-white/60 uppercase tracking-wider">{label}</p>
       </div>

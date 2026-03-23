@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
     CheckCircle, Clock,
@@ -427,7 +427,7 @@ export default function LeaderTasksPage() {
     <div className="relative min-h-dvh overflow-x-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
 
-      {/* ── Decorative geometric shapes — "stepping stones" formation ── */}
+      {/* ── Decorative geometric shapes - "stepping stones" formation ── */}
       <div className="absolute -right-14 top-[15%] w-52 h-52 rounded-full border border-amber-200/30 animate-[gentleSpin_55s_linear_infinite]" />
       <div className="absolute -right-6 top-[20%] w-36 h-36 rounded-full border border-amber-200/20 animate-[gentleSpin_45s_linear_infinite] [animation-direction:reverse]" />
       <div className="absolute -left-16 -bottom-16 w-48 h-48 rounded-full border border-amber-200/25 animate-[gentleSpin_50s_linear_infinite]" />

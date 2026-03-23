@@ -2,21 +2,18 @@ import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Eye,
-  Image as ImageIcon,
-  Pin,
-  AlertTriangle,
-  Users,
-  Globe,
-  Shield,
-  X,
-  Type,
-  FileText,
+    Eye,
+    Image as ImageIcon,
+    Pin,
+    AlertTriangle,
+    Users,
+    Globe,
+    Shield,
+    X, FileText
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
-import { Card } from '@/components/card'
 import { Avatar } from '@/components/avatar'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { UploadProgress } from '@/components/upload-progress'
@@ -242,7 +239,7 @@ export default function CreateAnnouncementPage() {
             id="ann-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Write your announcement...&#10;&#10;Share updates, event invites, recaps, news — anything the community needs to know."
+            placeholder="Write your announcement...&#10;&#10;Share updates, event invites, recaps, news - anything the community needs to know."
             rows={12}
             maxLength={10000}
             className={cn(
@@ -263,7 +260,7 @@ export default function CreateAnnouncementPage() {
             Images ({selectedFiles.length}/10)
           </label>
           <p className="text-xs text-primary-400 mb-2">
-            Add up to 10 images — photos, infographics, flyers, event recaps.
+            Add up to 10 images - photos, infographics, flyers, event recaps.
           </p>
 
           {/* Preview grid */}

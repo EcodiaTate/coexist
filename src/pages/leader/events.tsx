@@ -178,7 +178,7 @@ export default function LeaderEventsPage() {
       {/* ── Bright airy background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-moss-50 via-white to-primary-50/30" />
 
-      {/* ── Decorative geometric shapes — "morning canopy" formation ── */}
+      {/* ── Decorative geometric shapes - "morning canopy" formation ── */}
       <div className="absolute -left-12 -top-12 w-[300px] h-[300px] rounded-full border-2 border-moss-200/35 animate-[breathe_22s_ease-in-out_infinite]" />
       <div className="absolute -left-2 top-4 w-[200px] h-[200px] rounded-full border border-moss-200/20 animate-[breathe_18s_ease-in-out_0.8s_infinite]" />
       <div className="absolute -right-16 bottom-[12%] w-[260px] h-[260px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/30 to-transparent opacity-25" />

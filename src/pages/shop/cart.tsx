@@ -2,8 +2,8 @@ import { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Minus, Plus, Tag, ArrowRight, ArrowLeft, Clock,
-  AlertTriangle, ShoppingBag, Truck, Shield, X, Leaf,
+    Minus, Plus, Tag, ArrowRight, ArrowLeft, Clock,
+    AlertTriangle, ShoppingBag, Truck, Shield, X, Leaf,
 } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
@@ -13,10 +13,10 @@ import { useToast } from '@/components/toast'
 import { useCart } from '@/hooks/use-cart'
 import { validatePromoCode } from '@/hooks/use-merch'
 import {
-  useMyReservations,
-  useReservationCountdown,
-  useReserveStock,
-  useCartReservationSync,
+    useMyReservations,
+    useReservationCountdown,
+    useReserveStock,
+    useCartReservationSync,
 } from '@/hooks/use-stock-reservation'
 import { formatPrice, variantLabel } from '@/types/merch'
 import { cn } from '@/lib/cn'
@@ -215,7 +215,7 @@ export default function CartPage() {
                 Your cart is empty
               </h1>
               <p className="text-sm text-white/50 mt-2.5 max-w-[260px] mx-auto leading-relaxed">
-                Gear that gives back — every purchase supports conservation across Australia
+                Gear that gives back - every purchase supports conservation across Australia
               </p>
             </motion.div>
           </div>

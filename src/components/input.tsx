@@ -5,7 +5,6 @@ import {
   useId,
   useRef,
   useCallback,
-  useEffect,
 } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Search, Eye, EyeOff } from 'lucide-react'
@@ -73,9 +72,10 @@ export const Input = forwardRef<
   const shouldReduceMotion = useReducedMotion()
 
   const [focused, setFocused] = useState(false)
-  const [filled, setFilled] = useState(
+  const [uncontrolledFilled, setUncontrolledFilled] = useState(
     () => !!(value ?? defaultValue),
   )
+  const filled = value !== undefined ? value.length > 0 : uncontrolledFilled
   const [showPassword, setShowPassword] = useState(false)
 
   const internalRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null)
@@ -89,13 +89,6 @@ export const Input = forwardRef<
     [ref],
   )
 
-  // Track filled state for controlled inputs
-  useEffect(() => {
-    if (value !== undefined) {
-      setFilled(value.length > 0)
-    }
-  }, [value])
-
   const handleFocus = useCallback(
     (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFocused(true)
@@ -108,7 +101,7 @@ export const Input = forwardRef<
     (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFocused(false)
       const val = e.currentTarget.value
-      setFilled(val.length > 0)
+      setUncontrolledFilled(val.length > 0)
       onBlur?.(e)
     },
     [onBlur],
@@ -116,7 +109,7 @@ export const Input = forwardRef<
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setFilled(e.currentTarget.value.length > 0)
+      setUncontrolledFilled(e.currentTarget.value.length > 0)
       onChange?.(e)
     },
     [onChange],

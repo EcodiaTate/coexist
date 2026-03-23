@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
@@ -29,15 +29,12 @@ export function Celebration({
   className,
 }: CelebrationProps) {
   const shouldReduceMotion = useReducedMotion()
-  const [showConfetti, setShowConfetti] = useState(false)
+  const showConfetti = open
 
   useEffect(() => {
-    if (open) {
-      setShowConfetti(true)
-      if (autoDismiss > 0) {
-        const timer = setTimeout(onClose, autoDismiss)
-        return () => clearTimeout(timer)
-      }
+    if (open && autoDismiss > 0) {
+      const timer = setTimeout(onClose, autoDismiss)
+      return () => clearTimeout(timer)
     }
   }, [open, autoDismiss, onClose])
 

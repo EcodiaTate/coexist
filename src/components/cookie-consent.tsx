@@ -45,24 +45,12 @@ function saveConsent(consent: CookieConsent) {
 export function CookieConsentBanner({ className }: { className?: string }) {
   const { isWeb } = usePlatform()
   const shouldReduceMotion = useReducedMotion()
-  const [visible, setVisible] = useState(false)
+  const existingConsent = isWeb ? loadConsent() : null
+  const [visible, setVisible] = useState(() => isWeb && !existingConsent)
   const [showDetails, setShowDetails] = useState(false)
-  const [consent, setConsent] = useState<CookieConsent>({
-    essential: true,
-    analytics: true,
-    marketing: false,
-  })
-
-  // Show banner if no consent stored (web only)
-  useEffect(() => {
-    if (!isWeb) return
-    const existing = loadConsent()
-    if (!existing) {
-      setVisible(true)
-    } else {
-      setConsent(existing)
-    }
-  }, [isWeb])
+  const [consent, setConsent] = useState<CookieConsent>(
+    () => existingConsent ?? { essential: true, analytics: true, marketing: false },
+  )
 
   // Listen for re-open event from settings
   useEffect(() => {

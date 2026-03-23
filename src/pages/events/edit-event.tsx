@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, startTransition } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -72,21 +72,23 @@ export default function EditEventPage() {
   // Pre-populate from event data
   useEffect(() => {
     if (event && !initialized) {
-      setTitle(event.title)
-      setActivityType(event.activity_type)
-      setDescription(event.description ?? '')
-      setDateStart(new Date(event.date_start))
-      setDateEnd(event.date_end ? new Date(event.date_end) : null)
-      setAddress(event.address ?? '')
-      const pos = parseLocationPoint(event.location_point)
-      if (pos) {
-        setLocationLat(pos.lat)
-        setLocationLng(pos.lng)
-      }
-      setCapacity(event.capacity ? String(event.capacity) : '')
-      setCoverImageUrl(event.cover_image_url ?? '')
-      setIsPublic(event.is_public)
-      setInitialized(true)
+      startTransition(() => {
+        setTitle(event.title)
+        setActivityType(event.activity_type)
+        setDescription(event.description ?? '')
+        setDateStart(new Date(event.date_start))
+        setDateEnd(event.date_end ? new Date(event.date_end) : null)
+        setAddress(event.address ?? '')
+        const pos = parseLocationPoint(event.location_point)
+        if (pos) {
+          setLocationLat(pos.lat)
+          setLocationLng(pos.lng)
+        }
+        setCapacity(event.capacity ? String(event.capacity) : '')
+        setCoverImageUrl(event.cover_image_url ?? '')
+        setIsPublic(event.is_public)
+        setInitialized(true)
+      })
     }
   }, [event, initialized])
 

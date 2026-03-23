@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, startTransition } from 'react'
 import { Megaphone, CalendarPlus, ChevronDown, Search, Users2, Check, MapPin, Calendar } from 'lucide-react'
 import { CenteredDialog } from '@/components/centered-dialog'
 import { Button } from '@/components/button'
@@ -276,12 +276,14 @@ export function CreateAnnouncementSheet({
   // Reset form when opened with new defaultType
   useEffect(() => {
     if (open) {
-      setType(defaultType)
-      setTitle('')
-      setBody('')
-      setEventId('')
-      setInviteCollectiveIds([])
-      setInviteMessage('')
+      startTransition(() => {
+        setType(defaultType)
+        setTitle('')
+        setBody('')
+        setEventId('')
+        setInviteCollectiveIds([])
+        setInviteMessage('')
+      })
     }
   }, [open, defaultType])
 
@@ -290,7 +292,7 @@ export function CreateAnnouncementSheet({
     if (eventId && type === 'event_invite') {
       const event = upcomingEvents.find((e) => e.id === eventId)
       if (event && !title) {
-        setTitle(`Join us: ${event.title}`)
+        startTransition(() => setTitle(`Join us: ${event.title}`))
       }
     }
   }, [eventId, type, upcomingEvents, title])

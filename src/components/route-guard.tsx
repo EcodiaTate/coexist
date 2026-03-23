@@ -1,4 +1,4 @@
-import { type ReactNode, useState, useEffect } from 'react'
+import { type ReactNode, useState, useEffect, startTransition } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
@@ -32,10 +32,10 @@ export function RequireAuth({ children }: RequireAuthProps) {
   const [profileTimeout, setProfileTimeout] = useState(false)
   useEffect(() => {
     if (profile || !user) {
-      setProfileTimeout(false)
+      startTransition(() => setProfileTimeout(false))
       return
     }
-    const timer = setTimeout(() => setProfileTimeout(true), 8000)
+    const timer = setTimeout(() => startTransition(() => setProfileTimeout(true)), 8000)
     return () => clearTimeout(timer)
   }, [profile, user])
 

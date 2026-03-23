@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef, useEffect, useMemo } from 'react'
+import { useCallback, useState, useRef, useEffect, useMemo, startTransition } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion, useMotionValue, useTransform, useInView } from 'framer-motion'
 import {
@@ -420,7 +420,7 @@ function NextEventCard({
 
           {/* CTA */}
           {nextEvent.registration_status === 'attended' && happeningNow ? (
-            /* Checked in — prompt to share photos */
+            /* Checked in - prompt to share photos */
             <div className="mt-5 space-y-2.5">
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/15 text-white/90 text-xs font-bold">
                 <CheckCircle2 size={14} className="text-sprout-300 shrink-0" />
@@ -690,8 +690,8 @@ function useCountUp(target: number, active: boolean, duration = 1200) {
   const rm = useReducedMotion()
 
   useEffect(() => {
-    if (!active || target <= 0) { setDisplay(target); return }
-    if (rm) { setDisplay(target); return }
+    if (!active || target <= 0) { startTransition(() => setDisplay(target)); return }
+    if (rm) { startTransition(() => setDisplay(target)); return }
 
     let raf: number
     const start = performance.now()
@@ -699,7 +699,7 @@ function useCountUp(target: number, active: boolean, duration = 1200) {
       const t = Math.min((now - start) / duration, 1)
       // ease-out cubic
       const eased = 1 - Math.pow(1 - t, 3)
-      setDisplay(Math.round(eased * target))
+      startTransition(() => setDisplay(Math.round(eased * target)))
       if (t < 1) raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
@@ -738,7 +738,7 @@ function ImpactStat({
   const rm = useReducedMotion()
 
   const formatted = isNum
-    ? (value > 0 ? counted.toLocaleString() : '—')
+    ? (value > 0 ? counted.toLocaleString() : '-')
     : value
 
   return (
@@ -929,7 +929,7 @@ function HomeImpactSection({
                     Cleanup
                   </span>
                   <div className="grid grid-cols-2 gap-3">
-                    <ImpactStat inView={inView} index={5} value={data.rubbishCollectedTonnes > 0 ? `${data.rubbishCollectedTonnes}t` : '—'} label="Rubbish Collected" icon={<Trash2 size={16} />} color="bg-sky-500" />
+                    <ImpactStat inView={inView} index={5} value={data.rubbishCollectedTonnes > 0 ? `${data.rubbishCollectedTonnes}t` : '-'} label="Rubbish Collected" icon={<Trash2 size={16} />} color="bg-sky-500" />
                     <ImpactStat inView={inView} index={6} value={data.cleanupSites} label="Cleanup Sites" icon={<Trash2 size={16} />} color="bg-sky-600" />
                   </div>
                 </motion.div>

@@ -2,8 +2,8 @@ import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
-  AlertTriangle, PackageX, Search, ArrowUpDown,
-  Minus, Plus, CheckSquare, Square, Package, Layers,
+    AlertTriangle, PackageX, ArrowUpDown,
+    Minus, Plus, CheckSquare, Square, Package, Layers
 } from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useAppImage } from '@/hooks/use-app-images'
@@ -15,7 +15,7 @@ import { EmptyState } from '@/components/empty-state'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { useToast } from '@/components/toast'
 import { useAdminProducts, useAdjustStock } from '@/hooks/use-admin-merch'
-import { formatPrice, variantLabel, type Product, type ProductVariant } from '@/types/merch'
+import { variantLabel, type Product, type ProductVariant } from '@/types/merch'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -79,7 +79,7 @@ function SummaryCards({ items }: { items: FlatVariant[] }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Inline stock stepper — tap +/- right in the row                    */
+/*  Inline stock stepper - tap +/- right in the row                    */
 /* ------------------------------------------------------------------ */
 
 function InlineStepper({

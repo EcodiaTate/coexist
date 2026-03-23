@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect, lazy, Suspense } from 'react'
+import { useState, useCallback, useMemo, useEffect, lazy, Suspense, startTransition } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -318,30 +318,34 @@ export default function LogImpactPage() {
   // Pre-populate from existing impact data
   useEffect(() => {
     if (existingImpact) {
-      setFormValues({
-        trees_planted: String(existingImpact.trees_planted),
-        rubbish_kg: String(existingImpact.rubbish_kg),
-        area_restored_sqm: String(existingImpact.area_restored_sqm),
-        native_plants: String(existingImpact.native_plants),
-        wildlife_sightings: String(existingImpact.wildlife_sightings),
-        invasive_weeds_pulled: String(existingImpact.invasive_weeds_pulled),
-        leaders_trained: String(existingImpact.leaders_trained),
+      startTransition(() => {
+        setFormValues({
+          trees_planted: String(existingImpact.trees_planted),
+          rubbish_kg: String(existingImpact.rubbish_kg),
+          area_restored_sqm: String(existingImpact.area_restored_sqm),
+          native_plants: String(existingImpact.native_plants),
+          wildlife_sightings: String(existingImpact.wildlife_sightings),
+          invasive_weeds_pulled: String(existingImpact.invasive_weeds_pulled),
+          leaders_trained: String(existingImpact.leaders_trained),
+        })
+        setNotes(existingImpact.notes ?? '')
+        // Back-calculate duration from stored hours_total
+        if (existingImpact.hours_total && checkedInCount > 0) {
+          setEventDurationHours(String(Math.round((existingImpact.hours_total / checkedInCount) * 10) / 10))
+        }
       })
-      setNotes(existingImpact.notes ?? '')
-      // Back-calculate duration from stored hours_total
-      if (existingImpact.hours_total && checkedInCount > 0) {
-        setEventDurationHours(String(Math.round((existingImpact.hours_total / checkedInCount) * 10) / 10))
-      }
     }
   }, [existingImpact, checkedInCount])
 
   // Auto-calculate duration from event start/end times
   useEffect(() => {
     if (event?.date_end && !existingImpact) {
-      const durationHours =
-        (new Date(event.date_end).getTime() - new Date(event.date_start).getTime()) /
-        (1000 * 60 * 60)
-      setEventDurationHours(String(Math.round(durationHours * 10) / 10))
+      startTransition(() => {
+        const durationHours =
+          (new Date(event.date_end).getTime() - new Date(event.date_start).getTime()) /
+          (1000 * 60 * 60)
+        setEventDurationHours(String(Math.round(durationHours * 10) / 10))
+      })
     }
   }, [event, existingImpact])
 
@@ -352,12 +356,12 @@ export default function LogImpactPage() {
   }, [eventDurationHours, checkedInCount])
 
   const activityType = event?.activity_type as Database['public']['Enums']['activity_type'] | undefined
-  const impactFields = activityType ? IMPACT_FIELDS_BY_ACTIVITY[activityType] : []
 
   // Activity-specific fields only (hours handled separately)
-  const allFields: ImpactField[] = useMemo(() => {
-    return impactFields.filter((f) => f.key !== 'hours_total')
-  }, [impactFields])
+  const { impactFields, allFields } = useMemo(() => {
+    const fields = activityType ? IMPACT_FIELDS_BY_ACTIVITY[activityType] : []
+    return { impactFields: fields, allFields: fields.filter((f: ImpactField) => f.key !== 'hours_total') }
+  }, [activityType])
 
   const handleSubmit = useCallback(async () => {
     if (!eventId) return
@@ -382,7 +386,7 @@ export default function LogImpactPage() {
     })
 
     setSubmitted(true)
-  }, [eventId, formValues, notes, species, logImpact])
+  }, [eventId, formValues, notes, species, logImpact, computedHoursTotal, photos, beforePhotos, afterPhotos])
 
   const isLoading = eventLoading || impactLoading
   const showLoading = useDelayedLoading(isLoading)

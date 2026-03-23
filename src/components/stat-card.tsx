@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState, startTransition } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -22,7 +22,7 @@ export function useCountUp(target: number, duration: number, enabled: boolean) {
 
   useEffect(() => {
     if (!enabled) {
-      setCurrent(target)
+      startTransition(() => setCurrent(target))
       return
     }
 
@@ -34,7 +34,7 @@ export function useCountUp(target: number, duration: number, enabled: boolean) {
       const progress = Math.min(elapsed / duration, 1)
       // Ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3)
-      setCurrent(Math.round(eased * target))
+      startTransition(() => setCurrent(Math.round(eased * target)))
 
       if (progress < 1) {
         frame = requestAnimationFrame(tick)

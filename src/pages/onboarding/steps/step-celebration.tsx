@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { PartyPopper, Leaf, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/button'
@@ -22,23 +22,28 @@ interface StepCelebrationProps {
 function ConfettiParticle({ index }: { index: number }) {
   const colors = ['text-primary-400', 'text-primary-400', 'text-primary-400', 'text-success', 'text-primary-300']
   const color = colors[index % colors.length]
-  const left = `${10 + Math.random() * 80}%`
-  const delay = Math.random() * 0.8
+  const rand = useMemo(() => ({
+    left: `${10 + Math.random() * 80}%`,
+    delay: Math.random() * 0.8,
+    direction: Math.random() > 0.5 ? 1 : -1,
+    xDrift: (Math.random() - 0.5) * 200,
+    duration: 2 + Math.random() * 1.5,
+  }), [])
 
   return (
     <motion.div
       className={`absolute w-2 h-2 rounded-full bg-current ${color}`}
-      style={{ left, top: '-5%' }}
+      style={{ left: rand.left, top: '-5%' }}
       initial={{ y: 0, opacity: 1, rotate: 0 }}
       animate={{
         y: '110vh',
         opacity: [1, 1, 0],
-        rotate: 360 * (Math.random() > 0.5 ? 1 : -1),
-        x: (Math.random() - 0.5) * 200,
+        rotate: 360 * rand.direction,
+        x: rand.xDrift,
       }}
       transition={{
-        duration: 2 + Math.random() * 1.5,
-        delay,
+        duration: rand.duration,
+        delay: rand.delay,
         ease: 'easeIn',
       }}
     />

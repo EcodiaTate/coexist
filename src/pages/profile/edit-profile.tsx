@@ -2,16 +2,14 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Camera,
-  MapPin,
-  User,
-  Phone,
-  Shield,
-  Heart,
-  Sparkles,
-  Eye,
-  Compass,
-  Accessibility,
+    Camera,
+    MapPin,
+    User, Shield,
+    Heart,
+    Sparkles,
+    Eye,
+    Compass,
+    Accessibility
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -78,7 +76,7 @@ function SectionCard({
 }) {
   return (
     <div className="rounded-2xl bg-white shadow-sm border border-primary-100/60 overflow-hidden">
-      {/* Section header — tinted */}
+      {/* Section header - tinted */}
       <div className={cn('flex items-center gap-3 px-4 pt-4 pb-3', headerBg)}>
         <div className={cn('shrink-0 w-9 h-9 rounded-xl flex items-center justify-center', iconBg)}>
           {icon}
@@ -97,7 +95,7 @@ function SectionCard({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Input wrapper — shared styling                                     */
+/*  Input wrapper - shared styling                                     */
 /* ------------------------------------------------------------------ */
 
 const inputStyle = '[&_input]:bg-surface-1 [&_input]:border [&_input]:border-primary-200 [&_input]:focus:border-primary-400 [&_textarea]:bg-surface-1 [&_textarea]:border [&_textarea]:border-primary-200 [&_textarea]:focus:border-primary-400'
@@ -318,7 +316,7 @@ export default function EditProfilePage() {
               iconBg="bg-primary-200/80"
               headerBg="bg-primary-50/60"
               title="Personal Details"
-              description="Your identity info — visible to event leaders"
+              description="Your identity info - visible to event leaders"
             >
               <div className="grid grid-cols-2 gap-3">
                 <Input
@@ -400,7 +398,7 @@ export default function EditProfilePage() {
               iconBg="bg-sprout-200/80"
               headerBg="bg-sprout-50/60"
               title="About You"
-              description="Express yourself — shown on your public profile"
+              description="Express yourself - shown on your public profile"
             >
               <Input
                 label="Bio"

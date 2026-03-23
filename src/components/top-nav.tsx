@@ -46,9 +46,11 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
   }, [dropdownOpen])
 
   // Close dropdown on route change
-  useEffect(() => {
-    setDropdownOpen(false)
-  }, [location.pathname])
+  const [prevPath, setPrevPath] = useState(location.pathname)
+  if (location.pathname !== prevPath) {
+    setPrevPath(location.pathname)
+    if (dropdownOpen) setDropdownOpen(false)
+  }
 
   return (
     <header
