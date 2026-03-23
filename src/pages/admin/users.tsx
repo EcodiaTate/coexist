@@ -34,6 +34,7 @@ import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { Avatar } from '@/components/avatar'
 import { Toggle } from '@/components/toggle'
+import { ProfileModal } from '@/components/profile-modal'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -245,7 +246,7 @@ function UserSettingsSheet({
     mutationFn: async ({ userId, reason }: { userId: string; reason: string }) => {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_suspended: true, suspension_reason: reason })
+        .update({ is_suspended: true, suspended_reason: reason })
         .eq('id', userId)
       if (error) throw error
       await logAudit({ action: 'user_suspended', target_type: 'user', target_id: userId, details: { reason } })
@@ -263,7 +264,7 @@ function UserSettingsSheet({
     mutationFn: async (userId: string) => {
       const { error } = await supabase
         .from('profiles')
-        .update({ is_suspended: false, suspension_reason: null })
+        .update({ is_suspended: false, suspended_reason: null })
         .eq('id', userId)
       if (error) throw error
       await logAudit({ action: 'user_unsuspended', target_type: 'user', target_id: userId })
@@ -753,6 +754,7 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [settingsUser, setSettingsUser] = useState<any>(null)
+  const [profileUserId, setProfileUserId] = useState<string | null>(null)
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
 
   const queryClient = useQueryClient()
@@ -807,7 +809,7 @@ export default function AdminUsersPage() {
             icon={<Ban size={14} />}
             onClick={async () => {
               for (const uid of selectedUsers) {
-                await supabase.from('profiles').update({ is_suspended: true, suspension_reason: 'Bulk suspension by admin' }).eq('id', uid)
+                await supabase.from('profiles').update({ is_suspended: true, suspended_reason: 'Bulk suspension by admin' }).eq('id', uid)
                 await logAudit({ action: 'user_suspended', target_type: 'user', target_id: uid, details: { reason: 'Bulk suspension by admin' } })
               }
               queryClient.invalidateQueries({ queryKey: ['admin-users'] })
@@ -854,8 +856,12 @@ export default function AdminUsersPage() {
                 aria-label={`Select ${user.display_name}`}
               />
 
-              {/* Avatar + info */}
-              <div className="flex items-center gap-3 flex-1 min-w-0">
+              {/* Avatar + info — tappable to open profile */}
+              <button
+                type="button"
+                onClick={() => setProfileUserId(user.id)}
+                className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-70 transition-opacity"
+              >
                 <Avatar src={user.avatar_url} name={user.display_name ?? ''} size="sm" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -873,7 +879,7 @@ export default function AdminUsersPage() {
                   </div>
                   <p className="text-xs text-primary-500 truncate">{user.email}</p>
                 </div>
-              </div>
+              </button>
 
               {/* Single settings button */}
               <button
@@ -892,6 +898,9 @@ export default function AdminUsersPage() {
 
       {/* Unified user settings sheet */}
       <UserSettingsSheet user={settingsUser} open={!!settingsUser} onClose={() => setSettingsUser(null)} />
+
+      {/* Profile detail modal */}
+      <ProfileModal userId={profileUserId} open={!!profileUserId} onClose={() => setProfileUserId(null)} />
     </motion.div>
   )
 }

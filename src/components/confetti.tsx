@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, startTransition } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 
@@ -94,14 +94,14 @@ export function Confetti({
 
   useEffect(() => {
     if (active && !shouldReduceMotion) {
-      setVisible(true)
-      const timer = setTimeout(() => setVisible(false), duration)
+      startTransition(() => setVisible(true))
+      const timer = setTimeout(() => startTransition(() => setVisible(false)), duration)
       return () => clearTimeout(timer)
     }
     if (active && shouldReduceMotion) {
       // Show a brief flash for reduced motion
-      setVisible(true)
-      const timer = setTimeout(() => setVisible(false), 500)
+      startTransition(() => setVisible(true))
+      const timer = setTimeout(() => startTransition(() => setVisible(false)), 500)
       return () => clearTimeout(timer)
     }
   }, [active, count, duration, shouldReduceMotion])

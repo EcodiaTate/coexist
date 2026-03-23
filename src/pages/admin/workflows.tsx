@@ -849,7 +849,6 @@ export default function AdminWorkflowsPage() {
         Create Template
       </Button>
     ) : undefined,
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   [activeTab])
 
   useAdminHeader('Workflows', { actions: heroActions })

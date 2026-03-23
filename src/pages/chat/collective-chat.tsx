@@ -37,6 +37,7 @@ import { CreatePollSheet } from '@/components/create-poll-sheet'
 import { CreateAnnouncementSheet } from '@/components/create-announcement-sheet'
 import { BroadcastNotificationSheet } from '@/components/broadcast-notification-sheet'
 import { ChatSwitcherDropdown } from '@/components/chat-switcher-dropdown'
+import { ProfileModal } from '@/components/profile-modal'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -720,6 +721,7 @@ export default function CollectiveChatPage() {
   const [announcementType, setAnnouncementType] = useState<'announcement' | 'event_invite' | 'rsvp'>('announcement')
   const [showBroadcastSheet, setShowBroadcastSheet] = useState(false)
   const [showManageMembers, setShowManageMembers] = useState(false)
+  const [profileUserId, setProfileUserId] = useState<string | null>(null)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -1128,8 +1130,8 @@ export default function CollectiveChatPage() {
                           photo={msg.image_url ?? undefined}
                           roleBadge={roleBadge}
                           skipAnimation={msg._confirmed}
-                          onAvatarTap={(userId) => navigate(`/profile/${userId}`)}
-                          onSenderTap={(userId) => navigate(`/profile/${userId}`)}
+                          onAvatarTap={(userId) => setProfileUserId(userId)}
+                          onSenderTap={(userId) => setProfileUserId(userId)}
                           onLongPress={() => handleMessageLongPress(msg)}
                           replyTo={
                             msg.reply_message
