@@ -641,71 +641,104 @@ function UpdatesSection({ rm }: { rm: boolean }) {
 /* ------------------------------------------------------------------ */
 
 /* ------------------------------------------------------------------ */
-/*  Impact row components                                              */
+/*  Impact stat card                                                    */
 /* ------------------------------------------------------------------ */
 
-function ImpactFoundational({
+function ImpactStatCard({
   value,
   label,
   icon,
+  accent,
+  delay = 0,
+  rm,
 }: {
   value: number | string
   label: string
   icon: React.ReactNode
+  accent: string
+  delay?: number
+  rm: boolean
 }) {
+  const formatted = typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '—') : value
   return (
-    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-white/10 p-3 h-full">
-      <span className="text-white/70 shrink-0">{icon}</span>
-      <span className="font-heading text-2xl font-bold text-white tabular-nums leading-none">
-        {typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '—') : value}
+    <motion.div
+      initial={rm ? false : { opacity: 0, y: 12, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.4, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="relative overflow-hidden rounded-2xl bg-white/[0.07] backdrop-blur-sm p-4 flex flex-col gap-3"
+    >
+      {/* Accent glow */}
+      <div className={cn('absolute -top-6 -right-6 w-20 h-20 rounded-full blur-2xl opacity-20', accent)} />
+
+      {/* Icon */}
+      <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center', accent)}>
+        <span className="text-white">{icon}</span>
+      </div>
+
+      {/* Value */}
+      <span className="font-heading text-[28px] font-extrabold text-white tabular-nums leading-none tracking-tight">
+        {formatted}
       </span>
-      <span className="text-[10px] text-white/50 font-semibold uppercase tracking-wider text-center leading-tight">
+
+      {/* Label */}
+      <span className="text-[11px] text-white/50 font-semibold uppercase tracking-wider leading-tight">
         {label}
       </span>
-    </div>
+    </motion.div>
   )
 }
 
-function ImpactSubStat({
+/* ------------------------------------------------------------------ */
+/*  Impact hero stat (large, featured)                                  */
+/* ------------------------------------------------------------------ */
+
+function ImpactHeroStat({
   value,
   label,
+  suffix,
   icon,
+  accent,
+  rm,
 }: {
   value: number | string
   label: string
+  suffix?: string
   icon: React.ReactNode
+  accent: string
+  rm: boolean
 }) {
+  const formatted = typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '—') : value
   return (
-    <div className="flex items-center gap-2.5 rounded-xl bg-white/10 px-3 py-2.5 h-full">
-      <span className="text-white/60 shrink-0">{icon}</span>
-      <div className="min-w-0">
-        <span className="font-heading text-base font-bold text-white tabular-nums leading-none block">
-          {typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '—') : value}
-        </span>
-        <span className="text-[10px] text-white/50 font-semibold uppercase tracking-wider leading-tight">
-          {label}
-        </span>
-      </div>
-    </div>
-  )
-}
+    <motion.div
+      initial={rm ? false : { opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-white/[0.12] to-white/[0.04] backdrop-blur-sm p-5 text-center"
+    >
+      {/* Decorative rings */}
+      <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full border border-white/[0.06]" />
+      <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full border border-white/[0.04]" />
 
-function ImpactRow({
-  foundational,
-  subStats,
-}: {
-  foundational: { value: number | string; label: string; icon: React.ReactNode }
-  subStats: { value: number | string; label: string; icon: React.ReactNode }[]
-}) {
-  return (
-    <div className="grid grid-cols-[1fr_1.4fr] gap-2">
-      <ImpactFoundational {...foundational} />
-      <div className={cn('flex flex-col gap-2', subStats.length === 1 ? 'h-full' : '')}>
-        {subStats.map((s) => (
-          <ImpactSubStat key={s.label} {...s} />
-        ))}
+      {/* Icon */}
+      <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-3', accent)}>
+        <span className="text-white">{icon}</span>
       </div>
-    </div>
+
+      {/* Value */}
+      <div className="flex items-baseline justify-center gap-1">
+        <span className="font-heading text-4xl sm:text-5xl font-extrabold text-white tabular-nums leading-none tracking-tight">
+          {formatted}
+        </span>
+        {suffix && (
+          <span className="text-lg font-bold text-white/40">{suffix}</span>
+        )}
+      </div>
+
+      {/* Label */}
+      <span className="mt-2 block text-xs text-white/50 font-semibold uppercase tracking-wider">
+        {label}
+      </span>
+    </motion.div>
   )
 }
 
@@ -729,112 +762,173 @@ function HomeImpactSection({
   return (
     <motion.div variants={rm ? undefined : fadeUp}>
       <Section title="Impact" action={{ label: 'My impact', to: '/profile' }}>
-        <div className="rounded-2xl bg-gradient-to-br from-primary-700 to-primary-900 shadow-lg p-5 space-y-4">
-          {/* Toggles */}
-          <div className="flex items-center justify-between gap-2">
-            {/* Scope toggle */}
-            <div className="flex rounded-lg bg-white/15 p-0.5">
-              <button
-                type="button"
-                onClick={() => setScope('national')}
-                className={cn(
-                  'px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer select-none',
-                  scope === 'national'
-                    ? 'bg-white/25 text-white shadow-sm'
-                    : 'text-white/50 hover:text-white/70',
-                )}
-              >
-                <Globe size={12} className="inline mr-1 -mt-0.5" />
-                National
-              </button>
-              {collectiveId && (
+        <div className="rounded-3xl bg-gradient-to-br from-primary-800 via-primary-900 to-emerald-950 shadow-xl overflow-hidden">
+          {/* Header area with toggles */}
+          <div className="relative px-5 pt-5 pb-4">
+            {/* Subtle dot pattern overlay */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+
+            <div className="relative flex items-center justify-between gap-2">
+              {/* Scope toggle */}
+              <div className="flex rounded-xl bg-white/10 p-0.5 backdrop-blur-sm">
                 <button
                   type="button"
-                  onClick={() => setScope('collective')}
+                  onClick={() => setScope('national')}
                   className={cn(
-                    'px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer select-none',
-                    scope === 'collective'
-                      ? 'bg-white/25 text-white shadow-sm'
-                      : 'text-white/50 hover:text-white/70',
+                    'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer select-none',
+                    scope === 'national'
+                      ? 'bg-white/20 text-white shadow-lg shadow-black/10'
+                      : 'text-white/40 hover:text-white/60',
                   )}
                 >
-                  <MapPin size={12} className="inline mr-1 -mt-0.5" />
-                  Collective
+                  <Globe size={12} className="inline mr-1 -mt-0.5" />
+                  National
                 </button>
-              )}
-            </div>
+                {collectiveId && (
+                  <button
+                    type="button"
+                    onClick={() => setScope('collective')}
+                    className={cn(
+                      'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer select-none',
+                      scope === 'collective'
+                        ? 'bg-white/20 text-white shadow-lg shadow-black/10'
+                        : 'text-white/40 hover:text-white/60',
+                    )}
+                  >
+                    <MapPin size={12} className="inline mr-1 -mt-0.5" />
+                    Collective
+                  </button>
+                )}
+              </div>
 
-            {/* Time toggle */}
-            <div className="flex rounded-lg bg-white/15 p-0.5">
-              <button
-                type="button"
-                onClick={() => setTimeRange('all-time')}
-                className={cn(
-                  'px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer select-none',
-                  timeRange === 'all-time'
-                    ? 'bg-white/25 text-white shadow-sm'
-                    : 'text-white/50 hover:text-white/70',
-                )}
-              >
-                All Time
-              </button>
-              <button
-                type="button"
-                onClick={() => setTimeRange('current-year')}
-                className={cn(
-                  'px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer select-none',
-                  timeRange === 'current-year'
-                    ? 'bg-white/25 text-white shadow-sm'
-                    : 'text-white/50 hover:text-white/70',
-                )}
-              >
-                {new Date().getFullYear()}
-              </button>
+              {/* Time toggle */}
+              <div className="flex rounded-xl bg-white/10 p-0.5 backdrop-blur-sm">
+                <button
+                  type="button"
+                  onClick={() => setTimeRange('all-time')}
+                  className={cn(
+                    'px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer select-none',
+                    timeRange === 'all-time'
+                      ? 'bg-white/20 text-white shadow-lg shadow-black/10'
+                      : 'text-white/40 hover:text-white/60',
+                  )}
+                >
+                  All Time
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTimeRange('current-year')}
+                  className={cn(
+                    'px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer select-none',
+                    timeRange === 'current-year'
+                      ? 'bg-white/20 text-white shadow-lg shadow-black/10'
+                      : 'text-white/40 hover:text-white/60',
+                  )}
+                >
+                  {new Date().getFullYear()}
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Stats rows — foundational left, resulting right */}
-          {isLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-[72px] rounded-xl bg-white/10 animate-pulse" />
-              ))}
-            </div>
-          ) : data ? (
-            <div className="space-y-2.5">
-              {/* Attendances → Community Events + Vol. Hours */}
-              <ImpactRow
-                foundational={{ value: data.eventsAttended, label: 'Attendances', icon: <Calendar size={18} /> }}
-                subStats={[
-                  { value: data.eventsAttended, label: 'Community Events', icon: <Calendar size={14} /> },
-                  { value: data.volunteerHours, label: 'Vol. Hours', icon: <Clock size={14} /> },
-                ]}
-              />
-              {/* Land Restoration → Trees Planted + Weeds Pulled */}
-              <ImpactRow
-                foundational={{ value: data.treesPlanted + data.invasiveWeedsPulled, label: 'Land Restoration', icon: <TreePine size={18} /> }}
-                subStats={[
-                  { value: data.treesPlanted, label: 'Trees Planted', icon: <TreePine size={14} /> },
-                  { value: data.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={14} /> },
-                ]}
-              />
-              {/* Cleanup Sites → Tonnes of Rubbish + Cleanup Events */}
-              <ImpactRow
-                foundational={{ value: data.cleanupEventsHeld, label: 'Cleanup Sites', icon: <Trash2 size={18} /> }}
-                subStats={[
-                  { value: data.rubbishCollectedTonnes > 0 ? `${data.rubbishCollectedTonnes}t` : '—', label: 'Tonnes of Rubbish', icon: <Trash2 size={14} /> },
-                  { value: data.cleanupEventsHeld, label: 'Cleanup Events', icon: <Trash2 size={14} /> },
-                ]}
-              />
-              {/* Collectives → Leaders Trained (1:1) */}
-              <ImpactRow
-                foundational={{ value: data.collectivesCount, label: 'Collectives', icon: <Users size={18} /> }}
-                subStats={[
-                  { value: data.leadersTrainedCount, label: 'Leaders Trained', icon: <GraduationCap size={14} /> },
-                ]}
-              />
-            </div>
-          ) : null}
+          {/* Stats grid */}
+          <div className="px-4 pb-5">
+            {isLoading ? (
+              <div className="grid grid-cols-2 gap-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div
+                    key={i}
+                    className={cn(
+                      'rounded-2xl bg-white/[0.06] animate-pulse',
+                      i <= 2 ? 'h-[140px]' : 'h-[120px]',
+                    )}
+                    style={{ animationDelay: `${i * 80}ms` }}
+                  />
+                ))}
+              </div>
+            ) : data ? (
+              <div className="space-y-3">
+                {/* Hero row — two featured stats */}
+                <div className="grid grid-cols-2 gap-3">
+                  <ImpactHeroStat
+                    value={data.treesPlanted}
+                    label="Trees Planted"
+                    icon={<TreePine size={22} />}
+                    accent="bg-emerald-500"
+                    rm={rm}
+                  />
+                  <ImpactHeroStat
+                    value={data.rubbishCollectedTonnes > 0 ? data.rubbishCollectedTonnes : 0}
+                    label="Tonnes Removed"
+                    suffix="t"
+                    icon={<Trash2 size={22} />}
+                    accent="bg-sky-500"
+                    rm={rm}
+                  />
+                </div>
+
+                {/* Secondary grid — 2x2 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <ImpactStatCard
+                    value={data.eventsAttended}
+                    label="Events"
+                    icon={<Calendar size={18} />}
+                    accent="bg-amber-500"
+                    delay={0.1}
+                    rm={rm}
+                  />
+                  <ImpactStatCard
+                    value={data.volunteerHours}
+                    label="Vol. Hours"
+                    icon={<Clock size={18} />}
+                    accent="bg-violet-500"
+                    delay={0.15}
+                    rm={rm}
+                  />
+                  <ImpactStatCard
+                    value={data.collectivesCount}
+                    label="Collectives"
+                    icon={<Users size={18} />}
+                    accent="bg-rose-500"
+                    delay={0.2}
+                    rm={rm}
+                  />
+                  <ImpactStatCard
+                    value={data.invasiveWeedsPulled}
+                    label="Weeds Pulled"
+                    icon={<Sprout size={18} />}
+                    accent="bg-lime-500"
+                    delay={0.25}
+                    rm={rm}
+                  />
+                </div>
+
+                {/* Bottom row — leaders trained */}
+                <motion.div
+                  initial={rm ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                  className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white/[0.08] to-white/[0.03] backdrop-blur-sm px-5 py-4 flex items-center gap-4"
+                >
+                  <div className="absolute -right-4 -top-4 w-16 h-16 rounded-full bg-amber-500/10 blur-xl" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shrink-0">
+                    <GraduationCap size={20} className="text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[11px] text-white/40 font-semibold uppercase tracking-wider">
+                      Leaders Trained
+                    </span>
+                    <span className="block font-heading text-2xl font-extrabold text-white tabular-nums leading-none mt-0.5">
+                      {data.leadersTrainedCount > 0 ? data.leadersTrainedCount.toLocaleString() : '—'}
+                    </span>
+                  </div>
+                  <div className="text-white/20">
+                    <ChevronRight size={20} />
+                  </div>
+                </motion.div>
+              </div>
+            ) : null}
+          </div>
         </div>
       </Section>
     </motion.div>

@@ -1189,7 +1189,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
   // Determine current suite
   const suite: Suite = location.pathname.startsWith('/admin')
     ? 'admin'
-    : location.pathname.startsWith('/leader') && !location.pathname.startsWith('/leaderboard')
+    : location.pathname.startsWith('/leader') && !location.pathname.startsWith('/leaderboard') && !location.pathname.startsWith('/leadership')
       ? 'leader'
       : 'main'
 

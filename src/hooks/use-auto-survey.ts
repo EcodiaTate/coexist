@@ -150,13 +150,13 @@ export function useTriggerSurveyNotifications() {
   return useMutation({
     mutationFn: async ({ eventId, eventTitle }: { eventId: string; eventTitle: string }) => {
       // Check if auto-surveys are enabled
-      const { data: config } = await supabase
+      const { data: config } = await (supabase as any)
         .from('app_settings')
         .select('value')
         .eq('key', 'auto_survey_config')
         .maybeSingle()
 
-      const autoConfig = config?.value as AutoSurveyConfig | null
+      const autoConfig = (config as any)?.value as AutoSurveyConfig | null
       if (autoConfig && !autoConfig.enabled) return { sent: 0 }
 
       // Get all checked-in attendees

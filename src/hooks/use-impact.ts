@@ -71,7 +71,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         cleanupQuery,
       ])
 
-      const logs = (impactRes.data ?? []) as Record<string, number>[]
+      const logs = (impactRes.data ?? []) as unknown as Record<string, number>[]
       const sum = (key: string) => logs.reduce((s, r) => s + (r[key] ?? 0), 0)
 
       // Count event attendances (non-unique sign-ins) across all events with impact
