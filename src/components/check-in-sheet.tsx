@@ -607,7 +607,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                   <button
                     type="button"
                     onClick={() => { setMode('idle'); setManualCode('') }}
-                    className="flex items-center gap-1 text-caption font-semibold text-primary-400 mb-4 min-h-11 cursor-pointer select-none"
+                    className="flex items-center gap-1 text-caption font-semibold text-primary-400 mb-4 min-h-11 cursor-pointer select-none active:scale-[0.97] transition-[colors,transform] duration-150"
                   >
                     <ChevronLeft size={16} />
                     Back

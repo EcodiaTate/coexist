@@ -1,6 +1,6 @@
 import { type ReactNode, useState, useEffect, useRef, createContext, useContext, useCallback, useMemo, Suspense } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+
 import {
     LayoutDashboard,
     Users,
@@ -337,39 +337,6 @@ function AdminBottomTabs() {
   )
 }
 
-/* ------------------------------------------------------------------ */
-/*  Animated outlet — smooth transition between admin sub-pages        */
-/* ------------------------------------------------------------------ */
-
-function AdminOutletTransition() {
-  const location = useLocation()
-  const shouldReduceMotion = useReducedMotion()
-  // Skip animation on initial mount — KeepAlive handles the page entrance.
-  // Only animate sub-page changes within the admin suite.
-  const mountedPathRef = useRef(location.pathname)
-  const isInitialMount = mountedPathRef.current === location.pathname
-
-  if (shouldReduceMotion || isInitialMount) {
-    return <Outlet />
-  }
-
-  return (
-    <motion.div
-      key={location.pathname}
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        type: 'spring',
-        stiffness: 380,
-        damping: 36,
-        mass: 0.5,
-      }}
-      style={{ backfaceVisibility: 'hidden' }}
-    >
-      <Outlet />
-    </motion.div>
-  )
-}
 
 /* ------------------------------------------------------------------ */
 /*  AdminLayout  route-level layout, renders <Outlet />              */
@@ -479,7 +446,7 @@ export function AdminLayout() {
           )}>
 
             <Suspense fallback={null}>
-              <AdminOutletTransition />
+              <Outlet />
             </Suspense>
           </div>
         </div>

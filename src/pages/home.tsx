@@ -83,7 +83,7 @@ function Section({
         {action && (
           <Link
             to={action.to}
-            className="flex items-center gap-0.5 text-xs font-semibold text-primary-600 hover:text-primary-800 transition-colors"
+            className="flex items-center gap-0.5 text-xs font-semibold text-primary-600 hover:text-primary-800 active:scale-[0.97] transition-[colors,transform] duration-150"
           >
             {action.label}
             <ChevronRight size={14} />
@@ -789,7 +789,7 @@ function HomeImpactSection({
             </h2>
             <Link
               to="/profile"
-              className="flex items-center gap-0.5 text-[11px] font-semibold text-white/70 hover:text-white transition-colors"
+              className="flex items-center gap-0.5 text-[11px] font-semibold text-white/70 hover:text-white active:scale-[0.97] transition-[colors,transform] duration-150"
             >
               My impact
               <ChevronRight size={13} />
@@ -803,7 +803,7 @@ function HomeImpactSection({
                 type="button"
                 onClick={() => setScope('national')}
                 className={cn(
-                  'px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer select-none',
+                  'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-[0.95] cursor-pointer select-none',
                   scope === 'national'
                     ? 'bg-white text-primary-800 shadow-sm'
                     : 'text-white/70 hover:text-white',
@@ -817,7 +817,7 @@ function HomeImpactSection({
                   type="button"
                   onClick={() => setScope('collective')}
                   className={cn(
-                    'px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer select-none',
+                    'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-[0.95] cursor-pointer select-none',
                     scope === 'collective'
                       ? 'bg-white text-primary-800 shadow-sm'
                       : 'text-white/70 hover:text-white',
@@ -834,7 +834,7 @@ function HomeImpactSection({
                 type="button"
                 onClick={() => setTimeRange('all-time')}
                 className={cn(
-                  'px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer select-none',
+                  'px-3 min-h-9 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-[0.95] cursor-pointer select-none',
                   timeRange === 'all-time'
                     ? 'bg-white text-primary-800 shadow-sm'
                     : 'text-white/70 hover:text-white',
@@ -846,7 +846,7 @@ function HomeImpactSection({
                 type="button"
                 onClick={() => setTimeRange('current-year')}
                 className={cn(
-                  'px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer select-none',
+                  'px-3 min-h-9 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-[0.95] cursor-pointer select-none',
                   timeRange === 'current-year'
                     ? 'bg-white text-primary-800 shadow-sm'
                     : 'text-white/70 hover:text-white',

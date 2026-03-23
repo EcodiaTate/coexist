@@ -623,7 +623,7 @@ function ManageMembersSheet({
                   <button
                     type="button"
                     onClick={() => setConfirmRemove(m.user_id)}
-                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-error-600 hover:bg-error-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none min-h-9"
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-error-600 hover:bg-error-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none min-h-11"
                   >
                     <UserMinus size={14} />
                     Remove

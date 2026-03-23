@@ -885,7 +885,7 @@ export default function EventDetailPage() {
                 <Link
                   key={collab.id}
                   to={`/collectives/${collab.slug ?? collab.id}`}
-                  className="flex items-center gap-3 py-1.5 hover:opacity-80 transition-opacity"
+                  className="flex items-center gap-3 min-h-11 hover:opacity-80 active:scale-[0.98] transition-[opacity,transform] duration-150"
                 >
                   {collab.cover_image_url ? (
                     <img src={collab.cover_image_url} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm" />

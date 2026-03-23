@@ -582,7 +582,7 @@ export default function LeadACollectivePage() {
               <button
                 type="button"
                 onClick={() => setResumeFile(null)}
-                className="text-primary-400 hover:text-primary-700 transition-colors cursor-pointer"
+                className="text-primary-400 hover:text-primary-700 active:scale-[0.90] transition-[colors,transform] duration-150 cursor-pointer"
               >
                 <X size={16} />
               </button>

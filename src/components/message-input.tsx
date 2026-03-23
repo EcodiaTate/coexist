@@ -207,7 +207,7 @@ export function MessageInput({
               <button
                 type="button"
                 onClick={() => setProfanityWarning(false)}
-                className="flex items-center justify-center min-h-8 min-w-8 rounded-full text-warning-500 hover:bg-warning-200 shrink-0"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-warning-500 hover:bg-warning-200 active:scale-[0.93] transition-[colors,transform] duration-150 shrink-0 cursor-pointer"
                 aria-label="Dismiss warning"
               >
                 <X size={14} />
@@ -239,7 +239,7 @@ export function MessageInput({
               aria-label="Leader actions"
               className={cn(
                 'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center',
-                'transition-all duration-200',
+                'transition-all duration-200 active:scale-[0.93]',
                 showLeaderActions
                   ? 'bg-primary-600 text-white rotate-45'
                   : 'text-primary-400 hover:bg-primary-100 hover:text-primary-600',
@@ -260,7 +260,7 @@ export function MessageInput({
               aria-label="Attach file"
               className={cn(
                 'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center text-primary-400',
-                'transition-colors duration-150',
+                'transition-[colors,transform] duration-150 active:scale-[0.93]',
                 'hover:bg-primary-100 hover:text-primary-600',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 'disabled:pointer-events-none',

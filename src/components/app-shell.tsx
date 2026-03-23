@@ -1,6 +1,6 @@
 import { type ReactNode, memo, Suspense } from 'react'
 import { useLocation } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar } from '@/components/bottom-tab-bar'
@@ -19,30 +19,13 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, bare = false }: AppShellProps) {
-  const shouldReduceMotion = useReducedMotion()
-
   if (bare) {
-    // Bare pages (auth, onboarding, legal) get a gentle fade-in.
-    // Suspense boundary here prevents lazy chunk loading from
-    // unmounting the entire route tree.
-    const content = (
-      <Suspense fallback={<div className="flex-1 bg-surface-1" />}>
-        {children}
-      </Suspense>
-    )
-    if (shouldReduceMotion) {
-      return <div className="flex flex-col min-h-dvh">{content}</div>
-    }
     return (
-      <motion.div
-        className="flex flex-col min-h-dvh"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
-        style={{ backfaceVisibility: 'hidden' }}
-      >
-        {content}
-      </motion.div>
+      <div className="flex flex-col min-h-dvh">
+        <Suspense fallback={<div className="flex-1 bg-surface-1" />}>
+          {children}
+        </Suspense>
+      </div>
     )
   }
 

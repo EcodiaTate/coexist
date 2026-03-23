@@ -1428,7 +1428,25 @@ export function useRespondToCollaboration() {
       })
       if (error) throw error
     },
-    onSuccess: (_, vars) => {
+    onMutate: async ({ collaborationId, accept, collectiveId }) => {
+      if (!collectiveId) return
+      await queryClient.cancelQueries({ queryKey: ['collaborations-incoming', collectiveId] })
+      const previous = queryClient.getQueryData<CollaborationWithDetails[]>(['collaborations-incoming', collectiveId])
+      queryClient.setQueryData<CollaborationWithDetails[]>(['collaborations-incoming', collectiveId], (old) =>
+        old?.map((c) =>
+          c.id === collaborationId
+            ? { ...c, status: accept ? 'accepted' as const : 'declined' as const, responded_at: new Date().toISOString() }
+            : c,
+        ),
+      )
+      return { previous, collectiveId }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previous && context.collectiveId) {
+        queryClient.setQueryData(['collaborations-incoming', context.collectiveId], context.previous)
+      }
+    },
+    onSettled: (_, __, vars) => {
       if (vars.collectiveId) {
         queryClient.invalidateQueries({ queryKey: ['collaborations-incoming', vars.collectiveId] })
       }

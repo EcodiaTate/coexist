@@ -97,7 +97,7 @@ export function PhotoViewer({
                 <button
                   type="button"
                   onClick={() => onRemove(photo.id)}
-                  className="flex items-center justify-center w-10 h-10 rounded-full text-white/70 hover:bg-white/10 transition-colors"
+                  className="flex items-center justify-center w-10 h-10 rounded-full text-white/70 hover:bg-white/10 active:scale-[0.93] transition-[colors,transform] duration-150"
                   aria-label="Remove photo"
                 >
                   <Trash2 size={18} />
@@ -106,7 +106,7 @@ export function PhotoViewer({
               <button
                 type="button"
                 onClick={onClose}
-                className="flex items-center justify-center w-10 h-10 rounded-full text-white/70 hover:bg-white/10 transition-colors"
+                className="flex items-center justify-center w-10 h-10 rounded-full text-white/70 hover:bg-white/10 active:scale-[0.93] transition-[colors,transform] duration-150"
                 aria-label="Close photo viewer"
               >
                 <X size={20} />
@@ -141,7 +141,7 @@ export function PhotoViewer({
               <button
                 type="button"
                 onClick={prev}
-                className="absolute left-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                className="absolute left-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-[0.93] transition-[colors,transform] duration-150"
                 aria-label="Previous photo"
               >
                 <ChevronLeft size={22} />
@@ -149,7 +149,7 @@ export function PhotoViewer({
               <button
                 type="button"
                 onClick={next}
-                className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                className="absolute right-2 top-1/2 -translate-y-1/2 hidden sm:flex items-center justify-center w-10 h-10 rounded-full bg-white/10 text-white hover:bg-white/20 active:scale-[0.93] transition-[colors,transform] duration-150"
                 aria-label="Next photo"
               >
                 <ChevronRight size={22} />

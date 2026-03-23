@@ -334,7 +334,7 @@ export default function CartPage() {
                       <button
                         type="button"
                         onClick={() => handleRemove(item.variant.id)}
-                        className="flex items-center justify-center w-8 h-8 -mt-0.5 -mr-1 rounded-full text-primary-300 hover:text-error-500 hover:bg-error-50 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
+                        className="flex items-center justify-center w-11 h-11 -mt-0.5 -mr-1 rounded-full text-primary-300 hover:text-error-500 hover:bg-error-50 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
                         aria-label={`Remove ${item.product.name}`}
                       >
                         <X size={16} />
@@ -353,7 +353,7 @@ export default function CartPage() {
                         <button
                           type="button"
                           onClick={() => handleUpdateQuantity(item, item.quantity - 1)}
-                          className="flex items-center justify-center w-9 h-9 rounded-l-xl text-primary-600 hover:bg-primary-100/60 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
+                          className="flex items-center justify-center w-11 h-11 rounded-l-xl text-primary-600 hover:bg-primary-100/60 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
                           aria-label="Decrease quantity"
                         >
                           <Minus size={14} />
@@ -364,7 +364,7 @@ export default function CartPage() {
                         <button
                           type="button"
                           onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
-                          className="flex items-center justify-center w-9 h-9 rounded-r-xl text-primary-600 hover:bg-primary-100/60 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
+                          className="flex items-center justify-center w-11 h-11 rounded-r-xl text-primary-600 hover:bg-primary-100/60 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
                           aria-label="Increase quantity"
                         >
                           <Plus size={14} />
@@ -391,7 +391,7 @@ export default function CartPage() {
                 <button
                   type="button"
                   onClick={() => setPromoCode(null)}
-                  className="flex items-center justify-center w-8 h-8 rounded-full text-moss-400 hover:bg-moss-200/50 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
+                  className="flex items-center justify-center w-11 h-11 rounded-full text-moss-400 hover:bg-moss-200/50 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
                   aria-label="Remove promo code"
                 >
                   <X size={14} />

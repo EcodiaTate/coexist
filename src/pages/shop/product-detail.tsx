@@ -109,20 +109,24 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
 
       {/* Pill dots */}
       {images.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-3 py-1.5 rounded-full bg-black/20">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-0 px-1 py-1 rounded-full bg-black/20">
           {images.map((_, i) => (
             <button
               key={i}
               type="button"
               onClick={() => scrollTo(i)}
               aria-label={`Image ${i + 1}`}
-              className={cn(
-                'rounded-full transition-all duration-200 cursor-pointer select-none active:scale-[0.9]',
-                i === currentIndex
-                  ? 'w-6 h-2 bg-white'
-                  : 'w-2 h-2 bg-white/50 hover:bg-white/70',
-              )}
-            />
+              className="flex items-center justify-center min-w-11 min-h-11 cursor-pointer select-none"
+            >
+              <span
+                className={cn(
+                  'rounded-full transition-all duration-200',
+                  i === currentIndex
+                    ? 'w-6 h-2 bg-white'
+                    : 'w-2 h-2 bg-white/50',
+                )}
+              />
+            </button>
           ))}
         </div>
       )}

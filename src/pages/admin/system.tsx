@@ -355,7 +355,7 @@ export default function AdminSystemPage() {
                 <button
                   type="button"
                   onClick={() => deleteFlagMutation.mutate(flag.id)}
-                  className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
+                  className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]"
                   aria-label={`Delete ${flag.key}`}
                 >
                   <Trash2 size={14} />

@@ -290,7 +290,7 @@ export default function AdminCollectivesPage() {
                       className={cn(
                         'flex items-center gap-4 p-4 rounded-xl',
                         'bg-white shadow-sm',
-                        'hover:shadow-md transition-[color,background-color,box-shadow] duration-150',
+                        'hover:shadow-md active:scale-[0.99] transition-[color,background-color,box-shadow,transform] duration-150',
                         !c.is_active && 'opacity-60',
                       )}
                     >
@@ -357,7 +357,7 @@ export default function AdminCollectivesPage() {
                             e.stopPropagation()
                             setArchiveTarget(c)
                           }}
-                          className="p-2 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer transition-colors"
+                          className="p-2 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                           aria-label={c.is_active ? `Archive ${c.name}` : `Restore ${c.name}`}
                         >
                           {c.is_active ? <Archive size={16} /> : <RotateCcw size={16} />}

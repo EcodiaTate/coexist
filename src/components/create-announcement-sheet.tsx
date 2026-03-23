@@ -108,8 +108,8 @@ function EventPicker({
                 setDropdownOpen(false)
               }}
               className={cn(
-                'w-full text-left px-3.5 py-2.5 flex items-start gap-2.5 transition-colors duration-100 min-h-11',
-                'hover:bg-primary-50 active:bg-primary-100 cursor-pointer select-none',
+                'w-full text-left px-3.5 py-2.5 flex items-start gap-2.5 transition-[colors,transform] duration-100 min-h-11',
+                'hover:bg-primary-50 active:bg-primary-100 active:scale-[0.98] cursor-pointer select-none',
                 event.id === selectedId && 'bg-primary-50',
                 'first:rounded-t-xl last:rounded-b-xl',
               )}
@@ -210,8 +210,8 @@ function CollectivePicker({
                 type="button"
                 onClick={() => onToggle(collective.id)}
                 className={cn(
-                  'w-full text-left px-3 py-2.5 flex items-center gap-2.5 transition-colors duration-100 min-h-11',
-                  'hover:bg-primary-50 active:bg-primary-100 cursor-pointer select-none',
+                  'w-full text-left px-3 py-2.5 flex items-center gap-2.5 transition-[colors,transform] duration-100 min-h-11',
+                  'hover:bg-primary-50 active:bg-primary-100 active:scale-[0.98] cursor-pointer select-none',
                   isSelected && 'bg-primary-50/80',
                   'first:rounded-t-xl last:rounded-b-xl',
                 )}

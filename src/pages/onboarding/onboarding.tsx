@@ -186,7 +186,7 @@ export default function OnboardingPage() {
         <button
           type="button"
           onClick={goBack}
-          className="self-start ml-4 mb-2 text-sm text-primary-400 hover:text-primary-800 cursor-pointer"
+          className="self-start ml-4 mb-2 text-sm text-primary-400 hover:text-primary-800 active:scale-[0.97] transition-[colors,transform] duration-150 cursor-pointer"
         >
           &larr; Back
         </button>

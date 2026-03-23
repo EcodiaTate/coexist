@@ -259,7 +259,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
         className={cn(
           'block rounded-2xl overflow-hidden',
           'bg-white shadow-sm',
-          'hover:shadow-md transition-[color,background-color,box-shadow] duration-150',
+          'hover:shadow-md active:scale-[0.99] transition-[color,background-color,box-shadow,transform] duration-150',
           isPast && 'opacity-60',
         )}
       >
@@ -333,7 +333,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
               <Link
                 to={`/events/${event.id}/day`}
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 transition-colors cursor-pointer"
+                className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
                 title="Event Day"
               >
                 <ClipboardList size={13} />
@@ -341,7 +341,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
               <Link
                 to={`/events/${event.id}/edit`}
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 transition-colors cursor-pointer"
+                className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
                 title="Edit Event"
               >
                 <Pencil size={13} />
@@ -404,7 +404,7 @@ function HottestEventSpotlight({ event }: { event: AdminEvent }) {
         'block rounded-2xl overflow-hidden',
         'bg-gradient-to-br from-primary-200 to-primary-300/80',
         'shadow-sm',
-        'shadow-md hover:shadow-lg transition-shadow duration-150',
+        'shadow-md hover:shadow-lg active:scale-[0.99] transition-[shadow,transform] duration-150',
       )}
     >
       <div className="flex items-center gap-4 p-5">
@@ -467,7 +467,7 @@ function PastEventRow({ event, index }: { event: AdminEvent; index: number }) {
         className={cn(
           'flex items-center gap-3 p-3 rounded-xl',
           'bg-white/60',
-          'hover:bg-white hover:shadow-sm transition-[color,background-color,box-shadow] duration-150',
+          'hover:bg-white hover:shadow-sm active:scale-[0.99] transition-[color,background-color,box-shadow,transform] duration-150',
         )}
       >
         {event.cover_image_url ? (
@@ -631,7 +631,7 @@ export default function AdminEventsPage() {
                     onClick={() => setStatusFilter(s)}
                     className={cn(
                       'px-3 py-1.5 rounded-lg text-xs font-semibold capitalize',
-                      'transition-colors duration-150 cursor-pointer select-none',
+                      'active:scale-[0.95] transition-[colors,transform] duration-150 cursor-pointer select-none',
                       statusFilter === s
                         ? 'bg-primary-100 text-primary-800'
                         : 'text-primary-400 hover:text-primary-600',

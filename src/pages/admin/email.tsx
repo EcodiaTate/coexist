@@ -1603,14 +1603,14 @@ function CampaignsTab() {
                 </div>
                 <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                   {campaign.status === 'draft' && (
-                    <button onClick={() => setEditing(campaign)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-colors cursor-pointer" aria-label="Edit">
+                    <button onClick={() => setEditing(campaign)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Edit">
                       <Edit3 size={14} />
                     </button>
                   )}
-                  <button onClick={() => duplicateCampaign(campaign)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-colors cursor-pointer" aria-label="Duplicate">
+                  <button onClick={() => duplicateCampaign(campaign)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Duplicate">
                     <Copy size={14} />
                   </button>
-                  <button onClick={() => setDeletingId(campaign.id)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-error-100 hover:text-error-600 transition-colors cursor-pointer" aria-label="Delete">
+                  <button onClick={() => setDeletingId(campaign.id)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-error-100 hover:text-error-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Delete">
                     <Trash2 size={14} />
                   </button>
                 </div>
@@ -1716,10 +1716,10 @@ function TemplatesTab() {
                   </div>
                 </div>
                 <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => setEditing(tpl)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-colors cursor-pointer" aria-label="Edit">
+                  <button onClick={() => setEditing(tpl)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Edit">
                     <Edit3 size={14} />
                   </button>
-                  <button onClick={() => setDeletingId(tpl.id)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-error-100 hover:text-error-600 transition-colors cursor-pointer" aria-label="Delete">
+                  <button onClick={() => setDeletingId(tpl.id)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-error-100 hover:text-error-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Delete">
                     <Trash2 size={14} />
                   </button>
                 </div>

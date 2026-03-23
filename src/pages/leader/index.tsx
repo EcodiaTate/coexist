@@ -482,7 +482,7 @@ function TaskCard({ task }: { task: MyTask }) {
           type="button"
           onClick={() => !isCompleted && !isSkipped && setExpanded(!expanded)}
           className={cn(
-            'flex-1 flex items-start gap-3 p-4 text-left cursor-pointer min-w-0',
+            'flex-1 flex items-start gap-3 p-4 text-left cursor-pointer min-w-0 active:scale-[0.99] transition-transform duration-150',
             (isCompleted || isSkipped) && 'p-3',
           )}
         >
@@ -672,7 +672,7 @@ function SectionHeader({
       {action && (
         <Link
           to={action.to}
-          className="flex items-center gap-0.5 text-xs text-primary-500 font-semibold hover:text-primary-700 transition-colors"
+          className="flex items-center gap-0.5 text-xs text-primary-500 font-semibold hover:text-primary-700 active:scale-[0.97] transition-[colors,transform] duration-150"
         >
           {action.label}
           <ChevronRight size={14} />
@@ -1072,7 +1072,7 @@ export default function LeaderDashboardPage() {
                     to={`/events/${item.id}/impact`}
                     className={cn(
                       'flex items-center gap-3 px-4 py-3.5',
-                      'hover:bg-warning-100/50 transition-colors duration-150',
+                      'hover:bg-warning-100/50 active:scale-[0.99] transition-[colors,transform] duration-150',
                       idx > 0 && 'border-t border-warning-200/30',
                     )}
                   >
@@ -1277,7 +1277,7 @@ export default function LeaderDashboardPage() {
                           to={`/profile/${member.user_id}`}
                           className={cn(
                             'flex items-center gap-3 px-4 py-3',
-                            'hover:bg-primary-50/50 transition-colors duration-150',
+                            'hover:bg-primary-50/50 active:scale-[0.99] transition-[colors,transform] duration-150',
                             idx > 0 && 'border-t border-primary-50',
                           )}
                         >

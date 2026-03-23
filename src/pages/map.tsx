@@ -417,7 +417,7 @@ export default function MapPage() {
 
           <button
             onClick={() => navigate(-1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm active:scale-[0.93] transition-transform duration-150 cursor-pointer"
             aria-label="Go back"
           >
             <X size={18} className="text-secondary-700" />
@@ -485,7 +485,7 @@ export default function MapPage() {
                       e.stopPropagation()
                       handleClose()
                     }}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-secondary-500"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-50 text-secondary-500 active:scale-[0.90] transition-transform duration-150 cursor-pointer"
                     aria-label="Close"
                   >
                     <X size={16} />

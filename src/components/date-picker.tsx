@@ -140,7 +140,7 @@ export function DatePicker({
             'flex items-center w-full rounded-lg bg-primary-50/50 px-4 py-3 min-h-12',
             'text-[16px] leading-normal text-left',
             'cursor-pointer select-none',
-            'transition-all duration-150',
+            'transition-all duration-150 active:scale-[0.98]',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
             error
               ? 'ring-2 ring-error'

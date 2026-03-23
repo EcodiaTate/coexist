@@ -259,7 +259,7 @@ function ApplicationCard({
         onClick={() => setExpanded(!expanded)}
         className={cn(
           'w-full flex items-center gap-3.5 px-4 py-3.5 text-left',
-          'transition-colors duration-150 cursor-pointer',
+          'transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.99]',
           'hover:bg-surface-1/50',
         )}
       >
@@ -616,7 +616,7 @@ function NotificationSettingsTab() {
                   />
                   <button
                     onClick={() => removeRecipient.mutate(r.id)}
-                    className="text-primary-300 hover:text-error transition-colors cursor-pointer p-1 rounded-lg hover:bg-error-50"
+                    className="text-primary-300 hover:text-error transition-[colors,transform] duration-150 cursor-pointer p-1 rounded-lg hover:bg-error-50 active:scale-[0.93]"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -807,7 +807,7 @@ export default function AdminApplicationsPage() {
                     onClick={() => setStatusFilter(f.value)}
                     className={cn(
                       'inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-full',
-                      'transition-all duration-150 cursor-pointer shrink-0 border',
+                      'transition-all duration-150 cursor-pointer shrink-0 border active:scale-[0.95]',
                       isActive
                         ? cfg
                           ? `${cfg.bg} ${cfg.color} ${cfg.border}`

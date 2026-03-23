@@ -274,7 +274,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={handleMagicLink}
-                  className="flex items-center gap-1.5 text-xs text-white/50 font-semibold hover:text-white/70 transition-colors cursor-pointer"
+                  className="flex items-center gap-1.5 text-xs text-white/50 font-semibold hover:text-white/70 active:scale-[0.97] transition-[colors,transform] duration-150 cursor-pointer"
                 >
                   <Mail size={13} />
                   {magicLinkSent ? 'Link sent!' : 'Magic link'}

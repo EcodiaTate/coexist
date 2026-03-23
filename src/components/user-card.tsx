@@ -160,7 +160,7 @@ export function UserCard({
               rel="noopener noreferrer"
               aria-label={`Visit ${instagramHandle} on Instagram`}
               className={cn(
-                'flex items-center gap-1.5 text-sm text-primary-400',
+                'flex items-center gap-1.5 text-sm text-primary-400 min-h-11',
                 'transition-colors duration-150 hover:text-primary-400',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:rounded',
               )}

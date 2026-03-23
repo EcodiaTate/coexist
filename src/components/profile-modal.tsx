@@ -143,7 +143,7 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
                   href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-sm text-primary-400 hover:text-primary-400 transition-colors"
+                  className="flex items-center gap-1 text-sm text-primary-400 hover:text-primary-400 transition-colors min-h-11"
                 >
                   <Instagram size={14} />
                   {profile.instagram_handle.startsWith('@')

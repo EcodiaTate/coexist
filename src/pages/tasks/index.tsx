@@ -72,7 +72,7 @@ function TaskCard({ task }: { task: MyTask }) {
         type="button"
         onClick={() => !isCompleted && !isSkipped && setExpanded(!expanded)}
         className={cn(
-          'w-full flex items-start gap-3 p-3.5 text-left cursor-pointer',
+          'w-full flex items-start gap-3 p-3.5 text-left cursor-pointer active:scale-[0.99] transition-transform duration-150',
           (isCompleted || isSkipped) && 'opacity-60',
         )}
       >
@@ -253,7 +253,7 @@ function CollectiveGroup({
       <button
         type="button"
         onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center gap-2 w-full py-1 cursor-pointer"
+        className="flex items-center gap-2 w-full py-1 cursor-pointer active:scale-[0.98] transition-transform duration-150"
       >
         {collapsed ? (
           <ChevronRight size={16} className="text-primary-400" />

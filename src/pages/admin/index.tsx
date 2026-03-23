@@ -211,7 +211,7 @@ function SectionHeader({
       {action && (
         <Link
           to={action.to}
-          className="flex items-center gap-0.5 text-xs text-primary-500 font-semibold hover:text-primary-700 transition-colors"
+          className="flex items-center gap-0.5 text-xs text-primary-500 font-semibold hover:text-primary-700 transition-[colors,transform] duration-150 active:scale-[0.97]"
         >
           {action.label}
           <ChevronRight size={14} />

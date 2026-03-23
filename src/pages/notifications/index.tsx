@@ -375,7 +375,7 @@ export default function NotificationsPage() {
                 className={cn(
                   'flex items-center justify-center w-11 h-11 rounded-full',
                   'text-primary-500 hover:bg-primary-50',
-                  'transition-colors duration-150 cursor-pointer select-none',
+                  'transition-[colors,transform] duration-150 active:scale-[0.93] cursor-pointer select-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 )}
                 aria-label="Mark all as read"

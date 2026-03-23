@@ -167,9 +167,9 @@ export default function CreateAnnouncementPage() {
               onClick={() => setShowPreview(true)}
               disabled={!canSubmit}
               className={cn(
-                'flex items-center justify-center w-9 h-9 rounded-full',
+                'flex items-center justify-center w-11 h-11 rounded-full',
                 'text-primary-400 hover:bg-primary-50',
-                'transition-colors duration-150 cursor-pointer select-none',
+                'transition-[colors,transform] duration-150 active:scale-[0.93] cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 'disabled:opacity-40 disabled:cursor-not-allowed',
               )}
@@ -309,7 +309,7 @@ export default function CreateAnnouncementPage() {
                 'flex items-center justify-center gap-2 w-full h-20 rounded-xl bg-primary-50/60',
                 'text-sm text-primary-400 font-medium',
                 'cursor-pointer hover:bg-primary-100/60 hover:text-primary-500 hover:shadow-sm',
-                'transition-all duration-150',
+                'transition-all duration-150 active:scale-[0.98]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               )}
             >
@@ -347,7 +347,7 @@ export default function CreateAnnouncementPage() {
               onClick={() => setPriority('normal')}
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-medium',
-                'transition-all duration-150 cursor-pointer select-none',
+                'transition-all duration-150 active:scale-[0.97] cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 priority === 'normal'
                   ? 'bg-primary-100 text-primary-800 shadow-sm ring-2 ring-primary-500'
@@ -362,7 +362,7 @@ export default function CreateAnnouncementPage() {
               onClick={() => setPriority('urgent')}
               className={cn(
                 'flex-1 flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-medium',
-                'transition-all duration-150 cursor-pointer select-none',
+                'transition-all duration-150 active:scale-[0.97] cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 priority === 'urgent'
                   ? 'bg-accent-100 text-primary-800 shadow-sm ring-2 ring-accent-500'
@@ -392,7 +392,7 @@ export default function CreateAnnouncementPage() {
                   onClick={() => setTargetAudience(opt.value)}
                   className={cn(
                     'flex items-center gap-3 w-full px-4 py-3 rounded-xl text-left',
-                    'transition-all duration-150 cursor-pointer select-none',
+                    'transition-all duration-150 active:scale-[0.98] cursor-pointer select-none',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                     isSelected
                       ? 'bg-primary-100 shadow-sm ring-2 ring-primary-500'
@@ -479,7 +479,7 @@ export default function CreateAnnouncementPage() {
           onClick={() => setIsPinned(!isPinned)}
           className={cn(
             'flex items-center gap-3 w-full px-4 py-3 rounded-xl',
-            'transition-all duration-150 cursor-pointer select-none',
+            'transition-all duration-150 active:scale-[0.98] cursor-pointer select-none',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             isPinned
               ? 'bg-primary-100 shadow-sm ring-2 ring-primary-500'

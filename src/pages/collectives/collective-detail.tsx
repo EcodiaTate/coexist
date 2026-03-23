@@ -288,7 +288,7 @@ export default function CollectiveDetailPage() {
                 <Link
                   key={leader.id}
                   to={`/profile/${leader.user_id}`}
-                  className="flex items-center gap-2 rounded-xl bg-surface-0 px-3 py-2 transition-colors duration-150 hover:bg-surface-3"
+                  className="flex items-center gap-2 rounded-xl bg-surface-0 px-3 py-2 transition-[colors,transform] duration-150 hover:bg-surface-3 active:scale-[0.98]"
                 >
                   <Avatar
                     src={leader.profiles?.avatar_url}
@@ -434,7 +434,7 @@ export default function CollectiveDetailPage() {
                 <Link
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className="flex items-center gap-3 rounded-xl bg-surface-0 p-3 transition-colors duration-150 hover:bg-surface-3"
+                  className="flex items-center gap-3 rounded-xl bg-surface-0 p-3 transition-[colors,transform] duration-150 hover:bg-surface-3 active:scale-[0.99]"
                 >
                   <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-primary-100 text-primary-400">
                     <span className="text-[11px] font-semibold uppercase">
@@ -472,7 +472,7 @@ export default function CollectiveDetailPage() {
                 <Link
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className="flex items-center gap-3 rounded-xl bg-surface-0 p-3 transition-colors duration-150 hover:bg-surface-3"
+                  className="flex items-center gap-3 rounded-xl bg-surface-0 p-3 transition-[colors,transform] duration-150 hover:bg-surface-3 active:scale-[0.99]"
                 >
                   <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-surface-2 text-primary-400">
                     <span className="text-[11px] font-semibold uppercase">

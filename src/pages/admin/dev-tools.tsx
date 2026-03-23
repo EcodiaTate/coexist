@@ -908,11 +908,14 @@ export default function DevToolsPage() {
 
   const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
-  if (!import.meta.env.DEV && profile?.role !== 'super_admin') {
+  const devEmails = (import.meta.env.VITE_DEV_EMAILS ?? '').split(',').map((e: string) => e.trim().toLowerCase()).filter(Boolean)
+  const isDevUser = import.meta.env.DEV && !!user?.email && devEmails.includes(user.email.toLowerCase())
+
+  if (!isDevUser) {
     return (
       <div className="p-6 text-center">
         <AlertCircle className="mx-auto mb-3 text-error-400" size={32} />
-        <p className="text-sm text-primary-500">Dev tools are only available in development mode or for super admins.</p>
+        <p className="text-sm text-primary-500">Dev tools are only available in development mode for authorised developers.</p>
       </div>
     )
   }

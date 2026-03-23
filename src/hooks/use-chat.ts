@@ -974,7 +974,29 @@ export function useRespondToAnnouncement() {
 
       if (error) throw error
     },
-    onSuccess: (_, { announcementId }) => {
+    onMutate: async ({ announcementId, response }) => {
+      await queryClient.cancelQueries({ queryKey: ['chat-announcement', announcementId] })
+      const previous = queryClient.getQueryData<ChatAnnouncement>(['chat-announcement', announcementId])
+      queryClient.setQueryData<ChatAnnouncement>(['chat-announcement', announcementId], (old) => {
+        if (!old) return old
+        const filtered = (old.responses ?? []).filter((r) => r.user_id !== user!.id)
+        return {
+          ...old,
+          responses: [...filtered, {
+            id: `optimistic-${Date.now()}`,
+            announcement_id: announcementId,
+            user_id: user!.id,
+            response,
+            created_at: new Date().toISOString(),
+          }],
+        }
+      })
+      return { previous }
+    },
+    onError: (_err, { announcementId }, context) => {
+      if (context?.previous) queryClient.setQueryData(['chat-announcement', announcementId], context.previous)
+    },
+    onSettled: (_, __, { announcementId }) => {
       queryClient.invalidateQueries({ queryKey: ['chat-announcement', announcementId] })
     },
   })

@@ -232,7 +232,7 @@ export default function AdminSurveysPage() {
                   <button
                     type="button"
                     onClick={() => setDeleteTarget(survey.id)}
-                    className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
+                    className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]"
                     aria-label="Delete survey"
                   >
                     <Trash2 size={16} />

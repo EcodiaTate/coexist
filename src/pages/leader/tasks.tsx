@@ -111,7 +111,7 @@ function TaskCard({ task }: { task: MyTask }) {
           type="button"
           onClick={() => !isCompleted && !isSkipped && setExpanded(!expanded)}
           className={cn(
-            'flex-1 flex items-start gap-3 p-4 text-left cursor-pointer min-w-0',
+            'flex-1 flex items-start gap-3 p-4 text-left cursor-pointer min-w-0 active:scale-[0.99] transition-transform duration-150',
             (isCompleted || isSkipped) && 'p-3',
           )}
         >
@@ -323,7 +323,7 @@ function CollectiveGroup({
         <button
           type="button"
           onClick={() => setShowCompleted(!showCompleted)}
-          className="flex items-center gap-1.5 text-[11px] text-primary-400 cursor-pointer select-none py-1 px-1 hover:text-primary-600 transition-colors"
+          className="flex items-center gap-1.5 text-[11px] text-primary-400 cursor-pointer select-none py-1 px-1 hover:text-primary-600 active:scale-[0.97] transition-[colors,transform] duration-150"
         >
           <motion.div animate={{ rotate: showCompleted ? 90 : 0 }} transition={{ duration: 0.15 }}>
             <ChevronRight size={12} />

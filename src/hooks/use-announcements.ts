@@ -173,7 +173,7 @@ interface CreateAnnouncementParams {
 }
 
 export function useCreateAnnouncement() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -200,7 +200,37 @@ export function useCreateAnnouncement() {
       if (error) throw error
       return data
     },
-    onSuccess: () => {
+    onMutate: async (params) => {
+      await queryClient.cancelQueries({ queryKey: ['announcements'] })
+      const previous = queryClient.getQueryData<AnnouncementWithAuthor[]>(['announcements', user?.id])
+
+      const urls = params.imageUrls ?? []
+      const optimistic: AnnouncementWithAuthor = {
+        id: `optimistic-${Date.now()}`,
+        author_id: user!.id,
+        title: params.title,
+        content: params.content,
+        image_url: urls[0] ?? null,
+        image_urls: urls,
+        priority: params.priority,
+        target_audience: params.targetAudience,
+        target_collective_id: params.targetCollectiveId ?? null,
+        is_pinned: params.isPinned ?? false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        author: { id: user!.id, display_name: profile?.display_name ?? null, avatar_url: profile?.avatar_url ?? null, role: profile?.role ?? null },
+        is_read: true,
+      } as AnnouncementWithAuthor
+
+      queryClient.setQueryData<AnnouncementWithAuthor[]>(['announcements', user?.id], (old) =>
+        old ? [optimistic, ...old] : [optimistic],
+      )
+      return { previous }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previous) queryClient.setQueryData(['announcements', user?.id], context.previous)
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['announcements'] })
     },
   })

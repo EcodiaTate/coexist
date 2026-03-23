@@ -61,7 +61,7 @@ export function WebFooter({ className }: WebFooterProps) {
                   rel="noopener noreferrer"
                   className={cn(
                     'flex items-center justify-center',
-                    'w-9 h-9 rounded-full',
+                    'w-11 h-11 rounded-full',
                     'bg-primary-900 text-white/70',
                     'hover:bg-primary-800 hover:text-white',
                     'transition-colors duration-150',
@@ -170,6 +170,18 @@ export function WebFooter({ className }: WebFooterProps) {
 
         {/* Acknowledgment */}
         <div className="mt-10 pt-8 border-t border-primary-800">
+          <div className="flex items-center gap-3 mb-4">
+            <img
+              src="/img/aboriginal-peoples-flag.png"
+              alt="Aboriginal Peoples flag"
+              className="h-6 w-auto"
+            />
+            <img
+              src="/img/torres-strait-peoples-flag.png"
+              alt="Torres Strait Islander Peoples flag"
+              className="h-6 w-auto"
+            />
+          </div>
           <p className="text-xs text-white/50 leading-relaxed">
             We acknowledge the Traditional Custodians of the lands on which we
             live and work, and pay our respects to Elders past, present and

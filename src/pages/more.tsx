@@ -66,7 +66,7 @@ function MenuSection({
             className={cn(
               'w-full flex items-center gap-3.5 px-4 py-3 min-h-12',
               'text-left transition-all duration-150',
-              'active:bg-surface-3',
+              'active:bg-surface-3 active:scale-[0.99]',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
               'cursor-pointer select-none',
               idx > 0 && 'border-t border-primary-100/20',

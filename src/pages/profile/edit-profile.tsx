@@ -285,7 +285,7 @@ export default function EditProfilePage() {
                 <button
                   onClick={handleAvatarChange}
                   disabled={cameraLoading || uploading}
-                  className="absolute -bottom-1 -right-1 flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-md text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50"
+                  className="absolute -bottom-1 -right-1 flex items-center justify-center w-11 h-11 rounded-full bg-white shadow-md text-primary-600 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 disabled:opacity-50"
                   aria-label="Change avatar"
                 >
                   <Camera size={16} />
@@ -564,7 +564,7 @@ export default function EditProfilePage() {
                     key={opt.value}
                     onClick={() => setVisibility(opt.value)}
                     className={cn(
-                      'w-full flex items-start gap-3 rounded-xl px-4 py-3 text-left transition-all duration-150',
+                      'w-full flex items-start gap-3 rounded-xl px-4 py-3 text-left transition-all duration-150 active:scale-[0.98]',
                       visibility === opt.value
                         ? 'ring-2 ring-primary-500 bg-primary-50/60 shadow-sm'
                         : 'bg-surface-1 border border-primary-100 hover:border-primary-200',

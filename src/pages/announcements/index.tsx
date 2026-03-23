@@ -163,8 +163,8 @@ function AnnouncementDetail({
             type="button"
             onClick={onClose}
             className={cn(
-              'flex items-center justify-center w-9 h-9 -ml-1 rounded-full',
-              'cursor-pointer select-none transition-all duration-150',
+              'flex items-center justify-center w-11 h-11 -ml-1 rounded-full',
+              'cursor-pointer select-none transition-all duration-150 active:scale-[0.93]',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
               splashImage
                 ? 'bg-black/30 text-white hover:bg-black/50'

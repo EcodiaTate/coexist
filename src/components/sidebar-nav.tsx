@@ -83,7 +83,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
             className={cn(
               'flex items-center gap-3 min-w-0',
               'rounded-xl p-2',
-              'transition-all duration-200',
+              'transition-all duration-200 active:scale-[0.97]',
               'cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               collapsed && 'justify-center',

@@ -56,6 +56,7 @@ export function SharedElement({
           ? { duration: 0 }
           : { type: 'spring', stiffness: 280, damping: 30, mass: 0.8 }
       }
+      whileTap={onClick && !shouldReduceMotion ? { scale: 0.98 } : undefined}
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
     >

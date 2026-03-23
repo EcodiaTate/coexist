@@ -13,13 +13,16 @@ import SplashPage from '@/pages/splash'
 
 /* ------------------------------------------------------------------ */
 /*  Lazy-loaded pages                                                  */
+/*                                                                     */
+/*  Core pages (bottom tabs + sidebar links) are eagerly preloaded     */
+/*  after mount via requestIdleCallback so chunks are cached before    */
+/*  the user taps anything. This eliminates the white Suspense gap.    */
 /* ------------------------------------------------------------------ */
 
 // Public pages (no auth required)
 const PublicEventPage = lazy(() => import('@/pages/public/event'))
 const PublicCollectivePage = lazy(() => import('@/pages/public/collective'))
 const DownloadPage = lazy(() => import('@/pages/public/download'))
-
 
 // Legal
 const TermsOfServicePage = lazy(() => import('@/pages/legal/terms'))
@@ -76,7 +79,6 @@ const LogImpactPage = lazy(() => import('@/pages/events/log-impact'))
 const PostEventSurveyPage = lazy(() => import('@/pages/events/post-event-survey'))
 const EditEventPage = lazy(() => import('@/pages/events/edit-event'))
 
-
 // Notifications
 const NotificationsPage = lazy(() => import('@/pages/notifications/index'))
 
@@ -100,7 +102,6 @@ const OrderDetailPage = lazy(() => import('@/pages/shop/order-detail'))
 
 // Admin - Merch
 const AdminMerchPage = lazy(() => import('@/pages/admin/merch/index'))
-
 
 // Admin - Dashboards & Management
 const AdminDashboardPage = lazy(() => import('@/pages/admin/index'))
@@ -142,6 +143,64 @@ const NationalImpactPage = lazy(() => import('@/pages/impact/national'))
 
 // Temp map page
 const MapPage = lazy(() => import('@/pages/map'))
+
+/* ------------------------------------------------------------------ */
+/*  Eager preload — download core page chunks in the background        */
+/*  so navigating to any tab/sidebar link is instant (no Suspense).    */
+/*  Uses requestIdleCallback to avoid blocking initial render.         */
+/* ------------------------------------------------------------------ */
+
+const coreImports = [
+  () => import('@/pages/home'),
+  () => import('@/pages/events/index'),
+  () => import('@/pages/chat/index'),
+  () => import('@/pages/profile/index'),
+  () => import('@/pages/collectives/discover'),
+  () => import('@/pages/notifications/index'),
+  () => import('@/pages/settings/index'),
+  () => import('@/pages/events/event-detail'),
+  () => import('@/pages/collectives/collective-detail'),
+  () => import('@/pages/donate/index'),
+  () => import('@/pages/shop/index'),
+]
+
+const secondaryImports = [
+  () => import('@/pages/profile/view-profile'),
+  () => import('@/pages/profile/edit-profile'),
+  () => import('@/pages/chat/collective-chat'),
+  () => import('@/pages/chat/channel-chat'),
+  () => import('@/pages/events/create-event'),
+  () => import('@/pages/announcements/index'),
+  () => import('@/pages/referral/index'),
+  () => import('@/pages/tasks/index'),
+  () => import('@/pages/contact'),
+  () => import('@/pages/partners'),
+  () => import('@/pages/leadership'),
+  () => import('@/pages/lead-a-collective'),
+  () => import('@/pages/reports/index'),
+  () => import('@/pages/impact/national'),
+]
+
+function preloadChunks() {
+  const idle = typeof requestIdleCallback === 'function'
+    ? requestIdleCallback
+    : (cb: () => void) => setTimeout(cb, 100)
+
+  // Phase 1: core nav targets (bottom tabs + sidebar top links)
+  idle(() => {
+    for (const load of coreImports) load()
+
+    // Phase 2: secondary pages after core is done
+    idle(() => {
+      for (const load of secondaryImports) load()
+    })
+  })
+}
+
+// Kick off preload once the module loads (after initial JS parse)
+if (typeof window !== 'undefined') {
+  preloadChunks()
+}
 
 /* ------------------------------------------------------------------ */
 /*  Loading fallback                                                   */

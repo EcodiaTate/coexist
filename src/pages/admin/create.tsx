@@ -134,7 +134,7 @@ function SectionCard({
       {/* Header */}
       <Link
         to={to}
-        className="flex items-center gap-3.5 p-5 hover:bg-primary-50/40 transition-colors group"
+        className="flex items-center gap-3.5 p-5 hover:bg-primary-50/40 transition-[colors,transform] duration-150 active:scale-[0.99] group"
       >
         <div className={cn(
           'flex items-center justify-center w-11 h-11 rounded-xl shrink-0',
@@ -172,7 +172,7 @@ function SectionCard({
               to={action.to}
               className={cn(
                 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold',
-                'bg-primary-50/80 text-primary-600 hover:bg-primary-100 transition-colors',
+                'bg-primary-50/80 text-primary-600 hover:bg-primary-100 transition-[colors,transform] duration-150 active:scale-[0.97]',
               )}
             >
               {action.icon}

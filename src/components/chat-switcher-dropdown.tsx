@@ -78,7 +78,7 @@ export function ChatSwitcherDropdown({
                         if (c.id !== currentCollectiveId) navigate(`/chat/${c.id}`)
                       }}
                       className={cn(
-                        'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition-colors duration-100 min-h-11',
+                        'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
                         c.id === currentCollectiveId
                           ? 'bg-primary-50 text-primary-900 font-bold'
                           : 'text-primary-700 hover:bg-primary-50/60',
@@ -113,7 +113,7 @@ export function ChatSwitcherDropdown({
                         if (ch.id !== currentChannelId) navigate(`/chat/channel/${ch.id}`)
                       }}
                       className={cn(
-                        'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition-colors duration-100 min-h-11',
+                        'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
                         ch.id === currentChannelId
                           ? 'bg-primary-50 text-primary-900 font-bold'
                           : 'text-primary-700 hover:bg-primary-50/60',

@@ -600,7 +600,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
               onClick={() => setShowInactive((p) => !p)}
               className={cn(
                 'h-10 px-3.5 rounded-full text-xs font-semibold',
-                'transition-[color,background-color,box-shadow] duration-200 cursor-pointer select-none',
+                'active:scale-[0.95] transition-[color,background-color,box-shadow,transform] duration-200 cursor-pointer select-none',
                 showInactive
                   ? 'bg-primary-700 text-white shadow-md'
                   : 'bg-white text-primary-500 hover:bg-primary-50 shadow-sm',
@@ -694,7 +694,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                     <button
                       type="button"
                       onClick={() => handleRestore(member)}
-                      className="p-2.5 rounded-xl text-primary-400 hover:bg-primary-100 cursor-pointer transition-colors"
+                      className="p-2.5 rounded-xl text-primary-400 hover:bg-primary-100 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                       aria-label="Restore member"
                     >
                       <RotateCcw size={14} />
@@ -704,7 +704,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                       <button
                         type="button"
                         onClick={() => setRoleAssignMember(member)}
-                        className="p-2.5 rounded-xl text-primary-400 hover:bg-primary-100 cursor-pointer transition-colors"
+                        className="p-2.5 rounded-xl text-primary-400 hover:bg-primary-100 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                         aria-label="Change role"
                       >
                         <Shield size={14} />
@@ -712,7 +712,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                       <button
                         type="button"
                         onClick={() => setRemovingMember(member)}
-                        className="p-2.5 rounded-xl text-primary-400 hover:bg-error-50 hover:text-error-500 cursor-pointer transition-colors"
+                        className="p-2.5 rounded-xl text-primary-400 hover:bg-error-50 hover:text-error-500 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                         aria-label="Remove member"
                       >
                         <UserMinus size={14} />
@@ -951,7 +951,7 @@ function EventsTab({ collectiveId, reducedMotion }: { collectiveId: string; redu
               onClick={() => setStatusFilter(s)}
               className={cn(
                 'h-9 px-4 rounded-full text-xs font-semibold capitalize',
-                'transition-[color,background-color,box-shadow] duration-200 cursor-pointer select-none shadow-sm',
+                'active:scale-[0.95] transition-[color,background-color,box-shadow,transform] duration-200 cursor-pointer select-none shadow-sm',
                 isActive ? colors.active : colors.inactive,
                 isActive && 'shadow-md',
               )}
@@ -1380,7 +1380,7 @@ export default function AdminCollectiveDetailPage() {
         <button
           type="button"
           onClick={() => navigate('/admin/collectives')}
-          className="flex items-center gap-1.5 text-sm text-primary-400 hover:text-primary-600 transition-colors cursor-pointer select-none group"
+          className="flex items-center gap-1.5 text-sm text-primary-400 hover:text-primary-600 active:scale-[0.97] transition-[colors,transform] cursor-pointer select-none group"
         >
           <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
           All Collectives
@@ -1404,7 +1404,7 @@ export default function AdminCollectiveDetailPage() {
                 onClick={() => setActiveTab(tab.key)}
                 className={cn(
                   'relative flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold',
-                  'rounded-xl transition-[color,background-color,box-shadow] duration-200 cursor-pointer select-none',
+                  'rounded-xl active:scale-[0.97] transition-[color,background-color,box-shadow,transform] duration-200 cursor-pointer select-none',
                   isActive
                     ? 'bg-primary-700 text-white shadow-lg'
                     : 'text-primary-400 hover:text-primary-600 hover:bg-white/80',

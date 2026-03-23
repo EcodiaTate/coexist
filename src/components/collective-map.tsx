@@ -711,7 +711,7 @@ export function CollectiveMap({ className }: CollectiveMapProps) {
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleClose() }}
-                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-200/60 text-secondary-400"
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-200/60 text-secondary-400 active:scale-[0.90] transition-transform duration-150 cursor-pointer"
                     aria-label="Close"
                   >
                     <X size={14} />

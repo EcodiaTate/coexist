@@ -233,7 +233,7 @@ export default function ProfilePage() {
           <div className="relative z-10 flex justify-end px-4">
             <button
               onClick={() => navigate('/settings')}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/15 text-white/90 hover:bg-white/25 transition-colors"
+              className="flex items-center justify-center w-11 h-11 rounded-full bg-white/15 text-white/90 hover:bg-white/25 active:scale-[0.93] transition-[colors,transform] duration-150"
               aria-label="Settings"
             >
               <Settings size={18} />
@@ -360,7 +360,7 @@ export default function ProfilePage() {
             action={
               <button
                 onClick={() => navigate('/profile/edit')}
-                className="flex items-center gap-1 text-xs font-bold text-primary-600 bg-primary-100 hover:bg-primary-200 px-2.5 py-1 rounded-full transition-colors"
+                className="flex items-center gap-1 text-xs font-bold text-primary-600 bg-primary-100 hover:bg-primary-200 px-3 min-h-9 rounded-full active:scale-[0.95] transition-[colors,transform] duration-150 cursor-pointer"
               >
                 Edit <ChevronRight size={13} />
               </button>
@@ -423,7 +423,7 @@ export default function ProfilePage() {
               profile.emergency_contact_name ? (
                 <button
                   onClick={() => navigate('/profile/edit')}
-                  className="flex items-center gap-1 text-xs font-bold text-warning-700 bg-warning-100 hover:bg-warning-200 px-2.5 py-1 rounded-full transition-colors"
+                  className="flex items-center gap-1 text-xs font-bold text-warning-700 bg-warning-100 hover:bg-warning-200 px-3 min-h-9 rounded-full active:scale-[0.95] transition-[colors,transform] duration-150 cursor-pointer"
                 >
                   Edit <ChevronRight size={13} />
                 </button>

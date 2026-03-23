@@ -114,7 +114,7 @@ export function CookieConsentBanner({ className }: { className?: string }) {
               </div>
               <button
                 onClick={handleRejectNonEssential}
-                className="flex items-center justify-center w-11 h-11 rounded-full text-primary-400 hover:bg-primary-50 transition-colors shrink-0"
+                className="flex items-center justify-center w-11 h-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 shrink-0"
                 aria-label="Reject non-essential cookies"
               >
                 <X size={16} />
@@ -169,7 +169,7 @@ export function CookieConsentBanner({ className }: { className?: string }) {
             <div className="flex gap-2 p-4 pt-2">
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-xs font-medium text-primary-400 hover:text-primary-800 transition-colors px-3 min-h-11 flex items-center justify-center"
+                className="text-xs font-medium text-primary-400 hover:text-primary-800 active:scale-[0.97] transition-[colors,transform] duration-150 px-3 min-h-11 flex items-center justify-center cursor-pointer"
               >
                 {showDetails ? 'Hide details' : 'Customise'}
               </button>

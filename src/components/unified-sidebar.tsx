@@ -46,6 +46,8 @@ interface NavItem {
   icon: ReactNode
   capability?: string
   superAdminOnly?: boolean
+  /** Only show when user email is in VITE_DEV_EMAILS and NODE_ENV is dev */
+  devOnly?: boolean
   /** Only show on mobile sidebar (not desktop) */
   mobileOnly?: boolean
   /** Only show on desktop sidebar (not mobile) */
@@ -136,7 +138,7 @@ const adminNavCategories: NavCategory[] = [
       { label: 'Reports', path: '/admin/reports', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_reports' },
       { label: 'Exports', path: '/admin/exports', icon: <Download size={17} strokeWidth={1.5} />, capability: 'manage_exports' },
       { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_audit_log' },
-      { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={17} strokeWidth={1.5} />, superAdminOnly: true },
+      { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={17} strokeWidth={1.5} />, devOnly: true },
     ],
   },
 ]
@@ -591,7 +593,7 @@ function SidebarNavList({
                           className={cn(
                             'relative flex items-center gap-2.5 w-full',
                             'rounded-xl text-[13px]',
-                            'transition-colors duration-150',
+                            'transition-[colors,transform] duration-150 active:scale-[0.97]',
                             'cursor-pointer select-none text-left',
                             'focus-visible:outline-none focus-visible:ring-2',
                             sAccent.focusRing,
@@ -627,11 +629,11 @@ function SidebarNavList({
                           className={cn(
                             'relative flex items-center gap-2.5',
                             'rounded-xl text-[13px]',
-                            'transition-colors duration-150',
+                            'transition-[colors,transform] duration-150 active:scale-[0.97]',
                             'cursor-pointer select-none',
                             'focus-visible:outline-none focus-visible:ring-2',
                             sAccent.focusRing,
-                            collapsed ? 'justify-center h-9 w-9 mx-auto' : 'px-2.5 h-9',
+                            collapsed ? 'justify-center h-10 w-10 mx-auto' : 'px-2.5 h-10',
                             isItemActive ? sAccent.activeClasses : sAccent.hoverClasses,
                           )}
                           aria-current={isItemActive ? 'page' : undefined}
@@ -700,7 +702,7 @@ function MobileProfileCard({ onNavigate }: { onNavigate: (path: string) => void 
         'rounded-2xl border border-primary-100/40',
         'cursor-pointer select-none text-left',
         'hover:from-primary-50 hover:to-primary-50/50',
-        'transition-all duration-200',
+        'transition-all duration-200 active:scale-[0.98]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
       )}
     >
@@ -781,7 +783,7 @@ function MobileSuiteSwitcher({
                 'flex-1 min-h-[44px] min-w-[44px]',
                 'rounded-xl',
                 'cursor-pointer select-none',
-                'transition-colors duration-200',
+                'transition-[colors,transform] duration-200 active:scale-[0.95]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 isActive ? 'text-primary-800' : 'text-primary-400',
               )}
@@ -849,9 +851,9 @@ function DesktopSuiteSwitcher({
               onClick={() => onSuiteChange(id.key)}
               className={cn(
                 'relative flex items-center justify-center',
-                'w-9 h-9 rounded-xl',
+                'w-10 h-10 rounded-xl',
                 'cursor-pointer select-none',
-                'transition-all duration-200',
+                'transition-all duration-200 active:scale-[0.93]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               )}
               aria-label={id.label}
@@ -914,7 +916,7 @@ function DesktopSuiteSwitcher({
                 'flex-1 h-9',
                 'rounded-xl',
                 'cursor-pointer select-none',
-                'transition-colors duration-200',
+                'transition-[colors,transform] duration-200 active:scale-[0.95]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 isActive ? 'text-primary-800' : 'text-primary-400',
               )}
@@ -1108,9 +1110,9 @@ function MobileSidebarOverlay({
                     type="button"
                     onClick={onClose}
                     className={cn(
-                      'flex items-center justify-center w-8 h-8 rounded-xl',
+                      'flex items-center justify-center w-11 h-11 rounded-xl',
                       'bg-primary-50/60 text-primary-400 hover:text-primary-700 hover:bg-primary-100/60',
-                      'transition-all duration-150',
+                      'transition-all duration-150 active:scale-[0.90]',
                       'cursor-pointer select-none',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                     )}
@@ -1158,7 +1160,7 @@ function MobileSidebarOverlay({
                   'flex items-center gap-2.5 w-full px-2.5 h-9',
                   'rounded-xl text-[13px]',
                   'text-primary-400 hover:bg-primary-50/50 hover:text-primary-700',
-                  'transition-colors duration-150',
+                  'transition-[colors,transform] duration-150 active:scale-[0.97]',
                   'cursor-pointer select-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 )}
@@ -1191,7 +1193,11 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
   const { navMode } = useLayout()
   const shouldReduceMotion = useReducedMotion()
   const [collapsed, setCollapsed] = useState(false)
-  const { profile, collectiveRoles, isStaff, isSuperAdmin, hasCapability } = useAuth()
+  const { user, profile, collectiveRoles, isStaff, isSuperAdmin, hasCapability } = useAuth()
+
+  const isDevUser = import.meta.env.DEV &&
+    !!user?.email &&
+    (import.meta.env.VITE_DEV_EMAILS ?? '').split(',').map((e: string) => e.trim().toLowerCase()).includes(user.email.toLowerCase())
 
   // Skip entry animations on cold mount, animate on suite switches
   const hasMounted = useRef(false)
@@ -1241,7 +1247,10 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
         .filter((cat) => !cat.superAdminOnly || isSuperAdmin)
         .map((cat) => ({
           ...cat,
-          items: cat.items.filter((item) => !item.capability || hasCapability(item.capability)),
+          items: cat.items.filter((item) =>
+            (!item.capability || hasCapability(item.capability)) &&
+            (!item.devOnly || isDevUser)
+          ),
         }))
         .filter((cat) => cat.items.length > 0)
     }
@@ -1252,7 +1261,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
     }
 
     return result
-  }, [isSuperAdmin, hasCapability, isAnyLeader, isStaff])
+  }, [isSuperAdmin, hasCapability, isAnyLeader, isStaff, isDevUser])
 
   // Flattened categories - highest-role home + chat/updates at top,
   // other homes lead their own sections
@@ -1277,7 +1286,8 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
             ...(i === 0 && highestHome !== adminHomeItem ? [adminHomeItem] : []),
             ...cat.items.filter((item) =>
               (!item.capability || hasCapability(item.capability)) &&
-              (!item.superAdminOnly || isSuperAdmin)
+              (!item.superAdminOnly || isSuperAdmin) &&
+              (!item.devOnly || isDevUser)
             ),
           ],
         }))
@@ -1309,7 +1319,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
     cats.push(...memberCats)
 
     return cats
-  }, [isAnyLeader, isStaff, isSuperAdmin, hasCapability])
+  }, [isAnyLeader, isStaff, isSuperAdmin, hasCapability, isDevUser])
 
   const isActive = (path: string) => {
     if (path === '/' || path === '/admin' || path === '/leader') {
@@ -1413,7 +1423,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
             to="/profile"
             className={cn(
               'flex items-center gap-2 min-w-0 rounded-lg p-1',
-              'transition-colors duration-150 cursor-pointer select-none',
+              'transition-[colors,transform] duration-150 active:scale-[0.97] cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               !collapsed && 'flex-1',
               location.pathname.startsWith('/profile')
@@ -1441,7 +1451,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
             className={cn(
               'flex items-center justify-center shrink-0',
               'size-8 rounded-lg text-[13px]',
-              'transition-colors duration-150 cursor-pointer select-none',
+              'transition-[colors,transform] duration-150 active:scale-[0.93] cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2',
               dAccent.focusRing,
               location.pathname.startsWith('/settings')
@@ -1463,7 +1473,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
               'text-primary-300',
               dAccent.collapseHover,
               'cursor-pointer select-none',
-              'transition-all duration-200',
+              'transition-all duration-200 active:scale-[0.90]',
               'focus-visible:outline-none focus-visible:ring-2',
               dAccent.focusRing,
             )}

@@ -88,6 +88,7 @@ export function Toggle({
         className={cn(
           'relative inline-flex items-center justify-center shrink-0 cursor-pointer',
           'min-w-11 min-h-11',
+          'transition-transform duration-150 active:scale-[0.93]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
           'disabled:opacity-50 disabled:cursor-not-allowed',
         )}
@@ -100,23 +101,24 @@ export function Toggle({
             checked ? 'bg-primary-500' : 'bg-primary-200',
           )}
         >
-        <motion.span
-          aria-hidden="true"
-          className={cn(
-            'absolute top-1/2 block rounded-full bg-white shadow-sm',
-            config.thumb,
-          )}
-          initial={false}
-          animate={{
-            x: checked ? config.translateOn : config.translateOff,
-            y: '-50%',
-          }}
-          transition={
-            shouldReduceMotion
-              ? { duration: 0 }
-              : { type: 'spring', stiffness: 420, damping: 28, mass: 0.6 }
-          }
-        />
+          <motion.span
+            aria-hidden="true"
+            className={cn(
+              'absolute top-1/2 block rounded-full bg-white shadow-sm',
+              config.thumb,
+            )}
+            initial={false}
+            animate={{
+              x: checked ? config.translateOn : config.translateOff,
+              y: '-50%',
+            }}
+            transition={
+              shouldReduceMotion
+                ? { duration: 0 }
+                : { type: 'spring', stiffness: 420, damping: 28, mass: 0.6 }
+            }
+          />
+        </span>
       </button>
     </div>
   )
