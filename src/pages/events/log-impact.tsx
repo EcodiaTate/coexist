@@ -342,7 +342,7 @@ export default function LogImpactPage() {
     if (event?.date_end && !existingImpact) {
       startTransition(() => {
         const durationHours =
-          (new Date(event.date_end).getTime() - new Date(event.date_start).getTime()) /
+          (new Date(event.date_end!).getTime() - new Date(event.date_start).getTime()) /
           (1000 * 60 * 60)
         setEventDurationHours(String(Math.round(durationHours * 10) / 10))
       })

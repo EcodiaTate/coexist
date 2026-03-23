@@ -157,7 +157,7 @@ export function useCompleteTask() {
                 completed_at: now,
                 completed_by: user!.id,
                 completion_notes: notes || null,
-                completer: { display_name: profile?.display_name ?? null, avatar_url: profile?.avatar_url ?? null },
+                completer: { display_name: profile?.display_name ?? '', avatar_url: profile?.avatar_url ?? null },
               }
             : t,
         )
