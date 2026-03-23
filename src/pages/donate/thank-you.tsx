@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Heart, Share2, ArrowRight, PartyPopper, Calendar, Users, Trophy } from 'lucide-react'
@@ -17,7 +17,7 @@ const COLORS = ['#5a835a', '#b07d46', '#e97c28', '#4ade80', '#60a5fa']
 
 function Confetti() {
   const shouldReduceMotion = useReducedMotion()
-  const particles = useMemo(() => Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
+  const [particles] = useState(() => Array.from({ length: PARTICLE_COUNT }, (_, i) => ({
     x: Math.random() * 100,
     delay: Math.random() * 0.4,
     size: 6 + Math.random() * 8,
@@ -25,7 +25,7 @@ function Confetti() {
     rotation: Math.random() * 360,
     duration: 2.5 + Math.random(),
     borderRadius: Math.random() > 0.5 ? '50%' : '2px',
-  })), [])
+  })))
   if (shouldReduceMotion) return null
 
   return (

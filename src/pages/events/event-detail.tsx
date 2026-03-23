@@ -272,6 +272,7 @@ export default function EventDetailPage() {
   const [cancelReason, setCancelReason] = useState('')
   const [inviteMessage, setInviteMessage] = useState('')
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
+  const [mountTime] = useState(() => Date.now())
 
   const accent = event ? (activityAccent[event.activity_type] ?? defaultAccent) : defaultAccent
   const past = event ? isPastEvent(event) : false
@@ -280,12 +281,11 @@ export default function EventDetailPage() {
   // Event is "active" if it started (or starts within 1 hour) and hasn't ended
   const isEventActive = useMemo(() => {
     if (!event) return false
-    const now = Date.now()
     const start = new Date(event.date_start).getTime()
     const end = event.date_end ? new Date(event.date_end).getTime() : start + 3 * 60 * 60 * 1000
     const earlyWindow = start - 60 * 60 * 1000 // 1 hour before
-    return now >= earlyWindow && now <= end
-  }, [event])
+    return mountTime >= earlyWindow && mountTime <= end
+  }, [event, mountTime])
   const userStatus = event?.user_registration?.status ?? null
   // Only show leader tools if user has a role in THIS event's collective (or is global staff)
   const belongsToCollective = collectiveRole.role !== null
@@ -557,7 +557,7 @@ export default function EventDetailPage() {
                 type="button"
                 onClick={() => navigate(-1)}
                 whileTap={{ scale: 0.9 }}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/50 text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
                 aria-label="Go back"
               >
                 <ArrowLeft size={20} />
@@ -566,7 +566,7 @@ export default function EventDetailPage() {
                 type="button"
                 onClick={handleShare}
                 whileTap={{ scale: 0.9 }}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/50 text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
                 aria-label="Share event"
               >
                 <Share2 size={18} />
@@ -592,7 +592,7 @@ export default function EventDetailPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className={cn(
                     'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold mb-2.5',
-                    'bg-white/20 backdrop-blur-md text-white border border-white/20',
+                    'bg-white/25 text-white border border-white/20',
                   )}
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-sprout-400 animate-pulse" />
@@ -819,7 +819,7 @@ export default function EventDetailPage() {
         >
           {/* Decorative gradient wash */}
           <div className={cn('absolute inset-0 opacity-30 bg-gradient-to-br', accent.gradient)} aria-hidden="true" />
-          <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px]" aria-hidden="true" />
+          <div className="absolute inset-0 bg-white/80" aria-hidden="true" />
           <div className="relative">
           <InfoChip
             icon={<Calendar size={17} />}

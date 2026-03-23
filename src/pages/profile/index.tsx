@@ -233,7 +233,7 @@ export default function ProfilePage() {
           <div className="relative z-10 flex justify-end px-4">
             <button
               onClick={() => navigate('/settings')}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/15 text-white/90 hover:bg-white/25 backdrop-blur-sm transition-colors"
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-white/15 text-white/90 hover:bg-white/25 transition-colors"
               aria-label="Settings"
             >
               <Settings size={18} />
@@ -287,7 +287,7 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <span className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-xs text-white/80">
+            <span className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-xs text-white/80">
               <Leaf size={12} className="text-sprout-300" />
               Member since {memberSince}
             </span>

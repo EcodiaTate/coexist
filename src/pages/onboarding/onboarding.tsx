@@ -52,23 +52,7 @@ export default function OnboardingPage() {
     [],
   )
 
-  const goNext = useCallback(() => {
-    if (step < TOTAL_STEPS - 1) {
-      setDirection(1)
-      setStep((s) => s + 1)
-    } else {
-      completeOnboarding()
-    }
-  }, [step])
-
-  const goBack = useCallback(() => {
-    if (step > 0) {
-      setDirection(-1)
-      setStep((s) => s - 1)
-    }
-  }, [step])
-
-  async function completeOnboarding() {
+  const completeOnboarding = useCallback(async () => {
     if (!user) return
 
     // Build profile payload - upsert guarantees the row exists even if the
@@ -114,7 +98,23 @@ export default function OnboardingPage() {
     markOnboardingComplete()
     await refreshProfile()
     setShowCelebration(true)
-  }
+  }, [user, data, markOnboardingComplete, refreshProfile])
+
+  const goNext = useCallback(() => {
+    if (step < TOTAL_STEPS - 1) {
+      setDirection(1)
+      setStep((s) => s + 1)
+    } else {
+      completeOnboarding()
+    }
+  }, [step, completeOnboarding])
+
+  const goBack = useCallback(() => {
+    if (step > 0) {
+      setDirection(-1)
+      setStep((s) => s - 1)
+    }
+  }, [step])
 
   if (showCelebration) {
     return <StepCelebration onContinue={() => navigate('/', { replace: true })} />

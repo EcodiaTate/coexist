@@ -109,7 +109,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
 
       {/* Pill dots */}
       {images.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-3 py-1.5 rounded-full bg-black/20 backdrop-blur-sm">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 px-3 py-1.5 rounded-full bg-black/20">
           {images.map((_, i) => (
             <button
               key={i}
@@ -136,7 +136,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
             className={cn(
               'hidden lg:flex absolute left-3 top-1/2 -translate-y-1/2',
               'items-center justify-center w-10 h-10 rounded-full',
-              'bg-white/90 shadow-md backdrop-blur-sm',
+              'bg-white shadow-md',
               'cursor-pointer select-none active:scale-[0.95] transition-all duration-150',
               'hover:bg-white hover:shadow-lg',
               currentIndex === 0 && 'opacity-0 pointer-events-none',
@@ -151,7 +151,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
             className={cn(
               'hidden lg:flex absolute right-3 top-1/2 -translate-y-1/2',
               'items-center justify-center w-10 h-10 rounded-full',
-              'bg-white/90 shadow-md backdrop-blur-sm',
+              'bg-white shadow-md',
               'cursor-pointer select-none active:scale-[0.95] transition-all duration-150',
               'hover:bg-white hover:shadow-lg',
               currentIndex === images.length - 1 && 'opacity-0 pointer-events-none',
@@ -165,7 +165,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
 
       {/* Image counter badge */}
       {images.length > 1 && (
-        <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/30 backdrop-blur-sm text-white text-xs font-medium tabular-nums">
+        <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-black/30 text-white text-xs font-medium tabular-nums">
           {currentIndex + 1}/{images.length}
         </span>
       )}
@@ -516,7 +516,7 @@ export default function ProductDetailPage() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-white/80 backdrop-blur-sm shadow-sm cursor-pointer active:scale-95 transition-transform"
+            className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm cursor-pointer active:scale-95 transition-transform"
             aria-label="Go back"
           >
             <ArrowLeft size={18} className="text-primary-700" />

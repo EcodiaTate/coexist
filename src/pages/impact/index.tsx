@@ -426,7 +426,7 @@ export default function ImpactDashboardPage() {
 
                 <div className="relative">
                   <div className="flex items-center gap-2 mb-5">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-sm">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/20">
                       <TreePine size={20} strokeWidth={2.5} className="text-white" />
                     </div>
                     <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 font-bold">
@@ -571,7 +571,7 @@ export default function ImpactDashboardPage() {
               className="w-full flex items-center gap-5 rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-xl shadow-primary-300/30 p-6 min-h-11 text-left active:scale-[0.97] transition-all duration-150 hover:shadow-2xl cursor-pointer select-none overflow-hidden relative"
             >
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
-              <div className="relative flex items-center justify-center w-13 h-13 rounded-2xl bg-white/15 backdrop-blur-sm">
+              <div className="relative flex items-center justify-center w-13 h-13 rounded-2xl bg-white/20">
                 <Globe size={24} strokeWidth={2.5} className="text-white" />
               </div>
               <div className="relative flex-1 min-w-0">

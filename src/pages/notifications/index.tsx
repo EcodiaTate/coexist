@@ -428,7 +428,7 @@ export default function NotificationsPage() {
                 {/* Unread count banner */}
                 {unreadCount > 0 && (
                   <motion.div variants={fadeUp}>
-                    <div className="flex items-center gap-3 rounded-2xl bg-white/80 backdrop-blur-sm p-3.5 shadow-sm border border-primary-100/40">
+                    <div className="flex items-center gap-3 rounded-2xl bg-white/90 p-3.5 shadow-sm border border-primary-100/40">
                       <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary-500 shadow-sm">
                         <Bell size={16} className="text-white" />
                       </div>

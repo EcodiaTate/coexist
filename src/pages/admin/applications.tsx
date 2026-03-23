@@ -593,15 +593,15 @@ export default function AdminApplicationsPage() {
   // Hero stats
   const heroStats = useMemo(() => (
     <div className="flex items-center gap-3">
-      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+      <div className="rounded-xl bg-white/10 px-4 py-3">
         <p className="text-[20px] font-bold text-white">{stats.total}</p>
         <p className="text-[11px] text-white/60 font-medium">Total</p>
       </div>
-      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+      <div className="rounded-xl bg-white/10 px-4 py-3">
         <p className="text-[20px] font-bold text-amber-300">{stats.pending}</p>
         <p className="text-[11px] text-white/60 font-medium">Pending</p>
       </div>
-      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+      <div className="rounded-xl bg-white/10 px-4 py-3">
         <p className="text-[20px] font-bold text-green-300">{stats.accepted}</p>
         <p className="text-[11px] text-white/60 font-medium">Accepted</p>
       </div>

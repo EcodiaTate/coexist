@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -205,12 +205,14 @@ export default function PostEventSurveyPage() {
   const [answers, setAnswers] = useState<Record<string, unknown>>({})
   const [submitted, setSubmitted] = useState(false)
 
-  // Pre-fill from existing response
-  useMemo(() => {
+  // Pre-fill from existing response (during render, not in effect)
+  const prevExistingRef = useRef(existingResponse)
+  if (existingResponse !== prevExistingRef.current) {
+    prevExistingRef.current = existingResponse
     if ((existingResponse as any)?.answers && Object.keys(answers).length === 0) {
       setAnswers((existingResponse as any).answers as Record<string, unknown>)
     }
-  }, [existingResponse])
+  }
 
   const setAnswer = useCallback((key: string, value: unknown) => {
     setAnswers((prev) => ({ ...prev, [key]: value }))

@@ -673,7 +673,7 @@ export function CollectiveMap({ className }: CollectiveMapProps) {
 
       {/* Top-left badge */}
       <div className="absolute top-3 left-3 z-[500]">
-        <div className="flex items-center gap-2 rounded-xl bg-white/95 backdrop-blur-sm px-3 py-2 shadow-sm">
+        <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 shadow-sm">
           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-400">
             <TreePine size={12} className="text-white" />
           </div>
@@ -777,7 +777,7 @@ export function CollectiveMap({ className }: CollectiveMapProps) {
                   onClick={() => selectCollective(c)}
                   className={cn(
                     'shrink-0 flex items-center gap-1.5',
-                    'rounded-xl bg-white/95 backdrop-blur-sm',
+                    'rounded-xl bg-white',
                     'px-3 py-2 shadow-sm',
                     'text-xs font-medium text-secondary-600',
                     'active:scale-[0.97] transition-transform duration-150',

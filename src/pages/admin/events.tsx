@@ -281,7 +281,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
 
           {/* Badges overlapping image bottom */}
           <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
-            <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm', actColor)}>
+            <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full ', actColor)}>
               {activityLabel(event.activity_type)}
             </span>
             <CountdownBadge dateStr={event.date_start} />
@@ -535,7 +535,7 @@ export default function AdminEventsPage() {
             { label: 'Active Collectives', value: null },
           ]
       ).map((s) => (
-        <div key={s.label} className="rounded-xl bg-white/10 backdrop-blur-sm p-3">
+        <div key={s.label} className="rounded-xl bg-white/10 p-3">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-1">{s.label}</p>
           {s.value !== null ? (
             <p className="text-xl font-bold text-white tabular-nums">{s.value.toLocaleString()}</p>

@@ -486,7 +486,7 @@ export function AnnouncementCard({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
           {eventDetails.activityType && (
-            <span className="absolute bottom-2 left-3 text-[10px] font-bold uppercase tracking-wider text-white/90 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-full">
+            <span className="absolute bottom-2 left-3 text-[10px] font-bold uppercase tracking-wider text-white/90 bg-black/30 px-2 py-0.5 rounded-full">
               {ACTIVITY_LABELS[eventDetails.activityType] ?? eventDetails.activityType}
             </span>
           )}

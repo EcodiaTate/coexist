@@ -163,7 +163,7 @@ export default function PublicEventPage() {
           animate={{ y: 0, opacity: 1 }}
           className="absolute bottom-4 left-4"
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-sm font-semibold text-primary-400 shadow-md backdrop-blur-sm">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-sm font-semibold text-primary-400 shadow-md">
             <TreePine size={14} />
             {ACTIVITY_LABELS[event.activity_type] || event.activity_type}
           </span>
@@ -233,8 +233,8 @@ export default function PublicEventPage() {
           variants={shouldReduceMotion ? undefined : fadeUp}
           className={cn(
             'mt-8 flex flex-col gap-3',
-            'sticky bottom-4 rounded-2xl bg-white/95 p-4 shadow-lg backdrop-blur-sm',
-            'sm:relative sm:bottom-auto sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none',
+            'sticky bottom-4 rounded-2xl bg-white/95 p-4 shadow-lg',
+            'sm:relative sm:bottom-auto sm:bg-transparent sm:p-0 sm:shadow-none',
           )}
         >
           <Button

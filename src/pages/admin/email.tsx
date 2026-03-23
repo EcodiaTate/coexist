@@ -373,7 +373,7 @@ function StatCard({
   icon?: React.ReactNode
 }) {
   return (
-    <div className="rounded-xl bg-white/10 backdrop-blur-sm px-2.5 py-2 sm:px-4 sm:py-3 min-w-0 flex-1">
+    <div className="rounded-xl bg-white/10 px-2.5 py-2 sm:px-4 sm:py-3 min-w-0 flex-1">
       <div className="flex items-center gap-1 mb-0.5">
         {icon && <span className="text-white/50">{icon}</span>}
         <p className="text-[9px] sm:text-[11px] font-semibold uppercase tracking-wider text-white/50 truncate">

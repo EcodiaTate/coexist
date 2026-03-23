@@ -138,7 +138,7 @@ export default function LeafletMapInner({
     if (!map) return
     const c = center ?? DEFAULT_CENTER
     map.setView([c.lat, c.lng], zoom, { animate: true })
-  }, [center?.lat, center?.lng, zoom])
+  }, [center, zoom])
 
   // Update markers with clustering
   useEffect(() => {

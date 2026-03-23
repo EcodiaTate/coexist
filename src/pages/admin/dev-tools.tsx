@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -661,6 +661,7 @@ function PushTestSuite() {
   const [collectiveId, setCollectiveId] = useState<string | undefined>()
   const [testQuietHours, setTestQuietHours] = useState(true)
   const [testOptOut, setTestOptOut] = useState(true)
+  const [tokenNow] = useState(() => Date.now())
 
   const toggleType = (type: NotificationType) =>
     setSelectedTypes((prev) => prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type])
@@ -672,7 +673,6 @@ function PushTestSuite() {
   const infraResults = results.filter((r) => r.category === 'infra')
   const deliveryResults = results.filter((r) => r.category === 'delivery')
   const filterResults = results.filter((r) => r.category === 'filtering')
-  const tokenNow = useMemo(() => Date.now(), [tokens])
 
   return (
     <div className="space-y-4">

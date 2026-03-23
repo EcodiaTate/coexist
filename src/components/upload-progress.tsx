@@ -78,7 +78,7 @@ export function UploadProgress({
           exit={{ opacity: 0 }}
           className={cn(
             'absolute inset-0 z-10 flex flex-col items-center justify-center',
-            'bg-white/80 backdrop-blur-sm rounded-xl gpu-backdrop',
+            'bg-white rounded-xl gpu-backdrop',
             className,
           )}
         >

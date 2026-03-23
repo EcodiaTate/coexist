@@ -109,7 +109,7 @@ export function Modal({
         >
           {/* Backdrop - GPU-promoted for blur perf */}
           <motion.div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm pointer-events-none gpu-backdrop"
+            className="fixed inset-0 bg-black/50 pointer-events-none gpu-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: t ? instant : { duration: 0.22, ease: [0.4, 0, 0.2, 1] } }}
             exit={{ opacity: 0, transition: t ? instant : { duration: 0.18, ease: [0.4, 0, 0.2, 1] } }}

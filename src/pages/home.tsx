@@ -1,6 +1,7 @@
 import { useCallback, useState, useRef, useEffect, useMemo, startTransition } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { motion, useReducedMotion, useMotionValue, useTransform, useInView } from 'framer-motion'
+import { motion, useReducedMotion, useTransform, useInView } from 'framer-motion'
+import { useParallaxScroll } from '@/hooks/use-parallax-scroll'
 import {
   ChevronRight,
   Calendar,
@@ -172,22 +173,7 @@ function relativeTime(iso: string): string {
 /* ------------------------------------------------------------------ */
 
 function HomeHero({ rm }: { rm: boolean }) {
-  const scrollY = useMotionValue(0)
-
-  useEffect(() => {
-    const el = document.getElementById('main-content')
-    const onScroll = () => {
-      const w = window.scrollY
-      const c = el ? el.scrollTop : 0
-      scrollY.set(Math.max(w, c))
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    el?.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      el?.removeEventListener('scroll', onScroll)
-    }
-  }, [scrollY])
+  const scrollY = useParallaxScroll()
 
   /* Parallax layers - each moves at a different rate for depth */
   const bgY = useTransform(scrollY, [0, 500], [0, 80])         // slowest - far background

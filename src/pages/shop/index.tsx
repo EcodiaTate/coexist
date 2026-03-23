@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { motion, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion'
+import { motion, useReducedMotion, useTransform, type Variants } from 'framer-motion'
+import { useParallaxScroll } from '@/hooks/use-parallax-scroll'
 import {
     ShoppingBag,
     Star,
@@ -194,30 +195,7 @@ function ShopHero({
   onBack: () => void
   rm: boolean
 }) {
-  /*
-   * On mobile: Page scrolls via <main id="main-content"> (overflow-y-auto).
-   * On desktop: window scrolls naturally.
-   * Track both - one will always read 0, the other will move.
-   * Combine them so parallax works everywhere.
-   */
-  const containerRef = useRef<HTMLElement>(null)
-  useEffect(() => {
-    const el = document.getElementById('main-content')
-    if (el) (containerRef as React.MutableRefObject<HTMLElement>).current = el
-  }, [])
-
-  const { scrollY: windowScrollY } = useScroll()
-  const { scrollY: containerScrollY } = useScroll({
-    container: containerRef as React.RefObject<HTMLElement>,
-  })
-
-  // Whichever container is actually scrolling will produce non-zero values;
-  // the other stays at 0. Adding them gives us the active one.
-  const scrollY = useTransform(
-    [windowScrollY, containerScrollY],
-    ([w, c]: number[]) => Math.max(w, c),
-  )
-
+  const scrollY = useParallaxScroll()
   const textY = useTransform(scrollY, [0, 600], [0, 150])
 
   return (
@@ -366,7 +344,7 @@ function ProductCard({ product, onClick, index }: { product: Product; onClick: (
           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
           {!inStock && (
-            <div className="absolute inset-0 bg-primary-900/50 backdrop-blur-[3px] flex items-center justify-center">
+            <div className="absolute inset-0 bg-primary-900/70 flex items-center justify-center">
               <span className="px-4 py-1.5 bg-white rounded-full text-sm font-bold text-primary-800 shadow">
                 Sold Out
               </span>
@@ -452,7 +430,7 @@ function FeaturedProduct({ product, onClick }: { product: Product; onClick: () =
 
           {/* Content overlay */}
           <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 mb-2.5 rounded-full bg-sprout-400/25 backdrop-blur-sm text-sprout-200 text-xs font-bold tracking-wide border border-sprout-400/20">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 mb-2.5 rounded-full bg-sprout-400/25 text-sprout-200 text-xs font-bold tracking-wide border border-sprout-400/20">
               <TrendingUp size={12} />
               Featured
             </span>
@@ -464,7 +442,7 @@ function FeaturedProduct({ product, onClick }: { product: Product; onClick: () =
                 {formatPrice(product.base_price_cents)}
               </span>
               {product.avg_rating !== null && product.review_count > 0 && (
-                <span className="flex items-center gap-1 text-white/70 text-xs bg-white/10 px-2 py-0.5 rounded-full backdrop-blur-sm">
+                <span className="flex items-center gap-1 text-white/70 text-xs bg-white/10 px-2 py-0.5 rounded-full">
                   <Star size={11} fill="currentColor" className="text-amber-300" />
                   {product.avg_rating.toFixed(1)} ({product.review_count})
                 </span>

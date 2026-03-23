@@ -203,7 +203,7 @@ export default function DiscoverCollectivesPage() {
           {/* ── Content ── */}
           <div className="relative z-10 px-4 lg:px-6 py-4 space-y-5">
             {/* Search */}
-            <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-secondary-100/40 shadow-sm">
+            <div className="rounded-2xl bg-white/90 border border-secondary-100/40 shadow-sm">
               <SearchBar
                 value={search}
                 onChange={setSearch}
@@ -221,7 +221,7 @@ export default function DiscoverCollectivesPage() {
                   'shrink-0 rounded-full px-3 py-1.5 min-h-11 text-xs font-semibold active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                   selectedState === null
                     ? 'bg-secondary-700 text-white shadow-sm'
-                    : 'bg-white/80 backdrop-blur-sm text-primary-400 border border-secondary-100/50 hover:bg-white',
+                    : 'bg-white/90 text-primary-400 border border-secondary-100/50 hover:bg-white',
                 )}
               >
                 All
@@ -235,7 +235,7 @@ export default function DiscoverCollectivesPage() {
                     'shrink-0 rounded-full px-3 py-1.5 min-h-11 text-xs font-semibold active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                     selectedState === state
                       ? 'bg-secondary-700 text-white shadow-sm'
-                      : 'bg-white/80 backdrop-blur-sm text-primary-400 border border-secondary-100/50 hover:bg-white',
+                      : 'bg-white/90 text-primary-400 border border-secondary-100/50 hover:bg-white',
                   )}
                 >
                   {state}

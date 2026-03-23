@@ -100,7 +100,7 @@ export default function AdminAuditLogPage() {
 
   const heroStats = useMemo(() => (
     <div className="flex items-center gap-3">
-      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+      <div className="rounded-xl bg-white/10 px-4 py-3">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Total Entries</p>
         <p className="text-xl font-bold text-white tabular-nums">{(data?.total ?? 0).toLocaleString()}</p>
       </div>

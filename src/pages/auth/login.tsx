@@ -155,7 +155,7 @@ export default function LoginPage() {
               className={cn(
                 'flex items-center justify-center',
                 'w-10 h-10 rounded-full',
-                'bg-white/[0.12] backdrop-blur-md',
+                'bg-white/[0.15]',
                 'text-white/80',
                 'cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30',
@@ -209,7 +209,7 @@ export default function LoginPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2.5',
                   'h-[52px] rounded-2xl',
-                  'bg-white/[0.12] backdrop-blur-md',
+                  'bg-white/[0.15]',
                   'text-sm text-white font-semibold',
                   'active:scale-[0.97] transition-all duration-200',
                   'cursor-pointer hover:bg-white/[0.18]',
@@ -230,7 +230,7 @@ export default function LoginPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2.5',
                   'h-[52px] rounded-2xl',
-                  'bg-white/[0.12] backdrop-blur-md',
+                  'bg-white/[0.15]',
                   'text-sm text-white font-semibold',
                   'active:scale-[0.97] transition-all duration-200',
                   'cursor-pointer hover:bg-white/[0.18]',
@@ -251,7 +251,7 @@ export default function LoginPage() {
             </div>
 
             {/* Form card - glassmorphic */}
-            <div className="bg-white/[0.10] backdrop-blur-md rounded-2xl p-5 space-y-4">
+            <div className="bg-white/[0.12] rounded-2xl p-5 space-y-4">
               <Input
                 type="email"
                 label="Email"
@@ -293,7 +293,7 @@ export default function LoginPage() {
               <motion.div
                 initial={rm ? false : { opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 px-4 py-3 bg-error-500/20 backdrop-blur-md rounded-xl text-sm text-white text-center font-medium"
+                className="mt-4 px-4 py-3 bg-error-500/25 rounded-xl text-sm text-white text-center font-medium"
                 role="alert"
               >
                 {error}

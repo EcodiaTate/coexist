@@ -401,7 +401,7 @@ export default function MapPage() {
         )}
       >
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2.5 rounded-2xl bg-white/90 backdrop-blur-md px-4 py-2.5 shadow-sm">
+          <div className="flex items-center gap-2.5 rounded-2xl bg-white px-4 py-2.5 shadow-sm">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-400">
               <MapPin size={16} className="text-white" />
             </div>
@@ -417,7 +417,7 @@ export default function MapPage() {
 
           <button
             onClick={() => navigate(-1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/90 backdrop-blur-md shadow-sm"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm"
             aria-label="Go back"
           >
             <X size={18} className="text-secondary-700" />
@@ -572,7 +572,7 @@ export default function MapPage() {
                   }}
                   className={cn(
                     'shrink-0 flex items-center gap-2',
-                    'rounded-2xl bg-white/95 backdrop-blur-sm',
+                    'rounded-2xl bg-white',
                     'px-4 py-2.5 shadow-sm',
                     'text-sm font-medium text-secondary-700',
                     'active:scale-[0.97] transition-transform duration-150',

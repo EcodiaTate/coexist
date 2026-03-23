@@ -43,7 +43,7 @@ function FloatingBack() {
       type="button"
       onClick={() => navigate(-1)}
       whileTap={rm ? undefined : { scale: 0.9 }}
-      className="absolute top-3 left-3 z-30 flex items-center justify-center w-10 h-10 rounded-full bg-black/20 backdrop-blur-md text-white cursor-pointer select-none transition-colors hover:bg-black/30"
+      className="absolute top-3 left-3 z-30 flex items-center justify-center w-10 h-10 rounded-full bg-black/40 text-white cursor-pointer select-none transition-colors hover:bg-black/30"
       style={{ marginTop: 'var(--safe-top, 0px)' }}
       aria-label="Go back"
     >
@@ -212,7 +212,7 @@ export default function CheckoutPage() {
           className="relative z-10 px-6 pb-12 flex items-center gap-4"
           style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}
         >
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 backdrop-blur-sm shrink-0 ring-1 ring-white/10">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 shrink-0 ring-1 ring-white/10">
             <Lock size={22} className="text-white/90" />
           </div>
           <div>

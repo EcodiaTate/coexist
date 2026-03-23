@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 import { WifiOff, Clock, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useOffline } from '@/hooks/use-offline'
@@ -27,6 +27,7 @@ export function OfflineIndicator({
   className,
 }: OfflineIndicatorProps) {
   const { isOffline } = useOffline()
+  const [now] = useState(() => Date.now())
 
   if (isFetching && !isOffline) {
     return (
@@ -47,7 +48,6 @@ export function OfflineIndicator({
   }
 
   // Show "stale" hint if data is older than 5 minutes
-  const now = useMemo(() => Date.now(), [dataUpdatedAt])
   if (dataUpdatedAt) {
     const age = now - dataUpdatedAt
     if (age > 5 * 60 * 1000) {

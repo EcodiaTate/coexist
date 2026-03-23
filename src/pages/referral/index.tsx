@@ -167,7 +167,7 @@ export default function ReferralPage() {
           {/* Hero */}
           <motion.div
             variants={fadeUp}
-            className="mt-4 rounded-2xl bg-white/80 backdrop-blur-sm border border-moss-200/40 shadow-sm p-5 text-center"
+            className="mt-4 rounded-2xl bg-white/90 border border-moss-200/40 shadow-sm p-5 text-center"
           >
             <div className="w-14 h-14 rounded-full bg-moss-100/60 flex items-center justify-center mx-auto mb-3">
               <Gift size={28} className="text-moss-600" />
@@ -189,7 +189,7 @@ export default function ReferralPage() {
               Your Referral Code
             </h3>
             <div className="flex items-center gap-2">
-              <div className="flex-1 rounded-xl bg-white/80 backdrop-blur-sm border border-moss-200/40 px-4 py-3 text-center font-heading text-lg font-bold text-primary-800 tracking-wider select-all shadow-sm">
+              <div className="flex-1 rounded-xl bg-white/90 border border-moss-200/40 px-4 py-3 text-center font-heading text-lg font-bold text-primary-800 tracking-wider select-all shadow-sm">
                 {code}
               </div>
               <button
@@ -199,7 +199,7 @@ export default function ReferralPage() {
                   'flex items-center justify-center min-h-11 min-w-11 rounded-xl active:scale-[0.97] transition-all duration-150 cursor-pointer select-none shadow-sm',
                   copied
                     ? 'bg-success-100/80 border border-success-200/40 text-success-600'
-                    : 'bg-white/80 backdrop-blur-sm border border-moss-200/40 text-primary-500 hover:bg-moss-50/60',
+                    : 'bg-white/90 border border-moss-200/40 text-primary-500 hover:bg-moss-50/60',
                 )}
                 aria-label="Copy code"
               >

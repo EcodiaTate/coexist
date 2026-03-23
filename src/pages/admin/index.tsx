@@ -372,7 +372,7 @@ function ImpactStat({
 
   return (
     <motion.div
-      className="flex items-center gap-3 rounded-xl bg-white/15 backdrop-blur-sm p-3.5"
+      className="flex items-center gap-3 rounded-xl bg-white/15 p-3.5"
       variants={rm ? undefined : statFadeUp}
       initial="hidden"
       animate={inView ? 'show' : 'hidden'}

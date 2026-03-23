@@ -161,11 +161,11 @@ export default function AdminSystemPage() {
 
   const heroStats = useMemo(() => (
     <div className="flex items-center gap-3">
-      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+      <div className="rounded-xl bg-white/10 px-4 py-3">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Auth Users</p>
         <p className="text-xl font-bold text-white tabular-nums">{(stats?.authUsers ?? 0).toLocaleString()}</p>
       </div>
-      <div className="rounded-xl bg-white/10 backdrop-blur-sm px-4 py-3">
+      <div className="rounded-xl bg-white/10 px-4 py-3">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-white/50 mb-0.5">Feature Flags</p>
         <p className="text-xl font-bold text-white tabular-nums">{flags?.length ?? 0}</p>
       </div>

@@ -234,7 +234,7 @@ export function BottomSheet({
         <div className="fixed inset-0 z-50" aria-label="Dialog">
           {/* Backdrop - GPU-promoted for blur perf */}
           <motion.div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm gpu-backdrop"
+            className="fixed inset-0 bg-black/50 gpu-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: backdropTransition }}
             exit={{ opacity: 0, transition: shouldReduceMotion ? instantTransition : { duration: 0.18, ease: [0.4, 0, 0.2, 1] } }}

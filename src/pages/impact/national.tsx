@@ -370,7 +370,7 @@ export default function NationalImpactPage() {
 
             <div className="relative">
               <div className="flex items-center gap-2 mb-5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-sm">
+                <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/20">
                   <Globe size={20} strokeWidth={2.5} className="text-white" />
                 </div>
                 <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 font-bold">

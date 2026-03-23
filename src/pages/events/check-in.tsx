@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
@@ -45,7 +45,7 @@ const CONFETTI_COLORS = [
 
 function Confetti() {
   const shouldReduceMotion = useReducedMotion()
-  const particles = useMemo(() => Array.from({ length: 40 }, (_, i) => ({
+  const [particles] = useState(() => Array.from({ length: 40 }, (_, i) => ({
     left: Math.random() * 100,
     delay: Math.random() * 0.5,
     size: 6 + Math.random() * 8,
@@ -54,7 +54,7 @@ function Confetti() {
     xDrift: (Math.random() - 0.5) * 200,
     duration: 1.5 + Math.random(),
     color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-  })), [])
+  })))
   if (shouldReduceMotion) return null
 
   return (

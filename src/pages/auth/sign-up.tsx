@@ -139,7 +139,7 @@ export default function SignUpPage() {
               className={cn(
                 'flex items-center justify-center',
                 'w-10 h-10 rounded-full',
-                'bg-white/70 backdrop-blur-md',
+                'bg-white/80',
                 'text-primary-700 shadow-xs',
                 'cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
@@ -170,7 +170,7 @@ export default function SignUpPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2.5',
                   'h-[50px] rounded-2xl',
-                  'bg-white/80 backdrop-blur-sm border border-primary-100/80',
+                  'bg-white/90 border border-primary-100/80',
                   'text-sm text-primary-800 font-semibold',
                   'active:scale-[0.97] transition-all duration-150',
                   'cursor-pointer',
@@ -191,7 +191,7 @@ export default function SignUpPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2.5',
                   'h-[50px] rounded-2xl',
-                  'bg-white/80 backdrop-blur-sm border border-primary-100/80',
+                  'bg-white/90 border border-primary-100/80',
                   'text-sm text-primary-800 font-semibold',
                   'active:scale-[0.97] transition-all duration-150',
                   'cursor-pointer',
@@ -214,7 +214,7 @@ export default function SignUpPage() {
             {/* Form card */}
             <motion.div
               {...motionProps}
-              className="bg-white/90 backdrop-blur-sm rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-primary-100/50 space-y-4"
+              className="bg-white/95 rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-primary-100/50 space-y-4"
             >
               <Input
                 label="Display name"

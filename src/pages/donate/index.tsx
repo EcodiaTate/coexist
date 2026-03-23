@@ -1,6 +1,7 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, type Variants } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, useTransform, type Variants } from 'framer-motion'
+import { useParallaxScroll } from '@/hooks/use-parallax-scroll'
 import { useQuery } from '@tanstack/react-query'
 import {
     Heart, Users, Sparkles, ChevronRight,
@@ -230,7 +231,7 @@ function NationalStatsStrip() {
         >
           <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full bg-white/8" />
           <div className="absolute bottom-0 left-0 w-12 h-12 rounded-full bg-white/5 -translate-x-1/3 translate-y-1/3" />
-          <div className="relative w-8 h-8 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/10">
+          <div className="relative w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center border border-white/10">
             {s.icon}
           </div>
           <span className="relative font-heading font-bold text-lg tabular-nums drop-shadow-sm">{s.value}</span>
@@ -394,22 +395,7 @@ function TrustBadges() {
 /* ------------------------------------------------------------------ */
 
 function DonateHero({ rm }: { rm: boolean }) {
-  const scrollY = useMotionValue(0)
-
-  useEffect(() => {
-    const el = document.getElementById('main-content')
-    const onScroll = () => {
-      const w = window.scrollY
-      const c = el ? el.scrollTop : 0
-      scrollY.set(Math.max(w, c))
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    el?.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      el?.removeEventListener('scroll', onScroll)
-    }
-  }, [scrollY])
+  const scrollY = useParallaxScroll()
 
   const bgY = useTransform(scrollY, [0, 500], [0, 80])
   const fgY = useTransform(scrollY, [0, 500], [0, 25])

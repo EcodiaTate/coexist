@@ -129,7 +129,7 @@ export function MessageInput({
   return (
     <div
       className={cn(
-        'z-10 bg-white/95 backdrop-blur-md shadow-[0_-2px_12px_0_rgb(0_0_0/0.08)] border-t border-primary-100/50',
+        'z-10 bg-white shadow-[0_-2px_12px_0_rgb(0_0_0/0.08)] border-t border-primary-100/50',
         className,
       )}
       style={{

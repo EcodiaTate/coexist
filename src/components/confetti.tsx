@@ -89,7 +89,6 @@ export function Confetti({
   // Memoize particles so they're stable for the animation lifetime
   const particles = useMemo(
     () => (visible ? createParticles(count) : []),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [visible, count],
   )
 

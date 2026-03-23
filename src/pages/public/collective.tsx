@@ -290,7 +290,7 @@ export default function PublicCollectivePage() {
         >
           {/* App badge */}
           <motion.div variants={fadeUp}>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1.5 mb-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-3 py-1.5 mb-4">
               <img src="/logos/icon-white.webp" alt="" className="w-4 h-4 rounded" aria-hidden="true" />
               <span className="text-[11px] font-semibold text-white/80">{APP_NAME}</span>
               <span className="text-[11px] text-white/40">|</span>
@@ -483,7 +483,7 @@ export default function PublicCollectivePage() {
       {/* Sticky bottom CTA - mobile only, visible on scroll */}
       <div className={cn(
         'sticky bottom-0 z-30 sm:hidden',
-        'bg-white/95 backdrop-blur-md border-t border-primary-100/50',
+        'bg-white border-t border-primary-100/50',
         'px-4 py-3',
         'safe-bottom',
       )}>

@@ -1,6 +1,7 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useReducedMotion, useTransform } from 'framer-motion'
+import { useParallaxScroll } from '@/hooks/use-parallax-scroll'
 import {
     Calendar, MapPin,
     Users,
@@ -52,21 +53,7 @@ const fadeUp = {
 /* ------------------------------------------------------------------ */
 
 function EventsHero({ rm }: { rm: boolean }) {
-  const containerRef = useRef<HTMLElement>(null)
-  useEffect(() => {
-    const el = document.getElementById('main-content')
-    if (el) (containerRef as React.MutableRefObject<HTMLElement>).current = el
-  }, [])
-
-  const { scrollY: windowScrollY } = useScroll()
-  const { scrollY: containerScrollY } = useScroll({
-    container: containerRef as React.RefObject<HTMLElement>,
-  })
-
-  const scrollY = useTransform(
-    [windowScrollY, containerScrollY],
-    ([w, c]: number[]) => Math.max(w, c),
-  )
+  const scrollY = useParallaxScroll()
 
   /* Both layers start at the same Y so they marry up at scroll=0.
      Parallax comes from them moving at different rates on scroll. */
@@ -264,7 +251,7 @@ function MyEventCard({
           ) : (
             <div className="relative w-full overflow-hidden" style={{ aspectRatio: '2/1' }}>
               <div className="absolute inset-0 bg-gradient-to-br from-primary-300/60 via-moss-400/50 to-secondary-500/40 flex items-center justify-center">
-                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
                   <Leaf size={22} strokeWidth={2} className="text-white/70" />
                 </div>
               </div>
@@ -322,7 +309,7 @@ function MyEventCard({
                 </span>
               )}
               {countdown && (
-                <span className="text-[11px] font-bold text-white/90 bg-white/15 backdrop-blur-sm px-2.5 py-0.5 rounded-full border border-white/20">
+                <span className="text-[11px] font-bold text-white/90 bg-white/15 px-2.5 py-0.5 rounded-full border border-white/20">
                   {countdown}
                 </span>
               )}
@@ -380,7 +367,7 @@ function DiscoverEventCard({ event }: { event: EventWithCollective }) {
           ) : (
             <div className="relative w-full overflow-hidden" style={{ aspectRatio: '2/1' }}>
               <div className="absolute inset-0 bg-gradient-to-br from-primary-300/60 via-moss-400/50 to-secondary-500/40 flex items-center justify-center">
-                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center">
                   <Leaf size={22} strokeWidth={2} className="text-white/70" />
                 </div>
               </div>

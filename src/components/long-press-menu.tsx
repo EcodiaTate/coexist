@@ -97,7 +97,7 @@ export function LongPressMenu({
               onClick={() => setOpen(false)}
             >
               {/* Backdrop - GPU-promoted for blur perf */}
-              <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px] gpu-backdrop" />
+              <div className="absolute inset-0 bg-black/40 gpu-backdrop" />
 
               {/* Menu - GPU-promoted for smooth scale */}
               <motion.div

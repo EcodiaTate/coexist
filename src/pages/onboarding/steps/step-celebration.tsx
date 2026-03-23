@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { PartyPopper, Leaf, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/button'
@@ -22,13 +22,13 @@ interface StepCelebrationProps {
 function ConfettiParticle({ index }: { index: number }) {
   const colors = ['text-primary-400', 'text-primary-400', 'text-primary-400', 'text-success', 'text-primary-300']
   const color = colors[index % colors.length]
-  const rand = useMemo(() => ({
+  const [rand] = useState(() => ({
     left: `${10 + Math.random() * 80}%`,
     delay: Math.random() * 0.8,
     direction: Math.random() > 0.5 ? 1 : -1,
     xDrift: (Math.random() - 0.5) * 200,
     duration: 2 + Math.random() * 1.5,
-  }), [])
+  }))
 
   return (
     <motion.div

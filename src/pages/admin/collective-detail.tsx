@@ -279,7 +279,7 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
               )}
             </div>
             {!detail?.is_active && (
-              <span className="shrink-0 rounded-full bg-white/10 backdrop-blur-sm px-3 py-1 text-xs font-semibold text-white/60 border border-white/10">
+              <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/60 border border-white/10">
                 Archived
               </span>
             )}

@@ -156,7 +156,7 @@ function AnnouncementDetail({
           'flex items-center h-14 px-4 pt-[var(--safe-top)]',
           splashImage
             ? 'bg-transparent'
-            : 'bg-white/95 backdrop-blur-md border-b border-primary-100/50',
+            : 'bg-white border-b border-primary-100/50',
         )}>
           <button
             type="button"
@@ -166,7 +166,7 @@ function AnnouncementDetail({
               'cursor-pointer select-none transition-all duration-150',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
               splashImage
-                ? 'bg-black/30 text-white hover:bg-black/50 backdrop-blur-sm'
+                ? 'bg-black/30 text-white hover:bg-black/50'
                 : 'text-primary-700 hover:bg-primary-50',
             )}
             aria-label="Close"

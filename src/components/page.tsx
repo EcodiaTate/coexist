@@ -154,7 +154,7 @@ export function Page({
         <div
           className={cn(
             'sticky bottom-0 z-30',
-            'bg-surface-0/95 backdrop-blur-md',
+            'bg-surface-0',
             'border-t border-primary-100',
             'shadow-[0_-4px_16px_-2px_rgba(0,0,0,0.08)]',
             'px-4 py-3',

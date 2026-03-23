@@ -1438,7 +1438,7 @@ export default function ExplorePage() {
                               onSubmit={commitSearch}
                               placeholder="Search events, collectives, people..."
                               aria-label="Search"
-                              className="flex-1 min-w-0 [&_input]:bg-white/15 [&_input]:text-white [&_input]:placeholder-white/50 [&_input]:border-white/20 [&_input]:backdrop-blur-sm"
+                              className="flex-1 min-w-0 [&_input]:bg-white/15 [&_input]:text-white [&_input]:placeholder-white/50 [&_input]:border-white/20 "
                             />
 
                             {/* Filter button */}
@@ -1449,7 +1449,7 @@ export default function ExplorePage() {
                               className={cn(
                                 'relative flex items-center justify-center min-h-11 min-w-11 rounded-xl shrink-0',
                                 'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
-                                'bg-white/15 backdrop-blur-sm text-white/80 border border-white/20',
+                                'bg-white/15 text-white/80 border border-white/20',
                                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
                               )}
                               aria-label={`Filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}
@@ -1472,7 +1472,7 @@ export default function ExplorePage() {
                                   'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                                   viewMode === 'map'
                                     ? 'bg-white text-primary-700'
-                                    : 'bg-white/10 text-white/60 backdrop-blur-sm',
+                                    : 'bg-white/10 text-white/60',
                                 )}
                                 aria-label="Map view"
                                 aria-pressed={viewMode === 'map'}
@@ -1487,7 +1487,7 @@ export default function ExplorePage() {
                                   'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
                                   viewMode === 'list'
                                     ? 'bg-white text-primary-700'
-                                    : 'bg-white/10 text-white/60 backdrop-blur-sm',
+                                    : 'bg-white/10 text-white/60',
                                 )}
                                 aria-label="List view"
                                 aria-pressed={viewMode === 'list'}
@@ -1543,7 +1543,7 @@ export default function ExplorePage() {
                             </div>
                             {/* Content */}
                             <div className="relative">
-                              <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm text-white mb-2">
+                              <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 text-white mb-2">
                                 {cat.icon}
                               </span>
                               <span className="text-sm font-semibold text-white block leading-tight">
@@ -1691,7 +1691,7 @@ export default function ExplorePage() {
                           ].map((stat, i) => (
                             <motion.div
                               key={stat.label}
-                              className="rounded-xl bg-white/80 backdrop-blur-sm p-3 shadow-sm"
+                              className="rounded-xl bg-white/90 p-3 shadow-sm"
                               initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ delay: 0.2 + i * 0.08, duration: 0.3 }}

@@ -332,7 +332,7 @@ export default function CreateSurveyPage() {
 
       {/* ── Submit bar ── */}
       <div className="sticky bottom-4 z-20">
-        <div className="rounded-2xl bg-white/95 backdrop-blur-md border border-primary-100 shadow-lg p-4">
+        <div className="rounded-2xl bg-white border border-primary-100 shadow-lg p-4">
           <div className="flex items-center gap-3">
             <div className="flex-1 min-w-0">
               {!canSubmit && (

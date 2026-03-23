@@ -91,7 +91,7 @@ export function Celebration({
                   : { type: 'spring', stiffness: 220, damping: 14, mass: 0.8, delay: 0.2 }
               }
             >
-              <div className="flex items-center justify-center w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm">
+              <div className="flex items-center justify-center w-20 h-20 rounded-full bg-white/20">
                 {icon}
               </div>
             </motion.div>

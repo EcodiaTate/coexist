@@ -950,7 +950,7 @@ export default function SettingsPage() {
             {/* ---- Notifications ---- */}
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <SectionHeader label="Notifications" className="pt-4" />
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
+            <div className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
               <MenuRow
                 icon={<Bell size={18} />}
                 label="Notification Preferences"
@@ -993,7 +993,7 @@ export default function SettingsPage() {
             {/* ---- Privacy ---- */}
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <SectionHeader label="Privacy" />
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
+            <div className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
               <MenuRow
                 icon={<Eye size={18} />}
                 label="Profile Visibility"
@@ -1028,7 +1028,7 @@ export default function SettingsPage() {
             {/* ---- Account ---- */}
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <SectionHeader label="Account" />
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
+            <div className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
               <MenuRow
                 icon={<Lock size={18} />}
                 label="Change Password"
@@ -1060,7 +1060,7 @@ export default function SettingsPage() {
             {/* ---- About ---- */}
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <SectionHeader label="About" />
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
+            <div className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
               <MenuRow
                 icon={<Heart size={18} />}
                 label="About Co-Exist"
