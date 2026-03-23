@@ -110,7 +110,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
       <OfflineBanner />
 
       {/* Sidebar + content row */}
-      <div className="flex flex-1 min-h-0 overflow-x-hidden">
+      <div className="flex flex-1 min-h-0">
         {/* Unified sidebar - desktop: permanent left sidebar (stable, no remount) */}
         {showSidebar && <StableSidebar />}
 

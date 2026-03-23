@@ -58,8 +58,8 @@ export function KeepAlive() {
 
   return (
     <div
-      className="flex-1 min-h-0"
-      style={{ display: 'grid', gridTemplate: '1fr / 1fr', overflow: 'hidden' }}
+      className="flex-1 min-h-0 min-w-0 max-w-full"
+      style={{ display: 'grid', gridTemplate: '1fr / 1fr', overflowX: 'clip' }}
     >
       {cache.map((cached) => {
         const isActive = cached.path === path
@@ -73,7 +73,7 @@ export function KeepAlive() {
           return (
             <div
               key={cached.path}
-              className="flex flex-col min-h-0"
+              className="flex flex-col min-h-0 min-w-0 overflow-x-clip"
               style={{
                 ...gridStyle,
                 zIndex: 0,
@@ -92,7 +92,7 @@ export function KeepAlive() {
           return (
             <div
               key={cached.path}
-              className="flex flex-col min-h-0"
+              className="flex flex-col min-h-0 min-w-0 overflow-x-clip"
               style={{ ...gridStyle, display: 'none' }}
             >
               {cached.element}
@@ -112,7 +112,7 @@ export function KeepAlive() {
         return (
           <div
             key={cached.path}
-            className="flex flex-col min-h-0"
+            className="flex flex-col min-h-0 min-w-0 overflow-x-clip"
             style={{ ...gridStyle, zIndex: 1, ...swipeStyle }}
           >
             {cached.element}
