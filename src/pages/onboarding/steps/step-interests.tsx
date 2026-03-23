@@ -14,15 +14,15 @@ const fadeUp = {
 }
 
 const INTERESTS = [
+  { id: 'shore_cleanup', label: 'Shore Cleanup', icon: <Waves size={16} /> },
   { id: 'tree_planting', label: 'Tree Planting', icon: <Trees size={16} /> },
-  { id: 'beach_cleanup', label: 'Beach Cleanups', icon: <Waves size={16} /> },
-  { id: 'wildlife_survey', label: 'Wildlife', icon: <Bird size={16} /> },
-  { id: 'habitat_restoration', label: 'Habitat Restoration', icon: <Fence size={16} /> },
-  { id: 'seed_collecting', label: 'Seed Collecting', icon: <Sprout size={16} /> },
-  { id: 'weed_removal', label: 'Weed Removal', icon: <Bug size={16} /> },
-  { id: 'community_garden', label: 'Community Garden', icon: <Flower2 size={16} /> },
-  { id: 'waterway_cleanup', label: 'Waterway Cleanup', icon: <Droplets size={16} /> },
+  { id: 'land_regeneration', label: 'Land Regeneration', icon: <Sprout size={16} /> },
   { id: 'nature_walk', label: 'Nature Walks', icon: <Leaf size={16} /> },
+  { id: 'camp_out', label: 'Camp Out', icon: <Fence size={16} /> },
+  { id: 'retreat', label: 'Retreats', icon: <Flower2 size={16} /> },
+  { id: 'film_screening', label: 'Film Screening', icon: <Bird size={16} /> },
+  { id: 'marine_restoration', label: 'Marine Restoration', icon: <Droplets size={16} /> },
+  { id: 'workshop', label: 'Workshop', icon: <Trees size={16} /> },
 ]
 
 interface StepInterestsProps {

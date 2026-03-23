@@ -6,8 +6,6 @@ type SoundName =
   | 'send-message'
   | 'message-received'
   | 'error'
-  | 'tier-up'
-  | 'points'
   | 'tap'
   | 'success'
   | 'pull-refresh'
@@ -22,8 +20,6 @@ const SOUND_FILES: Record<SoundName, string> = {
   'send-message': '/assets/sounds/send-message.wav',
   'message-received': '/assets/sounds/message-received.wav',
   'error': '/assets/sounds/error.wav',
-  'tier-up': '/assets/sounds/tier-up.wav',
-  'points': '/assets/sounds/points.wav',
   'tap': '/assets/sounds/tap.wav',
   'success': '/assets/sounds/success.wav',
   'pull-refresh': '/assets/sounds/pull-refresh.wav',

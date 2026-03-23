@@ -109,18 +109,16 @@ const statusStyles: Record<string, string> = {
 /*  Activity badge mapping                                             */
 /* ------------------------------------------------------------------ */
 
-const activityToBadge: Record<string, 'tree-planting' | 'beach-cleanup' | 'habitat' | 'wildlife' | 'education' | 'monitoring' | 'restoration'> = {
+const activityToBadge: Record<string, 'shore-cleanup' | 'tree-planting' | 'land-regeneration' | 'nature-walk' | 'camp-out' | 'retreat' | 'film-screening' | 'marine-restoration' | 'workshop'> = {
+  shore_cleanup: 'shore-cleanup',
   tree_planting: 'tree-planting',
-  beach_cleanup: 'beach-cleanup',
-  habitat_restoration: 'habitat',
-  nature_walk: 'wildlife',
-  education: 'education',
-  wildlife_survey: 'wildlife',
-  seed_collecting: 'tree-planting',
-  weed_removal: 'restoration',
-  waterway_cleanup: 'beach-cleanup',
-  community_garden: 'restoration',
-  other: 'education',
+  land_regeneration: 'land-regeneration',
+  nature_walk: 'nature-walk',
+  camp_out: 'camp-out',
+  retreat: 'retreat',
+  film_screening: 'film-screening',
+  marine_restoration: 'marine-restoration',
+  workshop: 'workshop',
 }
 
 /* ------------------------------------------------------------------ */
@@ -336,7 +334,7 @@ export default function LeaderEventsPage() {
                         {event.activity_type && (
                           <Badge
                             variant="activity"
-                            activity={activityToBadge[event.activity_type] ?? 'education'}
+                            activity={activityToBadge[event.activity_type] ?? 'workshop'}
                             size="sm"
                           >
                             {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}

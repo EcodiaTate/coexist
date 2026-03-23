@@ -71,47 +71,6 @@ export function useReferralStats(userId?: string) {
   })
 }
 
-export function useReferralLeaderboard() {
-  return useQuery({
-    queryKey: ['referral-leaderboard'],
-    queryFn: async () => {
-      const { data: invites } = await supabase
-        .from('invites')
-        .select('inviter_id')
-        .eq('status', 'accepted')
-
-      if (!invites?.length) return []
-
-      const counts = new Map<string, number>()
-      for (const invite of invites) {
-        counts.set(invite.inviter_id, (counts.get(invite.inviter_id) ?? 0) + 1)
-      }
-
-      const sorted = Array.from(counts.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 20)
-
-      if (sorted.length === 0) return []
-
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, display_name, avatar_url')
-        .in('id', sorted.map(([id]) => id))
-
-      const profileMap = new Map(profiles?.map((p) => [p.id, p]) ?? [])
-
-      return sorted.map(([userId, count], i) => ({
-        rank: i + 1,
-        userId,
-        displayName: profileMap.get(userId)?.display_name ?? 'Unknown',
-        avatarUrl: profileMap.get(userId)?.avatar_url ?? null,
-        referrals: count,
-      }))
-    },
-    staleTime: 5 * 60 * 1000,
-  })
-}
-
 export function useSendInvite() {
   const queryClient = useQueryClient()
   const { user } = useAuth()

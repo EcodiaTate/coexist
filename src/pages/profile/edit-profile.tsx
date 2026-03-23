@@ -17,8 +17,6 @@ import { useAuth } from '@/hooks/use-auth'
 import { useProfile, useUpdateProfile } from '@/hooks/use-profile'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
-import { getTierFromPoints } from '@/hooks/use-points'
-import type { TierName } from '@/hooks/use-points'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { supabase } from '@/lib/supabase'
 
@@ -83,8 +81,6 @@ export default function EditProfilePage() {
     hidden: { opacity: 0, y: 12 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
   }
-
-  const tier = getTierFromPoints(profile?.points ?? 0)
 
   const handleAvatarChange = async () => {
     const result = await pickFromGallery()
@@ -169,7 +165,6 @@ export default function EditProfilePage() {
               src={profile?.avatar_url}
               name={displayName || 'User'}
               size="xl"
-              tier={tier as TierName}
             />
             <button
               onClick={handleAvatarChange}

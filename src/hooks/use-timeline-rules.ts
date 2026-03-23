@@ -36,16 +36,15 @@ export interface TimelineRuleInput {
 /* ------------------------------------------------------------------ */
 
 const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+  shore_cleanup: 'shore cleanup',
   tree_planting: 'tree planting',
-  beach_cleanup: 'beach cleanup',
-  habitat_restoration: 'habitat restoration',
-  wildlife_survey: 'wildlife survey',
-  weed_removal: 'weed removal',
-  seed_collection: 'seed collection',
-  education: 'education event',
-  community: 'community event',
-  fundraiser: 'fundraiser',
-  other: 'event',
+  land_regeneration: 'land regeneration',
+  nature_walk: 'nature walk',
+  camp_out: 'camp out',
+  retreat: 'retreat',
+  film_screening: 'film screening',
+  marine_restoration: 'marine restoration',
+  workshop: 'workshop',
 }
 
 export function buildDisplayLabel(rule: {

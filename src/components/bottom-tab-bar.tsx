@@ -4,7 +4,8 @@ import { motion, useReducedMotion } from 'framer-motion'
 import {
     Home,
     MessageCircle,
-    Users,
+    User,
+    MoreHorizontal,
     BarChart3,
     Shield,
 } from 'lucide-react'
@@ -39,11 +40,19 @@ const baseTabs: Tab[] = [
     activeIcon: <MessageCircle size={21} strokeWidth={2.2} />,
   },
   {
-    key: 'community',
-    label: 'Community',
-    path: '/community',
-    icon: <Users size={21} strokeWidth={1.5} />,
-    activeIcon: <Users size={21} strokeWidth={2.2} />,
+    key: 'profile',
+    label: 'Profile',
+    path: '/profile',
+    icon: <User size={21} strokeWidth={1.5} />,
+    activeIcon: <User size={21} strokeWidth={2.2} />,
+  },
+  {
+    key: 'more',
+    label: 'More',
+    path: '/more',
+    exact: true,
+    icon: <MoreHorizontal size={21} strokeWidth={1.5} />,
+    activeIcon: <MoreHorizontal size={21} strokeWidth={2.2} />,
   },
 ]
 

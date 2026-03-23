@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { containsProfanity } from '@/lib/profanity'
 
 interface MessageInputProps {
   onSend: (message: string) => void
@@ -57,6 +58,7 @@ export function MessageInput({
   const shouldReduceMotion = useReducedMotion()
   const [value, setValue] = useState(initialValue)
   const [showLeaderActions, setShowLeaderActions] = useState(false)
+  const [profanityWarning, setProfanityWarning] = useState(false)
 
   // Sync when initialValue changes (e.g. entering edit mode)
   useEffect(() => {
@@ -81,8 +83,16 @@ export function MessageInput({
   const handleSend = useCallback(() => {
     const trimmed = value.trim()
     if (!trimmed || disabled) return
+
+    if (containsProfanity(trimmed)) {
+      setProfanityWarning(true)
+      setTimeout(() => setProfanityWarning(false), 4000)
+      return
+    }
+
     onSend(trimmed)
     setValue('')
+    setProfanityWarning(false)
     requestAnimationFrame(() => {
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto'
@@ -180,6 +190,33 @@ export function MessageInput({
         )}
       </AnimatePresence>
 
+      {/* Profanity warning */}
+      <AnimatePresence>
+        {profanityWarning && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="px-3 pt-2"
+          >
+            <div className="flex items-center gap-2 rounded-xl bg-warning-100 px-3.5 py-2.5 border border-warning-200/60">
+              <p className="text-xs font-semibold text-warning-800">
+                Please keep it friendly! Your message contains language that isn't allowed. Try rephrasing it.
+              </p>
+              <button
+                type="button"
+                onClick={() => setProfanityWarning(false)}
+                className="flex items-center justify-center min-h-8 min-w-8 rounded-full text-warning-500 hover:bg-warning-200 shrink-0"
+                aria-label="Dismiss warning"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Input bar */}
       <div className="px-3 pt-2">
         <div
@@ -249,7 +286,7 @@ export function MessageInput({
               'placeholder:text-primary-400 placeholder:font-normal',
               'outline-none',
               'disabled:cursor-not-allowed',
-              'leading-6',
+              'leading-6 min-h-11 py-2.5',
             )}
             style={{ maxHeight: 24 * 4 }}
           />
@@ -281,11 +318,6 @@ export function MessageInput({
           </AnimatePresence>
         </div>
 
-        {/* Safety note */}
-        <p className="text-center text-[11px] text-primary-400 mt-1.5 select-none leading-relaxed">
-          Messages are visible to all collective members.
-          {' '}Need private support? <a href="mailto:hello@coexistaus.org" className="underline hover:text-primary-600">hello@coexistaus.org</a>
-        </p>
       </div>
     </div>
   )

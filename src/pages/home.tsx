@@ -1,38 +1,41 @@
-import { useCallback } from 'react'
+import { useCallback, useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import {
   ChevronRight,
   Calendar,
   Users,
   TreePine,
   Megaphone,
-  Target,
-  Sparkles,
-  Heart,
-  MessageCircle,
   Clock,
-  Award,
+  Trash2,
+  Sprout,
+  GraduationCap,
+  Globe,
+  MapPin,
+  Heart,
+  ShoppingBag,
+  QrCode,
+  Search,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import {
   getGreeting,
-  useLatestAnnouncement,
   useMyCollective,
   useImpactStats,
-  useActiveChallenge,
-  useTrendingCollectives,
   useMyUpcomingEvents,
-  useRecentPosts,
-  useHomeTierProgress,
+  useCollectiveUpcomingEvents,
+  useRecentAnnouncements,
 } from '@/hooks/use-home-feed'
+import { useNationalImpact, useCollectiveImpact } from '@/hooks/use-impact'
+import type { CanonicalImpact } from '@/hooks/use-impact'
+import { usePendingSurveys } from '@/hooks/use-auto-survey'
 import {
   Page,
   PullToRefresh,
   Badge,
-  ProgressBar,
   Button,
 } from '@/components'
 import { cn } from '@/lib/cn'
@@ -44,7 +47,7 @@ import { ProximityCheckInBanner } from '@/components/proximity-check-in-banner'
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.3 } },
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
 }
 
 const fadeUp = {
@@ -70,13 +73,13 @@ function Section({
   return (
     <section className={cn(className)} aria-label={title}>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-heading text-sm font-bold text-white/50 uppercase tracking-widest">
+        <h2 className="font-heading text-sm font-bold text-primary-700/70 uppercase tracking-widest">
           {title}
         </h2>
         {action && (
           <Link
             to={action.to}
-            className="flex items-center gap-0.5 text-xs font-semibold text-white/40 hover:text-white/60 transition-colors"
+            className="flex items-center gap-0.5 text-xs font-semibold text-primary-600 hover:text-primary-800 transition-colors"
           >
             {action.label}
             <ChevronRight size={14} />
@@ -101,7 +104,7 @@ function HScroll({
 }) {
   return (
     <div className="relative -mx-6">
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-black/20 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white to-transparent" />
       <div
         className={cn(
           'flex gap-3 overflow-x-auto px-6 pb-1',
@@ -130,16 +133,8 @@ function formatEventDate(iso: string): string {
   })
 }
 
-function formatRelativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'Just now'
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  if (days < 7) return `${days}d ago`
-  return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+function formatEventTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })
 }
 
 function daysUntil(iso: string): number {
@@ -148,6 +143,750 @@ function daysUntil(iso: string): number {
   const target = new Date(iso)
   target.setHours(0, 0, 0, 0)
   return Math.ceil((target.getTime() - now.getTime()) / 86400000)
+}
+
+function isEventHappeningNow(start: string, end: string | null): boolean {
+  const now = Date.now()
+  const s = new Date(start).getTime()
+  const e = end ? new Date(end).getTime() : s + 4 * 60 * 60 * 1000 // default 4h window
+  return now >= s && now <= e
+}
+
+function relativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'Just now'
+  if (mins < 60) return `${mins}m ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  const days = Math.floor(hrs / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(iso).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Parallax Hero (two-layer photo parallax, nature/conservation)      */
+/* ------------------------------------------------------------------ */
+
+function HomeHero({ rm }: { rm: boolean }) {
+  const containerRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const el = document.getElementById('main-content')
+    if (el) (containerRef as React.MutableRefObject<HTMLElement>).current = el
+  }, [])
+
+  const { scrollY: windowScrollY } = useScroll()
+  const { scrollY: containerScrollY } = useScroll({
+    container: containerRef as React.RefObject<HTMLElement>,
+  })
+
+  const scrollY = useTransform(
+    [windowScrollY, containerScrollY],
+    ([w, c]: number[]) => Math.max(w, c),
+  )
+
+  /* Parallax layers — each moves at a different rate for depth */
+  const bgY = useTransform(scrollY, [0, 600], [0, 80])        // slowest — far background
+  const bgScale = useTransform(scrollY, [0, 400], [1, 1.08])
+  const fgY = useTransform(scrollY, [0, 600], [0, 30])        // mid — foreground subjects
+  const textY = useTransform(scrollY, [0, 600], [0, 100])     // fastest — text recedes quickly
+
+  return (
+    <div className="relative">
+      <div className="relative w-full h-[110vw] min-h-[480px] sm:h-auto overflow-hidden">
+        {/* Layer 0: Background landscape — slowest parallax */}
+        <motion.div
+          className="h-full will-change-transform"
+          style={rm ? undefined : { y: bgY, scale: bgScale }}
+        >
+          <img
+            src="/img/home-hero-bg.png"
+            alt="Australian conservation landscape"
+            className="w-full h-full object-cover object-center sm:h-auto sm:object-fill block"
+          />
+        </motion.div>
+
+        {/* Layer 1: Foreground elements — medium parallax */}
+        <motion.div
+          className="absolute bottom-0 inset-x-0 z-[3] flex justify-center will-change-transform"
+          style={rm ? undefined : { y: fgY }}
+        >
+          <div className="w-[120%] -ml-[10%] sm:w-[70%] sm:ml-0">
+            <img
+              src="/img/home-hero-fg.png"
+              alt="Co-Exist volunteers"
+              className="w-full h-auto block"
+            />
+          </div>
+        </motion.div>
+
+        {/* Hero text — fastest parallax, recedes behind fg */}
+        <motion.div
+          className="absolute inset-x-0 top-[18%] sm:top-[7%] z-[2] flex flex-col items-center px-6 will-change-transform"
+          style={rm ? undefined : { y: textY }}
+        >
+          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-white/80 mb-0.5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
+            Welcome to
+          </span>
+          <img
+            src="/logos/white-wordmark.webp"
+            alt="Co-Exist"
+            className="h-24 sm:h-32 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+          />
+        </motion.div>
+
+        {/* Safe area spacer at top */}
+        <div
+          className="absolute top-0 left-0 right-0 z-40"
+          style={{ paddingTop: 'var(--safe-top, 0px)' }}
+        />
+      </div>
+
+      {/* Wave transition — pinned to bottom of image */}
+      <div className="absolute bottom-0 left-0 right-0 z-20">
+        <svg
+          viewBox="0 0 1440 70"
+          preserveAspectRatio="none"
+          className="w-full h-7 sm:h-10 block"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M0,25
+               C60,22 100,18 140,20
+               C180,22 200,15 220,18
+               L228,8 L234,5 L240,10
+               C280,18 340,24 400,20
+               C440,16 470,22 510,25
+               C560,28 600,20 640,22
+               C670,24 690,18 710,20
+               L718,10 L722,6 L728,12
+               C760,20 820,26 880,22
+               C920,18 950,24 990,26
+               C1020,28 1050,20 1080,18
+               C1100,16 1120,22 1140,24
+               L1148,12 L1153,7 L1158,9 L1165,16
+               C1200,22 1260,26 1320,22
+               C1360,18 1400,24 1440,22
+               L1440,70 L0,70 Z"
+            className="fill-white"
+          />
+        </svg>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Your Next Event — prominent card with "Tap to Sign In" or CTA      */
+/* ------------------------------------------------------------------ */
+
+function NextEventCard({
+  events,
+  isLoading,
+  showLoading,
+  rm,
+}: {
+  events: ReturnType<typeof useMyUpcomingEvents>['data']
+  isLoading: boolean
+  showLoading: boolean
+  rm: boolean
+}) {
+  const navigate = useNavigate()
+
+  if (isLoading && showLoading) {
+    return (
+      <div className="rounded-2xl bg-surface-1 shadow-md p-6 animate-pulse space-y-3">
+        <div className="h-3 w-28 rounded-full bg-primary-100" />
+        <div className="h-6 w-3/4 rounded-xl bg-primary-50" />
+        <div className="h-4 w-1/2 rounded-full bg-primary-50" />
+      </div>
+    )
+  }
+
+  const nextEvent = events?.[0]
+
+  if (!nextEvent) {
+    return (
+      <motion.div variants={rm ? undefined : fadeUp}>
+        <Section title="Your Next Event">
+          <div
+            className="rounded-2xl bg-gradient-to-br from-primary-600 to-moss-600 shadow-lg p-6 text-center cursor-pointer active:scale-[0.98] transition-all duration-150"
+            onClick={() => navigate('/events')}
+            role="button"
+            tabIndex={0}
+          >
+            <Search size={24} className="mx-auto text-white/60 mb-3" />
+            <p className="text-sm text-white font-medium">No upcoming events</p>
+            <p className="text-xs text-white/60 mt-1 mb-4">Discover what's happening near you</p>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation()
+                navigate('/events')
+              }}
+            >
+              Find Events
+            </Button>
+          </div>
+        </Section>
+      </motion.div>
+    )
+  }
+
+  const happeningNow = isEventHappeningNow(nextEvent.date_start, nextEvent.date_end)
+  const days = daysUntil(nextEvent.date_start)
+  const isToday = days === 0
+  const isTomorrow = days === 1
+
+  return (
+    <motion.div variants={rm ? undefined : fadeUp}>
+      <Section title="Your Next Event">
+        <div
+          className={cn(
+            'relative rounded-2xl overflow-hidden p-6 shadow-md',
+            'active:scale-[0.98] transition-all duration-150 cursor-pointer',
+            happeningNow
+              ? 'bg-gradient-to-br from-primary-500 to-primary-700 ring-1 ring-primary-400/50'
+              : 'bg-gradient-to-br from-primary-600 to-primary-800',
+          )}
+          onClick={() => {
+            if (happeningNow) {
+              navigate(`/events/${nextEvent.id}/check-in`)
+            } else {
+              navigate(`/events/${nextEvent.id}`)
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label={nextEvent.title}
+        >
+          {/* Decorative circle */}
+          <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-white/10" />
+
+          {/* Status badge */}
+          {happeningNow && (
+            <div className="flex items-center gap-2 mb-3">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
+              </span>
+              <span className="text-xs font-bold text-white uppercase tracking-wider">
+                Happening Now
+              </span>
+            </div>
+          )}
+
+          <h3 className="font-heading text-xl sm:text-2xl font-bold text-white">
+            {nextEvent.title}
+          </h3>
+
+          <div className="flex items-center gap-4 mt-3 text-sm text-white/70">
+            <span className="flex items-center gap-1.5">
+              <Calendar size={14} aria-hidden="true" />
+              {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : formatEventDate(nextEvent.date_start)}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Clock size={14} aria-hidden="true" />
+              {formatEventTime(nextEvent.date_start)}
+            </span>
+          </div>
+
+          {nextEvent.collectives && (
+            <p className="mt-2 text-xs text-white/50 flex items-center gap-1.5">
+              <MapPin size={12} aria-hidden="true" />
+              {nextEvent.collectives.name}
+            </p>
+          )}
+
+          {/* CTA */}
+          {happeningNow ? (
+            <div className="mt-5 flex items-center gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation()
+                  navigate(`/events/${nextEvent.id}/check-in`)
+                }}
+              >
+                <QrCode size={16} className="mr-1.5" />
+                Tap to Sign In
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-4 flex items-center text-sm font-semibold text-white/80">
+              View details
+              <ChevronRight size={16} className="ml-0.5" />
+            </div>
+          )}
+        </div>
+      </Section>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Upcoming Events carousel                                           */
+/* ------------------------------------------------------------------ */
+
+function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
+  const navigate = useNavigate()
+  const collectiveEvents = useCollectiveUpcomingEvents()
+
+  if (collectiveEvents.isLoading) {
+    return (
+      <div className="space-y-3">
+        <div className="h-3 w-36 rounded-full bg-primary-100 animate-pulse" />
+        <div className="relative -mx-6">
+          <div className="flex gap-3 px-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="shrink-0 w-56 h-32 rounded-2xl bg-surface-1 shadow-sm animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!collectiveEvents.data?.length) return null
+
+  return (
+    <motion.div variants={rm ? undefined : fadeUp}>
+      <Section
+        title="Upcoming Events"
+        action={{ label: 'See All', to: '/events' }}
+      >
+        <HScroll>
+          {collectiveEvents.data.map((event) => {
+            const days = daysUntil(event.date_start)
+            const isToday = days === 0
+            const isTomorrow = days === 1
+            const isSoon = days <= 3
+
+            return (
+              <div
+                key={event.id}
+                className="shrink-0 w-56 snap-start rounded-2xl bg-gradient-to-br from-sky-600 to-moss-600 shadow-lg overflow-hidden active:scale-[0.97] transition-all duration-150 cursor-pointer"
+                onClick={() => navigate(`/events/${event.id}`)}
+                role="button"
+                tabIndex={0}
+                aria-label={event.title}
+              >
+                {/* Cover image */}
+                {event.cover_image_url && (
+                  <img
+                    src={event.cover_image_url}
+                    alt=""
+                    className="w-full h-24 object-cover"
+                  />
+                )}
+                <div className="p-4">
+                {/* Date badge */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className={cn(
+                    'px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider',
+                    isToday ? 'bg-white/20 text-white'
+                      : isTomorrow ? 'bg-white/20 text-white'
+                      : isSoon ? 'bg-white/15 text-white/90'
+                      : 'bg-white/10 text-white/70',
+                  )}>
+                    {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : formatEventDate(event.date_start)}
+                  </span>
+                </div>
+
+                <p className="font-heading text-sm font-semibold text-white truncate">
+                  {event.title}
+                </p>
+
+                <div className="flex items-center gap-2 mt-2 text-xs text-white/60">
+                  <span className="flex items-center gap-1">
+                    <Clock size={11} aria-hidden="true" />
+                    {formatEventTime(event.date_start)}
+                  </span>
+                </div>
+
+                {event.collectives && (
+                  <p className="mt-1.5 text-[11px] text-white/40 truncate">
+                    {event.collectives.name}
+                  </p>
+                )}
+                </div>
+              </div>
+            )
+          })}
+        </HScroll>
+      </Section>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Updates section (announcements / staff updates / community msgs)   */
+/* ------------------------------------------------------------------ */
+
+function UpdatesSection({ rm }: { rm: boolean }) {
+  const navigate = useNavigate()
+  const announcements = useRecentAnnouncements()
+
+  if (announcements.isLoading) {
+    return (
+      <div className="space-y-3">
+        <div className="h-3 w-28 rounded-full bg-primary-100 animate-pulse" />
+        <div className="relative -mx-6">
+          <div className="flex gap-3 px-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="shrink-0 w-64 h-28 rounded-2xl bg-surface-1 shadow-sm animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!announcements.data?.length) return null
+
+  return (
+    <motion.div variants={rm ? undefined : fadeUp}>
+      <Section
+        title="Updates"
+        action={{ label: 'View all', to: '/announcements' }}
+      >
+        <HScroll>
+          {announcements.data.map((item) => (
+            <div
+              key={item.id}
+              className="shrink-0 w-64 snap-start rounded-2xl bg-gradient-to-br from-sprout-600 to-primary-700 shadow-lg overflow-hidden active:scale-[0.97] transition-all duration-150 cursor-pointer"
+              onClick={() => navigate('/announcements')}
+              role="button"
+              tabIndex={0}
+              aria-label={item.title}
+            >
+              {/* Cover image */}
+              {item.image_url && (
+                <img
+                  src={item.image_url}
+                  alt=""
+                  className="w-full h-24 object-cover"
+                />
+              )}
+              <div className="p-4">
+              <div className="flex items-center gap-2 mb-2">
+                {item.is_pinned && (
+                  <Badge variant="default" size="sm">Pinned</Badge>
+                )}
+                {item.priority === 'urgent' && (
+                  <Badge variant="destructive" size="sm">Urgent</Badge>
+                )}
+                <span className="text-[10px] text-white/40 ml-auto">
+                  {relativeTime(item.created_at)}
+                </span>
+              </div>
+
+              <p className="font-heading text-sm font-semibold text-white line-clamp-2">
+                {item.title}
+              </p>
+
+              {item.content && (
+                <p className="mt-1 text-xs text-white/60 line-clamp-2">
+                  {item.content}
+                </p>
+              )}
+
+              {item.author && (
+                <div className="flex items-center gap-2 mt-3">
+                  {item.author.avatar_url ? (
+                    <img
+                      src={item.author.avatar_url}
+                      alt=""
+                      className="w-5 h-5 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                      <Megaphone size={10} className="text-white/70" />
+                    </div>
+                  )}
+                  <span className="text-[11px] text-white/50 truncate">
+                    {item.author.display_name}
+                  </span>
+                </div>
+              )}
+              </div>
+            </div>
+          ))}
+        </HScroll>
+      </Section>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Impact section with scope + time toggles                           */
+/* ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ */
+/*  Impact row components                                              */
+/* ------------------------------------------------------------------ */
+
+function ImpactFoundational({
+  value,
+  label,
+  icon,
+}: {
+  value: number | string
+  label: string
+  icon: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl bg-white/10 p-3 h-full">
+      <span className="text-white/70 shrink-0">{icon}</span>
+      <span className="font-heading text-2xl font-bold text-white tabular-nums leading-none">
+        {typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '—') : value}
+      </span>
+      <span className="text-[10px] text-white/50 font-semibold uppercase tracking-wider text-center leading-tight">
+        {label}
+      </span>
+    </div>
+  )
+}
+
+function ImpactSubStat({
+  value,
+  label,
+  icon,
+}: {
+  value: number | string
+  label: string
+  icon: React.ReactNode
+}) {
+  return (
+    <div className="flex items-center gap-2.5 rounded-xl bg-white/10 px-3 py-2.5 h-full">
+      <span className="text-white/60 shrink-0">{icon}</span>
+      <div className="min-w-0">
+        <span className="font-heading text-base font-bold text-white tabular-nums leading-none block">
+          {typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '—') : value}
+        </span>
+        <span className="text-[10px] text-white/50 font-semibold uppercase tracking-wider leading-tight">
+          {label}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function ImpactRow({
+  foundational,
+  subStats,
+}: {
+  foundational: { value: number | string; label: string; icon: React.ReactNode }
+  subStats: { value: number | string; label: string; icon: React.ReactNode }[]
+}) {
+  return (
+    <div className="grid grid-cols-[1fr_1.4fr] gap-2">
+      <ImpactFoundational {...foundational} />
+      <div className={cn('flex flex-col gap-2', subStats.length === 1 ? 'h-full' : '')}>
+        {subStats.map((s) => (
+          <ImpactSubStat key={s.label} {...s} />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function HomeImpactSection({
+  collectiveId,
+  rm,
+}: {
+  collectiveId: string | undefined
+  rm: boolean
+}) {
+  const [scope, setScope] = useState<'national' | 'collective'>(collectiveId ? 'collective' : 'national')
+  const [timeRange, setTimeRange] = useState<'all-time' | 'current-year'>('all-time')
+
+  const national = useNationalImpact(timeRange)
+  const collective = useCollectiveImpact(scope === 'collective' ? collectiveId : undefined, timeRange)
+
+  const data: CanonicalImpact | null | undefined =
+    scope === 'national' ? national.data : collective.data
+  const isLoading = scope === 'national' ? national.isLoading : collective.isLoading
+
+  return (
+    <motion.div variants={rm ? undefined : fadeUp}>
+      <Section title="Impact" action={{ label: 'My impact', to: '/profile' }}>
+        <div className="rounded-2xl bg-gradient-to-br from-primary-700 to-primary-900 shadow-lg p-5 space-y-4">
+          {/* Toggles */}
+          <div className="flex items-center justify-between gap-2">
+            {/* Scope toggle */}
+            <div className="flex rounded-lg bg-white/15 p-0.5">
+              <button
+                type="button"
+                onClick={() => setScope('national')}
+                className={cn(
+                  'px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer select-none',
+                  scope === 'national'
+                    ? 'bg-white/25 text-white shadow-sm'
+                    : 'text-white/50 hover:text-white/70',
+                )}
+              >
+                <Globe size={12} className="inline mr-1 -mt-0.5" />
+                National
+              </button>
+              {collectiveId && (
+                <button
+                  type="button"
+                  onClick={() => setScope('collective')}
+                  className={cn(
+                    'px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer select-none',
+                    scope === 'collective'
+                      ? 'bg-white/25 text-white shadow-sm'
+                      : 'text-white/50 hover:text-white/70',
+                  )}
+                >
+                  <MapPin size={12} className="inline mr-1 -mt-0.5" />
+                  Collective
+                </button>
+              )}
+            </div>
+
+            {/* Time toggle */}
+            <div className="flex rounded-lg bg-white/15 p-0.5">
+              <button
+                type="button"
+                onClick={() => setTimeRange('all-time')}
+                className={cn(
+                  'px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer select-none',
+                  timeRange === 'all-time'
+                    ? 'bg-white/25 text-white shadow-sm'
+                    : 'text-white/50 hover:text-white/70',
+                )}
+              >
+                All Time
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimeRange('current-year')}
+                className={cn(
+                  'px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer select-none',
+                  timeRange === 'current-year'
+                    ? 'bg-white/25 text-white shadow-sm'
+                    : 'text-white/50 hover:text-white/70',
+                )}
+              >
+                {new Date().getFullYear()}
+              </button>
+            </div>
+          </div>
+
+          {/* Stats rows — foundational left, resulting right */}
+          {isLoading ? (
+            <div className="space-y-2">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-[72px] rounded-xl bg-white/10 animate-pulse" />
+              ))}
+            </div>
+          ) : data ? (
+            <div className="space-y-2.5">
+              {/* Attendances → Community Events + Vol. Hours */}
+              <ImpactRow
+                foundational={{ value: data.eventsAttended, label: 'Attendances', icon: <Calendar size={18} /> }}
+                subStats={[
+                  { value: data.eventsAttended, label: 'Community Events', icon: <Calendar size={14} /> },
+                  { value: data.volunteerHours, label: 'Vol. Hours', icon: <Clock size={14} /> },
+                ]}
+              />
+              {/* Land Restoration → Trees Planted + Weeds Pulled */}
+              <ImpactRow
+                foundational={{ value: data.treesPlanted + data.invasiveWeedsPulled, label: 'Land Restoration', icon: <TreePine size={18} /> }}
+                subStats={[
+                  { value: data.treesPlanted, label: 'Trees Planted', icon: <TreePine size={14} /> },
+                  { value: data.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={14} /> },
+                ]}
+              />
+              {/* Cleanup Sites → Tonnes of Rubbish + Cleanup Events */}
+              <ImpactRow
+                foundational={{ value: data.cleanupEventsHeld, label: 'Cleanup Sites', icon: <Trash2 size={18} /> }}
+                subStats={[
+                  { value: data.rubbishCollectedTonnes > 0 ? `${data.rubbishCollectedTonnes}t` : '—', label: 'Tonnes of Rubbish', icon: <Trash2 size={14} /> },
+                  { value: data.cleanupEventsHeld, label: 'Cleanup Events', icon: <Trash2 size={14} /> },
+                ]}
+              />
+              {/* Collectives → Leaders Trained (1:1) */}
+              <ImpactRow
+                foundational={{ value: data.collectivesCount, label: 'Collectives', icon: <Users size={18} /> }}
+                subStats={[
+                  { value: data.leadersTrainedCount, label: 'Leaders Trained', icon: <GraduationCap size={14} /> },
+                ]}
+              />
+            </div>
+          ) : null}
+        </div>
+      </Section>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Donate + Shop CTA cards                                            */
+/* ------------------------------------------------------------------ */
+
+function CtaCards({ rm }: { rm: boolean }) {
+  const navigate = useNavigate()
+
+  return (
+    <motion.div variants={rm ? undefined : fadeUp}>
+      <div className="grid grid-cols-2 gap-3">
+        {/* Donate */}
+        <div
+          className={cn(
+            'relative rounded-2xl overflow-hidden p-5',
+            'bg-gradient-to-br from-primary-500 to-primary-800',
+            'shadow-lg',
+            'active:scale-[0.97] transition-all duration-150 cursor-pointer',
+          )}
+          onClick={() => navigate('/donate')}
+          role="button"
+          tabIndex={0}
+          aria-label="Donate"
+        >
+          <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-white/10" />
+          <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 text-white mb-3">
+            <Heart size={20} />
+          </span>
+          <p className="font-heading text-base font-bold text-white">
+            Donate
+          </p>
+          <p className="mt-1 text-xs text-white/70">
+            Support conservation
+          </p>
+        </div>
+
+        {/* Shop Merch */}
+        <div
+          className={cn(
+            'relative rounded-2xl overflow-hidden p-5',
+            'bg-gradient-to-br from-bark-500 to-bark-800',
+            'shadow-lg',
+            'active:scale-[0.97] transition-all duration-150 cursor-pointer',
+          )}
+          onClick={() => navigate('/shop')}
+          role="button"
+          tabIndex={0}
+          aria-label="Shop Merch"
+        >
+          <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-white/10" />
+          <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 text-white mb-3">
+            <ShoppingBag size={20} />
+          </span>
+          <p className="font-heading text-base font-bold text-white">
+            Shop Merch
+          </p>
+          <p className="mt-1 text-xs text-white/70">
+            Wear the movement
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -161,589 +900,128 @@ export default function HomePage() {
   const queryClient = useQueryClient()
   const { profile } = useAuth()
 
-  const announcement = useLatestAnnouncement()
   const myCollective = useMyCollective()
-  const impact = useImpactStats()
-  const challenge = useActiveChallenge()
-  const trending = useTrendingCollectives()
   const myEvents = useMyUpcomingEvents()
-  const recentPosts = useRecentPosts()
-  const tierProgress = useHomeTierProgress()
-
-  const initialLoading = announcement.isLoading || myCollective.isLoading || myEvents.isLoading || impact.isLoading
+  const impact = useImpactStats()
+  const pendingSurveys = usePendingSurveys()
+  const initialLoading = myCollective.isLoading || myEvents.isLoading || impact.isLoading
   const showLoading = useDelayedLoading(initialLoading)
 
   const firstName = profile?.display_name?.split(' ')[0]
-  const eventsAttended = impact.data?.events_attended ?? 0
-  const isNewUser = eventsAttended === 0 && !myCollective.data
 
   const handleRefresh = useCallback(async () => {
     await queryClient.invalidateQueries({ queryKey: ['home'] })
   }, [queryClient])
 
   return (
-    <Page noBackground className="!px-0 bg-primary-950">
+    <Page noBackground className="!px-0 bg-white">
       <PullToRefresh
         onRefresh={handleRefresh}
-        dark
         className="min-h-full"
         background={
           <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary-600 via-secondary-700 to-primary-950" />
+            <div className="absolute inset-0 bg-gradient-to-b from-surface-1 via-white to-primary-50/30" />
             <motion.div
               initial={rm ? {} : { scale: 0.6, opacity: 0 }}
               animate={{ scale: [1, 1.04, 1], opacity: 1 }}
               transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.5, ease: 'easeOut' } }}
-              className="absolute -right-[12%] -top-[8%] w-[60vw] h-[60vw] max-w-[550px] max-h-[550px] rounded-full bg-white/[0.06]"
+              className="absolute -right-[12%] -top-[8%] w-[60vw] h-[60vw] max-w-[550px] max-h-[550px] rounded-full bg-primary-100/30"
             />
             <motion.div
               initial={rm ? {} : { scale: 0.5, opacity: 0 }}
               animate={{ scale: [1, 1.05, 1], opacity: 1 }}
               transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.8, delay: 0.3, ease: 'easeOut' } }}
-              className="absolute -left-[18%] bottom-[8%] w-[70vw] h-[70vw] max-w-[680px] max-h-[680px] rounded-full border border-white/[0.07]"
-            />
-            <motion.div
-              initial={rm ? {} : { scale: 0.5, opacity: 0 }}
-              animate={{ scale: [1, 1.07, 1], opacity: 1 }}
-              transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.8, delay: 0.5, ease: 'easeOut' } }}
-              className="absolute -left-[12%] bottom-[14%] w-[50vw] h-[50vw] max-w-[480px] max-h-[480px] rounded-full border border-white/[0.05]"
-            />
-            <motion.div
-              initial={rm ? {} : { scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 1.2, delay: 0.8, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="absolute left-[6%] top-[35%] w-[90px] h-[90px] rounded-full bg-white/[0.04]"
+              className="absolute -left-[18%] bottom-[8%] w-[70vw] h-[70vw] max-w-[680px] max-h-[680px] rounded-full border border-primary-200/30"
             />
             <motion.div
               initial={rm ? {} : { opacity: 0 }}
               animate={{ y: [0, -7, 0], opacity: [0.3, 0.55, 0.3] }}
               transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1 } }}
-              className="absolute left-[15%] top-[20%] w-2 h-2 rounded-full bg-white/30"
-            />
-            <motion.div
-              initial={rm ? {} : { opacity: 0 }}
-              animate={{ y: [0, 5, 0], opacity: [0.2, 0.4, 0.2] }}
-              transition={{ y: { duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 0.8, delay: 1.5 } }}
-              className="absolute right-[10%] bottom-[30%] w-1.5 h-1.5 rounded-full bg-white/25"
+              className="absolute left-[15%] top-[20%] w-2 h-2 rounded-full bg-primary-300/30"
             />
           </div>
         }
       >
-          {/* ── Content ── */}
-          <div className="relative z-10">
-            {/* Hero greeting */}
-            <div className="relative w-full flex flex-col">
-              <div style={{ paddingTop: 'var(--safe-top)' }} />
+        {/* ── Content ── */}
+        <div className="relative z-10">
+          {/* 1. Parallax layered hero */}
+          <HomeHero rm={rm} />
 
-              <div className="flex flex-col items-center justify-start px-6 text-center pt-[18svh] pb-4 min-h-[70svh] lg:min-h-0 lg:pt-16 lg:pb-8 -mb-8 lg:mb-0">
-                <motion.img
-                  src="/logos/white-wordmark.webp"
-                  alt="Co-Exist"
-                  initial={rm ? {} : { opacity: 0, y: 16, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.6, delay: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className="h-16 sm:h-20 w-auto object-contain mb-8 lg:mb-4"
-                />
-                <motion.p
-                  initial={rm ? {} : { opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className="font-heading text-xl sm:text-2xl lg:text-3xl font-bold text-white"
-                >
-                  {getGreeting(firstName)}
-                </motion.p>
-              </div>
-            </div>
-
-            {/* Body sections */}
-            <motion.div
-              className="px-6 space-y-10 pb-24 -mt-32 lg:mt-0"
-              initial="hidden"
-              animate="visible"
-              variants={rm ? undefined : stagger}
+          {/* Greeting */}
+          <div className="px-6 pt-6 mb-2">
+            <motion.p
+              initial={rm ? {} : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="font-heading text-xl sm:text-2xl font-bold text-primary-900"
             >
-              {/* Proximity check-in banner */}
-              <ProximityCheckInBanner />
+              {getGreeting(firstName)}
+            </motion.p>
+          </div>
 
-              {/* Announcement banner */}
-              {announcement.isLoading && showLoading ? (
-                <div className="rounded-2xl bg-white/[0.06] p-4 animate-pulse flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-white/[0.06] shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded-full bg-white/[0.05]" />
-                    <div className="h-3 w-1/2 rounded-full bg-white/[0.04]" />
-                  </div>
-                </div>
-              ) : announcement.data ? (
-                <motion.div variants={rm ? undefined : fadeUp}>
+          {/* Body sections */}
+          <motion.div
+            className="px-6 space-y-10 pb-24 mt-4"
+            initial="hidden"
+            animate="visible"
+            variants={rm ? undefined : stagger}
+          >
+            {/* Proximity check-in banner */}
+            <ProximityCheckInBanner />
+
+            {/* Pending survey banners */}
+            {pendingSurveys.data && pendingSurveys.data.length > 0 && (
+              <motion.div variants={rm ? undefined : fadeUp} className="space-y-2">
+                {pendingSurveys.data.map((survey) => (
                   <div
-                    className="flex items-center gap-3 rounded-2xl bg-white/[0.06] p-4 active:scale-[0.98] transition-all duration-150 cursor-pointer"
-                    onClick={() => navigate('/announcements')}
+                    key={survey.event_id}
+                    className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-bark-600 to-bark-700 shadow-lg p-4 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                    onClick={() => navigate(`/events/${survey.event_id}/survey`)}
                     role="button"
                     tabIndex={0}
-                    aria-label={`Announcement: ${announcement.data.title}`}
+                    aria-label={`Complete survey for ${survey.event_title}`}
                   >
-                    <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/[0.08] text-white/60 shrink-0">
-                      <Megaphone size={16} />
+                    <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white/15 text-white shrink-0">
+                      <Calendar size={16} />
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-white truncate">
-                        {announcement.data.title}
+                        How was {survey.event_title}?
                       </p>
-                      <p className="text-xs text-white/35 truncate">
-                        {announcement.data.content}
+                      <p className="text-xs text-white/60 truncate">
+                        Share your feedback{survey.collective_name ? ` · ${survey.collective_name}` : ''}
                       </p>
                     </div>
-                    <ChevronRight size={18} className="text-white/25 shrink-0" />
+                    <ChevronRight size={18} className="text-white/50 shrink-0" />
                   </div>
-                </motion.div>
-              ) : null}
-
-              {/* Your Collective */}
-              <motion.div variants={rm ? undefined : fadeUp}>
-                {myCollective.isLoading && showLoading ? (
-                  <div className="rounded-2xl bg-white/[0.06] p-6 animate-pulse space-y-4">
-                    <div className="h-3 w-24 rounded-full bg-white/[0.05]" />
-                    <div className="h-7 w-48 rounded-xl bg-white/[0.06]" />
-                    <div className="flex gap-5">
-                      <div className="h-4 w-16 rounded-full bg-white/[0.04]" />
-                      <div className="h-4 w-24 rounded-full bg-white/[0.04]" />
-                    </div>
-                  </div>
-                ) : myCollective.data ? (
-                  <div
-                    className="relative rounded-2xl bg-white/[0.06] p-7 sm:p-9 overflow-hidden active:scale-[0.98] transition-all duration-150 cursor-pointer"
-                    onClick={() => navigate(`/collectives/${myCollective.data!.slug}`)}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={myCollective.data.name}
-                  >
-                    <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/[0.04]" />
-                    <div className="absolute -left-8 -bottom-10 w-32 h-32 rounded-full bg-white/[0.03]" />
-
-                    <div className="relative z-10">
-                      <p className="text-[11px] font-semibold text-white/35 uppercase tracking-widest">
-                        Your Collective
-                      </p>
-                      <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mt-3 truncate">
-                        {myCollective.data.name.replace(/\s*Collective$/i, '')}
-                      </h2>
-
-                      <div className="flex items-center gap-5 mt-6 text-sm text-white/45">
-                        <span className="flex items-center gap-1.5">
-                          <Users size={15} aria-hidden="true" />
-                          {myCollective.data.member_count}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Calendar size={15} aria-hidden="true" />
-                          {myCollective.data.events_this_month} this month
-                        </span>
-                      </div>
-
-                      {myCollective.data.next_event && (
-                        <div className="mt-6 pt-6 border-t border-white/[0.06]">
-                          <p className="text-[11px] font-semibold text-white/25 uppercase tracking-widest">
-                            Next up
-                          </p>
-                          <p className="mt-2 text-lg font-bold text-white">
-                            {myCollective.data.next_event.title}
-                          </p>
-                          <p className="mt-1 text-sm text-white/35">
-                            {formatEventDate(myCollective.data.next_event.date_start)}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : !myCollective.isLoading ? (
-                  <div
-                    className="relative rounded-2xl bg-white/[0.06] p-7 sm:p-9 overflow-hidden active:scale-[0.98] transition-all duration-150 cursor-pointer"
-                    onClick={() => navigate('/explore')}
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Find your collective"
-                  >
-                    <div className="absolute -right-10 -top-10 w-40 h-40 rounded-full bg-white/[0.03]" />
-                    <div className="relative z-10">
-                      <p className="text-[11px] font-semibold text-white/25 uppercase tracking-widest">
-                        Get started
-                      </p>
-                      <h2 className="font-heading text-3xl sm:text-4xl font-bold text-white mt-3">
-                        Find your collective
-                      </h2>
-                      <p className="mt-3 text-sm text-white/35 max-w-xs">
-                        Join a local group and start making an impact
-                      </p>
-                      <div className="mt-6 inline-flex items-center gap-1.5 text-sm font-semibold text-white/60">
-                        Explore
-                        <ChevronRight size={16} />
-                      </div>
-                    </div>
-                  </div>
-                ) : null}
+                ))}
               </motion.div>
+            )}
 
-              {/* Your Upcoming Events */}
-              {myEvents.isLoading && showLoading ? (
-                <div className="space-y-3">
-                  <div className="h-3 w-36 rounded-full bg-white/[0.04] animate-pulse" />
-                  {[1, 2].map((i) => (
-                    <div key={i} className="rounded-2xl bg-white/[0.06] p-4 animate-pulse flex gap-4" style={{ animationDelay: `${i * 80}ms` }}>
-                      <div className="w-14 h-14 rounded-xl bg-white/[0.05] shrink-0" />
-                      <div className="flex-1 space-y-2 py-1">
-                        <div className="h-4 w-3/4 rounded-full bg-white/[0.05]" />
-                        <div className="h-3 w-1/2 rounded-full bg-white/[0.04]" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : myEvents.data && myEvents.data.length > 0 ? (
-                <motion.div variants={rm ? undefined : fadeUp}>
-                  <Section
-                    title="Your Upcoming Events"
-                    action={{ label: 'All events', to: '/events' }}
-                  >
-                    <div className="space-y-2">
-                      {myEvents.data.map((event) => {
-                        const days = daysUntil(event.date_start)
-                        const isToday = days === 0
-                        const isTomorrow = days === 1
-                        const isSoon = days <= 3
+            {/* 2. Your Next Event */}
+            <NextEventCard
+              events={myEvents.data}
+              isLoading={myEvents.isLoading}
+              showLoading={showLoading}
+              rm={rm}
+            />
 
-                        return (
-                          <div
-                            key={event.id}
-                            className={cn(
-                              'flex items-center gap-4 rounded-2xl p-4',
-                              'active:scale-[0.98] transition-all duration-150 cursor-pointer',
-                              isToday
-                                ? 'bg-success-500/15 ring-1 ring-success-400/25'
-                                : 'bg-white/[0.06]',
-                            )}
-                            onClick={() => navigate(`/events/${event.id}`)}
-                            role="button"
-                            tabIndex={0}
-                            aria-label={event.title}
-                          >
-                            {/* Date block */}
-                            <div className={cn(
-                              'flex flex-col items-center justify-center w-14 h-14 rounded-xl shrink-0',
-                              isToday ? 'bg-success-500/25' : isSoon ? 'bg-warning-500/15' : 'bg-white/[0.08]',
-                            )}>
-                              <span className={cn(
-                                'text-[11px] font-bold uppercase tracking-wider',
-                                isToday ? 'text-success-300' : isTomorrow ? 'text-warning-300' : 'text-white/40',
-                              )}>
-                                {isToday ? 'Today' : isTomorrow ? 'Tmrw' : new Date(event.date_start).toLocaleDateString('en-AU', { weekday: 'short' })}
-                              </span>
-                              <span className={cn(
-                                'text-lg font-bold leading-none',
-                                isToday ? 'text-success-200' : 'text-white',
-                              )}>
-                                {new Date(event.date_start).getDate()}
-                              </span>
-                            </div>
+            {/* 3. Upcoming Events carousel */}
+            <UpcomingEventsCarousel rm={rm} />
 
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-white truncate">
-                                {event.title}
-                              </p>
-                              <div className="flex items-center gap-2 mt-1 text-xs text-white/35">
-                                <span className="flex items-center gap-1">
-                                  <Clock size={11} aria-hidden="true" />
-                                  {new Date(event.date_start).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })}
-                                </span>
-                                {event.collectives && (
-                                  <span className="truncate">
-                                    {event.collectives.name}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
+            {/* 4. Updates section */}
+            <UpdatesSection rm={rm} />
 
-                            {event.registration_status === 'waitlisted' && (
-                              <Badge variant="default" size="sm">Waitlisted</Badge>
-                            )}
+            {/* 5. Impact section */}
+            <HomeImpactSection
+              collectiveId={myCollective.data?.id}
+              rm={rm}
+            />
 
-                            <ChevronRight size={16} className="text-white/20 shrink-0" />
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </Section>
-                </motion.div>
-              ) : !isNewUser && !myEvents.isLoading ? (
-                <motion.div variants={rm ? undefined : fadeUp}>
-                  <Section title="Your Upcoming Events">
-                    <div
-                      className="rounded-2xl bg-white/[0.06] p-6 text-center cursor-pointer active:scale-[0.98] transition-all duration-150"
-                      onClick={() => navigate('/explore?tab=events')}
-                      role="button"
-                      tabIndex={0}
-                    >
-                      <Calendar size={24} className="mx-auto text-white/25 mb-2" />
-                      <p className="text-sm text-white/45 font-medium">No events coming up</p>
-                      <p className="text-xs text-white/25 mt-1">Find your next one</p>
-                    </div>
-                  </Section>
-                </motion.div>
-              ) : null}
-
-              {/* Points & Tier Progress */}
-              {tierProgress.data && (
-                <motion.div variants={rm ? undefined : fadeUp}>
-                  <div
-                    className="rounded-2xl bg-white/[0.06] p-6 active:scale-[0.98] transition-all duration-150 cursor-pointer"
-                    onClick={() => navigate('/points')}
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Your points and tier"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-3">
-                        <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-amber-500/15 shrink-0">
-                          <Award size={20} className="text-amber-300" />
-                        </span>
-                        <div>
-                          <p className="text-sm font-semibold text-white">
-                            {tierProgress.data.tier}
-                          </p>
-                          <p className="text-xs text-white/35">
-                            {tierProgress.data.points.toLocaleString()} pts
-                          </p>
-                        </div>
-                      </div>
-                      {tierProgress.data.nextTier && (
-                        <span className="text-xs text-white/25">
-                          {tierProgress.data.pointsToNext.toLocaleString()} to {tierProgress.data.nextTier}
-                        </span>
-                      )}
-                    </div>
-                    {tierProgress.data.nextTier && (
-                      <ProgressBar
-                        value={tierProgress.data.progress}
-                        size="sm"
-                      />
-                    )}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Community Posts */}
-              {recentPosts.data && recentPosts.data.length > 0 && (
-                <motion.div variants={rm ? undefined : fadeUp}>
-                  <Section
-                    title="From Your Community"
-                    action={{ label: 'See all', to: '/community' }}
-                  >
-                    <div className="space-y-2">
-                      {recentPosts.data.map((post) => (
-                        <div
-                          key={post.id}
-                          className="rounded-2xl bg-white/[0.06] p-5 active:scale-[0.98] transition-all duration-150 cursor-pointer"
-                          onClick={() => navigate('/community')}
-                          role="button"
-                          tabIndex={0}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 rounded-full bg-white/[0.08] shrink-0 overflow-hidden">
-                              {post.author?.avatar_url ? (
-                                <img
-                                  src={post.author.avatar_url}
-                                  alt=""
-                                  loading="lazy"
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-white/40 text-xs font-bold">
-                                  {post.author?.display_name?.[0]?.toUpperCase() ?? '?'}
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm font-semibold text-white truncate">
-                                  {post.author?.display_name ?? 'Member'}
-                                </p>
-                                <span className="text-[11px] text-white/25 shrink-0">
-                                  {formatRelativeTime(post.created_at)}
-                                </span>
-                              </div>
-                              {post.content && (
-                                <p className="mt-1 text-sm text-white/50 line-clamp-2">
-                                  {post.content}
-                                </p>
-                              )}
-                              {post.images && post.images.length > 0 && !post.content && (
-                                <p className="mt-1 text-sm text-white/35 italic">Shared a photo</p>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-4 mt-3 pl-11">
-                            <span className="flex items-center gap-1 text-xs text-white/25">
-                              <Heart size={12} />
-                              {post.like_count}
-                            </span>
-                            <span className="flex items-center gap-1 text-xs text-white/25">
-                              <MessageCircle size={12} />
-                              {post.comment_count}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </Section>
-                </motion.div>
-              )}
-
-              {/* Your Impact */}
-              {impact.data && (impact.data.events_attended > 0 || impact.data.trees_planted > 0) && (
-                <motion.div variants={rm ? undefined : fadeUp}>
-                  <Link
-                    to="/impact"
-                    className="flex items-center gap-4 rounded-2xl bg-white/[0.06] p-5 active:scale-[0.98] transition-all duration-150"
-                  >
-                    <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-success-500/15 shrink-0">
-                      <TreePine size={20} className="text-success-300" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-heading text-sm font-semibold text-white">
-                        Your Impact
-                      </p>
-                      <p className="text-xs text-white/35 mt-0.5">
-                        {impact.data.trees_planted} trees · {impact.data.events_attended} events · {impact.data.hours_volunteered}h volunteered
-                      </p>
-                    </div>
-                    <ChevronRight size={18} className="text-white/25 shrink-0" />
-                  </Link>
-                </motion.div>
-              )}
-
-              {/* National Challenge */}
-              {challenge.isLoading && showLoading ? (
-                <div className="rounded-2xl bg-white/[0.06] p-5 animate-pulse space-y-3">
-                  <div className="flex gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/[0.06] shrink-0" />
-                    <div className="flex-1 space-y-2">
-                      <div className="h-4 w-3/4 rounded-full bg-white/[0.05]" />
-                      <div className="h-3 w-1/2 rounded-full bg-white/[0.04]" />
-                    </div>
-                  </div>
-                  <div className="h-2 rounded-full bg-white/[0.05]" />
-                </div>
-              ) : challenge.data ? (
-                <motion.div variants={rm ? undefined : fadeUp}>
-                  <Section title="National Challenge">
-                    <div className="rounded-2xl bg-white/[0.06] p-6">
-                      <div className="flex items-start gap-4">
-                        <span className="flex items-center justify-center w-11 h-11 rounded-xl bg-white/[0.08] text-white/60 shrink-0">
-                          <Target size={22} />
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-heading text-base font-bold text-white">
-                            {challenge.data.title}
-                          </p>
-                          {challenge.data.description && (
-                            <p className="mt-0.5 text-xs text-white/35 line-clamp-2">
-                              {challenge.data.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                      <div className="mt-4">
-                        <ProgressBar
-                          value={
-                            (challenge.data.total_progress /
-                              challenge.data.goal_value) *
-                            100
-                          }
-                          size="md"
-                          label={`${challenge.data.total_progress.toLocaleString()} / ${challenge.data.goal_value.toLocaleString()} ${challenge.data.goal_type}`}
-                          showLabel
-                        />
-                      </div>
-                    </div>
-                  </Section>
-                </motion.div>
-              ) : null}
-
-              {/* Trending Collectives */}
-              {!myCollective.data && !myCollective.isLoading && (
-                <motion.div variants={rm ? undefined : fadeUp}>
-                  <Section
-                    title="Trending Collectives"
-                    action={{ label: 'View all', to: '/explore' }}
-                  >
-                    {trending.isLoading && showLoading ? (
-                      <HScroll>
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="shrink-0 w-44 h-28 rounded-2xl bg-white/[0.06] animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
-                        ))}
-                      </HScroll>
-                    ) : trending.data && trending.data.length > 0 ? (
-                      <HScroll>
-                        {trending.data.map((c) => (
-                          <div
-                            key={c.id}
-                            className="shrink-0 w-44 snap-start rounded-2xl bg-white/[0.06] p-4 active:scale-[0.97] transition-all duration-150 cursor-pointer"
-                            onClick={() => navigate(`/collectives/${c.slug}`)}
-                            role="button"
-                            tabIndex={0}
-                            aria-label={c.name}
-                          >
-                            <p className="font-heading text-sm font-semibold text-white truncate">
-                              {c.name}
-                            </p>
-                            <p className="mt-0.5 text-xs text-white/35">
-                              {c.region ?? c.state}
-                            </p>
-                            <p className="mt-3 text-xs text-white/45 font-medium">
-                              {c.member_count} members
-                            </p>
-                          </div>
-                        ))}
-                      </HScroll>
-                    ) : null}
-                  </Section>
-                </motion.div>
-              )}
-
-              {/* New user welcome */}
-              {isNewUser && !impact.isLoading && (
-                <motion.div variants={rm ? undefined : fadeUp}>
-                  <div className="rounded-2xl bg-white/[0.08] p-10 text-center">
-                    <span className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-white/[0.08] text-white/60 mb-5">
-                      <Sparkles size={30} />
-                    </span>
-                    <h3 className="font-heading text-2xl sm:text-3xl font-bold text-white">
-                      Welcome to Co-Exist!
-                    </h3>
-                    <p className="mt-3 text-base text-white/35 max-w-xs mx-auto">
-                      Join a collective, find your first event, and start making a difference.
-                    </p>
-                    <div className="mt-8 flex flex-col gap-3 max-w-[240px] mx-auto">
-                      <Button
-                        variant="primary"
-                        size="md"
-                        onClick={() => navigate('/explore')}
-                      >
-                        Find a Collective
-                      </Button>
-                      <button
-                        type="button"
-                        onClick={() => navigate('/explore?tab=events')}
-                        className="h-11 rounded-2xl bg-white/[0.08] text-sm font-semibold text-white/70 hover:bg-white/[0.12] active:scale-[0.97] transition-all duration-150 cursor-pointer"
-                      >
-                        Explore Events
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </motion.div>
-          </div>
+            {/* 6. Donate + Shop CTA cards */}
+            <CtaCards rm={rm} />
+          </motion.div>
+        </div>
       </PullToRefresh>
     </Page>
   )

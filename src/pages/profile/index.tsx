@@ -9,7 +9,6 @@ import {
     Calendar,
     Clock,
     TreePine,
-    Star,
     Trash2,
     Waves,
     Sprout,
@@ -23,29 +22,17 @@ import { Badge } from '@/components/badge'
 import { Button } from '@/components/button'
 import { Chip } from '@/components/chip'
 import { StatCard } from '@/components/stat-card'
-import { ProgressBar } from '@/components/progress-bar'
 import { Card } from '@/components/card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
-import { CountUp } from '@/components/count-up'
 import { OfflineIndicator } from '@/components/offline-indicator'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile, useProfileCollectives, useProfileStats } from '@/hooks/use-profile'
-import { usePointsBalance, getTierProgress, getTierFromPoints } from '@/hooks/use-points'
-import type { TierName } from '@/hooks/use-points'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
-
-const tierLabels: Record<TierName, string> = {
-  new: 'New',
-  active: 'Active',
-  committed: 'Committed',
-  dedicated: 'Dedicated',
-  lifetime: 'Lifetime',
-}
 
 const stagger: Variants = {
   hidden: {},
@@ -142,7 +129,6 @@ export default function ProfilePage() {
   const { data: profile, isLoading: profileLoading, dataUpdatedAt: profileUpdatedAt, isFetching: profileFetching } = useProfile()
   const { data: collectives, isLoading: collectivesLoading } = useProfileCollectives()
   const { data: stats, isLoading: statsLoading } = useProfileStats()
-  const { data: pointsData } = usePointsBalance()
 
 
   const isLoading = profileLoading || collectivesLoading || statsLoading
@@ -168,9 +154,6 @@ export default function ProfilePage() {
     )
   }
 
-  const points = pointsData?.points ?? profile.points ?? 0
-  const tierProgress = getTierProgress(points)
-  const tier = getTierFromPoints(points) as TierName
   const memberSince = new Date(profile.created_at).toLocaleDateString('en-AU', {
     month: 'long',
     year: 'numeric',
@@ -235,7 +218,6 @@ export default function ProfilePage() {
                 src={profile.avatar_url}
                 name={profile.display_name ?? ''}
                 size="xl"
-                tier={tier}
               />
               <button
                 onClick={() => navigate('/profile/edit')}
@@ -252,17 +234,6 @@ export default function ProfilePage() {
             {profile.pronouns && (
               <span className="text-sm text-primary-400">{profile.pronouns}</span>
             )}
-
-            {/* Tier + Points */}
-            <div className="mt-2 flex items-center gap-2">
-              <Badge variant="tier" tier={tier}>
-                {tierLabels[tier]}
-              </Badge>
-              <span className="flex items-center gap-1 text-sm font-semibold text-primary-400">
-                <Star size={14} />
-                <CountUp end={points} suffix=" pts" />
-              </span>
-            </div>
 
             {/* Bio */}
             {profile.bio && (
@@ -302,28 +273,6 @@ export default function ProfilePage() {
                 Share
               </Button>
             </div>
-          </motion.div>
-
-          {/* Tier Progression */}
-          <motion.div
-            variants={fadeUp}
-            className="mt-6 bg-white shadow-sm border border-primary-50/60 rounded-xl p-4"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-primary-800">Tier Progress</span>
-              {tierProgress.nextTier && (
-                <span className="text-xs text-primary-400">
-                  {tierProgress.pointsToNext} pts to {tierLabels[tierProgress.nextTier]}
-                </span>
-              )}
-            </div>
-            <ProgressBar
-              value={tierProgress.progress}
-              size="md"
-              color="bg-primary-500"
-              showLabel
-              aria-label={`Tier progress: ${tierProgress.progress}%`}
-            />
           </motion.div>
 
           {/* Quick Stats */}
@@ -433,7 +382,7 @@ export default function ProfilePage() {
                           {collective.region} · {collective.member_count} members
                         </p>
                       </div>
-                      <Badge variant="tier" tier={membership.role === 'leader' ? 'lifetime' : 'new'} size="sm">
+                      <Badge variant="default" size="sm">
                         {membership.role.replace('_', ' ')}
                       </Badge>
                     </Card>
@@ -445,7 +394,7 @@ export default function ProfilePage() {
                 illustration="wildlife"
                 title="No collectives yet"
                 description="Join a local collective to start your conservation journey"
-                action={{ label: 'Explore Collectives', to: '/explore' }}
+                action={{ label: 'Explore Collectives', to: '/collectives' }}
                 className="min-h-[180px]"
               />
             )}

@@ -7,7 +7,6 @@ import {
     Moon,
     Shield,
     Eye,
-    Trophy,
     Mail,
     Lock,
     AtSign,
@@ -818,8 +817,6 @@ export default function SettingsPage() {
   // Notification preferences (local state, hydrated from profile, persisted to profile)
   const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT_PREFERENCES)
   const [soundEnabled, setSoundEnabled] = useState(true)
-  const [leaderboardOptIn, setLeaderboardOptIn] = useState(true)
-
   // Hydrate prefs from profile on mount / when profile loads
   const savedPrefsJson = JSON.stringify((profile as any)?.notification_preferences ?? null)
   useEffect(() => {
@@ -1009,19 +1006,6 @@ export default function SettingsPage() {
                   />
                 }
                 onClick={() => setProfileVisible(!profileVisible)}
-              />
-              <MenuRow
-                icon={<Trophy size={18} />}
-                label="Leaderboard"
-                subtitle={leaderboardOptIn ? 'Visible on leaderboard' : 'Hidden from leaderboard'}
-                rightContent={
-                  <Toggle
-                    checked={leaderboardOptIn}
-                    onChange={setLeaderboardOptIn}
-                    size="sm"
-                  />
-                }
-                onClick={() => setLeaderboardOptIn(!leaderboardOptIn)}
               />
               <MenuRow
                 icon={<Mail size={18} />}

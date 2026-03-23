@@ -63,18 +63,16 @@ import { MapView } from '@/components'
 /*  Activity badge map                                                 */
 /* ------------------------------------------------------------------ */
 
-const activityToBadge: Record<string, 'tree-planting' | 'beach-cleanup' | 'habitat' | 'wildlife' | 'education' | 'monitoring' | 'restoration'> = {
+const activityToBadge: Record<string, 'shore-cleanup' | 'tree-planting' | 'land-regeneration' | 'nature-walk' | 'camp-out' | 'retreat' | 'film-screening' | 'marine-restoration' | 'workshop'> = {
+  shore_cleanup: 'shore-cleanup',
   tree_planting: 'tree-planting',
-  beach_cleanup: 'beach-cleanup',
-  habitat_restoration: 'habitat',
-  nature_walk: 'wildlife',
-  education: 'education',
-  wildlife_survey: 'wildlife',
-  seed_collecting: 'tree-planting',
-  weed_removal: 'restoration',
-  waterway_cleanup: 'beach-cleanup',
-  community_garden: 'restoration',
-  other: 'education',
+  land_regeneration: 'land-regeneration',
+  nature_walk: 'nature-walk',
+  camp_out: 'camp-out',
+  retreat: 'retreat',
+  film_screening: 'film-screening',
+  marine_restoration: 'marine-restoration',
+  workshop: 'workshop',
 }
 
 /* ------------------------------------------------------------------ */
@@ -259,7 +257,7 @@ export default function EventDetailPage() {
           illustration="error"
           title="Event not found"
           description="This event may have been removed or the link is incorrect."
-          action={{ label: 'Browse Events', to: '/explore' }}
+          action={{ label: 'Browse Events', to: '/events' }}
         />
       </Page>
     )
@@ -431,7 +429,7 @@ export default function EventDetailPage() {
             <div className="absolute top-3 right-3" style={{ marginTop: 'var(--safe-top, 0px)' }}>
               <Badge
                 variant="activity"
-                activity={activityToBadge[event.activity_type] ?? 'education'}
+                activity={activityToBadge[event.activity_type] ?? 'workshop'}
                 size="md"
               >
                 {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
@@ -461,7 +459,7 @@ export default function EventDetailPage() {
             <div className="flex items-start gap-2">
               <Badge
                 variant="activity"
-                activity={activityToBadge[event.activity_type] ?? 'education'}
+                activity={activityToBadge[event.activity_type] ?? 'workshop'}
                 size="md"
               >
                 {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}

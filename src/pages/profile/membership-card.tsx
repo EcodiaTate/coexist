@@ -4,19 +4,19 @@ import { Wallet } from 'lucide-react'
 import { Avatar } from '@/components/avatar'
 import { cn } from '@/lib/cn'
 import { APP_NAME, TAGLINE } from '@/lib/constants'
-import type { TierName } from '@/hooks/use-points'
+type MembershipTier = 'new' | 'active' | 'committed' | 'dedicated' | 'lifetime'
 
 interface MembershipCardProps {
   name: string
   memberId: string
   userId: string
-  tier: TierName
+  tier: MembershipTier
   memberSince: string
   avatarUrl?: string | null
   className?: string
 }
 
-const tierGradients: Record<TierName, string> = {
+const tierGradients: Record<MembershipTier, string> = {
   new: 'from-primary-400 to-primary-600',
   active: 'from-primary-500 to-secondary-700',
   committed: 'from-secondary-600 to-secondary-800',
@@ -24,8 +24,8 @@ const tierGradients: Record<TierName, string> = {
   lifetime: 'from-bark-500 to-bark-700',
 }
 
-const tierLabels: Record<TierName, string> = {
-  new: 'New',
+const tierLabels: Record<MembershipTier, string> = {
+  new: 'Member',
   active: 'Active',
   committed: 'Committed',
   dedicated: 'Dedicated',
@@ -85,7 +85,6 @@ export default function MembershipCard({
           src={avatarUrl}
           name={name}
           size="lg"
-          tier={tier}
         />
         <div className="min-w-0">
           <p className="font-heading text-lg font-bold truncate">{name}</p>

@@ -894,7 +894,7 @@ export default function DevToolsPage() {
   const seedEvent = useSeedTestEvent()
   const cleanup = useCleanupTests()
 
-  const [selectedActivity, setSelectedActivity] = useState('beach_cleanup')
+  const [selectedActivity, setSelectedActivity] = useState('shore_cleanup')
 
   const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 

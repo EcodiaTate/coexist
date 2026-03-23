@@ -1,6 +1,5 @@
 import { type ReactNode, useState, useEffect, useRef, createContext, useContext, useCallback, useMemo, Suspense } from 'react'
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   Users,
@@ -11,16 +10,14 @@ import {
   BarChart3,
   TreePine,
   Send,
-  ArrowLeft,
-  Menu,
-  X, Home
+  Home,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollective } from '@/hooks/use-collective'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
-import { type SidebarNavCategory, type SidebarNavItem } from '@/components/sidebar-shell'
+import { type SidebarNavCategory } from '@/components/sidebar-shell'
 
 /* ------------------------------------------------------------------ */
 /*  Leader header context - lets child pages set title + actions       */
@@ -187,12 +184,9 @@ const leaderBottomTabs: Tab[] = [
 
 export function LeaderLayout() {
   const location = useLocation()
-  const navigate = useNavigate()
-  const shouldReduceMotion = useReducedMotion()
   const { collectiveRoles } = useAuth()
   const { navMode } = useLayout()
   const showBottomTabs = navMode === 'bottom-tabs'
-  const [mobileOpen, setMobileOpen] = useState(false)
   const [header, setHeaderState] = useState<LeaderHeaderState>({ title: '' })
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -231,136 +225,12 @@ export function LeaderLayout() {
 
   const headerCtx = useMemo(() => ({ setHeader, collectiveId, collectiveSlug }), [setHeader, collectiveId, collectiveSlug])
 
-  // Close mobile drawer on navigation
-  useEffect(() => {
-    setMobileOpen(false)
-  }, [location.pathname])
-
-  const isActive = (path: string) => {
-    if (path === '/leader') return location.pathname === '/leader'
-    return location.pathname.startsWith(path)
-  }
-
   return (
     <LeaderHeaderContext.Provider value={headerCtx}>
       <div className="flex flex-1 min-h-0">
         {/* Desktop sidebar is handled by UnifiedSidebar in AppShell */}
 
-        {/* ── Mobile drawer ── */}
-        <AnimatePresence>
-          {mobileOpen && (
-            <>
-              <motion.div
-                key="leader-backdrop"
-                className="md:hidden fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                onClick={() => setMobileOpen(false)}
-              />
-              <motion.aside
-                key="leader-drawer"
-                className="md:hidden fixed inset-y-0 right-0 z-50 w-[min(76vw,300px)] bg-white shadow-[-12px_0_40px_-8px_rgba(51,63,43,0.15)] flex flex-col overflow-y-auto"
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 32, mass: 0.8 }}
-              >
-                {/* Wordmark centered + close */}
-                <div className="flex items-center justify-between px-4 py-3">
-                  <Link
-                    to="/"
-                    className="flex items-center justify-center w-11 h-11 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-moss-50/50 transition-colors duration-150"
-                    aria-label="Back to app"
-                  >
-                    <ArrowLeft size={15} strokeWidth={1.5} />
-                  </Link>
-                  <img
-                    src="/logos/black-wordmark.png"
-                    alt="Co-Exist"
-                    className="h-5 w-auto"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-center min-w-11 min-h-11 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-colors duration-150"
-                    aria-label="Close menu"
-                  >
-                    <X size={16} strokeWidth={1.5} />
-                  </button>
-                </div>
-
-                {/* Collective name badge - mobile */}
-                <div className="px-4 py-3 mx-3 mb-2 rounded-xl bg-gradient-to-br from-moss-50/80 to-moss-50/30 border border-moss-100/30">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-moss-400 to-moss-600 flex items-center justify-center shrink-0 shadow-sm">
-                      <TreePine size={14} className="text-white" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-semibold text-moss-500 uppercase tracking-[0.08em] leading-none">Leader</p>
-                      <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">{collectiveName}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <nav className="flex-1 py-2 px-3 space-y-0.5">
-                  {leaderNavCategories.map((cat) => {
-                    const showLabel = cat.label !== 'Overview'
-                    return (
-                      <div key={cat.label}>
-                        {showLabel && (
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-3 mt-4 mb-1.5">
-                            {cat.label}
-                          </p>
-                        )}
-                        {cat.items.map((item: SidebarNavItem) => {
-                          const active = isActive(item.path)
-                          return (
-                            <Link
-                              key={item.path}
-                              to={item.path}
-                              className={cn(
-                                'relative flex items-center gap-2.5 px-3 min-h-11',
-                                'rounded-xl text-[13px]',
-                                'transition-colors duration-150',
-                                'cursor-pointer select-none',
-                                active
-                                  ? 'bg-moss-50/70 text-moss-800 font-medium'
-                                  : 'text-primary-400 hover:bg-moss-50/40 hover:text-moss-700',
-                              )}
-                              aria-current={active ? 'page' : undefined}
-                            >
-                              {active && (
-                                <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-gradient-to-b from-moss-400 to-moss-600" />
-                              )}
-                              <span className="flex items-center justify-center shrink-0">{item.icon}</span>
-                              <span className="truncate">{item.label}</span>
-                            </Link>
-                          )
-                        })}
-                      </div>
-                    )
-                  })}
-                </nav>
-              </motion.aside>
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* Fixed mobile hamburger - top-right, white, no background */}
-        <button
-          type="button"
-          onClick={() => setMobileOpen(true)}
-          className="md:hidden fixed right-1 z-40 flex items-center justify-center w-11 h-11 text-white cursor-pointer select-none"
-          style={{
-            top: 'calc(var(--safe-top, 0px) + 0.25rem)',
-            filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.4)) drop-shadow(0 0 8px rgba(0,0,0,0.15))',
-          }}
-          aria-label="Open leader menu"
-        >
-          <Menu size={22} />
-        </button>
+        {/* Mobile drawer + hamburger removed — handled by UnifiedSidebar in AppShell */}
 
         {/* ── Main content ── */}
         <div ref={scrollRef} className={cn(

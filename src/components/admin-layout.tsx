@@ -1,7 +1,5 @@
 import { type ReactNode, useState, useEffect, useRef, createContext, useContext, useCallback, useMemo, Suspense } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { drawerSpring } from '@/lib/admin-motion'
 import {
     LayoutDashboard,
     Users,
@@ -18,9 +16,6 @@ import {
     Heart,
     BarChart3,
     AlertCircle,
-    ArrowLeft,
-    Menu,
-    X,
     Bug,
     Image,
     Shield,
@@ -28,7 +23,6 @@ import {
     ShoppingBag,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { useAuth } from '@/hooks/use-auth'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
 
@@ -231,11 +225,8 @@ const adminBottomTabs: Tab[] = [
 
 export function AdminLayout() {
   const location = useLocation()
-  const shouldReduceMotion = useReducedMotion()
-  const { isSuperAdmin, hasCapability } = useAuth()
   const { navMode } = useLayout()
   const showBottomTabs = navMode === 'bottom-tabs'
-  const [mobileOpen, setMobileOpen] = useState(false)
   const [header, setHeaderState] = useState<AdminHeaderState>({ title: '' })
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -250,144 +241,12 @@ export function AdminLayout() {
 
   const headerCtx = useMemo(() => ({ setHeader }), [setHeader])
 
-  // Close mobile drawer on navigation
-  useEffect(() => {
-    setMobileOpen(false)
-  }, [location.pathname])
-
-  const isActive = (path: string) => {
-    if (path === '/admin') return location.pathname === '/admin'
-    return location.pathname.startsWith(path)
-  }
-
   return (
     <AdminHeaderContext.Provider value={headerCtx}>
       <div className="flex flex-1 min-h-0">
         {/* Desktop sidebar is handled by UnifiedSidebar in AppShell */}
 
-        {/* Mobile hamburger + drawer */}
-        <AnimatePresence>
-          {mobileOpen && (
-            <>
-              {/* Backdrop */}
-              <motion.div
-                key="admin-backdrop"
-                className="md:hidden fixed inset-0 z-40 bg-black/25 backdrop-blur-[2px]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                onClick={() => setMobileOpen(false)}
-              />
-              {/* Drawer */}
-              <motion.aside
-                key="admin-drawer"
-                className="md:hidden fixed inset-y-0 right-0 z-50 w-[min(76vw,300px)] bg-white shadow-[-12px_0_40px_-8px_rgba(51,63,43,0.15)] flex flex-col overflow-y-auto"
-                initial={{ x: '100%' }}
-                animate={{ x: 0 }}
-                exit={{ x: '100%' }}
-                transition={shouldReduceMotion ? { duration: 0 } : drawerSpring}
-              >
-                {/* Wordmark centered + close */}
-                <div className="flex items-center justify-between px-4 py-3">
-                  <Link
-                    to="/"
-                    className="flex items-center justify-center w-11 h-11 rounded-xl text-primary-300 hover:text-primary-700 hover:bg-primary-50/50 transition-colors"
-                    aria-label="Back to app"
-                  >
-                    <ArrowLeft size={15} strokeWidth={1.5} />
-                  </Link>
-                  <img
-                    src="/logos/black-wordmark.png"
-                    alt="Co-Exist"
-                    className="h-5 w-auto"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center justify-center min-w-11 min-h-11 rounded-xl bg-primary-50/50 text-primary-400 hover:bg-primary-100/50 cursor-pointer transition-colors"
-                    aria-label="Close menu"
-                  >
-                    <X size={16} strokeWidth={1.5} />
-                  </button>
-                </div>
-
-                {/* Admin badge - mobile */}
-                <div className="px-3 py-3 mx-3 mb-2 rounded-xl bg-gradient-to-br from-primary-50/80 to-primary-50/30 border border-primary-100/30">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-700 to-primary-900 flex items-center justify-center shrink-0 shadow-sm">
-                      <Shield size={14} className="text-white" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-semibold text-primary-500 uppercase tracking-[0.08em] leading-none">Admin</p>
-                      <p className="text-[13px] font-medium text-primary-800 truncate mt-0.5">Co-Exist</p>
-                    </div>
-                  </div>
-                </div>
-
-                <nav className="flex-1 py-2 px-3 space-y-0.5">
-                  {adminNavCategories.map((cat) => {
-                    if (cat.superAdminOnly && !isSuperAdmin) return null
-                    const visibleItems = cat.items.filter((item) => !item.capability || hasCapability(item.capability))
-                    if (visibleItems.length === 0) return null
-                    const showLabel = cat.label !== 'Overview'
-                    return (
-                      <div key={cat.label}>
-                        {showLabel && (
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-3 mt-4 mb-1.5">
-                            {cat.label}
-                          </p>
-                        )}
-                        {visibleItems.map((item) => {
-                          const active = isActive(item.path)
-                          return (
-                            <Link
-                              key={item.path}
-                              to={item.path}
-                              className={cn(
-                                'relative flex items-center gap-2.5 px-3 min-h-11',
-                                'rounded-xl text-[13px]',
-                                'transition-colors duration-200',
-                                'cursor-pointer select-none',
-                                active
-                                  ? 'bg-primary-50/70 text-primary-800 font-medium'
-                                  : 'text-primary-400 hover:bg-primary-50/40 hover:text-primary-700',
-                              )}
-                              aria-current={active ? 'page' : undefined}
-                            >
-                              {active && (
-                                <span className="absolute left-0 top-2 bottom-2 w-[3px] rounded-full bg-gradient-to-b from-primary-500 to-primary-700" />
-                              )}
-                              <span className={cn(
-                                'flex items-center justify-center shrink-0 will-change-transform transition-transform duration-200',
-                                active && 'scale-105',
-                              )}>{item.icon}</span>
-                              <span className="truncate">{item.label}</span>
-                            </Link>
-                          )
-                        })}
-                      </div>
-                    )
-                  })}
-                </nav>
-              </motion.aside>
-            </>
-          )}
-        </AnimatePresence>
-
-        {/* Fixed mobile hamburger - top-right, white, no background */}
-        <button
-          type="button"
-          onClick={() => setMobileOpen(true)}
-          className="md:hidden fixed right-1 z-40 flex items-center justify-center w-11 h-11 text-white cursor-pointer select-none"
-          style={{
-            top: 'calc(var(--safe-top, 0px) + 0.25rem)',
-            filter: 'drop-shadow(0 1px 3px rgba(0,0,0,0.4)) drop-shadow(0 0 8px rgba(0,0,0,0.15))',
-          }}
-          aria-label="Open admin menu"
-        >
-          <Menu size={22} />
-        </button>
+        {/* Mobile drawer + hamburger removed — handled by UnifiedSidebar in AppShell */}
 
         {/* Main content */}
         <div ref={scrollRef} className={cn(

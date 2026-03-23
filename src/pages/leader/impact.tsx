@@ -1,10 +1,10 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import {
     TreePine,
-    Waves,
     Clock,
-    Eye,
-    Leaf,
+    Trash2,
+    Sprout,
+    GraduationCap,
     MapPin,
     Users,
     CalendarDays,
@@ -32,10 +32,10 @@ function useCollectiveFullStats(collectiveId: string | undefined) {
 
       const now = new Date()
 
-      const [impactRes, membersRes, eventsRes, pastEventsRes] = await Promise.all([
+      const [impactRes, membersRes, eventsRes, pastEventsRes, cleanupRes] = await Promise.all([
         supabase
           .from('event_impact')
-          .select('trees_planted, hours_total, rubbish_kg, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings, events!inner(collective_id)')
+          .select('trees_planted, hours_total, rubbish_kg, invasive_weeds_pulled, leaders_trained, events!inner(collective_id)')
           .eq('events.collective_id' as any, collectiveId),
         supabase
           .from('collective_members')
@@ -50,12 +50,19 @@ function useCollectiveFullStats(collectiveId: string | undefined) {
           .select('id')
           .eq('collective_id', collectiveId)
           .lt('date_start', now.toISOString()),
+        supabase
+          .from('events')
+          .select('id', { count: 'exact', head: true })
+          .eq('collective_id', collectiveId)
+          .in('activity_type', ['shore_cleanup', 'marine_restoration'] as any)
+          .lt('date_start', now.toISOString()),
       ])
 
       const rows = (impactRes.data ?? []) as any[]
       const eventIds = (pastEventsRes.data ?? []).map((e: any) => e.id)
 
       let attendanceRate = 0
+      let attendanceCount = 0
       if (eventIds.length > 0) {
         const { count: totalReg } = await supabase
           .from('event_registrations')
@@ -67,19 +74,22 @@ function useCollectiveFullStats(collectiveId: string | undefined) {
           .select('id', { count: 'exact', head: true })
           .in('event_id', eventIds)
           .eq('status', 'attended')
+        attendanceCount = totalAttended ?? 0
         if (totalReg && totalReg > 0) {
           attendanceRate = Math.round(((totalAttended ?? 0) / totalReg) * 100)
         }
       }
 
       return {
-        trees: rows.reduce((s, r) => s + (r.trees_planted ?? 0), 0),
-        hours: Math.round(rows.reduce((s, r) => s + (r.hours_total ?? 0), 0)),
-        rubbish: Math.round(rows.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0) * 10) / 10,
-        coastline: Math.round(rows.reduce((s, r) => s + (r.coastline_cleaned_m ?? 0), 0)),
-        area: Math.round(rows.reduce((s, r) => s + (r.area_restored_sqm ?? 0), 0)),
-        plants: rows.reduce((s, r) => s + (r.native_plants ?? 0), 0),
-        wildlife: rows.reduce((s, r) => s + (r.wildlife_sightings ?? 0), 0),
+        // Canonical metrics
+        eventsAttended: attendanceCount,
+        volunteerHours: Math.round(rows.reduce((s, r) => s + (r.hours_total ?? 0), 0)),
+        treesPlanted: rows.reduce((s, r) => s + (r.trees_planted ?? 0), 0),
+        invasiveWeedsPulled: rows.reduce((s, r) => s + (r.invasive_weeds_pulled ?? 0), 0),
+        rubbishKg: Math.round(rows.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0) * 10) / 10,
+        cleanupEventsHeld: cleanupRes.count ?? 0,
+        leadersTrainedCount: rows.reduce((s, r) => s + (r.leaders_trained ?? 0), 0),
+        // Collective overview
         eventsLogged: rows.length,
         totalMembers: membersRes.count ?? 0,
         totalEvents: eventsRes.count ?? 0,
@@ -112,19 +122,12 @@ const fadeUp = {
 function DecoShapes() {
   return (
     <>
-      {/* Large breathing ring — CSS-only GPU compositing */}
       <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-moss-300/25 animate-[breatheWide_8s_ease-in-out_infinite]" />
-      {/* Concentric inner ring */}
       <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-primary-200/18 animate-[breatheWide_6s_ease-in-out_1s_infinite]" />
-      {/* Medium ring - left side */}
       <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-sprout-300/22 animate-[breatheWide_7s_ease-in-out_2s_infinite]" />
-      {/* Small ring - bottom right — gentle spin */}
       <div className="absolute bottom-[18%] right-2 w-32 h-32 rounded-full border-2 border-moss-300/18 animate-[gentleSpin_50s_linear_infinite]" />
-      {/* Deep warm glow — static blur, CSS breathe on wrapper */}
       <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-100/18 to-transparent opacity-30" />
-      {/* Bottom gradient pool */}
       <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-200/17 to-transparent opacity-30" />
-      {/* Floating particles — CSS-only */}
       <div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-moss-400/18 animate-[float_5s_ease-in-out_infinite]" />
       <div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-sprout-400/15 animate-[floatDown_4.5s_ease-in-out_1.5s_infinite]" />
       <div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-moss-400/15 animate-[float_4s_ease-in-out_0.5s_infinite]" />
@@ -220,7 +223,6 @@ export default function LeaderImpactPage() {
         <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
         <DecoShapes />
         <div className="relative z-10 px-6 pt-14 space-y-5 pb-20">
-          {/* Hero skeleton */}
           <div className="text-center pb-1">
             <Skeleton className="h-3 w-28 mx-auto mb-2" />
             <Skeleton className="h-8 w-24 mx-auto" />
@@ -251,38 +253,32 @@ export default function LeaderImpactPage() {
     )
   }
 
-  // Build cards list - only show cards with data
+  // Build canonical impact cards - only show with data
   const impactCards = [
-    { value: stats.trees, label: 'Trees Planted', icon: <TreePine />, gradient: 'bg-gradient-to-br from-moss-500 to-moss-700' },
-    { value: stats.hours, label: 'Volunteer Hours', unit: 'hrs', icon: <Clock />, gradient: 'bg-gradient-to-br from-primary-500 to-primary-700' },
-    { value: stats.rubbish, label: 'Rubbish Collected', unit: 'kg', icon: <Waves />, gradient: 'bg-gradient-to-br from-bark-500 to-bark-700' },
-    { value: stats.coastline, label: 'Coastline Cleaned', unit: 'm', icon: <Waves />, gradient: 'bg-gradient-to-br from-sky-500 to-sky-700' },
-    { value: stats.area, label: 'Area Restored', unit: 'm²', icon: <MapPin />, gradient: 'bg-gradient-to-br from-secondary-500 to-secondary-700' },
-    { value: stats.plants, label: 'Native Plants', icon: <Leaf />, gradient: 'bg-gradient-to-br from-moss-600 to-primary-700' },
-    { value: stats.wildlife, label: 'Wildlife Sightings', icon: <Eye />, gradient: 'bg-gradient-to-br from-bark-600 to-bark-800' },
+    { value: stats.eventsAttended, label: 'Event Attendances', icon: <CalendarDays />, gradient: 'bg-gradient-to-br from-primary-500 to-primary-700' },
+    { value: stats.volunteerHours, label: 'Volunteer Hours', unit: 'hrs', icon: <Clock />, gradient: 'bg-gradient-to-br from-primary-500 to-primary-700' },
+    { value: stats.treesPlanted, label: 'Trees Planted', icon: <TreePine />, gradient: 'bg-gradient-to-br from-moss-500 to-moss-700' },
+    { value: stats.invasiveWeedsPulled, label: 'Invasive Weeds Pulled', icon: <Sprout />, gradient: 'bg-gradient-to-br from-plum-500 to-plum-700' },
+    { value: stats.rubbishKg, label: 'Rubbish Collected', unit: 'kg', icon: <Trash2 />, gradient: 'bg-gradient-to-br from-bark-500 to-bark-700' },
+    { value: stats.cleanupEventsHeld, label: 'Cleanup Events Held', icon: <Trash2 />, gradient: 'bg-gradient-to-br from-sky-500 to-sky-700' },
+    { value: stats.leadersTrainedCount, label: 'Leaders Trained', icon: <GraduationCap />, gradient: 'bg-gradient-to-br from-bark-600 to-bark-800' },
   ].filter((c) => c.value > 0)
 
   const hasAnyImpact = impactCards.length > 0
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
-      {/* Full-bleed gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/55 via-primary-100/30 via-25% to-moss-50/20 to-60%" />
-
-      {/* Animated decorative shapes */}
       <DecoShapes />
-
-      {/* Top hero glow */}
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-300/24 via-primary-200/15 to-transparent opacity-30" />
 
-      {/* Content */}
       <motion.div
         className="relative z-10 px-6 pt-14 space-y-5 pb-20"
         variants={rm ? undefined : stagger}
         initial="hidden"
         animate="visible"
       >
-        {/* Hero eyebrow */}
+        {/* Hero */}
         <motion.div
           variants={rm ? undefined : fadeUp}
           className="flex flex-col items-center justify-center text-center pb-2"
@@ -331,7 +327,7 @@ export default function LeaderImpactPage() {
           </div>
         </div>
 
-        {/* Environmental impact */}
+        {/* Environmental impact - canonical metrics */}
         {hasAnyImpact && (
           <div>
             <motion.p

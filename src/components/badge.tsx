@@ -6,14 +6,15 @@ import { cn } from '@/lib/cn'
 /* ------------------------------------------------------------------ */
 
 const activityStyles = {
+  'shore-cleanup': 'bg-sky-100 text-sky-800',
   'tree-planting': 'bg-success-100 text-success-800',
-  'beach-cleanup': 'bg-sky-100 text-sky-800',
-  habitat: 'bg-primary-100 text-primary-800',
-  wildlife: 'bg-bark-100 text-bark-800',
-  education: 'bg-plum-100 text-plum-800',
-  fundraising: 'bg-coral-100 text-coral-800',
-  monitoring: 'bg-moss-100 text-moss-800',
-  restoration: 'bg-sprout-100 text-sprout-800',
+  'land-regeneration': 'bg-sprout-100 text-sprout-800',
+  'nature-walk': 'bg-bark-100 text-bark-800',
+  'camp-out': 'bg-moss-100 text-moss-800',
+  retreat: 'bg-plum-100 text-plum-800',
+  'film-screening': 'bg-coral-100 text-coral-800',
+  'marine-restoration': 'bg-primary-100 text-primary-800',
+  workshop: 'bg-warning-100 text-warning-800',
 } as const
 
 /* ------------------------------------------------------------------ */

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from 'react'
 
 interface MenuSheetContextValue {
   open: boolean
@@ -16,8 +16,13 @@ export function MenuSheetProvider({ children }: { children: ReactNode }) {
   const closeMenu = useCallback(() => setOpen(false), [])
   const toggleMenu = useCallback(() => setOpen((p) => !p), [])
 
+  const value = useMemo(
+    () => ({ open, openMenu, closeMenu, toggleMenu }),
+    [open, openMenu, closeMenu, toggleMenu],
+  )
+
   return (
-    <MenuSheetContext.Provider value={{ open, openMenu, closeMenu, toggleMenu }}>
+    <MenuSheetContext.Provider value={value}>
       {children}
     </MenuSheetContext.Provider>
   )

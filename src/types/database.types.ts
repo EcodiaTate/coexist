@@ -367,6 +367,8 @@ export type Database = {
           area_restored_sqm: number
           native_plants: number
           wildlife_sightings: number
+          invasive_weeds_pulled: number
+          leaders_trained: number
           custom_metrics: Json
           notes: string | null
           logged_at: string
@@ -382,6 +384,8 @@ export type Database = {
           area_restored_sqm?: number
           native_plants?: number
           wildlife_sightings?: number
+          invasive_weeds_pulled?: number
+          leaders_trained?: number
           custom_metrics?: Json
           notes?: string | null
           logged_at?: string
@@ -397,6 +401,8 @@ export type Database = {
           area_restored_sqm?: number
           native_plants?: number
           wildlife_sightings?: number
+          invasive_weeds_pulled?: number
+          leaders_trained?: number
           custom_metrics?: Json
           notes?: string | null
           logged_at?: string
@@ -1851,17 +1857,15 @@ export type Database = {
     }
     Enums: {
       activity_type:
+        | 'shore_cleanup'
         | 'tree_planting'
-        | 'beach_cleanup'
-        | 'habitat_restoration'
+        | 'land_regeneration'
         | 'nature_walk'
-        | 'education'
-        | 'wildlife_survey'
-        | 'seed_collecting'
-        | 'weed_removal'
-        | 'waterway_cleanup'
-        | 'community_garden'
-        | 'other'
+        | 'camp_out'
+        | 'retreat'
+        | 'film_screening'
+        | 'marine_restoration'
+        | 'workshop'
       user_role:
         | 'participant'
         | 'national_staff'

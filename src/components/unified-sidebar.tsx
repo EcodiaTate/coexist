@@ -1,22 +1,16 @@
-import { useState, useRef, useMemo, useEffect, useCallback, type ReactNode } from 'react'
+import { useState, useRef, useMemo, useEffect, useCallback, memo, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Home,
-  Compass,
   CalendarDays,
   Users,
   BarChart3,
   Settings,
   Shield,
-  TrendingUp,
   Trophy,
   ShoppingBag,
   Heart,
-  Crown,
-  MessageCircle,
-  Bell,
   Megaphone,
   PanelLeftClose,
   LayoutDashboard,
@@ -34,21 +28,17 @@ import {
   Send,
   TreePine,
   Leaf,
-  Star,
-  Share2,
-  Gift,
   X,
   ChevronRight,
+  Home,
+  MessageCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { APP_NAME } from '@/lib/constants'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollective } from '@/hooks/use-collective'
 import { useLayout } from '@/hooks/use-layout'
-import { usePointsBalance, getTierFromPoints } from '@/hooks/use-points'
-import type { TierName } from '@/hooks/use-points'
 import { Avatar } from '@/components/avatar'
-import { Badge } from '@/components/badge'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -62,6 +52,8 @@ interface NavItem {
   superAdminOnly?: boolean
   /** Only show on mobile sidebar (not desktop) */
   mobileOnly?: boolean
+  /** Only show on desktop sidebar (not mobile) */
+  desktopOnly?: boolean
 }
 
 interface NavCategory {
@@ -82,18 +74,6 @@ const EXPANDED_WIDTH = 'w-[240px]'
 const COLLAPSED_WIDTH = 'w-[60px]'
 
 /* ------------------------------------------------------------------ */
-/*  Tier labels                                                        */
-/* ------------------------------------------------------------------ */
-
-const tierLabels: Record<TierName, string> = {
-  new: 'New',
-  active: 'Active',
-  committed: 'Committed',
-  dedicated: 'Dedicated',
-  lifetime: 'Lifetime',
-}
-
-/* ------------------------------------------------------------------ */
 /*  Nav definitions                                                    */
 /* ------------------------------------------------------------------ */
 
@@ -101,39 +81,20 @@ const mainNavCategories: NavCategory[] = [
   {
     label: 'Main',
     items: [
-      { label: 'Home', path: '/', icon: <Home size={17} strokeWidth={1.5} /> },
-      { label: 'My Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
-      { label: 'Community', path: '/community', icon: <Users size={17} strokeWidth={1.5} /> },
-      { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} /> },
-      { label: 'Notifications', path: '/notifications', icon: <Bell size={17} strokeWidth={1.5} /> },
+      { label: 'Home', path: '/', icon: <Home size={17} strokeWidth={1.5} />, desktopOnly: true },
+      { label: 'Updates', path: '/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> },
+      { label: 'Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
+      { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true },
     ],
   },
   {
-    label: 'Activity',
+    label: 'Support',
     items: [
-      { label: 'Impact', path: '/impact', icon: <TrendingUp size={17} strokeWidth={1.5} /> },
-      { label: 'Leaderboard', path: '/leaderboard', icon: <Trophy size={17} strokeWidth={1.5} /> },
-      { label: 'Points History', path: '/points', icon: <Star size={17} strokeWidth={1.5} />, mobileOnly: true },
-      { label: 'National Impact', path: '/impact/national', icon: <MapPin size={17} strokeWidth={1.5} />, mobileOnly: true },
-    ],
-  },
-  {
-    label: 'Discover',
-    items: [
-      { label: 'Explore', path: '/explore', icon: <Compass size={17} strokeWidth={1.5} /> },
-      { label: 'Announcements', path: '/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> },
-      { label: 'Membership', path: '/membership', icon: <Crown size={17} strokeWidth={1.5} /> },
       { label: 'Shop', path: '/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} /> },
       { label: 'Donate', path: '/donate', icon: <Heart size={17} strokeWidth={1.5} /> },
-      { label: 'Partner Offers', path: '/shop', icon: <Gift size={17} strokeWidth={1.5} />, mobileOnly: true },
-    ],
-  },
-  {
-    label: 'Community',
-    mobileOnly: true,
-    items: [
-      { label: 'Collectives', path: '/collectives', icon: <Users size={17} strokeWidth={1.5} />, mobileOnly: true },
-      { label: 'Invite Friends', path: '/referral', icon: <Share2 size={17} strokeWidth={1.5} />, mobileOnly: true },
+      { label: 'Leadership Opportunities', path: '/leadership', icon: <Users size={17} strokeWidth={1.5} /> },
+      { label: 'Our Partners', path: '/partners', icon: <Handshake size={17} strokeWidth={1.5} /> },
+      { label: 'Contact Us', path: '/contact', icon: <Mail size={17} strokeWidth={1.5} /> },
     ],
   },
 ]
@@ -554,7 +515,7 @@ function SidebarNavList({
     .filter((cat) => isMobileMode || !cat.mobileOnly)
     .map((cat) => ({
       ...cat,
-      items: cat.items.filter((item) => isMobileMode || !item.mobileOnly),
+      items: cat.items.filter((item) => (isMobileMode || !item.mobileOnly) && (!isMobileMode || !item.desktopOnly)),
     }))
     .filter((cat) => cat.items.length > 0)
 
@@ -706,10 +667,6 @@ function SidebarNavList({
 
 function MobileProfileCard({ onNavigate }: { onNavigate: (path: string) => void }) {
   const { profile } = useAuth()
-  const { data: pointsData } = usePointsBalance()
-
-  const points = pointsData?.points ?? profile?.points ?? 0
-  const tier = getTierFromPoints(points) as TierName
 
   return (
     <button
@@ -729,21 +686,11 @@ function MobileProfileCard({ onNavigate }: { onNavigate: (path: string) => void 
         src={profile?.avatar_url}
         name={profile?.display_name ?? ''}
         size="lg"
-        tier={tier}
       />
       <div className="flex-1 min-w-0">
         <p className="font-heading text-[17px] font-bold text-primary-900 truncate leading-tight">
           {profile?.display_name}
         </p>
-        <div className="flex items-center gap-2 mt-1.5">
-          <Badge variant="tier" tier={tier} size="sm">
-            {tierLabels[tier]}
-          </Badge>
-          <span className="flex items-center gap-0.5 text-[11px] font-medium text-primary-400">
-            <Star size={10} fill="currentColor" className="text-primary-300" />
-            {points.toLocaleString()}
-          </span>
-        </div>
       </div>
       <ChevronRight
         size={16}
@@ -1273,14 +1220,8 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
   const allSuiteCategories = useMemo(() => {
     const result: Record<Suite, NavCategory[]> = { main: [], admin: [], leader: [] }
 
-    // Main
-    const managementItems: NavItem[] = isStaff
-      ? [{ label: 'Settings', path: '/settings', icon: <Settings size={17} strokeWidth={1.5} /> }]
-      : []
-    result.main = [
-      ...mainNavCategories,
-      ...(managementItems.length > 0 ? [{ label: 'Management', items: managementItems }] : []),
-    ]
+    // Main — Settings is in the sticky footer, no need for duplicate
+    result.main = [...mainNavCategories]
 
     // Admin (if accessible)
     if (isStaff) {
@@ -1312,6 +1253,14 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
   const reduced = !!shouldReduceMotion
   const isMobileMode = navMode === 'bottom-tabs'
 
+  // Local suite state for desktop — must be declared before any early returns
+  const [desktopSuite, setDesktopSuite] = useState<Suite>(suite)
+
+  // Sync local suite when the URL-derived suite changes
+  useEffect(() => {
+    setDesktopSuite(suite)
+  }, [suite])
+
   // ── Mobile mode: render overlay sidebar ──
   if (isMobileMode) {
     return (
@@ -1330,14 +1279,6 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
   }
 
   // ── Desktop mode: permanent left sidebar ──
-
-  // Local suite state — lets user switch views in-place (same as mobile)
-  const [desktopSuite, setDesktopSuite] = useState<Suite>(suite)
-
-  // Sync local suite when the URL-derived suite changes
-  useEffect(() => {
-    setDesktopSuite(suite)
-  }, [suite])
 
   const dAccent = getAccentClasses(desktopSuite)
 

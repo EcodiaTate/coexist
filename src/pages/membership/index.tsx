@@ -20,8 +20,6 @@ import { Skeleton } from '@/components/skeleton'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useProfile } from '@/hooks/use-profile'
-import { usePointsBalance, getTierFromPoints } from '@/hooks/use-points'
-import type { TierName } from '@/hooks/use-points'
 import {
     useMembershipPlans,
     useMyMembership,
@@ -157,7 +155,6 @@ export default function MembershipPage() {
   const { toast } = useToast()
 
   const { data: profile, isLoading: profileLoading } = useProfile()
-  const { data: pointsData } = usePointsBalance()
   const { data: plans, isLoading: plansLoading } = useMembershipPlans()
   const { data: membership, isLoading: membershipLoading } = useMyMembership()
   const { data: rewards, isLoading: rewardsLoading } = useMembershipRewards()
@@ -165,8 +162,6 @@ export default function MembershipPage() {
 
   const [interval, setInterval] = useState<MembershipPlanInterval>('monthly')
 
-  const points = pointsData?.points ?? profile?.points ?? 0
-  const tier = getTierFromPoints(points) as TierName
   const memberSince = profile
     ? new Date(profile.created_at).toLocaleDateString('en-AU', { month: 'long', year: 'numeric' })
     : ''
@@ -336,7 +331,7 @@ export default function MembershipPage() {
                   name={profile.display_name ?? ''}
                   memberId={profile.id.substring(0, 8).toUpperCase()}
                   userId={profile.id}
-                  tier={tier}
+                  tier="new"
                   memberSince={memberSince}
                   avatarUrl={profile.avatar_url}
                 />

@@ -130,17 +130,15 @@ const SCHEDULE_ICONS: Record<string, typeof Calendar> = {
 
 const ACTIVITY_TYPE_OPTIONS = [
   { value: '', label: 'Any event type' },
+  { value: 'shore_cleanup', label: 'Shore Cleanup' },
   { value: 'tree_planting', label: 'Tree Planting' },
-  { value: 'beach_cleanup', label: 'Beach Cleanup' },
-  { value: 'habitat_restoration', label: 'Habitat Restoration' },
-  { value: 'nature_walk', label: 'Nature Walk' },
-  { value: 'education', label: 'Education' },
-  { value: 'wildlife_survey', label: 'Wildlife Survey' },
-  { value: 'seed_collecting', label: 'Seed Collecting' },
-  { value: 'weed_removal', label: 'Weed Removal' },
-  { value: 'waterway_cleanup', label: 'Waterway Cleanup' },
-  { value: 'community_garden', label: 'Community Garden' },
-  { value: 'other', label: 'Other' },
+  { value: 'land_regeneration', label: 'Land Regeneration' },
+  { value: 'nature_walk', label: 'Nature Walks' },
+  { value: 'camp_out', label: 'Camp Out' },
+  { value: 'retreat', label: 'Retreats' },
+  { value: 'film_screening', label: 'Film Screening' },
+  { value: 'marine_restoration', label: 'Marine Restoration' },
+  { value: 'workshop', label: 'Workshop' },
 ]
 
 const ANCHOR_OPTIONS: { value: TimelineAnchor; label: string; description: string }[] = [

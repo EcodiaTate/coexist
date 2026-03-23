@@ -1,6 +1,6 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { MessageCircle, Users, ChevronRight, Lock, Globe, MapPin, Leaf, MessagesSquare } from 'lucide-react'
 import { Page } from '@/components/page'
@@ -15,6 +15,16 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 /* ------------------------------------------------------------------ */
 /*  Staff channel type config                                          */
 /* ------------------------------------------------------------------ */
+
+const ROLE_RANK: Record<string, number> = {
+  member: 0,
+  assist_leader: 1,
+  co_leader: 2,
+  leader: 3,
+}
+
+/** Session-level flag — redirect to primary chat only once per session */
+let hasRedirectedThisSession = false
 
 const CHANNEL_TYPE_CONFIG: Record<string, {
   icon: typeof Globe
@@ -328,12 +338,33 @@ function SectionDivider({ icon: Icon, label }: { icon: typeof Lock; label: strin
 
 export default function ChatListPage() {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { data: myCollectives, isLoading } = useMyCollectives()
   const { data: unreadCounts = {} } = useUnreadCounts()
   const { data: staffChannels, isLoading: channelsLoading } = useMyStaffChannels()
   const { data: channelUnreads = {} } = useChannelUnreadCounts()
   const showLoading = useDelayedLoading(isLoading && channelsLoading)
+
+  // Auto-redirect to primary collective chat (once per session)
+  useEffect(() => {
+    if (hasRedirectedThisSession) return
+    if (isLoading || !myCollectives?.length) return
+
+    // Pick primary collective: highest role, then earliest join
+    const sorted = [...myCollectives].sort((a, b) => {
+      const rankA = ROLE_RANK[a.role] ?? 0
+      const rankB = ROLE_RANK[b.role] ?? 0
+      if (rankB !== rankA) return rankB - rankA
+      return new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime()
+    })
+
+    const primaryId = sorted[0]?.collective_id
+    if (primaryId) {
+      hasRedirectedThisSession = true
+      navigate(`/chat/${primaryId}`, { replace: true })
+    }
+  }, [isLoading, myCollectives, navigate])
 
   const handleRefresh = useCallback(async () => {
     await Promise.all([

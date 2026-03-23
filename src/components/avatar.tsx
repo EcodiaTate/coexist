@@ -6,14 +6,12 @@ import { cn } from '@/lib/cn'
 /* ------------------------------------------------------------------ */
 
 type AvatarSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-type Tier = 'new' | 'active' | 'committed' | 'dedicated' | 'lifetime'
 
 export interface AvatarProps {
   src?: string | null
   name?: string | null
   size?: AvatarSize
   online?: boolean
-  tier?: Tier
   loading?: boolean
   className?: string
   'aria-label'?: string
@@ -29,18 +27,6 @@ const sizeMap: Record<AvatarSize, { px: number; text: string; dot: string; ring:
   md: { px: 40, text: 'text-sm', dot: 'w-3 h-3 ring-2', ring: 'ring-2' },
   lg: { px: 56, text: 'text-base', dot: 'w-3.5 h-3.5 ring-2', ring: 'ring-[3px]' },
   xl: { px: 80, text: 'text-xl', dot: 'w-4 h-4 ring-2', ring: 'ring-[3px]' },
-}
-
-/* ------------------------------------------------------------------ */
-/*  Tier ring colors                                                   */
-/* ------------------------------------------------------------------ */
-
-const tierRingColor: Record<Tier, string> = {
-  new: 'ring-moss-400',
-  active: 'ring-moss-500',
-  committed: 'ring-moss-600',
-  dedicated: 'ring-primary-500',
-  lifetime: 'ring-warning-500',
 }
 
 /* ------------------------------------------------------------------ */
@@ -63,7 +49,6 @@ export function Avatar({
   name,
   size = 'md',
   online,
-  tier,
   loading = false,
   className,
   'aria-label': ariaLabel,

@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { lazy, Suspense, useState, useCallback, useEffect } from 'react'
 import { RequireAuth, RequireRole } from '@/components/route-guard'
 import { AppShell } from '@/components/app-shell'
@@ -41,7 +41,6 @@ const WelcomeBackPage = lazy(() => import('@/pages/onboarding/welcome-back'))
 
 // Main app
 const HomePage = lazy(() => import('@/pages/home'))
-const ExplorePage = lazy(() => import('@/pages/explore'))
 
 // Collectives
 const CollectiveDetailPage = lazy(() => import('@/pages/collectives/collective-detail'))
@@ -59,17 +58,15 @@ const TasksPage = lazy(() => import('@/pages/tasks/index'))
 // Settings
 const SettingsPage = lazy(() => import('@/pages/settings/index'))
 
-// Profile, Impact, Gamification
+// Profile, Impact
 const ProfilePage = lazy(() => import('@/pages/profile/index'))
 const ViewProfilePage = lazy(() => import('@/pages/profile/view-profile'))
 const EditProfilePage = lazy(() => import('@/pages/profile/edit-profile'))
-const ImpactDashboardPage = lazy(() => import('@/pages/impact/index'))
-const LeaderboardPage = lazy(() => import('@/pages/leaderboard/index'))
-const PointsPage = lazy(() => import('@/pages/points/index'))
+
 const ReferralPage = lazy(() => import('@/pages/referral/index'))
 
 // Events
-const MyEventsPage = lazy(() => import('@/pages/events/index'))
+const EventsPage = lazy(() => import('@/pages/events/index'))
 const EventDetailPage = lazy(() => import('@/pages/events/event-detail'))
 const CreateEventPage = lazy(() => import('@/pages/events/create-event'))
 const CheckInPage = lazy(() => import('@/pages/events/check-in'))
@@ -78,9 +75,6 @@ const LogImpactPage = lazy(() => import('@/pages/events/log-impact'))
 const PostEventSurveyPage = lazy(() => import('@/pages/events/post-event-survey'))
 const EditEventPage = lazy(() => import('@/pages/events/edit-event'))
 
-// Community / Feed
-const FeedPage = lazy(() => import('@/pages/community/feed'))
-const CreatePostPage = lazy(() => import('@/pages/community/create-post'))
 
 // Notifications
 const NotificationsPage = lazy(() => import('@/pages/notifications/index'))
@@ -136,6 +130,11 @@ const DevToolsPage = lazy(() => import('@/pages/admin/dev-tools'))
 
 // More (hub page)
 const MorePage = lazy(() => import('@/pages/more'))
+
+// Contact, Partners, Leadership
+const ContactPage = lazy(() => import('@/pages/contact'))
+const PartnersPage = lazy(() => import('@/pages/partners'))
+const LeadershipPage = lazy(() => import('@/pages/leadership'))
 
 // Leader Dashboard & sub-pages
 const LeaderDashboardPage = lazy(() => import('@/pages/leader/index'))
@@ -319,8 +318,7 @@ function App() {
 
           {/* ---- Member pages (with PageTransition) ---- */}
           <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
-          <Route path="/explore" element={<PageTransition><ExplorePage /></PageTransition>} />
-          <Route path="/events" element={<PageTransition><MyEventsPage /></PageTransition>} />
+          <Route path="/events" element={<PageTransition><EventsPage /></PageTransition>} />
           <Route path="/events/create" element={<PageTransition><CreateEventPage /></PageTransition>} />
           <Route path="/events/:id" element={<PageTransition><EventDetailPage /></PageTransition>} />
           <Route path="/events/:id/check-in" element={<PageTransition><CheckInPage /></PageTransition>} />
@@ -328,8 +326,6 @@ function App() {
           <Route path="/events/:id/impact" element={<PageTransition><LogImpactPage /></PageTransition>} />
           <Route path="/events/:id/survey" element={<PageTransition><PostEventSurveyPage /></PageTransition>} />
           <Route path="/events/:id/edit" element={<PageTransition><EditEventPage /></PageTransition>} />
-          <Route path="/community" element={<PageTransition><FeedPage /></PageTransition>} />
-          <Route path="/community/create-post" element={<PageTransition><CreatePostPage /></PageTransition>} />
           <Route path="/collectives" element={<PageTransition><DiscoverCollectivesPage /></PageTransition>} />
           <Route path="/collectives/:slug" element={<PageTransition><CollectiveDetailPage /></PageTransition>} />
           <Route path="/collectives/:slug/manage" element={<PageTransition><CollectiveManagePage /></PageTransition>} />
@@ -340,15 +336,16 @@ function App() {
           <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
           <Route path="/profile/edit" element={<PageTransition><EditProfilePage /></PageTransition>} />
           <Route path="/profile/:userId" element={<PageTransition><ViewProfilePage /></PageTransition>} />
-          <Route path="/impact" element={<PageTransition><ImpactDashboardPage /></PageTransition>} />
-          <Route path="/leaderboard" element={<PageTransition><LeaderboardPage /></PageTransition>} />
-          <Route path="/points" element={<PageTransition><PointsPage /></PageTransition>} />
+          <Route path="/impact" element={<Navigate to="/profile" replace />} />
           <Route path="/referral" element={<PageTransition><ReferralPage /></PageTransition>} />
           <Route path="/notifications" element={<PageTransition><NotificationsPage /></PageTransition>} />
           <Route path="/announcements" element={<PageTransition><AnnouncementsPage /></PageTransition>} />
           <Route path="/announcements/create" element={<RequireRole minRole="national_staff"><PageTransition><CreateAnnouncementPage /></PageTransition></RequireRole>} />
           <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
           <Route path="/more" element={<PageTransition><MorePage /></PageTransition>} />
+          <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
+          <Route path="/partners" element={<PageTransition><PartnersPage /></PageTransition>} />
+          <Route path="/leadership" element={<PageTransition><LeadershipPage /></PageTransition>} />
           <Route path="/membership" element={<PageTransition><MembershipPage /></PageTransition>} />
           <Route path="/donate" element={<PageTransition><DonatePage /></PageTransition>} />
           <Route path="/donate/thank-you" element={<PageTransition><DonateThankYouPage /></PageTransition>} />

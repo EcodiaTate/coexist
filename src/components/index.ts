@@ -66,7 +66,6 @@ export { PageTransition } from './page-transition'
 // Animation & Delight
 export { Confetti } from './confetti'
 export { Celebration } from './celebration'
-export { PointsFlyUp } from './points-fly-up'
 export { NatureLoader } from './nature-loader'
 export { SeasonalParticles } from './seasonal-particles'
 export { DonationThermometer } from './donation-thermometer'

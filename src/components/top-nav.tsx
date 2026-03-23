@@ -9,9 +9,8 @@ import { APP_NAME } from '@/lib/constants'
 
 const navLinks = [
   { label: 'Home', path: '/' },
-  { label: 'Explore', path: '/explore' },
   { label: 'Events', path: '/events' },
-  { label: 'Community', path: '/community' },
+  { label: 'Collectives', path: '/collectives' },
 ]
 
 interface TopNavProps {
@@ -202,7 +201,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                   <DropdownItem
                     icon={<TrendingUp size={16} />}
                     label="My Impact"
-                    onClick={() => navigate('/impact')}
+                    onClick={() => navigate('/profile')}
                   />
                   <DropdownItem
                     icon={<ShoppingBag size={16} />}

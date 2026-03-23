@@ -186,7 +186,7 @@ export default function DonateThankYouPage() {
                   label: 'Find an Event',
                   description: 'Put your donation into action',
                   icon: <Calendar size={18} />,
-                  to: '/explore',
+                  to: '/events',
                 },
                 {
                   label: 'View Donor Wall',
@@ -198,7 +198,7 @@ export default function DonateThankYouPage() {
                   label: 'View Your Impact',
                   description: 'See how your contributions add up',
                   icon: <Trophy size={18} />,
-                  to: '/impact',
+                  to: '/profile',
                 },
               ]}
             />

@@ -20,9 +20,12 @@ import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
 import { TabBar } from '@/components/tab-bar'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
+import { Toggle } from '@/components/toggle'
+import { Input } from '@/components/input'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { logAudit } from '@/lib/audit'
+import { useAutoSurveyConfig, useUpdateAutoSurveyConfig } from '@/hooks/use-auto-survey'
 
 /* ------------------------------------------------------------------ */
 /*  Templates (shared with create page via index param)                */
@@ -90,6 +93,7 @@ const tabs = [
   { id: 'surveys', label: 'Surveys', icon: <ClipboardList size={14} /> },
   { id: 'templates', label: 'Templates', icon: <Copy size={14} /> },
   { id: 'results', label: 'Results', icon: <BarChart3 size={14} /> },
+  { id: 'settings', label: 'Auto-Survey', icon: <ClipboardList size={14} /> },
 ]
 
 export default function AdminSurveysPage() {
@@ -103,6 +107,8 @@ export default function AdminSurveysPage() {
   const { data: surveys, isLoading } = useSurveys()
   const showLoading = useDelayedLoading(isLoading)
   const { data: results } = useSurveyResults(selectedSurvey)
+  const { data: autoConfig } = useAutoSurveyConfig()
+  const updateAutoConfig = useUpdateAutoSurveyConfig()
 
   const heroStats = useMemo(() => (
     <div className="flex items-center gap-3">
@@ -316,6 +322,81 @@ export default function AdminSurveysPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Auto-Survey Settings */}
+      {activeTab === 'settings' && autoConfig && (
+        <motion.div variants={fadeUp} className="space-y-4">
+          <div className="p-5 rounded-xl bg-white shadow-sm space-y-5">
+            <div>
+              <h3 className="font-heading text-sm font-semibold text-primary-800 mb-1">
+                Automated Post-Event Surveys
+              </h3>
+              <p className="text-xs text-primary-400">
+                Automatically prompt attendees to complete a feedback survey after events conclude.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="text-sm font-medium text-primary-800">Enable auto-surveys</p>
+                <p className="text-xs text-primary-400 mt-0.5">
+                  Send survey notifications to checked-in attendees when impact is logged
+                </p>
+              </div>
+              <Toggle
+                checked={autoConfig.enabled}
+                onChange={(enabled) =>
+                  updateAutoConfig.mutate({ ...autoConfig, enabled })
+                }
+              />
+            </div>
+
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="text-sm font-medium text-primary-800">Use default questions</p>
+                <p className="text-xs text-primary-400 mt-0.5">
+                  Use activity-type-specific template questions for each event
+                </p>
+              </div>
+              <Toggle
+                checked={autoConfig.default_questions_enabled}
+                onChange={(default_questions_enabled) =>
+                  updateAutoConfig.mutate({ ...autoConfig, default_questions_enabled })
+                }
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-primary-800">
+                Survey window (hours)
+              </label>
+              <p className="text-xs text-primary-400">
+                How long after event completion the survey banner appears for attendees
+              </p>
+              <Input
+                type="number"
+                min="1"
+                max="168"
+                value={String(autoConfig.delay_hours)}
+                onChange={(e) =>
+                  updateAutoConfig.mutate({
+                    ...autoConfig,
+                    delay_hours: Math.max(1, Math.min(168, Number(e.target.value) || 24)),
+                  })
+                }
+                className="max-w-[120px]"
+              />
+            </div>
+          </div>
+
+          <div className="p-4 rounded-xl bg-primary-50/60 border border-primary-100/40">
+            <p className="text-xs text-primary-500">
+              When an event leader logs impact data, checked-in attendees will receive an in-app notification
+              linking to the post-event survey. A banner also appears on their home screen for up to 7 days.
+            </p>
+          </div>
+        </motion.div>
       )}
 
       <ConfirmationSheet

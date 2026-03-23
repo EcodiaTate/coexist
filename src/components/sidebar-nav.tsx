@@ -1,20 +1,18 @@
 import { Link, useLocation } from 'react-router-dom'
 import {
-  Home,
-  Compass,
   CalendarDays,
-  Users,
   BarChart3,
   Settings,
   Shield,
-  TrendingUp,
-  Trophy,
   ShoppingBag,
   Heart,
-  Crown,
-  MessageCircle,
   Bell,
   Megaphone,
+  Mail,
+  Handshake,
+  Users,
+  Home,
+  MessageCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -25,28 +23,21 @@ const mainCategories: SidebarNavCategory[] = [
   {
     label: 'Main',
     items: [
-      { label: 'Home', path: '/', icon: <Home size={17} strokeWidth={1.5} /> },
-      { label: 'My Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
-      { label: 'Community', path: '/community', icon: <Users size={17} strokeWidth={1.5} /> },
-      { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} /> },
+      { label: 'Home', path: '/', icon: <Home size={17} strokeWidth={1.5} />, desktopOnly: true },
+      { label: 'Updates', path: '/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> },
+      { label: 'Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
+      { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true },
       { label: 'Notifications', path: '/notifications', icon: <Bell size={17} strokeWidth={1.5} /> },
     ],
   },
   {
-    label: 'Activity',
+    label: 'Support',
     items: [
-      { label: 'Impact', path: '/impact', icon: <TrendingUp size={17} strokeWidth={1.5} /> },
-      { label: 'Leaderboard', path: '/leaderboard', icon: <Trophy size={17} strokeWidth={1.5} /> },
-    ],
-  },
-  {
-    label: 'Discover',
-    items: [
-      { label: 'Explore', path: '/explore', icon: <Compass size={17} strokeWidth={1.5} /> },
-      { label: 'Announcements', path: '/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> },
-      { label: 'Membership', path: '/membership', icon: <Crown size={17} strokeWidth={1.5} /> },
       { label: 'Shop', path: '/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} /> },
       { label: 'Donate', path: '/donate', icon: <Heart size={17} strokeWidth={1.5} /> },
+      { label: 'Leadership Opportunities', path: '/leadership', icon: <Users size={17} strokeWidth={1.5} /> },
+      { label: 'Our Partners', path: '/partners', icon: <Handshake size={17} strokeWidth={1.5} /> },
+      { label: 'Contact Us', path: '/contact', icon: <Mail size={17} strokeWidth={1.5} /> },
     ],
   },
 ]
@@ -69,10 +60,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
       ? [{ label: 'Leader Dashboard', path: '/leader', icon: <BarChart3 size={17} strokeWidth={1.5} /> }]
       : []),
     ...(isStaff
-      ? [
-          { label: 'Admin Dashboard', path: '/admin', icon: <Shield size={17} strokeWidth={1.5} /> },
-          { label: 'Settings', path: '/settings', icon: <Settings size={17} strokeWidth={1.5} /> },
-        ]
+      ? [{ label: 'Admin Dashboard', path: '/admin', icon: <Shield size={17} strokeWidth={1.5} /> }]
       : []),
   ]
 

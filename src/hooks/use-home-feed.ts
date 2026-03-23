@@ -7,7 +7,6 @@ import type {
   GlobalAnnouncement,
   Challenge,
   Profile,
-  Post,
 } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
@@ -23,6 +22,8 @@ export interface ImpactStats {
   area_restored_sqm: number
   native_plants: number
   wildlife_sightings: number
+  invasive_weeds_pulled: number
+  leaders_trained: number
 }
 
 export interface CollectiveWithNextEvent extends Collective {
@@ -42,21 +43,6 @@ interface EventWithCollective extends Event {
 export interface MyUpcomingEvent extends Event {
   collectives: Pick<Collective, 'id' | 'name'> | null
   registration_status: string
-}
-
-export interface RecentPost extends Post {
-  author: Pick<Profile, 'id' | 'display_name' | 'avatar_url'> | null
-  collective: Pick<Collective, 'id' | 'name'> | null
-  like_count: number
-  comment_count: number
-}
-
-export interface TierProgress {
-  points: number
-  tier: string
-  nextTier: string | null
-  progress: number
-  pointsToNext: number
 }
 
 /* ------------------------------------------------------------------ */
@@ -216,6 +202,8 @@ export function useImpactStats() {
         area_restored_sqm: 0,
         native_plants: 0,
         wildlife_sightings: 0,
+        invasive_weeds_pulled: 0,
+        leaders_trained: 0,
       }) as unknown as ImpactStats
     },
     enabled: !!user,
@@ -326,16 +314,16 @@ export function useMyUpcomingEvents() {
   })
 }
 
-/** Recent community posts from user's collective(s) */
-export function useRecentPosts() {
+/** Upcoming events from all of the user's collectives (for home carousel) */
+export function useCollectiveUpcomingEvents() {
   const { user } = useAuth()
 
   return useQuery({
-    queryKey: ['home', 'recent-posts', user?.id],
+    queryKey: ['home', 'collective-upcoming-events', user?.id],
     queryFn: async () => {
       if (!user) return []
 
-      // Get user's collective ids
+      // Get all collective memberships
       const { data: memberships } = await supabase
         .from('collective_members')
         .select('collective_id')
@@ -346,105 +334,42 @@ export function useRecentPosts() {
       if (collectiveIds.length === 0) return []
 
       const { data, error } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          author:profiles!posts_user_id_fkey(id, display_name, avatar_url),
-          collective:collectives!posts_collective_id_fkey(id, name)
-        `)
+        .from('events')
+        .select('*, collectives(id, name)')
         .in('collective_id', collectiveIds)
-        .order('created_at', { ascending: false })
-        .limit(3)
+        .eq('status', 'published')
+        .gte('date_start', new Date().toISOString())
+        .order('date_start', { ascending: true })
+        .limit(10)
 
       if (error) throw error
-
-      // Fetch like & comment counts in parallel
-      const postIds = (data ?? []).map((p) => p.id)
-      if (postIds.length === 0) return []
-
-      const [likesRes, commentsRes] = await Promise.all([
-        supabase
-          .from('post_likes')
-          .select('post_id')
-          .in('post_id', postIds),
-        supabase
-          .from('post_comments')
-          .select('post_id')
-          .in('post_id', postIds)
-          .eq('is_deleted', false),
-      ])
-
-      const likeCounts: Record<string, number> = {}
-      for (const l of likesRes.data ?? []) {
-        likeCounts[l.post_id] = (likeCounts[l.post_id] ?? 0) + 1
-      }
-      const commentCounts: Record<string, number> = {}
-      for (const c of commentsRes.data ?? []) {
-        commentCounts[c.post_id] = (commentCounts[c.post_id] ?? 0) + 1
-      }
-
-      return (data ?? []).map((p) => ({
-        ...p,
-        author: p.author as RecentPost['author'],
-        collective: p.collective as RecentPost['collective'],
-        like_count: likeCounts[p.id] ?? 0,
-        comment_count: commentCounts[p.id] ?? 0,
-      })) as RecentPost[]
-    },
-    enabled: !!user,
-    staleTime: 2 * 60 * 1000,
-  })
-}
-
-/** User's points balance and tier progress for home card */
-export function useHomeTierProgress() {
-  const { user } = useAuth()
-
-  return useQuery({
-    queryKey: ['home', 'tier-progress', user?.id],
-    queryFn: async () => {
-      if (!user) return null
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('points')
-        .eq('id', user.id)
-        .single()
-
-      if (error) throw error
-      const points = data.points ?? 0
-
-      // Mirror tier logic from use-points.ts
-      const tiers = [
-        { name: 'New', min: 0, max: 499 },
-        { name: 'Active', min: 500, max: 1999 },
-        { name: 'Committed', min: 2000, max: 4999 },
-        { name: 'Dedicated', min: 5000, max: 9999 },
-        { name: 'Lifetime', min: 10000, max: Infinity },
-      ]
-
-      const tierIdx = tiers.findIndex((t) => points >= t.min && points <= t.max)
-      const currentTier = tiers[tierIdx]
-      const nextTier = tierIdx < tiers.length - 1 ? tiers[tierIdx + 1] : null
-
-      let progress = 100
-      let pointsToNext = 0
-      if (nextTier) {
-        const rangeSize = nextTier.min - currentTier.min
-        progress = Math.round(((points - currentTier.min) / rangeSize) * 100)
-        pointsToNext = nextTier.min - points
-      }
-
-      return {
-        points,
-        tier: currentTier.name,
-        nextTier: nextTier?.name ?? null,
-        progress: Math.min(progress, 100),
-        pointsToNext,
-      } as TierProgress
+      return (data ?? []) as EventWithCollective[]
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
+  })
+}
+
+/** Recent announcements for the home updates section */
+export function useRecentAnnouncements() {
+  return useQuery({
+    queryKey: ['home', 'recent-announcements'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('global_announcements')
+        .select(`
+          *,
+          author:profiles!global_announcements_author_id_fkey(id, display_name, avatar_url, role)
+        `)
+        .order('is_pinned', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(10)
+      if (error) throw error
+      return (data ?? []) as (GlobalAnnouncement & {
+        author: Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'role'> | null
+      })[]
+    },
+    staleTime: 2 * 60 * 1000,
   })
 }
 
@@ -496,15 +421,13 @@ export function useSuggestedConnections() {
 
 /** Activity type labels for chips */
 export const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+  shore_cleanup: 'Shore Cleanup',
   tree_planting: 'Tree Planting',
-  beach_cleanup: 'Beach Cleanup',
-  habitat_restoration: 'Habitat Restoration',
-  nature_walk: 'Nature Walk',
-  education: 'Education',
-  wildlife_survey: 'Wildlife Survey',
-  seed_collecting: 'Seed Collecting',
-  weed_removal: 'Weed Removal',
-  waterway_cleanup: 'Waterway Cleanup',
-  community_garden: 'Community Garden',
-  other: 'Other',
+  land_regeneration: 'Land Regeneration',
+  nature_walk: 'Nature Walks',
+  camp_out: 'Camp Out',
+  retreat: 'Retreats',
+  film_screening: 'Film Screening',
+  marine_restoration: 'Marine Restoration',
+  workshop: 'Workshop',
 }

@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useEventDetail, useCheckIn } from '@/hooks/use-events'
-import { POINT_VALUES } from '@/hooks/use-points'
 import { useOffline } from '@/hooks/use-offline'
 import { queueOfflineCheckIn } from '@/lib/offline-sync'
 import { supabase } from '@/lib/supabase'
@@ -24,7 +23,6 @@ import {
   Skeleton,
   EmptyState,
   Celebration,
-  PointsFlyUp,
   WhatsNext,
 } from '@/components'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -119,7 +117,6 @@ export default function CheckInPage() {
   const [state, setState] = useState<CheckInState>('idle')
   const [manualCode, setManualCode] = useState('')
   const [errorKind, setErrorKind] = useState<ErrorKind>('generic')
-  const [pointsTrigger, setPointsTrigger] = useState(0)
   const [showCelebration, setShowCelebration] = useState(false)
   const [checkedInOffline, setCheckedInOffline] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -170,19 +167,6 @@ export default function CheckInPage() {
         {
           onSuccess: async () => {
             setState('success')
-            setPointsTrigger((p) => p + 1)
-
-            // Award points via RPC
-            try {
-              await supabase.rpc('award_points', {
-                p_user_id: user.id,
-                p_amount: POINT_VALUES.event_attendance + POINT_VALUES.event_check_in_qr,
-                p_reason: 'event_check_in',
-                p_event_id: targetEventId,
-              })
-            } catch {
-              // Points will be reconciled later
-            }
 
             // Show celebration after a brief delay
             setTimeout(() => setShowCelebration(true), 600)
@@ -203,7 +187,6 @@ export default function CheckInPage() {
     queueOfflineCheckIn(eventId, user.id)
     setCheckedInOffline(true)
     setState('success')
-    setPointsTrigger((p) => p + 1)
     setTimeout(() => setShowCelebration(true), 600)
   }, [eventId, user])
 
@@ -363,22 +346,6 @@ export default function CheckInPage() {
             >
               Welcome to {event.title}. Have a great time making an impact!
             </motion.p>
-
-            {/* Points fly-up */}
-            <motion.div
-              initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.5 }}
-              className="relative flex items-center gap-2 mt-4 px-4 py-2 rounded-full bg-white text-primary-400 text-sm font-semibold"
-            >
-              <Sparkles size={16} />
-              +{POINT_VALUES.event_attendance + POINT_VALUES.event_check_in_qr} Points!
-              <PointsFlyUp
-                points={POINT_VALUES.event_attendance + POINT_VALUES.event_check_in_qr}
-                trigger={pointsTrigger}
-                className="absolute -top-4 right-2"
-              />
-            </motion.div>
 
             {/* Offline notice */}
             {checkedInOffline && (
@@ -602,7 +569,7 @@ export default function CheckInPage() {
         open={showCelebration}
         onClose={() => setShowCelebration(false)}
         title="Amazing work!"
-        subtitle={`You earned ${POINT_VALUES.event_attendance + POINT_VALUES.event_check_in_qr} points for checking in`}
+        subtitle="Thanks for checking in — enjoy making an impact!"
         icon={<Sparkles size={36} className="text-white" />}
         autoDismiss={4000}
       />

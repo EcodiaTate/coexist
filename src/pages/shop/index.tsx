@@ -485,7 +485,8 @@ function FeaturedProduct({ product, onClick }: { product: Product; onClick: () =
 /*  Impact strip - live community stats, every purchase contributes    */
 /* ------------------------------------------------------------------ */
 
-function formatStat(n: number): string {
+function formatStat(n: number | undefined | null): string {
+  if (n == null) return '0'
   if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`
   return n.toLocaleString()
 }
@@ -496,9 +497,9 @@ function ImpactStrip() {
   const stats = useMemo(() => {
     if (!impact) return null
     return [
-      { icon: TreePine, value: formatStat(impact.totalTrees), label: 'Trees planted' },
-      { icon: Clock, value: formatStat(impact.totalHours), label: 'Volunteer hours' },
-      { icon: Trash2, value: `${formatStat(impact.totalRubbish)}kg`, label: 'Rubbish collected' },
+      { icon: TreePine, value: formatStat(impact.treesPlanted), label: 'Trees planted' },
+      { icon: Clock, value: formatStat(impact.volunteerHours), label: 'Volunteer hours' },
+      { icon: Trash2, value: `${impact.rubbishCollectedTonnes}t`, label: 'Rubbish collected' },
     ]
   }, [impact])
 

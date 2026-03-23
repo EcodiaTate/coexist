@@ -81,23 +81,23 @@ const ACTIVITY_META: Record<string, {
   ring: string
   gradient: string
 }> = {
+  shore_cleanup: {
+    icon: <Waves size={16} />,
+    iconLg: <Waves size={22} />,
+    bg: 'bg-sky-50', bgSolid: 'bg-sky-500', text: 'text-sky-700',
+    ring: 'ring-sky-300', gradient: 'from-sky-400 to-moss-500',
+  },
   tree_planting: {
     icon: <TreePine size={16} />,
     iconLg: <TreePine size={22} />,
     bg: 'bg-success-50', bgSolid: 'bg-success-500', text: 'text-success-700',
     ring: 'ring-success-300', gradient: 'from-success-400 to-primary-500',
   },
-  beach_cleanup: {
-    icon: <Waves size={16} />,
-    iconLg: <Waves size={22} />,
-    bg: 'bg-sky-50', bgSolid: 'bg-sky-500', text: 'text-sky-700',
-    ring: 'ring-sky-300', gradient: 'from-sky-400 to-moss-500',
-  },
-  habitat_restoration: {
-    icon: <Flower2 size={16} />,
-    iconLg: <Flower2 size={22} />,
-    bg: 'bg-primary-50', bgSolid: 'bg-primary-500', text: 'text-primary-700',
-    ring: 'ring-primary-300', gradient: 'from-primary-400 to-moss-500',
+  land_regeneration: {
+    icon: <Sprout size={16} />,
+    iconLg: <Sprout size={22} />,
+    bg: 'bg-sprout-50', bgSolid: 'bg-sprout-500', text: 'text-sprout-700',
+    ring: 'ring-sprout-300', gradient: 'from-sprout-400 to-success-500',
   },
   nature_walk: {
     icon: <Compass size={16} />,
@@ -105,47 +105,35 @@ const ACTIVITY_META: Record<string, {
     bg: 'bg-bark-50', bgSolid: 'bg-bark-500', text: 'text-bark-700',
     ring: 'ring-bark-300', gradient: 'from-bark-400 to-bark-500',
   },
-  education: {
-    icon: <GraduationCap size={16} />,
-    iconLg: <GraduationCap size={22} />,
+  camp_out: {
+    icon: <Bird size={16} />,
+    iconLg: <Bird size={22} />,
+    bg: 'bg-moss-50', bgSolid: 'bg-moss-500', text: 'text-moss-700',
+    ring: 'ring-moss-300', gradient: 'from-moss-400 to-primary-500',
+  },
+  retreat: {
+    icon: <Flower2 size={16} />,
+    iconLg: <Flower2 size={22} />,
     bg: 'bg-plum-50', bgSolid: 'bg-plum-500', text: 'text-plum-700',
     ring: 'ring-plum-300', gradient: 'from-plum-400 to-plum-500',
   },
-  wildlife_survey: {
-    icon: <Bird size={16} />,
-    iconLg: <Bird size={22} />,
-    bg: 'bg-bark-50', bgSolid: 'bg-bark-500', text: 'text-bark-700',
-    ring: 'ring-bark-300', gradient: 'from-bark-400 to-warning-500',
-  },
-  seed_collecting: {
-    icon: <Sprout size={16} />,
-    iconLg: <Sprout size={22} />,
-    bg: 'bg-sprout-50', bgSolid: 'bg-sprout-500', text: 'text-sprout-700',
-    ring: 'ring-sprout-300', gradient: 'from-sprout-400 to-success-500',
-  },
-  weed_removal: {
-    icon: <Leaf size={16} />,
-    iconLg: <Leaf size={22} />,
-    bg: 'bg-bark-50', bgSolid: 'bg-bark-500', text: 'text-bark-700',
-    ring: 'ring-bark-300', gradient: 'from-bark-400 to-error-400',
-  },
-  waterway_cleanup: {
-    icon: <Droplets size={16} />,
-    iconLg: <Droplets size={22} />,
-    bg: 'bg-moss-50', bgSolid: 'bg-moss-500', text: 'text-moss-700',
-    ring: 'ring-moss-300', gradient: 'from-moss-400 to-sky-500',
-  },
-  community_garden: {
-    icon: <Flower2 size={16} />,
-    iconLg: <Flower2 size={22} />,
+  film_screening: {
+    icon: <GraduationCap size={16} />,
+    iconLg: <GraduationCap size={22} />,
     bg: 'bg-coral-50', bgSolid: 'bg-coral-500', text: 'text-coral-700',
     ring: 'ring-coral-300', gradient: 'from-coral-400 to-coral-500',
   },
-  other: {
+  marine_restoration: {
+    icon: <Droplets size={16} />,
+    iconLg: <Droplets size={22} />,
+    bg: 'bg-primary-50', bgSolid: 'bg-primary-500', text: 'text-primary-700',
+    ring: 'ring-primary-300', gradient: 'from-primary-400 to-moss-500',
+  },
+  workshop: {
     icon: <CircleDot size={16} />,
     iconLg: <CircleDot size={22} />,
-    bg: 'bg-neutral-100', bgSolid: 'bg-neutral-500', text: 'text-neutral-600',
-    ring: 'ring-neutral-300', gradient: 'from-neutral-400 to-neutral-500',
+    bg: 'bg-bark-50', bgSolid: 'bg-bark-500', text: 'text-bark-700',
+    ring: 'ring-bark-300', gradient: 'from-bark-400 to-warning-500',
   },
 }
 
@@ -154,27 +142,26 @@ const ACTIVITY_META: Record<string, {
 /* ------------------------------------------------------------------ */
 
 type BadgeActivity =
+  | 'shore-cleanup'
   | 'tree-planting'
-  | 'beach-cleanup'
-  | 'habitat'
-  | 'wildlife'
-  | 'education'
-  | 'fundraising'
-  | 'monitoring'
-  | 'restoration'
+  | 'land-regeneration'
+  | 'nature-walk'
+  | 'camp-out'
+  | 'retreat'
+  | 'film-screening'
+  | 'marine-restoration'
+  | 'workshop'
 
 const activityTypeToBadge: Record<string, BadgeActivity> = {
+  shore_cleanup: 'shore-cleanup',
   tree_planting: 'tree-planting',
-  beach_cleanup: 'beach-cleanup',
-  habitat_restoration: 'habitat',
-  nature_walk: 'wildlife',
-  education: 'education',
-  wildlife_survey: 'wildlife',
-  seed_collecting: 'tree-planting',
-  weed_removal: 'restoration',
-  waterway_cleanup: 'beach-cleanup',
-  community_garden: 'habitat',
-  other: 'restoration',
+  land_regeneration: 'land-regeneration',
+  nature_walk: 'nature-walk',
+  camp_out: 'camp-out',
+  retreat: 'retreat',
+  film_screening: 'film-screening',
+  marine_restoration: 'marine-restoration',
+  workshop: 'workshop',
 }
 
 /* ------------------------------------------------------------------ */
@@ -233,6 +220,14 @@ const fadeUp = {
 
 const CATEGORY_CARDS = [
   {
+    key: 'shore_cleanup',
+    label: 'Shore Cleanup',
+    description: 'Protect our coastlines',
+    icon: <Waves size={18} />,
+    decorIcon: <Waves size={56} strokeWidth={1} />,
+    gradient: 'from-sky-500 to-moss-600',
+  },
+  {
     key: 'tree_planting',
     label: 'Tree Planting',
     description: 'Plant native species',
@@ -241,28 +236,20 @@ const CATEGORY_CARDS = [
     gradient: 'from-success-500 to-primary-600',
   },
   {
-    key: 'beach_cleanup',
-    label: 'Beach Cleanup',
-    description: 'Protect our coastlines',
-    icon: <Waves size={18} />,
-    decorIcon: <Waves size={56} strokeWidth={1} />,
-    gradient: 'from-sky-500 to-moss-600',
-  },
-  {
-    key: 'wildlife_survey',
-    label: 'Wildlife Survey',
-    description: 'Monitor & protect',
-    icon: <Bird size={18} />,
-    decorIcon: <Bird size={56} strokeWidth={1} />,
-    gradient: 'from-bark-500 to-warning-600',
-  },
-  {
-    key: 'habitat_restoration',
-    label: 'Habitat Restoration',
-    description: 'Restore ecosystems',
-    icon: <Flower2 size={18} />,
-    decorIcon: <Flower2 size={56} strokeWidth={1} />,
+    key: 'marine_restoration',
+    label: 'Marine Restoration',
+    description: 'Restore ocean habitats',
+    icon: <Droplets size={18} />,
+    decorIcon: <Droplets size={56} strokeWidth={1} />,
     gradient: 'from-primary-500 to-moss-600',
+  },
+  {
+    key: 'nature_walk',
+    label: 'Nature Walks',
+    description: 'Explore & connect',
+    icon: <Compass size={18} />,
+    decorIcon: <Compass size={56} strokeWidth={1} />,
+    gradient: 'from-bark-500 to-warning-600',
   },
 ]
 
@@ -1418,8 +1405,8 @@ export default function ExplorePage() {
                           >
                             {[
                               { value: nationalImpact?.totalMembers ?? 0, label: 'Volunteers', icon: <Users size={14} /> },
-                              { value: nationalImpact?.totalTrees ?? 0, label: 'Trees Planted', icon: <TreePine size={14} /> },
-                              { value: nationalImpact?.totalCollectives ?? 0, label: 'Collectives', icon: <Heart size={14} /> },
+                              { value: nationalImpact?.treesPlanted ?? 0, label: 'Trees Planted', icon: <TreePine size={14} /> },
+                              { value: nationalImpact?.collectivesCount ?? 0, label: 'Collectives', icon: <Heart size={14} /> },
                             ].map((stat) => (
                               <div key={stat.label} className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5 mb-0.5">
@@ -1695,10 +1682,10 @@ export default function ExplorePage() {
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           {[
-                            { value: nationalImpact?.totalTrees ?? 0, suffix: '+', label: 'Native Plants', icon: <TreePine size={16} />, iconBg: 'bg-success-100', iconColor: 'text-success-600' },
-                            { value: nationalImpact?.totalRubbish ?? 0, suffix: 'kg', label: 'Litter Removed', icon: <Waves size={16} />, iconBg: 'bg-sky-100', iconColor: 'text-sky-600' },
+                            { value: nationalImpact?.treesPlanted ?? 0, suffix: '+', label: 'Trees Planted', icon: <TreePine size={16} />, iconBg: 'bg-success-100', iconColor: 'text-success-600' },
+                            { value: nationalImpact?.rubbishCollectedTonnes ?? 0, suffix: 't', label: 'Rubbish Collected', icon: <Waves size={16} />, iconBg: 'bg-sky-100', iconColor: 'text-sky-600' },
                             { value: nationalImpact?.totalMembers ?? 0, suffix: '+', label: 'Volunteers', icon: <Users size={16} />, iconBg: 'bg-plum-100', iconColor: 'text-plum-600' },
-                            { value: nationalImpact?.totalCollectives ?? 0, suffix: '', label: 'Collectives', icon: <Heart size={16} />, iconBg: 'bg-coral-100', iconColor: 'text-coral-600' },
+                            { value: nationalImpact?.collectivesCount ?? 0, suffix: '', label: 'Collectives', icon: <Heart size={16} />, iconBg: 'bg-coral-100', iconColor: 'text-coral-600' },
                           ].map((stat, i) => (
                             <motion.div
                               key={stat.label}

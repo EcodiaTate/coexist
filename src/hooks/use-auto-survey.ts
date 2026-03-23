@@ -1,0 +1,202 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/use-auth'
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+export interface PendingSurvey {
+  event_id: string
+  event_title: string
+  activity_type: string
+  date_end: string
+  collective_name: string | null
+}
+
+export interface AutoSurveyConfig {
+  enabled: boolean
+  delay_hours: number
+  default_questions_enabled: boolean
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hooks                                                              */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Fetch events the user attended (checked in) that have completed
+ * but the user hasn't submitted a survey response yet.
+ * Only shows events completed within the last 7 days.
+ */
+export function usePendingSurveys() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['pending-surveys', user?.id],
+    queryFn: async () => {
+      if (!user) return []
+
+      const sevenDaysAgo = new Date()
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+
+      // Get events user checked into that are completed
+      const { data: checkedInEvents, error: regError } = await supabase
+        .from('event_registrations')
+        .select(`
+          event_id,
+          events(id, title, activity_type, date_end, date_start, status, collective_id,
+            collectives(name)
+          )
+        `)
+        .eq('user_id', user.id)
+        .not('checked_in_at', 'is', null)
+
+      if (regError) throw regError
+      if (!checkedInEvents?.length) return []
+
+      // Filter to completed events within the last 7 days
+      const completedEvents = checkedInEvents
+        .filter((r) => {
+          const event = r.events as any
+          if (!event || event.status !== 'completed') return false
+          const endDate = new Date(event.date_end ?? event.date_start)
+          return endDate >= sevenDaysAgo
+        })
+        .map((r) => r.events as any)
+
+      if (!completedEvents.length) return []
+
+      // Check which events the user has already responded to
+      const eventIds = completedEvents.map((e: any) => e.id)
+      const { data: existingResponses } = await (supabase as any)
+        .from('post_event_survey_responses')
+        .select('event_id')
+        .eq('user_id', user.id)
+        .in('event_id', eventIds)
+
+      const respondedIds = new Set((existingResponses ?? []).map((r: any) => r.event_id))
+
+      return completedEvents
+        .filter((e: any) => !respondedIds.has(e.id))
+        .map((e: any) => ({
+          event_id: e.id,
+          event_title: e.title,
+          activity_type: e.activity_type,
+          date_end: e.date_end ?? e.date_start,
+          collective_name: e.collectives?.name ?? null,
+        })) as PendingSurvey[]
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/**
+ * Admin: fetch the auto-survey configuration from app_settings.
+ */
+export function useAutoSurveyConfig() {
+  return useQuery({
+    queryKey: ['auto-survey-config'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'auto_survey_config')
+        .maybeSingle()
+
+      if (error) throw error
+
+      const defaults: AutoSurveyConfig = {
+        enabled: true,
+        delay_hours: 24,
+        default_questions_enabled: true,
+      }
+
+      if (!data?.value) return defaults
+      return { ...defaults, ...(data.value as Partial<AutoSurveyConfig>) }
+    },
+    staleTime: 10 * 60 * 1000,
+  })
+}
+
+/**
+ * Admin: update the auto-survey configuration.
+ */
+export function useUpdateAutoSurveyConfig() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (config: AutoSurveyConfig) => {
+      const { error } = await supabase
+        .from('app_settings')
+        .upsert(
+          { key: 'auto_survey_config', value: config as any },
+          { onConflict: 'key' },
+        )
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auto-survey-config'] })
+    },
+  })
+}
+
+/**
+ * Send survey notification to all checked-in attendees of a completed event.
+ * Called after impact is logged / event is marked completed.
+ */
+export function useTriggerSurveyNotifications() {
+  return useMutation({
+    mutationFn: async ({ eventId, eventTitle }: { eventId: string; eventTitle: string }) => {
+      // Check if auto-surveys are enabled
+      const { data: config } = await supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'auto_survey_config')
+        .maybeSingle()
+
+      const autoConfig = config?.value as AutoSurveyConfig | null
+      if (autoConfig && !autoConfig.enabled) return { sent: 0 }
+
+      // Get all checked-in attendees
+      const { data: attendees, error } = await supabase
+        .from('event_registrations')
+        .select('user_id')
+        .eq('event_id', eventId)
+        .not('checked_in_at', 'is', null)
+
+      if (error) throw error
+      if (!attendees?.length) return { sent: 0 }
+
+      // Check who already has a survey response
+      const userIds = attendees.map((a) => a.user_id)
+      const { data: existingResponses } = await (supabase as any)
+        .from('post_event_survey_responses')
+        .select('user_id')
+        .eq('event_id', eventId)
+        .in('user_id', userIds)
+
+      const respondedIds = new Set((existingResponses ?? []).map((r: any) => r.user_id))
+      const pendingUsers = userIds.filter((id) => !respondedIds.has(id))
+
+      if (!pendingUsers.length) return { sent: 0 }
+
+      // Insert notifications for each attendee
+      const notifications = pendingUsers.map((userId) => ({
+        user_id: userId,
+        type: 'survey_request',
+        title: 'How was your event?',
+        body: `Tell us about "${eventTitle}" — your feedback helps improve future events.`,
+        data: { event_id: eventId },
+      }))
+
+      const { error: notifError } = await supabase
+        .from('notifications')
+        .insert(notifications)
+
+      if (notifError) throw notifError
+      return { sent: pendingUsers.length }
+    },
+  })
+}

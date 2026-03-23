@@ -7,9 +7,9 @@ import {
     Clock,
     Calendar,
     Trash2,
-    Waves,
     Sprout,
-    Bird,
+    GraduationCap,
+    Users,
     Share2,
     Flame,
     ArrowLeft,
@@ -27,31 +27,27 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 /* ─── category meta ─── */
 const CATEGORY_COLORS: Record<string, string> = {
+  shore_cleanup: '#5ea198',
   tree_planting: '#748b50',
-  beach_cleanup: '#5ea198',
-  habitat_restoration: '#47867d',
+  land_regeneration: '#47867d',
   nature_walk: '#869e62',
-  education: '#9677ad',
-  wildlife_survey: '#b89565',
-  seed_collecting: '#5ea198',
-  weed_removal: '#a07d4f',
-  waterway_cleanup: '#396c65',
-  community_garden: '#664c7b',
-  other: '#869e62',
+  camp_out: '#4a7a5e',
+  retreat: '#9677ad',
+  film_screening: '#b89565',
+  marine_restoration: '#396c65',
+  workshop: '#a07d4f',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
+  shore_cleanup: 'Shore Cleanup',
   tree_planting: 'Tree Planting',
-  beach_cleanup: 'Beach Cleanup',
-  habitat_restoration: 'Habitat Restoration',
+  land_regeneration: 'Land Regeneration',
   nature_walk: 'Nature Walks',
-  education: 'Education',
-  wildlife_survey: 'Wildlife Surveys',
-  seed_collecting: 'Seed Collecting',
-  weed_removal: 'Weed Removal',
-  waterway_cleanup: 'Waterway Cleanup',
-  community_garden: 'Community Gardens',
-  other: 'Other',
+  camp_out: 'Camp Out',
+  retreat: 'Retreats',
+  film_screening: 'Film Screening',
+  marine_restoration: 'Marine Restoration',
+  workshop: 'Workshop',
 }
 
 /* ─── animation ─── */
@@ -69,35 +65,28 @@ const fadeUp: Variants = {
 function DecoShapes({ reduced }: { reduced: boolean }) {
   return (
     <>
-      {/* Ring 1 - top-right */}
       <motion.div
         className="absolute -top-16 -right-16 w-56 h-56 rounded-full border-[3px] border-moss-200/35 pointer-events-none"
         animate={reduced ? undefined : { scale: [1, 1.08, 1] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       />
-      {/* Ring 2 - mid-left */}
       <motion.div
         className="absolute top-[40%] -left-12 w-40 h-40 rounded-full border-[3px] border-moss-200/35 pointer-events-none"
         animate={reduced ? undefined : { scale: [1, 1.06, 1] }}
         transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
-      {/* Blurred glow - bottom-left */}
       <div className="absolute bottom-24 -left-10 w-48 h-48 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-100/26 to-transparent pointer-events-none" />
-      {/* Soft glow - top-right */}
       <div className="absolute -top-10 right-8 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/17 to-transparent pointer-events-none" />
-      {/* Floating dot 1 */}
       <motion.div
         className="absolute top-28 right-10 w-3 h-3 rounded-full bg-moss-300/30 pointer-events-none"
         animate={reduced ? undefined : { y: [0, -8, 0] }}
         transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
       />
-      {/* Floating dot 2 */}
       <motion.div
         className="absolute top-[55%] right-[20%] w-2 h-2 rounded-full bg-sprout-300/25 pointer-events-none"
         animate={reduced ? undefined : { y: [0, -6, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
       />
-      {/* Floating dot 3 */}
       <motion.div
         className="absolute bottom-48 left-[15%] w-2.5 h-2.5 rounded-full bg-moss-300/30 pointer-events-none"
         animate={reduced ? undefined : { y: [0, -10, 0] }}
@@ -140,22 +129,22 @@ const STAT_CONFIGS: Record<string, { gradient: string; iconBg: string; iconColor
     iconBg: 'bg-moss-600',
     iconColor: 'text-white',
   },
-  coastline: {
+  cleanups: {
     gradient: 'from-sky-100/90 to-sky-200/50',
     iconBg: 'bg-sky-600',
     iconColor: 'text-white',
   },
-  area: {
+  weeds: {
     gradient: 'from-plum-100/90 to-plum-200/50',
     iconBg: 'bg-plum-600',
     iconColor: 'text-white',
   },
-  plants: {
+  collectives: {
     gradient: 'from-sprout-100/90 to-sprout-200/50',
     iconBg: 'bg-sprout-600',
     iconColor: 'text-white',
   },
-  wildlife: {
+  leaders: {
     gradient: 'from-bark-100/90 to-bark-200/50',
     iconBg: 'bg-bark-600',
     iconColor: 'text-white',
@@ -168,11 +157,13 @@ function BigStat({
   label,
   icon,
   config,
+  suffix,
 }: {
   value: number
   label: string
   icon: React.ReactNode
   config: string
+  suffix?: string
 }) {
   const style = STAT_CONFIGS[config] ?? STAT_CONFIGS.events
 
@@ -185,7 +176,6 @@ function BigStat({
         `${style.gradient}`,
       )}
     >
-      {/* SVG glare */}
       <svg className="absolute top-1 right-3 w-16 h-12 opacity-[0.3] pointer-events-none" viewBox="0 0 64 48" fill="none">
         <ellipse cx="32" cy="12" rx="32" ry="18" fill="white" />
       </svg>
@@ -199,7 +189,7 @@ function BigStat({
       <div className="relative">
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 70%)' }} />
         <p className="relative font-heading text-4xl font-extrabold text-primary-900 tabular-nums leading-none">
-          <CountUp end={value} />
+          <CountUp end={value} />{suffix && <span className="text-lg">{suffix}</span>}
         </p>
       </div>
       <p className="relative text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold mt-2.5">
@@ -374,7 +364,7 @@ export default function ImpactDashboardPage() {
               illustration="empty"
               title="No impact data yet"
               description="Attend your first event to start tracking your conservation impact"
-              action={{ label: 'Find Events', to: '/explore' }}
+              action={{ label: 'Find Events', to: '/events' }}
             />
           </div>
         </div>
@@ -384,13 +374,13 @@ export default function ImpactDashboardPage() {
 
   const handleShare = async () => {
     const parts: string[] = []
-    if (stats.treesPlanted > 0) parts.push(`${stats.treesPlanted} trees planted`)
     if (stats.eventsAttended > 0) parts.push(`${stats.eventsAttended} events attended`)
-    if (stats.hoursVolunteered > 0) parts.push(`${stats.hoursVolunteered} hours volunteered`)
-    if (stats.rubbishCollectedKg > 0) parts.push(`${stats.rubbishCollectedKg}kg rubbish collected`)
-    if (stats.coastlineCleanedM > 0) parts.push(`${stats.coastlineCleanedM}m coastline cleaned`)
-    if (stats.nativePlants > 0) parts.push(`${stats.nativePlants} native plants`)
-    if (stats.wildlifeSightings > 0) parts.push(`${stats.wildlifeSightings} wildlife sightings`)
+    if (stats.volunteerHours > 0) parts.push(`${stats.volunteerHours} volunteer hours`)
+    if (stats.treesPlanted > 0) parts.push(`${stats.treesPlanted} trees planted`)
+    if (stats.invasiveWeedsPulled > 0) parts.push(`${stats.invasiveWeedsPulled} invasive weeds pulled`)
+    if (stats.rubbishCollectedTonnes > 0) parts.push(`${stats.rubbishCollectedTonnes}t rubbish collected`)
+    if (stats.cleanupEventsHeld > 0) parts.push(`${stats.cleanupEventsHeld} cleanup events`)
+    if (stats.leadersTrainedCount > 0) parts.push(`${stats.leadersTrainedCount} leaders trained`)
     const text = `My Co-Exist Impact: ${parts.join(', ')}! Join at coexistaus.org`
     if (navigator.share) {
       await navigator.share({ title: 'My Co-Exist Impact', text })
@@ -421,7 +411,7 @@ export default function ImpactDashboardPage() {
           {/* ─── Content ─── */}
           <div className="relative z-10 px-4 lg:px-6 pb-4 space-y-5">
 
-            {/* ─── Hero: Trees Planted ─── */}
+            {/* ─── Hero: Community Events ─── */}
             <motion.div
               variants={shouldReduceMotion ? undefined : stagger}
               initial="hidden"
@@ -431,7 +421,6 @@ export default function ImpactDashboardPage() {
                 variants={fadeUp}
                 className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-7 shadow-2xl overflow-hidden"
               >
-                {/* Decorative background circles */}
                 <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
                 <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
 
@@ -445,71 +434,73 @@ export default function ImpactDashboardPage() {
                     </p>
                   </div>
 
-                  <span className="font-heading text-7xl font-extrabold text-white tabular-nums leading-none tracking-tight">
-                    <CountUp end={stats.treesPlanted} />
-                  </span>
-                  <p className="text-lg text-white/70 font-semibold mt-3">trees planted</p>
+                  <div className="flex items-baseline gap-6">
+                    <div>
+                      <span className="font-heading text-6xl font-extrabold text-white tabular-nums leading-none tracking-tight">
+                        <CountUp end={stats.eventsAttended} />
+                      </span>
+                      <p className="text-base text-white/70 font-semibold mt-2">event attendances</p>
+                    </div>
+                    <div className="border-l border-white/15 pl-6">
+                      <span className="font-heading text-4xl font-extrabold text-white tabular-nums leading-none tracking-tight">
+                        <CountUp end={stats.volunteerHours} />
+                      </span>
+                      <p className="text-sm text-white/60 font-semibold mt-1">volunteer hours</p>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </motion.div>
 
-            {/* ─── Core Stats Grid ─── */}
+            {/* ─── Core Stats Grid: Canonical Metrics ─── */}
             <motion.div
               variants={shouldReduceMotion ? undefined : stagger}
               initial="hidden"
               animate="show"
               className="grid grid-cols-2 gap-4"
             >
+              {/* Land Restoration */}
               <BigStat
-                value={stats.eventsAttended}
-                label="Events"
-                icon={<Calendar size={20} strokeWidth={2.5} />}
+                value={stats.treesPlanted}
+                label="Trees Planted"
+                icon={<TreePine size={20} strokeWidth={2.5} />}
                 config="events"
               />
               <BigStat
-                value={stats.hoursVolunteered}
-                label="Hours"
-                icon={<Clock size={20} strokeWidth={2.5} />}
-                config="hours"
+                value={stats.invasiveWeedsPulled}
+                label="Weeds Pulled"
+                icon={<Sprout size={20} strokeWidth={2.5} />}
+                config="weeds"
               />
+
+              {/* Cleanup Sites */}
               <BigStat
-                value={stats.rubbishCollectedKg}
-                label="kg Rubbish"
+                value={stats.rubbishCollectedTonnes}
+                label="Rubbish (tonnes)"
                 icon={<Trash2 size={20} strokeWidth={2.5} />}
                 config="rubbish"
+                suffix="t"
               />
-              {stats.coastlineCleanedM > 0 && (
-                <BigStat
-                  value={stats.coastlineCleanedM}
-                  label="Coastline (m)"
-                  icon={<Waves size={20} strokeWidth={2.5} />}
-                  config="coastline"
-                />
-              )}
-              {stats.areaRestoredSqm > 0 && (
-                <BigStat
-                  value={stats.areaRestoredSqm}
-                  label="Area (sqm)"
-                  icon={<Waves size={20} strokeWidth={2.5} />}
-                  config="area"
-                />
-              )}
-              {stats.nativePlants > 0 && (
-                <BigStat
-                  value={stats.nativePlants}
-                  label="Native Plants"
-                  icon={<Sprout size={20} strokeWidth={2.5} />}
-                  config="plants"
-                />
-              )}
-              {stats.wildlifeSightings > 0 && (
-                <BigStat
-                  value={stats.wildlifeSightings}
-                  label="Wildlife"
-                  icon={<Bird size={20} strokeWidth={2.5} />}
-                  config="wildlife"
-                />
-              )}
+              <BigStat
+                value={stats.cleanupEventsHeld}
+                label="Cleanup Events"
+                icon={<Trash2 size={20} strokeWidth={2.5} />}
+                config="cleanups"
+              />
+
+              {/* Organisational */}
+              <BigStat
+                value={stats.collectivesCount}
+                label="Collectives"
+                icon={<Users size={20} strokeWidth={2.5} />}
+                config="collectives"
+              />
+              <BigStat
+                value={stats.leadersTrainedCount}
+                label="Leaders Trained"
+                icon={<GraduationCap size={20} strokeWidth={2.5} />}
+                config="leaders"
+              />
             </motion.div>
 
             {/* ─── Streak ─── */}

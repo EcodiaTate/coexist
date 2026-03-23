@@ -28,17 +28,15 @@ function formatTime(date: string) {
 }
 
 const ACTIVITY_LABELS: Record<string, string> = {
+  shore_cleanup: 'Shore Cleanup',
   tree_planting: 'Tree Planting',
-  beach_cleanup: 'Beach Cleanup',
-  habitat_restoration: 'Habitat Restoration',
-  nature_walk: 'Nature Walk',
-  education: 'Education',
-  wildlife_survey: 'Wildlife Survey',
-  seed_collecting: 'Seed Collecting',
-  weed_removal: 'Weed Removal',
-  waterway_cleanup: 'Waterway Cleanup',
-  community_garden: 'Community Garden',
-  other: 'Other',
+  land_regeneration: 'Land Regeneration',
+  nature_walk: 'Nature Walks',
+  camp_out: 'Camp Out',
+  retreat: 'Retreats',
+  film_screening: 'Film Screening',
+  marine_restoration: 'Marine Restoration',
+  workshop: 'Workshop',
 }
 
 const stagger = {

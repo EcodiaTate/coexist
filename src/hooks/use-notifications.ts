@@ -21,6 +21,7 @@ export type NotificationType =
   | 'challenge_update'
   | 'chat_mention'
   | 'chat_messages'
+  | 'survey_request'
 
 export interface NotificationPreferences {
   event_reminder: boolean
@@ -88,7 +89,7 @@ export function resolveNotificationRoute(
     case 'event_invite':
       return data?.event_id ? `/events/${data.event_id}` : '/events'
     case 'points_earned':
-      return '/points'
+      return '/'
     case 'global_announcement':
       return '/announcements'
     case 'challenge_update':
@@ -96,6 +97,8 @@ export function resolveNotificationRoute(
     case 'chat_mention':
     case 'chat_messages':
       return data?.collective_id ? `/chat/${data.collective_id}` : '/chat'
+    case 'survey_request':
+      return data?.event_id ? `/events/${data.event_id}/survey` : '/events'
     default:
       return '/'
   }
@@ -136,6 +139,8 @@ export function getNotificationMeta(type: string): { emoji: string; color: strin
       return { emoji: '\u{1F4AC}', color: 'bg-info-100' }
     case 'chat_messages':
       return { emoji: '\u{1F4AC}', color: 'bg-neutral-100' }
+    case 'survey_request':
+      return { emoji: '\u{1F4CB}', color: 'bg-primary-100' }
     default:
       return { emoji: '\u{1F514}', color: 'bg-neutral-100' }
   }

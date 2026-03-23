@@ -13,6 +13,8 @@ export interface SidebarNavItem {
   label: string
   path: string
   icon: ReactNode
+  /** Only show this item on md+ screens (desktop sidebar) */
+  desktopOnly?: boolean
 }
 
 export interface SidebarNavCategory {
@@ -256,7 +258,7 @@ export function SidebarShell({
                 {cat.items.map((item) => {
                   const active = isActive(item.path)
                   return (
-                    <motion.li key={item.path} variants={itemV}>
+                    <motion.li key={item.path} variants={itemV} className={item.desktopOnly ? 'hidden md:list-item' : undefined}>
                       <Link
                         to={item.path}
                         onClick={() => window.scrollTo({ top: 0 })}

@@ -3,36 +3,41 @@ import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
     Calendar,
-    Mail,
     Clock,
     MapPin,
     Users,
-    ChevronRight,
     X,
     Compass,
     Leaf,
+    Search,
+    Filter,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import {
     useMyEvents,
+    useDiscoverEvents,
     useCancelRegistration,
     formatEventDate,
     getCountdown,
     ACTIVITY_TYPE_LABELS,
+    ACTIVITY_TYPE_OPTIONS,
     isPastEvent,
 } from '@/hooks/use-events'
-import type { MyEventItem } from '@/hooks/use-events'
+import type { MyEventItem, EventWithCollective } from '@/hooks/use-events'
+import type { Database } from '@/types/database.types'
+import { useCollectives } from '@/hooks/use-collective'
 import {
     Page,
-    TabBar,
     PullToRefresh,
     Card,
-    Badge, EmptyState, ConfirmationSheet
+    Badge, EmptyState, ConfirmationSheet, Dropdown
 } from '@/components'
 import { cn } from '@/lib/cn'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { OfflineIndicator } from '@/components/offline-indicator'
 import { PendingSyncBadge } from '@/components/pending-sync-badge'
+
+type ActivityType = Database['public']['Enums']['activity_type']
 
 /* ------------------------------------------------------------------ */
 /*  Animation                                                          */
@@ -80,16 +85,23 @@ function DecorativeBackground() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Tab config                                                         */
+/*  Section header                                                     */
 /* ------------------------------------------------------------------ */
 
-const TABS = [
-  { id: 'upcoming', label: 'Upcoming', icon: <Calendar size={16} /> },
-  { id: 'invited', label: 'Invited', icon: <Mail size={16} /> },
-  { id: 'past', label: 'Past', icon: <Clock size={16} /> },
-] as const
-
-type TabId = (typeof TABS)[number]['id']
+function SectionHeader({ title, count }: { title: string; count?: number }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <h2 className="font-heading text-[15px] font-bold text-secondary-800 tracking-tight">
+        {title}
+      </h2>
+      {count !== undefined && count > 0 && (
+        <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-primary-500/15 text-[11px] font-bold text-primary-700 tabular-nums">
+          {count}
+        </span>
+      )}
+    </div>
+  )
+}
 
 /* ------------------------------------------------------------------ */
 /*  Status badge styles                                                */
@@ -106,25 +118,23 @@ const statusBadge: Record<string, { label: string; className: string }> = {
 /*  Activity badge mapping                                             */
 /* ------------------------------------------------------------------ */
 
-const activityToBadge: Record<string, 'tree-planting' | 'beach-cleanup' | 'habitat' | 'wildlife' | 'education' | 'monitoring' | 'restoration'> = {
+const activityToBadge: Record<string, 'shore-cleanup' | 'tree-planting' | 'land-regeneration' | 'nature-walk' | 'camp-out' | 'retreat' | 'film-screening' | 'marine-restoration' | 'workshop'> = {
+  shore_cleanup: 'shore-cleanup',
   tree_planting: 'tree-planting',
-  beach_cleanup: 'beach-cleanup',
-  habitat_restoration: 'habitat',
-  nature_walk: 'wildlife',
-  education: 'education',
-  wildlife_survey: 'wildlife',
-  seed_collecting: 'tree-planting',
-  weed_removal: 'restoration',
-  waterway_cleanup: 'beach-cleanup',
-  community_garden: 'restoration',
-  other: 'education',
+  land_regeneration: 'land-regeneration',
+  nature_walk: 'nature-walk',
+  camp_out: 'camp-out',
+  retreat: 'retreat',
+  film_screening: 'film-screening',
+  marine_restoration: 'marine-restoration',
+  workshop: 'workshop',
 }
 
 /* ------------------------------------------------------------------ */
-/*  Event Card                                                         */
+/*  Event Card (for My Events - shows registration status)             */
 /* ------------------------------------------------------------------ */
 
-function EventCard({
+function MyEventCard({
   event,
   onCancel,
 }: {
@@ -150,7 +160,6 @@ function EventCard({
           past && 'opacity-70 saturate-[0.85]',
         )}
       >
-        {/* Event image - always shown */}
         <div className="relative">
           {event.cover_image_url ? (
             <Card.Image src={event.cover_image_url} alt={event.title} aspectRatio="2/1" />
@@ -167,7 +176,7 @@ function EventCard({
           <Card.Badge position="top-right">
             <Badge
               variant="activity"
-              activity={activityToBadge[event.activity_type] ?? 'education'}
+              activity={activityToBadge[event.activity_type] ?? 'workshop'}
               size="sm"
             >
               {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
@@ -222,7 +231,6 @@ function EventCard({
             </div>
           </div>
 
-          {/* Cancel action for upcoming registered events */}
           {!past && event.registration_status === 'registered' && onCancel && (
             <button
               type="button"
@@ -242,6 +250,82 @@ function EventCard({
               Cancel Registration
             </button>
           )}
+        </Card.Content>
+      </Card>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Discover Event Card (no registration status, shows open event)     */
+/* ------------------------------------------------------------------ */
+
+function DiscoverEventCard({ event }: { event: EventWithCollective }) {
+  const navigate = useNavigate()
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+      <Card
+        variant="event"
+        onClick={() => navigate(`/events/${event.id}`)}
+        aria-label={event.title}
+        className={cn(
+          'bg-brand',
+          'border border-primary-400/30',
+          'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.22),0_2px_6px_rgba(61,77,51,0.08)]',
+        )}
+      >
+        <div className="relative">
+          {event.cover_image_url ? (
+            <Card.Image src={event.cover_image_url} alt={event.title} aspectRatio="2/1" />
+          ) : (
+            <div className="relative w-full overflow-hidden" style={{ aspectRatio: '2/1' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-primary-300/60 via-moss-400/50 to-secondary-500/40 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm flex items-center justify-center">
+                  <Leaf size={22} strokeWidth={2} className="text-white/70" />
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" aria-hidden="true" />
+            </div>
+          )}
+          <Card.Badge position="top-right">
+            <Badge
+              variant="activity"
+              activity={activityToBadge[event.activity_type] ?? 'workshop'}
+              size="sm"
+            >
+              {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
+            </Badge>
+          </Card.Badge>
+        </div>
+
+        <Card.Content>
+          <div className="min-w-0">
+            <Card.Title className="!text-white">{event.title}</Card.Title>
+            <Card.Meta className="!text-white/70">
+              <span className="flex items-center gap-1.5">
+                <Calendar size={13} className="shrink-0 text-white/60" />
+                <span className="font-semibold text-white/85">{formatEventDate(event.date_start)}</span>
+              </span>
+            </Card.Meta>
+            {event.collectives && (
+              <Card.Meta className="!text-white/70">
+                <span className="flex items-center gap-1.5">
+                  <Users size={13} className="shrink-0 text-white/60" />
+                  <span className="text-white/75">{event.collectives.name}</span>
+                </span>
+              </Card.Meta>
+            )}
+            {event.address && (
+              <Card.Meta className="!text-white/70">
+                <span className="flex items-center gap-1.5">
+                  <MapPin size={13} className="shrink-0 text-white/60" />
+                  <span className="truncate text-white/75">{event.address}</span>
+                </span>
+              </Card.Meta>
+            )}
+          </div>
         </Card.Content>
       </Card>
     </motion.div>
@@ -270,22 +354,46 @@ function EventListSkeleton() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  My Events Page                                                     */
+/*  Unified Events Page – single scroll, no tabs                       */
 /* ------------------------------------------------------------------ */
 
-export default function MyEventsPage() {
+export default function EventsPage() {
   const navigate = useNavigate()
-  const [activeTab, setActiveTab] = useState<TabId>('upcoming')
+  const [activityFilter, setActivityFilter] = useState<ActivityType | ''>('')
+  const [collectiveFilter, setCollectiveFilter] = useState<string>('')
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
   const queryClient = useQueryClient()
   const shouldReduceMotion = useReducedMotion()
 
-  const { data: events, isLoading, dataUpdatedAt, isFetching } = useMyEvents(activeTab)
-  const showLoading = useDelayedLoading(isLoading)
+  // My upcoming events (next events section)
+  const { data: upcomingEvents, isLoading: upcomingLoading, dataUpdatedAt, isFetching } = useMyEvents('upcoming')
+  const upcomingShowLoading = useDelayedLoading(upcomingLoading)
   const cancelMutation = useCancelRegistration()
 
+  // Invited events
+  const { data: invitedEvents, isLoading: invitedLoading } = useMyEvents('invited')
+  const invitedShowLoading = useDelayedLoading(invitedLoading)
+
+  // Discover events with filters
+  const { data: discoverEvents, isLoading: discoverLoading } = useDiscoverEvents({
+    activityType: activityFilter,
+    collectiveId: collectiveFilter || undefined,
+  })
+  const discoverShowLoading = useDelayedLoading(discoverLoading)
+
+  // Collectives for filter dropdown
+  const { data: collectives } = useCollectives()
+
+  const collectiveOptions = [
+    { value: '', label: 'All collectives' },
+    ...(collectives ?? []).map((c) => ({ value: c.id, label: c.name })),
+  ]
+
   const handleRefresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ['my-events'] })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['my-events'] }),
+      queryClient.invalidateQueries({ queryKey: ['discover-events'] }),
+    ])
   }, [queryClient])
 
   const handleCancelConfirm = useCallback(() => {
@@ -294,40 +402,18 @@ export default function MyEventsPage() {
     setCancelTarget(null)
   }, [cancelTarget, cancelMutation])
 
-  const emptyConfig = {
-    upcoming: {
-      illustration: 'empty' as const,
-      title: 'No upcoming events',
-      description: 'Browse events near you and register for your first one!',
-      action: { label: 'Explore Events', to: '/explore' },
-    },
-    invited: {
-      illustration: 'empty' as const,
-      title: 'No invites yet',
-      description: 'When your collective organises an event, invites will show up here.',
-      action: { label: 'Explore Collectives', to: '/explore?tab=collectives' },
-    },
-    past: {
-      illustration: 'wildlife' as const,
-      title: 'No past events',
-      description: 'Your event history will appear here once you attend your first one.',
-      action: { label: 'Find Events', to: '/explore' },
-    },
-  }
-
   return (
     <Page noBackground className="!px-0 bg-surface-1">
       <div className="relative min-h-full">
         <DecorativeBackground />
 
-        {/* Content layer */}
         <div className="relative z-10 px-4 lg:px-6">
           {/* Hero title */}
           <motion.div
             initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="pt-14 pb-4"
+            className="pt-14 pb-2"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
@@ -335,66 +421,110 @@ export default function MyEventsPage() {
                   <Compass size={15} className="text-white" />
                 </div>
                 <h1 className="font-heading text-[22px] font-bold text-secondary-900 tracking-tight">
-                  My Events
+                  Events
                 </h1>
               </div>
-
-              <button
-                type="button"
-                onClick={() => navigate('/explore')}
-                className={cn(
-                  'flex items-center gap-1.5 px-3.5 py-2 rounded-xl min-h-11',
-                  'text-sm font-semibold text-secondary-800',
-                  'bg-gradient-to-r from-[#eef2e8] to-[#e8eddf] border border-primary-200/35',
-                  'shadow-sm shadow-primary-300/15',
-                  'hover:from-[#eaefe3] hover:to-[#e4e9da] active:scale-[0.97]',
-                  'transition-all duration-150 cursor-pointer select-none',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-                )}
-              >
-                Explore
-                <ChevronRight size={14} />
-              </button>
-            </div>
-          </motion.div>
-
-          {/* Tab bar - glass morphism */}
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: 0.08 }}
-            className="pb-4"
-          >
-            <div className="flex items-center gap-2 bg-gradient-to-r from-[#eef2e8]/90 to-[#e8eddf]/90 backdrop-blur-md rounded-2xl p-1.5 border border-primary-200/30 shadow-[0_4px_20px_-4px_rgba(61,77,51,0.14)]">
-              <TabBar
-                tabs={TABS.map((t) => ({ id: t.id, label: t.label, icon: t.icon }))}
-                activeTab={activeTab}
-                onChange={(id) => setActiveTab(id as TabId)}
-                aria-label="Event tabs"
-                className="bg-transparent rounded-none p-0 flex-1"
-              />
-              <div className="flex items-center gap-1.5 shrink-0 pr-2">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <OfflineIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} className="text-primary-400" />
                 <PendingSyncBadge />
               </div>
             </div>
           </motion.div>
 
-          {/* Event list */}
           <PullToRefresh onRefresh={handleRefresh}>
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={shouldReduceMotion ? undefined : { opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={shouldReduceMotion ? undefined : { opacity: 0, x: -10 }}
-                transition={{ duration: 0.18 }}
-                className="pb-6"
+            <div className="space-y-6 pb-6">
+              {/* ── Next Events (upcoming registered) ── */}
+              {(upcomingShowLoading || (upcomingEvents && upcomingEvents.length > 0)) && (
+                <motion.section
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: 0.06 }}
+                >
+                  <SectionHeader title="Your Next Events" count={upcomingEvents?.length} />
+                  {upcomingShowLoading ? (
+                    <EventListSkeleton />
+                  ) : (
+                    <motion.div
+                      variants={shouldReduceMotion ? undefined : stagger}
+                      initial="hidden"
+                      animate="visible"
+                      className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0"
+                    >
+                      {upcomingEvents!.map((event) => (
+                        <MyEventCard
+                          key={event.id}
+                          event={event}
+                          onCancel={(id) => setCancelTarget(id)}
+                        />
+                      ))}
+                    </motion.div>
+                  )}
+                </motion.section>
+              )}
+
+              {/* ── Invited Events ── */}
+              {(invitedShowLoading || (invitedEvents && invitedEvents.length > 0)) && (
+                <motion.section
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: 0.1 }}
+                >
+                  <SectionHeader title="Invited" count={invitedEvents?.length} />
+                  {invitedShowLoading ? (
+                    <EventListSkeleton />
+                  ) : (
+                    <motion.div
+                      variants={shouldReduceMotion ? undefined : stagger}
+                      initial="hidden"
+                      animate="visible"
+                      className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0"
+                    >
+                      {invitedEvents!.map((event) => (
+                        <MyEventCard key={event.id} event={event} />
+                      ))}
+                    </motion.div>
+                  )}
+                </motion.section>
+              )}
+
+              {/* ── Discover Events ── */}
+              <motion.section
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.14 }}
               >
-                {showLoading ? (
+                <SectionHeader title="Discover Events" />
+
+                {/* Filters row */}
+                <div className="flex items-center gap-2 mb-4">
+                  <Filter size={14} className="text-primary-400 shrink-0" />
+                  <Dropdown
+                    value={activityFilter}
+                    onChange={(v) => setActivityFilter(v as ActivityType | '')}
+                    options={[
+                      { value: '', label: 'All types' },
+                      ...ACTIVITY_TYPE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+                    ]}
+                    placeholder="Filter by type"
+                    className="flex-1"
+                  />
+                  <Dropdown
+                    value={collectiveFilter}
+                    onChange={(v) => setCollectiveFilter(v)}
+                    options={collectiveOptions}
+                    placeholder="All collectives"
+                    className="flex-1"
+                  />
+                </div>
+
+                {discoverShowLoading ? (
                   <EventListSkeleton />
-                ) : !events || events.length === 0 ? (
-                  <EmptyState {...emptyConfig[activeTab]} />
+                ) : !discoverEvents || discoverEvents.length === 0 ? (
+                  <EmptyState
+                    illustration="empty"
+                    title="No events found"
+                    description={activityFilter || collectiveFilter ? 'Try different filters or check back soon.' : 'No upcoming events right now. Check back soon!'}
+                  />
                 ) : (
                   <motion.div
                     variants={shouldReduceMotion ? undefined : stagger}
@@ -402,39 +532,13 @@ export default function MyEventsPage() {
                     animate="visible"
                     className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0"
                   >
-                    {events.map((event) => (
-                      <EventCard
-                        key={event.id}
-                        event={event}
-                        onCancel={
-                          activeTab === 'upcoming'
-                            ? (id) => setCancelTarget(id)
-                            : undefined
-                        }
-                      />
+                    {discoverEvents.map((event) => (
+                      <DiscoverEventCard key={event.id} event={event} />
                     ))}
-
-                    {/* End of list marker */}
-                    <motion.div variants={fadeUp} className="flex flex-col items-center py-10 gap-3 lg:col-span-2">
-                      <div className="relative">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#dce3d3] via-[#d4dbc9] to-[#c9d2bc] flex items-center justify-center shadow-md shadow-primary-300/20 border border-primary-200/25">
-                          <Calendar size={20} className="text-secondary-700" />
-                        </div>
-                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-primary-400 to-secondary-500 border-2 border-[#eef2e8]" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-secondary-700">
-                          {activeTab === 'past' ? 'End of history' : 'All events loaded'}
-                        </p>
-                        <p className="text-xs text-primary-400 mt-0.5">
-                          Pull down to refresh
-                        </p>
-                      </div>
-                    </motion.div>
                   </motion.div>
                 )}
-              </motion.div>
-            </AnimatePresence>
+              </motion.section>
+            </div>
           </PullToRefresh>
         </div>
       </div>

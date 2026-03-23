@@ -6,7 +6,6 @@ import {
   Calendar,
   Clock,
   TreePine,
-  Star,
   Users,
   Trash2,
   Waves,
@@ -17,27 +16,15 @@ import {
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Avatar } from '@/components/avatar'
-import { Badge } from '@/components/badge'
 import { Chip } from '@/components/chip'
 import { StatCard } from '@/components/stat-card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
-import { CountUp } from '@/components/count-up'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import { MapView } from '@/components'
 import { useProfile, useProfileCollectives, useProfileStats, useMutualConnections } from '@/hooks/use-profile'
-import { usePointsBalance, getTierFromPoints } from '@/hooks/use-points'
-import type { TierName } from '@/hooks/use-points'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-
-const tierLabels: Record<TierName, string> = {
-  new: 'New',
-  active: 'Active',
-  committed: 'Committed',
-  dedicated: 'Dedicated',
-  lifetime: 'Lifetime',
-}
 
 function ViewProfileSkeleton() {
   return (
@@ -64,7 +51,6 @@ export default function ViewProfilePage() {
   const showLoading = useDelayedLoading(isLoading)
   const { data: collectives } = useProfileCollectives(userId)
   const { data: stats } = useProfileStats(userId)
-  const { data: pointsData } = usePointsBalance(userId)
   const { data: mutualData } = useMutualConnections(userId ?? '')
 
   if (showLoading) {
@@ -97,8 +83,6 @@ export default function ViewProfilePage() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
   }
 
-  const points = pointsData?.points ?? profile.points ?? 0
-  const tier = getTierFromPoints(points)
   const memberSince = new Date(profile.created_at).toLocaleDateString('en-AU', {
     month: 'long',
     year: 'numeric',
@@ -116,7 +100,6 @@ export default function ViewProfilePage() {
             src={profile.avatar_url}
             name={profile.display_name ?? ''}
             size="xl"
-            tier={tier}
           />
 
           <h2 className="mt-3 font-heading text-xl font-bold text-primary-800">
@@ -125,16 +108,6 @@ export default function ViewProfilePage() {
           {profile.pronouns && (
             <span className="text-sm text-primary-400">{profile.pronouns}</span>
           )}
-
-          <div className="mt-2 flex items-center gap-2">
-            <Badge variant="tier" tier={tier}>
-              {tierLabels[tier]}
-            </Badge>
-            <span className="flex items-center gap-1 text-sm font-semibold text-primary-400">
-              <Star size={14} />
-              <CountUp end={points} suffix=" pts" />
-            </span>
-          </div>
 
           {profile.bio && (
             <p className="mt-3 text-center text-sm text-primary-400 max-w-xs leading-relaxed">

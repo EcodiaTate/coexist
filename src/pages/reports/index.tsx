@@ -53,15 +53,14 @@ const scopeOptions = [
 ]
 
 const impactMetrics = [
-  'Trees planted',
+  'Event attendances',
   'Volunteer hours',
-  'Rubbish collected (kg)',
-  'Coastline cleaned (m)',
-  'Events held',
-  'Members participated',
-  'Native plants',
-  'Area restored (sqm)',
-  'Wildlife sightings',
+  'Trees planted',
+  'Invasive weeds pulled',
+  'Rubbish collected (tonnes)',
+  'Cleanup events held',
+  'Number of collectives',
+  'Young adult leaders trained',
 ]
 
 const tabs = [

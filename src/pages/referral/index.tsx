@@ -6,8 +6,6 @@ import {
   Users,
   Gift,
   CheckCircle,
-  UserPlus,
-  Trophy,
   Clock,
 } from 'lucide-react'
 import { Page } from '@/components/page'
@@ -178,7 +176,7 @@ export default function ReferralPage() {
               Grow the Movement
             </h2>
             <p className="mt-1 text-sm text-primary-400 max-w-xs mx-auto">
-              Invite friends to join Co-Exist. Earn 200 points when they attend their first event!
+              Invite friends to join Co-Exist and help grow the conservation community!
             </p>
           </motion.div>
 
@@ -246,34 +244,6 @@ export default function ReferralPage() {
               />
             </motion.div>
           )}
-
-          {/* Reward chain */}
-          <motion.section
-            variants={fadeUp}
-            className="mt-6"
-          >
-            <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
-              Referral Rewards
-            </h3>
-            <div className="space-y-2">
-              {[
-                { label: 'Friend joins Co-Exist', points: 50, icon: <UserPlus size={16} /> },
-                { label: 'Friend attends first event', points: 200, icon: <CheckCircle size={16} /> },
-                { label: 'Friend attends 5th event', points: 100, icon: <Trophy size={16} /> },
-              ].map(({ label, points, icon }) => (
-                <div
-                  key={label}
-                  className="flex items-center gap-3 rounded-xl bg-white/80 backdrop-blur-sm border border-moss-200/40 shadow-sm px-4 py-3"
-                >
-                  <span className="flex items-center justify-center w-8 h-8 rounded-full bg-moss-100/60 text-moss-600">
-                    {icon}
-                  </span>
-                  <span className="flex-1 text-sm text-primary-800">{label}</span>
-                  <span className="text-sm font-bold text-moss-600">+{points} pts</span>
-                </div>
-              ))}
-            </div>
-          </motion.section>
 
         </motion.div>
       </div>

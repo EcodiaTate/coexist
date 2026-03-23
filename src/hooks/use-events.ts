@@ -56,17 +56,15 @@ export interface WaitlistEntry {
 /* ------------------------------------------------------------------ */
 
 export const ACTIVITY_TYPE_OPTIONS: { value: ActivityType; label: string }[] = [
+  { value: 'shore_cleanup', label: 'Shore Cleanup' },
   { value: 'tree_planting', label: 'Tree Planting' },
-  { value: 'beach_cleanup', label: 'Beach Cleanup' },
-  { value: 'habitat_restoration', label: 'Habitat Restoration' },
-  { value: 'nature_walk', label: 'Nature Walk' },
-  { value: 'education', label: 'Education' },
-  { value: 'wildlife_survey', label: 'Wildlife Survey' },
-  { value: 'seed_collecting', label: 'Seed Collecting' },
-  { value: 'weed_removal', label: 'Weed Removal' },
-  { value: 'waterway_cleanup', label: 'Waterway Cleanup' },
-  { value: 'community_garden', label: 'Community Garden' },
-  { value: 'other', label: 'Other' },
+  { value: 'land_regeneration', label: 'Land Regeneration' },
+  { value: 'nature_walk', label: 'Nature Walks' },
+  { value: 'camp_out', label: 'Camp Out' },
+  { value: 'retreat', label: 'Retreats' },
+  { value: 'film_screening', label: 'Film Screening' },
+  { value: 'marine_restoration', label: 'Marine Restoration' },
+  { value: 'workshop', label: 'Workshop' },
 ]
 
 export const ACTIVITY_TYPE_LABELS: Record<string, string> = Object.fromEntries(
@@ -85,43 +83,37 @@ export interface ImpactField {
 }
 
 export const IMPACT_FIELDS_BY_ACTIVITY: Record<ActivityType, ImpactField[]> = {
+  shore_cleanup: [
+    { key: 'rubbish_kg', label: 'Rubbish Collected', unit: 'kg', icon: 'trash' },
+    { key: 'coastline_cleaned_m', label: 'Shoreline Cleaned', unit: 'm', icon: 'wave' },
+  ],
   tree_planting: [
     { key: 'trees_planted', label: 'Trees Planted', unit: 'trees', icon: 'tree' },
     { key: 'native_plants', label: 'Native Plants', unit: 'plants', icon: 'leaf' },
+    { key: 'invasive_weeds_pulled', label: 'Invasive Weeds Pulled', unit: 'weeds', icon: 'weed' },
     { key: 'area_restored_sqm', label: 'Area Covered', unit: 'sqm', icon: 'area' },
   ],
-  beach_cleanup: [
-    { key: 'rubbish_kg', label: 'Rubbish Collected', unit: 'kg', icon: 'trash' },
-    { key: 'coastline_cleaned_m', label: 'Coastline Cleaned', unit: 'm', icon: 'wave' },
-  ],
-  habitat_restoration: [
+  land_regeneration: [
     { key: 'area_restored_sqm', label: 'Area Restored', unit: 'sqm', icon: 'area' },
     { key: 'native_plants', label: 'Native Plants', unit: 'plants', icon: 'leaf' },
+    { key: 'invasive_weeds_pulled', label: 'Invasive Weeds Pulled', unit: 'weeds', icon: 'weed' },
   ],
   nature_walk: [
     { key: 'wildlife_sightings', label: 'Wildlife Sightings', unit: 'sightings', icon: 'eye' },
   ],
-  education: [],
-  wildlife_survey: [
-    { key: 'wildlife_sightings', label: 'Wildlife Sightings', unit: 'sightings', icon: 'eye' },
-    { key: 'area_restored_sqm', label: 'Area Surveyed', unit: 'sqm', icon: 'area' },
+  camp_out: [],
+  retreat: [
+    { key: 'leaders_trained', label: 'Leaders Trained', unit: 'leaders', icon: 'users' },
   ],
-  seed_collecting: [
-    { key: 'native_plants', label: 'Seeds Collected', unit: 'species', icon: 'leaf' },
-  ],
-  weed_removal: [
-    { key: 'area_restored_sqm', label: 'Area Cleared', unit: 'sqm', icon: 'area' },
-    { key: 'rubbish_kg', label: 'Weeds Removed', unit: 'kg', icon: 'trash' },
-  ],
-  waterway_cleanup: [
+  film_screening: [],
+  marine_restoration: [
+    { key: 'area_restored_sqm', label: 'Area Restored', unit: 'sqm', icon: 'area' },
+    { key: 'coastline_cleaned_m', label: 'Coastline Restored', unit: 'm', icon: 'wave' },
     { key: 'rubbish_kg', label: 'Rubbish Collected', unit: 'kg', icon: 'trash' },
-    { key: 'coastline_cleaned_m', label: 'Waterway Cleaned', unit: 'm', icon: 'wave' },
   ],
-  community_garden: [
-    { key: 'native_plants', label: 'Plants Added', unit: 'plants', icon: 'leaf' },
-    { key: 'area_restored_sqm', label: 'Garden Area', unit: 'sqm', icon: 'area' },
+  workshop: [
+    { key: 'leaders_trained', label: 'Leaders Trained', unit: 'leaders', icon: 'users' },
   ],
-  other: [],
 }
 
 /* ------------------------------------------------------------------ */
@@ -368,6 +360,36 @@ export function useNearbyEvents(limit = 20) {
         .gte('date_start', new Date().toISOString())
         .order('date_start', { ascending: true })
         .limit(limit)
+      if (error) throw error
+      return (data ?? []) as EventWithCollective[]
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+export function useDiscoverEvents(filters?: {
+  activityType?: ActivityType | ''
+  collectiveId?: string
+}) {
+  return useQuery({
+    queryKey: ['discover-events', filters?.activityType, filters?.collectiveId],
+    queryFn: async () => {
+      let query = supabase
+        .from('events')
+        .select('*, collectives(id, name)')
+        .eq('status', 'published')
+        .gte('date_start', new Date().toISOString())
+        .order('date_start', { ascending: true })
+        .limit(50)
+
+      if (filters?.activityType) {
+        query = query.eq('activity_type', filters.activityType)
+      }
+      if (filters?.collectiveId) {
+        query = query.eq('collective_id', filters.collectiveId)
+      }
+
+      const { data, error } = await query
       if (error) throw error
       return (data ?? []) as EventWithCollective[]
     },
@@ -783,6 +805,54 @@ export function useDuplicateEvent() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Auto-survey trigger (best-effort, fire-and-forget)                 */
+/* ------------------------------------------------------------------ */
+
+async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
+  // Check if auto-surveys are enabled
+  const { data: config } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'auto_survey_config')
+    .maybeSingle()
+
+  const autoConfig = config?.value as { enabled?: boolean } | null
+  if (autoConfig && autoConfig.enabled === false) return
+
+  // Get all checked-in attendees
+  const { data: attendees } = await supabase
+    .from('event_registrations')
+    .select('user_id')
+    .eq('event_id', eventId)
+    .not('checked_in_at', 'is', null)
+
+  if (!attendees?.length) return
+
+  // Check who already has a survey response
+  const userIds = attendees.map((a) => a.user_id)
+  const { data: existingResponses } = await (supabase as any)
+    .from('post_event_survey_responses')
+    .select('user_id')
+    .eq('event_id', eventId)
+    .in('user_id', userIds)
+
+  const respondedIds = new Set((existingResponses ?? []).map((r: any) => r.user_id))
+  const pendingUsers = userIds.filter((id) => !respondedIds.has(id))
+  if (!pendingUsers.length) return
+
+  // Insert notifications for each attendee
+  await supabase.from('notifications').insert(
+    pendingUsers.map((userId) => ({
+      user_id: userId,
+      type: 'survey_request',
+      title: 'How was your event?',
+      body: `Tell us about "${eventTitle}" — your feedback helps improve future events.`,
+      data: { event_id: eventId },
+    })),
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Mutations - Impact Logging                                         */
 /* ------------------------------------------------------------------ */
 
@@ -827,6 +897,22 @@ export function useLogImpact() {
     onError: (_err, _vars, context) => {
       if (context) {
         queryClient.setQueryData(['event-impact', context.eventId], context.previous)
+      }
+    },
+    onSuccess: async (data) => {
+      // Trigger auto-survey notifications for attendees
+      try {
+        const eventId = data.event_id
+        const { data: eventData } = await supabase
+          .from('events')
+          .select('title')
+          .eq('id', eventId)
+          .single()
+        if (eventData) {
+          triggerSurveyNotifications(eventId, eventData.title)
+        }
+      } catch {
+        // Survey notification is best-effort, don't block impact logging
       }
     },
     onSettled: (data, _err, vars) => {

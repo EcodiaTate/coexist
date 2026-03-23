@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   TreePine,
   Clock,
-  Trash2 as RubbishIcon,
-  Waves,
+  Trash2,
+  Sprout,
   CalendarDays,
   Users,
   MapPin,
@@ -11,9 +12,8 @@ import {
   Share2,
   TrendingUp,
   Trophy,
-  Ruler,
-  Leaf,
-  Eye,
+  GraduationCap,
+  Globe,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
@@ -24,77 +24,15 @@ import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { cn } from '@/lib/cn'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { useNationalImpact } from '@/hooks/use-impact'
 import { supabase } from '@/lib/supabase'
 import { parseLocationPoint } from '@/lib/geo'
 import { MapView } from '@/components'
 import type { MapMarker } from '@/components'
 
 /* ------------------------------------------------------------------ */
-/*  Data                                                               */
+/*  Extra data hooks (not canonical metrics)                           */
 /* ------------------------------------------------------------------ */
-
-function useNationalImpact() {
-  return useQuery({
-    queryKey: ['national-impact'],
-    queryFn: async () => {
-      const [
-        impactRes,
-        eventsRes,
-        membersRes,
-        collectivesRes,
-        eventsWithTypeRes,
-      ] = await Promise.all([
-        supabase.from('event_impact').select(
-          'trees_planted, hours_total, rubbish_kg, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings',
-        ),
-        supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('collectives').select('id', { count: 'exact', head: true }),
-        supabase.from('events').select('activity_type, collectives(state)').lt('date_start', new Date().toISOString()).limit(10000),
-      ])
-
-      const logs = (impactRes.data ?? []) as any[]
-      const totalTrees = logs.reduce((s: number, r: any) => s + (r.trees_planted ?? 0), 0)
-      const totalHours = logs.reduce((s: number, r: any) => s + (r.hours_total ?? 0), 0)
-      const totalRubbish = logs.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0)
-      const totalCoastline = logs.reduce((s: number, r: any) => s + (r.coastline_cleaned_m ?? 0), 0)
-      const totalArea = logs.reduce((s: number, r: any) => s + (r.area_restored_sqm ?? 0), 0)
-      const totalNativePlants = logs.reduce((s: number, r: any) => s + (r.native_plants ?? 0), 0)
-      const totalWildlife = logs.reduce((s: number, r: any) => s + (r.wildlife_sightings ?? 0), 0)
-
-      const byActivity: Record<string, number> = {}
-      for (const ev of (eventsWithTypeRes.data ?? []) as any[]) {
-        const type = ev.activity_type ?? 'Other'
-        byActivity[type] = (byActivity[type] ?? 0) + 1
-      }
-
-      const byState: Record<string, number> = {}
-      for (const ev of (eventsWithTypeRes.data ?? []) as any[]) {
-        const state = (ev.collectives as any)?.state ?? 'Unknown'
-        byState[state] = (byState[state] ?? 0) + 1
-      }
-
-      return {
-        totalTrees,
-        totalHours: Math.round(totalHours),
-        totalRubbish: Math.round(totalRubbish),
-        totalCoastline: Math.round((totalCoastline / 1000) * 10) / 10, // m → km, 1 decimal
-        totalArea: Math.round(totalArea),
-        totalNativePlants,
-        totalWildlife,
-        totalEvents: eventsRes.count ?? 0,
-        totalMembers: membersRes.count ?? 0,
-        totalCollectives: collectivesRes.count ?? 0,
-        byActivity: Object.entries(byActivity)
-          .sort(([, a], [, b]) => b - a)
-          .slice(0, 8),
-        byState: Object.entries(byState)
-          .sort(([, a], [, b]) => b - a),
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-  })
-}
 
 function useTopCollectives() {
   return useQuery({
@@ -175,6 +113,37 @@ function useTrends() {
   })
 }
 
+function useByActivity() {
+  return useQuery({
+    queryKey: ['national-by-activity'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('events')
+        .select('activity_type, collectives(state)')
+        .lt('date_start', new Date().toISOString())
+        .limit(10000)
+
+      const events = (data ?? []) as any[]
+
+      const byActivity: Record<string, number> = {}
+      const byState: Record<string, number> = {}
+
+      for (const ev of events) {
+        const type = ev.activity_type ?? 'Other'
+        byActivity[type] = (byActivity[type] ?? 0) + 1
+        const state = (ev.collectives as any)?.state ?? 'Unknown'
+        byState[state] = (byState[state] ?? 0) + 1
+      }
+
+      return {
+        byActivity: Object.entries(byActivity).sort(([, a], [, b]) => b - a).slice(0, 8),
+        byState: Object.entries(byState).sort(([, a], [, b]) => b - a),
+      }
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 /* ------------------------------------------------------------------ */
 /*  Animation variants                                                 */
 /* ------------------------------------------------------------------ */
@@ -209,13 +178,12 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 const STAT_STYLES: Record<string, { gradient: string; iconBg: string }> = {
   hours:       { gradient: 'from-primary-100/90 to-primary-200/50', iconBg: 'bg-primary-600' },
   rubbish:     { gradient: 'from-moss-100/90 to-moss-200/50', iconBg: 'bg-moss-600' },
-  coastline:   { gradient: 'from-bark-100/90 to-bark-200/50', iconBg: 'bg-bark-600' },
-  area:        { gradient: 'from-plum-100/90 to-plum-200/50', iconBg: 'bg-plum-600' },
-  plants:      { gradient: 'from-moss-100/90 to-moss-200/50', iconBg: 'bg-moss-600' },
-  wildlife:    { gradient: 'from-bark-100/90 to-bark-200/50', iconBg: 'bg-bark-600' },
+  cleanups:    { gradient: 'from-sky-100/90 to-sky-200/50', iconBg: 'bg-sky-600' },
+  weeds:       { gradient: 'from-plum-100/90 to-plum-200/50', iconBg: 'bg-plum-600' },
   events:      { gradient: 'from-plum-100/90 to-plum-200/50', iconBg: 'bg-plum-600' },
   members:     { gradient: 'from-primary-50/90 to-primary-100/50', iconBg: 'bg-primary-600' },
   collectives: { gradient: 'from-bark-50/90 to-bark-100/50', iconBg: 'bg-bark-600' },
+  leaders:     { gradient: 'from-bark-100/90 to-bark-200/50', iconBg: 'bg-bark-600' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -251,7 +219,6 @@ function NationalStat({
         cfg.gradient,
       )}
     >
-      {/* SVG glare */}
       <svg className="absolute top-1 left-4 w-14 h-10 opacity-[0.3] pointer-events-none" viewBox="0 0 56 40" fill="none">
         <ellipse cx="28" cy="10" rx="28" ry="16" fill="white" />
       </svg>
@@ -275,16 +242,15 @@ function NationalStat({
 /* ------------------------------------------------------------------ */
 
 const ACTIVITY_BAR_COLORS: Record<string, string> = {
+  shore_cleanup: 'bg-sky-500',
   tree_planting: 'bg-primary-600',
-  beach_cleanup: 'bg-sky-500',
-  habitat_restoration: 'bg-moss-600',
+  land_regeneration: 'bg-sprout-500',
   nature_walk: 'bg-primary-500',
-  education: 'bg-plum-500',
-  wildlife_survey: 'bg-bark-500',
-  seed_collecting: 'bg-moss-500',
-  weed_removal: 'bg-bark-400',
-  waterway_cleanup: 'bg-sky-600',
-  community_garden: 'bg-plum-400',
+  camp_out: 'bg-moss-600',
+  retreat: 'bg-plum-500',
+  film_screening: 'bg-coral-400',
+  marine_restoration: 'bg-sky-600',
+  workshop: 'bg-bark-500',
 }
 
 /* ------------------------------------------------------------------ */
@@ -305,11 +271,14 @@ export default function NationalImpactPage() {
   const isAdmin = useIsAdminLayout()
   useAdminHeader('Impact')
   const shouldReduceMotion = useReducedMotion()
-  const { data, isLoading } = useNationalImpact()
+
+  const [timeRange, setTimeRange] = useState<'all-time' | 'current-year'>('all-time')
+  const { data, isLoading } = useNationalImpact(timeRange)
   const showLoading = useDelayedLoading(isLoading)
   const { data: topCollectives } = useTopCollectives()
   const { data: trends } = useTrends()
   const { data: eventMapPoints } = useEventMapPoints()
+  const { data: breakdown } = useByActivity()
 
   if (showLoading) {
     const skeleton = (
@@ -337,10 +306,13 @@ export default function NationalImpactPage() {
   const shareLink = () => {
     if (navigator.share) {
       const parts: string[] = []
-      if (data?.totalTrees) parts.push(`${data.totalTrees.toLocaleString()} trees planted`)
-      if (data?.totalHours) parts.push(`${data.totalHours.toLocaleString()} hours volunteered`)
-      if (data?.totalRubbish) parts.push(`${data.totalRubbish.toLocaleString()}kg rubbish collected`)
-      if (data?.totalCoastline) parts.push(`${data.totalCoastline}km coastline cleaned`)
+      if (data?.eventsAttended) parts.push(`${data.eventsAttended.toLocaleString()} event attendances`)
+      if (data?.volunteerHours) parts.push(`${data.volunteerHours.toLocaleString()} volunteer hours`)
+      if (data?.treesPlanted) parts.push(`${data.treesPlanted.toLocaleString()} trees planted`)
+      if (data?.invasiveWeedsPulled) parts.push(`${data.invasiveWeedsPulled.toLocaleString()} invasive weeds pulled`)
+      if (data?.rubbishCollectedTonnes) parts.push(`${data.rubbishCollectedTonnes}t rubbish collected`)
+      if (data?.cleanupEventsHeld) parts.push(`${data.cleanupEventsHeld} cleanup events`)
+      if (data?.leadersTrainedCount) parts.push(`${data.leadersTrainedCount} leaders trained`)
       navigator.share({
         title: 'Co-Exist National Impact',
         text: parts.join(', ') + '!',
@@ -357,92 +329,121 @@ export default function NationalImpactPage() {
         animate="visible"
       >
 
-        {/* ─── Hero headline ─── */}
+        {/* ─── Time range toggle ─── */}
+        <motion.div variants={fadeUp} className="px-5 pt-4 pb-2 flex justify-end">
+          <div className="flex rounded-lg bg-primary-100/60 p-0.5">
+            <button
+              type="button"
+              onClick={() => setTimeRange('all-time')}
+              className={cn(
+                'px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer select-none',
+                timeRange === 'all-time'
+                  ? 'bg-white text-primary-700 shadow-sm'
+                  : 'text-primary-400 hover:text-primary-600',
+              )}
+            >
+              All Time
+            </button>
+            <button
+              type="button"
+              onClick={() => setTimeRange('current-year')}
+              className={cn(
+                'px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer select-none',
+                timeRange === 'current-year'
+                  ? 'bg-white text-primary-700 shadow-sm'
+                  : 'text-primary-400 hover:text-primary-600',
+              )}
+            >
+              {new Date().getFullYear()}
+            </button>
+          </div>
+        </motion.div>
+
+        {/* ─── Hero: Community Events ─── */}
         <motion.div
           variants={fadeUp}
-          className="px-5 pt-6 pb-2"
+          className="px-5 pb-2"
         >
           <div className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-7 shadow-2xl overflow-hidden">
-            {/* Decorative bg elements */}
             <div className="absolute top-0 right-0 w-44 h-44 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
             <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
 
             <div className="relative">
               <div className="flex items-center gap-2 mb-5">
                 <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 backdrop-blur-sm">
-                  <TreePine size={20} strokeWidth={2.5} className="text-white" />
+                  <Globe size={20} strokeWidth={2.5} className="text-white" />
                 </div>
                 <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 font-bold">
                   Australia-Wide
                 </p>
               </div>
 
-              <p className="font-heading text-7xl font-extrabold text-white tabular-nums leading-none tracking-tight">
-                <CountUp end={data?.totalTrees ?? 0} duration={2000} />
-              </p>
-              <p className="text-lg text-white/70 font-semibold mt-3">trees planted nationally</p>
+              <div className="flex items-baseline gap-6">
+                <div>
+                  <p className="font-heading text-6xl font-extrabold text-white tabular-nums leading-none tracking-tight">
+                    <CountUp end={data?.eventsAttended ?? 0} duration={2000} />
+                  </p>
+                  <p className="text-base text-white/70 font-semibold mt-2">event attendances</p>
+                </div>
+                <div className="border-l border-white/15 pl-6">
+                  <p className="font-heading text-4xl font-extrabold text-white tabular-nums leading-none tracking-tight">
+                    <CountUp end={data?.volunteerHours ?? 0} duration={2000} />
+                  </p>
+                  <p className="text-sm text-white/60 font-semibold mt-1">volunteer hours</p>
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
 
-        {/* ─── Stats Grid ─── */}
+        {/* ─── Stats Grid: Canonical Metrics ─── */}
         <motion.div variants={fadeUp} className="px-5 mt-6 grid grid-cols-2 gap-4">
+          {/* Land Restoration */}
           <NationalStat
-            icon={<Clock size={20} strokeWidth={2.5} />}
-            value={data?.totalHours ?? 0}
-            label="Hours Volunteered"
-            style="hours"
+            icon={<TreePine size={20} strokeWidth={2.5} />}
+            value={data?.treesPlanted ?? 0}
+            label="Trees Planted"
+            style="events"
             delay={0.05}
           />
           <NationalStat
-            icon={<RubbishIcon size={20} strokeWidth={2.5} />}
-            value={data?.totalRubbish ?? 0}
-            suffix=" kg"
-            label="Rubbish Collected"
-            style="rubbish"
+            icon={<Sprout size={20} strokeWidth={2.5} />}
+            value={data?.invasiveWeedsPulled ?? 0}
+            label="Weeds Pulled"
+            style="weeds"
             delay={0.1}
           />
+
+          {/* Cleanup Sites */}
           <NationalStat
-            icon={<Waves size={20} strokeWidth={2.5} />}
-            value={data?.totalCoastline ?? 0}
-            suffix=" km"
-            label="Coastline Cleaned"
-            style="coastline"
+            icon={<Trash2 size={20} strokeWidth={2.5} />}
+            value={data?.rubbishCollectedTonnes ?? 0}
+            suffix="t"
+            label="Rubbish (tonnes)"
+            style="rubbish"
             delay={0.15}
           />
-          {(data?.totalArea ?? 0) > 0 && (
-            <NationalStat
-              icon={<Ruler size={20} strokeWidth={2.5} />}
-              value={data?.totalArea ?? 0}
-              suffix=" sqm"
-              label="Area Restored"
-              style="area"
-              delay={0.2}
-            />
-          )}
-          {(data?.totalNativePlants ?? 0) > 0 && (
-            <NationalStat
-              icon={<Leaf size={20} strokeWidth={2.5} />}
-              value={data?.totalNativePlants ?? 0}
-              label="Native Plants"
-              style="plants"
-              delay={0.22}
-            />
-          )}
-          {(data?.totalWildlife ?? 0) > 0 && (
-            <NationalStat
-              icon={<Eye size={20} strokeWidth={2.5} />}
-              value={data?.totalWildlife ?? 0}
-              label="Wildlife Sightings"
-              style="wildlife"
-              delay={0.25}
-            />
-          )}
           <NationalStat
             icon={<CalendarDays size={20} strokeWidth={2.5} />}
-            value={data?.totalEvents ?? 0}
-            label="Events Held"
-            style="events"
+            value={data?.cleanupEventsHeld ?? 0}
+            label="Cleanup Events"
+            style="cleanups"
+            delay={0.2}
+          />
+
+          {/* Organisational */}
+          <NationalStat
+            icon={<MapPin size={20} strokeWidth={2.5} />}
+            value={data?.collectivesCount ?? 0}
+            label="Collectives"
+            style="collectives"
+            delay={0.25}
+          />
+          <NationalStat
+            icon={<GraduationCap size={20} strokeWidth={2.5} />}
+            value={data?.leadersTrainedCount ?? 0}
+            label="Leaders Trained"
+            style="leaders"
             delay={0.28}
           />
           <NationalStat
@@ -450,13 +451,6 @@ export default function NationalImpactPage() {
             value={data?.totalMembers ?? 0}
             label="Active Members"
             style="members"
-            delay={0.25}
-          />
-          <NationalStat
-            icon={<MapPin size={20} strokeWidth={2.5} />}
-            value={data?.totalCollectives ?? 0}
-            label="Collectives"
-            style="collectives"
             delay={0.3}
           />
         </motion.div>
@@ -509,15 +503,15 @@ export default function NationalImpactPage() {
         )}
 
         {/* ─── Breakdown by Activity ─── */}
-        {data?.byActivity && data.byActivity.length > 0 && (
+        {breakdown?.byActivity && breakdown.byActivity.length > 0 && (
           <motion.section
             variants={fadeUp}
             className="mx-5 mt-10"
           >
             <SectionHeading>By Activity Type</SectionHeading>
             <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6 space-y-5">
-              {data.byActivity.map(([type, count]) => {
-                const total = data.byActivity.reduce((s, [, c]) => s + c, 0)
+              {breakdown.byActivity.map(([type, count]) => {
+                const total = breakdown.byActivity.reduce((s, [, c]) => s + c, 0)
                 const percent = total > 0 ? Math.round((count / total) * 100) : 0
                 const barColor = ACTIVITY_BAR_COLORS[type] ?? 'bg-primary-500'
                 return (
@@ -542,15 +536,15 @@ export default function NationalImpactPage() {
         )}
 
         {/* ─── Breakdown by State ─── */}
-        {data?.byState && data.byState.length > 0 && (
+        {breakdown?.byState && breakdown.byState.length > 0 && (
           <motion.section
             variants={fadeUp}
             className="mx-5 mt-10"
           >
             <SectionHeading>By State / Region</SectionHeading>
             <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6 space-y-1">
-              {data.byState.map(([state, count], i) => {
-                const maxCount = data.byState[0]?.[1] ?? 1
+              {breakdown.byState.map(([state, count], i) => {
+                const maxCount = breakdown.byState[0]?.[1] ?? 1
                 const barWidth = Math.max((count / maxCount) * 100, 8)
                 return (
                   <div

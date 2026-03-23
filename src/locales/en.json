@@ -80,8 +80,7 @@
   "profile": {
     "title": "Profile",
     "editProfile": "Edit Profile",
-    "memberSince": "Member since {{date}}",
-    "tier": "Tier: {{tier}}"
+    "memberSince": "Member since {{date}}"
   },
   "chat": {
     "title": "Chat",

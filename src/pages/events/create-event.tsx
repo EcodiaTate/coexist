@@ -18,11 +18,8 @@ import {
   Sprout,
   Footprints,
   BookOpen,
-  Bug,
-  Scissors,
   Droplets,
   Flower2,
-  HelpCircle,
   Repeat,
   Accessibility,
   Mountain,
@@ -213,17 +210,15 @@ const STEPS = [
 /* ------------------------------------------------------------------ */
 
 const activityIcons: Record<string, React.ReactNode> = {
+  shore_cleanup: <Waves size={18} />,
   tree_planting: <TreePine size={18} />,
-  beach_cleanup: <Waves size={18} />,
-  habitat_restoration: <Sprout size={18} />,
+  land_regeneration: <Sprout size={18} />,
   nature_walk: <Footprints size={18} />,
-  education: <BookOpen size={18} />,
-  wildlife_survey: <Bug size={18} />,
-  seed_collecting: <Sprout size={18} />,
-  weed_removal: <Scissors size={18} />,
-  waterway_cleanup: <Droplets size={18} />,
-  community_garden: <Flower2 size={18} />,
-  other: <HelpCircle size={18} />,
+  camp_out: <Mountain size={18} />,
+  retreat: <Flower2 size={18} />,
+  film_screening: <Eye size={18} />,
+  marine_restoration: <Droplets size={18} />,
+  workshop: <BookOpen size={18} />,
 }
 
 /* ------------------------------------------------------------------ */

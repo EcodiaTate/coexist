@@ -1,42 +1,25 @@
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import {
-  User,
   Settings,
-  TrendingUp,
-  Star,
-  Trophy,
   ShoppingBag,
   Heart,
-  MessageCircle,
   Bell,
   Megaphone,
-  Share2,
   Users,
-  MapPin,
   BarChart3,
   Plus,
   Shield,
-  Gift,
+  Handshake,
+  Mail,
   ChevronRight,
   Leaf,
+  CalendarDays,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Avatar } from '@/components/avatar'
-import { Badge } from '@/components/badge'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
-import { usePointsBalance, getTierFromPoints } from '@/hooks/use-points'
-import type { TierName } from '@/hooks/use-points'
-
-const tierLabels: Record<TierName, string> = {
-  new: 'New',
-  active: 'Active',
-  committed: 'Committed',
-  dedicated: 'Dedicated',
-  lifetime: 'Lifetime',
-}
-
 interface MenuLink {
   label: string
   to: string
@@ -113,44 +96,34 @@ export default function MorePage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { profile, collectiveRoles, isStaff } = useAuth()
-  const { data: pointsData } = usePointsBalance()
-
-  const points = pointsData?.points ?? profile?.points ?? 0
-  const tier = getTierFromPoints(points) as TierName
-
   const isAnyLeader = collectiveRoles.some(
     (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
   )
 
-  const mainLinks: MenuLink[] = [
+  const updatesLinks: MenuLink[] = [
+    { label: 'Updates', to: '/announcements', icon: <Megaphone size={17} />, iconBg: 'bg-plum-50', iconColor: 'text-plum-600' },
+    { label: 'Events', to: '/events', icon: <CalendarDays size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
     { label: 'Notifications', to: '/notifications', icon: <Bell size={17} />, iconBg: 'bg-error-50', iconColor: 'text-error-500' },
-    { label: 'Settings', to: '/settings', icon: <Settings size={17} />, iconBg: 'bg-primary-100/80', iconColor: 'text-primary-600' },
   ]
 
-  const activityLinks: MenuLink[] = [
-    { label: 'Impact Dashboard', to: '/impact', icon: <TrendingUp size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
-    { label: 'Points History', to: '/points', icon: <Star size={17} />, iconBg: 'bg-warning-50', iconColor: 'text-warning-600' },
-    { label: 'Leaderboard', to: '/leaderboard', icon: <Trophy size={17} />, iconBg: 'bg-bark-50', iconColor: 'text-bark-600' },
-    { label: 'National Impact', to: '/impact/national', icon: <MapPin size={17} />, iconBg: 'bg-moss-50', iconColor: 'text-moss-600' },
-  ]
-
-  const communityLinks: MenuLink[] = [
-    { label: 'Chat', to: '/chat', icon: <MessageCircle size={17} />, iconBg: 'bg-sky-50', iconColor: 'text-sky-600' },
-    { label: 'Collectives', to: '/collectives', icon: <Users size={17} />, iconBg: 'bg-primary-100/80', iconColor: 'text-primary-600' },
-    { label: 'Announcements', to: '/announcements', icon: <Megaphone size={17} />, iconBg: 'bg-plum-50', iconColor: 'text-plum-600' },
-    { label: 'Invite Friends', to: '/referral', icon: <Share2 size={17} />, iconBg: 'bg-coral-50', iconColor: 'text-coral-500' },
+  const supportLinks: MenuLink[] = [
+    { label: 'Leadership Opportunities', to: '/leadership', icon: <Users size={17} />, iconBg: 'bg-moss-50', iconColor: 'text-moss-600' },
+    { label: 'Contact Us', to: '/contact', icon: <Mail size={17} />, iconBg: 'bg-sky-50', iconColor: 'text-sky-600' },
+    { label: 'Our Partners', to: '/partners', icon: <Handshake size={17} />, iconBg: 'bg-warning-50', iconColor: 'text-warning-600' },
   ]
 
   const shopLinks: MenuLink[] = [
-    { label: 'Shop', to: '/shop', icon: <ShoppingBag size={17} />, iconBg: 'bg-primary-100/80', iconColor: 'text-primary-700' },
     { label: 'Donate', to: '/donate', icon: <Heart size={17} />, iconBg: 'bg-coral-50', iconColor: 'text-coral-500' },
-    { label: 'Partner Offers', to: '/shop', icon: <Gift size={17} />, iconBg: 'bg-warning-50', iconColor: 'text-warning-600' },
+    { label: 'Shop', to: '/shop', icon: <ShoppingBag size={17} />, iconBg: 'bg-primary-100/80', iconColor: 'text-primary-700' },
+  ]
+
+  const accountLinks: MenuLink[] = [
+    { label: 'Settings', to: '/settings', icon: <Settings size={17} />, iconBg: 'bg-primary-100/80', iconColor: 'text-primary-600' },
   ]
 
   const leaderLinks: MenuLink[] = [
     { label: 'Leader Dashboard', to: '/leader', icon: <BarChart3 size={17} />, iconBg: 'bg-primary-200/60', iconColor: 'text-primary-800' },
     { label: 'Create Event', to: '/events/create', icon: <Plus size={17} />, iconBg: 'bg-primary-200/60', iconColor: 'text-primary-800' },
-    { label: 'Reports', to: '/reports', icon: <TrendingUp size={17} />, iconBg: 'bg-primary-200/60', iconColor: 'text-primary-800' },
   ]
 
   const adminLinks: MenuLink[] = [
@@ -200,31 +173,21 @@ export default function MorePage() {
                 src={profile?.avatar_url}
                 name={profile?.display_name ?? ''}
                 size="lg"
-                tier={tier}
               />
             </div>
             <div className="flex-1 min-w-0 text-left">
               <p className="font-heading text-lg font-bold text-white truncate">
                 {profile?.display_name}
               </p>
-              <div className="flex items-center gap-2.5 mt-1">
-                <Badge variant="tier" tier={tier} size="sm">
-                  {tierLabels[tier]}
-                </Badge>
-                <span className="flex items-center gap-1 text-xs font-semibold text-primary-200">
-                  <Star size={12} fill="currentColor" />
-                  {points.toLocaleString()} pts
-                </span>
-              </div>
             </div>
             <ChevronRight size={20} className="text-primary-300/80 shrink-0" />
           </button>
         </motion.div>
 
-        <MenuSection title="Account" items={mainLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />
-        <MenuSection title="Your Activity" items={activityLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />
-        <MenuSection title="Community" items={communityLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />
-        <MenuSection title="Shop & Support" items={shopLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />
+        <MenuSection title="Updates & Events" items={updatesLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />
+        <MenuSection title="Support" items={supportLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />
+        <MenuSection title="Donate & Shop" items={shopLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />
+        <MenuSection title="Account" items={accountLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />
 
         {isAnyLeader && (
           <MenuSection title="Leader Tools" items={leaderLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />

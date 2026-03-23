@@ -56,12 +56,15 @@ type StatusFilter = 'upcoming' | 'past' | 'all' | 'draft' | 'cancelled'
 /* ------------------------------------------------------------------ */
 
 const activityColors: Record<string, string> = {
+  shore_cleanup: 'bg-sky-100 text-sky-700',
   tree_planting: 'bg-sprout-100 text-sprout-700',
-  beach_clean: 'bg-sky-100 text-sky-700',
-  habitat_restoration: 'bg-moss-100 text-moss-700',
-  wildlife_monitoring: 'bg-bark-100 text-bark-700',
-  fundraiser: 'bg-coral-100 text-coral-700',
-  social: 'bg-plum-100 text-plum-700',
+  land_regeneration: 'bg-moss-100 text-moss-700',
+  nature_walk: 'bg-bark-100 text-bark-700',
+  camp_out: 'bg-moss-100 text-moss-700',
+  retreat: 'bg-plum-100 text-plum-700',
+  film_screening: 'bg-coral-100 text-coral-700',
+  marine_restoration: 'bg-primary-100 text-primary-700',
+  workshop: 'bg-bark-100 text-bark-700',
 }
 
 function activityLabel(type: string | null): string {
