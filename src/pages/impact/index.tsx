@@ -336,7 +336,7 @@ export default function ImpactDashboardPage() {
 
   if (showLoading) {
     return (
-      <Page noBackground className="!px-0 bg-white">
+      <Page swipeBack noBackground className="!px-0 bg-white">
         <div className="relative min-h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
           <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
@@ -353,7 +353,7 @@ export default function ImpactDashboardPage() {
 
   if (!stats) {
     return (
-      <Page noBackground className="!px-0 bg-white">
+      <Page swipeBack noBackground className="!px-0 bg-white">
         <div className="relative min-h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
           <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
@@ -390,7 +390,7 @@ export default function ImpactDashboardPage() {
   }
 
   return (
-    <Page noBackground className="!px-0 bg-white">
+    <Page swipeBack noBackground className="!px-0 bg-white">
       <PullToRefresh
         onRefresh={handleRefresh}
         background={

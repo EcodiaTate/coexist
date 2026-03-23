@@ -31,7 +31,7 @@ export default function DonorWallPage() {
   const shouldReduceMotion = useReducedMotion()
 
   return (
-    <Page header={<Header title="Donor Wall" back />}>
+    <Page swipeBack header={<Header title="Donor Wall" back />}>
       <div className="max-w-2xl mx-auto w-full py-5">
         {/* Intro */}
         <motion.div

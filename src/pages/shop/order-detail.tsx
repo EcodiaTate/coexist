@@ -103,7 +103,7 @@ export default function OrderDetailPage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Order" back />}>
+      <Page swipeBack header={<Header title="Order" back />}>
         <div className="py-4 space-y-3">
           <Skeleton variant="title" />
           <Skeleton variant="text" count={4} />
@@ -115,7 +115,7 @@ export default function OrderDetailPage() {
 
   if (!order) {
     return (
-      <Page header={<Header title="Order" back />}>
+      <Page swipeBack header={<Header title="Order" back />}>
         <EmptyState
           illustration="error"
           title="Order not found"
@@ -129,7 +129,7 @@ export default function OrderDetailPage() {
   const canReturn = order.status === 'delivered'
 
   return (
-    <Page header={<Header title={`Order #${order.id.slice(0, 8)}`} back />}>
+    <Page swipeBack header={<Header title={`Order #${order.id.slice(0, 8)}`} back />}>
       <motion.div
         variants={shouldReduceMotion ? undefined : stagger}
         initial="hidden"

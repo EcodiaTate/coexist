@@ -152,6 +152,7 @@ export default function DiscoverCollectivesPage() {
 
   return (
     <Page
+      swipeBack
       header={
         <Header
           title="Collectives"

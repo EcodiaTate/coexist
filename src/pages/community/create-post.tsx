@@ -98,6 +98,7 @@ export default function CreatePostPage() {
 
   return (
     <Page
+      swipeBack
       header={
         <Header
           title="Create Post"

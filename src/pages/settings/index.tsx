@@ -900,14 +900,14 @@ export default function SettingsPage() {
 
   if (!user || !profile) {
     return (
-      <Page noBackground>
+      <Page swipeBack noBackground>
         <SettingsSkeleton />
       </Page>
     )
   }
 
   return (
-    <Page noBackground>
+    <Page swipeBack noBackground>
       {/* Back arrow */}
       <div style={{ paddingTop: 'var(--safe-top)' }}>
         <motion.button

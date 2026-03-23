@@ -126,14 +126,14 @@ export default function CollectiveDetailPage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Collective" back />}>
+      <Page swipeBack header={<Header title="Collective" back />}>
         <CollectiveDetailSkeleton />
       </Page>
     )
   }
   if (!collective) {
     return (
-      <Page header={<Header title="Collective" back />}>
+      <Page swipeBack header={<Header title="Collective" back />}>
         <EmptyState
           illustration="error"
           title="Collective not found"
@@ -146,6 +146,7 @@ export default function CollectiveDetailPage() {
 
   return (
     <Page
+      swipeBack
       header={
         <Header
           title={collective.name}

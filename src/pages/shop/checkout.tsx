@@ -175,6 +175,7 @@ export default function CheckoutPage() {
 
   return (
     <Page
+      swipeBack
       noBackground
       className="!px-0"
       footer={

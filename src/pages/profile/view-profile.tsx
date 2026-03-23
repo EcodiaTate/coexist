@@ -54,14 +54,14 @@ export default function ViewProfilePage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Profile" back />}>
+      <Page swipeBack header={<Header title="Profile" back />}>
         <ViewProfileSkeleton />
       </Page>
     )
   }
   if (!profile) {
     return (
-      <Page header={<Header title="Profile" back />}>
+      <Page swipeBack header={<Header title="Profile" back />}>
         <EmptyState
           illustration="error"
           title="User not found"
@@ -88,7 +88,7 @@ export default function ViewProfilePage() {
   })
 
   return (
-    <Page header={<Header title={profile.display_name ?? 'Profile'} back />}>
+    <Page swipeBack header={<Header title={profile.display_name ?? 'Profile'} back />}>
       <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="pb-8">
         {/* Profile Header */}
         <motion.div

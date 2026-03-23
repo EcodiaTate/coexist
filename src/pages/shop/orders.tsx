@@ -42,7 +42,7 @@ export default function OrdersPage() {
   const showLoading = useDelayedLoading(isLoading)
 
   return (
-    <Page header={<Header title="My Orders" back />}>
+    <Page swipeBack header={<Header title="My Orders" back />}>
       <div className="py-4">
         {showLoading ? (
           <div className="space-y-3">

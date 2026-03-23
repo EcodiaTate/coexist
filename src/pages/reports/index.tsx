@@ -382,7 +382,7 @@ export default function ReportsPage() {
   if (isAdmin || isLeader) return content
 
   return (
-    <Page header={<Header title="Impact Reports" back />}>
+    <Page swipeBack header={<Header title="Impact Reports" back />}>
       {content}
     </Page>
   )

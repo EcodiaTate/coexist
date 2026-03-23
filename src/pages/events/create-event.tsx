@@ -1235,6 +1235,7 @@ export default function CreateEventPage() {
 
   return (
     <Page
+      swipeBack
       header={
         <Header title="Create Event" back onBack={goBack} />
       }

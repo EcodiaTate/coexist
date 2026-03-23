@@ -230,7 +230,7 @@ export default function EditProfilePage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Edit Profile" back />}>
+      <Page swipeBack header={<Header title="Edit Profile" back />}>
         <div className="py-4 space-y-4">
           <div className="flex justify-center">
             <Skeleton variant="avatar" className="h-24 w-24" />
@@ -243,6 +243,7 @@ export default function EditProfilePage() {
 
   return (
     <Page
+      swipeBack
       header={<Header title="Edit Profile" back />}
       noBackground
       className="bg-gradient-to-b from-surface-2 via-primary-50/30 to-moss-50/20"

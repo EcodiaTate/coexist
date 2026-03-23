@@ -40,7 +40,7 @@ async function loadPushPlugin() {
   if (PushNotifications) return PushNotifications
   try {
     const mod = await import('@capacitor/push-notifications')
-    PushNotifications = mod.PushNotifications as typeof PushNotifications
+    PushNotifications = mod.PushNotifications as unknown as typeof PushNotifications
     return PushNotifications
   } catch {
     console.warn('[push] @capacitor/push-notifications not available')

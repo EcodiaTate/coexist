@@ -985,7 +985,7 @@ export default function CollectiveChatPage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Chat" back />}>
+      <Page swipeBack header={<Header title="Chat" back />}>
         <div className="py-4">
           <Skeleton variant="list-item" count={8} />
         </div>

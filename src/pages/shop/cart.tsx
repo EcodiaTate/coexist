@@ -184,7 +184,7 @@ export default function CartPage() {
   /* ================================================================ */
   if (items.length === 0) {
     return (
-      <Page noBackground className="!px-0">
+      <Page swipeBack noBackground className="!px-0">
         {/* Hero */}
         <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900">
           <FloatingBack />
@@ -252,6 +252,7 @@ export default function CartPage() {
   /* ================================================================ */
   return (
     <Page
+      swipeBack
       noBackground
       className="!px-0"
       footer={

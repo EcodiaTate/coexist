@@ -136,7 +136,7 @@ export default function EditEventPage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Edit Event" back />}>
+      <Page swipeBack header={<Header title="Edit Event" back />}>
         <div className="pt-4 space-y-4">
           <Skeleton variant="title" />
           <Skeleton variant="text" count={3} />
@@ -147,7 +147,7 @@ export default function EditEventPage() {
   }
   if (!event) {
     return (
-      <Page header={<Header title="Edit Event" back />}>
+      <Page swipeBack header={<Header title="Edit Event" back />}>
         <EmptyState
           illustration="error"
           title="Event not found"
@@ -162,6 +162,7 @@ export default function EditEventPage() {
 
   return (
     <Page
+      swipeBack
       header={<Header title="Edit Event" back />}
       footer={
         <Button

@@ -397,7 +397,7 @@ export default function AnnouncementsPage() {
     : regular
 
   return (
-    <Page noBackground className="!px-0 bg-surface-1">
+    <Page swipeBack noBackground className="!px-0 bg-surface-1">
       <div className="relative min-h-full">
         <DecorativeBackground />
 

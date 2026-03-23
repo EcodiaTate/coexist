@@ -93,6 +93,7 @@ export default function ProfileSurveyPage() {
 
   return (
     <Page
+      swipeBack
       header={<Header title="Quick Profile Setup" back />}
       footer={
         <div className="space-y-2">

@@ -845,7 +845,7 @@ export default function AdminApplicationsPage() {
               description={statusFilter !== 'all' ? 'No applications match the current filter.' : 'Applications will appear here when people apply to lead a collective.'}
             />
           ) : (
-            <StaggeredList className="space-y-2">
+            <StaggeredList className="space-y-3">
               {filtered.map(app => (
                 <StaggeredItem key={app.id}>
                   <ApplicationCard app={app} onUpdateStatus={handleUpdateStatus} />

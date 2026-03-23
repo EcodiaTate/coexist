@@ -83,6 +83,7 @@ export default function CreateAnnouncementPage() {
   if (!isAdmin) {
     return (
       <Page
+        swipeBack
         header={<Header title="Not Authorised" back />}
       >
         <div className="flex flex-col items-center justify-center py-20 px-4">
@@ -155,6 +156,7 @@ export default function CreateAnnouncementPage() {
 
   return (
     <Page
+      swipeBack
       header={
         <Header
           title="New Announcement"

@@ -332,8 +332,8 @@ function App() {
           <Route path="/collectives/:slug/manage" element={<PageTransition><CollectiveManagePage /></PageTransition>} />
           <Route path="/tasks" element={<PageTransition><TasksPage /></PageTransition>} />
           <Route path="/chat" element={<PageTransition><ChatListPage /></PageTransition>} />
-          <Route path="/chat/channel/:channelId" element={<ChannelChatPage />} />
-          <Route path="/chat/:collectiveId" element={<CollectiveChatPage />} />
+          <Route path="/chat/channel/:channelId" element={<PageTransition><ChannelChatPage /></PageTransition>} />
+          <Route path="/chat/:collectiveId" element={<PageTransition><CollectiveChatPage /></PageTransition>} />
           <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
           <Route path="/profile/edit" element={<PageTransition><EditProfilePage /></PageTransition>} />
           <Route path="/profile/:userId" element={<PageTransition><ViewProfilePage /></PageTransition>} />

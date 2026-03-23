@@ -417,7 +417,7 @@ export default function CollectiveManagePage() {
 
   if (showLoading) {
     return (
-      <Page header={<Header title="Manage" back />}>
+      <Page swipeBack header={<Header title="Manage" back />}>
         <div className="py-4 space-y-4">
           <Skeleton variant="card" />
           <Skeleton variant="list-item" count={6} />
@@ -429,7 +429,7 @@ export default function CollectiveManagePage() {
 
   if (!collective || !isLeader) {
     return (
-      <Page header={<Header title="Manage" back />}>
+      <Page swipeBack header={<Header title="Manage" back />}>
         <EmptyState
           illustration="error"
           title="Access denied"
@@ -442,6 +442,7 @@ export default function CollectiveManagePage() {
 
   return (
     <Page
+      swipeBack
       header={
         <Header
           title="Manage Collective"

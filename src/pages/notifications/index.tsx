@@ -357,7 +357,7 @@ export default function NotificationsPage() {
   }
 
   return (
-    <Page noBackground className="!px-0 bg-surface-1">
+    <Page swipeBack noBackground className="!px-0 bg-surface-1">
       {/* Full-bleed background container */}
       <div className="relative min-h-full">
         <DecorativeBackground />
