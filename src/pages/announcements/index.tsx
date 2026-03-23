@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, AnimatePresence, type Variants } from 'framer-motion'
 import { ArrowLeft, Pin, Megaphone, AlertTriangle, ChevronRight, Image as ImageIcon } from 'lucide-react'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Avatar } from '@/components/avatar'
 import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
@@ -397,32 +398,9 @@ export default function AnnouncementsPage() {
     : regular
 
   return (
-    <Page swipeBack noBackground className="!px-0 bg-surface-1">
+    <Page swipeBack noBackground className="!px-0 bg-surface-1" header={<Header title="Announcements" back />}>
       <div className="relative min-h-full">
         <DecorativeBackground />
-
-        {/* Back button */}
-        <div className="relative z-20 px-4 pt-[var(--safe-top)]">
-          <div className="h-14 flex items-center">
-            <motion.button
-              type="button"
-              onClick={() => navigate(-1)}
-              whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              className={cn(
-                'flex items-center justify-center',
-                'w-9 h-9 -ml-1 rounded-full',
-                'text-primary-700 hover:bg-primary-100/60',
-                'cursor-pointer select-none',
-                'transition-colors duration-150',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-              )}
-              aria-label="Go back"
-            >
-              <ArrowLeft size={20} />
-            </motion.button>
-          </div>
-        </div>
 
         {/* Page content */}
         <div className="relative z-10 px-4 lg:px-6 pb-6 space-y-4">

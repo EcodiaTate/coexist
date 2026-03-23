@@ -8,8 +8,6 @@ const MAX_CACHED = 5
 interface CachedPage {
   path: string
   element: ReactElement
-  /** Increments each time we navigate TO this path — part of motion key */
-  gen: number
 }
 
 /* ------------------------------------------------------------------ */
@@ -19,7 +17,7 @@ interface CachedPage {
 const visitedPaths = new Set<string>()
 
 /* ------------------------------------------------------------------ */
-/*  Transition configs                                                 */
+/*  Enter animation for first-visit pages only                         */
 /* ------------------------------------------------------------------ */
 
 const firstVisitSpring = {
@@ -29,26 +27,19 @@ const firstVisitSpring = {
   mass: 0.45,
 }
 
-const crossFade = {
-  duration: 0.15,
-  ease: [0.25, 0.1, 0.25, 1] as readonly number[],
-}
-
 /**
  * Keeps the last N route outlets alive in the DOM so that navigating
  * back renders instantly with preserved scroll position & state.
  *
- * Transition strategy uses a grid stack:
- *  - All pages occupy the same grid cell (stacked via grid-area: 1/1)
- *  - The departing page stays visible in-flow (no absolute positioning)
- *  - The arriving page fades in on top
- *  - Once animation completes, departing hides via display:none
+ * Strategy:
+ *  - Grid stack: all pages in same cell via grid-area 1/1
+ *  - Active page is simply visible; inactive pages use display:none
+ *  - First visit of a NEW page: gentle spring slide-up via motion.div
+ *  - Revisits (cached pages): INSTANT swap, no animation
+ *    (the page is already rendered — just flip visibility)
+ *  - No departing-page animation = no opacity:0 gap = no white flash
  *
- * This avoids the white-flash gap and layout sizing issues that come
- * from absolute positioning.
- *
- * Supports live swipe-right-from-left-edge gesture on mobile/native
- * that drags the active page to reveal the previous page underneath.
+ * Supports swipe-right-from-left-edge on mobile/native.
  */
 export function KeepAlive() {
   const location = useLocation()
@@ -58,54 +49,48 @@ export function KeepAlive() {
 
   const cacheRef = useRef<CachedPage[]>([])
   const lastProcessedRef = useRef<string | null>(null)
-  const departingRef = useRef<string | null>(null)
+  // Track which path is currently doing its first-visit entrance
+  const enteringRef = useRef<string | null>(null)
   const [, bump] = useState(0)
 
-  // Live swipe-back gesture — returns real-time drag offset
   const { offsetX, swiping } = useSwipeBack({ enabled: true })
 
   // ---- Synchronous cache update (guarded, idempotent) ----
+  let isFirstVisit = false
   if (outlet && lastProcessedRef.current !== path) {
     const cache = cacheRef.current
-    const oldPath = lastProcessedRef.current
-
-    if (oldPath) departingRef.current = oldPath
     lastProcessedRef.current = path
+
+    isFirstVisit = !visitedPaths.has(path)
+    visitedPaths.add(path)
 
     const existingIdx = cache.findIndex((c) => c.path === path)
     if (existingIdx >= 0) {
       const entry = cache[existingIdx]
       entry.element = outlet as ReactElement
-      entry.gen++
       cache.splice(existingIdx, 1)
       cache.push(entry)
     } else {
       if (cache.length >= MAX_CACHED) cache.shift()
-      cache.push({ path, element: outlet as ReactElement, gen: 0 })
+      cache.push({ path, element: outlet as ReactElement })
     }
+
+    // Only animate entrance for genuinely new pages
+    enteringRef.current = isFirstVisit && !shouldReduceMotion ? path : null
   } else if (outlet) {
-    // Same path — just update the element ref (query data may change)
     const entry = cacheRef.current.find((c) => c.path === path)
     if (entry) entry.element = outlet as ReactElement
   }
 
   const handleEnterComplete = useCallback(() => {
-    departingRef.current = null
+    enteringRef.current = null
     bump((n) => n + 1)
   }, [])
 
-  const isFirstVisit = !visitedPaths.has(path)
-  visitedPaths.add(path)
-
-  const departingPath = departingRef.current
-
-  // Identify the previous page in the cache (revealed on swipe-back)
   const cache = cacheRef.current
   const prevPage = cache.length >= 2 ? cache[cache.length - 2] : null
+  const isEntering = enteringRef.current === path
 
-  // Grid stack: all children occupy the same cell (1 / 1).
-  // The active page is rendered last so it's visually on top.
-  // This keeps the departing page in-flow for correct sizing.
   return (
     <div
       className="flex-1 min-h-0"
@@ -113,28 +98,10 @@ export function KeepAlive() {
     >
       {cache.map((cached) => {
         const isActive = cached.path === path
-        const isDeparting = cached.path === departingPath && !isActive
         const isPrev = prevPage?.path === cached.path && !isActive
-
-        // All items share the same grid cell
         const gridStyle = { gridArea: '1 / 1' } as const
 
-        if (shouldReduceMotion) {
-          return (
-            <div
-              key={cached.path}
-              className="flex flex-col min-h-0"
-              style={{
-                ...gridStyle,
-                display: isActive ? undefined : 'none',
-              }}
-            >
-              {cached.element}
-            </div>
-          )
-        }
-
-        // During a live swipe: show previous page underneath with parallax
+        // ---- During swipe: show previous page underneath ----
         if (isPrev && swiping) {
           const vw = window.innerWidth || 375
           const progress = Math.min(offsetX / vw, 1)
@@ -155,24 +122,7 @@ export function KeepAlive() {
           )
         }
 
-        // Departing: visible in-flow behind the active page
-        if (isDeparting) {
-          return (
-            <div
-              key={cached.path}
-              className="flex flex-col min-h-0"
-              style={{
-                ...gridStyle,
-                zIndex: 0,
-                pointerEvents: 'none',
-              }}
-            >
-              {cached.element}
-            </div>
-          )
-        }
-
-        // Inactive cached: hidden
+        // ---- Inactive: hidden ----
         if (!isActive) {
           return (
             <div
@@ -185,7 +135,37 @@ export function KeepAlive() {
           )
         }
 
-        // Active page: apply live swipe offset when swiping
+        // ---- Active + first-visit entrance animation ----
+        if (isEntering) {
+          const swipeTransform = swiping
+            ? {
+                transform: `translateX(${offsetX}px)`,
+                transition: 'none',
+                boxShadow: offsetX > 0 ? '-8px 0 24px -4px rgba(0,0,0,0.1)' : undefined,
+              }
+            : {}
+
+          return (
+            <motion.div
+              key={cached.path}
+              className="flex flex-col min-h-0"
+              style={{
+                ...gridStyle,
+                zIndex: 1,
+                backfaceVisibility: 'hidden',
+                ...swipeTransform,
+              }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={firstVisitSpring}
+              onAnimationComplete={handleEnterComplete}
+            >
+              {cached.element}
+            </motion.div>
+          )
+        }
+
+        // ---- Active + revisit: instant, no animation ----
         const swipeTransform = swiping
           ? {
               transform: `translateX(${offsetX}px)`,
@@ -194,24 +174,18 @@ export function KeepAlive() {
             }
           : {}
 
-        // Active: fade/slide in on top
         return (
-          <motion.div
-            key={`${cached.path}:${cached.gen}`}
+          <div
+            key={cached.path}
             className="flex flex-col min-h-0"
             style={{
               ...gridStyle,
               zIndex: 1,
-              backfaceVisibility: 'hidden',
               ...swipeTransform,
             }}
-            initial={isFirstVisit ? { opacity: 0, y: 8 } : { opacity: 0 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={isFirstVisit ? firstVisitSpring : crossFade}
-            onAnimationComplete={handleEnterComplete}
           >
             {cached.element}
-          </motion.div>
+          </div>
         )
       })}
     </div>

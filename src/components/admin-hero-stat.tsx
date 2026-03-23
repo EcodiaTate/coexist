@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, Children } from 'react'
 import { motion } from 'framer-motion'
 import { useCountUp } from '@/components/stat-card'
 import { cn } from '@/lib/cn'
@@ -81,8 +81,7 @@ export function AdminHeroStat({
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
       className={cn(
-        'flex flex-col items-center text-center rounded-2xl',
-        // Compact on mobile, spacious on sm+
+        'flex flex-col items-center justify-center text-center rounded-2xl',
         'px-3 py-2.5 sm:px-4 sm:py-3.5',
         c.bg, c.shadow,
         className,
@@ -127,8 +126,19 @@ export function AdminHeroStatRow({
   children: ReactNode
   className?: string
 }) {
+  const count = Children.toArray(children).filter(Boolean).length
+
   return (
-    <div className={cn('flex items-stretch gap-2.5 flex-wrap', className)}>
+    <div className={cn(
+      'grid gap-2 sm:gap-2.5',
+      // 2-col on mobile, then expand columns based on count
+      count <= 2
+        ? 'grid-cols-2 max-w-[320px]'
+        : count === 3
+          ? 'grid-cols-2 sm:grid-cols-3 max-w-[480px]'
+          : 'grid-cols-2 sm:grid-cols-4 max-w-[560px]',
+      className,
+    )}>
       {children}
     </div>
   )

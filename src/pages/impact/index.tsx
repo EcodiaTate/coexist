@@ -12,11 +12,11 @@ import {
     Users,
     Share2,
     Flame,
-    ArrowLeft,
     ArrowRight,
     Globe,
 } from 'lucide-react'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { CountUp } from '@/components/count-up'
 import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
@@ -336,13 +336,10 @@ export default function ImpactDashboardPage() {
 
   if (showLoading) {
     return (
-      <Page swipeBack noBackground className="!px-0 bg-white">
+      <Page swipeBack noBackground className="!px-0 bg-white" header={<Header title="Impact" back />}>
         <div className="relative min-h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
-          <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
-            <div className="h-14 flex items-center">
-              <button type="button" onClick={() => navigate(-1)} className="flex items-center justify-center w-9 h-9 -ml-1 rounded-full text-primary-800 hover:bg-primary-50/80 cursor-pointer select-none transition-colors duration-150" aria-label="Go back"><ArrowLeft size={22} /></button>
-            </div>
+          <div className="relative z-10 px-4 lg:px-6">
             <ImpactSkeleton />
           </div>
         </div>
@@ -353,13 +350,10 @@ export default function ImpactDashboardPage() {
 
   if (!stats) {
     return (
-      <Page swipeBack noBackground className="!px-0 bg-white">
+      <Page swipeBack noBackground className="!px-0 bg-white" header={<Header title="Impact" back />}>
         <div className="relative min-h-full">
           <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
-          <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
-            <div className="h-14 flex items-center">
-              <button type="button" onClick={() => navigate(-1)} className="flex items-center justify-center w-9 h-9 -ml-1 rounded-full text-primary-800 hover:bg-primary-50/80 cursor-pointer select-none transition-colors duration-150" aria-label="Go back"><ArrowLeft size={22} /></button>
-            </div>
+          <div className="relative z-10 px-4 lg:px-6">
             <EmptyState
               illustration="empty"
               title="No impact data yet"
@@ -390,7 +384,7 @@ export default function ImpactDashboardPage() {
   }
 
   return (
-    <Page swipeBack noBackground className="!px-0 bg-white">
+    <Page swipeBack noBackground className="!px-0 bg-white" header={<Header title="Impact" back />}>
       <PullToRefresh
         onRefresh={handleRefresh}
         background={
@@ -401,13 +395,6 @@ export default function ImpactDashboardPage() {
         }
       >
         <div className="relative min-h-full">
-          {/* ─── Back button ─── */}
-          <div className="relative z-10 px-4 lg:px-6 pt-[var(--safe-top)]">
-            <div className="h-14 flex items-center">
-              <button type="button" onClick={() => navigate(-1)} className="flex items-center justify-center w-9 h-9 -ml-1 rounded-full text-primary-800 hover:bg-primary-50/80 cursor-pointer select-none transition-colors duration-150" aria-label="Go back"><ArrowLeft size={22} /></button>
-            </div>
-          </div>
-
           {/* ─── Content ─── */}
           <div className="relative z-10 px-4 lg:px-6 pb-4 space-y-5">
 

@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-    ArrowLeft,
     Bell, MessageSquare,
     Moon,
     Shield,
@@ -22,6 +21,7 @@ import {
     ChevronRight, Volume2
 } from 'lucide-react'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Toggle } from '@/components/toggle'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -900,35 +900,14 @@ export default function SettingsPage() {
 
   if (!user || !profile) {
     return (
-      <Page swipeBack noBackground>
+      <Page noBackground header={<Header title="Settings" back />}>
         <SettingsSkeleton />
       </Page>
     )
   }
 
   return (
-    <Page swipeBack noBackground>
-      {/* Back arrow */}
-      <div style={{ paddingTop: 'var(--safe-top)' }}>
-        <motion.button
-          type="button"
-          onClick={() => navigate(-1)}
-          whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-          className={cn(
-            'flex items-center justify-center',
-            'w-9 h-9 rounded-full',
-            'text-primary-800 hover:bg-primary-50/80',
-            'cursor-pointer select-none',
-            'transition-colors duration-150',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-          )}
-          aria-label="Go back"
-        >
-          <ArrowLeft size={22} />
-        </motion.button>
-      </div>
-
+    <Page noBackground header={<Header title="Settings" back />}>
       {/* Background + content container */}
       <div className="relative">
         {/* Gradient background */}

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { CheckCircle, Package, ArrowRight } from 'lucide-react'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { useCart } from '@/hooks/use-cart'
 import { cn } from '@/lib/cn'
@@ -21,7 +22,7 @@ export default function OrderConfirmationPage() {
   }, [orderId, clearCart])
 
   return (
-    <Page>
+    <Page header={<Header title="Order Confirmed" back />}>
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}

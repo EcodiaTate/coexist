@@ -325,19 +325,19 @@ function HeroStatCard({
         delay: reducedMotion ? 0 : 0.2 + delay * 0.8,
         ease: [0.25, 0.46, 0.45, 0.94],
       }}
-      className={cn('rounded-2xl p-4 text-center shadow-lg', bg)}
+      className={cn('rounded-2xl p-3 sm:p-4 text-center shadow-lg flex flex-col items-center justify-center', bg)}
       aria-label={`${label}: ${value}`}
     >
-      <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 text-white mx-auto mb-2" aria-hidden="true">
+      <span className="hidden sm:flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 text-white mx-auto mb-2" aria-hidden="true">
         {icon}
       </span>
       <p
         style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-        className="text-2xl sm:text-3xl font-bold tracking-tight tabular-nums text-white leading-none"
+        className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight tabular-nums text-white leading-none"
       >
         {display.toLocaleString()}
       </p>
-      <p className="mt-1.5 text-[11px] font-semibold text-white/50 tracking-wider uppercase">{label}</p>
+      <p className="mt-1 sm:mt-1.5 text-[9px] sm:text-[11px] font-semibold text-white/50 tracking-wider uppercase">{label}</p>
       {sub && (
         <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold mt-1.5 text-white/80 bg-white/15 px-2 py-0.5 rounded-full">
           <ArrowUpRight size={10} />

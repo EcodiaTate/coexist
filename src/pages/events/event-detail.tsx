@@ -3,7 +3,6 @@ import { QRCodeSVG } from 'qrcode.react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-    ArrowLeft,
     Calendar,
     Clock,
     MapPin,
@@ -538,9 +537,32 @@ export default function EventDetailPage() {
       footer={renderCta()}
       noBackground={!!event.cover_image_url}
     >
+      {/* Sticky back button — floats over hero or page content */}
+      {event.cover_image_url ? (
+        <Header
+          title=""
+          back
+          transparent
+          className="-mb-14"
+          rightActions={
+            <motion.button
+              type="button"
+              onClick={handleShare}
+              whileTap={{ scale: 0.9 }}
+              className="flex items-center justify-center w-10 h-10 rounded-full bg-black/40 text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
+              aria-label="Share event"
+            >
+              <Share2 size={18} />
+            </motion.button>
+          }
+        />
+      ) : (
+        <Header title="" back className="-mb-14" />
+      )}
+
       {/* ── Full-bleed hero image ── */}
       {event.cover_image_url && (
-        <div className="relative -mx-4 lg:-mx-6" style={{ marginTop: 'calc(-1 * var(--safe-top, 0px))' }}>
+        <div className="relative -mx-4 lg:-mx-6">
           <div className="relative w-full overflow-hidden" style={{ aspectRatio: '3/4', maxHeight: '56vh' }}>
             <img
               src={event.cover_image_url}
@@ -552,30 +574,8 @@ export default function EventDetailPage() {
               aria-hidden="true"
             />
 
-            {/* Floating nav buttons */}
-            <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10" style={{ marginTop: 'var(--safe-top, 0px)' }}>
-              <motion.button
-                type="button"
-                onClick={() => navigate(-1)}
-                whileTap={{ scale: 0.9 }}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/50 text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
-                aria-label="Go back"
-              >
-                <ArrowLeft size={20} />
-              </motion.button>
-              <motion.button
-                type="button"
-                onClick={handleShare}
-                whileTap={{ scale: 0.9 }}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/50 text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
-                aria-label="Share event"
-              >
-                <Share2 size={18} />
-              </motion.button>
-            </div>
-
             {/* Activity badge on image */}
-            <div className="absolute top-16 right-3" style={{ marginTop: 'var(--safe-top, 0px)' }}>
+            <div className="absolute top-3 right-3" style={{ marginTop: 'var(--safe-top, 0px)' }}>
               <Badge
                 variant="activity"
                 activity={activityToBadge[event.activity_type] ?? 'workshop'}
@@ -647,7 +647,6 @@ export default function EventDetailPage() {
       {/* ── No cover image header ── */}
       {!event.cover_image_url && (
         <>
-          <Header title="" back />
           <motion.div
             className="pt-2 pb-1"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}

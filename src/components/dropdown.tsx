@@ -185,14 +185,16 @@ export function Dropdown({
         )}
       >
         {selectedOption ? (
-          <span className="flex items-center gap-2">
-            {selectedOption.icon && (
+          selectedOption.icon ? (
+            <span className="flex items-center gap-2 min-w-0">
               <span className="shrink-0" aria-hidden="true">
                 {selectedOption.icon}
               </span>
-            )}
-            {selectedOption.label}
-          </span>
+              <span className="truncate">{selectedOption.label}</span>
+            </span>
+          ) : (
+            selectedOption.label
+          )
         ) : (
           placeholder
         )}

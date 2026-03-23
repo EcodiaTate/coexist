@@ -2,11 +2,12 @@ import { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-    Minus, Plus, Tag, ArrowRight, ArrowLeft, Clock,
+    Minus, Plus, Tag, ArrowRight, Clock,
     AlertTriangle, ShoppingBag, Truck, Shield, X, Leaf,
 } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { useToast } from '@/components/toast'
@@ -35,27 +36,6 @@ function WaveDivider({ className = 'fill-surface-1' }: { className?: string }) {
         <path d={WAVE_PATH} className={className} />
       </svg>
     </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Floating back button                                               */
-/* ------------------------------------------------------------------ */
-
-function FloatingBack() {
-  const navigate = useNavigate()
-  const rm = useReducedMotion()
-  return (
-    <motion.button
-      type="button"
-      onClick={() => navigate(-1)}
-      whileTap={rm ? undefined : { scale: 0.9 }}
-      className="absolute top-3 left-3 z-30 flex items-center justify-center w-10 h-10 rounded-full bg-black/40 text-white cursor-pointer select-none transition-colors hover:bg-black/30"
-      style={{ marginTop: 'var(--safe-top, 0px)' }}
-      aria-label="Go back"
-    >
-      <ArrowLeft size={20} />
-    </motion.button>
   )
 }
 
@@ -185,9 +165,9 @@ export default function CartPage() {
   if (items.length === 0) {
     return (
       <Page swipeBack noBackground className="!px-0">
+        <Header title="" back transparent className="-mb-14" />
         {/* Hero */}
         <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900">
-          <FloatingBack />
 
           {/* Decorative */}
           <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-white/[0.04]" />
@@ -255,6 +235,7 @@ export default function CartPage() {
       swipeBack
       noBackground
       className="!px-0"
+      header={<Header title="Cart" back transparent />}
       footer={
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -277,7 +258,6 @@ export default function CartPage() {
     >
       {/* ── Hero ── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900">
-        <FloatingBack />
 
         {/* Decorative */}
         <div className="absolute -right-12 -top-12 w-44 h-44 rounded-full bg-white/[0.04]" />

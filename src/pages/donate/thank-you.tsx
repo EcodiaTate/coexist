@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Heart, Share2, ArrowRight, PartyPopper, Calendar, Users, Trophy } from 'lucide-react'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { WhatsNext } from '@/components/whats-next'
 import { cn } from '@/lib/cn'
@@ -88,7 +89,7 @@ export default function DonateThankYouPage() {
   }
 
   return (
-    <Page>
+    <Page header={<Header title="Thank You" back />}>
       {showConfetti && <Confetti />}
 
       <div className="max-w-lg mx-auto w-full">

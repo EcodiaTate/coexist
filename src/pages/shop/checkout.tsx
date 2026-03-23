@@ -1,9 +1,10 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { MapPin, CreditCard, Clock, Truck, Tag, Shield, Lock, ArrowLeft } from 'lucide-react'
+import { MapPin, CreditCard, Clock, Truck, Tag, Shield, Lock } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { useToast } from '@/components/toast'
@@ -28,27 +29,6 @@ function WaveDivider({ className = 'fill-surface-1' }: { className?: string }) {
         <path d={WAVE_PATH} className={className} />
       </svg>
     </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Floating back button                                               */
-/* ------------------------------------------------------------------ */
-
-function FloatingBack() {
-  const navigate = useNavigate()
-  const rm = useReducedMotion()
-  return (
-    <motion.button
-      type="button"
-      onClick={() => navigate(-1)}
-      whileTap={rm ? undefined : { scale: 0.9 }}
-      className="absolute top-3 left-3 z-30 flex items-center justify-center w-10 h-10 rounded-full bg-black/40 text-white cursor-pointer select-none transition-colors hover:bg-black/30"
-      style={{ marginTop: 'var(--safe-top, 0px)' }}
-      aria-label="Go back"
-    >
-      <ArrowLeft size={20} />
-    </motion.button>
   )
 }
 
@@ -178,6 +158,7 @@ export default function CheckoutPage() {
       swipeBack
       noBackground
       className="!px-0"
+      header={<Header title="Checkout" back transparent />}
       footer={
         <div className="space-y-2">
           <div className="flex items-center justify-between">
@@ -202,8 +183,6 @@ export default function CheckoutPage() {
     >
       {/* ── Hero ── */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900">
-        <FloatingBack />
-
         {/* Decorative */}
         <div className="absolute -right-12 -top-12 w-44 h-44 rounded-full bg-white/[0.04]" />
         <div className="absolute -left-8 bottom-0 w-28 h-28 rounded-full bg-white/[0.04]" />

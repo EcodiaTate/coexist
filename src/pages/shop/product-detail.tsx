@@ -512,18 +512,7 @@ export default function ProductDetailPage() {
   return (
     <Page
       swipeBack
-      header={
-        <div className="px-2 py-2">
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-sm cursor-pointer active:scale-95 transition-transform"
-            aria-label="Go back"
-          >
-            <ArrowLeft size={18} className="text-primary-700" />
-          </button>
-        </div>
-      }
+      header={<Header title="" back />}
       footer={
         <div className="flex items-center gap-3">
           {/* Price + quantity - compact inline */}
