@@ -28,7 +28,6 @@ export interface CollectiveStats {
   totalTreesPlanted: number
   totalRubbishKg: number
   totalHours: number
-  totalCoastlineCleaned: number
   totalAreaRestored: number
   totalNativePlants: number
   totalWildlifeSightings: number
@@ -180,9 +179,9 @@ export function useCollectiveEvents(collectiveId: string | undefined, type: 'upc
         .eq('status', type === 'upcoming' ? 'published' : 'completed')
 
       if (type === 'upcoming') {
-        query = query.gte('date_start', now).order('date_start', { ascending: true })
+        query = query.or(`date_start.gte.${now},date_end.gte.${now}`).order('date_start', { ascending: true })
       } else {
-        query = query.lt('date_start', now).order('date_start', { ascending: false })
+        query = query.lt('date_end', now).order('date_start', { ascending: false })
       }
 
       const { data, error } = await query.limit(20)
@@ -221,7 +220,6 @@ export function useCollectiveStats(collectiveId: string | undefined) {
       let totalTreesPlanted = 0
       let totalRubbishKg = 0
       let totalHours = 0
-      let totalCoastlineCleaned = 0
       let totalAreaRestored = 0
       let totalNativePlants = 0
       let totalWildlifeSightings = 0
@@ -229,7 +227,7 @@ export function useCollectiveStats(collectiveId: string | undefined) {
       if (eventIds.length > 0) {
         const { data: impacts } = await supabase
           .from('event_impact')
-          .select('trees_planted, rubbish_kg, hours_total, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings')
+          .select('trees_planted, rubbish_kg, hours_total, area_restored_sqm, native_plants, wildlife_sightings')
           .in('event_id', eventIds)
 
         if (impacts) {
@@ -237,7 +235,6 @@ export function useCollectiveStats(collectiveId: string | undefined) {
             totalTreesPlanted += i.trees_planted ?? 0
             totalRubbishKg += i.rubbish_kg ?? 0
             totalHours += i.hours_total ?? 0
-            totalCoastlineCleaned += i.coastline_cleaned_m ?? 0
             totalAreaRestored += i.area_restored_sqm ?? 0
             totalNativePlants += i.native_plants ?? 0
             totalWildlifeSightings += i.wildlife_sightings ?? 0
@@ -277,7 +274,6 @@ export function useCollectiveStats(collectiveId: string | undefined) {
         totalTreesPlanted,
         totalRubbishKg,
         totalHours,
-        totalCoastlineCleaned,
         totalAreaRestored,
         totalNativePlants,
         totalWildlifeSightings,

@@ -29,6 +29,8 @@ export interface EventDetailData extends Event {
   user_registration: EventRegistration | null
   attendees: Pick<Profile, 'id' | 'display_name' | 'avatar_url'>[]
   impact: EventImpact | null
+  collaborators: Pick<Collective, 'id' | 'name' | 'slug' | 'cover_image_url'>[]
+  has_been_invited: boolean
 }
 
 export interface MyEventItem extends Event {
@@ -41,7 +43,7 @@ export interface AttendeeWithStatus {
   status: RegistrationStatus
   checked_in_at: string | null
   registered_at: string
-  profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url'> | null
+  profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'phone' | 'age' | 'gender' | 'accessibility_requirements' | 'emergency_contact_name' | 'emergency_contact_phone' | 'emergency_contact_relationship'> | null
 }
 
 export interface WaitlistEntry {
@@ -85,7 +87,6 @@ export interface ImpactField {
 export const IMPACT_FIELDS_BY_ACTIVITY: Record<ActivityType, ImpactField[]> = {
   shore_cleanup: [
     { key: 'rubbish_kg', label: 'Rubbish Collected', unit: 'kg', icon: 'trash' },
-    { key: 'coastline_cleaned_m', label: 'Shoreline Cleaned', unit: 'm', icon: 'wave' },
   ],
   tree_planting: [
     { key: 'trees_planted', label: 'Trees Planted', unit: 'trees', icon: 'tree' },
@@ -108,7 +109,6 @@ export const IMPACT_FIELDS_BY_ACTIVITY: Record<ActivityType, ImpactField[]> = {
   film_screening: [],
   marine_restoration: [
     { key: 'area_restored_sqm', label: 'Area Restored', unit: 'sqm', icon: 'area' },
-    { key: 'coastline_cleaned_m', label: 'Coastline Restored', unit: 'm', icon: 'wave' },
     { key: 'rubbish_kg', label: 'Rubbish Collected', unit: 'kg', icon: 'trash' },
   ],
   workshop: [
@@ -190,29 +190,37 @@ export function useMyEvents(tab: 'upcoming' | 'invited' | 'past') {
     queryFn: async () => {
       if (!user) return []
 
-      const now = new Date().toISOString()
+      const now = Date.now()
       let query = supabase
         .from('event_registrations')
         .select('*, events(*, collectives(id, name))')
         .eq('user_id', user.id)
 
       if (tab === 'upcoming') {
-        query = query
-          .in('status', ['registered', 'waitlisted'])
-          .gte('events.date_start', now)
+        query = query.in('status', ['registered', 'waitlisted'])
       } else if (tab === 'invited') {
         query = query.eq('status', 'invited')
       } else {
-        query = query
-          .in('status', ['registered', 'attended'])
-          .lt('events.date_start', now)
+        query = query.in('status', ['registered', 'attended'])
       }
 
       const { data, error } = await query.order('registered_at', { ascending: tab === 'upcoming' })
       if (error) throw error
 
       return (data ?? [])
-        .filter((r) => r.events !== null)
+        .filter((r) => {
+          if (!r.events) return false
+          const evt = r.events as EventWithCollective
+          const endMs = new Date(evt.date_end ?? evt.date_start).getTime()
+          const startMs = new Date(evt.date_start).getTime()
+          if (tab === 'upcoming') {
+            // Show if event hasn't started yet OR is still happening
+            return startMs >= now || endMs >= now
+          } else if (tab === 'past') {
+            return endMs < now
+          }
+          return true // invited tab — show all
+        })
         .map((r) => ({
           ...(r.events as EventWithCollective),
           registration_status: r.status,
@@ -282,12 +290,32 @@ export function useEventDetail(eventId: string | undefined) {
         .eq('event_id', eventId)
         .maybeSingle()
 
+      // Collaborating collectives (accepted only)
+      const { data: collabData } = await supabase
+        .from('collective_event_collaborators')
+        .select('collective_id, collectives:collective_id(id, name, slug, cover_image_url)')
+        .eq('event_id', eventId)
+        .eq('status', 'accepted')
+
+      const collaborators = (collabData ?? [])
+        .map((c) => c.collectives)
+        .filter(Boolean) as Pick<Collective, 'id' | 'name' | 'slug' | 'cover_image_url'>[]
+
+      // Check if collective has already been invited to this event
+      const { count: inviteCount } = await supabase
+        .from('event_invites')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId)
+        .eq('collective_id', event.collective_id)
+
       return {
         ...event,
         registration_count: regCount ?? 0,
         user_registration: userReg,
         attendees,
         impact,
+        collaborators,
+        has_been_invited: (inviteCount ?? 0) > 0,
       } as EventDetailData
     },
     enabled: !!eventId,
@@ -307,7 +335,7 @@ export function useEventAttendees(eventId: string | undefined) {
 
       const { data, error } = await supabase
         .from('event_registrations')
-        .select('user_id, status, checked_in_at, registered_at, profiles!event_registrations_user_id_fkey(id, display_name, avatar_url)')
+        .select('user_id, status, checked_in_at, registered_at, profiles!event_registrations_user_id_fkey(id, display_name, avatar_url, phone, age, gender, accessibility_requirements, emergency_contact_name, emergency_contact_phone, emergency_contact_relationship)')
         .eq('event_id', eventId)
         .in('status', ['registered', 'attended', 'waitlisted'])
         .order('registered_at', { ascending: true })
@@ -353,11 +381,12 @@ export function useNearbyEvents(limit = 20) {
   return useQuery({
     queryKey: ['nearby-events', limit],
     queryFn: async () => {
+      const now = new Date().toISOString()
       const { data, error } = await supabase
         .from('events')
         .select('*, collectives(id, name)')
         .eq('status', 'published')
-        .gte('date_start', new Date().toISOString())
+        .or(`date_start.gte.${now},date_end.gte.${now}`)
         .order('date_start', { ascending: true })
         .limit(limit)
       if (error) throw error
@@ -374,11 +403,12 @@ export function useDiscoverEvents(filters?: {
   return useQuery({
     queryKey: ['discover-events', filters?.activityType, filters?.collectiveId],
     queryFn: async () => {
+      const now = new Date().toISOString()
       let query = supabase
         .from('events')
         .select('*, collectives(id, name)')
         .eq('status', 'published')
-        .gte('date_start', new Date().toISOString())
+        .or(`date_start.gte.${now},date_end.gte.${now}`)
         .order('date_start', { ascending: true })
         .limit(50)
 
@@ -402,12 +432,13 @@ export function useCollectiveEvents(collectiveId: string | undefined) {
     queryKey: ['collective-events', collectiveId],
     queryFn: async () => {
       if (!collectiveId) return []
+      const now = new Date().toISOString()
       const { data, error } = await supabase
         .from('events')
         .select('*, collectives(id, name)')
         .eq('collective_id', collectiveId)
         .eq('status', 'published')
-        .gte('date_start', new Date().toISOString())
+        .or(`date_start.gte.${now},date_end.gte.${now}`)
         .order('date_start', { ascending: true })
         .limit(20)
       if (error) throw error
@@ -452,13 +483,19 @@ export function useRegisterForEvent() {
     mutationFn: async ({ eventId, asWaitlist = false }: { eventId: string; asWaitlist?: boolean }) => {
       if (!user) throw new Error('Must be signed in')
 
+      // Use upsert to handle re-registration after cancellation
+      // (the cancelled row still exists with the unique event_id+user_id constraint)
       const { error } = await supabase
         .from('event_registrations')
-        .insert({
-          event_id: eventId,
-          user_id: user.id,
-          status: asWaitlist ? 'waitlisted' : 'registered',
-        })
+        .upsert(
+          {
+            event_id: eventId,
+            user_id: user.id,
+            status: asWaitlist ? 'waitlisted' : 'registered',
+            registered_at: new Date().toISOString(),
+          },
+          { onConflict: 'event_id,user_id' },
+        )
       if (error) throw error
 
       // Send confirmation email (only for registered, not waitlisted)
@@ -509,6 +546,7 @@ export function useRegisterForEvent() {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
     },
   })
 }
@@ -557,6 +595,7 @@ export function useCancelRegistration() {
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event-waitlist', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
     },
   })
 }
@@ -664,6 +703,7 @@ export function useCreateEvent() {
       }
       queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      queryClient.invalidateQueries({ queryKey: ['discover-events'] })
     },
   })
 }
@@ -933,8 +973,81 @@ export function useInviteCollective() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ eventId, collectiveId }: { eventId: string; collectiveId: string }) => {
+    mutationFn: async ({ eventId, collectiveId, customMessage }: { eventId: string; collectiveId: string; customMessage?: string }) => {
       if (!user) throw new Error('Must be signed in')
+
+      // Check if this collective has already been invited to this event
+      const { count: existingCount } = await supabase
+        .from('event_invites')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId)
+        .eq('collective_id', collectiveId)
+
+      const isReminder = (existingCount ?? 0) > 0
+
+      // Fetch event details
+      const { data: event } = await supabase
+        .from('events')
+        .select('title, date_start, date_end, address, cover_image_url, activity_type')
+        .eq('id', eventId)
+        .single()
+      if (!event) throw new Error('Event not found')
+
+      const { data: inviterProfile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', user.id)
+        .single()
+
+      const inviterName = inviterProfile?.display_name ?? 'A leader'
+      const eventDate = new Date(event.date_start).toLocaleString('en-AU', {
+        weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+        hour: 'numeric', minute: '2-digit',
+      })
+
+      if (isReminder) {
+        // ── Remind flow: 24h cooldown, post rich announcement to chat ──
+
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+        const { data: recentReminders } = await (supabase as any)
+          .from('chat_messages')
+          .select('created_at')
+          .eq('collective_id', collectiveId)
+          .eq('message_type', 'announcement')
+          .gte('created_at', twentyFourHoursAgo)
+          .limit(5)
+        if (recentReminders && recentReminders.length >= 3) {
+          throw new Error('Too many announcements in the last 24h — try again later')
+        }
+
+        // Create a rich announcement in the chat
+        const { data: announcement, error: annErr } = await (supabase as any)
+          .from('chat_announcements')
+          .insert({
+            collective_id: collectiveId,
+            created_by: user.id,
+            type: 'event_invite',
+            title: `Reminder: ${event.title}`,
+            body: customMessage || `Don't miss out! Register now for ${event.title}.`,
+            metadata: { event_id: eventId },
+          })
+          .select()
+          .single()
+        if (annErr) throw annErr
+
+        // Post announcement message to chat
+        await supabase.from('chat_messages').insert({
+          collective_id: collectiveId,
+          user_id: user.id,
+          content: announcement.title,
+          message_type: 'announcement',
+          announcement_id: announcement.id,
+        } as any)
+
+        return { reminded: true }
+      }
+
+      // ── First invite flow: create registrations + rich announcement ──
 
       // Create invite record
       const { error: inviteErr } = await supabase
@@ -946,6 +1059,31 @@ export function useInviteCollective() {
         })
       if (inviteErr) throw inviteErr
 
+      // Create a rich announcement in the chat
+      const { data: announcement, error: annErr } = await (supabase as any)
+        .from('chat_announcements')
+        .insert({
+          collective_id: collectiveId,
+          created_by: user.id,
+          type: 'event_invite',
+          title: event.title,
+          body: customMessage || `You're all invited! Tap to view and register.`,
+          metadata: { event_id: eventId },
+        })
+        .select()
+        .single()
+      if (annErr) console.error('[invite-all] announcement insert error:', annErr)
+
+      if (announcement) {
+        await supabase.from('chat_messages').insert({
+          collective_id: collectiveId,
+          user_id: user.id,
+          content: announcement.title,
+          message_type: 'announcement',
+          announcement_id: announcement.id,
+        } as any).catch(console.error)
+      }
+
       // Get all collective members
       const { data: members } = await supabase
         .from('collective_members')
@@ -953,7 +1091,7 @@ export function useInviteCollective() {
         .eq('collective_id', collectiveId)
         .eq('status', 'active')
 
-      if (!members?.length) return
+      if (!members?.length) return { reminded: false }
 
       // Create registration entries for each member (status: invited)
       const registrations = members
@@ -969,82 +1107,60 @@ export function useInviteCollective() {
         const { error } = await supabase
           .from('event_registrations')
           .upsert(registrations, { onConflict: 'event_id,user_id', ignoreDuplicates: true })
-        if (error) throw error
+        if (error) console.error('[invite-all] registration upsert error:', error)
 
-        // Send invite emails, push notifications, and in-app notifications
-        const { data: event } = await supabase
-          .from('events')
-          .select('title, date_start')
-          .eq('id', eventId)
-          .single()
-
-        if (event) {
-          const { data: inviterProfile } = await supabase
-            .from('profiles')
-            .select('display_name')
-            .eq('id', user.id)
-            .single()
-
-          const inviterName = inviterProfile?.display_name ?? 'A collective leader'
-          const eventDate = new Date(event.date_start).toLocaleString('en-AU', {
-            weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
-            hour: 'numeric', minute: '2-digit',
-          })
-
-          // Send invite emails
-          for (const reg of registrations) {
-            supabase.functions.invoke('send-email', {
-              body: {
-                type: 'event_invite',
-                userId: reg.user_id,
-                data: {
-                  name: '', // resolved by edge function via userId lookup if needed
-                  inviter_name: inviterName,
-                  event_title: event.title,
-                  event_date: eventDate,
-                  event_url: `https://app.coexistaus.org/events/${eventId}`,
-                },
-              },
-            }).catch(console.error)
-          }
-
-          // Send push notifications to all invited members
-          const invitedUserIds = registrations.map((r) => r.user_id)
-          supabase.functions.invoke('send-push', {
+        // Send invite emails
+        for (const reg of registrations) {
+          supabase.functions.invoke('send-email', {
             body: {
-              userIds: invitedUserIds,
-              title: `You're invited!`,
-              body: `${inviterName} invited you to ${event.title} on ${eventDate}`,
-              data: { type: 'event_invite', event_id: eventId },
+              type: 'event_invite',
+              userId: reg.user_id,
+              data: {
+                name: '',
+                inviter_name: inviterName,
+                event_title: event.title,
+                event_date: eventDate,
+                event_url: `https://app.coexistaus.org/events/${eventId}`,
+              },
             },
           }).catch(console.error)
-
-          // Create in-app notifications
-          const notifications = invitedUserIds.map((uid) => ({
-            user_id: uid,
-            type: 'event_invite',
-            title: `You're invited to ${event.title}`,
-            body: `${inviterName} invited your collective to ${event.title} on ${eventDate}`,
-            data: { event_id: eventId },
-            read: false,
-          }))
-
-          supabase
-            .from('notifications')
-            .insert(notifications)
-            .then(({ error: notifErr }) => {
-              if (notifErr) console.error('[invite-all] notification insert error:', notifErr)
-            })
         }
+
+        // Send push notifications
+        const invitedUserIds = registrations.map((r) => r.user_id)
+        supabase.functions.invoke('send-push', {
+          body: {
+            userIds: invitedUserIds,
+            title: `You're invited!`,
+            body: `${inviterName} invited you to ${event.title} on ${eventDate}`,
+            data: { type: 'event_invite', event_id: eventId },
+          },
+        }).catch(console.error)
+
+        // In-app notifications
+        const notifications = invitedUserIds.map((uid) => ({
+          user_id: uid,
+          type: 'event_invite',
+          title: `You're invited to ${event.title}`,
+          body: `${inviterName} invited your collective to ${event.title} on ${eventDate}`,
+          data: { event_id: eventId },
+          read: false,
+        }))
+        supabase.from('notifications').insert(notifications).then(({ error: notifErr }) => {
+          if (notifErr) console.error('[invite-all] notification insert error:', notifErr)
+        })
       }
+
+      return { reminded: false }
     },
     onMutate: async ({ eventId }) => {
       await queryClient.cancelQueries({ queryKey: ['event', eventId] })
       await queryClient.cancelQueries({ queryKey: ['event-attendees', eventId] })
     },
-    onSettled: (_, __, { eventId }) => {
+    onSettled: (_, __, { eventId, collectiveId }) => {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['chat-messages', collectiveId] })
     },
   })
 }
@@ -1157,6 +1273,125 @@ export function downloadIcsFile(event: Event) {
   link.click()
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
+}
+
+/* ------------------------------------------------------------------ */
+/*  Collaboration - invite collectives to co-host events                */
+/* ------------------------------------------------------------------ */
+
+export interface CollaborationWithDetails {
+  id: string
+  event_id: string
+  collective_id: string
+  invited_by_collective_id: string
+  invited_by_user: string
+  status: 'pending' | 'accepted' | 'declined'
+  message: string | null
+  created_at: string
+  responded_at: string | null
+  events: Pick<Event, 'id' | 'title' | 'date_start' | 'date_end' | 'activity_type' | 'address'> | null
+  collectives: Pick<Collective, 'id' | 'name' | 'cover_image_url'> | null
+  invited_by_collective: Pick<Collective, 'id' | 'name'> | null
+}
+
+/** Collaborations where this collective was invited */
+export function useIncomingCollaborations(collectiveId: string | undefined) {
+  return useQuery({
+    queryKey: ['collaborations-incoming', collectiveId],
+    queryFn: async () => {
+      if (!collectiveId) return []
+      const { data, error } = await supabase
+        .from('collective_event_collaborators')
+        .select('*, events(id, title, date_start, date_end, activity_type, address), collectives:collective_id(id, name, cover_image_url), invited_by_collective:invited_by_collective_id(id, name)')
+        .eq('collective_id', collectiveId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return (data ?? []) as unknown as CollaborationWithDetails[]
+    },
+    enabled: !!collectiveId,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+/** Collaborations this collective sent out */
+export function useOutgoingCollaborations(collectiveId: string | undefined) {
+  return useQuery({
+    queryKey: ['collaborations-outgoing', collectiveId],
+    queryFn: async () => {
+      if (!collectiveId) return []
+      const { data, error } = await supabase
+        .from('collective_event_collaborators')
+        .select('*, events(id, title, date_start, date_end, activity_type, address), collectives:collective_id(id, name, cover_image_url)')
+        .eq('invited_by_collective_id', collectiveId)
+        .order('created_at', { ascending: false })
+      if (error) throw error
+      return (data ?? []) as unknown as CollaborationWithDetails[]
+    },
+    enabled: !!collectiveId,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+export function useInviteCollaborator() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      eventId,
+      collectiveId,
+      hostCollectiveId,
+      message,
+    }: {
+      eventId: string
+      collectiveId: string
+      hostCollectiveId: string
+      message?: string
+    }) => {
+      const { data, error } = await supabase.rpc('invite_collective_to_collaborate', {
+        p_event_id: eventId,
+        p_collective_id: collectiveId,
+        p_host_collective_id: hostCollectiveId,
+        p_message: message ?? null,
+      })
+      if (error) throw error
+      return data
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ['collaborations-outgoing', vars.hostCollectiveId] })
+      queryClient.invalidateQueries({ queryKey: ['collaborations-incoming', vars.collectiveId] })
+      queryClient.invalidateQueries({ queryKey: ['event', vars.eventId] })
+    },
+  })
+}
+
+export function useRespondToCollaboration() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      collaborationId,
+      accept,
+    }: {
+      collaborationId: string
+      accept: boolean
+      collectiveId?: string
+      hostCollectiveId?: string
+    }) => {
+      const { error } = await supabase.rpc('respond_to_collaboration', {
+        p_collaboration_id: collaborationId,
+        p_accept: accept,
+      })
+      if (error) throw error
+    },
+    onSuccess: (_, vars) => {
+      if (vars.collectiveId) {
+        queryClient.invalidateQueries({ queryKey: ['collaborations-incoming', vars.collectiveId] })
+      }
+      if (vars.hostCollectiveId) {
+        queryClient.invalidateQueries({ queryKey: ['collaborations-outgoing', vars.hostCollectiveId] })
+      }
+    },
+  })
 }
 
 export function getGoogleCalendarUrl(event: Event): string {

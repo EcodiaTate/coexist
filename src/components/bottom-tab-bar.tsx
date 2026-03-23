@@ -6,11 +6,8 @@ import {
     MessageCircle,
     User,
     MoreHorizontal,
-    BarChart3,
-    Shield,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { useAuth } from '@/hooks/use-auth'
 import { usePlatform } from '@/hooks/use-platform'
 
 export interface Tab {
@@ -21,6 +18,8 @@ export interface Tab {
   activeIcon: ReactNode
   /** If true, match only exact path (no prefix matching) */
   exact?: boolean
+  /** If true, this tab triggers onMorePress instead of navigating */
+  isMore?: boolean
 }
 
 const baseTabs: Tab[] = [
@@ -51,25 +50,20 @@ const baseTabs: Tab[] = [
     label: 'More',
     path: '/more',
     exact: true,
+    isMore: true,
     icon: <MoreHorizontal size={21} strokeWidth={1.5} />,
     activeIcon: <MoreHorizontal size={21} strokeWidth={2.2} />,
   },
 ]
 
-const leaderDashboardTab: Tab = {
-  key: 'leader',
-  label: 'Leader',
-  path: '/leader',
-  icon: <BarChart3 size={21} strokeWidth={1.5} />,
-  activeIcon: <BarChart3 size={21} strokeWidth={2.2} />,
-}
-
-const adminDashboardTab: Tab = {
-  key: 'admin',
-  label: 'Admin',
-  path: '/admin',
-  icon: <Shield size={21} strokeWidth={1.5} />,
-  activeIcon: <Shield size={21} strokeWidth={2.2} />,
+export const MORE_TAB: Tab = {
+  key: 'more',
+  label: 'More',
+  path: '/more',
+  exact: true,
+  isMore: true,
+  icon: <MoreHorizontal size={21} strokeWidth={1.5} />,
+  activeIcon: <MoreHorizontal size={21} strokeWidth={2.2} />,
 }
 
 interface BottomTabBarProps {
@@ -81,6 +75,8 @@ interface BottomTabBarProps {
   layoutPrefix?: string
   /** Accent color for active states */
   accent?: 'primary' | 'moss'
+  /** Called when the "More" tab is pressed instead of navigating */
+  onMorePress?: () => void
   className?: string
 }
 
@@ -89,27 +85,17 @@ export function BottomTabBar({
   tabs: customTabs,
   layoutPrefix = 'tab',
   accent = 'primary',
+  onMorePress,
   className,
 }: BottomTabBarProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
-  const { collectiveRoles, isStaff } = useAuth()
   const { haptics } = usePlatform()
 
-  // Show leader dashboard tab for any leader role
-  const isAnyLeader = collectiveRoles.some(
-    (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
-  )
+  const tabs = customTabs ?? baseTabs
 
-  // Build tabs: use custom if provided, otherwise default set
-  const tabs = customTabs ?? [
-    ...baseTabs,
-    ...(isAnyLeader ? [leaderDashboardTab] : []),
-    ...(isStaff ? [adminDashboardTab] : []),
-  ]
-
-  const handleTabPress = async (path: string) => {
+  const handleTabPress = async (tab: Tab) => {
     if (haptics) {
       try {
         const { Haptics, ImpactStyle } = await import('@capacitor/haptics')
@@ -118,10 +104,17 @@ export function BottomTabBar({
         // Haptics not available
       }
     }
-    navigate(path)
+
+    if (tab.isMore && onMorePress) {
+      onMorePress()
+      return
+    }
+
+    navigate(tab.path)
   }
 
   const isActive = (tab: Tab) => {
+    if (tab.isMore) return false // More tab never shows "active" state
     if (tab.exact || tab.path === '/') return location.pathname === tab.path
     return location.pathname.startsWith(tab.path)
   }
@@ -159,7 +152,7 @@ export function BottomTabBar({
                 role="tab"
                 aria-selected={active}
                 aria-label={tab.label}
-                onClick={() => handleTabPress(tab.path)}
+                onClick={() => handleTabPress(tab)}
                 className={cn(
                   'relative flex flex-col items-center justify-center',
                   'flex-1 h-full',

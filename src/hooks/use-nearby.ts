@@ -27,11 +27,12 @@ export function useNearbyEvents(
   return useQuery({
     queryKey: ['nearby', 'events', location, radiusKm, activityTypes],
     queryFn: async () => {
+      const now = new Date().toISOString()
       let query = supabase
         .from('events')
         .select('*, collectives(id, name)')
         .eq('status', 'published')
-        .gte('date_start', new Date().toISOString())
+        .or(`date_start.gte.${now},date_end.gte.${now}`)
         .order('date_start', { ascending: true })
 
       if (activityTypes?.length) {

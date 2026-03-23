@@ -12,7 +12,6 @@ import {
     ChevronRight,
     TreePine,
     Trash2,
-    Waves,
     Eye,
     Leaf,
     CheckCircle2,
@@ -23,6 +22,17 @@ import {
     Copy,
     Ban,
     Send,
+    Share2,
+    Compass,
+    Mountain,
+    Accessibility,
+    Shirt,
+    Backpack,
+    Sparkles,
+    Zap,
+    Pencil,
+    ClipboardList,
+    Bell,
 } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { useAuth } from '@/hooks/use-auth'
@@ -52,8 +62,10 @@ import {
     Skeleton,
     EmptyState,
     ConfirmationSheet,
-    BottomSheet, StatCard
+    BottomSheet, StatCard,
+    CheckInSheet,
 } from '@/components'
+import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -76,18 +88,46 @@ const activityToBadge: Record<string, 'shore-cleanup' | 'tree-planting' | 'land-
 }
 
 /* ------------------------------------------------------------------ */
+/*  Activity colour accents                                            */
+/* ------------------------------------------------------------------ */
+
+const activityAccent: Record<string, { gradient: string; glow: string; bg: string; text: string; border: string }> = {
+  shore_cleanup:      { gradient: 'from-sky-400 to-cyan-500',         glow: 'shadow-sky-400/25',    bg: 'bg-sky-50',        text: 'text-sky-700',      border: 'border-sky-200/50' },
+  tree_planting:      { gradient: 'from-emerald-400 to-green-500',    glow: 'shadow-emerald-400/25', bg: 'bg-emerald-50',    text: 'text-emerald-700',  border: 'border-emerald-200/50' },
+  land_regeneration:  { gradient: 'from-lime-400 to-green-500',       glow: 'shadow-lime-400/25',   bg: 'bg-lime-50',       text: 'text-lime-700',     border: 'border-lime-200/50' },
+  nature_walk:        { gradient: 'from-teal-400 to-emerald-500',     glow: 'shadow-teal-400/25',   bg: 'bg-teal-50',       text: 'text-teal-700',     border: 'border-teal-200/50' },
+  camp_out:           { gradient: 'from-amber-400 to-orange-500',     glow: 'shadow-amber-400/25',  bg: 'bg-amber-50',      text: 'text-amber-700',    border: 'border-amber-200/50' },
+  retreat:            { gradient: 'from-violet-400 to-purple-500',    glow: 'shadow-violet-400/25', bg: 'bg-violet-50',     text: 'text-violet-700',   border: 'border-violet-200/50' },
+  film_screening:     { gradient: 'from-rose-400 to-pink-500',        glow: 'shadow-rose-400/25',   bg: 'bg-rose-50',       text: 'text-rose-700',     border: 'border-rose-200/50' },
+  marine_restoration: { gradient: 'from-blue-400 to-indigo-500',      glow: 'shadow-blue-400/25',   bg: 'bg-blue-50',       text: 'text-blue-700',     border: 'border-blue-200/50' },
+  workshop:           { gradient: 'from-fuchsia-400 to-purple-500',   glow: 'shadow-fuchsia-400/25', bg: 'bg-fuchsia-50',   text: 'text-fuchsia-700',  border: 'border-fuchsia-200/50' },
+}
+
+const defaultAccent = { gradient: 'from-primary-400 to-sprout-500', glow: 'shadow-primary-400/25', bg: 'bg-primary-50', text: 'text-primary-700', border: 'border-primary-200/50' }
+
+/* ------------------------------------------------------------------ */
 /*  Difficulty config                                                  */
 /* ------------------------------------------------------------------ */
 
 const difficultyConfig = {
-  easy: { label: 'Easy', color: 'text-success-600 bg-success-100' },
-  moderate: { label: 'Moderate', color: 'text-warning-600 bg-warning-100' },
-  challenging: { label: 'Challenging', color: 'text-error-600 bg-error-100' },
+  easy: { label: 'Easy', color: 'text-success-600 bg-success-100', icon: Sparkles },
+  moderate: { label: 'Moderate', color: 'text-warning-600 bg-warning-100', icon: Zap },
+  challenging: { label: 'Challenging', color: 'text-error-600 bg-error-100', icon: Mountain },
 }
 
 /* ------------------------------------------------------------------ */
-/*  Share helper                                                       */
+/*  Animation variants                                                 */
 /* ------------------------------------------------------------------ */
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 26 } },
+}
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } },
+}
 
 /* ------------------------------------------------------------------ */
 /*  Skeleton                                                           */
@@ -97,15 +137,55 @@ function EventDetailSkeleton() {
   return (
     <Page header={<Header title="" back />}>
       <div>
-        <Skeleton variant="image" className="rounded-none" />
-        <div className="pt-4 space-y-3">
-          <Skeleton variant="title" />
-          <Skeleton variant="text" count={2} />
-          <div className="flex gap-3">
-            <Skeleton variant="stat-card" className="flex-1" />
-            <Skeleton variant="stat-card" className="flex-1" />
+        {/* Hero shimmer */}
+        <div className="relative -mx-4 lg:-mx-6" style={{ marginTop: 'calc(-1 * var(--safe-top, 0px))' }}>
+          <div className="w-full overflow-hidden animate-pulse" style={{ aspectRatio: '3/4', maxHeight: '56vh' }}>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-200/40 via-moss-200/30 to-sprout-200/40" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
           </div>
-          <Skeleton variant="text" count={4} />
+        </div>
+        <div className="pt-5 space-y-4">
+          {/* Info card shimmer */}
+          <div className="rounded-2xl bg-white/60 border border-sprout-200/30 p-5 space-y-4 animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sprout-100/60" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 bg-primary-100/50 rounded w-2/3" />
+                <div className="h-3 bg-primary-100/30 rounded w-1/3" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sprout-100/60" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 bg-primary-100/50 rounded w-3/4" />
+                <div className="h-3 bg-primary-100/30 rounded w-1/2" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-sprout-100/60" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 bg-primary-100/50 rounded w-1/2" />
+                <div className="h-3 bg-primary-100/30 rounded w-3/5" />
+              </div>
+            </div>
+          </div>
+          {/* Capacity shimmer */}
+          <div className="rounded-2xl bg-white/60 border border-primary-200/30 p-4 space-y-3 animate-pulse">
+            <div className="h-4 bg-primary-100/40 rounded w-1/3" />
+            <div className="h-3 bg-primary-100/30 rounded-full w-full" />
+            <div className="flex -space-x-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="w-8 h-8 rounded-full bg-primary-100/40 ring-2 ring-white" />
+              ))}
+            </div>
+          </div>
+          {/* Description shimmer */}
+          <div className="rounded-2xl bg-white/60 border border-primary-200/30 p-4 space-y-2 animate-pulse">
+            <div className="h-4 bg-primary-100/40 rounded w-1/4" />
+            <div className="h-3 bg-primary-100/30 rounded w-full" />
+            <div className="h-3 bg-primary-100/30 rounded w-5/6" />
+            <div className="h-3 bg-primary-100/30 rounded w-2/3" />
+          </div>
         </div>
       </div>
     </Page>
@@ -113,36 +193,51 @@ function EventDetailSkeleton() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Info Row                                                           */
+/*  Glass info chip                                                    */
 /* ------------------------------------------------------------------ */
 
-function InfoRow({
+function InfoChip({
   icon,
   label,
   value,
+  accent,
   action,
 }: {
   icon: React.ReactNode
   label: string
   value: string
+  accent: typeof defaultAccent
   action?: { label: string; onClick: () => void }
 }) {
   return (
-    <div className="flex items-start gap-3 py-3">
-      <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-sprout-100/80 text-sprout-600 shrink-0 shadow-sm" aria-hidden="true">
+    <div className="flex items-start gap-3 py-3.5 group">
+      <span
+        className={cn(
+          'flex items-center justify-center w-10 h-10 rounded-xl shrink-0',
+          'shadow-sm transition-all duration-200',
+          accent.bg, accent.text, accent.border, 'border',
+        )}
+        aria-hidden="true"
+      >
         {icon}
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-caption text-primary-400">{label}</p>
-        <p className="text-sm font-semibold text-primary-800 break-words">{value}</p>
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">{label}</p>
+        <p className="text-[15px] font-bold text-primary-800 break-words leading-snug mt-0.5">{value}</p>
       </div>
       {action && (
         <button
           type="button"
           onClick={action.onClick}
-          className="min-h-11 flex items-center justify-center text-caption font-semibold text-sprout-600 hover:text-sprout-700 cursor-pointer select-none shrink-0 mt-1 active:scale-[0.97] transition-all duration-150"
+          className={cn(
+            'min-h-11 flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-[13px] font-bold shrink-0 mt-0.5',
+            'cursor-pointer select-none active:scale-[0.97] transition-all duration-150',
+            accent.bg, accent.text, accent.border, 'border',
+            'hover:shadow-sm',
+          )}
           aria-label={action.label}
         >
+          <Compass size={13} />
           {action.label}
         </button>
       )}
@@ -158,6 +253,7 @@ export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { user, isStaff: isGlobalStaff, isAdmin: isGlobalAdmin } = useAuth()
+  const { toast } = useToast()
   const shouldReduceMotion = useReducedMotion()
 
   const { data: event, isLoading } = useEventDetail(id)
@@ -173,9 +269,13 @@ export default function EventDetailPage() {
   const [showCalendarSheet, setShowCalendarSheet] = useState(false)
   const [showQrSheet, setShowQrSheet] = useState(false)
   const [showCancelEventSheet, setShowCancelEventSheet] = useState(false)
+  const [showCheckInSheet, setShowCheckInSheet] = useState(false)
+  const [showInviteSheet, setShowInviteSheet] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
+  const [inviteMessage, setInviteMessage] = useState('')
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
 
+  const accent = event ? (activityAccent[event.activity_type] ?? defaultAccent) : defaultAccent
   const past = event ? isPastEvent(event) : false
   const isAtCapacity = event?.capacity ? event.registration_count >= event.capacity : false
 
@@ -244,12 +344,45 @@ export default function EventDetailPage() {
     })
   }, [event, duplicateEventMutation, navigate])
 
-  const handleInviteCollective = useCallback(() => {
-    if (!event?.collective_id) return
-    inviteCollectiveMutation.mutate({ eventId: event.id, collectiveId: event.collective_id })
-  }, [event, inviteCollectiveMutation])
+  const alreadyInvited = event?.has_been_invited ?? false
 
-  if (showLoading) return <EventDetailSkeleton />
+  const handleOpenInviteSheet = useCallback(() => {
+    if (!event) return
+    setInviteMessage(alreadyInvited
+      ? `Don't miss out! Register now for ${event.title}.`
+      : `You're all invited! Tap to view and register.`,
+    )
+    setShowInviteSheet(true)
+  }, [event, alreadyInvited])
+
+  const handleSendInvite = useCallback(() => {
+    if (!event?.collective_id) return
+    inviteCollectiveMutation.mutate(
+      { eventId: event.id, collectiveId: event.collective_id, customMessage: inviteMessage || undefined },
+      {
+        onSuccess: (data) => {
+          toast.success(data?.reminded ? 'Reminder posted to collective chat!' : 'All members invited & notified!')
+          setShowInviteSheet(false)
+        },
+        onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to send'),
+      },
+    )
+  }, [event, inviteCollectiveMutation, toast, inviteMessage])
+
+  const handleShare = useCallback(async () => {
+    if (!event) return
+    const url = `https://app.coexistaus.org/events/${event.id}`
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: event.title, text: `Check out ${event.title} on Co-Exist!`, url })
+      } catch { /* cancelled */ }
+    } else {
+      await navigator.clipboard.writeText(url)
+    }
+  }, [event])
+
+  // CRITICAL: Don't show "not found" while still loading
+  if (showLoading || isLoading) return <EventDetailSkeleton />
   if (!event) {
     return (
       <Page header={<Header title="Event" back />}>
@@ -271,7 +404,7 @@ export default function EventDetailPage() {
     if (!event) return null
     if (event.status === 'cancelled') {
       return (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-error-50 text-error-700 text-sm font-medium">
+        <div className="flex items-center gap-2.5 px-5 py-3.5 rounded-2xl bg-error-50 text-error-700 text-sm font-semibold border border-error-200/40">
           <XCircle size={18} />
           This event has been cancelled
         </div>
@@ -279,7 +412,6 @@ export default function EventDetailPage() {
     }
 
     if (past) {
-      // Show survey CTA for attendees who haven't filled it out
       if (userStatus === 'attended') {
         return (
           <Button
@@ -297,7 +429,7 @@ export default function EventDetailPage() {
 
     if (userStatus === 'attended') {
       return (
-        <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-success-50 text-success-700 text-sm font-semibold">
+        <div className="flex items-center gap-2.5 px-5 py-3.5 rounded-2xl bg-success-50 text-success-700 text-sm font-bold border border-success-200/40">
           <CheckCircle2 size={18} />
           You're checked in!
         </div>
@@ -305,7 +437,6 @@ export default function EventDetailPage() {
     }
 
     if (userStatus === 'registered') {
-      // Event is active - show check-in CTA
       if (isEventActive) {
         return (
           <div className="space-y-2">
@@ -314,9 +445,10 @@ export default function EventDetailPage() {
               size="lg"
               fullWidth
               icon={<QrCode size={20} />}
-              onClick={() => navigate(`/events/${event.id}/check-in`)}
+              onClick={() => setShowCheckInSheet(true)}
+              className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
             >
-              Check In
+              Check In Now
             </Button>
             <Button
               variant="ghost"
@@ -329,11 +461,17 @@ export default function EventDetailPage() {
         )
       }
 
-      // Event not active yet - show cancel option
       return (
         <div className="space-y-2">
+          <div className={cn(
+            'flex items-center gap-2.5 px-5 py-3.5 rounded-2xl text-sm font-bold border',
+            accent.bg, accent.text, accent.border,
+          )}>
+            <CheckCircle2 size={18} />
+            You're registered
+          </div>
           <Button
-            variant="secondary"
+            variant="ghost"
             fullWidth
             onClick={() => setShowCancelSheet(true)}
           >
@@ -346,7 +484,7 @@ export default function EventDetailPage() {
     if (userStatus === 'waitlisted') {
       return (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-warning-50 text-warning-700 text-sm font-semibold">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 rounded-2xl bg-warning-50 text-warning-700 text-sm font-bold border border-warning-200/40">
             <AlertCircle size={18} />
             You're on the waitlist
           </div>
@@ -364,7 +502,7 @@ export default function EventDetailPage() {
     if (userStatus === 'invited') {
       return (
         <div className="space-y-2">
-          <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-info-50 text-info-700 text-sm font-medium">
+          <div className="flex items-center gap-2.5 px-5 py-3.5 rounded-2xl bg-info-50 text-info-700 text-sm font-bold border border-info-200/40">
             <Mail size={18} />
             You've been invited
           </div>
@@ -374,6 +512,7 @@ export default function EventDetailPage() {
             fullWidth
             loading={registerMutation.isPending}
             onClick={() => registerMutation.mutate({ eventId: event.id })}
+            className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
           >
             Accept & Register
           </Button>
@@ -388,8 +527,9 @@ export default function EventDetailPage() {
         fullWidth
         loading={registerMutation.isPending}
         onClick={handleRegister}
+        className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
       >
-        {isAtCapacity ? 'Join Waitlist' : 'Register'}
+        {isAtCapacity ? 'Join Waitlist' : 'Register for Event'}
       </Button>
     )
   }
@@ -399,7 +539,7 @@ export default function EventDetailPage() {
       footer={renderCta()}
       noBackground={!!event.cover_image_url}
     >
-      {/* ---- Full-bleed hero image ---- */}
+      {/* ── Full-bleed hero image ── */}
       {event.cover_image_url && (
         <div className="relative -mx-4 lg:-mx-6" style={{ marginTop: 'calc(-1 * var(--safe-top, 0px))' }}>
           <div className="relative w-full overflow-hidden" style={{ aspectRatio: '3/4', maxHeight: '56vh' }}>
@@ -409,24 +549,34 @@ export default function EventDetailPage() {
               className="absolute inset-0 w-full h-full object-cover"
             />
             <div
-              className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10"
+              className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10"
               aria-hidden="true"
             />
 
-            {/* Floating back button */}
-            <motion.button
-              type="button"
-              onClick={() => navigate(-1)}
-              whileTap={{ scale: 0.9 }}
-              className="absolute top-3 left-3 flex items-center justify-center w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white cursor-pointer select-none active:scale-95 transition-all duration-150 z-10"
-              style={{ marginTop: 'var(--safe-top, 0px)' }}
-              aria-label="Go back"
-            >
-              <ArrowLeft size={20} />
-            </motion.button>
+            {/* Floating nav buttons */}
+            <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10" style={{ marginTop: 'var(--safe-top, 0px)' }}>
+              <motion.button
+                type="button"
+                onClick={() => navigate(-1)}
+                whileTap={{ scale: 0.9 }}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
+                aria-label="Go back"
+              >
+                <ArrowLeft size={20} />
+              </motion.button>
+              <motion.button
+                type="button"
+                onClick={handleShare}
+                whileTap={{ scale: 0.9 }}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/30 backdrop-blur-md text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
+                aria-label="Share event"
+              >
+                <Share2 size={18} />
+              </motion.button>
+            </div>
 
             {/* Activity badge on image */}
-            <div className="absolute top-3 right-3" style={{ marginTop: 'var(--safe-top, 0px)' }}>
+            <div className="absolute top-16 right-3" style={{ marginTop: 'var(--safe-top, 0px)' }}>
               <Badge
                 variant="activity"
                 activity={activityToBadge[event.activity_type] ?? 'workshop'}
@@ -437,26 +587,74 @@ export default function EventDetailPage() {
             </div>
 
             {/* Title overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-5 pb-6">
-              <h1 className="font-heading text-2xl font-bold text-white leading-tight drop-shadow-lg">
+            <div className="absolute bottom-0 left-0 right-0 p-5 pb-10 z-[5]">
+              {!past && userStatus === 'registered' && (
+                <motion.span
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold mb-2.5',
+                    'bg-white/20 backdrop-blur-md text-white border border-white/20',
+                  )}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-sprout-400 animate-pulse" />
+                  {getCountdown(event.date_start)}
+                </motion.span>
+              )}
+              <h1 className="font-heading text-[26px] sm:text-3xl font-bold text-white leading-tight drop-shadow-lg">
                 {event.title}
               </h1>
-              {!past && userStatus === 'registered' && (
-                <p className="text-sm font-medium text-sprout-200 mt-1.5 drop-shadow">
-                  {getCountdown(event.date_start)}
+              {event.collectives && (
+                <p className="text-sm text-white/70 font-medium mt-1.5 drop-shadow">
+                  by {event.collectives.name}
                 </p>
               )}
             </div>
           </div>
+
+          {/* Organic wave transition — matches homepage hero */}
+          <div className="absolute -bottom-px left-0 right-0 z-10">
+            <svg
+              viewBox="0 0 1440 70"
+              preserveAspectRatio="none"
+              className="w-full h-7 sm:h-10 block"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0,25
+                   C60,22 100,18 140,20
+                   C180,22 200,15 220,18
+                   L228,8 L234,5 L240,10
+                   C280,18 340,24 400,20
+                   C440,16 470,22 510,25
+                   C560,28 600,20 640,22
+                   C670,24 690,18 710,20
+                   L718,10 L722,6 L728,12
+                   C760,20 820,26 880,22
+                   C920,18 950,24 990,26
+                   C1020,28 1050,20 1080,18
+                   C1100,16 1120,22 1140,24
+                   L1148,12 L1153,7 L1158,9 L1165,16
+                   C1200,22 1260,26 1320,22
+                   C1360,18 1400,24 1440,22
+                   L1440,70 L0,70 Z"
+                className="fill-white"
+              />
+            </svg>
+          </div>
         </div>
       )}
 
-      {/* If no cover image, show back + title normally */}
+      {/* ── No cover image header ── */}
       {!event.cover_image_url && (
         <>
           <Header title="" back />
-          <div className="pt-2 pb-1">
-            <div className="flex items-start gap-2">
+          <motion.div
+            className="pt-2 pb-1"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex items-center gap-2.5">
               <Badge
                 variant="activity"
                 activity={activityToBadge[event.activity_type] ?? 'workshop'}
@@ -464,168 +662,264 @@ export default function EventDetailPage() {
               >
                 {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
               </Badge>
+              {!past && userStatus === 'registered' && (
+                <span className={cn(
+                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold',
+                  accent.bg, accent.text, accent.border, 'border',
+                )}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                  {getCountdown(event.date_start)}
+                </span>
+              )}
             </div>
-            <h1 className="font-heading text-2xl font-bold text-primary-800 mt-2">
+            <h1 className="font-heading text-2xl font-bold text-primary-800 mt-2.5">
               {event.title}
             </h1>
-          </div>
+            {event.collectives && (
+              <p className="text-sm text-primary-500 font-medium mt-1">
+                by {event.collectives.name}
+              </p>
+            )}
+          </motion.div>
         </>
       )}
 
       <div className="relative">
         {/* Decorative background elements */}
         <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          {/* Large ring - top right */}
-          <svg className="absolute -top-12 -right-16 w-[280px] h-[280px] opacity-[0.12]" viewBox="0 0 280 280" fill="none">
+          <svg className="absolute -top-12 -right-16 w-[280px] h-[280px] opacity-[0.10]" viewBox="0 0 280 280" fill="none">
             <circle cx="140" cy="140" r="130" stroke="var(--color-sprout-400)" strokeWidth="2.5" />
             <circle cx="140" cy="140" r="95" stroke="var(--color-moss-300)" strokeWidth="1.5" strokeDasharray="6 8" />
+            <circle cx="140" cy="140" r="55" stroke="var(--color-primary-300)" strokeWidth="1" strokeDasharray="3 5" />
           </svg>
-          {/* Medium ring - left */}
-          <svg className="absolute top-[35%] -left-20 w-[200px] h-[200px] opacity-[0.10]" viewBox="0 0 200 200" fill="none">
-            <circle cx="100" cy="100" r="90" stroke="var(--color-primary-400)" strokeWidth="2" />
-            <circle cx="100" cy="100" r="60" stroke="var(--color-sprout-300)" strokeWidth="1.5" />
+          <svg className="absolute top-[35%] -left-20 w-[220px] h-[220px] opacity-[0.08]" viewBox="0 0 220 220" fill="none">
+            <circle cx="110" cy="110" r="100" stroke="var(--color-primary-400)" strokeWidth="2" />
+            <circle cx="110" cy="110" r="70" stroke="var(--color-sprout-300)" strokeWidth="1.5" />
+            <circle cx="110" cy="110" r="35" stroke="var(--color-moss-200)" strokeWidth="1" strokeDasharray="4 6" />
           </svg>
-          {/* Small ring cluster - bottom right */}
-          <svg className="absolute bottom-[20%] right-4 w-[120px] h-[120px] opacity-[0.14]" viewBox="0 0 120 120" fill="none">
-            <circle cx="60" cy="60" r="50" stroke="var(--color-moss-400)" strokeWidth="2" />
-            <circle cx="60" cy="60" r="30" stroke="var(--color-sprout-400)" strokeWidth="1.5" strokeDasharray="4 6" />
+          <svg className="absolute bottom-[15%] right-4 w-[150px] h-[150px] opacity-[0.12]" viewBox="0 0 150 150" fill="none">
+            <circle cx="75" cy="75" r="65" stroke="var(--color-moss-400)" strokeWidth="2" />
+            <circle cx="75" cy="75" r="40" stroke="var(--color-sprout-400)" strokeWidth="1.5" strokeDasharray="4 6" />
           </svg>
-          {/* Dots scattered */}
-          <svg className="absolute top-[18%] left-[12%] opacity-[0.18]" width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="var(--color-sprout-400)" /></svg>
-          <svg className="absolute top-[28%] right-[15%] opacity-[0.14]" width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="3" fill="var(--color-moss-400)" /></svg>
-          <svg className="absolute top-[52%] left-[8%] opacity-[0.12]" width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="5" fill="var(--color-primary-300)" /></svg>
-          <svg className="absolute top-[68%] right-[22%] opacity-[0.16]" width="5" height="5" viewBox="0 0 5 5"><circle cx="2.5" cy="2.5" r="2.5" fill="var(--color-sprout-500)" /></svg>
-          <svg className="absolute bottom-[30%] left-[25%] opacity-[0.10]" width="7" height="7" viewBox="0 0 7 7"><circle cx="3.5" cy="3.5" r="3.5" fill="var(--color-moss-300)" /></svg>
-          {/* Tiny ring - mid area */}
-          <svg className="absolute top-[45%] right-[8%] w-[60px] h-[60px] opacity-[0.12]" viewBox="0 0 60 60" fill="none">
-            <circle cx="30" cy="30" r="25" stroke="var(--color-primary-300)" strokeWidth="1.5" />
-          </svg>
+          {/* Large soft colour blob */}
+          <div className={cn('absolute -top-24 -right-24 w-[350px] h-[350px] rounded-full opacity-[0.04] bg-gradient-to-br', accent.gradient)} />
+          <div className={cn('absolute bottom-[20%] -left-16 w-[250px] h-[250px] rounded-full opacity-[0.05] bg-gradient-to-tr', accent.gradient)} />
         </div>
 
-      <div className="relative pt-5 pb-8 space-y-5">
-        {/* Key info card */}
-        <div className="rounded-2xl bg-white border border-sprout-200/40 p-4 space-y-1 shadow-[0_2px_12px_-3px_rgba(61,77,51,0.10)]">
-          <InfoRow
-            icon={<Calendar size={16} />}
+      <motion.div
+        className="relative pt-5 pb-8 space-y-4"
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* ── Leader quick-actions grid ── */}
+        {isStaff && !collectiveRole.isLoading && (
+          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-moss-400 to-sprout-500 flex items-center justify-center shadow-sm">
+                <Sparkles size={11} className="text-white" />
+              </div>
+              <span className="text-[11px] font-bold text-primary-400/70 uppercase tracking-widest">Leader Actions</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => navigate(`/events/${event.id}/day`)}
+                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+              >
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-moss-500 to-moss-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                  <ClipboardList size={16} className="text-white" />
+                </div>
+                <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">Event Day</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowQrSheet(true)}
+                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+              >
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                  <QrCode size={16} className="text-white" />
+                </div>
+                <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">QR Code</span>
+              </button>
+              {isLeaderOrAbove && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/events/${event.id}/impact`)}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-sprout-500 to-sprout-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                    <Leaf size={16} className="text-white" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">Log Impact</span>
+                </button>
+              )}
+              {isLeaderOrAbove && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/events/${event.id}/edit`)}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                    <Pencil size={16} className="text-white" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">Edit</span>
+                </button>
+              )}
+              {isLeaderOrAbove && (
+                <button
+                  type="button"
+                  onClick={handleDuplicate}
+                  disabled={duplicateEventMutation.isPending}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none disabled:opacity-50"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                    <Copy size={16} className="text-white" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">Duplicate</span>
+                </button>
+              )}
+              {isLeaderOrAbove && !past && event.status !== 'cancelled' && (
+                <button
+                  type="button"
+                  onClick={handleOpenInviteSheet}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+                >
+                  <div className={cn(
+                    'w-9 h-9 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform bg-gradient-to-br',
+                    alreadyInvited ? 'from-sky-500 to-sky-600' : 'from-amber-500 to-amber-600',
+                  )}>
+                    {alreadyInvited ? <Bell size={16} className="text-white" /> : <Send size={16} className="text-white" />}
+                  </div>
+                  <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">{alreadyInvited ? 'Remind' : 'Invite'}</span>
+                </button>
+              )}
+              {isLeaderOrAbove && event.status !== 'cancelled' && (
+                <button
+                  type="button"
+                  onClick={() => setShowCancelEventSheet(true)}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-error-100/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-error-400 to-error-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                    <Ban size={16} className="text-white" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-error-600 leading-tight text-center">Cancel</span>
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Key info card ── */}
+        <motion.div
+          variants={shouldReduceMotion ? undefined : fadeUp}
+          className={cn(
+            'rounded-2xl p-4.5 space-y-0.5 relative overflow-hidden',
+            'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
+            accent.border, accent.bg,
+          )}
+        >
+          {/* Decorative gradient wash */}
+          <div className={cn('absolute inset-0 opacity-30 bg-gradient-to-br', accent.gradient)} aria-hidden="true" />
+          <div className="absolute inset-0 bg-white/70 backdrop-blur-[1px]" aria-hidden="true" />
+          <div className="relative">
+          <InfoChip
+            icon={<Calendar size={17} />}
             label="Date & Time"
             value={`${formatEventDate(event.date_start)}${event.date_end ? ` - ${formatEventTime(event.date_end)}` : ''}`}
+            accent={accent}
           />
           {event.date_end && (
-            <InfoRow
-              icon={<Clock size={16} />}
+            <InfoChip
+              icon={<Clock size={17} />}
               label="Duration"
               value={getEventDuration(event.date_start, event.date_end)}
+              accent={accent}
             />
           )}
           {event.address && (
-            <InfoRow
-              icon={<MapPin size={16} />}
+            <InfoChip
+              icon={<MapPin size={17} />}
               label="Location"
               value={event.address}
+              accent={accent}
               action={{ label: 'Directions', onClick: handleGetDirections }}
             />
           )}
-        </div>
+          </div>
+        </motion.div>
 
-        {/* Location map */}
+        {/* ── Location map ── */}
         {event.address && (() => {
           const pos = parseLocationPoint(event.location_point)
           if (!pos) return null
           return (
-            <MapView
-              center={pos}
-              zoom={15}
-              markers={[{ id: event.id, position: pos, variant: 'event', label: event.title }]}
-              interactive={false}
-              aria-label={`${event.title} location`}
-              className="aspect-video rounded-2xl shadow-sm"
-            />
+            <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+              <MapView
+                center={pos}
+                zoom={15}
+                markers={[{ id: event.id, position: pos, variant: 'event', label: event.title }]}
+                interactive={false}
+                aria-label={`${event.title} location`}
+                className="aspect-video rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12)] border border-primary-200/30"
+              />
+            </motion.div>
           )
         })()}
 
-        {/* Collective */}
-        {event.collectives && (
-          <Link
-            to={`/collectives/${event.collectives.slug ?? event.collectives.id}`}
-            className="flex items-center gap-3 p-3.5 rounded-2xl bg-white border border-moss-200/40 hover:bg-moss-50/60 transition-all duration-200 shadow-[0_2px_12px_-3px_rgba(61,77,51,0.10)]"
+        {/* ── Collaborating collectives ── */}
+        {event.collaborators && event.collaborators.length > 0 && (
+          <motion.div
+            variants={shouldReduceMotion ? undefined : fadeUp}
+            className={cn(
+              'rounded-2xl p-4 relative overflow-hidden',
+              'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
+              accent.border,
+            )}
           >
-            <div className="w-11 h-11 rounded-xl bg-moss-100 flex items-center justify-center text-moss-600 shrink-0 shadow-sm">
-              <Users size={20} />
+            <div className={cn('absolute inset-0 bg-gradient-to-r opacity-[0.06]', accent.gradient)} aria-hidden="true" />
+            <div className="absolute inset-0 bg-white/92" aria-hidden="true" />
+            <p className="relative text-[11px] uppercase tracking-wider font-semibold text-primary-400/80 mb-2.5">
+              Co-hosted with
+            </p>
+            <div className="relative space-y-2">
+              {event.collaborators.map((collab) => (
+                <Link
+                  key={collab.id}
+                  to={`/collectives/${collab.slug ?? collab.id}`}
+                  className="flex items-center gap-3 py-1.5 hover:opacity-80 transition-opacity"
+                >
+                  {collab.cover_image_url ? (
+                    <img src={collab.cover_image_url} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm" />
+                  ) : (
+                    <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm bg-gradient-to-br text-white', accent.gradient)}>
+                      <Users size={15} />
+                    </div>
+                  )}
+                  <span className="text-sm font-bold text-primary-800">{collab.name}</span>
+                  <ChevronRight size={14} className={cn('ml-auto shrink-0', accent.text)} />
+                </Link>
+              ))}
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-primary-800 truncate">
-                {event.collectives.name}
-              </p>
-              <p className="text-caption text-moss-500 font-medium">Hosting Collective</p>
-            </div>
-            <ChevronRight size={18} className="text-moss-400 shrink-0" />
-          </Link>
+          </motion.div>
         )}
 
-        {/* Capacity section */}
-        <div className="rounded-2xl bg-white border border-primary-200/40 p-4 space-y-3 shadow-[0_2px_12px_-3px_rgba(61,77,51,0.10)]">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users size={16} className="text-primary-500" />
-              <span className="text-sm font-bold text-primary-800">{capacityText}</span>
-            </div>
-            {event.capacity && (
-              <span className={cn(
-                'text-xs font-bold px-2 py-0.5 rounded-full',
-                capacityPercent >= 90 ? 'text-error-700 bg-error-100' : capacityPercent >= 70 ? 'text-warning-700 bg-warning-100' : 'text-sprout-700 bg-sprout-100',
-              )}>
-                {Math.round(capacityPercent)}%
-              </span>
-            )}
-          </div>
-          {event.capacity && (
-            <div className="h-2.5 rounded-full bg-primary-100/60 overflow-hidden">
-              <motion.div
-                className={cn(
-                  'h-full rounded-full',
-                  capacityPercent >= 90
-                    ? 'bg-gradient-to-r from-error-400 to-error-500'
-                    : capacityPercent >= 70
-                      ? 'bg-gradient-to-r from-warning-400 to-warning-500'
-                      : 'bg-gradient-to-r from-sprout-400 to-primary-500',
-                )}
-                initial={{ width: 0 }}
-                animate={{ width: `${capacityPercent}%` }}
-                transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.6, ease: 'easeOut' }}
-              />
-            </div>
-          )}
-          {/* Attendee avatars */}
-          {event.attendees.length > 0 && (
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {event.attendees.slice(0, 6).map((a) => (
-                  <Avatar
-                    key={a.id}
-                    src={a.avatar_url ?? undefined}
-                    name={a.display_name ?? 'User'}
-                    size="xs"
-                    className="ring-2 ring-white"
-                  />
-                ))}
-              </div>
-              {event.registration_count > 6 && (
-                <span className="text-caption text-primary-500 font-medium">
-                  +{event.registration_count - 6} more
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Description */}
+        {/* ── Description (About this event) ── */}
         {event.description && (
-          <div className="rounded-2xl bg-white border border-primary-200/30 p-4 shadow-[0_2px_12px_-3px_rgba(61,77,51,0.10)]">
-            <h3 className="text-sm font-bold text-primary-800 mb-2.5">About this event</h3>
+          <motion.div
+            variants={shouldReduceMotion ? undefined : fadeUp}
+            className={cn(
+              'rounded-2xl p-4.5 relative overflow-hidden',
+              'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
+              'bg-gradient-to-br from-white via-white to-primary-50/40',
+              accent.border,
+            )}
+          >
+            <h3 className={cn('text-sm font-bold mb-3', accent.text)}>About this event</h3>
             <div className="relative">
               <p
                 className={cn(
-                  'text-sm text-primary-600 leading-relaxed whitespace-pre-line',
+                  'text-[15px] text-primary-600 leading-relaxed whitespace-pre-line',
                   !descriptionExpanded && 'line-clamp-4',
                 )}
               >
@@ -635,108 +929,204 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={() => setDescriptionExpanded(true)}
-                  className="min-h-11 flex items-center justify-center text-caption font-bold text-sprout-600 hover:text-sprout-700 mt-1 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+                  className={cn(
+                    'min-h-11 flex items-center justify-center text-caption font-bold mt-1.5',
+                    'cursor-pointer select-none active:scale-[0.97] transition-all duration-150',
+                    accent.text,
+                  )}
                 >
                   Read more
                 </button>
               )}
             </div>
+          </motion.div>
+        )}
+
+        {/* ── Capacity section (spots filled) ── */}
+        <motion.div
+          variants={shouldReduceMotion ? undefined : fadeUp}
+          className={cn(
+            'rounded-2xl p-4.5 space-y-3 relative overflow-hidden',
+            'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
+            accent.border,
+          )}
+        >
+          <div className={cn('absolute inset-0 bg-gradient-to-br opacity-[0.06]', accent.gradient)} aria-hidden="true" />
+          <div className="absolute inset-0 bg-white/92" aria-hidden="true" />
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shadow-sm bg-gradient-to-br text-white', accent.gradient)}>
+                <Users size={15} />
+              </div>
+              <span className="text-[15px] font-bold text-primary-800">{capacityText}</span>
+            </div>
+            {event.capacity && (
+              <span className={cn(
+                'text-xs font-bold px-2.5 py-1 rounded-full',
+                capacityPercent >= 90 ? 'text-error-700 bg-error-100' : capacityPercent >= 70 ? 'text-warning-700 bg-warning-100' : cn(accent.text, accent.bg),
+              )}>
+                {Math.round(capacityPercent)}%
+              </span>
+            )}
           </div>
-        )}
-
-        {/* Add to Calendar */}
-        {!past && (
-          <Button
-            variant="secondary"
-            size="md"
-            icon={<CalendarPlus size={16} />}
-            onClick={() => setShowCalendarSheet(true)}
-            fullWidth
-          >
-            Add to Calendar
-          </Button>
-        )}
-
-        {/* Staff actions (assist_leader and above, only for this event's collective) */}
-        {isStaff && !collectiveRole.isLoading && (
-          <div className="rounded-2xl bg-white border border-primary-200/40 p-4 space-y-3 shadow-[0_2px_12px_-3px_rgba(61,77,51,0.10)]">
-            <h3 className="text-sm font-bold text-primary-800">Leader Tools</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={() => navigate(`/events/${event.id}/day`)}
-              >
-                Event Day
-              </Button>
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={() => setShowQrSheet(true)}
-              >
-                Show QR
-              </Button>
-              {isLeaderOrAbove && (
-                <Button
-                  variant="secondary"
-                  size="md"
-                  onClick={() => navigate(`/events/${event.id}/impact`)}
-                >
-                  Log Impact
-                </Button>
-              )}
-              {isLeaderOrAbove && (
-                <Button
-                  variant="ghost"
-                  size="md"
-                  onClick={() => navigate(`/events/${event.id}/edit`)}
-                >
-                  Edit Event
-                </Button>
-              )}
-              {isLeaderOrAbove && (
-                <Button
-                  variant="secondary"
-                  size="md"
-                  icon={<Copy size={14} />}
-                  onClick={handleDuplicate}
-                  loading={duplicateEventMutation.isPending}
-                >
-                  Duplicate
-                </Button>
-              )}
-              {isLeaderOrAbove && !past && event.status !== 'cancelled' && (
-                <Button
-                  variant="secondary"
-                  size="md"
-                  icon={<Send size={14} />}
-                  onClick={handleInviteCollective}
-                  loading={inviteCollectiveMutation.isPending}
-                  disabled={inviteCollectiveMutation.isSuccess}
-                >
-                  {inviteCollectiveMutation.isSuccess ? 'Invited' : 'Invite All'}
-                </Button>
-              )}
-              {isLeaderOrAbove && event.status !== 'cancelled' && (
-                <Button
-                  variant="ghost"
-                  size="md"
-                  icon={<Ban size={14} />}
-                  onClick={() => setShowCancelEventSheet(true)}
-                  className="text-error-600 hover:text-error-700"
-                >
-                  Cancel Event
-                </Button>
+          {event.capacity && (
+            <div className="relative h-3 rounded-full bg-primary-100/50 overflow-hidden">
+              <motion.div
+                className={cn(
+                  'h-full rounded-full shadow-sm',
+                  capacityPercent >= 90
+                    ? 'bg-gradient-to-r from-error-400 to-error-500'
+                    : capacityPercent >= 70
+                      ? 'bg-gradient-to-r from-warning-400 to-warning-500'
+                      : cn('bg-gradient-to-r', accent.gradient),
+                )}
+                initial={{ width: 0 }}
+                animate={{ width: `${capacityPercent}%` }}
+                transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut', delay: 0.2 }}
+              />
+            </div>
+          )}
+          {/* Attendee avatars */}
+          {event.attendees.length > 0 && (
+            <div className="relative flex items-center gap-2.5 pt-1">
+              <div className="flex -space-x-2.5">
+                {event.attendees.slice(0, 6).map((a) => (
+                  <Avatar
+                    key={a.id}
+                    src={a.avatar_url ?? undefined}
+                    name={a.display_name ?? 'User'}
+                    size="xs"
+                    className="ring-[2.5px] ring-white shadow-sm"
+                  />
+                ))}
+              </div>
+              {event.registration_count > 6 && (
+                <span className="text-caption text-primary-500 font-semibold">
+                  +{event.registration_count - 6} more
+                </span>
               )}
             </div>
-          </div>
+          )}
+        </motion.div>
+
+        {/* ── Event details pills (what_to_bring, terrain, difficulty, etc.) ── */}
+        {((event as any).what_to_bring || (event as any).what_to_wear || (event as any).meeting_point || (event as any).terrain || (event as any).difficulty || (event as any).wheelchair_access) && (
+          <motion.div
+            variants={shouldReduceMotion ? undefined : fadeUp}
+            className={cn(
+              'rounded-2xl p-4.5 relative overflow-hidden',
+              'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
+              accent.border, accent.bg,
+            )}
+          >
+            <div className={cn('absolute inset-0 opacity-20 bg-gradient-to-tl', accent.gradient)} aria-hidden="true" />
+            <div className="absolute inset-0 bg-white/75" aria-hidden="true" />
+            <h3 className={cn('relative text-sm font-bold mb-3', accent.text)}>Good to know</h3>
+            <div className="relative space-y-3">
+              {(event as any).meeting_point && (
+                <div className="flex items-start gap-2.5">
+                  <MapPin size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">Meeting point</p>
+                    <p className="text-sm font-medium text-primary-700">{(event as any).meeting_point}</p>
+                  </div>
+                </div>
+              )}
+              {(event as any).what_to_bring && (
+                <div className="flex items-start gap-2.5">
+                  <Backpack size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">What to bring</p>
+                    <p className="text-sm font-medium text-primary-700">{(event as any).what_to_bring}</p>
+                  </div>
+                </div>
+              )}
+              {(event as any).what_to_wear && (
+                <div className="flex items-start gap-2.5">
+                  <Shirt size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
+                  <div>
+                    <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">What to wear</p>
+                    <p className="text-sm font-medium text-primary-700">{(event as any).what_to_wear}</p>
+                  </div>
+                </div>
+              )}
+              <div className="flex flex-wrap gap-2">
+                {(event as any).difficulty && (() => {
+                  const d = difficultyConfig[(event as any).difficulty as keyof typeof difficultyConfig]
+                  if (!d) return null
+                  const Icon = d.icon
+                  return (
+                    <span className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold', d.color)}>
+                      <Icon size={13} />
+                      {d.label}
+                    </span>
+                  )
+                })()}
+                {(event as any).terrain && (
+                  <span className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold', accent.bg, accent.text)}>
+                    <Mountain size={13} />
+                    {(event as any).terrain}
+                  </span>
+                )}
+                {(event as any).wheelchair_access && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold bg-info-100 text-info-700">
+                    <Accessibility size={13} />
+                    Wheelchair accessible
+                  </span>
+                )}
+              </div>
+            </div>
+          </motion.div>
         )}
 
-        {/* Post-event: Impact Summary */}
+        {/* ── Action buttons row ── */}
+        {!past && (
+          <motion.div
+            variants={shouldReduceMotion ? undefined : fadeUp}
+            className="flex gap-2.5 relative"
+          >
+            <Button
+              variant="secondary"
+              size="md"
+              icon={<CalendarPlus size={16} />}
+              onClick={() => setShowCalendarSheet(true)}
+              className="flex-1"
+            >
+              Add to Calendar
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
+              icon={<Share2 size={16} />}
+              onClick={handleShare}
+              className="flex-1"
+            >
+              Share
+            </Button>
+          </motion.div>
+        )}
+
+        {/* Leader tools moved to top of content area */}
+
+        {/* ── Post-event: Impact Summary ── */}
         {past && event.impact && (
-          <div className="rounded-2xl bg-white border border-sprout-200/40 p-4 space-y-3 shadow-[0_2px_12px_-3px_rgba(61,77,51,0.10)]">
-            <h3 className="text-sm font-bold text-primary-800">Impact Summary</h3>
-            <div className="grid grid-cols-2 gap-3">
+          <motion.div
+            variants={shouldReduceMotion ? undefined : fadeUp}
+            className={cn(
+              'rounded-2xl p-4.5 space-y-3.5 relative overflow-hidden',
+              'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
+              accent.border,
+            )}
+          >
+            <div className={cn('absolute inset-0 bg-gradient-to-br opacity-[0.12]', accent.gradient)} aria-hidden="true" />
+            <div className="absolute inset-0 bg-white/85" aria-hidden="true" />
+            <div className="relative flex items-center gap-2">
+              <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center shadow-sm bg-gradient-to-br text-white', accent.gradient)}>
+                <Leaf size={14} />
+              </div>
+              <h3 className={cn('text-sm font-bold', accent.text)}>Impact Summary</h3>
+            </div>
+            <div className="relative grid grid-cols-2 gap-3">
               {event.impact.trees_planted > 0 && (
                 <StatCard
                   label="Trees Planted"
@@ -749,13 +1139,6 @@ export default function EventDetailPage() {
                   label="Rubbish (kg)"
                   value={event.impact.rubbish_kg}
                   icon={<Trash2 size={18} />}
-                />
-              )}
-              {event.impact.coastline_cleaned_m > 0 && (
-                <StatCard
-                  label="Coastline (m)"
-                  value={event.impact.coastline_cleaned_m}
-                  icon={<Waves size={18} />}
                 />
               )}
               {event.impact.hours_total > 0 && (
@@ -787,22 +1170,36 @@ export default function EventDetailPage() {
                 />
               )}
             </div>
-          </div>
+          </motion.div>
         )}
 
-        {/* Post-event: survey prompt */}
+        {/* ── Post-event: survey prompt ── */}
         {past && userStatus === 'attended' && (
-          <div className="rounded-2xl bg-white border border-sprout-200/40 p-5 shadow-[0_2px_12px_-3px_rgba(61,77,51,0.10)]">
-            <p className="text-sm font-bold text-primary-800">How was the event?</p>
-            <p className="text-caption text-primary-500 mt-1">
+          <motion.div
+            variants={shouldReduceMotion ? undefined : fadeUp}
+            className={cn(
+              'rounded-2xl p-5 relative overflow-hidden',
+              'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
+              accent.border,
+            )}
+          >
+            <div className={cn('absolute inset-0 bg-gradient-to-br opacity-20', accent.gradient)} aria-hidden="true" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-transparent" aria-hidden="true" />
+            <p className={cn('relative text-sm font-bold', accent.text)}>How was the event?</p>
+            <p className="relative text-caption text-primary-500 mt-1">
               Share your feedback to help us improve future events.
             </p>
-            <Button variant="primary" size="sm" className="mt-3" onClick={() => navigate(`/events/${event.id}/survey`)}>
+            <Button
+              variant="primary"
+              size="sm"
+              className={cn('relative mt-3 bg-gradient-to-r shadow-md', accent.gradient, accent.glow)}
+              onClick={() => navigate(`/events/${event.id}/survey`)}
+            >
               Give Feedback
             </Button>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
       </div>
 
       {/* Cancel confirmation */}
@@ -935,6 +1332,105 @@ export default function EventDetailPage() {
           </div>
         </div>
       </BottomSheet>
+
+      {/* Invite / Remind sheet */}
+      <BottomSheet
+        open={showInviteSheet}
+        onClose={() => setShowInviteSheet(false)}
+        snapPoints={[0.55]}
+      >
+        <div className="space-y-4">
+          <div>
+            <div className="flex items-center gap-2.5 mb-1">
+              <div className={cn(
+                'w-8 h-8 rounded-lg flex items-center justify-center shadow-sm bg-gradient-to-br',
+                alreadyInvited ? 'from-sky-500 to-sky-600' : 'from-amber-500 to-amber-600',
+              )}>
+                {alreadyInvited ? <Bell size={15} className="text-white" /> : <Send size={15} className="text-white" />}
+              </div>
+              <h3 className="font-heading text-base font-semibold text-primary-800">
+                {alreadyInvited ? 'Send Reminder' : 'Invite Collective'}
+              </h3>
+            </div>
+            <p className="text-caption text-primary-400 mt-1">
+              {alreadyInvited
+                ? 'This will post a rich event card to the collective chat as a reminder.'
+                : 'This will invite all members, send notifications, and post to the collective chat.'}
+            </p>
+          </div>
+
+          {/* Event preview */}
+          <div className={cn(
+            'rounded-xl p-3.5 border relative overflow-hidden',
+            accent.border,
+          )}>
+            <div className={cn('absolute inset-0 opacity-[0.06] bg-gradient-to-br', accent.gradient)} aria-hidden="true" />
+            <div className="relative flex items-center gap-3">
+              {event?.cover_image_url ? (
+                <img src={event.cover_image_url} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
+              ) : (
+                <div className={cn('w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-br text-white', accent.gradient)}>
+                  <Calendar size={18} />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-primary-800 truncate">{event?.title}</p>
+                <p className="text-xs text-primary-500 mt-0.5">
+                  {event ? formatEventDate(event.date_start) : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Custom message */}
+          <div>
+            <label className="text-xs font-semibold text-primary-600 mb-1.5 block">Message</label>
+            <textarea
+              placeholder="Add a personalised message..."
+              value={inviteMessage}
+              onChange={(e) => setInviteMessage(e.target.value)}
+              rows={3}
+              className={cn(
+                'w-full px-4 py-3 rounded-xl text-sm resize-none',
+                'bg-primary-50 border border-primary-100 text-primary-800',
+                'placeholder:text-primary-300',
+                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
+                'transition-all duration-150',
+              )}
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              className="flex-1"
+              onClick={() => setShowInviteSheet(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              className={cn('flex-1 bg-gradient-to-r shadow-md', accent.gradient, accent.glow)}
+              loading={inviteCollectiveMutation.isPending}
+              onClick={handleSendInvite}
+              icon={alreadyInvited ? <Bell size={15} /> : <Send size={15} />}
+            >
+              {alreadyInvited ? 'Send Reminder' : 'Invite All'}
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
+
+      {/* Check-in sheet */}
+      {event && (
+        <CheckInSheet
+          open={showCheckInSheet}
+          onClose={() => setShowCheckInSheet(false)}
+          eventId={event.id}
+          eventTitle={event.title}
+          collectiveName={event.collectives?.name}
+        />
+      )}
     </Page>
   )
 }

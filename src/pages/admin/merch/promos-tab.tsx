@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
-import { Plus, Edit3 } from 'lucide-react'
+import { Plus, Edit3, Percent, DollarSign, Truck } from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -27,6 +27,18 @@ const TYPE_COLOURS: Record<PromoType, string> = {
   percentage: 'bg-info-100 text-info-700 ring-info-300',
   flat: 'bg-success-100 text-success-700 ring-success-300',
   free_shipping: 'bg-plum-100 text-plum-700 ring-plum-300',
+}
+
+const CARD_GRADIENTS: Record<PromoType, string> = {
+  percentage: 'from-info-500/90 to-info-700',
+  flat: 'from-success-500/90 to-success-700',
+  free_shipping: 'from-plum-500/90 to-plum-700',
+}
+
+const TYPE_ICONS: Record<PromoType, typeof Percent> = {
+  percentage: Percent,
+  flat: DollarSign,
+  free_shipping: Truck,
 }
 
 function PromoFormSheet({
@@ -194,55 +206,72 @@ export default function PromosTab() {
           description="Create promo codes for discounts and campaigns"
         />
       ) : (
-        <StaggeredList className="space-y-3">
-          {promos.map((promo) => (
-            <StaggeredItem
-              key={promo.id}
-              className="flex items-center justify-between p-4 bg-gradient-to-br from-[#f0f4ea] via-[#edf1e7] to-[#e8ecdf] border border-primary-200/20 rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.08)]"
-            >
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <span className="font-mono font-bold text-sm text-primary-800">
-                    {promo.code}
-                  </span>
-                  <span className={cn(
-                    'px-2 py-0.5 rounded-lg text-[11px] font-bold',
-                    promo.type === 'percentage' && 'bg-info-100 text-info-700',
-                    promo.type === 'flat' && 'bg-success-100 text-success-700',
-                    promo.type === 'free_shipping' && 'bg-plum-100 text-plum-700',
-                  )}>
-                    {promo.type === 'percentage' && `${promo.value}%`}
-                    {promo.type === 'flat' && formatPrice(promo.value)}
-                    {promo.type === 'free_shipping' && 'Free ship'}
-                  </span>
-                  {!promo.is_active && (
-                    <span className="px-2 py-0.5 bg-error-50 text-error-600 text-[11px] rounded-lg font-bold">
-                      Inactive
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-primary-400 mt-1.5">
-                  {promo.uses}{promo.max_uses ? ` / ${promo.max_uses}` : ''} uses
-                  {promo.expires_at && (
-                    <span className="ml-2">
-                      Expires {new Date(promo.expires_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={<Edit3 size={14} />}
-                onClick={() => {
-                  setEditPromo(promo)
-                  setFormOpen(true)
-                }}
+        <StaggeredList className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {promos.map((promo) => {
+            const Icon = TYPE_ICONS[promo.type]
+            return (
+              <StaggeredItem
+                key={promo.id}
+                className={cn(
+                  'rounded-2xl p-5 shadow-lg bg-gradient-to-br relative overflow-hidden',
+                  CARD_GRADIENTS[promo.type],
+                  !promo.is_active && 'opacity-60 grayscale-[30%]',
+                )}
               >
-                Edit
-              </Button>
-            </StaggeredItem>
-          ))}
+                {/* Decorative circle */}
+                <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-white/8" />
+
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/15">
+                        <Icon size={18} className="text-white" />
+                      </span>
+                      <div>
+                        <span className="font-mono font-bold text-sm text-white block">
+                          {promo.code}
+                        </span>
+                        {!promo.is_active && (
+                          <span className="text-[10px] font-bold text-white/50 uppercase">Inactive</span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditPromo(promo)
+                        setFormOpen(true)
+                      }}
+                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/15 text-white/90 text-xs font-semibold hover:bg-white/25 cursor-pointer transition-colors"
+                    >
+                      <Edit3 size={12} />
+                      Edit
+                    </button>
+                  </div>
+
+                  <div className="flex items-baseline gap-1 mb-2">
+                    <span className="font-heading text-2xl font-bold text-white tabular-nums">
+                      {promo.type === 'percentage' && `${promo.value}%`}
+                      {promo.type === 'flat' && formatPrice(promo.value)}
+                      {promo.type === 'free_shipping' && 'Free'}
+                    </span>
+                    <span className="text-xs text-white/50">
+                      {promo.type === 'free_shipping' ? 'shipping' : 'off'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-xs text-white/60">
+                    <span>{promo.uses}{promo.max_uses ? ` / ${promo.max_uses}` : ''} uses</span>
+                    {promo.expires_at && (
+                      <span>
+                        Exp {new Date(promo.expires_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </StaggeredItem>
+            )
+          })}
         </StaggeredList>
       )}
       </motion.div>

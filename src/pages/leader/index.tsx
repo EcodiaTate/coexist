@@ -1,6 +1,6 @@
-import { useState, useMemo, useRef, useCallback } from 'react'
+import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
     Users,
     CalendarDays,
@@ -12,27 +12,54 @@ import {
     ChevronRight,
     ChevronLeft,
     Bell,
-    BarChart3,
+    MessageCircle,
     UserPlus,
     CheckCircle2,
     AlertTriangle,
     Send,
     TrendingUp,
     MapPin,
+    Trash2,
+    Sprout,
+    GraduationCap,
+    CheckCircle,
+    SkipForward,
+    Flame,
+    FileText,
+    Share2,
+    Copy,
+    Check,
+    Sparkles,
+    ClipboardCheck,
+    ExternalLink,
+    Eye,
 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { EmptyState } from '@/components/empty-state'
 import { Avatar } from '@/components/avatar'
 import { Button } from '@/components/button'
+import { Input } from '@/components/input'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollective } from '@/hooks/use-collective'
 import { useLeaderHeader, useLeaderContext, useIsLeaderLayout } from '@/components/leader-layout'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
-import { supabase } from '@/lib/supabase'
 import { PullToRefresh } from '@/components/pull-to-refresh'
+import { useToast } from '@/components/toast'
+import { supabase } from '@/lib/supabase'
+import { APP_NAME } from '@/lib/constants'
+import { useUnreadAnnouncementCount } from '@/hooks/use-announcements'
+import {
+    useMyTasks,
+    useCompleteTask,
+    useSkipTask,
+    useGenerateTaskInstances,
+    useGroupedTasks,
+    type MyTask,
+} from '@/hooks/use-tasks'
+import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 
 /* ------------------------------------------------------------------ */
 /*  Data hooks                                                         */
@@ -95,7 +122,6 @@ function useLeaderDashboard(collectiveId: string | undefined) {
         .lt('date_start', now.toISOString())
 
       let attendanceRate = 0
-      let surveyResponseCount = 0
       const eventIds = (allEventIds ?? []).map((e) => e.id)
 
       if (eventIds.length > 0) {
@@ -114,13 +140,6 @@ function useLeaderDashboard(collectiveId: string | undefined) {
         if (totalReg && totalReg > 0) {
           attendanceRate = Math.round(((totalAttended ?? 0) / totalReg) * 100)
         }
-
-        const { count: surveyCount } = await (supabase as any)
-          .from('post_event_survey_responses')
-          .select('id', { count: 'exact', head: true })
-          .in('event_id', eventIds)
-
-        surveyResponseCount = surveyCount ?? 0
       }
 
       return {
@@ -130,11 +149,85 @@ function useLeaderDashboard(collectiveId: string | undefined) {
         hoursThisMonth: Math.round(totalHours),
         recentMembers: (recentActivityRes.data ?? []) as any[],
         attendanceRate,
-        surveyResponseCount,
       }
     },
     enabled: !!collectiveId,
     staleTime: 2 * 60 * 1000,
+  })
+}
+
+function useCollectiveFullStats(collectiveId: string | undefined) {
+  return useQuery({
+    queryKey: ['leader-impact-full', collectiveId],
+    queryFn: async () => {
+      if (!collectiveId) return null
+
+      const now = new Date()
+
+      const [impactRes, membersRes, eventsRes, pastEventsRes, cleanupRes] = await Promise.all([
+        supabase
+          .from('event_impact')
+          .select('trees_planted, hours_total, rubbish_kg, invasive_weeds_pulled, leaders_trained, events!inner(collective_id)')
+          .eq('events.collective_id' as any, collectiveId),
+        supabase
+          .from('collective_members')
+          .select('id', { count: 'exact', head: true })
+          .eq('collective_id', collectiveId),
+        supabase
+          .from('events')
+          .select('id', { count: 'exact', head: true })
+          .eq('collective_id', collectiveId),
+        supabase
+          .from('events')
+          .select('id')
+          .eq('collective_id', collectiveId)
+          .lt('date_start', now.toISOString()),
+        supabase
+          .from('events')
+          .select('id', { count: 'exact', head: true })
+          .eq('collective_id', collectiveId)
+          .in('activity_type', ['shore_cleanup', 'marine_restoration'] as any)
+          .lt('date_start', now.toISOString()),
+      ])
+
+      const rows = (impactRes.data ?? []) as any[]
+      const eventIds = (pastEventsRes.data ?? []).map((e: any) => e.id)
+
+      let attendanceCount = 0
+      let attendanceRate = 0
+      if (eventIds.length > 0) {
+        const { count: totalReg } = await supabase
+          .from('event_registrations')
+          .select('id', { count: 'exact', head: true })
+          .in('event_id', eventIds)
+          .in('status', ['registered', 'attended'])
+        const { count: totalAttended } = await supabase
+          .from('event_registrations')
+          .select('id', { count: 'exact', head: true })
+          .in('event_id', eventIds)
+          .eq('status', 'attended')
+        attendanceCount = totalAttended ?? 0
+        if (totalReg && totalReg > 0) {
+          attendanceRate = Math.round(((totalAttended ?? 0) / totalReg) * 100)
+        }
+      }
+
+      return {
+        eventsAttended: attendanceCount,
+        volunteerHours: Math.round(rows.reduce((s, r) => s + (r.hours_total ?? 0), 0)),
+        treesPlanted: rows.reduce((s, r) => s + (r.trees_planted ?? 0), 0),
+        invasiveWeedsPulled: rows.reduce((s, r) => s + (r.invasive_weeds_pulled ?? 0), 0),
+        rubbishKg: Math.round(rows.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0) * 10) / 10,
+        cleanupSites: cleanupRes.count ?? 0,
+        leadersEmpowered: rows.reduce((s, r) => s + (r.leaders_trained ?? 0), 0),
+        eventsLogged: rows.length,
+        totalMembers: membersRes.count ?? 0,
+        totalEvents: eventsRes.count ?? 0,
+        attendanceRate,
+      }
+    },
+    enabled: !!collectiveId,
+    staleTime: 5 * 60 * 1000,
   })
 }
 
@@ -180,35 +273,6 @@ function useEngagementScores(collectiveId: string | undefined) {
     staleTime: 5 * 60 * 1000,
   })
 }
-
-function useEventInviteStats(collectiveId: string | undefined) {
-  return useQuery({
-    queryKey: ['leader-invite-stats', collectiveId],
-    queryFn: async () => {
-      if (!collectiveId) return { acceptanceRate: 0 }
-
-      const { count: totalInvites } = await supabase
-        .from('event_registrations' as any)
-        .select('id', { count: 'exact', head: true })
-        .eq('collective_id', collectiveId)
-
-      const { count: accepted } = await supabase
-        .from('event_registrations' as any)
-        .select('id', { count: 'exact', head: true })
-        .eq('collective_id', collectiveId)
-        .in('status', ['registered', 'checked_in'])
-
-      const rate = totalInvites ? Math.round(((accepted ?? 0) / totalInvites) * 100) : 0
-      return { acceptanceRate: rate }
-    },
-    enabled: !!collectiveId,
-    staleTime: 5 * 60 * 1000,
-  })
-}
-
-/* ------------------------------------------------------------------ */
-/*  Pending items hook                                                 */
-/* ------------------------------------------------------------------ */
 
 function usePendingItems(collectiveId: string | undefined) {
   return useQuery({
@@ -304,16 +368,16 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
   ]
 
   return (
-    <div className="rounded-2xl bg-white/[0.06] p-5">
+    <div className="rounded-2xl bg-moss-50/40 shadow-sm border border-moss-100/40 p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-heading text-sm font-bold text-white/90">
+        <h3 className="font-heading text-sm font-bold text-primary-800">
           {monthNames[month]} {year}
         </h3>
         <div className="flex gap-1">
           <button
             type="button"
             onClick={() => setCurrentMonth(new Date(year, month - 1))}
-            className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.08] text-white/70 hover:bg-white/15 active:scale-95 transition-[background-color,transform] duration-150 cursor-pointer select-none"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-50 text-primary-500 hover:bg-primary-100 active:scale-95 transition-[background-color,transform] duration-150 cursor-pointer select-none"
             aria-label="Previous month"
           >
             <ChevronLeft size={14} />
@@ -321,7 +385,7 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
           <button
             type="button"
             onClick={() => setCurrentMonth(new Date(year, month + 1))}
-            className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/[0.08] text-white/70 hover:bg-white/15 active:scale-95 transition-[background-color,transform] duration-150 cursor-pointer select-none"
+            className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-50 text-primary-500 hover:bg-primary-100 active:scale-95 transition-[background-color,transform] duration-150 cursor-pointer select-none"
             aria-label="Next month"
           >
             <ChevronRight size={14} />
@@ -331,7 +395,7 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
 
       <div className="grid grid-cols-7 gap-1 text-center">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-          <div key={i} className="text-[11px] font-semibold text-white/40 uppercase tracking-wider pb-2">
+          <div key={i} className="text-[11px] font-semibold text-primary-300 uppercase tracking-wider pb-2">
             {d}
           </div>
         ))}
@@ -349,10 +413,10 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
               key={i}
               className={cn(
                 'relative flex items-center justify-center w-8 h-8 mx-auto rounded-lg text-xs transition-colors',
-                hasEvent && 'bg-white/20 text-white font-bold',
-                isToday && !hasEvent && 'ring-2 ring-white/30 text-white font-semibold',
-                isToday && hasEvent && 'bg-white/25 text-white font-bold ring-2 ring-white/30',
-                !isToday && !hasEvent && 'text-white/60 font-medium',
+                hasEvent && 'bg-moss-100 text-moss-700 font-bold',
+                isToday && !hasEvent && 'ring-2 ring-primary-200 text-primary-700 font-semibold',
+                isToday && hasEvent && 'bg-moss-200 text-moss-800 font-bold ring-2 ring-moss-300',
+                !isToday && !hasEvent && 'text-primary-500 font-medium',
               )}
             >
               {day}
@@ -365,12 +429,220 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Task card (inline version)                                         */
+/* ------------------------------------------------------------------ */
+
+function TaskCard({ task }: { task: MyTask }) {
+  const [expanded, setExpanded] = useState(false)
+  const [notes, setNotes] = useState('')
+  const { toast } = useToast()
+  const completeMutation = useCompleteTask()
+  const skipMutation = useSkipTask()
+  const shouldReduceMotion = useReducedMotion()
+
+  const now = new Date()
+  const dueDate = new Date(task.due_date)
+  const isOverdue = task.status === 'pending' && dueDate < now
+  const isCompleted = task.status === 'completed'
+  const isSkipped = task.status === 'skipped'
+
+  const formattedDue = dueDate.toLocaleDateString('en-AU', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
+
+  const daysUntil = Math.ceil((dueDate.getTime() - now.getTime()) / 86400000)
+  const urgency = isOverdue ? 'overdue' : daysUntil === 0 ? 'today' : daysUntil === 1 ? 'tomorrow' : daysUntil <= 3 ? 'soon' : 'normal'
+
+  return (
+    <motion.div
+      layout={!shouldReduceMotion ? 'position' : false}
+      className={cn(
+        'rounded-2xl overflow-hidden transition-[opacity,box-shadow] duration-200',
+        isCompleted && 'opacity-50',
+        isSkipped && 'opacity-40',
+        !isCompleted && !isSkipped && 'bg-primary-50/40 shadow-sm border border-primary-100/40',
+        isOverdue && !isCompleted && 'bg-error-50/40 shadow-md ring-1 ring-error-200/60',
+      )}
+    >
+      <div className="flex items-stretch">
+        {!isCompleted && !isSkipped && (
+          <div className={cn(
+            'w-1 shrink-0 rounded-l-2xl',
+            urgency === 'overdue' && 'bg-error-500',
+            urgency === 'today' && 'bg-warning-500',
+            urgency === 'tomorrow' && 'bg-amber-400',
+            urgency === 'soon' && 'bg-moss-400',
+            urgency === 'normal' && 'bg-primary-200',
+          )} />
+        )}
+
+        <button
+          type="button"
+          onClick={() => !isCompleted && !isSkipped && setExpanded(!expanded)}
+          className={cn(
+            'flex-1 flex items-start gap-3 p-4 text-left cursor-pointer min-w-0',
+            (isCompleted || isSkipped) && 'p-3',
+          )}
+        >
+          <div className="mt-0.5 shrink-0">
+            {isCompleted ? (
+              <div className="w-5 h-5 rounded-full bg-success-500 flex items-center justify-center">
+                <CheckCircle size={12} className="text-white" />
+              </div>
+            ) : isSkipped ? (
+              <div className="w-5 h-5 rounded-full bg-primary-200 flex items-center justify-center">
+                <SkipForward size={10} className="text-primary-400" />
+              </div>
+            ) : isOverdue ? (
+              <div className="w-5 h-5 rounded-full bg-error-100 flex items-center justify-center animate-pulse">
+                <AlertTriangle size={11} className="text-error-500" />
+              </div>
+            ) : (
+              <div className="w-5 h-5 rounded-full border-2 border-primary-200" />
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <p className={cn(
+              'text-sm font-semibold truncate',
+              isCompleted || isSkipped ? 'text-primary-300 line-through' : 'text-primary-800',
+            )}>
+              {task.template?.title ?? 'Task'}
+            </p>
+
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              {task.template?.category && (
+                <span className={cn('text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide', CATEGORY_COLORS[task.template.category])}>
+                  {task.template.category.replace('_', ' ')}
+                </span>
+              )}
+
+              {!isCompleted && !isSkipped && (
+                (task.template?.assignment_mode ?? 'collective') === 'collective' && !task.assigned_user_id
+                  ? <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-primary-50 text-primary-500 flex items-center gap-0.5"><Users size={9} /> Shared</span>
+                  : <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-moss-50 text-moss-600">You</span>
+              )}
+
+              {!isCompleted && !isSkipped && (
+                <span className={cn(
+                  'text-[11px] font-medium flex items-center gap-1',
+                  urgency === 'overdue' ? 'text-error-600' : urgency === 'today' ? 'text-warning-700' : 'text-primary-400',
+                )}>
+                  <Clock size={10} />
+                  {formattedDue}
+                  {urgency === 'overdue' && ` · ${Math.abs(daysUntil)}d overdue`}
+                  {urgency === 'today' && ' · Today'}
+                  {urgency === 'tomorrow' && ' · Tomorrow'}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {!isCompleted && !isSkipped && (
+            <div className="shrink-0 mt-1">
+              <motion.div
+                animate={{ rotate: expanded ? 90 : 0 }}
+                transition={{ duration: 0.15 }}
+              >
+                <ChevronRight size={16} className="text-primary-300" />
+              </motion.div>
+            </div>
+          )}
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {expanded && !isCompleted && !isSkipped && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="px-4 pb-4 pl-12 space-y-3">
+              {task.template?.description && (
+                <p className="text-xs text-primary-500 leading-relaxed">{task.template.description}</p>
+              )}
+              {task.template?.attachment_url && (
+                <a
+                  href={task.template.attachment_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-primary-50 border border-primary-100 hover:bg-primary-100 transition-colors"
+                >
+                  <FileText size={18} className="text-primary-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-primary-700 truncate">
+                      {task.template.attachment_label || 'View Attachment'}
+                    </p>
+                    <p className="text-[11px] text-primary-400">Tap to open</p>
+                  </div>
+                </a>
+              )}
+              <Input
+                placeholder="Add a note (optional)..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                compact
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<CheckCircle size={14} />}
+                  loading={completeMutation.isPending}
+                  onClick={() => {
+                    completeMutation.mutate(
+                      { instanceId: task.id, notes: notes || undefined },
+                      {
+                        onSuccess: () => {
+                          toast.success('Task completed!')
+                          setExpanded(false)
+                          setNotes('')
+                        },
+                        onError: () => toast.error('Failed to complete task'),
+                      },
+                    )
+                  }}
+                >
+                  Done
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={<SkipForward size={14} />}
+                  loading={skipMutation.isPending}
+                  onClick={() => {
+                    skipMutation.mutate(task.id, {
+                      onSuccess: () => {
+                        toast.success('Task skipped')
+                        setExpanded(false)
+                      },
+                      onError: () => toast.error('Failed to skip task'),
+                    })
+                  }}
+                >
+                  Skip
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Animation variants                                                 */
 /* ------------------------------------------------------------------ */
 
 const stagger = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.08 } },
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } },
 }
 
 const fadeUp = {
@@ -379,7 +651,7 @@ const fadeUp = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Section heading                                                    */
+/*  Section heading (light mode - white background)                    */
 /* ------------------------------------------------------------------ */
 
 function SectionHeader({
@@ -393,18 +665,123 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-white/50 uppercase tracking-widest">
-        {icon && <span className="text-white/50">{icon}</span>}
+      <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest">
+        {icon && <span className="text-primary-400">{icon}</span>}
         {children}
       </h2>
       {action && (
         <Link
           to={action.to}
-          className="text-xs text-white/50 font-semibold hover:text-white/70 transition-colors"
+          className="flex items-center gap-0.5 text-xs text-primary-500 font-semibold hover:text-primary-700 transition-colors"
         >
           {action.label}
+          <ChevronRight size={14} />
         </Link>
       )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Impact stat mini-card                                              */
+/* ------------------------------------------------------------------ */
+
+function ImpactMini({
+  value,
+  label,
+  unit,
+  icon,
+  color,
+}: {
+  value: number | string
+  label: string
+  unit?: string
+  icon: React.ReactNode
+  color: string
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl bg-moss-50/40 shadow-sm border border-moss-100/40 p-3">
+      <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', color)}>
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="font-heading text-lg font-extrabold text-primary-800 tabular-nums leading-tight">
+          {typeof value === 'number' ? value.toLocaleString() : value}{unit && <span className="text-xs font-bold ml-0.5 text-primary-500">{unit}</span>}
+        </p>
+        <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">{label}</p>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Invite sheet (inline on dashboard)                                 */
+/* ------------------------------------------------------------------ */
+
+function InviteAction({ collectiveSlug, collectiveId, collectiveName }: { collectiveSlug: string | undefined; collectiveId: string | undefined; collectiveName: string }) {
+  const { toast } = useToast()
+  const [copied, setCopied] = useState(false)
+  const inviteUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/collective/${collectiveSlug ?? collectiveId}`
+    : ''
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteUrl)
+      setCopied(true)
+      toast.success('Link copied!')
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error('Could not copy link')
+    }
+  }
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Join ${collectiveName} on ${APP_NAME}`,
+          text: `Join our conservation collective and make a difference!`,
+          url: inviteUrl,
+        })
+      } catch { /* cancelled */ }
+    } else {
+      handleCopy()
+    }
+  }
+
+  return (
+    <div className="rounded-2xl bg-gradient-to-br from-moss-50 to-primary-50/60 border border-moss-100/50 p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-8 h-8 rounded-lg bg-moss-100 flex items-center justify-center">
+          <Send size={14} className="text-moss-600" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-primary-800">Invite Members</p>
+          <p className="text-[11px] text-primary-400">Grow your collective</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-primary-100/50 mb-3">
+        <span className="text-xs text-primary-400 truncate flex-1 font-mono">{inviteUrl}</span>
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-white border border-primary-100 text-xs font-semibold text-primary-600 hover:bg-primary-50 active:scale-[0.97] transition-all cursor-pointer"
+        >
+          {copied ? <Check size={13} /> : <Copy size={13} />}
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+        <button
+          type="button"
+          onClick={handleShare}
+          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-moss-600 text-xs font-bold text-white hover:bg-moss-500 active:scale-[0.97] transition-all cursor-pointer shadow-sm"
+        >
+          <Share2 size={13} />
+          Share
+        </button>
+      </div>
     </div>
   )
 }
@@ -416,6 +793,7 @@ function SectionHeader({
 export default function LeaderDashboardPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
   const { collectiveRoles } = useAuth()
   const isInLeaderLayout = useIsLeaderLayout()
   const leaderCtx = useLeaderContext()
@@ -429,22 +807,41 @@ export default function LeaderDashboardPage() {
   }, [collectiveRoles])
 
   const { data, isLoading } = useLeaderDashboard(collectiveId)
+  const { data: impactStats } = useCollectiveFullStats(collectiveId)
 
   const handleRefresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ['leader-dashboard', collectiveId] })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['leader-dashboard', collectiveId] }),
+      queryClient.invalidateQueries({ queryKey: ['leader-impact-full', collectiveId] }),
+      queryClient.invalidateQueries({ queryKey: ['my-tasks'] }),
+    ])
   }, [queryClient, collectiveId])
   const showLoading = useDelayedLoading(isLoading)
   const { data: collectiveDetail } = useCollective(collectiveId)
   const collectiveSlug = leaderCtx.collectiveSlug ?? collectiveDetail?.slug ?? collectiveId
   const { data: engagement } = useEngagementScores(collectiveId)
   const { data: pendingItems = [] } = usePendingItems(collectiveId)
-  const { data: inviteStats } = useEventInviteStats(collectiveId)
+  const { data: unreadAnnouncementCount = 0 } = useUnreadAnnouncementCount()
 
-  // Stable ref so useLeaderHeader doesn't re-fire on every render
+  // Tasks integration
+  const { data: tasks } = useMyTasks()
+  const generateMutation = useGenerateTaskInstances()
+  const groups = useGroupedTasks(tasks)
+  useEffect(() => { generateMutation.mutate() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const pendingTasks = useMemo(() => {
+    return groups.flatMap((g) => g.tasks).filter((t) => t.status === 'pending')
+  }, [groups])
+  const overdueTaskCount = useMemo(() => {
+    const now = new Date()
+    return pendingTasks.filter((t) => new Date(t.due_date) < now).length
+  }, [pendingTasks])
+
+  const collectiveNameRaw = collectiveDetail?.name ?? 'Your Collective'
+  const collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
+
   const fullBleedOpts = useRef({ fullBleed: true as const }).current
   useLeaderHeader('Dashboard', fullBleedOpts)
 
-  // Stable Wrapper - useMemo keeps the same component identity across renders
   const Wrapper = useMemo(() => {
     if (isInLeaderLayout) {
       return ({ children }: { children: React.ReactNode }) => <>{children}</>
@@ -455,47 +852,19 @@ export default function LeaderDashboardPage() {
   if (showLoading) {
     return (
       <Wrapper>
-        <div className="relative min-h-dvh overflow-x-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
-          <div className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06]" />
-          <div className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08]" />
-
-          <div className="relative z-10 px-6 space-y-6 pb-20" style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}>
-            <div className="flex flex-col items-center pb-2 space-y-2 animate-pulse">
-              <div className="h-3 w-28 rounded-full bg-white/[0.06]" />
-              <div className="h-8 w-48 rounded-xl bg-white/[0.08]" />
-            </div>
-
-            <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-              <div className="grid grid-cols-1 sm:grid-cols-2 divide-x divide-y divide-white/[0.06]">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="p-5 flex flex-col items-center gap-2 animate-pulse" style={{ animationDelay: `${i * 100}ms` }}>
-                    <div className="w-10 h-10 rounded-xl bg-white/[0.06]" />
-                    <div className="h-8 w-14 rounded-lg bg-white/[0.05]" />
-                    <div className="h-2.5 w-20 rounded-full bg-white/[0.04]" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="flex flex-col items-center gap-2 rounded-xl bg-white/[0.05] p-4 animate-pulse" style={{ animationDelay: `${i * 60}ms` }}>
-                  <div className="w-10 h-10 rounded-lg bg-white/[0.06]" />
-                  <div className="h-2 w-12 rounded-full bg-white/[0.04]" />
-                </div>
+        <div className="relative min-h-dvh overflow-x-hidden bg-white">
+          {/* Hero skeleton */}
+          <div className="relative h-[280px] bg-gradient-to-br from-primary-200 via-moss-200 to-primary-300 animate-pulse" />
+          <div className="relative z-10 px-6 -mt-6 space-y-4 pb-20">
+            <div className="grid grid-cols-2 gap-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-20 rounded-2xl bg-primary-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
               ))}
             </div>
-
+            <div className="h-12 rounded-2xl bg-primary-50 animate-pulse" />
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.05] animate-pulse" style={{ animationDelay: `${i * 80}ms` }}>
-                  <div className="w-14 h-14 rounded-xl bg-white/[0.06] shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 w-3/4 rounded-full bg-white/[0.05]" />
-                    <div className="h-3 w-1/2 rounded-full bg-white/[0.04]" />
-                  </div>
-                </div>
+                <div key={i} className="h-20 rounded-2xl bg-primary-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
               ))}
             </div>
           </div>
@@ -517,167 +886,170 @@ export default function LeaderDashboardPage() {
     )
   }
 
-  const quickActions = [
-    { label: 'Create Event', icon: <Plus size={20} />, to: '/leader/events/create', bg: 'bg-success-600', text: 'text-white' },
-    { label: 'Announcement', icon: <Megaphone size={20} />, to: '/leader/announcements', bg: 'bg-secondary-500', text: 'text-white' },
-    { label: 'Members', icon: <Users size={20} />, to: '/leader/members', bg: 'bg-primary-500', text: 'text-white' },
-    { label: 'Log Impact', icon: <TreePine size={20} />, to: '/leader/impact', bg: 'bg-bark-500', text: 'text-white' },
-    { label: 'Invite', icon: <Send size={20} />, to: '/leader/invite', bg: 'bg-sky-600', text: 'text-white' },
-    { label: 'Reports', icon: <BarChart3 size={20} />, to: '/leader/reports', bg: 'bg-plum-500', text: 'text-white' },
+  // Find an event within ±3 hours of now
+  const currentEvent = useMemo(() => {
+    if (!data?.upcomingEvents) return null
+    const now = Date.now()
+    const THREE_HOURS = 3 * 60 * 60 * 1000
+    return (data.upcomingEvents as any[]).find((e: any) => {
+      const start = new Date(e.date_start).getTime()
+      return now >= start - THREE_HOURS && now <= start + THREE_HOURS
+    }) ?? null
+  }, [data?.upcomingEvents])
+
+  const quickActions: { label: string; icon: React.ReactNode; to: string; bg: string; text: string; badge: number; pulse?: boolean }[] = [
+    ...(currentEvent ? [{
+      label: 'Current Event',
+      icon: <Flame size={18} />,
+      to: `/events/${currentEvent.id}`,
+      bg: 'bg-gradient-to-br from-amber-500 to-orange-600',
+      text: 'text-white',
+      badge: 0,
+      pulse: true,
+    }] : []),
+    { label: 'Create Event', icon: <Plus size={18} />, to: '/leader/events/create', bg: 'bg-moss-600', text: 'text-white', badge: 0 },
+    { label: 'Chat', icon: <MessageCircle size={18} />, to: `/chat/${collectiveId}`, bg: 'bg-primary-600', text: 'text-white', badge: 0 },
+    { label: 'Announcements', icon: <Megaphone size={18} />, to: '/announcements', bg: 'bg-primary-400', text: 'text-white', badge: unreadAnnouncementCount },
   ]
+
+  // Build impact cards from stats
+  const impactCards = impactStats ? [
+    { value: impactStats.volunteerHours, label: 'Volunteer Hours', unit: 'hrs', icon: <Clock size={15} className="text-primary-600" />, color: 'bg-primary-100' },
+    { value: impactStats.treesPlanted, label: 'Trees Planted', icon: <TreePine size={15} className="text-moss-600" />, color: 'bg-moss-100' },
+    { value: impactStats.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={15} className="text-plum-600" />, color: 'bg-plum-100' },
+    { value: impactStats.rubbishKg, label: 'Rubbish Collected', unit: 'kg', icon: <Trash2 size={15} className="text-bark-600" />, color: 'bg-bark-100' },
+    { value: impactStats.cleanupSites, label: 'Cleanup Sites', icon: <Trash2 size={15} className="text-sky-600" />, color: 'bg-sky-100' },
+    { value: impactStats.leadersEmpowered, label: 'Leaders Empowered', icon: <GraduationCap size={15} className="text-bark-700" />, color: 'bg-bark-50' },
+  ].filter((c) => c.value > 0) : []
 
   return (
     <Wrapper>
-      <PullToRefresh
-        onRefresh={handleRefresh}
-        dark
-        className="min-h-dvh"
-        background={
-          <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-900" />
-            <div className="absolute -left-[10%] -top-[10%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full bg-white/[0.06] animate-[breathe_16s_ease-in-out_infinite]" />
-            <div className="absolute -right-[18%] bottom-[2%] w-[65vw] h-[65vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08] animate-[breathe_20s_ease-in-out_infinite]" />
-            <div className="absolute -right-[12%] bottom-[8%] w-[45vw] h-[45vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.06] animate-[breathe_20s_ease-in-out_0.5s_infinite]" />
-            <div className="absolute -right-[5%] -top-[12%] w-[40vw] h-[40vw] max-w-[380px] max-h-[380px] rounded-full border border-white/[0.05] animate-[breathe_18s_ease-in-out_2s_infinite]" />
-            <div className="absolute right-[5%] top-[40%] w-[80px] h-[80px] rounded-full bg-white/[0.04]" />
-            <div className="absolute left-[20%] top-[15%] w-2 h-2 rounded-full bg-white/30 animate-[float_4s_ease-in-out_infinite]" />
-            <div className="absolute right-[22%] top-[25%] w-1.5 h-1.5 rounded-full bg-white/25 animate-[floatDown_5s_ease-in-out_2s_infinite]" />
-            <div className="absolute left-[45%] bottom-[18%] w-2 h-2 rounded-full bg-white/20 animate-[float_6s_ease-in-out_3s_infinite]" />
+      <PullToRefresh onRefresh={handleRefresh} className="min-h-dvh bg-white">
+        {/* ── Hero with collective cover image + rocky wave overlay ── */}
+        <div className="relative">
+          <div className="relative w-full h-[52vw] min-h-[220px] max-h-[320px] overflow-hidden">
+            {collectiveDetail?.cover_image_url ? (
+              <img
+                src={collectiveDetail.cover_image_url}
+                alt={collectiveName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-moss-600 via-primary-700 to-primary-900" />
+            )}
+            {/* Dark overlay for text legibility */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
+
+            {/* Hero text */}
+            <div className="absolute inset-x-0 bottom-0 z-[2] px-6 pb-10">
+              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/60 mb-1">
+                Leader Dashboard
+              </p>
+              <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white drop-shadow-md">
+                {collectiveName}
+              </h1>
+              {collectiveDetail?.region && (
+                <p className="flex items-center gap-1 text-xs text-white/70 mt-1">
+                  <MapPin size={11} />
+                  {collectiveDetail.region}{collectiveDetail?.state ? `, ${collectiveDetail.state}` : ''}
+                </p>
+              )}
+            </div>
           </div>
-        }
-      >
-        {/* ── Content ── */}
+
+          {/* Rocky wave overlay - single layer, like root homepage */}
+          <div className="absolute bottom-0 left-0 right-0 z-[3]">
+            <svg
+              viewBox="0 0 1440 70"
+              preserveAspectRatio="none"
+              className="w-full h-7 sm:h-10 block"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0,25
+                   C60,22 100,18 140,20
+                   C180,22 200,15 220,18
+                   L228,8 L234,5 L240,10
+                   C280,18 340,24 400,20
+                   C440,16 470,22 510,25
+                   C560,28 600,20 640,22
+                   C670,24 690,18 710,20
+                   L718,10 L722,6 L728,12
+                   C760,20 820,26 880,22
+                   C920,18 950,24 990,26
+                   C1020,28 1050,20 1080,18
+                   C1100,16 1120,22 1140,24
+                   L1148,12 L1153,7 L1158,9 L1165,16
+                   C1200,22 1260,26 1320,22
+                   C1360,18 1400,24 1440,22
+                   L1440,70 L0,70 Z"
+                className="fill-white"
+              />
+            </svg>
+          </div>
+        </div>
+
+        {/* ── Content on white background ── */}
         <motion.div
-          className="relative z-10 px-6 space-y-6 pb-20"
-          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}
-          variants={shouldReduceMotion ? undefined : stagger}
+          className="relative z-10 px-6 -mt-1 space-y-6 pb-24"
+          variants={rm ? undefined : stagger}
           initial="hidden"
           animate="visible"
         >
-          {/* ── Hero title ── */}
-          <motion.div
-            variants={shouldReduceMotion ? undefined : fadeUp}
-            className="flex flex-col items-center justify-center text-center pb-2"
-          >
-            <p className="text-xs font-semibold text-white/40 uppercase tracking-[0.2em]">
-              Leader Dashboard
-            </p>
-            <h1 className="font-heading text-3xl sm:text-4xl font-bold text-white mt-2">
-              {(collectiveDetail?.name ?? 'Your Collective').replace(/\s+Collective$/i, '')}
-            </h1>
-          </motion.div>
-
-          {/* ── Hero stats ── */}
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-            <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-              <div className="grid grid-cols-1 sm:grid-cols-2 divide-x divide-y divide-white/[0.06]">
-                <div className="flex flex-col items-center text-center py-5 px-3">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-2.5">
-                    <Users size={20} />
-                  </span>
-                  <p className="text-3xl font-bold text-white tabular-nums leading-none">
-                    {data?.activeMembers ?? 0}
-                  </p>
-                  <p className="mt-1.5 text-[11px] font-semibold text-white/45 uppercase tracking-wider">Active Members</p>
-                </div>
-                <div className="flex flex-col items-center text-center py-5 px-3">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-2.5">
-                    <CalendarDays size={20} />
-                  </span>
-                  <p className="text-3xl font-bold text-white tabular-nums leading-none">
-                    {data?.upcomingEvents?.length ?? 0}
-                  </p>
-                  <p className="mt-1.5 text-[11px] font-semibold text-white/45 uppercase tracking-wider">Upcoming Events</p>
-                </div>
-                <div className="flex flex-col items-center text-center py-5 px-3">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-2.5">
-                    <Clock size={20} />
-                  </span>
-                  <p className="text-3xl font-bold text-white tabular-nums leading-none">
-                    {data?.hoursThisMonth ?? 0}
-                  </p>
-                  <p className="mt-1.5 text-[11px] font-semibold text-white/45 uppercase tracking-wider">Hours This Month</p>
-                </div>
-                <div className="flex flex-col items-center text-center py-5 px-3">
-                  <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/[0.08] text-white/70 mb-2.5">
-                    <CalendarCheck size={20} />
-                  </span>
-                  <p className="text-3xl font-bold text-white tabular-nums leading-none">
-                    {data?.eventsThisMonth ?? 0}
-                  </p>
-                  <p className="mt-1.5 text-[11px] font-semibold text-white/45 uppercase tracking-wider">Events This Month</p>
-                </div>
+          {/* ── At-a-glance stats ── */}
+          <motion.div variants={rm ? undefined : fadeUp}>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 p-4 text-center shadow-md">
+                <Users size={20} className="text-white/60 mx-auto mb-1.5" />
+                <p className="text-2xl font-bold text-white tabular-nums leading-none">{data?.activeMembers ?? 0}</p>
+                <p className="mt-1 text-[11px] font-semibold text-white/50 uppercase tracking-wider">Members</p>
+              </div>
+              <div className="rounded-2xl bg-gradient-to-br from-moss-500 to-moss-600 p-4 text-center shadow-md">
+                <CalendarDays size={20} className="text-white/60 mx-auto mb-1.5" />
+                <p className="text-2xl font-bold text-white tabular-nums leading-none">{data?.upcomingEvents?.length ?? 0}</p>
+                <p className="mt-1 text-[11px] font-semibold text-white/50 uppercase tracking-wider">Upcoming</p>
+              </div>
+              <div className="rounded-2xl bg-primary-50/60 shadow-sm border border-primary-100/40 p-4 text-center">
+                <Clock size={20} className="text-primary-400 mx-auto mb-1.5" />
+                <p className="text-2xl font-bold text-primary-800 tabular-nums leading-none">{data?.hoursThisMonth ?? 0}</p>
+                <p className="mt-1 text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Hrs/Month</p>
+              </div>
+              <div className="rounded-2xl bg-primary-50/60 shadow-sm border border-primary-100/40 p-4 text-center">
+                <CalendarCheck size={20} className="text-primary-400 mx-auto mb-1.5" />
+                <p className="text-2xl font-bold text-primary-800 tabular-nums leading-none">{data?.eventsThisMonth ?? 0}</p>
+                <p className="mt-1 text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Events/Month</p>
               </div>
             </div>
           </motion.div>
 
-          {/* ── Attendance & survey ── */}
-          {((data?.attendanceRate ?? 0) > 0 || (data?.surveyResponseCount ?? 0) > 0) && (
-            <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-              <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-                <div className={cn(
-                  'grid divide-x divide-white/[0.06]',
-                  (data?.attendanceRate ?? 0) > 0 && (data?.surveyResponseCount ?? 0) > 0
-                    ? 'grid-cols-1 sm:grid-cols-2'
-                    : 'grid-cols-1',
-                )}>
-                  {(data?.attendanceRate ?? 0) > 0 && (
-                    <div className="p-4 pb-5">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center">
-                          <CheckCircle2 size={14} className="text-success-300" />
-                        </div>
-                        <span className="text-xs font-semibold text-white/60">Attendance</span>
-                      </div>
-                      <p className="text-2xl font-bold text-white tabular-nums">
-                        {data?.attendanceRate}%
-                      </p>
-                      <div className="mt-2.5 h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
-                        <motion.div
-                          className="h-full rounded-full bg-success-400"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${data?.attendanceRate}%` }}
-                          transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {(data?.surveyResponseCount ?? 0) > 0 && (
-                    <div className="p-4 pb-5">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-8 h-8 rounded-lg bg-white/[0.08] flex items-center justify-center">
-                          <Send size={14} className="text-white/70" />
-                        </div>
-                        <span className="text-xs font-semibold text-white/60">Surveys</span>
-                      </div>
-                      <p className="text-2xl font-bold text-white tabular-nums">
-                        {data?.surveyResponseCount}
-                      </p>
-                      <p className="mt-1 text-[11px] text-white/40">responses collected</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-
           {/* ── Quick actions ── */}
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+          <motion.div variants={rm ? undefined : fadeUp}>
             <SectionHeader>Quick Actions</SectionHeader>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className={cn('grid gap-2', currentEvent ? 'grid-cols-4' : 'grid-cols-3')}>
               {quickActions.map((action) => (
                 <Link
                   key={action.label}
                   to={action.to}
-                  className="group flex flex-col items-center gap-2 rounded-xl bg-white/[0.06] p-3 hover:bg-white/[0.12] active:scale-[0.96] transition-[background-color,transform] duration-150"
+                  className={cn(
+                    'group relative flex flex-col items-center gap-1.5 rounded-xl bg-primary-50/50 shadow-sm border border-primary-100/40 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150',
+                    action.pulse && 'ring-2 ring-amber-400/50 shadow-amber-200/30',
+                  )}
                 >
                   <div className={cn(
-                    'flex items-center justify-center w-10 h-10 rounded-lg transition-transform group-hover:scale-105',
+                    'relative flex items-center justify-center w-9 h-9 rounded-lg transition-transform group-hover:scale-105',
                     action.bg, action.text,
                   )}>
                     {action.icon}
+                    {action.pulse && (
+                      <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-amber-400 animate-pulse ring-2 ring-white" />
+                    )}
+                    {action.badge > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-bold leading-none">
+                        {action.badge > 99 ? '99+' : action.badge}
+                      </span>
+                    )}
                   </div>
-                  <span className="text-[11px] font-semibold text-white/70 text-center leading-tight">
+                  <span className="text-[10px] font-semibold text-primary-600 text-center leading-tight">
                     {action.label}
                   </span>
                 </Link>
@@ -687,36 +1059,60 @@ export default function LeaderDashboardPage() {
 
           {/* ── Needs attention ── */}
           {pendingItems.length > 0 && (
-            <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+            <motion.div variants={rm ? undefined : fadeUp}>
               <SectionHeader icon={<Bell size={14} />}>
                 Needs Attention
               </SectionHeader>
-              <div className="rounded-2xl bg-warning-500/20 overflow-hidden">
+              <div className="rounded-2xl bg-warning-50 border border-warning-200/50 overflow-hidden">
                 {pendingItems.map((item, idx) => (
                   <Link
                     key={item.id}
                     to={`/events/${item.id}/impact`}
                     className={cn(
                       'flex items-center gap-3 px-4 py-3.5',
-                      'hover:bg-warning-400/10 transition-colors duration-150',
-                      idx > 0 && 'border-t border-warning-400/10',
+                      'hover:bg-warning-100/50 transition-colors duration-150',
+                      idx > 0 && 'border-t border-warning-200/30',
                     )}
                   >
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-warning-400/20 shrink-0">
-                      <AlertTriangle size={14} className="text-warning-300" />
+                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-warning-100 shrink-0">
+                      <AlertTriangle size={14} className="text-warning-600" />
                     </div>
-                    <span className="text-sm text-white/90 flex-1 font-medium">{item.message}</span>
-                    <ChevronRight size={14} className="text-warning-300/60 shrink-0" />
+                    <span className="text-sm text-primary-700 flex-1 font-medium">{item.message}</span>
+                    <ChevronRight size={14} className="text-warning-400 shrink-0" />
                   </Link>
                 ))}
               </div>
             </motion.div>
           )}
 
-          {/* ── Upcoming events ── */}
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-            <SectionHeader action={{ label: 'View all', to: '/leader/events' }}>
-              Upcoming Events
+          {/* ── Tasks (inline) ── */}
+          {pendingTasks.length > 0 && (
+            <motion.div variants={rm ? undefined : fadeUp}>
+              <SectionHeader icon={<ClipboardCheck size={14} />}>
+                Your Tasks
+                {overdueTaskCount > 0 && (
+                  <span className="ml-2 text-[11px] font-bold px-2 py-0.5 rounded-full bg-error-50 text-error-600 normal-case tracking-normal flex items-center gap-1">
+                    <Flame size={10} /> {overdueTaskCount} overdue
+                  </span>
+                )}
+              </SectionHeader>
+              <div className="space-y-1.5">
+                {pendingTasks.slice(0, 5).map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
+                {pendingTasks.length > 5 && (
+                  <p className="text-xs text-primary-400 text-center pt-2">
+                    +{pendingTasks.length - 5} more tasks
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── Events (upcoming + calendar) ── */}
+          <motion.div variants={rm ? undefined : fadeUp}>
+            <SectionHeader action={{ label: 'View all', to: '/leader/events' }} icon={<CalendarDays size={14} />}>
+              Events
             </SectionHeader>
             {data?.upcomingEvents && data.upcomingEvents.length > 0 ? (
               <div className="space-y-2">
@@ -724,7 +1120,7 @@ export default function LeaderDashboardPage() {
                   <Link
                     key={event.id}
                     to={`/events/${event.id}`}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-white/[0.06] hover:bg-white/[0.10] active:scale-[0.99] transition-[background-color,transform] duration-150"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-moss-50/50 shadow-sm border border-moss-100/40 hover:shadow-md active:scale-[0.99] transition-all duration-150"
                   >
                     {event.cover_image_url ? (
                       <img
@@ -733,15 +1129,15 @@ export default function LeaderDashboardPage() {
                         className="w-14 h-14 rounded-xl object-cover shrink-0"
                       />
                     ) : (
-                      <div className="w-14 h-14 rounded-xl bg-white/[0.08] flex items-center justify-center shrink-0">
-                        <CalendarDays size={22} className="text-white/50" />
+                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-moss-50 to-primary-50 flex items-center justify-center shrink-0">
+                        <CalendarDays size={22} className="text-moss-400" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-heading text-sm font-bold text-white truncate">
+                      <p className="font-heading text-sm font-bold text-primary-800 truncate">
                         {event.title}
                       </p>
-                      <p className="text-xs text-white/50 mt-0.5 font-medium">
+                      <p className="text-xs text-primary-500 mt-0.5 font-medium">
                         {new Date(event.date_start).toLocaleDateString('en-AU', {
                           weekday: 'short',
                           day: 'numeric',
@@ -751,22 +1147,22 @@ export default function LeaderDashboardPage() {
                         })}
                       </p>
                       {event.address && (
-                        <p className="text-[11px] text-white/35 truncate mt-0.5 flex items-center gap-1">
+                        <p className="text-[11px] text-primary-400 truncate mt-0.5 flex items-center gap-1">
                           <MapPin size={10} className="shrink-0" />
                           {event.address}
                         </p>
                       )}
                     </div>
-                    <ChevronRight size={16} className="text-white/25 shrink-0" />
+                    <ChevronRight size={16} className="text-primary-200 shrink-0" />
                   </Link>
                 ))}
               </div>
             ) : (
-              <div className="p-6 rounded-2xl bg-white/[0.06] text-center">
-                <div className="w-12 h-12 rounded-2xl bg-white/[0.08] flex items-center justify-center mx-auto mb-3">
-                  <CalendarDays size={24} className="text-white/50" />
+              <div className="p-6 rounded-2xl bg-moss-50 border border-moss-100 text-center">
+                <div className="w-12 h-12 rounded-2xl bg-moss-100 flex items-center justify-center mx-auto mb-3">
+                  <CalendarDays size={24} className="text-moss-400" />
                 </div>
-                <p className="text-sm font-medium text-white/60 mb-3">No upcoming events</p>
+                <p className="text-sm font-medium text-primary-600 mb-3">No upcoming events</p>
                 <Button
                   variant="primary"
                   size="sm"
@@ -777,143 +1173,148 @@ export default function LeaderDashboardPage() {
                 </Button>
               </div>
             )}
+            <div className="mt-4">
+              <MiniCalendar collectiveId={collectiveId} />
+            </div>
           </motion.div>
 
-          {/* ── Calendar ── */}
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-            <SectionHeader icon={<CalendarCheck size={14} />}>
-              Event Calendar
-            </SectionHeader>
-            <MiniCalendar collectiveId={collectiveId} />
-          </motion.div>
-
-          {/* ── Member engagement ── */}
-          {engagement && (
-            <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-              <SectionHeader>Member Engagement</SectionHeader>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-success-500/15 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-lg bg-success-400/20 flex items-center justify-center">
-                      <CheckCircle2 size={14} className="text-success-300" />
-                    </div>
-                  </div>
-                  <p className="text-3xl font-bold text-white leading-none tabular-nums">
-                    {engagement.active.length}
-                  </p>
-                  <p className="text-xs font-semibold text-success-300 mt-1.5">Active</p>
-                  <p className="text-[11px] text-white/35 mt-0.5">Last 30 days</p>
-                </div>
-                <div className="rounded-2xl bg-warning-500/15 p-4">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-lg bg-warning-400/20 flex items-center justify-center">
-                      <AlertTriangle size={14} className="text-warning-300" />
-                    </div>
-                  </div>
-                  <p className="text-3xl font-bold text-white leading-none tabular-nums">
-                    {engagement.atRisk.length}
-                  </p>
-                  <p className="text-xs font-semibold text-warning-300 mt-1.5">At Risk</p>
-                  <p className="text-[11px] text-white/35 mt-0.5">Inactive 30+ days</p>
-                </div>
+          {/* ── Environmental Impact ── */}
+          {impactCards.length > 0 && (
+            <motion.div variants={rm ? undefined : fadeUp}>
+              <SectionHeader icon={<TreePine size={14} />}>
+                Environmental Impact
+              </SectionHeader>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {impactCards.map((card) => (
+                  <ImpactMini
+                    key={card.label}
+                    value={card.value}
+                    label={card.label}
+                    unit={card.unit}
+                    icon={card.icon}
+                    color={card.color}
+                  />
+                ))}
               </div>
             </motion.div>
           )}
 
-          {/* ── Recent members ── */}
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-            <SectionHeader icon={<UserPlus size={14} />}>
-              New Members
-            </SectionHeader>
-            {data?.recentMembers && data.recentMembers.length > 0 ? (
-              <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-                {data.recentMembers.map((member, idx) => {
-                  const profile = (member as any).profiles
-                  return (
-                    <Link
-                      key={member.id}
-                      to={`/profile/${member.user_id}`}
-                      className={cn(
-                        'flex items-center gap-3 px-4 py-3',
-                        'hover:bg-white/[0.04] transition-colors duration-150',
-                        idx > 0 && 'border-t border-white/[0.06]',
-                      )}
-                    >
-                      <Avatar
-                        src={profile?.avatar_url}
-                        name={profile?.display_name ?? ''}
-                        size="sm"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-white truncate">
-                          {profile?.display_name ?? 'Unknown'}
-                        </p>
-                        <p className="text-[11px] text-white/40 mt-0.5">
-                          Joined{' '}
-                          {new Date(member.created_at).toLocaleDateString('en-AU', {
-                            day: 'numeric',
-                            month: 'short',
-                          })}
-                        </p>
-                      </div>
-                      <ChevronRight size={14} className="text-white/25 shrink-0" />
-                    </Link>
-                  )
-                })}
-              </div>
-            ) : (
-              <p className="text-sm text-white/40 bg-white/[0.06] rounded-2xl p-4">No recent members</p>
-            )}
-          </motion.div>
-
-          {/* ── Invite acceptance ── */}
-          {inviteStats && inviteStats.acceptanceRate > 0 && (
-            <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-              <SectionHeader>Invite Acceptance</SectionHeader>
-              <div className="rounded-2xl bg-white/[0.06] p-5">
-                <div className="flex items-end justify-between mb-3">
-                  <div>
-                    <p className="text-[11px] font-semibold text-white/40 uppercase tracking-wide">Rate</p>
-                    <p className="text-3xl font-bold text-white tabular-nums leading-none mt-1">
-                      {inviteStats.acceptanceRate}%
-                    </p>
+          {/* ── Attendance rate ── */}
+          {(data?.attendanceRate ?? 0) > 0 && (
+            <motion.div variants={rm ? undefined : fadeUp}>
+              <div className="rounded-2xl bg-success-50/40 shadow-sm border border-success-100/40 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-lg bg-success-100 flex items-center justify-center">
+                    <CheckCircle2 size={14} className="text-success-600" />
                   </div>
-                  <div className="w-10 h-10 rounded-xl bg-white/[0.08] flex items-center justify-center">
-                    <TrendingUp size={18} className="text-white/70" />
-                  </div>
+                  <span className="text-xs font-semibold text-primary-500">Attendance Rate</span>
+                  <span className="ml-auto text-xl font-bold text-primary-800 tabular-nums">
+                    {data?.attendanceRate}%
+                  </span>
                 </div>
-                <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
+                <div className="h-2 rounded-full bg-primary-50 overflow-hidden">
                   <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-primary-300 to-primary-500"
+                    className="h-full rounded-full bg-gradient-to-r from-success-400 to-success-500"
                     initial={{ width: 0 }}
-                    animate={{ width: `${inviteStats.acceptanceRate}%` }}
-                    transition={{ duration: 1, ease: 'easeOut', delay: 0.4 }}
+                    animate={{ width: `${data?.attendanceRate}%` }}
+                    transition={{ duration: 1, ease: 'easeOut', delay: 0.3 }}
                   />
                 </div>
               </div>
             </motion.div>
           )}
 
-          {/* ── Reports link ── */}
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-            <Link
-              to="/leader/reports"
-              className="flex items-center gap-4 p-5 rounded-2xl bg-white/[0.10] hover:bg-white/[0.16] active:scale-[0.99] transition-[background-color,transform] duration-150"
-            >
-              <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/[0.08]">
-                <BarChart3 size={22} className="text-white/80" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-heading text-sm font-bold text-white">
-                  Impact Reports
-                </p>
-                <p className="text-xs text-white/40 mt-0.5">
-                  Generate reports for your collective
-                </p>
-              </div>
-              <ChevronRight size={16} className="text-white/25 shrink-0" />
-            </Link>
+          {/* ── Members (engagement + recent + invite) ── */}
+          <motion.div variants={rm ? undefined : fadeUp}>
+            <SectionHeader icon={<Users size={14} />}>
+              Members
+            </SectionHeader>
+            <div className="space-y-4">
+              {/* Engagement summary */}
+              {engagement && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-success-50 border border-success-100/50 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-7 h-7 rounded-lg bg-success-100 flex items-center justify-center">
+                        <CheckCircle2 size={12} className="text-success-600" />
+                      </div>
+                    </div>
+                    <p className="text-2xl font-bold text-primary-800 leading-none tabular-nums">
+                      {engagement.active.length}
+                    </p>
+                    <p className="text-xs font-semibold text-success-600 mt-1">Active</p>
+                    <p className="text-[11px] text-primary-400 mt-0.5">Last 30 days</p>
+                  </div>
+                  <div className="rounded-2xl bg-warning-50 border border-warning-100/50 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-7 h-7 rounded-lg bg-warning-100 flex items-center justify-center">
+                        <AlertTriangle size={12} className="text-warning-600" />
+                      </div>
+                    </div>
+                    <p className="text-2xl font-bold text-primary-800 leading-none tabular-nums">
+                      {engagement.atRisk.length}
+                    </p>
+                    <p className="text-xs font-semibold text-warning-600 mt-1">At Risk</p>
+                    <p className="text-[11px] text-primary-400 mt-0.5">Inactive 30+ days</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Recent members */}
+              {data?.recentMembers && data.recentMembers.length > 0 ? (
+                <div>
+                  <p className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <UserPlus size={11} /> Recently Joined
+                  </p>
+                  <div className="rounded-2xl bg-primary-50/40 shadow-sm border border-primary-100/40 overflow-hidden">
+                    {data.recentMembers.map((member, idx) => {
+                      const profile = (member as any).profiles
+                      return (
+                        <Link
+                          key={member.id}
+                          to={`/profile/${member.user_id}`}
+                          className={cn(
+                            'flex items-center gap-3 px-4 py-3',
+                            'hover:bg-primary-50/50 transition-colors duration-150',
+                            idx > 0 && 'border-t border-primary-50',
+                          )}
+                        >
+                          <Avatar
+                            src={profile?.avatar_url}
+                            name={profile?.display_name ?? ''}
+                            size="sm"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-primary-800 truncate">
+                              {profile?.display_name ?? 'Unknown'}
+                            </p>
+                            <p className="text-[11px] text-primary-400 mt-0.5">
+                              Joined{' '}
+                              {new Date(member.created_at).toLocaleDateString('en-AU', {
+                                day: 'numeric',
+                                month: 'short',
+                              })}
+                            </p>
+                          </div>
+                          <ChevronRight size={14} className="text-primary-200 shrink-0" />
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-primary-400 bg-primary-50/40 shadow-sm border border-primary-100/40 rounded-2xl p-4">No recent members</p>
+              )}
+
+              {/* Invite / grow */}
+              <InviteAction
+                collectiveSlug={collectiveSlug}
+                collectiveId={collectiveId}
+                collectiveName={collectiveName}
+              />
+            </div>
           </motion.div>
+
         </motion.div>
       </PullToRefresh>
     </Wrapper>

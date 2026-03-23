@@ -12,6 +12,9 @@ import {
   UserX,
   UserPlus,
   ChevronRight,
+  Phone,
+  AlertTriangle,
+  Accessibility,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import {
@@ -78,25 +81,32 @@ function AttendeeRow({
   attendee,
   onCheckIn,
   onPromote,
+  onViewDetails,
   isPending,
   isPromoting,
 }: {
   attendee: AttendeeWithStatus
   onCheckIn: () => void
   onPromote?: () => void
+  onViewDetails: () => void
   isPending: boolean
   isPromoting?: boolean
 }) {
   const isCheckedIn = attendee.status === 'attended'
   const isWaitlisted = attendee.status === 'waitlisted'
+  const hasEmergencyInfo = !!(attendee.profiles?.emergency_contact_name || attendee.profiles?.accessibility_requirements)
 
   return (
     <motion.div
       layout
       className={cn(
-        'flex items-center gap-3 px-4 py-3',
+        'flex items-center gap-3 px-4 py-3 cursor-pointer',
         'border-b border-primary-100/40 last:border-b-0',
+        'active:bg-primary-50/50 transition-colors',
       )}
+      onClick={onViewDetails}
+      role="button"
+      tabIndex={0}
     >
       <Avatar
         src={attendee.profiles?.avatar_url ?? undefined}
@@ -105,9 +115,14 @@ function AttendeeRow({
       />
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-primary-800 truncate">
-          {attendee.profiles?.display_name ?? 'Unknown User'}
-        </p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-sm font-medium text-primary-800 truncate">
+            {attendee.profiles?.display_name ?? 'Unknown User'}
+          </p>
+          {hasEmergencyInfo && (
+            <AlertTriangle size={12} className="text-warning-500 shrink-0" aria-label="Has safety info" />
+          )}
+        </div>
         <p className="text-caption text-primary-400">
           {isCheckedIn
             ? `Checked in ${attendee.checked_in_at ? new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' }).format(new Date(attendee.checked_in_at)) : ''}`
@@ -126,7 +141,7 @@ function AttendeeRow({
           variant="secondary"
           size="sm"
           icon={<UserPlus size={14} />}
-          onClick={onPromote}
+          onClick={(e: React.MouseEvent) => { e.stopPropagation(); onPromote() }}
           loading={isPromoting}
         >
           Promote
@@ -136,13 +151,111 @@ function AttendeeRow({
           variant="secondary"
           size="sm"
           icon={<UserCheck size={14} />}
-          onClick={onCheckIn}
+          onClick={(e: React.MouseEvent) => { e.stopPropagation(); onCheckIn() }}
           loading={isPending}
         >
           Check In
         </Button>
       )}
     </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Attendee Safety Details Sheet                                       */
+/* ------------------------------------------------------------------ */
+
+function AttendeeSafetySheet({
+  attendee,
+  open,
+  onClose,
+}: {
+  attendee: AttendeeWithStatus | null
+  open: boolean
+  onClose: () => void
+}) {
+  if (!attendee?.profiles) return null
+
+  const p = attendee.profiles
+
+  return (
+    <BottomSheet open={open} onClose={onClose} snapPoints={[0.55]}>
+      <div className="px-5 py-4 space-y-5">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <Avatar
+            src={p.avatar_url ?? undefined}
+            name={p.display_name ?? 'Unknown'}
+            size="lg"
+          />
+          <div>
+            <p className="font-heading text-lg font-bold text-primary-800">
+              {p.display_name ?? 'Unknown User'}
+            </p>
+            {(p.age || p.gender) && (
+              <p className="text-sm text-primary-400">
+                {[p.age && `Age ${p.age}`, p.gender].filter(Boolean).join(' · ')}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Phone */}
+        {p.phone && (
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-primary-50/60">
+            <Phone size={16} className="text-primary-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider">Phone</p>
+              <a href={`tel:${p.phone}`} className="text-sm font-medium text-primary-800 underline">
+                {p.phone}
+              </a>
+            </div>
+          </div>
+        )}
+
+        {/* Accessibility */}
+        {p.accessibility_requirements && (
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-sky-50">
+            <Accessibility size={16} className="text-sky-600 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-xs font-semibold text-sky-600 uppercase tracking-wider">Accessibility Needs</p>
+              <p className="text-sm text-primary-800 mt-0.5">{p.accessibility_requirements}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Emergency contact */}
+        <div className="p-3 rounded-lg bg-warning-50 border border-warning-200">
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle size={16} className="text-warning-600" />
+            <p className="text-xs font-semibold text-warning-700 uppercase tracking-wider">
+              Emergency Contact
+            </p>
+          </div>
+          {p.emergency_contact_name ? (
+            <div className="space-y-1.5">
+              <p className="text-sm font-medium text-primary-800">
+                {p.emergency_contact_name}
+                {p.emergency_contact_relationship && (
+                  <span className="text-primary-400 font-normal"> ({p.emergency_contact_relationship})</span>
+                )}
+              </p>
+              {p.emergency_contact_phone && (
+                <a
+                  href={`tel:${p.emergency_contact_phone}`}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-warning-700 underline"
+                >
+                  <Phone size={14} />
+                  {p.emergency_contact_phone}
+                </a>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-warning-600 italic">No emergency contact provided</p>
+          )}
+        </div>
+      </div>
+    </BottomSheet>
   )
 }
 
@@ -177,6 +290,7 @@ export default function EventDayPage() {
   const [showBulkConfirm, setShowBulkConfirm] = useState(false)
   const [checkingInUserId, setCheckingInUserId] = useState<string | null>(null)
   const [promotingUserId, setPromotingUserId] = useState<string | null>(null)
+  const [selectedAttendee, setSelectedAttendee] = useState<AttendeeWithStatus | null>(null)
 
   const filteredAttendees = useMemo(() => {
     if (!attendees) return []
@@ -363,6 +477,7 @@ export default function EventDayPage() {
                 attendee={attendee}
                 onCheckIn={() => handleCheckIn(attendee.user_id)}
                 onPromote={attendee.status === 'waitlisted' ? () => handlePromote(attendee.user_id) : undefined}
+                onViewDetails={() => setSelectedAttendee(attendee)}
                 isPending={checkingInUserId === attendee.user_id}
                 isPromoting={promotingUserId === attendee.user_id}
               />
@@ -402,6 +517,13 @@ export default function EventDayPage() {
         description={`This will check in ${stats.registered - stats.checkedIn} remaining registered attendees.`}
         confirmLabel="Mark All Present"
         variant="warning"
+      />
+
+      {/* Attendee safety details */}
+      <AttendeeSafetySheet
+        attendee={selectedAttendee}
+        open={!!selectedAttendee}
+        onClose={() => setSelectedAttendee(null)}
       />
     </Page>
   )

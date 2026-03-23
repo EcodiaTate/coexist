@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import { Megaphone, CalendarPlus, ClipboardCheck, ListChecks } from 'lucide-react'
+import { Megaphone, CalendarPlus, ClipboardCheck, ListChecks, MapPin, Calendar, Clock } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 interface ReplyTo {
@@ -383,6 +383,15 @@ export function PollCard({
 /*  Announcement Card (rendered inline in chat)                        */
 /* ------------------------------------------------------------------ */
 
+export interface EventDetailsForCard {
+  coverImageUrl?: string | null
+  dateStart: string
+  dateEnd?: string | null
+  address?: string | null
+  activityType?: string | null
+  collectiveName?: string | null
+}
+
 interface AnnouncementCardProps {
   type: 'announcement' | 'event_invite' | 'rsvp' | 'checklist'
   title: string
@@ -395,6 +404,8 @@ interface AnnouncementCardProps {
   sent: boolean
   onRespond?: (response: string) => void
   onViewEvent?: (eventId: string) => void
+  /** Rich event details shown as a preview card for event invites */
+  eventDetails?: EventDetailsForCard | null
 }
 
 const TYPE_META: Record<string, { icon: typeof Megaphone; label: string; gradient: string; iconBg: string; iconColor: string; labelColor: string }> = {
@@ -402,6 +413,26 @@ const TYPE_META: Record<string, { icon: typeof Megaphone; label: string; gradien
   event_invite: { icon: CalendarPlus, label: 'Event Invite', gradient: 'from-info-200 via-info-100 to-info-200/60', iconBg: 'bg-info-600', iconColor: 'text-white', labelColor: 'text-info-700' },
   rsvp: { icon: ClipboardCheck, label: 'RSVP', gradient: 'from-success-200 via-success-100 to-success-200/60', iconBg: 'bg-success-600', iconColor: 'text-white', labelColor: 'text-success-700' },
   checklist: { icon: ListChecks, label: 'Checklist', gradient: 'from-warning-200 via-warning-100 to-warning-200/60', iconBg: 'bg-warning-600', iconColor: 'text-white', labelColor: 'text-warning-700' },
+}
+
+function formatCardDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
+function formatCardTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })
+}
+
+const ACTIVITY_LABELS: Record<string, string> = {
+  shore_cleanup: 'Shore Cleanup',
+  tree_planting: 'Tree Planting',
+  land_regeneration: 'Land Regeneration',
+  nature_walk: 'Nature Walk',
+  camp_out: 'Camp Out',
+  retreat: 'Retreat',
+  film_screening: 'Film Screening',
+  marine_restoration: 'Marine Restoration',
+  workshop: 'Workshop',
 }
 
 export function AnnouncementCard({
@@ -416,6 +447,7 @@ export function AnnouncementCard({
   sent,
   onRespond,
   onViewEvent,
+  eventDetails,
 }: AnnouncementCardProps) {
   const shouldReduceMotion = useReducedMotion()
   const typeInfo = TYPE_META[type] ?? TYPE_META.announcement
@@ -430,90 +462,141 @@ export function AnnouncementCard({
     responseCounts[r.response] = (responseCounts[r.response] ?? 0) + 1
   }
 
+  const hasEventImage = eventDetails?.coverImageUrl
+
   return (
     <motion.div
       initial={shouldReduceMotion ? false : { opacity: 0, y: 8, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={cn(
-        'w-full max-w-[85%] rounded-2xl p-5 shadow-lg',
+        'w-full max-w-[85%] rounded-2xl shadow-lg overflow-hidden',
         `bg-gradient-to-br ${typeInfo.gradient}`,
         'ring-1 ring-black/5',
         sent ? 'ml-auto' : 'mr-auto',
       )}
     >
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-3">
-        <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-md', typeInfo.iconBg, typeInfo.iconColor)}>
-          <IconComponent size={20} strokeWidth={2.5} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className={cn('text-[11px] font-extrabold uppercase tracking-wider', typeInfo.labelColor)}>{typeInfo.label}</p>
-          {creatorName && (
-            <p className="text-[11px] font-medium text-primary-500">from {creatorName}</p>
+      {/* Event cover image */}
+      {hasEventImage && (
+        <div className="relative w-full h-32">
+          <img
+            src={eventDetails.coverImageUrl!}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+          {eventDetails.activityType && (
+            <span className="absolute bottom-2 left-3 text-[10px] font-bold uppercase tracking-wider text-white/90 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-full">
+              {ACTIVITY_LABELS[eventDetails.activityType] ?? eventDetails.activityType}
+            </span>
           )}
         </div>
-      </div>
-
-      {/* Content */}
-      <h4 className="text-[15px] font-extrabold text-primary-950 mb-1.5">{title}</h4>
-      {body && (
-        <p className="text-sm text-primary-700 leading-relaxed mb-3">{body}</p>
       )}
 
-      {/* Event invite CTA */}
-      {type === 'event_invite' && !!metadata?.event_id && onViewEvent && (
-        <button
-          type="button"
-          onClick={() => onViewEvent(metadata.event_id as string)}
-          className="w-full rounded-xl bg-primary-600 py-2.5 text-center text-sm font-semibold text-white mb-2 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none min-h-11"
-        >
-          View Event Details
-        </button>
-      )}
-
-      {/* RSVP buttons */}
-      {rsvpOptions.length > 0 && isActive && onRespond && (
-        <div className="flex gap-2 mb-2">
-          {rsvpOptions.map((opt) => {
-            const isSelected = userResponse === opt
-            const label = opt === 'going' ? 'Going' : opt === 'maybe' ? 'Maybe' : 'Can\'t Make It'
-            const count = responseCounts[opt] ?? 0
-
-            return (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => onRespond(opt)}
-                className={cn(
-                  'flex-1 rounded-xl py-2 text-center text-xs font-semibold transition-all duration-150 min-h-11',
-                  'active:scale-[0.95] cursor-pointer select-none',
-                  isSelected
-                    ? 'bg-primary-600 text-white shadow-sm'
-                    : 'bg-white/60 text-primary-700 hover:bg-white/90',
-                )}
-              >
-                {label}
-                {count > 0 && (
-                  <span className={cn(
-                    'ml-1 text-[11px]',
-                    isSelected ? 'text-white/70' : 'text-primary-400',
-                  )}>
-                    ({count})
-                  </span>
-                )}
-              </button>
-            )
-          })}
+      <div className="p-5">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-3">
+          <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-md', typeInfo.iconBg, typeInfo.iconColor)}>
+            <IconComponent size={20} strokeWidth={2.5} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={cn('text-[11px] font-extrabold uppercase tracking-wider', typeInfo.labelColor)}>{typeInfo.label}</p>
+            {creatorName && (
+              <p className="text-[11px] font-medium text-primary-500">from {creatorName}</p>
+            )}
+          </div>
         </div>
-      )}
 
-      {/* Response summary */}
-      {responses.length > 0 && (
-        <p className="text-[11px] text-primary-400">
-          {responses.length} response{responses.length !== 1 ? 's' : ''}
-        </p>
-      )}
+        {/* Content */}
+        <h4 className="text-[15px] font-extrabold text-primary-950 mb-1.5">{title}</h4>
+        {body && (
+          <p className="text-sm text-primary-700 leading-relaxed mb-2">{body}</p>
+        )}
+
+        {/* Event details summary */}
+        {eventDetails && (
+          <div className="rounded-xl bg-white/50 p-3 mb-3 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <Calendar size={13} className="text-primary-500 shrink-0" />
+              <span className="text-xs font-semibold text-primary-700">
+                {formatCardDate(eventDetails.dateStart)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock size={13} className="text-primary-500 shrink-0" />
+              <span className="text-xs text-primary-600">
+                {formatCardTime(eventDetails.dateStart)}
+                {eventDetails.dateEnd && ` - ${formatCardTime(eventDetails.dateEnd)}`}
+              </span>
+            </div>
+            {eventDetails.address && (
+              <div className="flex items-center gap-2">
+                <MapPin size={13} className="text-primary-500 shrink-0" />
+                <span className="text-xs text-primary-600 truncate">{eventDetails.address}</span>
+              </div>
+            )}
+            {eventDetails.collectiveName && !hasEventImage && (
+              <p className="text-[11px] text-primary-400 mt-0.5">
+                Hosted by {eventDetails.collectiveName}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Event invite CTA */}
+        {type === 'event_invite' && !!metadata?.event_id && onViewEvent && (
+          <button
+            type="button"
+            onClick={() => onViewEvent(metadata.event_id as string)}
+            className="w-full rounded-xl bg-primary-600 py-2.5 text-center text-sm font-semibold text-white mb-2 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none min-h-11"
+          >
+            View Event Details
+          </button>
+        )}
+
+        {/* RSVP buttons */}
+        {rsvpOptions.length > 0 && isActive && onRespond && (
+          <div className="flex gap-2 mb-2">
+            {rsvpOptions.map((opt) => {
+              const isSelected = userResponse === opt
+              const label = opt === 'going' ? 'Going' : opt === 'maybe' ? 'Maybe' : 'Can\'t Make It'
+              const count = responseCounts[opt] ?? 0
+
+              return (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => onRespond(opt)}
+                  className={cn(
+                    'flex-1 rounded-xl py-2 text-center text-xs font-semibold transition-all duration-150 min-h-11',
+                    'active:scale-[0.95] cursor-pointer select-none',
+                    isSelected
+                      ? 'bg-primary-600 text-white shadow-sm'
+                      : 'bg-white/60 text-primary-700 hover:bg-white/90',
+                  )}
+                >
+                  {label}
+                  {count > 0 && (
+                    <span className={cn(
+                      'ml-1 text-[11px]',
+                      isSelected ? 'text-white/70' : 'text-primary-400',
+                    )}>
+                      ({count})
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
+        {/* Response summary */}
+        {responses.length > 0 && (
+          <p className="text-[11px] text-primary-400">
+            {responses.length} response{responses.length !== 1 ? 's' : ''}
+          </p>
+        )}
+      </div>
     </motion.div>
   )
 }

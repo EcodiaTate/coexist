@@ -31,6 +31,18 @@ export type Database = {
           tos_accepted_version: string | null
           tos_accepted_at: string | null
           onboarding_completed: boolean
+          first_name: string | null
+          last_name: string | null
+          age: number | null
+          postcode: string | null
+          gender: string | null
+          email: string | null
+          collective_discovery: string | null
+          accessibility_requirements: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relationship: string | null
+          profile_details_completed: boolean
           created_at: string
           updated_at: string
         }
@@ -55,6 +67,18 @@ export type Database = {
           tos_accepted_version?: string | null
           tos_accepted_at?: string | null
           onboarding_completed?: boolean
+          first_name?: string | null
+          last_name?: string | null
+          age?: number | null
+          postcode?: string | null
+          gender?: string | null
+          email?: string | null
+          collective_discovery?: string | null
+          accessibility_requirements?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          profile_details_completed?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -79,6 +103,18 @@ export type Database = {
           tos_accepted_version?: string | null
           tos_accepted_at?: string | null
           onboarding_completed?: boolean
+          first_name?: string | null
+          last_name?: string | null
+          age?: number | null
+          postcode?: string | null
+          gender?: string | null
+          email?: string | null
+          collective_discovery?: string | null
+          accessibility_requirements?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relationship?: string | null
+          profile_details_completed?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -306,6 +342,71 @@ export type Database = {
           }
         ]
       }
+      collective_event_collaborators: {
+        Row: {
+          id: string
+          event_id: string
+          collective_id: string
+          invited_by_collective_id: string
+          invited_by_user: string
+          status: 'pending' | 'accepted' | 'declined'
+          message: string | null
+          created_at: string
+          responded_at: string | null
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          collective_id: string
+          invited_by_collective_id: string
+          invited_by_user: string
+          status?: 'pending' | 'accepted' | 'declined'
+          message?: string | null
+          created_at?: string
+          responded_at?: string | null
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          collective_id?: string
+          invited_by_collective_id?: string
+          invited_by_user?: string
+          status?: 'pending' | 'accepted' | 'declined'
+          message?: string | null
+          created_at?: string
+          responded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'collective_event_collaborators_event_id_fkey'
+            columns: ['event_id']
+            isOneToOne: false
+            referencedRelation: 'events'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'collective_event_collaborators_collective_id_fkey'
+            columns: ['collective_id']
+            isOneToOne: false
+            referencedRelation: 'collectives'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'collective_event_collaborators_invited_by_collective_id_fkey'
+            columns: ['invited_by_collective_id']
+            isOneToOne: false
+            referencedRelation: 'collectives'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'collective_event_collaborators_invited_by_user_fkey'
+            columns: ['invited_by_user']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
       event_invites: {
         Row: {
           id: string
@@ -349,6 +450,48 @@ export type Database = {
           {
             foreignKeyName: 'event_invites_invited_by_fkey'
             columns: ['invited_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          }
+        ]
+      }
+      event_maybe_reminders: {
+        Row: {
+          id: string
+          event_id: string
+          user_id: string
+          remind_at: string
+          sent: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          user_id: string
+          remind_at: string
+          sent?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          user_id?: string
+          remind_at?: string
+          sent?: boolean
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'event_maybe_reminders_event_id_fkey'
+            columns: ['event_id']
+            isOneToOne: false
+            referencedRelation: 'events'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'event_maybe_reminders_user_id_fkey'
+            columns: ['user_id']
             isOneToOne: false
             referencedRelation: 'profiles'
             referencedColumns: ['id']
@@ -1273,6 +1416,7 @@ export type Database = {
           title: string
           content: string
           image_url: string | null
+          image_urls: string[]
           priority: Database['public']['Enums']['announcement_priority']
           target_audience: Database['public']['Enums']['announcement_target']
           target_collective_id: string | null
@@ -1286,6 +1430,7 @@ export type Database = {
           title: string
           content: string
           image_url?: string | null
+          image_urls?: string[]
           priority?: Database['public']['Enums']['announcement_priority']
           target_audience?: Database['public']['Enums']['announcement_target']
           target_collective_id?: string | null
@@ -1299,6 +1444,7 @@ export type Database = {
           title?: string
           content?: string
           image_url?: string | null
+          image_urls?: string[]
           priority?: Database['public']['Enums']['announcement_priority']
           target_audience?: Database['public']['Enums']['announcement_target']
           target_collective_id?: string | null
@@ -1854,6 +2000,18 @@ export type Database = {
         Args: { p_event_id: string; p_collective_id: string }
         Returns: undefined
       }
+      invite_collective_to_collaborate: {
+        Args: { p_event_id: string; p_collective_id: string; p_host_collective_id: string; p_message?: string | null }
+        Returns: string
+      }
+      respond_to_collaboration: {
+        Args: { p_collaboration_id: string; p_accept: boolean }
+        Returns: undefined
+      }
+      handle_announcement_rsvp: {
+        Args: { p_event_id: string; p_response: string }
+        Returns: Json
+      }
     }
     Enums: {
       activity_type:
@@ -1930,6 +2088,7 @@ export type CollectiveMember = Tables<'collective_members'>
 export type Event = Tables<'events'>
 export type EventRegistration = Tables<'event_registrations'>
 export type EventInvite = Tables<'event_invites'>
+export type CollectiveEventCollaborator = Tables<'collective_event_collaborators'>
 export type EventImpact = Tables<'event_impact'>
 export type PointsLedger = Tables<'points_ledger'>
 export type PushToken = Tables<'push_tokens'>

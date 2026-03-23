@@ -276,7 +276,6 @@ export default function LogImpactPage() {
   const [formValues, setFormValues] = useState<Record<string, string>>({
     trees_planted: '0',
     rubbish_kg: '0',
-    coastline_cleaned_m: '0',
     area_restored_sqm: '0',
     native_plants: '0',
     wildlife_sightings: '0',
@@ -322,7 +321,6 @@ export default function LogImpactPage() {
       setFormValues({
         trees_planted: String(existingImpact.trees_planted),
         rubbish_kg: String(existingImpact.rubbish_kg),
-        coastline_cleaned_m: String(existingImpact.coastline_cleaned_m),
         area_restored_sqm: String(existingImpact.area_restored_sqm),
         native_plants: String(existingImpact.native_plants),
         wildlife_sightings: String(existingImpact.wildlife_sightings),
@@ -368,7 +366,6 @@ export default function LogImpactPage() {
       event_id: eventId,
       trees_planted: parseFloat(formValues.trees_planted) || 0,
       rubbish_kg: parseFloat(formValues.rubbish_kg) || 0,
-      coastline_cleaned_m: parseFloat(formValues.coastline_cleaned_m) || 0,
       hours_total: computedHoursTotal,
       area_restored_sqm: parseFloat(formValues.area_restored_sqm) || 0,
       native_plants: parseFloat(formValues.native_plants) || 0,

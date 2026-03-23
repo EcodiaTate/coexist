@@ -1,9 +1,9 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import {
-    Heart, Users, Sparkles, Crown, ChevronRight, ArrowLeft,
+    Heart, Users, Sparkles, Crown, ChevronRight,
     TreePine, Leaf, Waves, MapPin, Zap,
     TrendingUp, ShieldCheck,
 } from 'lucide-react'
@@ -159,7 +159,7 @@ function ImpactBadge({ amount }: { amount: number }) {
       initial={{ opacity: 0, y: 8, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.95 }}
-      className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-[#e4ebd4] via-[#dfe6cd] to-[#d8e0c4] border border-sprout-200/40 shadow-sm shadow-sprout-200/15"
+      className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-sprout-50 to-primary-50 shadow-sm"
     >
       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sprout-500 to-primary-700 flex items-center justify-center shrink-0 shadow-md shadow-sprout-500/25">
         {icon}
@@ -267,8 +267,8 @@ function ProjectThermometer({
       className={cn(
         'w-full rounded-[20px] text-left transition-all duration-200 overflow-hidden',
         selected
-          ? 'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.18)] ring-2 ring-primary-400 bg-gradient-to-b from-[#f5f0e5] to-[#ede6d8]'
-          : 'bg-gradient-to-b from-[#f7f3eb] to-[#f0ead9] border border-bark-200/25 shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10)] hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.16)] hover:-translate-y-0.5',
+          ? 'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.14)] ring-2 ring-primary-400 bg-white'
+          : 'bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.14)] hover:-translate-y-0.5',
       )}
     >
       {project.image_url && (
@@ -338,7 +338,7 @@ function AmountPill({
         'transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-1',
         selected
           ? 'bg-gradient-to-br from-primary-600 via-primary-700 to-moss-700 text-white shadow-lg shadow-primary-700/25 border border-primary-500/30'
-          : 'bg-gradient-to-b from-[#faf7f0] to-[#f3ede2] text-secondary-800 hover:from-[#f7f3ea] hover:to-[#efe8db] border border-bark-200/35 shadow-sm',
+          : 'bg-white text-secondary-800 hover:bg-gray-50 shadow-sm shadow-bark-200/15',
       )}
     >
       <span className="text-xl">${amount}</span>
@@ -370,7 +370,7 @@ function AmountPill({
 
 function TrustBadges() {
   return (
-    <div className="flex items-center justify-center gap-4 py-3.5 px-4 rounded-[18px] bg-gradient-to-r from-[#ede6da] to-[#e8e0d3] border border-bark-200/25 shadow-sm shadow-bark-200/10">
+    <div className="flex items-center justify-center gap-4 py-3.5 px-4 rounded-[18px] bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)]">
       <div className="flex items-center gap-1.5 text-bark-600">
         <ShieldCheck size={14} />
         <span className="text-[11px] font-bold">Secure</span>
@@ -384,6 +384,116 @@ function TrustBadges() {
       <div className="flex items-center gap-1.5 text-bark-600">
         <TrendingUp size={14} />
         <span className="text-[11px] font-bold">Tax deductible</span>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Parallax Hero (two-layer, full-bleed like home/events)             */
+/* ------------------------------------------------------------------ */
+
+function DonateHero({ rm }: { rm: boolean }) {
+  const containerRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const el = document.getElementById('main-content')
+    if (el) (containerRef as React.MutableRefObject<HTMLElement>).current = el
+  }, [])
+
+  const { scrollY: windowScrollY } = useScroll()
+  const { scrollY: containerScrollY } = useScroll({
+    container: containerRef as React.RefObject<HTMLElement>,
+  })
+
+  const scrollY = useTransform(
+    [windowScrollY, containerScrollY],
+    ([w, c]: number[]) => Math.max(w, c),
+  )
+
+  const bgY = useTransform(scrollY, [0, 500], [0, 80])
+  const bgScale = useTransform(scrollY, [0, 400], [1, 1.08])
+  const fgY = useTransform(scrollY, [0, 500], [0, 25])
+  const textY = useTransform(scrollY, [0, 500], [0, 120])
+
+  return (
+    <div className="relative">
+      <div className="relative w-full h-[100vw] max-h-[480px] sm:max-h-[420px] overflow-hidden">
+        {/* Background layer */}
+        <motion.div
+          className="absolute inset-x-0 top-0 lg:-top-[60%] will-change-transform"
+          style={rm ? undefined : { y: bgY, scale: bgScale }}
+        >
+          <img
+            src="/img/donate-hero-bg.png"
+            alt="Conservation landscape"
+            className="w-full h-auto block"
+          />
+        </motion.div>
+
+        {/* Foreground cutout */}
+        <motion.div
+          className="absolute inset-x-0 top-0 lg:-top-[60%] z-[3] will-change-transform"
+          style={rm ? undefined : { y: fgY }}
+        >
+          <img
+            src="/img/donate-hero-fg.png"
+            alt=""
+            className="w-full h-auto block"
+          />
+        </motion.div>
+
+        {/* Hero text */}
+        <motion.div
+          className="absolute inset-x-0 top-[25%] sm:top-[18%] z-[2] flex flex-col items-center px-6 will-change-transform"
+          style={rm ? undefined : { y: textY }}
+        >
+          <span className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-[0.3em] text-white/80 mb-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
+            Support
+          </span>
+          <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.4)] leading-[0.85] block">
+            Donate
+          </span>
+          <p className="mt-3 text-sm text-white/70 text-center max-w-xs drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
+            100% goes to conservation events & habitat restoration
+          </p>
+        </motion.div>
+
+        {/* Safe area spacer */}
+        <div
+          className="absolute top-0 left-0 right-0 z-40"
+          style={{ paddingTop: 'var(--safe-top, 0px)' }}
+        />
+      </div>
+
+      {/* Wave transition into warm bg */}
+      <div className="absolute bottom-0 left-0 right-0 z-20">
+        <svg
+          viewBox="0 0 1440 70"
+          preserveAspectRatio="none"
+          className="w-full h-7 sm:h-10 block"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M0,25
+               C60,22 100,18 140,20
+               C180,22 200,15 220,18
+               L228,8 L234,5 L240,10
+               C280,18 340,24 400,20
+               C440,16 470,22 510,25
+               C560,28 600,20 640,22
+               C670,24 690,18 710,20
+               L718,10 L722,6 L728,12
+               C760,20 820,26 880,22
+               C920,18 950,24 990,26
+               C1020,28 1050,20 1080,18
+               C1100,16 1120,22 1140,24
+               L1148,12 L1153,7 L1158,9 L1165,16
+               C1200,22 1260,26 1320,22
+               C1360,18 1400,24 1440,22
+               L1440,70 L0,70 Z"
+            className="fill-[#f2ece0]"
+          />
+        </svg>
       </div>
     </div>
   )
@@ -508,8 +618,11 @@ export default function DonatePage() {
         {/* ── Breathing rings, dots, orbs ── */}
         <PageDepthElements rm={rm} />
 
+        {/* ── Full-bleed parallax hero ── */}
+        <DonateHero rm={rm} />
+
         {/* ── Content ── */}
-        <div className="relative z-10 px-5 lg:px-6 py-4">
+        <div className="relative z-10 px-5 lg:px-6 pt-6">
           <div className="max-w-2xl mx-auto">
             <motion.div
               variants={rm ? undefined : stagger}
@@ -518,55 +631,9 @@ export default function DonatePage() {
               className="space-y-5"
             >
 
-              {/* ═══════════════════════════════════════════════════ */}
-              {/*  HERO CARD                                         */}
-              {/* ═══════════════════════════════════════════════════ */}
+              {/* ── National stats strip ── */}
               <motion.div variants={fadeUp}>
-                <div className="relative rounded-[22px] overflow-hidden bg-gradient-to-br from-secondary-700 via-primary-700 to-moss-800 p-6 pb-5 shadow-[0_8px_40px_-8px_rgba(45,56,38,0.35),0_2px_8px_rgba(45,56,38,0.10)]">
-                  {/* Dot grid texture */}
-                  <div className="absolute inset-0 opacity-[0.06]">
-                    <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                      <defs>
-                        <pattern id="donate-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                          <circle cx="2" cy="2" r="1" fill="white" />
-                        </pattern>
-                      </defs>
-                      <rect width="100%" height="100%" fill="url(#donate-dots)" />
-                    </svg>
-                  </div>
-
-                  {/* Decorative circles */}
-                  <div className="absolute top-0 right-0 w-44 h-44 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
-                  <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
-                  <div className="absolute top-1/2 right-[15%] w-16 h-16 rounded-full bg-sprout-300/10 blur-xl" />
-
-                  {/* Back button */}
-                  <motion.button
-                    type="button"
-                    onClick={() => navigate(-1)}
-                    whileTap={{ scale: 0.9 }}
-                    className="relative mb-6 flex items-center justify-center w-10 h-10 rounded-2xl bg-white/15 text-white border border-white/10 active:scale-[0.95] transition-transform cursor-pointer"
-                    aria-label="Go back"
-                  >
-                    <ArrowLeft size={20} />
-                  </motion.button>
-
-                  <div className="relative">
-                    <h2 className="font-heading font-bold text-white text-[1.75rem] leading-tight">
-                      Fund the future of
-                      <br />
-                      <span className="text-sprout-300">our wild places</span>
-                    </h2>
-                    <p className="text-sm text-white/50 mt-3 max-w-xs leading-relaxed">
-                      100% of every donation goes directly to conservation events, native plantings & habitat restoration
-                    </p>
-                  </div>
-
-                  {/* Stats inside hero */}
-                  <div className="relative mt-6">
-                    <NationalStatsStrip />
-                  </div>
-                </div>
+                <NationalStatsStrip />
               </motion.div>
 
               {/* ── Donor wall link ── */}
@@ -575,10 +642,9 @@ export default function DonatePage() {
                   to="/donate/donors"
                   className={cn(
                     'flex items-center gap-3 p-4 rounded-[20px]',
-                    'bg-gradient-to-br from-[#ede6da] via-[#e9e1d4] to-[#e4dccf]',
-                    'border border-bark-200/30',
-                    'shadow-[0_4px_20px_-4px_rgba(93,77,51,0.14),0_1px_4px_rgba(93,77,51,0.05)]',
-                    'transition-all hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.18)] hover:-translate-y-0.5 active:scale-[0.98] duration-200',
+                    'bg-white',
+                    'shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)]',
+                    'transition-all hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.14)] hover:-translate-y-0.5 active:scale-[0.98] duration-200',
                   )}
                 >
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-bark-500 to-moss-600 flex items-center justify-center shrink-0 shadow-md shadow-bark-400/25">
@@ -601,7 +667,7 @@ export default function DonatePage() {
               {/* ═══════════════════════════════════════════════════ */}
               <motion.div variants={fadeUp}>
                 <SectionHeader icon={Heart} title="Choose an amount" badge="AUD" />
-                <div className="rounded-[20px] bg-gradient-to-b from-[#f5f0e5] via-[#f2ece0] to-[#eee7d9] shadow-[0_4px_20px_-4px_rgba(93,77,51,0.12),0_1px_4px_rgba(93,77,51,0.05)] border border-bark-200/25 p-5">
+                <div className="rounded-[20px] bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] p-5">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
                     {PRESET_AMOUNTS.map((amount) => (
                       <AmountPill
@@ -639,13 +705,12 @@ export default function DonatePage() {
                   to="/membership"
                   className={cn(
                     'relative flex items-center gap-4 p-5 rounded-[22px] overflow-hidden',
-                    'bg-gradient-to-r from-[#ede3d2] via-[#e9deca] to-[#e4d8c0]',
-                    'border border-bark-300/30',
-                    'shadow-[0_4px_24px_-6px_rgba(93,77,51,0.16),0_2px_6px_rgba(93,77,51,0.06)]',
-                    'transition-all hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.20)] active:scale-[0.98] duration-200',
+                    'bg-white',
+                    'shadow-[0_4px_24px_-6px_rgba(93,77,51,0.10),0_2px_6px_rgba(93,77,51,0.04)]',
+                    'transition-all hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.14)] active:scale-[0.98] duration-200',
                   )}
                 >
-                  <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-amber-200/20 blur-2xl" />
+                  <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-amber-100/30 blur-2xl" />
                   <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-bark-500 flex items-center justify-center shrink-0 shadow-md shadow-amber-200/40">
                     <Crown size={22} className="text-white" />
                   </div>
@@ -714,7 +779,7 @@ export default function DonatePage() {
               {/* ═══════════════════════════════════════════════════ */}
               <motion.div variants={fadeUp}>
                 <SectionHeader icon={Sparkles} title="Personal touches" badge="Optional" />
-                <div className="rounded-[20px] bg-gradient-to-b from-[#f5f0e5] to-[#eee7d9] shadow-[0_4px_20px_-4px_rgba(93,77,51,0.12),0_1px_4px_rgba(93,77,51,0.05)] border border-bark-200/25 p-5 space-y-4">
+                <div className="rounded-[20px] bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] p-5 space-y-4">
                   <Input
                     type="textarea"
                     label="Leave a message"

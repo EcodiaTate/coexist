@@ -22,7 +22,6 @@ import {
     AlertTriangle,
     ExternalLink,
     Eye,
-    Waves,
     Leaf,
     TrendingUp,
     Sparkles,
@@ -233,7 +232,6 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
     ? [
         { value: stats.trees_planted, label: 'Trees Planted', icon: <TreePine size={20} className="text-success-700" />, color: 'bg-success-50' },
         { value: Math.round(stats.rubbish_kg), label: 'Rubbish (kg)', icon: <span className="text-lg text-primary-700" aria-hidden="true">&#9851;</span>, color: 'bg-primary-50' },
-        ...(Math.round(stats.coastline_cleaned_m) > 0 ? [{ value: Math.round(stats.coastline_cleaned_m), label: 'Coastline (m)', icon: <Waves size={20} className="text-info-600" />, color: 'bg-info-50' }] : []),
         ...(Math.round(stats.area_restored_sqm) > 0 ? [{ value: Math.round(stats.area_restored_sqm), label: 'Area (sqm)', icon: <MapPin size={20} className="text-primary-600" />, color: 'bg-primary-50' }] : []),
         ...(stats.native_plants > 0 ? [{ value: stats.native_plants, label: 'Native Plants', icon: <Leaf size={20} className="text-success-600" />, color: 'bg-success-50' }] : []),
         ...((stats.wildlife_sightings ?? 0) > 0 ? [{ value: stats.wildlife_sightings, label: 'Wildlife Sightings', icon: <Eye size={20} className="text-warning-600" />, color: 'bg-warning-50' }] : []),

@@ -1,14 +1,24 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Camera, MapPin, X } from 'lucide-react'
+import {
+  Camera,
+  MapPin,
+  User,
+  Phone,
+  Shield,
+  Heart,
+  Sparkles,
+  Eye,
+  Compass,
+  Accessibility,
+} from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Avatar } from '@/components/avatar'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Chip } from '@/components/chip'
-import { Toggle } from '@/components/toggle'
 import { Skeleton } from '@/components/skeleton'
 import { UploadProgress } from '@/components/upload-progress'
 import { useToast } from '@/components/toast'
@@ -35,9 +45,66 @@ const INTEREST_OPTIONS = [
   'Citizen Science',
 ]
 
-const PRONOUN_OPTIONS = ['he/him', 'she/her', 'they/them', 'he/they', 'she/they', 'Custom']
+const DISCOVERY_OPTIONS = [
+  'Social media',
+  'Friend or family',
+  'School or uni',
+  'Web search',
+  'Event or festival',
+  'News or media',
+  'Other',
+]
 
 type Visibility = 'public' | 'collective-only' | 'private'
+
+/* ------------------------------------------------------------------ */
+/*  Section card wrapper                                               */
+/* ------------------------------------------------------------------ */
+
+function SectionCard({
+  icon,
+  iconBg,
+  headerBg,
+  title,
+  description,
+  children,
+}: {
+  icon: React.ReactNode
+  iconBg: string
+  headerBg?: string
+  title: string
+  description?: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="rounded-2xl bg-white shadow-sm border border-primary-100/60 overflow-hidden">
+      {/* Section header — tinted */}
+      <div className={cn('flex items-center gap-3 px-4 pt-4 pb-3', headerBg)}>
+        <div className={cn('shrink-0 w-9 h-9 rounded-xl flex items-center justify-center', iconBg)}>
+          {icon}
+        </div>
+        <div>
+          <h3 className="font-heading text-sm font-bold text-primary-800">{title}</h3>
+          {description && <p className="text-[11px] text-primary-400 mt-0.5">{description}</p>}
+        </div>
+      </div>
+      {/* Content */}
+      <div className="p-4 space-y-3">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Input wrapper — shared styling                                     */
+/* ------------------------------------------------------------------ */
+
+const inputStyle = '[&_input]:bg-surface-1 [&_input]:border [&_input]:border-primary-200 [&_input]:focus:border-primary-400 [&_textarea]:bg-surface-1 [&_textarea]:border [&_textarea]:border-primary-200 [&_textarea]:focus:border-primary-400'
+
+/* ------------------------------------------------------------------ */
+/*  Page                                                               */
+/* ------------------------------------------------------------------ */
 
 export default function EditProfilePage() {
   const navigate = useNavigate()
@@ -50,6 +117,7 @@ export default function EditProfilePage() {
   const { upload, progress, uploading, error: uploadError } = useImageUpload({ bucket: 'avatars' })
   const { toast } = useToast()
 
+  // Existing fields
   const [displayName, setDisplayName] = useState('')
   const [pronouns, setPronouns] = useState('')
   const [bio, setBio] = useState('')
@@ -58,6 +126,20 @@ export default function EditProfilePage() {
   const [phone, setPhone] = useState('')
   const [interests, setInterests] = useState<string[]>([])
   const [visibility, setVisibility] = useState<Visibility>('public')
+
+  // New fields
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [age, setAge] = useState('')
+  const [postcode, setPostcode] = useState('')
+  const [gender, setGender] = useState('')
+  const [email, setEmail] = useState('')
+  const [collectiveDiscovery, setCollectiveDiscovery] = useState('')
+  const [accessibilityRequirements, setAccessibilityRequirements] = useState('')
+  const [emergencyContactName, setEmergencyContactName] = useState('')
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState('')
+  const [emergencyContactRelationship, setEmergencyContactRelationship] = useState('')
+
   const [initialized, setInitialized] = useState(false)
 
   // Initialize form with profile data
@@ -69,17 +151,28 @@ export default function EditProfilePage() {
     setLocation(profile.location ?? '')
     setPhone(profile.phone ?? '')
     setInterests(profile.interests ?? [])
+    setFirstName(profile.first_name ?? '')
+    setLastName(profile.last_name ?? '')
+    setAge(profile.age != null ? String(profile.age) : '')
+    setPostcode(profile.postcode ?? '')
+    setGender(profile.gender ?? '')
+    setEmail(profile.email ?? '')
+    setCollectiveDiscovery(profile.collective_discovery ?? '')
+    setAccessibilityRequirements(profile.accessibility_requirements ?? '')
+    setEmergencyContactName(profile.emergency_contact_name ?? '')
+    setEmergencyContactPhone(profile.emergency_contact_phone ?? '')
+    setEmergencyContactRelationship(profile.emergency_contact_relationship ?? '')
     setInitialized(true)
   }
 
   const stagger = {
     hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
+    visible: { transition: { staggerChildren: 0.05 } },
   }
 
   const fadeUp = {
     hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   }
 
   const handleAvatarChange = async () => {
@@ -90,7 +183,6 @@ export default function EditProfilePage() {
       const path = `${authProfile?.id}/avatar.jpg`
       const uploaded = await upload(result.blob, path)
 
-      // Update profile with new avatar URL
       await supabase
         .from('profiles')
         .update({ avatar_url: uploaded.url })
@@ -118,6 +210,18 @@ export default function EditProfilePage() {
         location: location || null,
         phone: phone || null,
         interests,
+        first_name: firstName || null,
+        last_name: lastName || null,
+        age: age ? parseInt(age, 10) : null,
+        postcode: postcode || null,
+        gender: gender || null,
+        email: email || null,
+        collective_discovery: collectiveDiscovery || null,
+        accessibility_requirements: accessibilityRequirements || null,
+        emergency_contact_name: emergencyContactName || null,
+        emergency_contact_phone: emergencyContactPhone || null,
+        emergency_contact_relationship: emergencyContactRelationship || null,
+        profile_details_completed: true,
       })
       toast.success('Profile updated!')
       navigate('/profile')
@@ -138,9 +242,12 @@ export default function EditProfilePage() {
       </Page>
     )
   }
+
   return (
     <Page
       header={<Header title="Edit Profile" back />}
+      noBackground
+      className="bg-gradient-to-b from-surface-2 via-primary-50/30 to-moss-50/20"
       footer={
         <Button
           variant="primary"
@@ -154,171 +261,334 @@ export default function EditProfilePage() {
       }
     >
       <div className="pb-8">
-        {/* Avatar */}
+        {/* Avatar with colourful backdrop */}
         <motion.div
           initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center pt-6 pb-4"
+          className="relative -mx-4 lg:-mx-6 overflow-hidden"
         >
-          <div className="relative">
-            <Avatar
-              src={profile?.avatar_url}
-              name={displayName || 'User'}
-              size="xl"
-            />
-            <button
-              onClick={handleAvatarChange}
-              disabled={cameraLoading || uploading}
-              className="absolute -bottom-1 -right-1 flex items-center justify-center w-9 h-9 rounded-full bg-primary-500 text-white shadow-md hover:bg-primary-800 transition-colors disabled:opacity-50"
-              aria-label="Change avatar"
-            >
-              <Camera size={16} />
-            </button>
+          <div className="bg-gradient-to-br from-primary-500 via-primary-400 to-moss-400 py-8">
+            {/* Decorative shapes */}
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/[0.06]" />
+              <div className="absolute bottom-0 -left-8 w-28 h-28 rounded-full bg-white/[0.04]" />
+            </div>
+
+            <div className="relative z-10 flex flex-col items-center">
+              <div className="relative">
+                <div className="ring-4 ring-white/30 rounded-full">
+                  <Avatar
+                    src={profile?.avatar_url}
+                    name={displayName || 'User'}
+                    size="xl"
+                  />
+                </div>
+                <button
+                  onClick={handleAvatarChange}
+                  disabled={cameraLoading || uploading}
+                  className="absolute -bottom-1 -right-1 flex items-center justify-center w-9 h-9 rounded-full bg-white shadow-md text-primary-600 hover:bg-primary-50 transition-colors disabled:opacity-50"
+                  aria-label="Change avatar"
+                >
+                  <Camera size={16} />
+                </button>
+              </div>
+              <UploadProgress
+                progress={progress}
+                uploading={uploading}
+                error={uploadError}
+                className="mt-2 max-w-[200px]"
+              />
+              <p className="mt-2 text-xs text-white/60">Tap the camera to change your photo</p>
+            </div>
           </div>
-          <UploadProgress
-            progress={progress}
-            uploading={uploading}
-            error={uploadError}
-            className="mt-2 max-w-[200px]"
-          />
         </motion.div>
 
-        {/* Form fields */}
-        <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="space-y-5 mt-4">
-          <motion.div variants={fadeUp}>
-          <Input
-            label="Display Name"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Your name"
-            maxLength={50}
-          />
-          </motion.div>
+        {/* Form sections */}
+        <motion.div
+          variants={shouldReduceMotion ? undefined : stagger}
+          initial="hidden"
+          animate="visible"
+          className="space-y-4 mt-5"
+        >
 
+          {/* ---- Personal Details ---- */}
           <motion.div variants={fadeUp}>
-            <label className="block text-sm font-medium text-primary-800 mb-1.5">Pronouns</label>
-            <div className="flex flex-wrap gap-2">
-              {PRONOUN_OPTIONS.map((opt) => (
-                <Chip
-                  key={opt}
-                  label={opt}
-                  selected={pronouns === opt}
-                  onSelect={() => setPronouns(pronouns === opt ? '' : opt)}
+            <SectionCard
+              icon={<User size={17} className="text-primary-600" />}
+              iconBg="bg-primary-200/80"
+              headerBg="bg-primary-50/60"
+              title="Personal Details"
+              description="Your identity info — visible to event leaders"
+            >
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="First Name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First name"
+                  maxLength={50}
+                  className={inputStyle}
                 />
-              ))}
-            </div>
-            {pronouns === 'Custom' && (
+                <Input
+                  label="Last Name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Last name"
+                  maxLength={50}
+                  className={inputStyle}
+                />
+              </div>
               <Input
-                label="Custom Pronouns"
-                value={pronouns === 'Custom' ? '' : pronouns}
-                onChange={(e) => setPronouns(e.target.value)}
-                placeholder="Enter your pronouns"
-                className="mt-2"
+                label="Display Name"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="How you appear to others"
+                maxLength={50}
+                className={inputStyle}
               />
-            )}
-          </motion.div>
-
-          <motion.div variants={fadeUp}>
-          <Input
-            label="Bio"
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Tell people about yourself..."
-            maxLength={500}
-          />
-          </motion.div>
-
-          <motion.div variants={fadeUp}>
-          <Input
-            label="Instagram Handle"
-            value={instagramHandle}
-            onChange={(e) => setInstagramHandle(e.target.value)}
-            placeholder="@coexistaus"
-            maxLength={30}
-          />
-          </motion.div>
-
-          <motion.div variants={fadeUp}>
-          <Input
-            label="Location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="e.g. Byron Bay, NSW"
-            icon={<MapPin size={16} />}
-            maxLength={100}
-          />
-          </motion.div>
-
-          <motion.div variants={fadeUp}>
-          <Input
-            label="Phone"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="0400 000 000"
-            type="tel"
-            maxLength={20}
-          />
-          </motion.div>
-
-          {/* Interests */}
-          <motion.div variants={fadeUp}>
-            <label className="block text-sm font-medium text-primary-800 mb-2">
-              Conservation Interests
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {INTEREST_OPTIONS.map((interest) => (
-                <Chip
-                  key={interest}
-                  label={interest}
-                  selected={interests.includes(interest)}
-                  onSelect={() => toggleInterest(interest)}
+              <Input
+                label="Pronouns"
+                value={pronouns}
+                onChange={(e) => setPronouns(e.target.value)}
+                placeholder="e.g. she/her, they/them"
+                maxLength={30}
+                className={inputStyle}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <Input
+                  label="Age"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value.replace(/\D/g, ''))}
+                  placeholder="Age"
+                  type="number"
+                  maxLength={3}
+                  className={inputStyle}
                 />
-              ))}
-            </div>
+                <Input
+                  label="Gender"
+                  value={gender}
+                  onChange={(e) => setGender(e.target.value)}
+                  placeholder="e.g. Female, Non-binary"
+                  maxLength={30}
+                  className={inputStyle}
+                />
+              </div>
+              <Input
+                label="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                type="email"
+                maxLength={100}
+                className={inputStyle}
+              />
+              <Input
+                label="Postcode"
+                value={postcode}
+                onChange={(e) => setPostcode(e.target.value)}
+                placeholder="e.g. 2481"
+                maxLength={10}
+                className={inputStyle}
+              />
+            </SectionCard>
           </motion.div>
 
-          {/* Privacy */}
+          {/* ---- About You ---- */}
           <motion.div variants={fadeUp}>
-            <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3">
-              Privacy Settings
-            </h3>
-            <div className="space-y-3">
-              {([
-                { value: 'public' as const, label: 'Public', desc: 'Anyone can see your profile' },
-                {
-                  value: 'collective-only' as const,
-                  label: 'Collective Only',
-                  desc: 'Only members of your collectives can see',
-                },
-                { value: 'private' as const, label: 'Private', desc: 'Only you can see your profile' },
-              ] as const).map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setVisibility(opt.value)}
-                  className={cn(
-                    'w-full flex items-start gap-3 rounded-xl px-4 py-3 text-left transition-colors',
-                    visibility === opt.value
-                      ? 'ring-2 ring-primary-500 bg-white shadow-sm'
-                      : 'bg-primary-50/60 hover:bg-primary-50',
-                  )}
-                >
-                  <div
+            <SectionCard
+              icon={<Sparkles size={17} className="text-sprout-600" />}
+              iconBg="bg-sprout-200/80"
+              headerBg="bg-sprout-50/60"
+              title="About You"
+              description="Express yourself — shown on your public profile"
+            >
+              <Input
+                label="Bio"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell people about yourself..."
+                type="textarea"
+                maxLength={500}
+                className={inputStyle}
+              />
+              <Input
+                label="Instagram Handle"
+                value={instagramHandle}
+                onChange={(e) => setInstagramHandle(e.target.value)}
+                placeholder="@coexistaus"
+                maxLength={30}
+                className={inputStyle}
+              />
+              <Input
+                label="Location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Byron Bay, NSW"
+                icon={<MapPin size={16} />}
+                maxLength={100}
+                className={inputStyle}
+              />
+              <Input
+                label="Phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="0400 000 000"
+                type="tel"
+                maxLength={20}
+                className={inputStyle}
+              />
+            </SectionCard>
+          </motion.div>
+
+          {/* ---- How Did You Discover Co-Exist ---- */}
+          <motion.div variants={fadeUp}>
+            <SectionCard
+              icon={<Compass size={17} className="text-sky-600" />}
+              iconBg="bg-sky-200/80"
+              headerBg="bg-sky-50/60"
+              title="How Did You Discover Co-Exist?"
+            >
+              <div className="flex flex-wrap gap-2">
+                {DISCOVERY_OPTIONS.map((opt) => (
+                  <Chip
+                    key={opt}
+                    label={opt}
+                    selected={collectiveDiscovery === opt}
+                    onSelect={() => setCollectiveDiscovery(collectiveDiscovery === opt ? '' : opt)}
+                  />
+                ))}
+              </div>
+            </SectionCard>
+          </motion.div>
+
+          {/* ---- Conservation Interests ---- */}
+          <motion.div variants={fadeUp}>
+            <SectionCard
+              icon={<Heart size={17} className="text-moss-600" />}
+              iconBg="bg-moss-200/80"
+              headerBg="bg-moss-50/60"
+              title="Conservation Interests"
+              description="Select what excites you most"
+            >
+              <div className="flex flex-wrap gap-2">
+                {INTEREST_OPTIONS.map((interest) => (
+                  <Chip
+                    key={interest}
+                    label={interest}
+                    selected={interests.includes(interest)}
+                    onSelect={() => toggleInterest(interest)}
+                  />
+                ))}
+              </div>
+            </SectionCard>
+          </motion.div>
+
+          {/* ---- Accessibility Requirements ---- */}
+          <motion.div variants={fadeUp}>
+            <SectionCard
+              icon={<Accessibility size={17} className="text-plum-600" />}
+              iconBg="bg-plum-200/80"
+              headerBg="bg-plum-50/60"
+              title="Accessibility Requirements"
+              description="Let us know so events work for you"
+            >
+              <Input
+                label="Any accessibility needs?"
+                value={accessibilityRequirements}
+                onChange={(e) => setAccessibilityRequirements(e.target.value)}
+                placeholder="e.g. Wheelchair access, hearing loop, visual impairment assistance..."
+                type="textarea"
+                rows={3}
+                maxLength={500}
+                className={inputStyle}
+              />
+            </SectionCard>
+          </motion.div>
+
+          {/* ---- Emergency Contact ---- */}
+          <motion.div variants={fadeUp}>
+            <SectionCard
+              icon={<Shield size={17} className="text-warning-700" />}
+              iconBg="bg-warning-200/80"
+              headerBg="bg-warning-50/60"
+              title="Emergency Contact"
+              description="Shared with event leaders on the day for safety"
+            >
+              <Input
+                label="Contact Name"
+                value={emergencyContactName}
+                onChange={(e) => setEmergencyContactName(e.target.value)}
+                placeholder="Full name"
+                maxLength={100}
+                className={inputStyle}
+              />
+              <Input
+                label="Contact Phone"
+                value={emergencyContactPhone}
+                onChange={(e) => setEmergencyContactPhone(e.target.value)}
+                placeholder="0400 000 000"
+                type="tel"
+                maxLength={20}
+                className={inputStyle}
+              />
+              <Input
+                label="Relationship"
+                value={emergencyContactRelationship}
+                onChange={(e) => setEmergencyContactRelationship(e.target.value)}
+                placeholder="e.g. Parent, Partner, Friend"
+                maxLength={50}
+                className={inputStyle}
+              />
+            </SectionCard>
+          </motion.div>
+
+          {/* ---- Privacy ---- */}
+          <motion.div variants={fadeUp}>
+            <SectionCard
+              icon={<Eye size={17} className="text-info-600" />}
+              iconBg="bg-info-200/80"
+              headerBg="bg-info-50/60"
+              title="Privacy Settings"
+              description="Control who can see your profile"
+            >
+              <div className="space-y-2">
+                {([
+                  { value: 'public' as const, label: 'Public', desc: 'Anyone can see your profile' },
+                  {
+                    value: 'collective-only' as const,
+                    label: 'Collective Only',
+                    desc: 'Only members of your collectives can see',
+                  },
+                  { value: 'private' as const, label: 'Private', desc: 'Only you can see your profile' },
+                ] as const).map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setVisibility(opt.value)}
                     className={cn(
-                      'mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0',
-                      visibility === opt.value ? 'border-primary-500' : 'border-primary-200',
+                      'w-full flex items-start gap-3 rounded-xl px-4 py-3 text-left transition-all duration-150',
+                      visibility === opt.value
+                        ? 'ring-2 ring-primary-500 bg-primary-50/60 shadow-sm'
+                        : 'bg-surface-1 border border-primary-100 hover:border-primary-200',
                     )}
                   >
-                    {visibility === opt.value && (
-                      <div className="w-2 h-2 rounded-full bg-primary-500" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-primary-800">{opt.label}</p>
-                    <p className="text-xs text-primary-400">{opt.desc}</p>
-                  </div>
-                </button>
-              ))}
-            </div>
+                    <div
+                      className={cn(
+                        'mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
+                        visibility === opt.value ? 'border-primary-500' : 'border-primary-200',
+                      )}
+                    >
+                      {visibility === opt.value && (
+                        <div className="w-2 h-2 rounded-full bg-primary-500" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-primary-800">{opt.label}</p>
+                      <p className="text-xs text-primary-400">{opt.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </SectionCard>
           </motion.div>
         </motion.div>
       </div>

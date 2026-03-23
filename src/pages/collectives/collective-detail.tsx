@@ -8,7 +8,6 @@ import {
     TreePine,
     Clock,
     Trash2,
-    Waves,
     Ruler,
     Leaf,
     Eye,
@@ -338,13 +337,6 @@ export default function CollectiveDetailPage() {
                   label="Rubbish (kg)"
                   value={stats.totalRubbishKg}
                   icon={<Trash2 size={18} />}
-                />
-              )}
-              {stats.totalCoastlineCleaned > 0 && (
-                <StatCard
-                  label="Coastline (m)"
-                  value={stats.totalCoastlineCleaned}
-                  icon={<Waves size={18} />}
                 />
               )}
               {stats.totalAreaRestored > 0 && (

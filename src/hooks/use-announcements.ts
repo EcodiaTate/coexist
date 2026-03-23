@@ -165,7 +165,7 @@ export function useMarkAnnouncementRead() {
 interface CreateAnnouncementParams {
   title: string
   content: string
-  imageUrl?: string
+  imageUrls?: string[]
   priority: Enums<'announcement_priority'>
   targetAudience: Enums<'announcement_target'>
   targetCollectiveId?: string
@@ -180,13 +180,15 @@ export function useCreateAnnouncement() {
     mutationFn: async (params: CreateAnnouncementParams) => {
       if (!user) throw new Error('Not authenticated')
 
+      const urls = params.imageUrls ?? []
       const { data, error } = await supabase
         .from('global_announcements')
         .insert({
           author_id: user.id,
           title: params.title,
           content: params.content,
-          image_url: params.imageUrl ?? null,
+          image_url: urls[0] ?? null,
+          image_urls: urls,
           priority: params.priority,
           target_audience: params.targetAudience,
           target_collective_id: params.targetCollectiveId ?? null,

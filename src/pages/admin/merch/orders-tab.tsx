@@ -12,6 +12,9 @@ import {
     Copy,
     ExternalLink,
     StickyNote,
+    Check,
+    X,
+    RotateCcw,
 } from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { TabBar } from '@/components/tab-bar'
@@ -30,9 +33,11 @@ import {
     useUpdateOrderStatus,
     useRefundOrder,
     useUpdateOrderNotes,
+    useAdminReturns,
+    useUpdateReturnStatus,
     exportOrdersCsv,
 } from '@/hooks/use-admin-merch'
-import { formatPrice, type OrderStatus, type Order } from '@/types/merch'
+import { formatPrice, type OrderStatus, type Order, type ReturnStatus } from '@/types/merch'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -63,6 +68,22 @@ const STATUS_ICONS: Record<OrderStatus, typeof Clock> = {
   delivered: CheckCircle2,
   cancelled: RefreshCw,
   refunded: RefreshCw,
+}
+
+const CARD_STATUS_GRADIENTS: Record<string, string> = {
+  pending: 'from-warning-50 via-warning-50/60 to-[#f0f4ea] border-warning-200/30',
+  processing: 'from-info-50 via-info-50/60 to-[#edf1e7] border-info-200/30',
+  shipped: 'from-plum-50 via-plum-50/60 to-[#edf1e7] border-plum-200/30',
+  delivered: 'from-success-50 via-success-50/60 to-[#edf1e7] border-success-200/30',
+  cancelled: 'from-[#f0f0f0] to-[#e8e8e8] border-primary-200/20',
+  refunded: 'from-error-50 via-error-50/60 to-[#f0f0f0] border-error-200/30',
+}
+
+const RETURN_STATUS_COLORS: Record<ReturnStatus, string> = {
+  requested: 'bg-warning-100 text-warning-800',
+  approved: 'bg-success-100 text-success-800',
+  denied: 'bg-error-100 text-error-700',
+  refunded: 'bg-plum-100 text-plum-800',
 }
 
 const STATUS_FLOW: OrderStatus[] = ['pending', 'processing', 'shipped', 'delivered']
@@ -158,20 +179,218 @@ function OrderCounts({ orders }: { orders: OrderWithProfile[] }) {
   }, [orders])
 
   const cards = [
-    { label: 'Pending', count: counts.pending, color: 'text-warning-600 bg-warning-50' },
-    { label: 'Processing', count: counts.processing, color: 'text-info-600 bg-info-50' },
-    { label: 'Shipped', count: counts.shipped, color: 'text-plum-600 bg-plum-50' },
-    { label: 'Delivered', count: counts.delivered, color: 'text-success-600 bg-success-50' },
+    { label: 'Pending', count: counts.pending, gradient: 'from-warning-500 to-warning-600', icon: Clock },
+    { label: 'Processing', count: counts.processing, gradient: 'from-info-500 to-info-600', icon: Package },
+    { label: 'Shipped', count: counts.shipped, gradient: 'from-plum-500 to-plum-600', icon: Truck },
+    { label: 'Delivered', count: counts.delivered, gradient: 'from-success-500 to-success-600', icon: CheckCircle2 },
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mb-5">
-      {cards.map((c) => (
-        <div key={c.label} className={cn('p-3 rounded-2xl text-center shadow-sm border border-primary-100/15', c.color)}>
-          <p className="font-heading text-lg font-bold tabular-nums">{c.count}</p>
-          <p className="text-[11px] font-semibold mt-0.5">{c.label}</p>
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-5">
+      {cards.map((c) => {
+        const Icon = c.icon
+        return (
+          <div key={c.label} className={`p-4 rounded-2xl shadow-lg bg-gradient-to-br ${c.gradient} text-center`}>
+            <Icon size={16} className="text-white/60 mx-auto mb-1" />
+            <p className="font-heading text-xl font-bold tabular-nums text-white">{c.count}</p>
+            <p className="text-[11px] font-semibold mt-0.5 text-white/70">{c.label}</p>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Returns section (embedded in order detail)                         */
+/* ------------------------------------------------------------------ */
+
+function ReturnsBanner({ orderId }: { orderId: string }) {
+  const { data: allReturns } = useAdminReturns()
+  const updateReturn = useUpdateReturnStatus()
+  const { toast } = useToast()
+
+  const returns = useMemo(() => {
+    if (!allReturns) return []
+    return allReturns.filter((r) => {
+      const orderRef = r.order as { id: string } | null
+      return orderRef?.id === orderId
+    })
+  }, [allReturns, orderId])
+
+  const handleUpdate = useCallback(
+    async (returnId: string, status: 'approved' | 'denied') => {
+      try {
+        await updateReturn.mutateAsync({ returnId, status })
+        toast.success(`Return ${status}`)
+      } catch {
+        toast.error('Failed to update return')
+      }
+    },
+    [updateReturn, toast],
+  )
+
+  if (returns.length === 0) return null
+
+  return (
+    <>
+      <Divider />
+      <div>
+        <h4 className="text-xs font-semibold text-primary-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <RotateCcw size={12} />
+          Return Requests
+        </h4>
+        <div className="space-y-2">
+          {returns.map((ret) => (
+            <div
+              key={ret.id}
+              className="p-3 rounded-xl bg-gradient-to-r from-warning-50/80 to-primary-50/40 border border-warning-200/30"
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    src={ret.profiles?.avatar_url}
+                    name={ret.profiles?.display_name ?? 'User'}
+                    size="xs"
+                  />
+                  <span className="text-sm font-medium text-primary-800">
+                    {ret.profiles?.display_name ?? 'Unknown'}
+                  </span>
+                </div>
+                <span
+                  className={cn(
+                    'px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize',
+                    RETURN_STATUS_COLORS[ret.status],
+                  )}
+                >
+                  {ret.status}
+                </span>
+              </div>
+              <p className="text-sm text-primary-400 mb-1">
+                <span className="font-medium">Reason:</span> {ret.reason}
+              </p>
+              {ret.status === 'requested' && (
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    icon={<Check size={14} />}
+                    loading={updateReturn.isPending}
+                    onClick={() => handleUpdate(ret.id, 'approved')}
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    icon={<X size={14} />}
+                    loading={updateReturn.isPending}
+                    onClick={() => handleUpdate(ret.id, 'denied')}
+                  >
+                    Deny
+                  </Button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
+    </>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Standalone returns list (all returns across orders)                */
+/* ------------------------------------------------------------------ */
+
+function AllReturnsList() {
+  const { data: returns, isLoading } = useAdminReturns()
+  const showLoading = useDelayedLoading(isLoading)
+  const updateReturn = useUpdateReturnStatus()
+  const { toast } = useToast()
+
+  const handleUpdate = useCallback(
+    async (returnId: string, status: 'approved' | 'denied') => {
+      try {
+        await updateReturn.mutateAsync({ returnId, status })
+        toast.success(`Return ${status}`)
+      } catch {
+        toast.error('Failed to update return')
+      }
+    },
+    [updateReturn, toast],
+  )
+
+  if (showLoading) return <Skeleton variant="text" count={3} />
+  if (!returns || returns.length === 0) return null
+
+  const pending = returns.filter((r) => r.status === 'requested')
+  if (pending.length === 0) return null
+
+  return (
+    <div className="mb-5">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-warning-500 to-warning-600 shadow-md">
+          <RotateCcw size={14} className="text-white" />
+        </div>
+        <div>
+          <h3 className="text-sm font-bold text-primary-800">Pending Returns</h3>
+          <p className="text-[11px] text-primary-400">{pending.length} awaiting review</p>
+        </div>
+      </div>
+      <div className="space-y-2">
+        {pending.map((ret) => (
+          <div
+            key={ret.id}
+            className="p-4 rounded-2xl bg-gradient-to-br from-warning-50 via-warning-50/60 to-[#f0f4ea] border border-warning-200/30 shadow-sm"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Avatar
+                  src={ret.profiles?.avatar_url}
+                  name={ret.profiles?.display_name ?? 'User'}
+                  size="xs"
+                />
+                <span className="text-sm font-medium text-primary-800">
+                  {ret.profiles?.display_name ?? 'Unknown'}
+                </span>
+              </div>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold capitalize bg-warning-100 text-warning-800">
+                {ret.status}
+              </span>
+            </div>
+            <p className="text-sm text-primary-400 mb-1">
+              <span className="font-medium">Reason:</span> {ret.reason}
+            </p>
+            {ret.order && (
+              <p className="text-xs text-primary-400 mb-2">
+                Order #{(ret.order as { id: string }).id.slice(0, 8)} ·{' '}
+                {formatPrice((ret.order as { total_cents: number }).total_cents)}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<Check size={14} />}
+                loading={updateReturn.isPending}
+                onClick={() => handleUpdate(ret.id, 'approved')}
+              >
+                Approve
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                icon={<X size={14} />}
+                loading={updateReturn.isPending}
+                onClick={() => handleUpdate(ret.id, 'denied')}
+              >
+                Deny
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -295,6 +514,11 @@ export default function OrdersTab() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible">
+      {/* Pending returns banner */}
+      <motion.div variants={fadeUp}>
+        <AllReturnsList />
+      </motion.div>
+
       {/* Summary counts */}
       {orders && orders.length > 0 && (
         <motion.div variants={fadeUp}>
@@ -341,7 +565,10 @@ export default function OrdersTab() {
                 key={order.id}
                 type="button"
                 onClick={() => openOrder(order)}
-                className="w-full text-left p-5 bg-gradient-to-br from-[#f0f4ea] via-[#edf1e7] to-[#e8ecdf] border border-primary-200/20 rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.08),0_1px_4px_rgba(61,77,51,0.03)] cursor-pointer hover:shadow-[0_6px_28px_-4px_rgba(61,77,51,0.14)] transition-[color,background-color,box-shadow,transform] duration-200 active:scale-[0.98]"
+                className={cn(
+                  'w-full text-left p-5 bg-gradient-to-br border rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.08),0_1px_4px_rgba(61,77,51,0.03)] cursor-pointer hover:shadow-[0_6px_28px_-4px_rgba(61,77,51,0.14)] transition-[color,background-color,box-shadow,transform] duration-200 active:scale-[0.98]',
+                  CARD_STATUS_GRADIENTS[order.status] ?? 'from-[#f0f4ea] to-[#e8ecdf] border-primary-200/20',
+                )}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
@@ -539,6 +766,9 @@ export default function OrdersTab() {
                 </div>
               )}
             </div>
+
+            {/* Returns for this order */}
+            <ReturnsBanner orderId={selectedOrder.id} />
 
             <Divider />
 

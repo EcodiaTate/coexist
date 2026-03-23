@@ -6,11 +6,8 @@ import {
     MapPin,
     CalendarDays,
     TreePine, Clock,
-    Waves,
     Leaf,
     Eye,
-    UserCheck,
-    ClipboardCheck,
     ArrowUpRight,
     Globe
 } from 'lucide-react'
@@ -72,7 +69,7 @@ function useAdminOverview(dateRange: DateRange) {
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
         supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
         (() => {
-          let q = supabase.from('event_impact').select('trees_planted, hours_total, rubbish_kg, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings')
+          let q = supabase.from('event_impact').select('trees_planted, hours_total, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings')
           if (rangeStart) q = q.gte('logged_at', rangeStart)
           return q
         })(),
@@ -95,26 +92,9 @@ function useAdminOverview(dateRange: DateRange) {
       const totalTrees = impact.reduce((s: number, r: any) => s + (r.trees_planted ?? 0), 0)
       const totalHours = impact.reduce((s: number, r: any) => s + (r.hours_total ?? 0), 0)
       const totalRubbish = impact.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0)
-      const totalCoastline = impact.reduce((s: number, r: any) => s + (r.coastline_cleaned_m ?? 0), 0)
       const totalArea = impact.reduce((s: number, r: any) => s + (r.area_restored_sqm ?? 0), 0)
       const totalNativePlants = impact.reduce((s: number, r: any) => s + (r.native_plants ?? 0), 0)
       const totalWildlife = impact.reduce((s: number, r: any) => s + (r.wildlife_sightings ?? 0), 0)
-
-      const { count: totalRegistered } = await supabase
-        .from('event_registrations')
-        .select('id', { count: 'exact', head: true })
-        .in('status', ['registered', 'attended'])
-      const { count: totalAttended } = await supabase
-        .from('event_registrations')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'attended')
-      const attendanceRate = totalRegistered && totalRegistered > 0
-        ? Math.round(((totalAttended ?? 0) / totalRegistered) * 100)
-        : 0
-
-      const { count: surveyResponses } = await (supabase as any)
-        .from('post_event_survey_responses')
-        .select('id', { count: 'exact', head: true })
 
       return {
         totalMembers: totalMembersRes.count ?? 0,
@@ -123,12 +103,9 @@ function useAdminOverview(dateRange: DateRange) {
         totalTrees,
         totalHours: Math.round(totalHours),
         totalRubbish: Math.round(totalRubbish),
-        totalCoastline: Math.round(totalCoastline),
         totalArea: Math.round(totalArea),
         totalNativePlants,
         totalWildlife,
-        attendanceRate,
-        surveyResponses: surveyResponses ?? 0,
         periodMembers: periodMembersRes.count ?? 0,
         periodEvents: periodEventsRes.count ?? 0,
       }
@@ -469,14 +446,6 @@ export default function AdminDashboardPage() {
       icon: <span className="text-base text-white/60" aria-hidden="true">&#9851;</span>,
       color: 'bg-white/10',
     },
-    ...(data?.totalCoastline ?? 0) > 0
-      ? [{
-          value: data?.totalCoastline ?? 0,
-          label: 'Coastline (m)',
-          icon: <Waves size={18} className="text-sky-300" />,
-          color: 'bg-white/10',
-        }]
-      : [],
     ...(data?.totalArea ?? 0) > 0
       ? [{
           value: data?.totalArea ?? 0,
@@ -501,18 +470,6 @@ export default function AdminDashboardPage() {
           color: 'bg-white/10',
         }]
       : [],
-    {
-      value: data?.attendanceRate ?? 0,
-      label: 'Attendance %',
-      icon: <UserCheck size={18} className="text-success-300" />,
-      color: 'bg-white/10',
-    },
-    {
-      value: data?.surveyResponses ?? 0,
-      label: 'Survey Responses',
-      icon: <ClipboardCheck size={18} className="text-sky-300" />,
-      color: 'bg-white/10',
-    },
   ]
 
   return (
@@ -667,35 +624,6 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* ── Period snapshot ── */}
-        <div>
-          <SectionHeading sub={dateRangeOptions.find((o) => o.value === dateRange)?.label}>
-            Period Snapshot
-          </SectionHeading>
-          <div className="rounded-2xl bg-white/[0.06] overflow-hidden">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-x divide-white/[0.06]">
-              <div className="py-5 text-center">
-                <p className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
-                  {(data?.periodMembers ?? 0).toLocaleString()}
-                </p>
-                <p className="text-[11px] text-white/35 font-medium mt-1">New Members</p>
-              </div>
-              <div className="py-5 text-center">
-                <p className="text-2xl sm:text-3xl font-bold text-white tabular-nums">
-                  {(data?.periodEvents ?? 0).toLocaleString()}
-                </p>
-                <p className="text-[11px] text-white/35 font-medium mt-1">Events</p>
-              </div>
-              <div className="py-5 text-center">
-                <p className="text-2xl sm:text-3xl font-bold text-success-300 tabular-nums">
-                  {(data?.attendanceRate ?? 0)}%
-                </p>
-                <p className="text-[11px] text-white/35 font-medium mt-1">Attendance</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* ── Environmental impact ── */}
         <motion.div
           initial={rm ? { opacity: 1 } : { opacity: 0 }}
@@ -740,31 +668,6 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         )}
-
-        {/* ── Geographic placeholder ── */}
-        <motion.div
-          initial={rm ? { opacity: 1 } : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          className="rounded-2xl bg-white/[0.06] p-5 sm:p-6"
-        >
-          <div className="flex items-center gap-2.5 mb-4">
-            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/[0.08] text-white/60">
-              <Globe size={18} />
-            </span>
-            <div>
-              <h3 className="font-heading text-sm font-semibold text-white/80">
-                Geographic Activity
-              </h3>
-              <p className="text-xs text-white/35">Collective distribution across Australia</p>
-            </div>
-          </div>
-          <div className="h-48 sm:h-56 rounded-xl bg-white/[0.04] flex items-center justify-center">
-            <p className="text-sm text-white/25 text-center px-4">
-              Connect to Mapbox for live geographic heat map
-            </p>
-          </div>
-        </motion.div>
 
         </motion.div>{/* end body wrapper */}
       </div>{/* end content z-10 */}

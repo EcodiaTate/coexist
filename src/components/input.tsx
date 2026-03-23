@@ -32,6 +32,8 @@ export interface InputProps {
   rows?: number
   icon?: ReactNode
   className?: string
+  /** Extra classes merged onto the <input>/<textarea> element itself (e.g. bg override). */
+  inputClassName?: string
   'aria-label'?: string
   maxLength?: number
   max?: string
@@ -60,6 +62,7 @@ export const Input = forwardRef<
     rows = 4,
     icon,
     className,
+    inputClassName,
     'aria-label': ariaLabel,
   },
   ref,
@@ -127,7 +130,8 @@ export const Input = forwardRef<
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type
 
   const sharedClasses = cn(
-    'peer w-full rounded-lg bg-white px-4 pt-7 pb-2',
+    'peer w-full rounded-lg px-4 pt-7 pb-2',
+    inputClassName ?? 'bg-white',
     'text-[16px] leading-normal text-primary-800',
     'outline-none transition-all duration-150',
     'disabled:opacity-50 disabled:cursor-not-allowed',

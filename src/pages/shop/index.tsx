@@ -1,7 +1,8 @@
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { motion, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion'
 import {
     ShoppingBag,
@@ -16,6 +17,11 @@ import {
     TreePine,
     Clock,
     Trash2,
+    Shirt,
+    Backpack,
+    StickyNote,
+    Coffee,
+    HardHat,
 } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
@@ -31,6 +37,7 @@ import { usePartnerPerks, type PartnerPerk } from '@/hooks/use-partner-perks'
 import { useMyMembership } from '@/hooks/use-membership'
 import { formatPrice, type Product } from '@/types/merch'
 import { useNationalImpact } from '@/hooks/use-impact'
+import { useLayout } from '@/hooks/use-layout'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -116,12 +123,12 @@ function ShopBackground({ rm }: { rm: boolean }) {
 
 const CATEGORY_ALL = '__all__'
 
-const CATEGORY_ICONS: Record<string, string> = {
-  clothing: '👕',
-  accessories: '🎒',
-  stickers: '🏷️',
-  drinkware: '☕',
-  headwear: '🧢',
+const CATEGORY_ICONS: Record<string, ReactNode> = {
+  clothing: <Shirt size={14} />,
+  accessories: <Backpack size={14} />,
+  stickers: <StickyNote size={14} />,
+  drinkware: <Coffee size={14} />,
+  headwear: <HardHat size={14} />,
 }
 
 function CategoryPills({
@@ -169,7 +176,7 @@ function CategoryPills({
             )}
           >
             {CATEGORY_ICONS[cat.toLowerCase()] && (
-              <span className="text-xs">{CATEGORY_ICONS[cat.toLowerCase()]}</span>
+              CATEGORY_ICONS[cat.toLowerCase()]
             )}
             {cat}
           </button>
@@ -763,11 +770,15 @@ function ShopSkeleton() {
 export default function ShopPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const location = useLocation()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const { data: products, isLoading } = useProducts()
   const showLoading = useDelayedLoading(isLoading)
   const cartCount = useCart((s) => s.itemCount())
+  const { navMode } = useLayout()
+  const hasBottomTabs = navMode === 'bottom-tabs'
+  const isOnShopPage = location.pathname === '/shop'
   useMemberAutoDiscount() // Pre-load member discount for cart
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState(CATEGORY_ALL)
@@ -925,27 +936,30 @@ export default function ShopPage() {
         </div>
       </PullToRefresh>
 
-      {/* Floating cart button - outside hero so hamburger doesn't cover it */}
-      <button
-        type="button"
-        onClick={() => navigate('/shop/cart')}
-        className="fixed bottom-6 right-5 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg shadow-primary-900/20 active:scale-[0.95] transition-transform cursor-pointer"
-        style={{ marginBottom: 'var(--safe-bottom, 0px)' }}
-        aria-label={`Cart (${cartCount} items)`}
-      >
-        <ShoppingBag size={22} />
-        {cartCount > 0 && (
-          <span
-            className={cn(
-              'absolute -top-1 -right-1 flex items-center justify-center',
-              'min-w-[20px] h-[20px] px-1 rounded-full',
-              'bg-coral-500 text-white text-[10px] font-bold shadow-lg shadow-coral-500/30',
-            )}
-          >
-            {cartCount}
-          </span>
-        )}
-      </button>
+      {/* Floating cart button - portalled to body so it stays fixed above bottom tabs on mobile */}
+      {isOnShopPage && createPortal(
+        <button
+          type="button"
+          onClick={() => navigate('/shop/cart')}
+          className="fixed right-5 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg shadow-primary-900/20 active:scale-[0.95] transition-transform cursor-pointer"
+          style={{ bottom: hasBottomTabs ? 'calc(4.5rem + var(--safe-bottom, 0px))' : 'calc(1.5rem + var(--safe-bottom, 0px))' }}
+          aria-label={`Cart (${cartCount} items)`}
+        >
+          <ShoppingBag size={22} />
+          {cartCount > 0 && (
+            <span
+              className={cn(
+                'absolute -top-1 -right-1 flex items-center justify-center',
+                'min-w-[20px] h-[20px] px-1 rounded-full',
+                'bg-coral-500 text-white text-[10px] font-bold shadow-lg shadow-coral-500/30',
+              )}
+            >
+              {cartCount}
+            </span>
+          )}
+        </button>,
+        document.body,
+      )}
     </Page>
   )
 }

@@ -178,17 +178,18 @@ export default function LeaderEventsPage() {
       {/* ── Bright airy background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-moss-50 via-white to-primary-50/30" />
 
-      {/* ── Decorative geometric shapes - CSS-only for GPU compositing ── */}
-      <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-moss-200/40 animate-[breathe_20s_ease-in-out_infinite]" />
-      <div className="absolute -right-4 -top-4 w-[220px] h-[220px] rounded-full border border-moss-200/25 animate-[breathe_22s_ease-in-out_0.5s_infinite]" />
-      <div className="absolute -left-20 bottom-[8%] w-[280px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/34 to-transparent opacity-30" />
-      <div className="absolute top-[42%] -left-6 w-[90px] h-[90px] rounded-full border border-primary-200/35" />
-      <div className="absolute top-[20%] -right-8 w-[200px] h-[200px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/21 to-transparent opacity-30" />
-      <div className="absolute bottom-[15%] right-[10%] w-[60px] h-[60px] rounded-full bg-primary-100/30" />
-      {/* Floating dots - CSS-only */}
-      <div className="absolute left-[15%] top-[16%] w-2 h-2 rounded-full bg-moss-300/40 animate-[float_4.5s_ease-in-out_infinite]" />
-      <div className="absolute right-[14%] top-[35%] w-1.5 h-1.5 rounded-full bg-primary-300/30 animate-[floatDown_5.5s_ease-in-out_1.5s_infinite]" />
-      <div className="absolute left-[35%] bottom-[20%] w-2.5 h-2.5 rounded-full bg-moss-300/25 animate-[float_6s_ease-in-out_3s_infinite]" />
+      {/* ── Decorative geometric shapes — "morning canopy" formation ── */}
+      <div className="absolute -left-12 -top-12 w-[300px] h-[300px] rounded-full border-2 border-moss-200/35 animate-[breathe_22s_ease-in-out_infinite]" />
+      <div className="absolute -left-2 top-4 w-[200px] h-[200px] rounded-full border border-moss-200/20 animate-[breathe_18s_ease-in-out_0.8s_infinite]" />
+      <div className="absolute -right-16 bottom-[12%] w-[260px] h-[260px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/30 to-transparent opacity-25" />
+      <div className="absolute top-[55%] right-[5%] w-[80px] h-[80px] rounded-full border border-primary-200/30" />
+      <div className="absolute top-[10%] left-[40%] w-[160px] h-[160px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/18 to-transparent opacity-30" />
+      <div className="absolute bottom-[22%] left-[8%] w-[50px] h-[50px] rounded-full bg-primary-100/25" />
+      <div className="absolute top-[30%] -right-4 w-[100px] h-[100px] rounded-full border border-moss-200/25" />
+      {/* Floating dots */}
+      <div className="absolute right-[18%] top-[14%] w-2 h-2 rounded-full bg-moss-300/35 animate-[float_5s_ease-in-out_infinite]" />
+      <div className="absolute left-[20%] top-[40%] w-1.5 h-1.5 rounded-full bg-primary-300/25 animate-[floatDown_6s_ease-in-out_1s_infinite]" />
+      <div className="absolute right-[30%] bottom-[18%] w-2.5 h-2.5 rounded-full bg-moss-300/30 animate-[float_5.5s_ease-in-out_2s_infinite]" />
 
       {/* ── Content ── */}
       <motion.div

@@ -1,13 +1,15 @@
 import { useState, useMemo, useCallback } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
-import { AlertTriangle, PackageX, Search, ArrowUpDown } from 'lucide-react'
+import {
+  AlertTriangle, PackageX, Search, ArrowUpDown,
+  Minus, Plus, CheckSquare, Square, Package, Layers,
+} from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useAppImage } from '@/hooks/use-app-images'
 import { TabBar } from '@/components/tab-bar'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/button'
-import { Input } from '@/components/input'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { BottomSheet } from '@/components/bottom-sheet'
@@ -22,6 +24,7 @@ import { cn } from '@/lib/cn'
 
 type StockFilter = 'all' | 'low' | 'out'
 type SortMode = 'stock-asc' | 'name' | 'product'
+type ViewMode = 'product' | 'flat'
 
 interface FlatVariant {
   product: Product
@@ -29,90 +32,14 @@ interface FlatVariant {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Filter & sort pills                                                */
+/*  Filter pills                                                       */
 /* ------------------------------------------------------------------ */
 
-const STOCK_FILTERS: { value: StockFilter; label: string; icon?: typeof AlertTriangle }[] = [
+const STOCK_FILTERS: { value: StockFilter; label: string }[] = [
   { value: 'all', label: 'All' },
-  { value: 'low', label: 'Low Stock', icon: AlertTriangle },
-  { value: 'out', label: 'Out of Stock', icon: PackageX },
+  { value: 'low', label: 'Low Stock' },
+  { value: 'out', label: 'Out of Stock' },
 ]
-
-/* ------------------------------------------------------------------ */
-/*  Stock adjust sheet (reusable)                                      */
-/* ------------------------------------------------------------------ */
-
-function StockAdjustSheet({
-  open,
-  onClose,
-  item,
-}: {
-  open: boolean
-  onClose: () => void
-  item: FlatVariant | null
-}) {
-  const { toast } = useToast()
-  const adjustStock = useAdjustStock()
-  const [adjustment, setAdjustment] = useState('')
-
-  const handleSave = useCallback(async () => {
-    if (!item) return
-    const adj = Number(adjustment)
-    if (isNaN(adj) || adj === 0) {
-      toast.error('Enter a valid adjustment amount')
-      return
-    }
-    try {
-      await adjustStock.mutateAsync({
-        productId: item.product.id,
-        variantKey: item.variant.sku || item.variant.id,
-        adjustment: adj,
-      })
-      toast.success(
-        `${item.product.name} (${variantLabel(item.variant)}) adjusted by ${adj > 0 ? '+' : ''}${adj}`,
-      )
-      setAdjustment('')
-      onClose()
-    } catch {
-      toast.error('Failed to adjust stock')
-    }
-  }, [item, adjustment, adjustStock, toast, onClose])
-
-  if (!item) return null
-
-  return (
-    <BottomSheet open={open} onClose={onClose}>
-      <div className="space-y-4">
-        <h3 className="font-heading font-semibold text-primary-800">Adjust Stock</h3>
-
-        <div className="p-3 rounded-xl bg-primary-50/50">
-          <p className="text-sm font-semibold text-primary-800">{item.product.name}</p>
-          <p className="text-xs text-primary-400 mt-0.5">
-            {variantLabel(item.variant)} · Currently{' '}
-            <span className="font-semibold tabular-nums">{item.variant.stock}</span> in stock
-          </p>
-        </div>
-
-        <Input
-          label="Adjustment (+/-)"
-          value={adjustment}
-          onChange={(e) => setAdjustment(e.target.value)}
-          helperText="Positive to add, negative to remove"
-          required
-        />
-
-        <Button
-          variant="primary"
-          fullWidth
-          loading={adjustStock.isPending}
-          onClick={handleSave}
-        >
-          Apply Adjustment
-        </Button>
-      </div>
-    </BottomSheet>
-  )
-}
 
 /* ------------------------------------------------------------------ */
 /*  Inventory summary cards                                            */
@@ -127,22 +54,341 @@ function SummaryCards({ items }: { items: FlatVariant[] }) {
   const healthy = totalVariants - outOfStock - lowStock
 
   const cards = [
-    { label: 'Total SKUs', value: totalVariants, color: 'text-primary-800' },
-    { label: 'Healthy', value: healthy, color: 'text-success-600' },
-    { label: 'Low Stock', value: lowStock, color: 'text-warning-600' },
-    { label: 'Out of Stock', value: outOfStock, color: 'text-error-600' },
+    { label: 'Total SKUs', value: totalVariants, gradient: 'from-primary-600 to-primary-800', icon: Layers },
+    { label: 'Healthy', value: healthy, gradient: 'from-success-500 to-success-700', icon: Package },
+    { label: 'Low Stock', value: lowStock, gradient: 'from-warning-500 to-warning-700', icon: AlertTriangle },
+    { label: 'Out of Stock', value: outOfStock, gradient: 'from-error-500 to-error-700', icon: PackageX },
   ]
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
-      {cards.map((c) => (
-        <div key={c.label} className="p-3 rounded-xl bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 shadow-sm text-center">
-          <p className={cn('font-heading text-xl font-bold tabular-nums', c.color)}>
-            {c.value}
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+      {cards.map((c) => {
+        const Icon = c.icon
+        return (
+          <div key={c.label} className={`p-3.5 rounded-2xl shadow-lg bg-gradient-to-br ${c.gradient} text-center`}>
+            <Icon size={16} className="text-white/50 mx-auto mb-1" />
+            <p className="font-heading text-xl font-bold tabular-nums text-white">
+              {c.value}
+            </p>
+            <p className="text-[11px] text-white/70 font-semibold mt-0.5">{c.label}</p>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Inline stock stepper — tap +/- right in the row                    */
+/* ------------------------------------------------------------------ */
+
+function InlineStepper({
+  item,
+  adjustStock,
+}: {
+  item: FlatVariant
+  adjustStock: ReturnType<typeof useAdjustStock>
+}) {
+  const { toast } = useToast()
+
+  const handleAdjust = useCallback(
+    async (adj: number) => {
+      try {
+        await adjustStock.mutateAsync({
+          productId: item.product.id,
+          variantKey: item.variant.sku || item.variant.id,
+          adjustment: adj,
+        })
+      } catch {
+        toast.error('Failed to adjust stock')
+      }
+    },
+    [item, adjustStock, toast],
+  )
+
+  return (
+    <div className="flex items-center gap-0.5">
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); handleAdjust(-1) }}
+        disabled={item.variant.stock === 0}
+        className="flex items-center justify-center w-8 h-8 rounded-l-xl bg-white/80 border border-primary-200/30 text-primary-500 hover:bg-error-50 hover:text-error-600 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:scale-[0.92] transition-all duration-150"
+      >
+        <Minus size={12} />
+      </button>
+      <div className="flex items-center justify-center w-10 h-8 bg-white/80 border-y border-primary-200/30 text-sm font-bold tabular-nums text-primary-800">
+        {item.variant.stock}
+      </div>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); handleAdjust(1) }}
+        className="flex items-center justify-center w-8 h-8 rounded-r-xl bg-white/80 border border-primary-200/30 text-primary-500 hover:bg-success-50 hover:text-success-600 cursor-pointer active:scale-[0.92] transition-all duration-150"
+      >
+        <Plus size={12} />
+      </button>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Batch adjustment sheet                                             */
+/* ------------------------------------------------------------------ */
+
+function BatchAdjustSheet({
+  open,
+  onClose,
+  selected,
+  adjustStock,
+}: {
+  open: boolean
+  onClose: () => void
+  selected: FlatVariant[]
+  adjustStock: ReturnType<typeof useAdjustStock>
+}) {
+  const { toast } = useToast()
+  const [adjustment, setAdjustment] = useState('')
+  const [processing, setProcessing] = useState(false)
+
+  const quickAmounts = [
+    { label: '+5', value: 5 },
+    { label: '+10', value: 10 },
+    { label: '+25', value: 25 },
+    { label: '+50', value: 50 },
+  ]
+
+  const handleBatchApply = useCallback(async (adj: number) => {
+    if (adj === 0 || selected.length === 0) return
+    setProcessing(true)
+    let successCount = 0
+    let failCount = 0
+    for (const item of selected) {
+      try {
+        await adjustStock.mutateAsync({
+          productId: item.product.id,
+          variantKey: item.variant.sku || item.variant.id,
+          adjustment: adj,
+        })
+        successCount++
+      } catch {
+        failCount++
+      }
+    }
+    setProcessing(false)
+    if (failCount === 0) {
+      toast.success(`Adjusted ${successCount} variant${successCount !== 1 ? 's' : ''} by ${adj > 0 ? '+' : ''}${adj}`)
+    } else {
+      toast.error(`${failCount} failed, ${successCount} succeeded`)
+    }
+    setAdjustment('')
+    onClose()
+  }, [selected, adjustStock, toast, onClose])
+
+  return (
+    <BottomSheet open={open} onClose={onClose}>
+      <div className="space-y-5">
+        <div>
+          <h3 className="font-heading font-semibold text-primary-800">Batch Stock Adjustment</h3>
+          <p className="text-xs text-primary-400 mt-1">
+            Adjust {selected.length} variant{selected.length !== 1 ? 's' : ''} at once
           </p>
-          <p className="text-[11px] text-primary-500 font-semibold mt-0.5">{c.label}</p>
         </div>
-      ))}
+
+        {/* Selected items preview */}
+        <div className="max-h-32 overflow-y-auto space-y-1 rounded-xl bg-primary-50/50 p-2.5">
+          {selected.map((item) => (
+            <div
+              key={`${item.product.id}-${item.variant.id}`}
+              className="flex items-center justify-between text-xs py-1"
+            >
+              <span className="text-primary-600 truncate">
+                {item.product.name} · {variantLabel(item.variant)}
+              </span>
+              <span className="font-semibold tabular-nums text-primary-800 ml-2 shrink-0">
+                {item.variant.stock}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Quick restock buttons */}
+        <div>
+          <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider mb-2">
+            Quick Restock
+          </p>
+          <div className="grid grid-cols-4 gap-2">
+            {quickAmounts.map((qa) => (
+              <button
+                key={qa.value}
+                type="button"
+                disabled={processing}
+                onClick={() => handleBatchApply(qa.value)}
+                className="py-3 rounded-xl text-sm font-bold bg-gradient-to-br from-success-500 to-success-600 text-white shadow-md hover:shadow-lg cursor-pointer active:scale-[0.95] transition-all duration-150 disabled:opacity-50"
+              >
+                {qa.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom amount */}
+        <div>
+          <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider mb-2">
+            Custom Amount
+          </p>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              value={adjustment}
+              onChange={(e) => setAdjustment(e.target.value)}
+              placeholder="+/- amount"
+              className="flex-1 h-12 px-4 rounded-xl bg-white border border-primary-200/30 text-sm font-semibold text-primary-800 placeholder:text-primary-400/50 outline-none focus:ring-2 focus:ring-primary-300/50 tabular-nums"
+            />
+            <Button
+              variant="primary"
+              loading={processing}
+              disabled={!adjustment || Number(adjustment) === 0}
+              onClick={() => handleBatchApply(Number(adjustment))}
+              className="px-6"
+            >
+              Apply
+            </Button>
+          </div>
+          <p className="text-[11px] text-primary-400 mt-1.5">
+            Positive to add, negative to remove
+          </p>
+        </div>
+      </div>
+    </BottomSheet>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Product-grouped variant rows                                       */
+/* ------------------------------------------------------------------ */
+
+function ProductGroup({
+  product,
+  variants,
+  selectedIds,
+  onToggleSelect,
+  adjustStock,
+  placeholderMerch,
+}: {
+  product: Product
+  variants: FlatVariant[]
+  selectedIds: Set<string>
+  onToggleSelect: (key: string) => void
+  adjustStock: ReturnType<typeof useAdjustStock>
+  placeholderMerch: string | undefined
+}) {
+  const allSelected = variants.every((v) => selectedIds.has(`${product.id}-${v.variant.id}`))
+  const someSelected = variants.some((v) => selectedIds.has(`${product.id}-${v.variant.id}`))
+
+  const toggleAll = useCallback(() => {
+    for (const v of variants) {
+      const key = `${product.id}-${v.variant.id}`
+      if (allSelected) {
+        onToggleSelect(key) // deselect
+      } else if (!selectedIds.has(key)) {
+        onToggleSelect(key) // select
+      }
+    }
+  }, [variants, product.id, allSelected, selectedIds, onToggleSelect])
+
+  // Determine worst stock status for the product header color
+  const hasOOS = variants.some((v) => v.variant.stock === 0)
+  const hasLow = variants.some(
+    (v) => v.variant.stock > 0 && v.variant.stock <= v.variant.low_stock_threshold,
+  )
+  const headerGradient = hasOOS
+    ? 'from-error-50 to-error-50/40 border-error-200/30'
+    : hasLow
+      ? 'from-warning-50 to-warning-50/40 border-warning-200/30'
+      : 'from-success-50/60 to-[#eef2e8] border-success-200/20'
+
+  return (
+    <div className={cn('rounded-2xl border overflow-hidden shadow-sm bg-gradient-to-br', headerGradient)}>
+      {/* Product header row */}
+      <button
+        type="button"
+        onClick={toggleAll}
+        className="w-full flex items-center gap-3 p-3.5 cursor-pointer hover:bg-white/30 transition-colors"
+      >
+        <div className="shrink-0 text-primary-400">
+          {allSelected ? (
+            <CheckSquare size={18} className="text-primary-600" />
+          ) : someSelected ? (
+            <CheckSquare size={18} className="text-primary-400 opacity-50" />
+          ) : (
+            <Square size={18} />
+          )}
+        </div>
+        <img
+          src={product.images[0] ?? placeholderMerch}
+          alt={product.name}
+          className="w-10 h-10 rounded-lg object-cover shrink-0"
+        />
+        <div className="flex-1 min-w-0 text-left">
+          <p className="text-sm font-bold text-primary-800 truncate">{product.name}</p>
+          <p className="text-[11px] text-primary-400">
+            {variants.length} variant{variants.length !== 1 ? 's' : ''} ·{' '}
+            {variants.reduce((sum, v) => sum + v.variant.stock, 0)} total units
+          </p>
+        </div>
+      </button>
+
+      {/* Variant rows */}
+      <div className="divide-y divide-primary-100/40">
+        {variants.map((item) => {
+          const key = `${product.id}-${item.variant.id}`
+          const isSelected = selectedIds.has(key)
+          const isOOS = item.variant.stock === 0
+          const isLow = !isOOS && item.variant.stock <= item.variant.low_stock_threshold
+
+          return (
+            <div
+              key={key}
+              className={cn(
+                'flex items-center gap-2.5 px-3.5 py-2.5 transition-colors',
+                isSelected && 'bg-primary-100/40',
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => onToggleSelect(key)}
+                className="shrink-0 text-primary-400 cursor-pointer"
+              >
+                {isSelected ? (
+                  <CheckSquare size={16} className="text-primary-600" />
+                ) : (
+                  <Square size={16} />
+                )}
+              </button>
+
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-primary-700 truncate">
+                  {variantLabel(item.variant)}
+                </p>
+                <p className="text-[11px] text-primary-400 truncate">
+                  {item.variant.sku ?? ''}
+                  {isOOS && (
+                    <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-error-100 text-error-700 font-semibold text-[10px]">
+                      OUT
+                    </span>
+                  )}
+                  {isLow && (
+                    <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-warning-100 text-warning-700 font-semibold text-[10px]">
+                      LOW
+                    </span>
+                  )}
+                </p>
+              </div>
+
+              <InlineStepper item={item} adjustStock={adjustStock} />
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -156,11 +402,13 @@ export default function InventoryTab() {
   const showLoading = useDelayedLoading(isLoading)
   const shouldReduceMotion = useReducedMotion()
   const placeholderMerch = useAppImage('placeholder_merch')
+  const adjustStock = useAdjustStock()
 
   const [filter, setFilter] = useState<StockFilter>('all')
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState<SortMode>('stock-asc')
-  const [adjustTarget, setAdjustTarget] = useState<FlatVariant | null>(null)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [batchOpen, setBatchOpen] = useState(false)
 
   // Flatten all products into variant-level rows
   const allItems: FlatVariant[] = useMemo(() => {
@@ -216,12 +464,50 @@ export default function InventoryTab() {
     return items
   }, [allItems, filter, search, sort])
 
+  // Group by product for the grouped view
+  const groupedByProduct = useMemo(() => {
+    const map = new Map<string, { product: Product; variants: FlatVariant[] }>()
+    for (const item of filtered) {
+      const existing = map.get(item.product.id)
+      if (existing) {
+        existing.variants.push(item)
+      } else {
+        map.set(item.product.id, { product: item.product, variants: [item] })
+      }
+    }
+    return [...map.values()]
+  }, [filtered])
+
+  const toggleSelect = useCallback((key: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(key)) {
+        next.delete(key)
+      } else {
+        next.add(key)
+      }
+      return next
+    })
+  }, [])
+
+  const selectedItems = useMemo(() => {
+    return filtered.filter((item) =>
+      selectedIds.has(`${item.product.id}-${item.variant.id}`),
+    )
+  }, [filtered, selectedIds])
+
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), [])
+
+  const selectAll = useCallback(() => {
+    setSelectedIds(new Set(filtered.map((item) => `${item.product.id}-${item.variant.id}`)))
+  }, [filtered])
+
   const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 
   if (showLoading) {
     return (
       <div className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} variant="stat-card" />
           ))}
@@ -277,7 +563,44 @@ export default function InventoryTab() {
         />
       </motion.div>
 
-      {/* Inventory list */}
+      {/* Batch action bar */}
+      <AnimatePresence>
+        {selectedItems.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="mb-4 flex items-center gap-2 p-3 rounded-2xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-lg"
+          >
+            <span className="text-sm font-semibold text-white flex-1">
+              {selectedItems.length} selected
+            </span>
+            <button
+              type="button"
+              onClick={selectAll}
+              className="px-3 py-1.5 rounded-lg bg-white/15 text-xs font-semibold text-white hover:bg-white/25 cursor-pointer transition-colors"
+            >
+              All
+            </button>
+            <button
+              type="button"
+              onClick={clearSelection}
+              className="px-3 py-1.5 rounded-lg bg-white/15 text-xs font-semibold text-white hover:bg-white/25 cursor-pointer transition-colors"
+            >
+              Clear
+            </button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setBatchOpen(true)}
+            >
+              Adjust Stock
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Product-grouped inventory list */}
       <motion.div variants={fadeUp}>
         {filtered.length === 0 ? (
           <EmptyState
@@ -298,76 +621,31 @@ export default function InventoryTab() {
             }
           />
         ) : (
-          <div className="space-y-2">
-            {filtered.map((item) => {
-              const isOOS = item.variant.stock === 0
-              const isLow =
-                !isOOS && item.variant.stock <= item.variant.low_stock_threshold
-
-              return (
-                <button
-                  key={`${item.product.id}-${item.variant.id}`}
-                  type="button"
-                  onClick={() => setAdjustTarget(item)}
-                  className="w-full text-left flex items-center gap-3 p-3 bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 rounded-2xl shadow-sm hover:shadow-md transition-[color,background-color,box-shadow,transform] duration-200 cursor-pointer active:scale-[0.98]"
-                >
-                  {/* Product image */}
-                  <img
-                    src={item.product.images[0] ?? placeholderMerch}
-                    alt={item.product.name}
-                    className="w-10 h-10 rounded-lg object-cover shrink-0"
-                  />
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-primary-800 truncate">
-                      {item.product.name}
-                    </p>
-                    <p className="text-xs text-primary-400 truncate">
-                      {variantLabel(item.variant)}
-                      {item.variant.sku ? ` · ${item.variant.sku}` : ''}
-                    </p>
-                  </div>
-
-                  {/* Stock badge */}
-                  <div className="flex flex-col items-end shrink-0">
-                    <span
-                      className={cn(
-                        'text-sm font-bold tabular-nums',
-                        isOOS
-                          ? 'text-error-600'
-                          : isLow
-                            ? 'text-warning-600'
-                            : 'text-primary-800',
-                      )}
-                    >
-                      {item.variant.stock}
-                    </span>
-                    <span
-                      className={cn(
-                        'text-[11px] font-medium px-1.5 py-0.5 rounded-full mt-0.5',
-                        isOOS
-                          ? 'bg-error-100 text-error-700'
-                          : isLow
-                            ? 'bg-warning-100 text-warning-700'
-                            : 'bg-success-100 text-success-700',
-                      )}
-                    >
-                      {isOOS ? 'Out' : isLow ? 'Low' : 'OK'}
-                    </span>
-                  </div>
-                </button>
-              )
-            })}
+          <div className="space-y-3">
+            {groupedByProduct.map(({ product, variants }) => (
+              <ProductGroup
+                key={product.id}
+                product={product}
+                variants={variants}
+                selectedIds={selectedIds}
+                onToggleSelect={toggleSelect}
+                adjustStock={adjustStock}
+                placeholderMerch={placeholderMerch}
+              />
+            ))}
           </div>
         )}
       </motion.div>
 
-      {/* Stock adjust sheet */}
-      <StockAdjustSheet
-        open={!!adjustTarget}
-        onClose={() => setAdjustTarget(null)}
-        item={adjustTarget}
+      {/* Batch adjust sheet */}
+      <BatchAdjustSheet
+        open={batchOpen}
+        onClose={() => {
+          setBatchOpen(false)
+          clearSelection()
+        }}
+        selected={selectedItems}
+        adjustStock={adjustStock}
       />
     </motion.div>
   )

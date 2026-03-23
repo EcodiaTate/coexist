@@ -333,7 +333,7 @@ serve(async (req: Request) => {
             if (promo.type === 'percentage') {
               couponParams.percent_off = Number(promo.value)
             } else if (promo.type === 'flat') {
-              couponParams.amount_off = Number(promo.value) * 100
+              couponParams.amount_off = Number(promo.value)
             }
             // free_shipping is handled by zeroing shipping_cents client-side
 

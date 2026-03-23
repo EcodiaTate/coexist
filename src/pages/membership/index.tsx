@@ -190,9 +190,10 @@ export default function MembershipPage() {
       <Page className="!px-0 !pb-0 !bg-transparent">
         <div className="relative min-h-dvh overflow-clip">
           <div className="absolute inset-0 bg-gradient-to-br from-secondary-600 via-primary-800 to-secondary-900" />
-          {/* Shapes for loading state */}
-          <div className="absolute -right-[15%] -top-[12%] w-[55vw] h-[55vw] max-w-[500px] max-h-[500px] rounded-full bg-white/[0.05]" />
-          <div className="absolute -left-[20%] bottom-[5%] w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-full border border-white/[0.06]" />
+          {/* Shapes for loading state — matches "crown jewels" formation */}
+          <div className="absolute -left-[12%] -top-[10%] w-[50vw] h-[50vw] max-w-[480px] max-h-[480px] rounded-full border border-white/[0.07]" />
+          <div className="absolute -left-[6%] -top-[4%] w-[35vw] h-[35vw] max-w-[340px] max-h-[340px] rounded-full border border-white/[0.05]" />
+          <div className="absolute -right-[18%] bottom-[8%] w-[55vw] h-[55vw] max-w-[520px] max-h-[520px] rounded-full bg-white/[0.04]" />
           <div className="relative z-10">
             {/* Back button */}
             <div className="px-4" style={{ paddingTop: 'var(--safe-top)' }}>
@@ -237,49 +238,60 @@ export default function MembershipPage() {
         <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-secondary-600 via-primary-800 to-secondary-900" />
 
-          {/* ── Geometric shapes ── */}
+          {/* ── Geometric shapes — "crown jewels" formation ── */}
+          {/* Large ring top-left */}
           <motion.div
             initial={rm ? {} : { scale: 0.6, opacity: 0 }}
-            animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-            transition={{ scale: { duration: 22, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.4, ease: 'easeOut' } }}
-            className="absolute -right-[15%] -top-[12%] w-[55vw] h-[55vw] max-w-[500px] max-h-[500px] rounded-full bg-white/[0.05]"
-          />
-          <motion.div
-            initial={rm ? {} : { scale: 0.5, opacity: 0 }}
             animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-            transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.6, delay: 0.3, ease: 'easeOut' } }}
-            className="absolute -left-[20%] bottom-[5%] w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] rounded-full border border-white/[0.07]"
+            transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.4, ease: 'easeOut' } }}
+            className="absolute -left-[12%] -top-[10%] w-[50vw] h-[50vw] max-w-[480px] max-h-[480px] rounded-full border border-white/[0.07]"
           />
+          {/* Inner ring top-left */}
           <motion.div
             initial={rm ? {} : { scale: 0.5, opacity: 0 }}
             animate={{ scale: [1, 1.06, 1], opacity: 1 }}
-            transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.6, delay: 0.6, ease: 'easeOut' } }}
-            className="absolute -left-[14%] bottom-[10%] w-[42vw] h-[42vw] max-w-[420px] max-h-[420px] rounded-full border border-white/[0.05]"
+            transition={{ scale: { duration: 24, repeat: Infinity, ease: 'easeInOut', delay: 0.3 }, opacity: { duration: 1.6, delay: 0.3, ease: 'easeOut' } }}
+            className="absolute -left-[6%] -top-[4%] w-[35vw] h-[35vw] max-w-[340px] max-h-[340px] rounded-full border border-white/[0.05]"
           />
+          {/* Solid orb bottom-right */}
+          <motion.div
+            initial={rm ? {} : { scale: 0.5, opacity: 0 }}
+            animate={{ scale: [1, 1.05, 1], opacity: 1 }}
+            transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.6, delay: 0.5, ease: 'easeOut' } }}
+            className="absolute -right-[18%] bottom-[8%] w-[55vw] h-[55vw] max-w-[520px] max-h-[520px] rounded-full bg-white/[0.04]"
+          />
+          {/* Small accent mid-right */}
           <motion.div
             initial={rm ? {} : { scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1.2, delay: 0.9, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="absolute left-[8%] top-[45%] w-[70px] h-[70px] rounded-full bg-white/[0.04]"
+            transition={{ duration: 1.2, delay: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="absolute right-[10%] top-[35%] w-[60px] h-[60px] rounded-full border border-white/[0.10]"
+          />
+          {/* Small orb center-left */}
+          <motion.div
+            initial={rm ? {} : { scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1.2, delay: 1.1, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="absolute left-[15%] bottom-[25%] w-[45px] h-[45px] rounded-full bg-white/[0.05]"
           />
           {/* Floating dots */}
           <motion.div
             initial={rm ? {} : { opacity: 0 }}
-            animate={{ y: [0, -9, 0], opacity: [0.25, 0.5, 0.25] }}
-            transition={{ y: { duration: 5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1 } }}
-            className="absolute right-[18%] top-[22%] w-2 h-2 rounded-full bg-white/30"
+            animate={{ y: [0, -8, 0], opacity: [0.2, 0.45, 0.2] }}
+            transition={{ y: { duration: 5.5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1.2 } }}
+            className="absolute left-[25%] top-[18%] w-2 h-2 rounded-full bg-white/25"
           />
           <motion.div
             initial={rm ? {} : { opacity: 0 }}
-            animate={{ y: [0, 6, 0], opacity: [0.2, 0.4, 0.2] }}
-            transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2.5 }, opacity: { duration: 0.8, delay: 1.4 } }}
-            className="absolute left-[12%] top-[30%] w-1.5 h-1.5 rounded-full bg-white/25"
+            animate={{ y: [0, 7, 0], opacity: [0.2, 0.4, 0.2] }}
+            transition={{ y: { duration: 6.5, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 0.8, delay: 1.5 } }}
+            className="absolute right-[15%] top-[55%] w-1.5 h-1.5 rounded-full bg-white/30"
           />
           <motion.div
             initial={rm ? {} : { opacity: 0 }}
-            animate={{ y: [0, -6, 0], opacity: [0.2, 0.45, 0.2] }}
-            transition={{ y: { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 0.8, delay: 1.8 } }}
-            className="absolute right-[30%] bottom-[20%] w-2.5 h-2.5 rounded-full bg-white/20"
+            animate={{ y: [0, -5, 0], opacity: [0.15, 0.35, 0.15] }}
+            transition={{ y: { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 3.5 }, opacity: { duration: 0.8, delay: 2 } }}
+            className="absolute left-[45%] bottom-[15%] w-2.5 h-2.5 rounded-full bg-white/20"
           />
         </div>
 

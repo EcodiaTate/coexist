@@ -8,7 +8,6 @@ import {
   TreePine,
   Users,
   Trash2,
-  Waves,
   Sprout,
   Bird,
   Ruler,
@@ -194,13 +193,6 @@ export default function ViewProfilePage() {
               value={stats?.rubbishCollectedKg ?? 0}
               label="kg Rubbish"
               icon={<Trash2 size={20} />}
-            />
-          )}
-          {(stats?.coastlineCleanedM ?? 0) > 0 && (
-            <StatCard
-              value={stats?.coastlineCleanedM ?? 0}
-              label="Coastline (m)"
-              icon={<Waves size={20} />}
             />
           )}
           {(stats?.areaRestoredSqm ?? 0) > 0 && (

@@ -6,20 +6,21 @@ import { useAuth } from '@/hooks/use-auth'
 /*  Canonical impact metrics                                           */
 /* ------------------------------------------------------------------ */
 
-/** The 8 canonical Co-Exist impact metrics */
+/** The canonical Co-Exist impact metrics */
 export interface CanonicalImpact {
   /* Community Events */
   eventsAttended: number
   volunteerHours: number
+  eventsHeld: number
   /* Land Restoration Projects */
   treesPlanted: number
   invasiveWeedsPulled: number
   /* Cleanup Sites */
   rubbishCollectedTonnes: number
-  cleanupEventsHeld: number
+  cleanupSites: number
   /* Organisational */
   collectivesCount: number
-  leadersTrainedCount: number
+  leadersEmpowered: number
 }
 
 /* ------------------------------------------------------------------ */
@@ -53,22 +54,29 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         eventsQuery = eventsQuery.gte('date_start', yearStart)
       }
 
-      // Cleanup events = events with activity_type shore_cleanup or marine_restoration
+      // Cleanup events — fetch addresses so we can count unique sites
       let cleanupQuery = supabase
         .from('events')
-        .select('id', { count: 'exact', head: true })
+        .select('id, address')
         .in('activity_type', ['shore_cleanup', 'marine_restoration'] as any)
         .lt('date_start', new Date().toISOString())
       if (timeRange === 'current-year') {
         cleanupQuery = cleanupQuery.gte('date_start', yearStart)
       }
 
-      const [impactRes, eventsRes, membersRes, collectivesRes, cleanupRes] = await Promise.all([
+      // Leaders empowered = anyone who holds a leadership role in any collective
+      const leadersQuery = supabase
+        .from('collective_members')
+        .select('user_id')
+        .in('role', ['assist_leader', 'co_leader', 'leader'] as any)
+
+      const [impactRes, eventsRes, membersRes, collectivesRes, cleanupRes, leadersRes] = await Promise.all([
         impactQuery,
         eventsQuery,
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
         cleanupQuery,
+        leadersQuery,
       ])
 
       const logs = (impactRes.data ?? []) as unknown as Record<string, number>[]
@@ -93,15 +101,24 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         }
       }
 
+      // Count unique cleanup sites by address
+      const cleanupAddresses = new Set(
+        (cleanupRes.data ?? []).map((e: any) => (e.address ?? '').trim().toLowerCase()).filter(Boolean)
+      )
+
+      // Count unique users with leadership roles
+      const uniqueLeaders = new Set((leadersRes.data ?? []).map((r: any) => r.user_id))
+
       return {
         eventsAttended: attendanceCount,
         volunteerHours: Math.round(sum('hours_total')),
+        eventsHeld: eventsRes.count ?? 0,
         treesPlanted: sum('trees_planted'),
         invasiveWeedsPulled: sum('invasive_weeds_pulled'),
         rubbishCollectedTonnes: Math.round((sum('rubbish_kg') / 1000) * 100) / 100,
-        cleanupEventsHeld: cleanupRes.count ?? 0,
+        cleanupSites: cleanupAddresses.size,
         collectivesCount: collectivesRes.count ?? 0,
-        leadersTrainedCount: sum('leaders_trained'),
+        leadersEmpowered: uniqueLeaders.size,
         totalMembers: membersRes.count ?? 0,
       }
     },
@@ -130,7 +147,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
 
       let cleanupQuery = supabase
         .from('events')
-        .select('id', { count: 'exact', head: true })
+        .select('id, address')
         .eq('collective_id', collectiveId)
         .in('activity_type', ['shore_cleanup', 'marine_restoration'] as any)
         .lt('date_start', new Date().toISOString())
@@ -138,7 +155,22 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
         cleanupQuery = cleanupQuery.gte('date_start', yearStart)
       }
 
-      const [impactRes, cleanupRes] = await Promise.all([impactQuery, cleanupQuery])
+      let eventsQuery = supabase
+        .from('events')
+        .select('id', { count: 'exact', head: true })
+        .eq('collective_id', collectiveId)
+        .lt('date_start', new Date().toISOString())
+      if (timeRange === 'current-year') {
+        eventsQuery = eventsQuery.gte('date_start', yearStart)
+      }
+
+      const leadersQuery = supabase
+        .from('collective_members')
+        .select('user_id')
+        .eq('collective_id', collectiveId)
+        .in('role', ['assist_leader', 'co_leader', 'leader'] as any)
+
+      const [impactRes, cleanupRes, eventsCountRes, leadersRes] = await Promise.all([impactQuery, cleanupQuery, eventsQuery, leadersQuery])
 
       const rows = (impactRes.data ?? []) as any[]
       const sum = (key: string) => rows.reduce((s: number, r: any) => s + (r[key] ?? 0), 0)
@@ -155,15 +187,21 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
         attendanceCount = count ?? 0
       }
 
+      const cleanupAddresses = new Set(
+        (cleanupRes.data ?? []).map((e: any) => (e.address ?? '').trim().toLowerCase()).filter(Boolean)
+      )
+      const uniqueLeaders = new Set((leadersRes.data ?? []).map((r: any) => r.user_id))
+
       return {
         eventsAttended: attendanceCount,
         volunteerHours: Math.round(sum('hours_total')),
+        eventsHeld: eventsCountRes.count ?? 0,
         treesPlanted: sum('trees_planted'),
         invasiveWeedsPulled: sum('invasive_weeds_pulled'),
         rubbishCollectedTonnes: Math.round((sum('rubbish_kg') / 1000) * 100) / 100,
-        cleanupEventsHeld: cleanupRes.count ?? 0,
+        cleanupSites: cleanupAddresses.size,
         collectivesCount: 1,
-        leadersTrainedCount: sum('leaders_trained'),
+        leadersEmpowered: uniqueLeaders.size,
       }
     },
     enabled: !!collectiveId,
@@ -199,29 +237,35 @@ export function useImpactStats(userId?: string) {
         return {
           eventsAttended: 0,
           volunteerHours: 0,
+          eventsHeld: 0,
           treesPlanted: 0,
           invasiveWeedsPulled: 0,
           rubbishCollectedTonnes: 0,
-          cleanupEventsHeld: 0,
+          cleanupSites: 0,
           collectivesCount: 0,
-          leadersTrainedCount: 0,
+          leadersEmpowered: 0,
         }
       }
 
-      const [impactsRes, cleanupRes, collectivesRes] = await Promise.all([
+      const [impactsRes, cleanupRes, collectivesRes, leadersRes] = await Promise.all([
         supabase
           .from('event_impact')
           .select('*')
           .in('event_id', eventIds),
         supabase
           .from('events')
-          .select('id', { count: 'exact', head: true })
+          .select('id, address')
           .in('id', eventIds)
           .in('activity_type', ['shore_cleanup', 'marine_restoration'] as any),
         supabase
           .from('collective_members')
-          .select('collective_id', { count: 'exact', head: true })
+          .select('collective_id, role')
           .eq('user_id', id),
+        supabase
+          .from('collective_members')
+          .select('user_id')
+          .eq('user_id', id)
+          .in('role', ['assist_leader', 'co_leader', 'leader'] as any),
       ])
 
       const impacts = impactsRes.data ?? []
@@ -229,25 +273,28 @@ export function useImpactStats(userId?: string) {
       let totalTrees = 0
       let totalWeeds = 0
       let totalRubbishKg = 0
-      let totalLeaders = 0
 
       for (const impact of impacts) {
         totalHours += impact.hours_total
         totalTrees += impact.trees_planted
         totalWeeds += impact.invasive_weeds_pulled
         totalRubbishKg += impact.rubbish_kg
-        totalLeaders += impact.leaders_trained
       }
+
+      const cleanupAddresses = new Set(
+        (cleanupRes.data ?? []).map((e: any) => (e.address ?? '').trim().toLowerCase()).filter(Boolean)
+      )
 
       return {
         eventsAttended,
         volunteerHours: Math.round(totalHours),
+        eventsHeld: eventIds.length,
         treesPlanted: totalTrees,
         invasiveWeedsPulled: totalWeeds,
         rubbishCollectedTonnes: Math.round((totalRubbishKg / 1000) * 100) / 100,
-        cleanupEventsHeld: cleanupRes.count ?? 0,
+        cleanupSites: cleanupAddresses.size,
         collectivesCount: collectivesRes.count ?? 0,
-        leadersTrainedCount: totalLeaders,
+        leadersEmpowered: (leadersRes.data ?? []).length > 0 ? 1 : 0,
       }
     },
     enabled: !!id,

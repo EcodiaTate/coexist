@@ -225,7 +225,6 @@ export function useAdminCollectiveStats(collectiveId: string | undefined) {
         event_count: number
         trees_planted: number
         rubbish_kg: number
-        coastline_cleaned_m: number
         hours_total: number
         area_restored_sqm: number
         native_plants: number

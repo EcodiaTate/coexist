@@ -35,7 +35,10 @@ import {
     useAnnouncementDetail,
     useRespondToAnnouncement,
 } from '@/hooks/use-chat'
+import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { useEventDetail, type EventDetailData } from '@/hooks/use-events'
+import type { EventRegistration } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
 /*  Channel type labels + icons                                        */
@@ -145,10 +148,110 @@ function InlineAnnouncement({
   const respond = useRespondToAnnouncement()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { toast } = useToast()
+
+  // Derive event info before any early returns so hooks are always called in the same order
+  const eventId = (announcement?.metadata as Record<string, unknown> | undefined)?.event_id as string | undefined
+  const isEventType = announcement?.type === 'event_invite' || announcement?.type === 'rsvp'
+  const { data: eventDetail } = useEventDetail(isEventType && eventId ? eventId : undefined)
+
+  const queryClient = useQueryClient()
 
   if (!announcement) return null
 
   const userResponse = announcement.responses?.find((r) => r.user_id === user?.id)?.response ?? null
+
+  const handleRespond = async (response: string) => {
+    respond.mutate({ announcementId, response })
+
+    if (isEventType && eventId) {
+      // Cancel any in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['event', eventId] })
+
+      // Optimistic update for event detail page
+      const prevEvent = queryClient.getQueryData<EventDetailData>(['event', eventId, user?.id])
+      if (prevEvent) {
+        queryClient.setQueryData<EventDetailData>(['event', eventId, user?.id], (old) => {
+          if (!old) return old
+          if (response === 'going') {
+            const wasRegistered = old.user_registration && old.user_registration.status === 'registered'
+            return {
+              ...old,
+              registration_count: old.registration_count + (wasRegistered ? 0 : 1),
+              user_registration: {
+                event_id: eventId,
+                user_id: user!.id,
+                status: 'registered',
+                checked_in_at: null,
+                registered_at: new Date().toISOString(),
+                invited_at: null,
+                id: old.user_registration?.id ?? crypto.randomUUID(),
+              } as EventRegistration,
+            }
+          } else if (response === 'not_going') {
+            const wasRegistered = old.user_registration && ['registered', 'invited', 'waitlisted'].includes(old.user_registration.status)
+            return {
+              ...old,
+              registration_count: Math.max(0, old.registration_count - (wasRegistered ? 1 : 0)),
+              user_registration: null,
+            }
+          }
+          return old
+        })
+      }
+
+      try {
+        if (response === 'going') {
+          const { error } = await supabase
+            .from('event_registrations')
+            .upsert(
+              { event_id: eventId, user_id: user!.id, status: 'registered' as const, registered_at: new Date().toISOString() },
+              { onConflict: 'event_id,user_id' },
+            )
+          if (error) throw error
+          toast.success("You're registered!")
+        } else if (response === 'not_going') {
+          await supabase
+            .from('event_registrations')
+            .update({ status: 'cancelled' as const })
+            .eq('event_id', eventId)
+            .eq('user_id', user!.id)
+          toast.info('RSVP removed')
+        } else if (response === 'maybe') {
+          try {
+            await supabase.rpc('handle_announcement_rsvp', {
+              p_event_id: eventId,
+              p_response: 'maybe',
+            })
+          } catch {
+            // RPC might not exist yet
+          }
+          toast.info("We'll remind you closer to the date")
+        }
+      } catch {
+        if (prevEvent) {
+          queryClient.setQueryData(['event', eventId, user?.id], prevEvent)
+        }
+        toast.error('Failed to update your RSVP')
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['event', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
+    }
+  }
+
+  const eventDetails = eventDetail
+    ? {
+        coverImageUrl: eventDetail.cover_image_url,
+        dateStart: eventDetail.date_start,
+        dateEnd: eventDetail.date_end,
+        address: eventDetail.address,
+        activityType: eventDetail.activity_type,
+        collectiveName: eventDetail.collectives?.name,
+      }
+    : null
 
   return (
     <AnnouncementCard
@@ -161,8 +264,9 @@ function InlineAnnouncement({
       userResponse={userResponse}
       isActive={announcement.is_active}
       sent={sent}
-      onRespond={(response) => respond.mutate({ announcementId, response })}
-      onViewEvent={(eventId) => navigate(`/events/${eventId}`)}
+      onRespond={handleRespond}
+      onViewEvent={(evId) => navigate(`/events/${evId}`)}
+      eventDetails={eventDetails}
     />
   )
 }
@@ -200,6 +304,7 @@ export default function ChannelChatPage() {
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const initialScrollDone = useRef(false)
   const [showScrollDown, setShowScrollDown] = useState(false)
   const [replyTo, setReplyTo] = useState<ChannelMessageWithSender | null>(null)
   const [showPollSheet, setShowPollSheet] = useState(false)
@@ -214,15 +319,23 @@ export default function ChannelChatPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelId, messages.length])
 
-  // Auto-scroll to bottom on new messages
+  // Instant scroll to bottom on first load, smooth on subsequent new messages
   useEffect(() => {
-    if (!isLoading && messages.length > 0 && !showScrollDown) {
+    if (!initialScrollDone.current) {
+      if (!isLoading && messages.length > 0) {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })
+        requestAnimationFrame(() => {
+          initialScrollDone.current = true
+        })
+      }
+    } else if (!showScrollDown) {
       messagesEndRef.current?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth' })
     }
   }, [messages.length, isLoading, shouldReduceMotion, showScrollDown])
 
   // Track scroll position for "scroll to bottom" button
   const handleScroll = useCallback(() => {
+    if (!initialScrollDone.current) return
     const el = scrollRef.current
     if (!el) return
     const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight

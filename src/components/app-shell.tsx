@@ -1,6 +1,5 @@
 import { type ReactNode, memo } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Menu } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar } from '@/components/bottom-tab-bar'
@@ -39,30 +38,14 @@ const StableSidebar = memo(function StableSidebar() {
 })
 
 /**
- * Stable mobile sidebar + hamburger - only depends on menu open/close
- * state, not on the current pathname.
+ * Mobile sidebar overlay - depends on menu open/close state only.
+ * The hamburger FAB is removed; "More" bottom tab opens this instead.
  */
-const MobileNav = memo(function MobileNav() {
-  const { open, openMenu, closeMenu } = useMenuSheet()
+const MobileSidebar = memo(function MobileSidebar() {
+  const { open, closeMenu } = useMenuSheet()
 
   return (
-    <>
-      {/* Fixed hamburger (mobile + native) - always visible, top-right, white, no background */}
-      <button
-        type="button"
-        onClick={openMenu}
-        className="fixed right-1 z-40 flex items-center justify-center w-12 h-12 text-white cursor-pointer select-none"
-        style={{
-          top: 'calc(var(--safe-top, 0px) + 0.25rem)',
-        }}
-        aria-label="Open menu"
-      >
-        <Menu size={22} />
-      </button>
-
-      {/* Unified sidebar - mobile: slide-in overlay from right with suite switcher */}
-      <UnifiedSidebar mobileOpen={open} onMobileClose={closeMenu} />
-    </>
+    <UnifiedSidebar mobileOpen={open} onMobileClose={closeMenu} />
   )
 })
 
@@ -73,6 +56,7 @@ const MobileNav = memo(function MobileNav() {
 function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
   const { isMobile, isWeb } = useLayout()
   const location = useLocation()
+  const { openMenu } = useMenuSheet()
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isLeaderRoute = location.pathname.startsWith('/leader') && !location.pathname.startsWith('/leaderboard')
   const isChatRoute = location.pathname.startsWith('/chat/')
@@ -83,7 +67,9 @@ function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
       {isWeb && !isMobile && !isChatRoute && <WebFooter />}
 
       {/* Bottom tab bar (mobile + native) - hidden on admin/leader pages (they have their own) */}
-      {showBottomTabs && !isAdminRoute && !isLeaderRoute && <BottomTabBar />}
+      {showBottomTabs && !isAdminRoute && !isLeaderRoute && (
+        <BottomTabBar onMorePress={openMenu} />
+      )}
     </>
   )
 }
@@ -126,8 +112,8 @@ function AppShellInner({ children }: { children: ReactNode }) {
       {/* Location-aware chrome (footer + bottom tabs) - isolated to prevent sidebar re-renders */}
       <LocationAwareChrome showBottomTabs={showBottomTabs} />
 
-      {/* Mobile nav (hamburger + overlay sidebar) */}
-      {showBottomTabs && <MobileNav />}
+      {/* Mobile sidebar overlay (opened via "More" tab in bottom bar) */}
+      {showBottomTabs && <MobileSidebar />}
     </div>
   )
 }

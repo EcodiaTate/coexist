@@ -62,6 +62,10 @@ import {
   useSendBroadcastNotification,
   type ChatMessageWithSender,
 } from '@/hooks/use-chat'
+import { useQueryClient } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase'
+import { useInviteCollaborator, useEventDetail, type EventDetailData } from '@/hooks/use-events'
+import type { EventRegistration } from '@/types/database.types'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useTyping } from '@/hooks/use-typing'
@@ -425,10 +429,116 @@ function InlineAnnouncement({
   const respond = useRespondToAnnouncement()
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { toast } = useToast()
+
+  // Derive event info before any early returns so hooks are always called in the same order
+  const eventId = (announcement?.metadata as Record<string, unknown> | undefined)?.event_id as string | undefined
+  const isEventType = announcement?.type === 'event_invite' || announcement?.type === 'rsvp'
+  const { data: eventDetail } = useEventDetail(isEventType && eventId ? eventId : undefined)
+  const queryClient = useQueryClient()
 
   if (!announcement) return null
 
   const userResponse = announcement.responses?.find((r) => r.user_id === user?.id)?.response ?? null
+
+  const handleRespond = async (response: string) => {
+    // Save chat announcement response
+    respond.mutate({ announcementId, response })
+
+    // If this announcement links to an event, handle the actual RSVP
+    if (isEventType && eventId) {
+      // Cancel any in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ['event', eventId] })
+
+      // Optimistically update the event detail cache so the event page reflects it instantly
+      const prevEvent = queryClient.getQueryData<EventDetailData>(['event', eventId, user?.id])
+      if (prevEvent) {
+        queryClient.setQueryData<EventDetailData>(['event', eventId, user?.id], (old) => {
+          if (!old) return old
+          if (response === 'going') {
+            const wasRegistered = old.user_registration && old.user_registration.status === 'registered'
+            return {
+              ...old,
+              registration_count: old.registration_count + (wasRegistered ? 0 : 1),
+              user_registration: {
+                event_id: eventId,
+                user_id: user!.id,
+                status: 'registered',
+                checked_in_at: null,
+                registered_at: new Date().toISOString(),
+                invited_at: null,
+                id: old.user_registration?.id ?? crypto.randomUUID(),
+              } as EventRegistration,
+            }
+          } else if (response === 'not_going') {
+            const wasRegistered = old.user_registration && ['registered', 'invited', 'waitlisted'].includes(old.user_registration.status)
+            return {
+              ...old,
+              registration_count: Math.max(0, old.registration_count - (wasRegistered ? 1 : 0)),
+              user_registration: null,
+            }
+          }
+          return old
+        })
+      }
+
+      try {
+        if (response === 'going') {
+          // Register or re-register
+          const { error } = await supabase
+            .from('event_registrations')
+            .upsert(
+              { event_id: eventId, user_id: user!.id, status: 'registered' as const, registered_at: new Date().toISOString() },
+              { onConflict: 'event_id,user_id' },
+            )
+          if (error) throw error
+          toast.success("You're registered!")
+        } else if (response === 'not_going') {
+          // Cancel registration
+          await supabase
+            .from('event_registrations')
+            .update({ status: 'cancelled' as const })
+            .eq('event_id', eventId)
+            .eq('user_id', user!.id)
+          toast.info('RSVP removed')
+        } else if (response === 'maybe') {
+          // Try the RPC for scheduling a reminder, fall back gracefully
+          try {
+            await supabase.rpc('handle_announcement_rsvp', {
+              p_event_id: eventId,
+              p_response: 'maybe',
+            })
+          } catch {
+            // RPC might not exist yet - that's ok
+          }
+          toast.info("We'll remind you closer to the date")
+        }
+      } catch {
+        // Rollback optimistic update
+        if (prevEvent) {
+          queryClient.setQueryData(['event', eventId, user?.id], prevEvent)
+        }
+        toast.error('Failed to update your RSVP')
+      }
+
+      // Refetch to get authoritative state
+      queryClient.invalidateQueries({ queryKey: ['event', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
+    }
+  }
+
+  const eventDetails = eventDetail
+    ? {
+        coverImageUrl: eventDetail.cover_image_url,
+        dateStart: eventDetail.date_start,
+        dateEnd: eventDetail.date_end,
+        address: eventDetail.address,
+        activityType: eventDetail.activity_type,
+        collectiveName: eventDetail.collectives?.name,
+      }
+    : null
 
   return (
     <AnnouncementCard
@@ -441,8 +551,9 @@ function InlineAnnouncement({
       userResponse={userResponse}
       isActive={announcement.is_active}
       sent={sent}
-      onRespond={(response) => respond.mutate({ announcementId, response })}
-      onViewEvent={(eventId) => navigate(`/events/${eventId}`)}
+      onRespond={handleRespond}
+      onViewEvent={(evId) => navigate(`/events/${evId}`)}
+      eventDetails={eventDetails}
     />
   )
 }
@@ -591,6 +702,7 @@ export default function CollectiveChatPage() {
   const createAnnouncement = useCreateAnnouncement()
   const { data: broadcastLog = [] } = useBroadcastLog(isLeaderOrAbove ? collectiveId : undefined)
   const sendBroadcast = useSendBroadcastNotification()
+  const inviteCollaborator = useInviteCollaborator()
 
   // Restore draft on mount
   const savedDraft = collectiveId ? getChatDraft(collectiveId) : null
@@ -611,6 +723,7 @@ export default function CollectiveChatPage() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const initialScrollDone = useRef(false)
 
   // Flatten pages (already newest-first, reverse for display)
   const allMessages = useMemo(() => {
@@ -635,9 +748,18 @@ export default function CollectiveChatPage() {
     return groups
   }, [allMessages])
 
-  // Auto-scroll to bottom on new messages
+  // Instant scroll to bottom on first load, smooth on subsequent new messages
   useEffect(() => {
-    if (!showScrollDown) {
+    if (!initialScrollDone.current) {
+      if (allMessages.length > 0) {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })
+        // Delay marking initial scroll done so the scroll handler doesn't
+        // set showScrollDown during the layout shift
+        requestAnimationFrame(() => {
+          initialScrollDone.current = true
+        })
+      }
+    } else if (!showScrollDown) {
       messagesEndRef.current?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth' })
     }
   }, [allMessages.length, shouldReduceMotion, showScrollDown])
@@ -649,6 +771,7 @@ export default function CollectiveChatPage() {
 
   // Scroll detection for "scroll to bottom" button + infinite scroll
   const handleScroll = useCallback(() => {
+    if (!initialScrollDone.current) return
     const container = scrollContainerRef.current
     if (!container) return
 
@@ -820,6 +943,29 @@ export default function CollectiveChatPage() {
         onError: () => toast.error('Failed to create announcement'),
       },
     )
+  }
+
+  const handleInviteCollectives = (data: {
+    eventId: string
+    collectiveIds: string[]
+    message?: string
+  }) => {
+    if (!collectiveId) return
+    const count = data.collectiveIds.length
+    toast.info(`Inviting ${count} collective${count !== 1 ? 's' : ''} to collaborate...`)
+    // Fire all invitations in parallel
+    Promise.all(
+      data.collectiveIds.map((targetId) =>
+        inviteCollaborator.mutateAsync({
+          eventId: data.eventId,
+          collectiveId: targetId,
+          hostCollectiveId: collectiveId,
+          message: data.message,
+        }),
+      ),
+    )
+      .then(() => toast.success(`Collaboration invite${count !== 1 ? 's' : ''} sent!`))
+      .catch(() => toast.error('Some invites failed to send'))
   }
 
   const handleBroadcast = (data: { title: string; body: string }) => {
@@ -1208,8 +1354,10 @@ export default function CollectiveChatPage() {
         open={showAnnouncementSheet}
         onClose={() => setShowAnnouncementSheet(false)}
         onSubmit={handleCreateAnnouncement}
+        onInviteCollectives={handleInviteCollectives}
         loading={createAnnouncement.isPending}
         defaultType={announcementType}
+        collectiveId={collectiveId}
       />
 
       {/* Broadcast notification sheet */}

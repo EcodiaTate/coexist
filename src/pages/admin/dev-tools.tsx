@@ -146,6 +146,10 @@ function useSeedTestEvent() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['dev-test-events'] })
+      queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      queryClient.invalidateQueries({ queryKey: ['discover-events'] })
+      queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
+      queryClient.invalidateQueries({ queryKey: ['collective-events'] })
       toast.success(`Created: ${data.title}`)
     },
     onError: (err) => {
@@ -252,6 +256,10 @@ function useCleanupTests() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dev-test-events'] })
+      queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      queryClient.invalidateQueries({ queryKey: ['discover-events'] })
+      queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
+      queryClient.invalidateQueries({ queryKey: ['collective-events'] })
       toast.success('Test data cleaned up')
     },
     onError: (err) => {

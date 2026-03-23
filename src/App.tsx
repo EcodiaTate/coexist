@@ -70,6 +70,7 @@ const EventsPage = lazy(() => import('@/pages/events/index'))
 const EventDetailPage = lazy(() => import('@/pages/events/event-detail'))
 const CreateEventPage = lazy(() => import('@/pages/events/create-event'))
 const CheckInPage = lazy(() => import('@/pages/events/check-in'))
+const ProfileSurveyPage = lazy(() => import('@/pages/events/profile-survey'))
 const EventDayPage = lazy(() => import('@/pages/events/event-day'))
 const LogImpactPage = lazy(() => import('@/pages/events/log-impact'))
 const PostEventSurveyPage = lazy(() => import('@/pages/events/post-event-survey'))
@@ -106,8 +107,6 @@ const AdminMembershipPage = lazy(() => import('@/pages/admin/membership'))
 // Admin - Merch
 const AdminMerchPage = lazy(() => import('@/pages/admin/merch/index'))
 
-// Admin - Moderation
-const ModerationQueuePage = lazy(() => import('@/pages/admin/moderation/index'))
 
 // Admin - Dashboards & Management
 const AdminDashboardPage = lazy(() => import('@/pages/admin/index'))
@@ -115,9 +114,8 @@ const AdminCollectivesPage = lazy(() => import('@/pages/admin/collectives'))
 const AdminCollectiveDetailPage = lazy(() => import('@/pages/admin/collective-detail'))
 const AdminUsersPage = lazy(() => import('@/pages/admin/users'))
 const AdminEventsPage = lazy(() => import('@/pages/admin/events'))
-const AdminPartnersPage = lazy(() => import('@/pages/admin/partners'))
-const AdminChallengesPage = lazy(() => import('@/pages/admin/challenges'))
 const AdminSurveysPage = lazy(() => import('@/pages/admin/surveys'))
+const AdminApplicationsPage = lazy(() => import('@/pages/admin/applications'))
 const AdminCreateSurveyPage = lazy(() => import('@/pages/admin/create-survey'))
 const AdminAuditLogPage = lazy(() => import('@/pages/admin/audit-log'))
 const AdminSystemPage = lazy(() => import('@/pages/admin/system'))
@@ -126,25 +124,23 @@ const AdminEmailPage = lazy(() => import('@/pages/admin/email'))
 const AdminCharityPage = lazy(() => import('@/pages/admin/charity'))
 const AdminExportsPage = lazy(() => import('@/pages/admin/exports'))
 const AdminWorkflowsPage = lazy(() => import('@/pages/admin/workflows'))
+const AdminCreatePage = lazy(() => import('@/pages/admin/create'))
 const DevToolsPage = lazy(() => import('@/pages/admin/dev-tools'))
-
-// More (hub page)
-const MorePage = lazy(() => import('@/pages/more'))
+const AdminPartnersPage = lazy(() => import('@/pages/admin/partners'))
+const AdminChallengesPage = lazy(() => import('@/pages/admin/challenges'))
+const ModerationQueuePage = lazy(() => import('@/pages/admin/moderation/index'))
 
 // Contact, Partners, Leadership
 const ContactPage = lazy(() => import('@/pages/contact'))
 const PartnersPage = lazy(() => import('@/pages/partners'))
 const LeadershipPage = lazy(() => import('@/pages/leadership'))
+const LeadACollectivePage = lazy(() => import('@/pages/lead-a-collective'))
 
 // Leader Dashboard & sub-pages
 const LeaderDashboardPage = lazy(() => import('@/pages/leader/index'))
 const LeaderEventsPage = lazy(() => import('@/pages/leader/events'))
-const LeaderMembersPage = lazy(() => import('@/pages/leader/members'))
 const LeaderTasksPage = lazy(() => import('@/pages/leader/tasks'))
-const LeaderAnnouncementsPage = lazy(() => import('@/pages/leader/announcements'))
-const LeaderImpactPage = lazy(() => import('@/pages/leader/impact'))
 const LeaderReportsPage = lazy(() => import('@/pages/reports/index'))
-const LeaderInvitePage = lazy(() => import('@/pages/leader/invite'))
 
 // Reports & National Impact
 const ReportsPage = lazy(() => import('@/pages/reports/index'))
@@ -322,6 +318,7 @@ function App() {
           <Route path="/events/create" element={<PageTransition><CreateEventPage /></PageTransition>} />
           <Route path="/events/:id" element={<PageTransition><EventDetailPage /></PageTransition>} />
           <Route path="/events/:id/check-in" element={<PageTransition><CheckInPage /></PageTransition>} />
+          <Route path="/events/:id/profile-survey" element={<PageTransition><ProfileSurveyPage /></PageTransition>} />
           <Route path="/events/:id/day" element={<PageTransition><EventDayPage /></PageTransition>} />
           <Route path="/events/:id/impact" element={<PageTransition><LogImpactPage /></PageTransition>} />
           <Route path="/events/:id/survey" element={<PageTransition><PostEventSurveyPage /></PageTransition>} />
@@ -340,12 +337,13 @@ function App() {
           <Route path="/referral" element={<PageTransition><ReferralPage /></PageTransition>} />
           <Route path="/notifications" element={<PageTransition><NotificationsPage /></PageTransition>} />
           <Route path="/announcements" element={<PageTransition><AnnouncementsPage /></PageTransition>} />
-          <Route path="/announcements/create" element={<RequireRole minRole="national_staff"><PageTransition><CreateAnnouncementPage /></PageTransition></RequireRole>} />
+          <Route path="/announcements/create" element={<RequireRole minRole="national_admin"><PageTransition><CreateAnnouncementPage /></PageTransition></RequireRole>} />
           <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
-          <Route path="/more" element={<PageTransition><MorePage /></PageTransition>} />
+
           <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
           <Route path="/partners" element={<PageTransition><PartnersPage /></PageTransition>} />
           <Route path="/leadership" element={<PageTransition><LeadershipPage /></PageTransition>} />
+          <Route path="/lead-a-collective" element={<PageTransition><LeadACollectivePage /></PageTransition>} />
           <Route path="/membership" element={<PageTransition><MembershipPage /></PageTransition>} />
           <Route path="/donate" element={<PageTransition><DonatePage /></PageTransition>} />
           <Route path="/donate/thank-you" element={<PageTransition><DonateThankYouPage /></PageTransition>} />
@@ -365,12 +363,8 @@ function App() {
             <Route index element={<LeaderDashboardPage />} />
             <Route path="events" element={<LeaderEventsPage />} />
             <Route path="events/create" element={<CreateEventPage />} />
-            <Route path="members" element={<LeaderMembersPage />} />
             <Route path="tasks" element={<LeaderTasksPage />} />
-            <Route path="announcements" element={<LeaderAnnouncementsPage />} />
-            <Route path="impact" element={<LeaderImpactPage />} />
             <Route path="reports" element={<LeaderReportsPage />} />
-            <Route path="invite" element={<LeaderInvitePage />} />
           </Route>
 
           {/* ---- Admin routes (staff+) ---- */}
@@ -379,15 +373,14 @@ function App() {
             <Route path="collectives" element={<AdminCollectivesPage />} />
             <Route path="collectives/:collectiveId" element={<AdminCollectiveDetailPage />} />
             <Route path="users" element={<AdminUsersPage />} />
+            <Route path="create" element={<AdminCreatePage />} />
             <Route path="workflows" element={<AdminWorkflowsPage />} />
             <Route path="events" element={<AdminEventsPage />} />
-            <Route path="partners" element={<AdminPartnersPage />} />
-            <Route path="challenges" element={<AdminChallengesPage />} />
             <Route path="surveys" element={<AdminSurveysPage />} />
+            <Route path="applications" element={<AdminApplicationsPage />} />
             <Route path="surveys/create" element={<AdminCreateSurveyPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="national-impact" element={<NationalImpactPage />} />
-            <Route path="moderation" element={<ModerationQueuePage />} />
             <Route path="email" element={<AdminEmailPage />} />
             <Route path="charity" element={<AdminCharityPage />} />
             <Route path="exports" element={<AdminExportsPage />} />
@@ -396,6 +389,9 @@ function App() {
             <Route path="branding" element={<AdminBrandingPage />} />
             <Route path="membership" element={<AdminMembershipPage />} />
             <Route path="shop" element={<AdminMerchPage />} />
+            <Route path="partners" element={<AdminPartnersPage />} />
+            <Route path="challenges" element={<AdminChallengesPage />} />
+            <Route path="moderation" element={<ModerationQueuePage />} />
             <Route path="dev-tools" element={<DevToolsPage />} />
           </Route>
 

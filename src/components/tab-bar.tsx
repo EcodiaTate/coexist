@@ -1,5 +1,5 @@
-import { type ReactNode, useRef, useEffect } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { type ReactNode, useRef, useEffect, useId } from 'react'
+import { motion, LayoutGroup, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 
 interface Tab {
@@ -26,6 +26,7 @@ export function TabBar({
   const shouldReduceMotion = useReducedMotion()
   const scrollRef = useRef<HTMLDivElement>(null)
   const activeRef = useRef<HTMLButtonElement>(null)
+  const groupId = useId()
 
   useEffect(() => {
     if (activeRef.current && scrollRef.current) {
@@ -44,61 +45,63 @@ export function TabBar({
   }, [activeTab, shouldReduceMotion])
 
   return (
-    <div
-      ref={scrollRef}
-      role="tablist"
-      aria-label={ariaLabel}
-      className={cn(
-        'flex overflow-x-auto scrollbar-none',
-        'border-b border-primary-100/40',
-        className,
-      )}
-    >
-      {tabs.map((tab) => {
-        const isActive = tab.id === activeTab
+    <LayoutGroup id={groupId}>
+      <div
+        ref={scrollRef}
+        role="tablist"
+        aria-label={ariaLabel}
+        className={cn(
+          'flex overflow-x-auto overflow-y-hidden scrollbar-none',
+          'border-b border-primary-100/40',
+          className,
+        )}
+      >
+        {tabs.map((tab) => {
+          const isActive = tab.id === activeTab
 
-        return (
-          <button
-            key={tab.id}
-            ref={isActive ? activeRef : undefined}
-            role="tab"
-            aria-selected={isActive}
-            tabIndex={isActive ? 0 : -1}
-            onClick={() => onChange(tab.id)}
-            className={cn(
-              'relative flex items-center justify-center gap-1.5',
-              'whitespace-nowrap px-4 min-h-11 text-sm font-medium',
-              'cursor-pointer select-none shrink-0',
-              'transition-colors duration-200',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1',
-              isActive
-                ? 'text-primary-800'
-                : 'text-primary-400/70 hover:text-primary-600',
-            )}
-          >
-            {/* Animated underline indicator */}
-            {isActive && (
-              <motion.span
-                layoutId="tab-indicator"
-                className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-primary-700"
-                transition={
-                  shouldReduceMotion
-                    ? { duration: 0 }
-                    : { type: 'spring', stiffness: 380, damping: 30, mass: 0.7 }
-                }
-              />
-            )}
-            <span className="relative flex items-center gap-1.5">
-              {tab.icon && (
-                <span className="flex items-center shrink-0" aria-hidden="true">
-                  {tab.icon}
-                </span>
+          return (
+            <button
+              key={tab.id}
+              ref={isActive ? activeRef : undefined}
+              role="tab"
+              aria-selected={isActive}
+              tabIndex={isActive ? 0 : -1}
+              onClick={() => onChange(tab.id)}
+              className={cn(
+                'relative flex items-center justify-center gap-1.5',
+                'whitespace-nowrap px-4 min-h-11 text-sm font-medium',
+                'cursor-pointer select-none shrink-0',
+                'transition-colors duration-200',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1',
+                isActive
+                  ? 'text-primary-800'
+                  : 'text-primary-400/70 hover:text-primary-600',
               )}
-              {tab.label}
-            </span>
-          </button>
-        )
-      })}
-    </div>
+            >
+              {/* Animated underline indicator */}
+              {isActive && (
+                <motion.span
+                  layoutId="tab-indicator"
+                  className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-primary-700"
+                  transition={
+                    shouldReduceMotion
+                      ? { duration: 0 }
+                      : { type: 'spring', stiffness: 380, damping: 30, mass: 0.7 }
+                  }
+                />
+              )}
+              <span className="relative flex items-center gap-1.5">
+                {tab.icon && (
+                  <span className="flex items-center shrink-0" aria-hidden="true">
+                    {tab.icon}
+                  </span>
+                )}
+                {tab.label}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </LayoutGroup>
   )
 }

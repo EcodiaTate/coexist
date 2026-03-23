@@ -11,6 +11,7 @@ export type { AvatarProps } from './avatar'
 // Overlays & Feedback
 export { Modal } from './modal'
 export { BottomSheet } from './bottom-sheet'
+export { CheckInSheet } from './check-in-sheet'
 export { ToastProvider, useToast } from './toast'
 export { Skeleton } from './skeleton'
 export { EmptyState } from './empty-state'

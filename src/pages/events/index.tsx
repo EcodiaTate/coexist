@@ -195,6 +195,24 @@ const statusBadge: Record<string, { label: string; className: string }> = {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Activity colour accents for card tinting                           */
+/* ------------------------------------------------------------------ */
+
+const activityCardTint: Record<string, { from: string; via: string; to: string }> = {
+  shore_cleanup:      { from: 'from-[#869d61]', via: 'via-[#869d61]', to: 'to-sky-600'      },
+  tree_planting:      { from: 'from-[#869d61]', via: 'via-[#869d61]', to: 'to-emerald-600'  },
+  land_regeneration:  { from: 'from-[#869d61]', via: 'via-[#869d61]', to: 'to-lime-600'     },
+  nature_walk:        { from: 'from-[#869d61]', via: 'via-[#869d61]', to: 'to-teal-600'     },
+  camp_out:           { from: 'from-[#869d61]', via: 'via-[#869d61]', to: 'to-amber-600'    },
+  retreat:            { from: 'from-[#869d61]', via: 'via-[#869d61]', to: 'to-violet-600'   },
+  film_screening:     { from: 'from-[#869d61]', via: 'via-[#869d61]', to: 'to-rose-600'     },
+  marine_restoration: { from: 'from-[#869d61]', via: 'via-[#869d61]', to: 'to-blue-600'     },
+  workshop:           { from: 'from-[#869d61]', via: 'via-[#869d61]', to: 'to-fuchsia-600'  },
+}
+
+const defaultCardTint = { from: 'from-[#869d61]', via: 'via-[#869d61]', to: 'to-moss-600' }
+
+/* ------------------------------------------------------------------ */
 /*  Activity badge mapping                                             */
 /* ------------------------------------------------------------------ */
 
@@ -226,6 +244,7 @@ function MyEventCard({
   const past = isPastEvent(event)
   const status = statusBadge[event.registration_status]
   const countdown = !past && event.registration_status === 'registered' ? getCountdown(event.date_start) : null
+  const tint = activityCardTint[event.activity_type] ?? defaultCardTint
 
   return (
     <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
@@ -234,9 +253,8 @@ function MyEventCard({
         onClick={() => navigate(`/events/${event.id}`)}
         aria-label={`${event.title} - ${status?.label}`}
         className={cn(
-          'bg-brand',
-          'border border-primary-400/30',
-          'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.22),0_2px_6px_rgba(61,77,51,0.08)]',
+          `bg-gradient-to-br ${tint.from} ${tint.via} via-[80%] ${tint.to}`,
+          `shadow-[0_6px_28px_-6px_rgba(61,77,51,0.22),0_2px_6px_rgba(61,77,51,0.08)]`,
           past && 'opacity-70 saturate-[0.85]',
         )}
       >
@@ -343,6 +361,7 @@ function MyEventCard({
 function DiscoverEventCard({ event }: { event: EventWithCollective }) {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const tint = activityCardTint[event.activity_type] ?? defaultCardTint
 
   return (
     <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
@@ -351,9 +370,8 @@ function DiscoverEventCard({ event }: { event: EventWithCollective }) {
         onClick={() => navigate(`/events/${event.id}`)}
         aria-label={event.title}
         className={cn(
-          'bg-brand',
-          'border border-primary-400/30',
-          'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.22),0_2px_6px_rgba(61,77,51,0.08)]',
+          `bg-gradient-to-br ${tint.from} ${tint.via} via-[80%] ${tint.to}`,
+          `shadow-[0_6px_28px_-6px_rgba(61,77,51,0.22),0_2px_6px_rgba(61,77,51,0.08)]`,
         )}
       >
         <div className="relative">

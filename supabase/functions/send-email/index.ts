@@ -109,6 +109,12 @@ const EMAIL_TEMPLATES: Record<string, TemplateDefinition> = {
     description: 'Order refund processed. Data: { name, order_id, refund_amount, currency }',
   },
 
+  collective_application: {
+    templateIdEnvKey: 'SENDGRID_TPL_COLLECTIVE_APPLICATION',
+    category: 'transactional',
+    description: 'New collective application notification. Data: { applicant_name, applicant_email, roles, location }',
+  },
+
   // ---- Marketing ----
   newsletter: {
     templateIdEnvKey: 'SENDGRID_TPL_NEWSLETTER',

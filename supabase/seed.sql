@@ -53,7 +53,7 @@ INSERT INTO events (id, collective_id, created_by, title, description, activity_
   -- Byron Bay events
   ('e0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001',
    'Main Beach Cleanup', 'Monthly cleanup of Main Beach - bring sunscreen and a reusable water bottle!',
-   'beach_cleanup', '2026-04-05 08:00:00+10', '2026-04-05 11:00:00+10', 40,
+   'shore_cleanup', '2026-04-05 08:00:00+10', '2026-04-05 11:00:00+10', 40,
    'Main Beach, Byron Bay NSW 2481', true, 'published', ST_SetSRID(ST_MakePoint(153.6190, -28.6430), 4326)),
 
   ('e0000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001',
@@ -64,12 +64,12 @@ INSERT INTO events (id, collective_id, created_by, title, description, activity_
   -- Sydney events
   ('e0000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001',
    'Harbour Foreshore Cleanup', 'Join us for a cleanup along the Sydney Harbour foreshore.',
-   'beach_cleanup', '2026-04-06 09:00:00+10', '2026-04-06 12:00:00+10', 60,
+   'shore_cleanup', '2026-04-06 09:00:00+10', '2026-04-06 12:00:00+10', 60,
    'Barangaroo Reserve, Sydney NSW 2000', true, 'published', ST_SetSRID(ST_MakePoint(151.2015, -33.8600), 4326)),
 
   ('e0000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000002', 'a0000000-0000-0000-0000-000000000001',
    'Lane Cove Bush Regen', 'Habitat restoration and weed removal in Lane Cove National Park.',
-   'habitat_restoration', '2026-04-19 08:00:00+10', '2026-04-19 13:00:00+10', 25,
+   'land_regeneration', '2026-04-19 08:00:00+10', '2026-04-19 13:00:00+10', 25,
    'Lane Cove National Park, Sydney NSW', true, 'published', ST_SetSRID(ST_MakePoint(151.1500, -33.7900), 4326)),
 
   -- Melbourne events
@@ -80,31 +80,31 @@ INSERT INTO events (id, collective_id, created_by, title, description, activity_
 
   ('e0000000-0000-0000-0000-000000000006', 'c0000000-0000-0000-0000-000000000003', 'a0000000-0000-0000-0000-000000000001',
    'St Kilda Beach Cleanup', 'Coastal cleanup at St Kilda Beach - buckets and gloves provided.',
-   'beach_cleanup', '2026-04-20 08:00:00+10', '2026-04-20 11:00:00+10', 45,
+   'shore_cleanup', '2026-04-20 08:00:00+10', '2026-04-20 11:00:00+10', 45,
    'St Kilda Beach, Melbourne VIC', true, 'published', ST_SetSRID(ST_MakePoint(144.9742, -37.8679), 4326)),
 
   -- Gold Coast events
   ('e0000000-0000-0000-0000-000000000007', 'c0000000-0000-0000-0000-000000000004', 'a0000000-0000-0000-0000-000000000001',
    'Currumbin Wildlife Survey', 'Citizen science - bird and wildlife survey along Currumbin Creek.',
-   'wildlife_survey', '2026-04-07 06:30:00+10', '2026-04-07 09:30:00+10', 20,
+   'nature_walk', '2026-04-07 06:30:00+10', '2026-04-07 09:30:00+10', 20,
    'Currumbin Creek, Gold Coast QLD', true, 'published', ST_SetSRID(ST_MakePoint(153.4800, -28.1300), 4326)),
 
   -- Brisbane events
   ('e0000000-0000-0000-0000-000000000008', 'c0000000-0000-0000-0000-000000000006', 'a0000000-0000-0000-0000-000000000001',
    'Brisbane River Cleanup', 'Kayak-based river cleanup - we provide kayaks! BYO enthusiasm.',
-   'waterway_cleanup', '2026-04-14 07:00:00+10', '2026-04-14 11:00:00+10', 20,
+   'shore_cleanup', '2026-04-14 07:00:00+10', '2026-04-14 11:00:00+10', 20,
    'Kangaroo Point, Brisbane QLD', true, 'published', ST_SetSRID(ST_MakePoint(153.0350, -27.4750), 4326)),
 
   -- Adelaide
   ('e0000000-0000-0000-0000-000000000009', 'c0000000-0000-0000-0000-000000000007', 'a0000000-0000-0000-0000-000000000001',
    'Botanic Garden Weed Blitz', 'Help the crew remove invasive weeds in the Adelaide Botanic Garden.',
-   'weed_removal', '2026-04-21 09:00:00+09:30', '2026-04-21 12:00:00+09:30', 30,
+   'land_regeneration', '2026-04-21 09:00:00+09:30', '2026-04-21 12:00:00+09:30', 30,
    'Adelaide Botanic Garden, Adelaide SA', true, 'published', ST_SetSRID(ST_MakePoint(138.6100, -34.9180), 4326)),
 
   -- Perth
   ('e0000000-0000-0000-0000-000000000010', 'c0000000-0000-0000-0000-000000000008', 'a0000000-0000-0000-0000-000000000001',
    'Kings Park Seed Collecting', 'Autumn seed collection for native species propagation.',
-   'seed_collecting', '2026-04-22 08:00:00+08', '2026-04-22 11:00:00+08', 15,
+   'tree_planting', '2026-04-22 08:00:00+08', '2026-04-22 11:00:00+08', 15,
    'Kings Park, Perth WA', true, 'published', ST_SetSRID(ST_MakePoint(115.8400, -31.9600), 4326))
 ON CONFLICT (id) DO NOTHING;
 

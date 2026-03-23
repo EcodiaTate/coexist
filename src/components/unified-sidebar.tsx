@@ -8,12 +8,11 @@ import {
     BarChart3,
     Settings,
     Shield,
-    Trophy,
+
     ShoppingBag,
     Heart,
     Megaphone,
     PanelLeftClose,
-    LayoutDashboard,
     MapPin,
     Handshake,
     ClipboardList,
@@ -21,17 +20,16 @@ import {
     FileText,
     Download,
     Mail,
-    AlertCircle,
+
     Bug,
     Image,
-    Plus,
-    Send,
     TreePine,
     Leaf,
     X,
     ChevronRight,
     Home,
     MessageCircle,
+    Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { APP_NAME } from '@/lib/constants'
@@ -62,6 +60,14 @@ interface NavCategory {
   superAdminOnly?: boolean
   /** Only show on mobile sidebar (not desktop) */
   mobileOnly?: boolean
+  /** Accent color class for the section label (e.g. 'text-plum-400') */
+  labelColor?: string
+  /** Accent dot color class shown before the label */
+  dotColor?: string
+  /** Prominent group header rendered above this category (e.g. 'Admin', 'Leader') */
+  sectionHeader?: string
+  /** Border color class for the section header left accent bar */
+  sectionBorderColor?: string
 }
 
 type Suite = 'main' | 'admin' | 'leader'
@@ -77,65 +83,47 @@ const COLLAPSED_WIDTH = 'w-[60px]'
 /*  Nav definitions                                                    */
 /* ------------------------------------------------------------------ */
 
-const mainNavCategories: NavCategory[] = [
-  {
-    label: 'Main',
-    items: [
-      { label: 'Home', path: '/', icon: <Home size={17} strokeWidth={1.5} />, desktopOnly: true },
-      { label: 'Updates', path: '/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> },
-      { label: 'Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
-      { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true },
-    ],
-  },
-  {
-    label: 'Support',
-    items: [
-      { label: 'Shop', path: '/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} /> },
-      { label: 'Donate', path: '/donate', icon: <Heart size={17} strokeWidth={1.5} /> },
-      { label: 'Leadership Opportunities', path: '/leadership', icon: <Users size={17} strokeWidth={1.5} /> },
-      { label: 'Our Partners', path: '/partners', icon: <Handshake size={17} strokeWidth={1.5} /> },
-      { label: 'Contact Us', path: '/contact', icon: <Mail size={17} strokeWidth={1.5} /> },
-    ],
-  },
-]
+/* ── Home items (always first, one per role) ── */
+const memberHomeItem: NavItem = { label: 'Home', path: '/', icon: <Home size={17} strokeWidth={1.5} /> }
+const leaderHomeItem: NavItem = { label: 'Leader Home', path: '/leader', icon: <Home size={17} strokeWidth={1.5} /> }
+const adminHomeItem: NavItem = { label: 'Admin Home', path: '/admin', icon: <Home size={17} strokeWidth={1.5} /> }
 
+/* ── Admin nav (plum accent) ── */
 const adminNavCategories: NavCategory[] = [
   {
-    label: 'Overview',
+    label: 'People',
+    sectionHeader: 'Admin',
+    sectionBorderColor: 'border-bark-400',
+    labelColor: 'text-bark-500',
+    dotColor: 'bg-bark-400',
     items: [
-      { label: 'Overview', path: '/admin', icon: <LayoutDashboard size={17} strokeWidth={1.5} /> },
+      { label: 'Users', path: '/admin/users', icon: <Users size={17} strokeWidth={1.5} />, capability: 'manage_users' },
+      { label: 'Applications', path: '/admin/applications', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_users' },
     ],
   },
   {
-    label: 'Content',
+    label: 'Programme',
+    labelColor: 'text-bark-500',
+    dotColor: 'bg-bark-400',
     items: [
       { label: 'Collectives', path: '/admin/collectives', icon: <MapPin size={17} strokeWidth={1.5} />, capability: 'manage_collectives' },
-      { label: 'Workflows', path: '/admin/workflows', icon: <ClipboardCheck size={17} strokeWidth={1.5} />, capability: 'manage_workflows' },
       { label: 'Events', path: '/admin/events', icon: <CalendarDays size={17} strokeWidth={1.5} />, capability: 'manage_events' },
-      { label: 'Challenges', path: '/admin/challenges', icon: <Trophy size={17} strokeWidth={1.5} />, capability: 'manage_challenges' },
-      { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_surveys' },
+      { label: 'Partners', path: '/admin/partners', icon: <Handshake size={17} strokeWidth={1.5} />, capability: 'manage_events' },
       { label: 'Shop', path: '/admin/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} /> },
     ],
   },
   {
-    label: 'Community',
+    label: '',
+    labelColor: 'text-bark-500',
+    dotColor: 'bg-bark-400',
     items: [
-      { label: 'Partners', path: '/admin/partners', icon: <Handshake size={17} strokeWidth={1.5} />, capability: 'manage_partners' },
-      { label: 'Moderation', path: '/admin/moderation', icon: <AlertCircle size={17} strokeWidth={1.5} />, capability: 'manage_content' },
-      { label: 'Email', path: '/admin/email', icon: <Mail size={17} strokeWidth={1.5} />, capability: 'manage_email' },
-    ],
-  },
-  {
-    label: 'Insights',
-    items: [
-      { label: 'Reports', path: '/admin/reports', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_reports' },
-      { label: 'Impact', path: '/admin/national-impact', icon: <BarChart3 size={17} strokeWidth={1.5} />, capability: 'view_reports' },
-      { label: 'Exports', path: '/admin/exports', icon: <Download size={17} strokeWidth={1.5} />, capability: 'manage_exports' },
-      { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_audit_log' },
+      { label: 'Create', path: '/admin/create', icon: <Sparkles size={17} strokeWidth={1.5} /> },
     ],
   },
   {
     label: 'Settings',
+    labelColor: 'text-bark-500',
+    dotColor: 'bg-bark-400',
     items: [
       { label: 'Charity', path: '/admin/charity', icon: <Heart size={17} strokeWidth={1.5} />, capability: 'manage_charity' },
       { label: 'Branding', path: '/admin/branding', icon: <Image size={17} strokeWidth={1.5} />, capability: 'manage_system' },
@@ -143,43 +131,57 @@ const adminNavCategories: NavCategory[] = [
     ],
   },
   {
-    label: 'Administration',
-    superAdminOnly: true,
+    label: 'Operations',
+    labelColor: 'text-bark-500',
+    dotColor: 'bg-bark-400',
     items: [
-      { label: 'Users', path: '/admin/users', icon: <Users size={17} strokeWidth={1.5} />, capability: 'manage_users' },
-      { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={17} strokeWidth={1.5} /> },
+      { label: 'Reports', path: '/admin/reports', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_reports' },
+      { label: 'Exports', path: '/admin/exports', icon: <Download size={17} strokeWidth={1.5} />, capability: 'manage_exports' },
+      { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_audit_log' },
+      { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={17} strokeWidth={1.5} />, superAdminOnly: true },
     ],
   },
 ]
 
+/* ── Leader nav (moss accent) ── */
 const leaderNavCategories: NavCategory[] = [
   {
-    label: 'Overview',
-    items: [
-      { label: 'Dashboard', path: '/leader', icon: <LayoutDashboard size={17} strokeWidth={1.5} /> },
-    ],
-  },
-  {
-    label: 'Manage',
+    label: 'Collective',
+    sectionHeader: 'Leader',
+    sectionBorderColor: 'border-moss-500',
+    labelColor: 'text-moss-500',
+    dotColor: 'bg-moss-500',
     items: [
       { label: 'Events', path: '/leader/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
-      { label: 'Members', path: '/leader/members', icon: <Users size={17} strokeWidth={1.5} /> },
       { label: 'Tasks', path: '/leader/tasks', icon: <ClipboardCheck size={17} strokeWidth={1.5} /> },
-      { label: 'Announcements', path: '/leader/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> },
+    ],
+  },
+]
+
+/* ── Member nav (primary accent) ── */
+const mainNavCategories: NavCategory[] = [
+  {
+    label: 'Browse',
+    sectionHeader: 'Member',
+    sectionBorderColor: 'border-primary-400',
+    labelColor: 'text-primary-400',
+    dotColor: 'bg-primary-400',
+    items: [
+      { label: 'Updates', path: '/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> },
+      { label: 'Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
+      { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true },
     ],
   },
   {
-    label: 'Insights',
+    label: 'Support',
+    labelColor: 'text-primary-400',
+    dotColor: 'bg-primary-400',
     items: [
-      { label: 'Impact', path: '/leader/impact', icon: <TreePine size={17} strokeWidth={1.5} /> },
-      { label: 'Reports', path: '/leader/reports', icon: <BarChart3 size={17} strokeWidth={1.5} /> },
-    ],
-  },
-  {
-    label: 'Actions',
-    items: [
-      { label: 'Create Event', path: '/leader/events/create', icon: <Plus size={17} strokeWidth={1.5} /> },
-      { label: 'Invite Members', path: '/leader/invite', icon: <Send size={17} strokeWidth={1.5} /> },
+      { label: 'Shop', path: '/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} /> },
+      { label: 'Donate', path: '/donate', icon: <Heart size={17} strokeWidth={1.5} /> },
+      { label: 'Leadership Opportunities', path: '/leadership', icon: <Users size={17} strokeWidth={1.5} /> },
+      { label: 'Our Partners', path: '/partners', icon: <Handshake size={17} strokeWidth={1.5} /> },
+      { label: 'Contact Us', path: '/contact', icon: <Mail size={17} strokeWidth={1.5} /> },
     ],
   },
 ]
@@ -533,15 +535,37 @@ function SidebarNavList({
         {filteredCategories.map((cat, catIdx) => {
           const showLabel = catIdx > 0
           return (
-            <div key={cat.label}>
-              {showLabel && (
+            <div key={cat.label || `cat-${catIdx}`}>
+              {/* Section header — prominent group divider for role groups */}
+              {cat.sectionHeader && !collapsed && (
+                <div className={cn(
+                  'mx-2.5 mt-6 mb-2.5 pl-3 border-l-[3px]',
+                  cat.sectionBorderColor ?? 'border-primary-300',
+                )}>
+                  <p className={cn(
+                    'text-[13px] font-extrabold uppercase tracking-[0.12em]',
+                    cat.labelColor ?? 'text-primary-400',
+                  )}>
+                    {cat.sectionHeader}
+                  </p>
+                </div>
+              )}
+              {cat.sectionHeader && collapsed && (
+                <div className={cn('my-3 mx-2 h-0.5 rounded-full', cat.dotColor ?? sAccent.dividerColor)} />
+              )}
+              {/* Sub-category label (within a group) */}
+              {showLabel && cat.label && !cat.sectionHeader && (
                 <div>
                   {!collapsed && (
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-primary-300 px-2.5 mt-4 mb-1.5">
+                    <p className={cn(
+                      'flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] px-2.5 mt-4 mb-1.5',
+                      cat.labelColor ?? 'text-primary-300',
+                    )}>
+                      {cat.dotColor && <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', cat.dotColor)} />}
                       {cat.label}
                     </p>
                   )}
-                  {collapsed && <div className={cn('my-2.5 mx-2 h-px', sAccent.dividerColor)} />}
+                  {collapsed && <div className={cn('my-2.5 mx-2 h-px opacity-30', cat.dotColor ?? sAccent.dividerColor)} />}
                 </div>
               )}
 
@@ -939,6 +963,7 @@ function MobileSidebarOverlay({
   collectiveName,
   availableSuites,
   allSuiteCategories,
+  flatCategories,
   isActive,
   reduced,
   profile,
@@ -949,6 +974,7 @@ function MobileSidebarOverlay({
   collectiveName: string
   availableSuites: Suite[]
   allSuiteCategories: Record<Suite, NavCategory[]>
+  flatCategories: NavCategory[]
   isActive: (path: string) => boolean
   reduced: boolean
   profile: any
@@ -1101,35 +1127,23 @@ function MobileSidebarOverlay({
               <MobileProfileCard onNavigate={handleNavigate} />
             </div>
 
-            {/* ── Suite switcher - compact icon toggle ── */}
-            <MobileSuiteSwitcher
-              suite={mobileSuite}
-              availableSuites={availableSuites}
-              collectiveName={collectiveName}
-              reduced={reduced}
-              onSuiteChange={setMobileSuite}
-            />
-
-            {/* ── Nav items - scrollable ── */}
+            {/* ── Nav items - single flat list, no suite switching ── */}
             <div
               className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
               style={{
                 paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 2rem)',
               }}
             >
-              {availableSuites.map((s) => (
-                <SidebarNavList
-                  key={s}
-                  suite={s}
-                  categories={allSuiteCategories[s]}
-                  collapsed={false}
-                  isCurrent={s === mobileSuite}
-                  isActive={isActive}
-                  reduced={reduced}
-                  isMobileMode
-                  onNavigate={handleNavigate}
-                />
-              ))}
+              <SidebarNavList
+                suite="main"
+                categories={flatCategories}
+                collapsed={false}
+                isCurrent
+                isActive={isActive}
+                reduced={reduced}
+                isMobileMode
+                onNavigate={handleNavigate}
+              />
             </div>
 
             {/* ── Settings link at bottom (mobile) ── */}
@@ -1242,6 +1256,63 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
     return result
   }, [isSuperAdmin, hasCapability, isAnyLeader, isStaff])
 
+  // Flattened categories — highest-role home + chat/updates at top,
+  // other homes lead their own sections
+  const flatCategories = useMemo(() => {
+    // Determine highest role home item
+    const highestHome = isStaff ? adminHomeItem : isAnyLeader ? leaderHomeItem : memberHomeItem
+
+    // Chat & Updates sit alongside the highest home
+    const updatesItem: NavItem = { label: 'Updates', path: '/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> }
+    const chatItem: NavItem = { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true }
+
+    const cats: NavCategory[] = [{ label: '', items: [highestHome, updatesItem, chatItem] }]
+
+    // Admin categories — prepend Admin Home if not the highest role
+    if (isStaff) {
+      const adminCats = adminNavCategories
+        .filter((cat) => !cat.superAdminOnly || isSuperAdmin)
+        .map((cat, i) => ({
+          ...cat,
+          // Prepend Admin Home to the first admin category if it's not the top-level home
+          items: [
+            ...(i === 0 && highestHome !== adminHomeItem ? [adminHomeItem] : []),
+            ...cat.items.filter((item) =>
+              (!item.capability || hasCapability(item.capability)) &&
+              (!item.superAdminOnly || isSuperAdmin)
+            ),
+          ],
+        }))
+        .filter((cat) => cat.items.length > 0)
+      cats.push(...adminCats)
+    }
+
+    // Leader categories — prepend Leader Home if not the highest role
+    if (isAnyLeader) {
+      const leaderCats = leaderNavCategories.map((cat, i) => ({
+        ...cat,
+        items: [
+          ...(i === 0 && highestHome !== leaderHomeItem ? [leaderHomeItem] : []),
+          ...cat.items,
+        ],
+      }))
+      cats.push(...leaderCats)
+    }
+
+    // Member categories — prepend Member Home if not the highest role,
+    // and strip Updates/Chat (they're already at the top)
+    const memberCats = mainNavCategories.map((cat, i) => ({
+      ...cat,
+      items: [
+        ...(i === 0 && highestHome !== memberHomeItem ? [memberHomeItem] : []),
+        ...cat.items.filter((item) => item.path !== '/announcements' && item.path !== '/chat'),
+      ],
+    })).filter((cat) => cat.items.length > 0)
+    cats.push(...memberCats)
+
+    return cats
+  }, [isAnyLeader, isStaff, isSuperAdmin, hasCapability])
+
   const isActive = (path: string) => {
     if (path === '/' || path === '/admin' || path === '/leader') {
       return location.pathname === path
@@ -1271,6 +1342,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
         collectiveName={collectiveName}
         availableSuites={availableSuites}
         allSuiteCategories={allSuiteCategories}
+        flatCategories={flatCategories}
         isActive={isActive}
         reduced={reduced}
         profile={profile}
@@ -1280,13 +1352,13 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
 
   // ── Desktop mode: permanent left sidebar ──
 
-  const dAccent = getAccentClasses(desktopSuite)
+  const dAccent = getAccentClasses('main')
 
   return (
     <aside
       className={cn(
         'hidden md:flex flex-col',
-        'sticky top-0 self-start max-h-dvh z-50',
+        'sticky top-0 self-start min-h-dvh max-h-dvh z-50',
         'bg-white',
         'border-r',
         'shadow-[4px_0_24px_-4px_rgba(0,0,0,0.08),8px_0_16px_-8px_rgba(0,0,0,0.04)]',
@@ -1294,9 +1366,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
         collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH,
         dAccent.borderColor,
       )}
-      aria-label={
-        desktopSuite === 'admin' ? 'Admin navigation' : desktopSuite === 'leader' ? 'Leader navigation' : 'Sidebar navigation'
-      }
+      aria-label="Sidebar navigation"
     >
       {/* ── Wordmark ── */}
       <div className="flex items-center justify-center px-4 py-4">
@@ -1324,80 +1394,30 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
         </Link>
       </div>
 
-      {/* ── Suite switcher - icon toggle, same as mobile ── */}
-      {availableSuites.length > 1 && (
-        <DesktopSuiteSwitcher
-          suite={desktopSuite}
-          availableSuites={availableSuites}
-          collectiveName={collectiveName}
-          collapsed={collapsed}
-          reduced={reduced}
-          onSuiteChange={setDesktopSuite}
-        />
-      )}
-      {availableSuites.length <= 1 && !collapsed && (
-        <SuiteSwitcher
-          suite={desktopSuite}
-          collapsed={collapsed}
-          collectiveName={collectiveName}
-          availableSuites={availableSuites}
-          reduced={reduced}
-          skipInitial={skip}
-        />
-      )}
-
-      {/* ── Nav ── */}
+      {/* ── Nav - single flat list, no suite switching ── */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        {availableSuites.map((s) => (
-          <SidebarNavList
-            key={s}
-            suite={s}
-            categories={allSuiteCategories[s]}
-            collapsed={collapsed}
-            isCurrent={s === desktopSuite}
-            isActive={isActive}
-            reduced={reduced}
-            isMobileMode={false}
-          />
-        ))}
+        <SidebarNavList
+          suite="main"
+          categories={flatCategories}
+          collapsed={collapsed}
+          isCurrent
+          isActive={isActive}
+          reduced={reduced}
+          isMobileMode={false}
+        />
       </div>
 
-      {/* ── Sticky footer: settings + profile + collapse ── */}
-      <div className={cn('border-t transition-colors duration-250', dAccent.borderColor)}>
-        {/* Settings link - always visible */}
-        <div className="px-2 pt-2">
-          <Link
-            to="/settings"
-            className={cn(
-              'relative flex items-center gap-2.5',
-              'rounded-xl text-[13px]',
-              'transition-colors duration-150',
-              'cursor-pointer select-none',
-              'focus-visible:outline-none focus-visible:ring-2',
-              dAccent.focusRing,
-              collapsed ? 'justify-center h-9 w-full' : 'px-2.5 h-9',
-              location.pathname.startsWith('/settings')
-                ? dAccent.activeClasses
-                : dAccent.hoverClasses,
-            )}
-            title={collapsed ? 'Settings' : undefined}
-          >
-            <Settings size={17} strokeWidth={1.5} />
-            {!collapsed && <span>Settings</span>}
-          </Link>
-        </div>
-
-        {/* Profile link - all suites */}
-        <div className="px-2.5 pt-1 pb-1">
+      {/* ── Sticky footer: profile + settings + collapse in one row ── */}
+      <div className={cn('border-t transition-colors duration-250 px-2.5 py-2', dAccent.borderColor)}>
+        <div className={cn('flex items-center gap-2 min-w-0', collapsed && 'flex-col')}>
+          {/* Profile link */}
           <Link
             to="/profile"
             className={cn(
-              'flex items-center gap-3 min-w-0',
-              'rounded-xl p-2',
-              'transition-all duration-200',
-              'cursor-pointer select-none',
+              'flex items-center gap-2 min-w-0 rounded-lg p-1',
+              'transition-colors duration-150 cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-              collapsed && 'justify-center',
+              !collapsed && 'flex-1',
               location.pathname.startsWith('/profile')
                 ? 'bg-primary-50 text-primary-800'
                 : 'text-primary-500 hover:text-primary-800 hover:bg-primary-50/60',
@@ -1411,47 +1431,56 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
               size="sm"
             />
             {!collapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="font-heading text-[13px] font-semibold text-primary-800 truncate">
-                  {profile?.display_name}
-                </p>
-                {(profile as any)?.collective_name && (
-                  <p className="text-[11px] text-primary-400 truncate">
-                    {(profile as any).collective_name}
-                  </p>
-                )}
-              </div>
+              <span className="font-heading text-[13px] font-semibold text-primary-800 truncate">
+                {profile?.display_name}
+              </span>
             )}
           </Link>
-        </div>
-      </div>
 
-      {/* ── Collapse toggle ── */}
-      <div className={cn('p-2 border-t transition-colors duration-250', dAccent.borderColor)}>
-        <button
-          type="button"
-          onClick={() => setCollapsed((p) => !p)}
-          className={cn(
-            'flex items-center justify-center gap-2 w-full',
-            'h-8 rounded-xl text-[13px]',
-            'text-primary-300',
-            dAccent.collapseHover,
-            'cursor-pointer select-none',
-            'transition-all duration-200',
-            'focus-visible:outline-none focus-visible:ring-2',
-            dAccent.focusRing,
-          )}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          <motion.span
-            animate={{ rotate: collapsed ? 180 : 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            className="flex items-center justify-center"
+          {/* Settings icon */}
+          <Link
+            to="/settings"
+            className={cn(
+              'flex items-center justify-center shrink-0',
+              'size-8 rounded-lg text-[13px]',
+              'transition-colors duration-150 cursor-pointer select-none',
+              'focus-visible:outline-none focus-visible:ring-2',
+              dAccent.focusRing,
+              location.pathname.startsWith('/settings')
+                ? dAccent.activeClasses
+                : 'text-primary-300 hover:text-primary-500 hover:bg-primary-50/60',
+            )}
+            title="Settings"
           >
-            <PanelLeftClose size={15} strokeWidth={1.5} />
-          </motion.span>
-          {!collapsed && <span>Collapse</span>}
-        </button>
+            <Settings size={16} strokeWidth={1.5} />
+          </Link>
+
+          {/* Collapse toggle icon */}
+          <button
+            type="button"
+            onClick={() => setCollapsed((p) => !p)}
+            className={cn(
+              'flex items-center justify-center shrink-0',
+              'size-8 rounded-lg',
+              'text-primary-300',
+              dAccent.collapseHover,
+              'cursor-pointer select-none',
+              'transition-all duration-200',
+              'focus-visible:outline-none focus-visible:ring-2',
+              dAccent.focusRing,
+            )}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand' : 'Collapse'}
+          >
+            <motion.span
+              animate={{ rotate: collapsed ? 180 : 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="flex items-center justify-center"
+            >
+              <PanelLeftClose size={15} strokeWidth={1.5} />
+            </motion.span>
+          </button>
+        </div>
       </div>
     </aside>
   )

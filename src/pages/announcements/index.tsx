@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion, type Variants } from 'framer-motion'
-import { ArrowLeft, Pin, Megaphone, AlertTriangle, ChevronRight } from 'lucide-react'
+import { motion, useReducedMotion, AnimatePresence, type Variants } from 'framer-motion'
+import { ArrowLeft, Pin, Megaphone, AlertTriangle, ChevronRight, Image as ImageIcon } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Avatar } from '@/components/avatar'
 import { EmptyState } from '@/components/empty-state'
@@ -23,11 +23,11 @@ import {
 
 const stagger: Variants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.07 } },
+  visible: { transition: { staggerChildren: 0.05 } },
 }
 const fadeUp: Variants = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } },
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } },
 }
 
 /* ------------------------------------------------------------------ */
@@ -49,61 +49,226 @@ function formatDate(dateStr: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Decorative background shapes                                       */
+/*  Get all images for an announcement                                 */
 /* ------------------------------------------------------------------ */
 
-function DecorativeBackground() {
+function getImages(announcement: AnnouncementWithAuthor): string[] {
+  const urls = (announcement as any).image_urls as string[] | undefined
+  if (urls && urls.length > 0) return urls
+  if (announcement.image_url) return [announcement.image_url]
+  return []
+}
+
+/* ------------------------------------------------------------------ */
+/*  Role label                                                         */
+/* ------------------------------------------------------------------ */
+
+function roleLabel(role: string | undefined) {
+  switch (role) {
+    case 'super_admin': return 'Super Admin'
+    case 'national_admin': return 'Admin'
+    case 'national_staff': return 'Staff'
+    default: return ''
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Compact image thumbnail for cards                                  */
+/* ------------------------------------------------------------------ */
+
+function CardThumbnail({ images }: { images: string[] }) {
+  if (images.length === 0) return null
+
+  if (images.length === 1) {
+    return (
+      <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 ring-1 ring-black/[0.04]">
+        <img src={images[0]} alt="" loading="lazy" className="w-full h-full object-cover" />
+      </div>
+    )
+  }
+
+  // 2x2 mini grid for multiple images
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/60 via-primary-100/35 via-25% to-moss-50/20 to-60%" />
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-sprout-50/15 to-bark-50/15" />
-
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-300/25 via-primary-200/12 to-transparent" />
-      <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-200/18 to-transparent" />
-
-      <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/18 opacity-60" />
-      <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-bark-200/14 opacity-40" />
-      <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-moss-300/18 opacity-50" />
-      <div className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-bark-200/12" />
-      <div className="absolute bottom-[16%] right-2 w-36 h-36 rounded-full border-2 border-secondary-200/14" />
-
-      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-100/18 to-transparent opacity-30" />
-      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-100/16 to-transparent opacity-28" />
-
-      <div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-primary-400/15" />
-      <div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-bark-400/12" />
-      <div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-sprout-400/12" />
-      <div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-secondary-400/10" />
-      <div className="absolute top-[35%] right-[28%] w-1.5 h-1.5 rounded-full bg-moss-300/12" />
+    <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 grid grid-cols-2 gap-0.5 bg-primary-100 ring-1 ring-black/[0.04]">
+      {images.slice(0, 4).map((src, i) => (
+        <div key={i} className="relative overflow-hidden">
+          <img src={src} alt="" loading="lazy" className="w-full h-full object-cover" />
+          {i === 3 && images.length > 4 && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <span className="text-white text-[10px] font-bold">+{images.length - 4}</span>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
 
 /* ------------------------------------------------------------------ */
-/*  Announcement card                                                  */
+/*  Decorative background                                              */
+/* ------------------------------------------------------------------ */
+
+function DecorativeBackground() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div className="absolute inset-0 bg-gradient-to-b from-primary-50/60 via-white via-40% to-primary-50/20" />
+      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-200/20 via-primary-100/8 to-transparent" />
+      <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[2px] border-primary-200/12" />
+      <div className="absolute top-[45%] -left-14 w-48 h-48 rounded-full border-[2px] border-primary-200/10" />
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Full-screen announcement detail overlay                            */
+/* ------------------------------------------------------------------ */
+
+function AnnouncementDetail({
+  announcement,
+  onClose,
+}: {
+  announcement: AnnouncementWithAuthor
+  onClose: () => void
+}) {
+  const images = getImages(announcement)
+  const isUrgent = announcement.priority === 'urgent'
+  const splashImage = images[0] ?? null
+  const extraImages = images.slice(1)
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 bg-white overflow-y-auto"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.2 }}
+    >
+      {/* Back button – floats over splash image */}
+      <div className="sticky top-0 z-20">
+        <div className={cn(
+          'flex items-center h-14 px-4 pt-[var(--safe-top)]',
+          splashImage
+            ? 'bg-transparent'
+            : 'bg-white/95 backdrop-blur-md border-b border-primary-100/50',
+        )}>
+          <button
+            type="button"
+            onClick={onClose}
+            className={cn(
+              'flex items-center justify-center w-9 h-9 -ml-1 rounded-full',
+              'cursor-pointer select-none transition-all duration-150',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+              splashImage
+                ? 'bg-black/30 text-white hover:bg-black/50 backdrop-blur-sm'
+                : 'text-primary-700 hover:bg-primary-50',
+            )}
+            aria-label="Close"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          {!splashImage && (
+            <span className="ml-2 text-sm font-semibold text-primary-500">Announcement</span>
+          )}
+        </div>
+      </div>
+
+      {/* Splash / hero image – full bleed */}
+      {splashImage && (
+        <div className="-mt-14 relative">
+          <img
+            src={splashImage}
+            alt=""
+            className="w-full aspect-[16/9] lg:aspect-[21/9] object-cover"
+          />
+          {/* Gradient fade into white content area */}
+          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />
+        </div>
+      )}
+
+      <div className={cn(
+        'px-5 lg:px-8 pb-20 max-w-3xl mx-auto overflow-hidden',
+        splashImage ? '-mt-8 relative z-10' : 'pt-6',
+      )}>
+        {/* Badges */}
+        {(announcement.is_pinned || isUrgent) && (
+          <div className="flex items-center gap-2 mb-3">
+            {announcement.is_pinned && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">
+                <Pin size={10} aria-hidden="true" />
+                Pinned
+              </span>
+            )}
+            {isUrgent && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-warning-700 bg-warning-50 px-2 py-0.5 rounded-full">
+                <AlertTriangle size={10} aria-hidden="true" />
+                Urgent
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Title */}
+        <h1 className="font-heading text-2xl lg:text-3xl font-bold text-primary-900 leading-tight mb-4">
+          {announcement.title}
+        </h1>
+
+        {/* Author + time – no role label */}
+        <div className="flex items-center gap-3 mb-6 pb-5 border-b border-primary-100">
+          <Avatar
+            src={announcement.author?.avatar_url}
+            name={announcement.author?.display_name ?? 'Staff'}
+            size="sm"
+          />
+          <div className="flex-1 min-w-0">
+            <span className="text-sm font-semibold text-primary-800">
+              {announcement.author?.display_name ?? 'Co-Exist Team'}
+            </span>
+            <p className="text-xs text-primary-400 mt-0.5">
+              {formatDate(announcement.created_at)}
+            </p>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="text-[15px] lg:text-base text-primary-700 leading-[1.8] whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+          {announcement.content}
+        </div>
+
+        {/* Additional images (after content, below the splash) */}
+        {extraImages.length > 0 && (
+          <div className="mt-6 space-y-3">
+            {extraImages.map((src, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden ring-1 ring-black/[0.04]">
+                <img src={src} alt="" loading="lazy" className="w-full object-cover" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Announcement card – compact white card                             */
 /* ------------------------------------------------------------------ */
 
 function AnnouncementCard({
   announcement,
   onRead,
+  onOpen,
 }: {
   announcement: AnnouncementWithAuthor
   onRead: () => void
+  onOpen: () => void
 }) {
   const isUrgent = announcement.priority === 'urgent'
   const isUnread = !announcement.is_read
+  const images = getImages(announcement)
 
   const handleTap = () => {
     if (isUnread) onRead()
-  }
-
-  const roleLabel = (role: string | undefined) => {
-    switch (role) {
-      case 'super_admin': return 'Super Admin'
-      case 'national_admin': return 'National Admin'
-      case 'national_staff': return 'Staff'
-      default: return ''
-    }
+    onOpen()
   }
 
   return (
@@ -111,93 +276,78 @@ function AnnouncementCard({
       variants={fadeUp}
       onClick={handleTap}
       className={cn(
-        'rounded-[20px] overflow-hidden cursor-pointer',
-        'transition-all duration-200 active:scale-[0.98]',
-        'bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf]',
-        'border border-primary-200/35',
-        'shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12),0_1px_4px_rgba(61,77,51,0.05)]',
-        announcement.is_pinned && 'ring-2 ring-primary-400/50 shadow-[0_6px_28px_-4px_rgba(61,77,51,0.18)]',
-        isUrgent && 'bg-gradient-to-br from-warning-100/70 via-warning-50/50 to-[#eef2e8] border-warning-200/40 ring-2 ring-warning-300/40',
-        isUnread && !isUrgent && !announcement.is_pinned && 'shadow-[0_6px_24px_-4px_rgba(61,77,51,0.16)]',
-        !isUnread && 'opacity-85',
+        'group rounded-2xl overflow-hidden cursor-pointer',
+        'transition-all duration-200 active:scale-[0.985]',
+        'bg-white',
+        'border border-primary-100/80',
+        'shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]',
+        'hover:shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]',
+        'hover:border-primary-200/60',
+        isUrgent && 'border-warning-200/60 bg-gradient-to-r from-white to-warning-50/30',
+        announcement.is_pinned && !isUrgent && 'border-primary-200/50 bg-gradient-to-r from-white to-primary-50/20',
+        isUnread && 'border-l-[3px] border-l-primary-500',
       )}
       role="article"
       aria-label={announcement.title}
     >
-      {/* Pinned / Urgent badge */}
-      {(announcement.is_pinned || isUrgent) && (
-        <div className="flex items-center gap-2 px-4 pt-3.5 pb-0">
-          {announcement.is_pinned && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary-600 bg-primary-100/60 px-2.5 py-0.5 rounded-full border border-primary-200/30">
-              <Pin size={11} aria-hidden="true" />
-              Pinned
-            </span>
+      <div className="flex gap-3.5 p-3.5">
+        {/* Left: Content */}
+        <div className="flex-1 min-w-0">
+          {/* Badges row */}
+          {(announcement.is_pinned || isUrgent || isUnread) && (
+            <div className="flex items-center gap-1.5 mb-1.5">
+              {isUnread && (
+                <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0" aria-hidden="true" />
+              )}
+              {announcement.is_pinned && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary-500">
+                  <Pin size={9} aria-hidden="true" />
+                  Pinned
+                </span>
+              )}
+              {isUrgent && (
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-warning-600">
+                  <AlertTriangle size={9} aria-hidden="true" />
+                  Urgent
+                </span>
+              )}
+            </div>
           )}
-          {isUrgent && (
-            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-warning-700 bg-warning-100/60 px-2.5 py-0.5 rounded-full border border-warning-200/30">
-              <AlertTriangle size={11} aria-hidden="true" />
-              Urgent
-            </span>
-          )}
-        </div>
-      )}
 
-      {/* Image */}
-      {announcement.image_url && (
-        <div className="mx-4 mt-3.5 rounded-2xl overflow-hidden shadow-sm ring-1 ring-primary-200/20">
-          <img
-            src={announcement.image_url}
-            alt=""
-            loading="lazy"
-            className="w-full aspect-[16/9] object-cover"
-          />
-        </div>
-      )}
+          {/* Title */}
+          <h3 className="font-heading font-bold text-sm leading-snug text-primary-900 line-clamp-2 group-hover:text-primary-700 transition-colors">
+            {announcement.title}
+          </h3>
 
-      {/* Content */}
-      <div className="px-4 pt-3.5 pb-4">
-        <h3 className={cn(
-          'font-heading font-bold text-base leading-tight text-secondary-900',
-        )}>
-          {announcement.title}
-        </h3>
+          {/* Content preview */}
+          <p className="mt-1 text-xs leading-relaxed text-primary-500 line-clamp-2">
+            {announcement.content}
+          </p>
 
-        <p className={cn(
-          'mt-2 text-sm leading-relaxed line-clamp-4',
-          isUrgent ? 'text-secondary-700' : 'text-primary-500',
-        )}>
-          {announcement.content}
-        </p>
-
-        {/* Author + timestamp */}
-        <div className="flex items-center gap-2.5 mt-3.5 pt-3 border-t border-primary-200/20">
-          <Avatar
-            src={announcement.author?.avatar_url}
-            name={announcement.author?.display_name ?? 'Staff'}
-            size="xs"
-          />
-          <div className="flex-1 min-w-0">
-            <span className="text-xs font-bold text-secondary-800">
+          {/* Footer: author + time */}
+          <div className="flex items-center gap-2 mt-2.5">
+            <Avatar
+              src={announcement.author?.avatar_url}
+              name={announcement.author?.display_name ?? 'Staff'}
+              size="xs"
+            />
+            <span className="text-[11px] font-semibold text-primary-700 truncate">
               {announcement.author?.display_name ?? 'Co-Exist Team'}
             </span>
-            {announcement.author?.role && (
-              <span className="text-[11px] text-primary-500 ml-1.5 font-medium">
-                {roleLabel(announcement.author.role)}
+            <span className="text-[10px] text-primary-300 shrink-0">
+              {formatDate(announcement.created_at)}
+            </span>
+            {images.length > 1 && (
+              <span className="inline-flex items-center gap-0.5 text-[10px] text-primary-300 shrink-0 ml-auto">
+                <ImageIcon size={10} />
+                {images.length}
               </span>
             )}
           </div>
-          <span className="text-[11px] font-semibold text-primary-400 shrink-0">
-            {formatDate(announcement.created_at)}
-          </span>
         </div>
 
-        {/* Unread indicator */}
-        {isUnread && (
-          <div className="mt-2.5 flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 shadow-sm shadow-primary-300/40" aria-hidden="true" />
-            <span className="text-[11px] font-bold text-primary-600">New</span>
-          </div>
-        )}
+        {/* Right: Thumbnail */}
+        <CardThumbnail images={images} />
       </div>
     </motion.article>
   )
@@ -209,16 +359,13 @@ function AnnouncementCard({
 
 export default function AnnouncementsPage() {
   const navigate = useNavigate()
-  const { isStaff, collectiveRoles } = useAuth()
+  const { isAdmin } = useAuth()
   const shouldReduceMotion = useReducedMotion()
-  const isCollectiveStaff = collectiveRoles.some(
-    (m) => m.role === 'leader' || m.role === 'co_leader' || m.role === 'assist_leader',
-  )
-  const canCreate = isStaff || isCollectiveStaff
   const { pinned, regular, isLoading, refetch } = useAnnouncements()
   const showLoading = useDelayedLoading(isLoading)
   const markRead = useMarkAnnouncementRead()
   const [searchQuery, setSearchQuery] = useState('')
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<AnnouncementWithAuthor | null>(null)
 
   const isEmpty = !isLoading && pinned.length === 0 && regular.length === 0
 
@@ -226,7 +373,6 @@ export default function AnnouncementsPage() {
     await refetch()
   }, [refetch])
 
-  // Filter announcements by search
   const filteredPinned = searchQuery
     ? pinned.filter(
         (a) =>
@@ -254,45 +400,45 @@ export default function AnnouncementsPage() {
             <motion.button
               type="button"
               onClick={() => navigate(-1)}
-              whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               className={cn(
                 'flex items-center justify-center',
                 'w-9 h-9 -ml-1 rounded-full',
-                'text-primary-800 hover:bg-primary-50/80',
+                'text-primary-700 hover:bg-primary-100/60',
                 'cursor-pointer select-none',
                 'transition-colors duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               )}
               aria-label="Go back"
             >
-              <ArrowLeft size={22} />
+              <ArrowLeft size={20} />
             </motion.button>
           </div>
         </div>
 
         {/* Page content */}
-        <div className="relative z-10 px-4 lg:px-6 pb-4 space-y-5">
+        <div className="relative z-10 px-4 lg:px-6 pb-6 space-y-4">
           {/* Title */}
           <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="flex items-center gap-2.5 pt-2"
+            transition={{ duration: 0.35 }}
+            className="flex items-center gap-2.5"
           >
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-secondary-500 to-bark-600 shadow-sm shadow-secondary-400/25">
-              <Megaphone size={15} className="text-white" />
+            <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-primary-600 to-secondary-700 shadow-sm">
+              <Megaphone size={14} className="text-white" />
             </div>
-            <h1 className="font-heading text-[22px] font-bold text-secondary-900 tracking-tight">
+            <h1 className="font-heading text-xl font-bold text-primary-900 tracking-tight">
               Announcements
             </h1>
           </motion.div>
 
           {/* Search */}
           <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.25, delay: 0.05 }}
           >
             <SearchBar
               value={searchQuery}
@@ -303,8 +449,8 @@ export default function AnnouncementsPage() {
             />
           </motion.div>
 
-          {/* Create announcement – visible to collective staff + admin */}
-          {canCreate && (
+          {/* Create announcement – admin only */}
+          {isAdmin && (
             <motion.button
               type="button"
               onClick={() => navigate('/announcements/create')}
@@ -312,34 +458,33 @@ export default function AnnouncementsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: 0.1 }}
               className={cn(
-                'flex items-center gap-3.5 w-full p-4 rounded-[20px] text-left',
-                'bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf]',
-                'border border-primary-200/35',
-                'shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12),0_1px_4px_rgba(61,77,51,0.05)]',
-                'hover:shadow-[0_8px_32px_-6px_rgba(61,77,51,0.16)] hover:ring-1 hover:ring-primary-300/40',
-                'transition-all duration-200 cursor-pointer active:scale-[0.97]',
+                'flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-left',
+                'bg-white border border-primary-100/80',
+                'shadow-[0_1px_3px_rgba(0,0,0,0.04)]',
+                'hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-primary-200/60',
+                'transition-all duration-200 cursor-pointer active:scale-[0.98]',
               )}
             >
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-500 to-secondary-700 flex items-center justify-center shrink-0 shadow-md shadow-primary-400/25">
-                <Megaphone size={18} className="text-white" />
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 flex items-center justify-center shrink-0 shadow-sm">
+                <Megaphone size={15} className="text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-heading text-sm font-bold text-secondary-900">
-                  Create announcement
+                <p className="text-sm font-semibold text-primary-800">
+                  New announcement
                 </p>
-                <p className="text-xs text-primary-500 mt-0.5 font-medium">
-                  Post an update to your collective or all members
+                <p className="text-[11px] text-primary-400 mt-0.5">
+                  Updates, invites, recaps, news
                 </p>
               </div>
-              <ChevronRight size={18} strokeWidth={2.5} className="text-primary-400 shrink-0" />
+              <ChevronRight size={16} strokeWidth={2.5} className="text-primary-300 shrink-0" />
             </motion.button>
           )}
 
           {showLoading ? (
-            <div className="space-y-4">
-              <Skeleton variant="card" />
-              <Skeleton variant="card" />
-              <Skeleton variant="card" />
+            <div className="space-y-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-[88px] rounded-2xl bg-white border border-primary-100/60 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+              ))}
             </div>
           ) : isEmpty ? (
             <EmptyState
@@ -354,38 +499,42 @@ export default function AnnouncementsPage() {
                 variants={shouldReduceMotion ? undefined : stagger}
                 initial="hidden"
                 animate="visible"
-                className="space-y-4"
+                className="space-y-2.5"
               >
                 {/* Pinned section */}
                 {filteredPinned.length > 0 && (
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {filteredPinned.map((a) => (
                       <AnnouncementCard
                         key={a.id}
                         announcement={a}
                         onRead={() => markRead.mutate(a.id)}
+                        onOpen={() => setSelectedAnnouncement(a)}
                       />
                     ))}
                   </div>
                 )}
 
+                {/* Divider */}
+                {filteredPinned.length > 0 && filteredRegular.length > 0 && (
+                  <motion.div variants={fadeUp} className="flex items-center gap-3 py-1.5">
+                    <div className="h-px flex-1 bg-primary-100" />
+                    <span className="text-[10px] font-bold text-primary-300 uppercase tracking-[0.15em]">
+                      Recent
+                    </span>
+                    <div className="h-px flex-1 bg-primary-100" />
+                  </motion.div>
+                )}
+
                 {/* Regular */}
                 {filteredRegular.length > 0 && (
-                  <div className="space-y-3">
-                    {filteredPinned.length > 0 && (
-                      <motion.div variants={fadeUp} className="flex items-center gap-2 px-1 pt-3 pb-1">
-                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-200/40 to-transparent" />
-                        <span className="text-[11px] font-bold text-primary-500 uppercase tracking-[0.12em]">
-                          Recent
-                        </span>
-                        <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-200/40 to-transparent" />
-                      </motion.div>
-                    )}
+                  <div className="space-y-2">
                     {filteredRegular.map((a) => (
                       <AnnouncementCard
                         key={a.id}
                         announcement={a}
                         onRead={() => markRead.mutate(a.id)}
+                        onOpen={() => setSelectedAnnouncement(a)}
                       />
                     ))}
                   </div>
@@ -403,6 +552,16 @@ export default function AnnouncementsPage() {
           )}
         </div>
       </div>
+
+      {/* Full-screen detail overlay */}
+      <AnimatePresence>
+        {selectedAnnouncement && (
+          <AnnouncementDetail
+            announcement={selectedAnnouncement}
+            onClose={() => setSelectedAnnouncement(null)}
+          />
+        )}
+      </AnimatePresence>
     </Page>
   )
 }

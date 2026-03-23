@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
     CheckCircle, Clock,
@@ -26,7 +26,7 @@ import {
 import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 
 /* ------------------------------------------------------------------ */
-/*  Streak / momentum helper                                           */
+/*  Streak helper                                                      */
 /* ------------------------------------------------------------------ */
 
 function getStreak(tasks: MyTask[]): number {
@@ -56,7 +56,7 @@ function getStreak(tasks: MyTask[]): number {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Task card - reimagined                                             */
+/*  Task card                                                          */
 /* ------------------------------------------------------------------ */
 
 function TaskCard({ task }: { task: MyTask }) {
@@ -82,6 +82,8 @@ function TaskCard({ task }: { task: MyTask }) {
   const daysUntil = Math.ceil((dueDate.getTime() - now.getTime()) / 86400000)
   const urgency = isOverdue ? 'overdue' : daysUntil === 0 ? 'today' : daysUntil === 1 ? 'tomorrow' : daysUntil <= 3 ? 'soon' : 'normal'
 
+  const isShared = (task.template?.assignment_mode ?? 'collective') === 'collective' && !task.assigned_user_id
+
   return (
     <motion.div
       layout={!shouldReduceMotion ? 'position' : false}
@@ -94,7 +96,6 @@ function TaskCard({ task }: { task: MyTask }) {
       )}
     >
       <div className="flex items-stretch">
-        {/* Left accent stripe */}
         {!isCompleted && !isSkipped && (
           <div className={cn(
             'w-1 shrink-0 rounded-l-2xl',
@@ -114,7 +115,6 @@ function TaskCard({ task }: { task: MyTask }) {
             (isCompleted || isSkipped) && 'p-3',
           )}
         >
-          {/* Completion circle */}
           <div className="mt-0.5 shrink-0">
             {isCompleted ? (
               <div className="w-5 h-5 rounded-full bg-success-500 flex items-center justify-center">
@@ -133,7 +133,6 @@ function TaskCard({ task }: { task: MyTask }) {
             )}
           </div>
 
-          {/* Content */}
           <div className="flex-1 min-w-0">
             <p className={cn(
               'text-sm font-semibold truncate',
@@ -147,6 +146,12 @@ function TaskCard({ task }: { task: MyTask }) {
                 <span className={cn('text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide', CATEGORY_COLORS[task.template.category])}>
                   {task.template.category.replace('_', ' ')}
                 </span>
+              )}
+
+              {!isCompleted && !isSkipped && (
+                isShared
+                  ? <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-primary-50 text-primary-500 flex items-center gap-0.5"><Users size={9} /> Shared</span>
+                  : <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-moss-50 text-moss-600">You</span>
               )}
 
               {!isCompleted && !isSkipped && (
@@ -174,16 +179,9 @@ function TaskCard({ task }: { task: MyTask }) {
                   {task.completer.display_name}
                 </span>
               )}
-              {!isCompleted && !isSkipped && (task.template?.assignment_mode ?? 'collective') === 'collective' && !task.assigned_user_id && (
-                <span className="text-[11px] text-primary-300 flex items-center gap-1">
-                  <Users size={10} />
-                  Team task
-                </span>
-              )}
             </div>
           </div>
 
-          {/* Expand indicator */}
           {!isCompleted && !isSkipped && (
             <div className="shrink-0 mt-1">
               <motion.div
@@ -197,7 +195,6 @@ function TaskCard({ task }: { task: MyTask }) {
         </button>
       </div>
 
-      {/* Expanded actions */}
       <AnimatePresence>
         {expanded && !isCompleted && !isSkipped && (
           <motion.div
@@ -303,7 +300,6 @@ function CollectiveGroup({
 
   return (
     <div className="space-y-2">
-      {/* Section header */}
       <div className="flex items-center gap-2 px-1">
         <p className="text-xs font-bold text-primary-700 uppercase tracking-wider">{name}</p>
         <div className="flex-1 h-px bg-primary-100" />
@@ -317,14 +313,12 @@ function CollectiveGroup({
         )}
       </div>
 
-      {/* Pending tasks */}
       <div className="space-y-1.5">
         {pending.map((task) => (
           <TaskCard key={task.id} task={task} />
         ))}
       </div>
 
-      {/* Completed */}
       {completed.length > 0 && (
         <button
           type="button"
@@ -387,7 +381,6 @@ export default function LeaderTasksPage() {
   const allTasks = groups.flatMap((g) => g.tasks)
   const streak = getStreak(allTasks)
 
-  /* ---- Loading skeleton ---- */
   if (showLoading) {
     return (
       <div className="relative min-h-dvh overflow-x-hidden">
@@ -404,16 +397,12 @@ export default function LeaderTasksPage() {
     )
   }
 
-  /* ---- Empty state ---- */
   if (!groups.length) {
     return (
       <div className="relative min-h-dvh overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
-
-        {/* Decorative shapes - CSS-only */}
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full border border-amber-200/35 animate-[gentleSpin_50s_linear_infinite]" />
         <div className="absolute top-32 -left-8 w-24 h-24 rounded-full bg-amber-100/25 animate-[floatDown_6s_ease-in-out_infinite]" />
-        <div className="absolute top-52 right-8 w-3 h-3 rounded-full bg-amber-300/30 animate-[float_4s_ease-in-out_infinite]" />
 
         <div className="relative z-10 flex flex-col items-center justify-center py-16 px-6">
           <motion.div
@@ -431,33 +420,31 @@ export default function LeaderTasksPage() {
     )
   }
 
-  // Progress ring percentage
   const total = totalPending + totalCompleted
   const progressPct = total > 0 ? Math.round((totalCompleted / total) * 100) : 0
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
-      {/* Full-bleed gradient background */}
       <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
 
-      {/* Decorative shapes - CSS-only for GPU compositing */}
-      <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full border border-amber-200/35 animate-[gentleSpin_50s_linear_infinite]" />
-      <div className="absolute top-20 -left-12 w-32 h-32 rounded-full border border-amber-200/35 animate-[gentleSpin_60s_linear_infinite] [animation-direction:reverse]" />
-      <div className="absolute top-40 -right-6 w-20 h-20 rounded-full bg-amber-100/25 animate-[floatDown_7s_ease-in-out_infinite]" />
-      <div className="absolute top-72 -left-4 w-16 h-16 rounded-full bg-moss-100/20 animate-[float_5s_ease-in-out_infinite]" />
-      {/* Floating dots - CSS-only */}
-      <div className="absolute top-28 right-12 w-2.5 h-2.5 rounded-full bg-amber-300/30 animate-[float_4s_ease-in-out_infinite]" />
-      <div className="absolute top-56 left-10 w-2 h-2 rounded-full bg-moss-300/25 animate-[floatDown_5s_ease-in-out_1s_infinite]" />
-      <div className="absolute top-96 right-20 w-3 h-3 rounded-full bg-amber-300/30 animate-[float_6s_ease-in-out_2s_infinite]" />
+      {/* ── Decorative geometric shapes — "stepping stones" formation ── */}
+      <div className="absolute -right-14 top-[15%] w-52 h-52 rounded-full border border-amber-200/30 animate-[gentleSpin_55s_linear_infinite]" />
+      <div className="absolute -right-6 top-[20%] w-36 h-36 rounded-full border border-amber-200/20 animate-[gentleSpin_45s_linear_infinite] [animation-direction:reverse]" />
+      <div className="absolute -left-16 -bottom-16 w-48 h-48 rounded-full border border-amber-200/25 animate-[gentleSpin_50s_linear_infinite]" />
+      <div className="absolute left-[30%] top-8 w-20 h-20 rounded-full bg-amber-100/25" />
+      <div className="absolute right-[25%] top-[45%] w-14 h-14 rounded-full border border-moss-200/30" />
+      <div className="absolute left-[55%] bottom-[25%] w-10 h-10 rounded-full bg-moss-100/20" />
+      {/* Floating dots */}
+      <div className="absolute left-[18%] top-[22%] w-2 h-2 rounded-full bg-amber-300/30 animate-[float_4.5s_ease-in-out_infinite]" />
+      <div className="absolute right-[20%] top-[60%] w-1.5 h-1.5 rounded-full bg-moss-300/25 animate-[floatDown_5.5s_ease-in-out_1.5s_infinite]" />
+      <div className="absolute left-[42%] top-[35%] w-2.5 h-2.5 rounded-full bg-amber-300/20 animate-[float_6s_ease-in-out_2.5s_infinite]" />
 
-      {/* Main content */}
       <motion.div
         className="relative z-10 px-6 pt-14 space-y-5 pb-20"
         variants={rm ? undefined : { hidden: {}, visible: { transition: { staggerChildren: 0.08, delayChildren: 0.12 } } }}
         initial="hidden"
         animate="visible"
       >
-        {/* Hero title */}
         <motion.div
           className="text-center pb-1"
           variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
@@ -471,7 +458,6 @@ export default function LeaderTasksPage() {
           variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
         >
-          {/* Progress */}
           <div className="rounded-2xl bg-white shadow-sm p-4 flex flex-col items-center justify-center text-center">
             <div className="relative w-12 h-12 mb-2">
               <svg viewBox="0 0 36 36" className="w-12 h-12 -rotate-90">
@@ -492,7 +478,6 @@ export default function LeaderTasksPage() {
             <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Done</p>
           </div>
 
-          {/* Overdue */}
           <div className={cn(
             'rounded-2xl p-4 flex flex-col items-center justify-center text-center',
             totalOverdue > 0
@@ -508,7 +493,6 @@ export default function LeaderTasksPage() {
             <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider mt-1.5">Overdue</p>
           </div>
 
-          {/* Streak */}
           <div className={cn(
             'rounded-2xl p-4 flex flex-col items-center justify-center text-center',
             streak >= 3
@@ -528,7 +512,7 @@ export default function LeaderTasksPage() {
           </div>
         </motion.div>
 
-        {/* Task groups inside PullToRefresh */}
+        {/* Task groups */}
         <PullToRefresh onRefresh={handleRefresh}>
           <div className="space-y-6">
             {groups.map((group) => (

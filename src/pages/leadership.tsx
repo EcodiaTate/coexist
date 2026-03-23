@@ -204,7 +204,7 @@ export default function LeadershipPage() {
               size="lg"
               fullWidth
               icon={<Heart size={16} />}
-              onClick={() => navigate('/contact')}
+              onClick={() => navigate('/lead-a-collective')}
             >
               Get in Touch
             </Button>

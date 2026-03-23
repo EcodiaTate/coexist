@@ -311,8 +311,8 @@ export default function NationalImpactPage() {
       if (data?.treesPlanted) parts.push(`${data.treesPlanted.toLocaleString()} trees planted`)
       if (data?.invasiveWeedsPulled) parts.push(`${data.invasiveWeedsPulled.toLocaleString()} invasive weeds pulled`)
       if (data?.rubbishCollectedTonnes) parts.push(`${data.rubbishCollectedTonnes}t rubbish collected`)
-      if (data?.cleanupEventsHeld) parts.push(`${data.cleanupEventsHeld} cleanup events`)
-      if (data?.leadersTrainedCount) parts.push(`${data.leadersTrainedCount} leaders trained`)
+      if (data?.cleanupSites) parts.push(`${data.cleanupSites} cleanup sites`)
+      if (data?.leadersEmpowered) parts.push(`${data.leadersEmpowered} leaders empowered`)
       navigator.share({
         title: 'Co-Exist National Impact',
         text: parts.join(', ') + '!',
@@ -425,8 +425,8 @@ export default function NationalImpactPage() {
           />
           <NationalStat
             icon={<CalendarDays size={20} strokeWidth={2.5} />}
-            value={data?.cleanupEventsHeld ?? 0}
-            label="Cleanup Events"
+            value={data?.cleanupSites ?? 0}
+            label="Cleanup Sites"
             style="cleanups"
             delay={0.2}
           />
@@ -441,8 +441,8 @@ export default function NationalImpactPage() {
           />
           <NationalStat
             icon={<GraduationCap size={20} strokeWidth={2.5} />}
-            value={data?.leadersTrainedCount ?? 0}
-            label="Leaders Trained"
+            value={data?.leadersEmpowered ?? 0}
+            label="Leaders Empowered"
             style="leaders"
             delay={0.28}
           />

@@ -10,7 +10,9 @@ import {
     XCircle,
     WifiOff,
 } from 'lucide-react'
+import { Capacitor } from '@capacitor/core'
 import { useAuth } from '@/hooks/use-auth'
+import { useProfile } from '@/hooks/use-profile'
 import { useEventDetail, useCheckIn } from '@/hooks/use-events'
 import { useOffline } from '@/hooks/use-offline'
 import { queueOfflineCheckIn } from '@/lib/offline-sync'
@@ -110,6 +112,7 @@ export default function CheckInPage() {
   const shouldReduceMotion = useReducedMotion()
   const { isOffline } = useOffline()
 
+  const { data: profileData } = useProfile()
   const { data: event, isLoading } = useEventDetail(eventId)
   const showLoading = useDelayedLoading(isLoading)
   const checkInMutation = useCheckIn()
@@ -191,14 +194,20 @@ export default function CheckInPage() {
   }, [eventId, user])
 
   /* ---- QR scan start ---- */
+  const isNative = Capacitor.isNativePlatform()
+
   const handleScanStart = useCallback(async () => {
+    if (!isNative) {
+      // Web: no camera available, switch to manual entry
+      setState('manual')
+      return
+    }
+
     setState('scanning')
 
     try {
-      // Try Capacitor ML Kit BarcodeScanner
       const { BarcodeScanner, BarcodeFormat } = await import('@capacitor-mlkit/barcode-scanning')
 
-      // Check & request permission
       const { camera } = await BarcodeScanner.requestPermissions()
       if (camera !== 'granted' && camera !== 'limited') {
         setErrorKind('generic')
@@ -206,18 +215,15 @@ export default function CheckInPage() {
         return
       }
 
-      // Make the webview transparent for camera preview
       document.querySelector('body')?.classList.add('scanner-active')
 
       const { barcodes } = await BarcodeScanner.scan({
         formats: [BarcodeFormat.QrCode],
       })
 
-      // Restore UI
       document.querySelector('body')?.classList.remove('scanner-active')
 
       if (barcodes.length > 0 && barcodes[0].rawValue) {
-        // Parse QR content: expected format "coexist://event/{eventId}"
         const match = barcodes[0].rawValue.match(/^coexist:\/\/event\/(.+)$/)
         if (match) {
           const scannedEventId = match[1]
@@ -239,19 +245,11 @@ export default function CheckInPage() {
         setState('idle')
       }
     } catch {
-      // BarcodeScanner not available (web) - fall back to self-check-in
+      // BarcodeScanner plugin failed — fall back to manual mode, don't auto-check-in
       document.querySelector('body')?.classList.remove('scanner-active')
-
-      // On web, go straight to check-in (leader shows QR, participant just taps)
-      if (eventId) {
-        if (isOffline) {
-          handleOfflineCheckIn()
-        } else {
-          await validateAndCheckIn(eventId)
-        }
-      }
+      setState('manual')
     }
-  }, [eventId, isOffline, validateAndCheckIn, handleOfflineCheckIn])
+  }, [eventId, isNative, isOffline, validateAndCheckIn, handleOfflineCheckIn])
 
   /* ---- Manual code submit ---- */
   const handleManualSubmit = useCallback(() => {
@@ -361,6 +359,34 @@ export default function CheckInPage() {
             )}
 
 
+            {/* Profile survey prompt for first-time check-ins */}
+            {profileData && !profileData.profile_details_completed && (
+              <motion.div
+                initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.6 }}
+                className="mt-6 w-full max-w-xs"
+              >
+                <div className="rounded-xl bg-primary-50 border border-primary-200 p-4 text-center">
+                  <p className="text-sm font-semibold text-primary-800">
+                    Quick profile setup
+                  </p>
+                  <p className="text-xs text-primary-400 mt-1">
+                    Help us keep you safe — takes 1 minute
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    fullWidth
+                    className="mt-3"
+                    onClick={() => navigate(`/events/${event.id}/profile-survey`)}
+                  >
+                    Fill In Details
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
             {/* What's next? */}
             <motion.div
               initial={shouldReduceMotion ? undefined : { opacity: 0 }}
@@ -438,12 +464,12 @@ export default function CheckInPage() {
             </div>
 
             <p className="text-sm text-primary-400 mb-6">
-              Looking for camera...
+              Scanning...
             </p>
 
             <div className="w-full max-w-xs space-y-2">
-              <Button variant="secondary" fullWidth onClick={handleSelfCheckIn} loading={checkInMutation.isPending}>
-                Check In Without Scanning
+              <Button variant="secondary" fullWidth onClick={() => setState('manual')}>
+                Enter Code Instead
               </Button>
               <Button variant="ghost" fullWidth onClick={() => setState('idle')}>
                 Cancel
@@ -482,27 +508,7 @@ export default function CheckInPage() {
               </div>
             )}
 
-            {/* Scan button */}
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              icon={<Camera size={20} />}
-              onClick={handleScanStart}
-              className="mb-4"
-              loading={checkInMutation.isPending}
-            >
-              Scan QR Code
-            </Button>
-
-            {/* Divider */}
-            <div className="flex items-center gap-3 my-6">
-              <div className="flex-1 h-px bg-white" />
-              <span className="text-caption text-primary-400 uppercase tracking-wider">or</span>
-              <div className="flex-1 h-px bg-white" />
-            </div>
-
-            {/* Manual entry */}
+            {/* Manual entry (expanded) */}
             {state === 'manual' ? (
               <motion.div
                 initial={shouldReduceMotion ? undefined : { opacity: 0, y: 8 }}
@@ -539,16 +545,64 @@ export default function CheckInPage() {
                   Cancel
                 </Button>
               </motion.div>
+            ) : isNative ? (
+              /* ---- Native: camera scan primary ---- */
+              <>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  icon={<Camera size={20} />}
+                  onClick={handleScanStart}
+                  className="mb-4"
+                  loading={checkInMutation.isPending}
+                >
+                  Scan QR Code
+                </Button>
+                <div className="flex items-center gap-3 my-6">
+                  <div className="flex-1 h-px bg-white" />
+                  <span className="text-caption text-primary-400 uppercase tracking-wider">or</span>
+                  <div className="flex-1 h-px bg-white" />
+                </div>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
+                  icon={<Keyboard size={20} />}
+                  onClick={() => setState('manual')}
+                >
+                  Enter Code Manually
+                </Button>
+              </>
             ) : (
-              <Button
-                variant="secondary"
-                size="lg"
-                fullWidth
-                icon={<Keyboard size={20} />}
-                onClick={() => setState('manual')}
-              >
-                Enter Code Manually
-              </Button>
+              /* ---- Web: camera scan + manual code ---- */
+              <>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
+                  icon={<Camera size={20} />}
+                  onClick={handleScanStart}
+                  className="mb-4"
+                  loading={checkInMutation.isPending}
+                >
+                  Scan QR Code
+                </Button>
+                <div className="flex items-center gap-3 my-6">
+                  <div className="flex-1 h-px bg-white" />
+                  <span className="text-caption text-primary-400 uppercase tracking-wider">or</span>
+                  <div className="flex-1 h-px bg-white" />
+                </div>
+                <Button
+                  variant="secondary"
+                  size="lg"
+                  fullWidth
+                  icon={<Keyboard size={20} />}
+                  onClick={() => setState('manual')}
+                >
+                  Enter Code Manually
+                </Button>
+              </>
             )}
 
             {/* Offline notice */}

@@ -75,7 +75,6 @@ export function useProfileStats(userId?: string) {
       let totalTreesPlanted = 0
       let totalHours = 0
       let totalRubbishKg = 0
-      let totalCoastlineM = 0
       let totalAreaSqm = 0
       let totalNativePlants = 0
       let totalWildlifeSightings = 0
@@ -83,7 +82,7 @@ export function useProfileStats(userId?: string) {
       if (eventIds.length > 0) {
         const { data: impacts } = await supabase
           .from('event_impact')
-          .select('trees_planted, hours_total, rubbish_kg, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings')
+          .select('trees_planted, hours_total, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings')
           .in('event_id', eventIds)
 
         if (impacts) {
@@ -91,7 +90,6 @@ export function useProfileStats(userId?: string) {
             totalTreesPlanted += impact.trees_planted
             totalHours += impact.hours_total
             totalRubbishKg += impact.rubbish_kg
-            totalCoastlineM += impact.coastline_cleaned_m
             totalAreaSqm += impact.area_restored_sqm
             totalNativePlants += impact.native_plants
             totalWildlifeSightings += impact.wildlife_sightings
@@ -104,7 +102,6 @@ export function useProfileStats(userId?: string) {
         treesPlanted: totalTreesPlanted,
         hoursVolunteered: totalHours,
         rubbishCollectedKg: totalRubbishKg,
-        coastlineCleanedM: totalCoastlineM,
         areaRestoredSqm: totalAreaSqm,
         nativePlants: totalNativePlants,
         wildlifeSightings: totalWildlifeSightings,

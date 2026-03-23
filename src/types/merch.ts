@@ -1,5 +1,16 @@
 /** Merch store types for Co-Exist */
 
+/** Fixed set of product categories — used in admin dropdown + shop filter pills */
+export const PRODUCT_CATEGORIES = [
+  'clothing',
+  'accessories',
+  'stickers',
+  'drinkware',
+  'headwear',
+] as const
+
+export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number]
+
 export type ProductStatus = 'active' | 'archived' | 'draft'
 export type OrderStatus = 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'refunded'
 export type ReturnStatus = 'requested' | 'approved' | 'denied' | 'refunded'

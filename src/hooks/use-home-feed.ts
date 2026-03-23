@@ -18,7 +18,6 @@ export interface ImpactStats {
   trees_planted: number
   hours_volunteered: number
   rubbish_kg: number
-  coastline_cleaned_m: number
   area_restored_sqm: number
   native_plants: number
   wildlife_sightings: number
@@ -87,12 +86,13 @@ export function useFeaturedEvents() {
   return useQuery({
     queryKey: ['home', 'featured-events'],
     queryFn: async () => {
+      const now = new Date().toISOString()
       const { data, error } = await supabase
         .from('events')
         .select('*, collectives(id, name)')
         .eq('status', 'published')
         .eq('is_public', true)
-        .gte('date_start', new Date().toISOString())
+        .or(`date_start.gte.${now},date_end.gte.${now}`)
         .order('date_start', { ascending: true })
         .limit(5)
       if (error) throw error
@@ -107,11 +107,12 @@ export function useUpcomingNearby() {
   return useQuery({
     queryKey: ['home', 'upcoming-nearby'],
     queryFn: async () => {
+      const now = new Date().toISOString()
       const { data, error } = await supabase
         .from('events')
         .select('*, collectives(id, name)')
         .eq('status', 'published')
-        .gte('date_start', new Date().toISOString())
+        .or(`date_start.gte.${now},date_end.gte.${now}`)
         .order('date_start', { ascending: true })
         .limit(10)
       if (error) throw error
@@ -149,13 +150,14 @@ export function useMyCollective() {
         .single()
       if (error) throw error
 
-      // Next event
+      // Next event (include currently-happening events)
+      const nowStr = new Date().toISOString()
       const { data: nextEvent } = await supabase
         .from('events')
         .select('*')
         .eq('collective_id', collective.id)
         .eq('status', 'published')
-        .gte('date_start', new Date().toISOString())
+        .or(`date_start.gte.${nowStr},date_end.gte.${nowStr}`)
         .order('date_start', { ascending: true })
         .limit(1)
         .maybeSingle()
@@ -198,7 +200,6 @@ export function useImpactStats() {
         trees_planted: 0,
         hours_volunteered: 0,
         rubbish_kg: 0,
-        coastline_cleaned_m: 0,
         area_restored_sqm: 0,
         native_plants: 0,
         wildlife_sightings: 0,
@@ -294,19 +295,25 @@ export function useMyUpcomingEvents() {
         .from('event_registrations')
         .select('status, events(*, collectives(id, name))')
         .eq('user_id', user.id)
-        .in('status', ['registered', 'waitlisted'])
+        .in('status', ['registered', 'waitlisted', 'attended'])
         .order('registered_at', { ascending: true })
         .limit(5)
 
       if (error) throw error
 
+      const now = Date.now()
       return (data ?? [])
         .filter((r) => r.events !== null)
         .map((r) => ({
           ...(r.events as EventWithCollective),
           registration_status: r.status,
         }))
-        .filter((e) => new Date(e.date_start) >= new Date())
+        .filter((e) => {
+          // Include events that haven't started yet OR are still happening
+          const endMs = new Date(e.date_end ?? e.date_start).getTime()
+          const startMs = new Date(e.date_start).getTime()
+          return startMs >= now || endMs >= now
+        })
         .sort((a, b) => new Date(a.date_start).getTime() - new Date(b.date_start).getTime()) as MyUpcomingEvent[]
     },
     enabled: !!user,
@@ -333,12 +340,13 @@ export function useCollectiveUpcomingEvents() {
       const collectiveIds = (memberships ?? []).map((m) => m.collective_id)
       if (collectiveIds.length === 0) return []
 
+      const nowIso = new Date().toISOString()
       const { data, error } = await supabase
         .from('events')
         .select('*, collectives(id, name)')
         .in('collective_id', collectiveIds)
         .eq('status', 'published')
-        .gte('date_start', new Date().toISOString())
+        .or(`date_start.gte.${nowIso},date_end.gte.${nowIso}`)
         .order('date_start', { ascending: true })
         .limit(10)
 

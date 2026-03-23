@@ -177,20 +177,24 @@ export function WebFooter({ className }: WebFooterProps) {
             land always was, and always will be, Aboriginal and Torres Strait
             Islander land.
           </p>
-          <div className="mt-4 flex items-center gap-1.5 text-xs text-white/50">
+          <div className="mt-4 flex items-center justify-between text-xs text-white/50">
             <span>&copy; {year} Co-Exist Australia Ltd. All rights reserved.</span>
-            <span className="mx-1">·</span>
-            <span className="inline-flex items-center">
-              Made By{' '}
-              <span className="inline-flex ml-1">
-                <span className="bg-white text-black p-2 text-xs font-semibold leading-none transition-colors duration-150 hover:bg-black hover:text-white cursor-default">
+            <a
+              href="https://code.ecodia.au"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 group"
+            >
+              <span className="text-white/40 group-hover:text-white/60 transition-colors duration-150">Built by</span>
+              <span className="inline-flex">
+                <span className="bg-white text-black p-2 text-xs font-semibold leading-none transition-colors duration-150 hover:bg-black hover:text-white">
                   Ecodia
                 </span>
-                <span className="bg-black text-white p-2 text-xs font-semibold leading-none transition-colors duration-150 hover:bg-white hover:text-black cursor-default">
+                <span className="bg-black text-white p-2 text-xs font-semibold leading-none transition-colors duration-150 hover:bg-white hover:text-black">
                   Code
                 </span>
               </span>
-            </span>
+            </a>
           </div>
         </div>
       </div>

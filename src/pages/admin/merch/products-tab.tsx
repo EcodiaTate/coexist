@@ -23,7 +23,8 @@ import {
     useUpdateProduct,
     useAdjustStock,
 } from '@/hooks/use-admin-merch'
-import { formatPrice, variantLabel, type Product, type ProductStatus, type ProductVariant } from '@/types/merch'
+import { formatPrice, variantLabel, PRODUCT_CATEGORIES, type Product, type ProductStatus, type ProductVariant } from '@/types/merch'
+import { Dropdown } from '@/components/dropdown'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/cn'
 
@@ -442,7 +443,13 @@ function ProductFormSheet({
           rows={2}
         />
         <div className="grid grid-cols-2 gap-2.5">
-          <Input label="Category" value={category} onChange={(e) => setCategory(e.target.value)} />
+          <Dropdown
+            label="Category"
+            placeholder="Select category"
+            options={PRODUCT_CATEGORIES.map((c) => ({ value: c, label: c.charAt(0).toUpperCase() + c.slice(1) }))}
+            value={category}
+            onChange={setCategory}
+          />
           <Input
             label="Base price ($)"
             value={basePriceCents}

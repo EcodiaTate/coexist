@@ -1,0 +1,288 @@
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
+import { User, Phone, AlertTriangle, Heart } from 'lucide-react'
+import { Page } from '@/components/page'
+import { Header } from '@/components/header'
+import { Button } from '@/components/button'
+import { Input } from '@/components/input'
+import { Chip } from '@/components/chip'
+import { useToast } from '@/components/toast'
+import { useAuth } from '@/hooks/use-auth'
+import { useProfile, useUpdateProfile } from '@/hooks/use-profile'
+
+const DISCOVERY_OPTIONS = [
+  'Social media',
+  'Friend or family',
+  'School or uni',
+  'Web search',
+  'Event or festival',
+  'News or media',
+  'Other',
+]
+
+/**
+ * Profile details survey shown after a user's first event check-in.
+ * Collects essential information that helps leaders run safe events.
+ */
+export default function ProfileSurveyPage() {
+  const { id: eventId } = useParams<{ id: string }>()
+  const navigate = useNavigate()
+  const shouldReduceMotion = useReducedMotion()
+  const { user } = useAuth()
+  const { data: profile } = useProfile()
+  const updateProfile = useUpdateProfile()
+  const { toast } = useToast()
+
+  const [firstName, setFirstName] = useState(profile?.first_name ?? '')
+  const [lastName, setLastName] = useState(profile?.last_name ?? '')
+  const [age, setAge] = useState(profile?.age != null ? String(profile.age) : '')
+  const [postcode, setPostcode] = useState(profile?.postcode ?? '')
+  const [gender, setGender] = useState(profile?.gender ?? '')
+  const [email, setEmail] = useState(profile?.email ?? '')
+  const [pronouns, setPronouns] = useState(profile?.pronouns ?? '')
+  const [collectiveDiscovery, setCollectiveDiscovery] = useState(profile?.collective_discovery ?? '')
+  const [accessibilityRequirements, setAccessibilityRequirements] = useState(profile?.accessibility_requirements ?? '')
+  const [emergencyContactName, setEmergencyContactName] = useState(profile?.emergency_contact_name ?? '')
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState(profile?.emergency_contact_phone ?? '')
+  const [emergencyContactRelationship, setEmergencyContactRelationship] = useState(profile?.emergency_contact_relationship ?? '')
+
+  const fadeUp = {
+    hidden: { opacity: 0, y: 12 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+  }
+
+  const stagger = {
+    hidden: {},
+    visible: { transition: { staggerChildren: 0.06 } },
+  }
+
+  const handleSubmit = async () => {
+    try {
+      await updateProfile.mutateAsync({
+        first_name: firstName || null,
+        last_name: lastName || null,
+        age: age ? parseInt(age, 10) : null,
+        postcode: postcode || null,
+        gender: gender || null,
+        email: email || null,
+        pronouns: pronouns || null,
+        collective_discovery: collectiveDiscovery || null,
+        accessibility_requirements: accessibilityRequirements || null,
+        emergency_contact_name: emergencyContactName || null,
+        emergency_contact_phone: emergencyContactPhone || null,
+        emergency_contact_relationship: emergencyContactRelationship || null,
+        profile_details_completed: true,
+      })
+      toast.success('Details saved!')
+      navigate(eventId ? `/events/${eventId}` : '/', { replace: true })
+    } catch {
+      toast.error('Failed to save details')
+    }
+  }
+
+  const handleSkip = async () => {
+    // Mark as completed so they don't get prompted again
+    try {
+      await updateProfile.mutateAsync({ profile_details_completed: true })
+    } catch {
+      // Non-critical, just navigate
+    }
+    navigate(eventId ? `/events/${eventId}` : '/', { replace: true })
+  }
+
+  return (
+    <Page
+      header={<Header title="Quick Profile Setup" back />}
+      footer={
+        <div className="space-y-2">
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={updateProfile.isPending}
+            onClick={handleSubmit}
+          >
+            Save Details
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            fullWidth
+            onClick={handleSkip}
+          >
+            Skip for now
+          </Button>
+        </div>
+      }
+    >
+      <motion.div
+        variants={shouldReduceMotion ? undefined : stagger}
+        initial="hidden"
+        animate="visible"
+        className="pt-4 pb-8 space-y-6"
+      >
+        {/* Intro */}
+        <motion.div variants={fadeUp} className="text-center px-4">
+          <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
+            <Heart size={24} className="text-primary-600" />
+          </div>
+          <h2 className="font-heading text-lg font-bold text-primary-800">
+            Welcome to your first event!
+          </h2>
+          <p className="text-sm text-primary-400 mt-1.5 max-w-xs mx-auto">
+            Help us keep you safe by filling in a few quick details. Your emergency info is only visible to event leaders.
+          </p>
+        </motion.div>
+
+        {/* Personal details */}
+        <motion.div variants={fadeUp}>
+          <div className="flex items-center gap-2 mb-3">
+            <User size={16} className="text-primary-500" />
+            <h3 className="font-heading text-sm font-semibold text-primary-800 uppercase tracking-wider">
+              Your Details
+            </h3>
+          </div>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="First Name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="First name"
+                maxLength={50}
+                className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+              />
+              <Input
+                label="Last Name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Last name"
+                maxLength={50}
+                className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+              />
+            </div>
+            <Input
+              label="Pronouns"
+              value={pronouns}
+              onChange={(e) => setPronouns(e.target.value)}
+              placeholder="e.g. she/her, they/them"
+              maxLength={30}
+              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Age"
+                value={age}
+                onChange={(e) => setAge(e.target.value.replace(/\D/g, ''))}
+                placeholder="Age"
+                type="number"
+                maxLength={3}
+                className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+              />
+              <Input
+                label="Gender"
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                placeholder="e.g. Female"
+                maxLength={30}
+                className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+              />
+            </div>
+            <Input
+              label="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="your@email.com"
+              type="email"
+              maxLength={100}
+              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+            />
+            <Input
+              label="Postcode"
+              value={postcode}
+              onChange={(e) => setPostcode(e.target.value)}
+              placeholder="e.g. 2481"
+              maxLength={10}
+              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+            />
+          </div>
+        </motion.div>
+
+        {/* How did you discover Co-Exist */}
+        <motion.div variants={fadeUp}>
+          <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3 uppercase tracking-wider">
+            How Did You Discover Co-Exist?
+          </h3>
+          <div className="flex flex-wrap gap-2">
+            {DISCOVERY_OPTIONS.map((opt) => (
+              <Chip
+                key={opt}
+                label={opt}
+                selected={collectiveDiscovery === opt}
+                onSelect={() => setCollectiveDiscovery(collectiveDiscovery === opt ? '' : opt)}
+              />
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Accessibility */}
+        <motion.div variants={fadeUp}>
+          <h3 className="font-heading text-sm font-semibold text-primary-800 mb-3 uppercase tracking-wider">
+            Accessibility Requirements
+          </h3>
+          <Input
+            label="Any accessibility needs?"
+            value={accessibilityRequirements}
+            onChange={(e) => setAccessibilityRequirements(e.target.value)}
+            placeholder="e.g. Wheelchair access, hearing assistance..."
+            type="textarea"
+            rows={2}
+            maxLength={500}
+            className="[&_textarea]:bg-primary-50/80 [&_textarea]:border [&_textarea]:border-primary-200"
+          />
+        </motion.div>
+
+        {/* Emergency contact */}
+        <motion.div variants={fadeUp}>
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle size={16} className="text-warning-600" />
+            <h3 className="font-heading text-sm font-semibold text-primary-800 uppercase tracking-wider">
+              Emergency Contact
+            </h3>
+          </div>
+          <p className="text-xs text-primary-400 mb-3">
+            Only visible to event leaders for safety purposes.
+          </p>
+          <div className="space-y-3">
+            <Input
+              label="Contact Name"
+              value={emergencyContactName}
+              onChange={(e) => setEmergencyContactName(e.target.value)}
+              placeholder="Full name"
+              maxLength={100}
+              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+            />
+            <Input
+              label="Contact Phone"
+              value={emergencyContactPhone}
+              onChange={(e) => setEmergencyContactPhone(e.target.value)}
+              placeholder="0400 000 000"
+              type="tel"
+              maxLength={20}
+              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+            />
+            <Input
+              label="Relationship"
+              value={emergencyContactRelationship}
+              onChange={(e) => setEmergencyContactRelationship(e.target.value)}
+              placeholder="e.g. Parent, Partner"
+              maxLength={50}
+              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+            />
+          </div>
+        </motion.div>
+      </motion.div>
+    </Page>
+  )
+}

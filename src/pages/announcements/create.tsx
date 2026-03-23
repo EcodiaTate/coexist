@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -9,6 +9,9 @@ import {
   Users,
   Globe,
   Shield,
+  X,
+  Type,
+  FileText,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -23,7 +26,6 @@ import { useAuth } from '@/hooks/use-auth'
 import { useCreateAnnouncement } from '@/hooks/use-announcements'
 import { useMyCollectives } from '@/hooks/use-collective'
 import { useImageUpload } from '@/hooks/use-image-upload'
-import { useCamera } from '@/hooks/use-camera'
 import type { Enums } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
@@ -57,67 +59,88 @@ const audienceOptions: {
 ]
 
 /* ------------------------------------------------------------------ */
-/*  Create announcement page                                           */
+/*  Create announcement page – blog-post style, admin-only             */
 /* ------------------------------------------------------------------ */
 
 export default function CreateAnnouncementPage() {
   const navigate = useNavigate()
-  const { profile, isStaff, collectiveRoles } = useAuth()
+  const { profile, isAdmin } = useAuth()
   const { toast } = useToast()
   const createAnnouncement = useCreateAnnouncement()
-  const { pickFromGallery, loading: cameraLoading } = useCamera()
-  const annUpload = useImageUpload({ bucket: 'announcement-images' })
+  const annUpload = useImageUpload({ bucket: 'announcements' })
   const { data: myCollectives } = useMyCollectives()
-
-  // Collectives this user leads (assist_leader, co_leader, leader)
-  const staffCollectives = (myCollectives ?? []).filter((m) =>
-    m.role === 'leader' || m.role === 'co_leader' || m.role === 'assist_leader',
-  )
-  const isCollectiveStaffOnly = !isStaff && staffCollectives.length > 0
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [priority, setPriority] = useState<Enums<'announcement_priority'>>('normal')
-  const [targetAudience, setTargetAudience] = useState<Enums<'announcement_target'>>(
-    isCollectiveStaffOnly ? 'collective_specific' : 'all',
-  )
-  const [selectedCollectiveId, setSelectedCollectiveId] = useState<string | null>(
-    staffCollectives.length === 1 ? staffCollectives[0].collective_id : null,
-  )
+  const [targetAudience, setTargetAudience] = useState<Enums<'announcement_target'>>('all')
+  const [selectedCollectiveId, setSelectedCollectiveId] = useState<string | null>(null)
   const [isPinned, setIsPinned] = useState(false)
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [previews, setPreviews] = useState<string[]>([])
   const [showPreview, setShowPreview] = useState(false)
   const shouldReduceMotion = useReducedMotion()
+
+  // Only admin staff can create announcements
+  if (!isAdmin) {
+    return (
+      <Page
+        header={<Header title="Not Authorised" back />}
+      >
+        <div className="flex flex-col items-center justify-center py-20 px-4">
+          <Shield size={48} className="text-primary-300 mb-4" />
+          <h2 className="font-heading text-lg font-bold text-primary-800 mb-2">Admin Only</h2>
+          <p className="text-sm text-primary-500 text-center max-w-xs">
+            Only admin staff can create announcements. Contact your admin if you need to post an update.
+          </p>
+        </div>
+      </Page>
+    )
+  }
 
   const canSubmit =
     title.trim().length > 0 &&
     content.trim().length > 0 &&
     (targetAudience !== 'collective_specific' || !!selectedCollectiveId)
 
-  const handleImageChange = (files: FileList | null) => {
-    const file = files?.[0]
-    if (!file) return
-    setImageFile(file)
-    const reader = new FileReader()
-    reader.onload = (e) => setImagePreview(e.target?.result as string)
-    reader.readAsDataURL(file)
+  /* ---- Multi-image handling ---- */
+
+  const handleFilesSelected = (files: FileList | null) => {
+    if (!files) return
+    const newFiles = Array.from(files).slice(0, 10 - selectedFiles.length)
+    setSelectedFiles((prev) => [...prev, ...newFiles])
+
+    for (const file of newFiles) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setPreviews((prev) => [...prev, e.target?.result as string])
+      }
+      reader.readAsDataURL(file)
+    }
   }
+
+  const removeImage = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index))
+    setPreviews((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  /* ---- Submit ---- */
 
   const handleSubmit = async () => {
     if (!canSubmit) return
 
     try {
-      let imageUrl: string | undefined
-      if (imageFile) {
-        const uploaded = await annUpload.upload(imageFile)
-        imageUrl = uploaded.url
+      let imageUrls: string[] = []
+      if (selectedFiles.length > 0) {
+        const results = await annUpload.uploadMultiple(selectedFiles)
+        imageUrls = results.map((r) => r.url)
       }
 
       await createAnnouncement.mutateAsync({
         title: title.trim(),
         content: content.trim(),
-        imageUrl,
+        imageUrls,
         priority,
         targetAudience,
         targetCollectiveId: targetAudience === 'collective_specific' ? selectedCollectiveId ?? undefined : undefined,
@@ -177,31 +200,34 @@ export default function CreateAnnouncementPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        {/* Title */}
+        {/* Blog-post type hint */}
+        <div className="flex items-center gap-2 px-1">
+          <FileText size={16} className="text-primary-400" />
+          <span className="text-xs font-semibold text-primary-500 uppercase tracking-wider">
+            Blog Post / Announcement
+          </span>
+        </div>
+
+        {/* Title – large blog-style input */}
         <div>
-          <label
-            htmlFor="ann-title"
-            className="block text-sm font-semibold text-primary-800 mb-1.5"
-          >
-            Title
-          </label>
           <input
             id="ann-title"
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Announcement title"
+            placeholder="Give it a title..."
             maxLength={200}
             className={cn(
-              'w-full h-11 px-3 rounded-xl text-sm',
-              'bg-white text-primary-800 placeholder:text-primary-400',
+              'w-full px-3 py-2 rounded-xl',
+              'bg-white text-primary-800 placeholder:text-primary-300',
               'border-none outline-none',
               'focus:ring-2 focus:ring-primary-300',
+              'font-heading text-xl font-bold leading-tight',
             )}
           />
         </div>
 
-        {/* Content */}
+        {/* Content – rich textarea for blog-style posts */}
         <div>
           <label
             htmlFor="ann-content"
@@ -209,72 +235,100 @@ export default function CreateAnnouncementPage() {
           >
             Content
           </label>
+          <p className="text-xs text-primary-400 mb-2">
+            Write your update, invite, recap, or anything you'd like to share. Use blank lines for paragraphs.
+          </p>
           <textarea
             id="ann-content"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            placeholder="Write your announcement..."
-            rows={6}
-            maxLength={5000}
+            placeholder="Write your announcement...&#10;&#10;Share updates, event invites, recaps, news — anything the community needs to know."
+            rows={12}
+            maxLength={10000}
             className={cn(
-              'w-full px-3 py-3 rounded-xl text-sm resize-none',
+              'w-full px-4 py-4 rounded-xl text-sm resize-none',
               'bg-white text-primary-800 placeholder:text-primary-400',
               'border-none outline-none leading-relaxed',
               'focus:ring-2 focus:ring-primary-300',
             )}
           />
           <div className="flex justify-end mt-1">
-            <span className="text-xs text-primary-300">{content.length}/5000</span>
+            <span className="text-xs text-primary-300">{content.length}/10,000</span>
           </div>
         </div>
 
-        {/* Image */}
+        {/* Images – multi-upload grid */}
         <div>
           <label className="block text-sm font-semibold text-primary-800 mb-1.5">
-            Image (optional)
+            Images ({selectedFiles.length}/10)
           </label>
-          {imagePreview ? (
-            <div className="relative rounded-xl overflow-hidden">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-full aspect-[16/9] object-cover"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setImageFile(null)
-                  setImagePreview(null)
-                }}
-                className={cn(
-                  'absolute top-2 right-2 px-2.5 py-1 rounded-lg',
-                  'bg-black/60 text-white text-xs font-medium',
-                  'cursor-pointer hover:bg-black/80 transition-colors duration-150',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
-                )}
-              >
-                Remove
-              </button>
+          <p className="text-xs text-primary-400 mb-2">
+            Add up to 10 images — photos, infographics, flyers, event recaps.
+          </p>
+
+          {/* Preview grid */}
+          {previews.length > 0 && (
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              {previews.map((src, i) => (
+                <motion.div
+                  key={i}
+                  initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="relative aspect-square rounded-xl overflow-hidden"
+                >
+                  <img
+                    src={src}
+                    alt={`Selected photo ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(i)}
+                    className={cn(
+                      'absolute top-1.5 right-1.5',
+                      'flex items-center justify-center w-7 h-7 rounded-full',
+                      'bg-black/60 text-white',
+                      'cursor-pointer select-none',
+                      'hover:bg-black/80 active:scale-[0.97] transition-all duration-150',
+                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
+                    )}
+                    aria-label={`Remove photo ${i + 1}`}
+                  >
+                    <X size={14} />
+                  </button>
+                </motion.div>
+              ))}
             </div>
-          ) : (
-            <label
+          )}
+
+          {/* Add images button */}
+          {selectedFiles.length < 10 && (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
               className={cn(
-                'flex items-center justify-center gap-2 h-24 rounded-xl bg-primary-50/60',
+                'flex items-center justify-center gap-2 w-full h-20 rounded-xl bg-primary-50/60',
                 'text-sm text-primary-400 font-medium',
                 'cursor-pointer hover:bg-primary-100/60 hover:text-primary-500 hover:shadow-sm',
                 'transition-all duration-150',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               )}
             >
               <ImageIcon size={18} aria-hidden="true" />
-              Upload image
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleImageChange(e.target.files)}
-                className="hidden"
-              />
-            </label>
+              {previews.length > 0 ? 'Add more images' : 'Upload images'}
+            </button>
           )}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => handleFilesSelected(e.target.files)}
+            className="hidden"
+            aria-hidden="true"
+          />
+
           <UploadProgress
             progress={annUpload.progress}
             uploading={annUpload.uploading}
@@ -323,14 +377,13 @@ export default function CreateAnnouncementPage() {
           </div>
         </div>
 
-        {/* Target audience */}
+        {/* Target audience – admin sees all options */}
         <div>
           <label className="block text-sm font-semibold text-primary-800 mb-2">
             Target Audience
           </label>
           <div className="space-y-2">
-            {/* Admin/staff see all options; collective staff only see collective_specific */}
-            {(isStaff ? audienceOptions : audienceOptions.filter((o) => o.value === 'collective_specific')).map((opt) => {
+            {audienceOptions.map((opt) => {
               const Icon = opt.icon
               const isSelected = targetAudience === opt.value
               return (
@@ -350,7 +403,7 @@ export default function CreateAnnouncementPage() {
                 >
                   <Icon
                     size={18}
-                    className={isSelected ? 'text-primary-400' : 'text-primary-400'}
+                    className="text-primary-400"
                     aria-hidden="true"
                   />
                   <div>
@@ -367,13 +420,13 @@ export default function CreateAnnouncementPage() {
             })}
           </div>
 
-          {/* Collective picker – shown when targeting a specific collective */}
+          {/* Collective picker */}
           {targetAudience === 'collective_specific' && (
             <div className="mt-3 space-y-2">
               <label className="block text-xs font-semibold text-primary-400 uppercase tracking-wider">
                 Select collective
               </label>
-              {(isStaff ? (myCollectives ?? []) : staffCollectives).map((m) => {
+              {(myCollectives ?? []).map((m) => {
                 const collective = m.collectives as any
                 if (!collective) return null
                 const isSelected = selectedCollectiveId === m.collective_id
@@ -437,7 +490,7 @@ export default function CreateAnnouncementPage() {
         >
           <Pin
             size={18}
-            className={isPinned ? 'text-primary-400' : 'text-primary-400'}
+            className="text-primary-400"
             aria-hidden="true"
           />
           <div className="text-left">
@@ -452,13 +505,13 @@ export default function CreateAnnouncementPage() {
         </button>
       </motion.div>
 
-      {/* Preview sheet */}
+      {/* Preview sheet – blog-post style */}
       <BottomSheet
         open={showPreview}
         onClose={() => setShowPreview(false)}
-        snapPoints={[0.7]}
+        snapPoints={[0.85]}
       >
-        <div className="space-y-4">
+        <div className="space-y-4 max-h-[75vh] overflow-y-auto">
           <h3 className="font-heading text-lg font-bold text-primary-800 text-center">
             Preview
           </h3>
@@ -478,24 +531,53 @@ export default function CreateAnnouncementPage() {
               </div>
             )}
 
-            {imagePreview && (
-              <div className="mx-4 mt-3 rounded-xl overflow-hidden">
-                <img
-                  src={imagePreview}
-                  alt=""
-                  className="w-full aspect-[16/9] object-cover"
-                />
+            {/* Preview images */}
+            {previews.length > 0 && (
+              <div className="mx-4 mt-3">
+                {previews.length === 1 ? (
+                  <div className="rounded-xl overflow-hidden">
+                    <img
+                      src={previews[0]}
+                      alt=""
+                      className="w-full aspect-[16/9] object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className={cn(
+                    'grid gap-1.5 rounded-xl overflow-hidden',
+                    previews.length === 2 ? 'grid-cols-2' : 'grid-cols-3',
+                  )}>
+                    {previews.slice(0, 6).map((src, i) => (
+                      <div key={i} className={cn(
+                        'relative overflow-hidden',
+                        previews.length === 2 ? 'aspect-[4/3]' :
+                        i === 0 && previews.length >= 3 ? 'col-span-2 row-span-2 aspect-square' : 'aspect-square',
+                      )}>
+                        <img
+                          src={src}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                        {i === 5 && previews.length > 6 && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <span className="text-white text-lg font-bold">+{previews.length - 6}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
             <div className="px-4 pt-3 pb-4">
-              <h4 className="font-heading font-bold text-base text-primary-800">
+              <h4 className="font-heading font-bold text-lg text-primary-800 leading-tight">
                 {title || 'Announcement title'}
               </h4>
-              <p className="mt-2 text-sm text-primary-400 leading-relaxed whitespace-pre-wrap">
+              <div className="mt-3 text-sm text-primary-500 leading-relaxed whitespace-pre-wrap">
                 {content || 'Announcement content will appear here...'}
-              </p>
-              <div className="flex items-center gap-2.5 mt-3 pt-3">
+              </div>
+              <div className="flex items-center gap-2.5 mt-4 pt-3 border-t border-primary-100">
                 <Avatar
                   src={profile?.avatar_url}
                   name={profile?.display_name ?? 'Staff'}

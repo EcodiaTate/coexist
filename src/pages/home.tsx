@@ -1,6 +1,6 @@
-import { useCallback, useState, useRef, useEffect } from 'react'
+import { useCallback, useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useReducedMotion, useScroll, useTransform, useInView } from 'framer-motion'
 import {
   ChevronRight,
   Calendar,
@@ -17,6 +17,8 @@ import {
   ShoppingBag,
   QrCode,
   Search,
+  Camera,
+  CheckCircle2,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
@@ -37,6 +39,7 @@ import {
   PullToRefresh,
   Badge,
   Button,
+  CheckInSheet,
 } from '@/components'
 import { cn } from '@/lib/cn'
 import { ProximityCheckInBanner } from '@/components/proximity-check-in-banner'
@@ -292,6 +295,10 @@ function NextEventCard({
   rm: boolean
 }) {
   const navigate = useNavigate()
+  const [checkInOpen, setCheckInOpen] = useState(false)
+  const [checkInEventId, setCheckInEventId] = useState('')
+  const [checkInEventTitle, setCheckInEventTitle] = useState('')
+  const [checkInCollective, setCheckInCollective] = useState('')
 
   if (isLoading && showLoading) {
     return (
@@ -344,18 +351,14 @@ function NextEventCard({
       <Section title="Your Next Event">
         <div
           className={cn(
-            'relative rounded-2xl overflow-hidden shadow-md',
+            'relative rounded-2xl overflow-hidden',
             'active:scale-[0.98] transition-all duration-150 cursor-pointer',
             happeningNow
-              ? 'bg-gradient-to-br from-primary-500 to-primary-700 ring-1 ring-primary-400/50'
-              : 'bg-gradient-to-br from-primary-600 to-primary-800',
+              ? 'bg-gradient-to-br from-primary-500 to-primary-700 ring-2 ring-primary-400/60 shadow-xl shadow-primary-500/30'
+              : 'bg-gradient-to-br from-primary-600 to-primary-800 shadow-md',
           )}
           onClick={() => {
-            if (happeningNow) {
-              navigate(`/events/${nextEvent.id}/check-in`)
-            } else {
-              navigate(`/events/${nextEvent.id}`)
-            }
+            navigate(`/events/${nextEvent.id}`)
           }}
           role="button"
           tabIndex={0}
@@ -387,7 +390,7 @@ function NextEventCard({
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
               </span>
               <span className="text-xs font-bold text-white uppercase tracking-wider">
-                Happening Now
+                {nextEvent.registration_status === 'attended' ? 'You\'re at this event' : 'Happening Now'}
               </span>
             </div>
           )}
@@ -415,17 +418,45 @@ function NextEventCard({
           )}
 
           {/* CTA */}
-          {happeningNow ? (
-            <div className="mt-5 flex items-center gap-2">
+          {nextEvent.registration_status === 'attended' && happeningNow ? (
+            /* Checked in — prompt to share photos */
+            <div className="mt-5 space-y-2.5">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/15 text-white/90 text-xs font-bold">
+                <CheckCircle2 size={14} className="text-sprout-300 shrink-0" />
+                You're checked in!
+              </div>
               <Button
                 variant="primary"
-                size="sm"
+                size="lg"
+                fullWidth
+                icon={<Camera size={20} />}
+                className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-lg"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation()
-                  navigate(`/events/${nextEvent.id}/check-in`)
+                  navigate(`/chat/${nextEvent.collective_id}`)
                 }}
               >
-                <QrCode size={16} className="mr-1.5" />
+                Share Photos with Collective
+              </Button>
+            </div>
+          ) : happeningNow ? (
+            <div className="mt-5 relative">
+              {/* Pulsing ring behind the button */}
+              <div className="absolute inset-0 rounded-xl bg-white/20 animate-pulse" />
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
+                icon={<QrCode size={20} />}
+                className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-lg"
+                onClick={(e: React.MouseEvent) => {
+                  e.stopPropagation()
+                  setCheckInEventId(nextEvent.id)
+                  setCheckInEventTitle(nextEvent.title)
+                  setCheckInCollective(nextEvent.collectives?.name ?? '')
+                  setCheckInOpen(true)
+                }}
+              >
                 Tap to Sign In
               </Button>
             </div>
@@ -438,6 +469,14 @@ function NextEventCard({
           </div>
         </div>
       </Section>
+
+      <CheckInSheet
+        open={checkInOpen}
+        onClose={() => setCheckInOpen(false)}
+        eventId={checkInEventId}
+        eventTitle={checkInEventTitle}
+        collectiveName={checkInCollective}
+      />
     </motion.div>
   )
 }
@@ -483,7 +522,7 @@ function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
             return (
               <div
                 key={event.id}
-                className="shrink-0 w-56 snap-start rounded-2xl bg-gradient-to-br from-sky-600 to-moss-600 shadow-lg overflow-hidden active:scale-[0.97] transition-all duration-150 cursor-pointer"
+                className="shrink-0 w-56 snap-start rounded-2xl bg-gradient-to-br from-primary-400 to-sprout-500 shadow-lg overflow-hidden active:scale-[0.97] transition-all duration-150 cursor-pointer"
                 onClick={() => navigate(`/events/${event.id}`)}
                 role="button"
                 tabIndex={0}
@@ -644,73 +683,83 @@ function UpdatesSection({ rm }: { rm: boolean }) {
 /*  Impact row components                                              */
 /* ------------------------------------------------------------------ */
 
-function ImpactFoundational({
-  value,
-  label,
-  icon,
-  accent,
-}: {
-  value: number | string
-  label: string
-  icon: React.ReactNode
-  accent: string
-}) {
-  return (
-    <div className="relative overflow-hidden flex flex-col items-center justify-center gap-2 rounded-2xl bg-white/[0.08] p-4 h-full">
-      <div className={cn('absolute -top-5 -right-5 w-16 h-16 rounded-full blur-2xl opacity-15', accent)} />
-      <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center mb-0.5', accent)}>
-        <span className="text-white">{icon}</span>
-      </div>
-      <span className="font-heading text-2xl font-extrabold text-white tabular-nums leading-none">
-        {typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '—') : value}
-      </span>
-      <span className="text-[10px] text-white/45 font-semibold uppercase tracking-wider text-center leading-tight">
-        {label}
-      </span>
-    </div>
-  )
+/* Animated count-up for numbers */
+function useCountUp(target: number, active: boolean, duration = 1200) {
+  const [display, setDisplay] = useState(0)
+  const rm = useReducedMotion()
+
+  useEffect(() => {
+    if (!active || target <= 0) { setDisplay(target); return }
+    if (rm) { setDisplay(target); return }
+
+    let raf: number
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min((now - start) / duration, 1)
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - t, 3)
+      setDisplay(Math.round(eased * target))
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [target, active, duration, rm])
+
+  return display
 }
 
-function ImpactSubStat({
+const statFadeUp = {
+  hidden: { opacity: 0, y: 18 },
+  show: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.07, duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] },
+  }),
+}
+
+function ImpactStat({
   value,
   label,
   icon,
+  color,
+  inView,
+  index = 0,
 }: {
   value: number | string
   label: string
   icon: React.ReactNode
+  color: string
+  inView: boolean
+  index?: number
 }) {
+  const isNum = typeof value === 'number'
+  const counted = useCountUp(isNum ? value : 0, inView)
+  const rm = useReducedMotion()
+
+  const formatted = isNum
+    ? (value > 0 ? counted.toLocaleString() : '—')
+    : value
+
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-white/[0.06] px-3.5 py-3 h-full">
-      <span className="text-white/50 shrink-0">{icon}</span>
+    <motion.div
+      className="flex items-center gap-3.5"
+      variants={rm ? undefined : statFadeUp}
+      initial="hidden"
+      animate={inView ? 'show' : 'hidden'}
+      custom={index}
+    >
+      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm', color)}>
+        <span className="text-white">{icon}</span>
+      </div>
       <div className="min-w-0">
-        <span className="font-heading text-base font-bold text-white tabular-nums leading-none block">
-          {typeof value === 'number' ? (value > 0 ? value.toLocaleString() : '—') : value}
+        <span className="font-heading text-[22px] font-extrabold text-white tabular-nums leading-none block">
+          {formatted}
         </span>
-        <span className="text-[10px] text-white/40 font-semibold uppercase tracking-wider leading-tight mt-0.5 block">
+        <span className="text-[10px] text-white/70 font-semibold uppercase tracking-wider leading-tight mt-1 block">
           {label}
         </span>
       </div>
-    </div>
-  )
-}
-
-function ImpactRow({
-  foundational,
-  subStats,
-}: {
-  foundational: { value: number | string; label: string; icon: React.ReactNode; accent: string }
-  subStats: { value: number | string; label: string; icon: React.ReactNode }[]
-}) {
-  return (
-    <div className="grid grid-cols-[1fr_1.4fr] gap-2.5">
-      <ImpactFoundational {...foundational} />
-      <div className={cn('flex flex-col gap-2', subStats.length === 1 ? 'h-full' : '')}>
-        {subStats.map((s) => (
-          <ImpactSubStat key={s.label} {...s} />
-        ))}
-      </div>
-    </div>
+    </motion.div>
   )
 }
 
@@ -731,119 +780,180 @@ function HomeImpactSection({
     scope === 'national' ? national.data : collective.data
   const isLoading = scope === 'national' ? national.isLoading : collective.isLoading
 
+  const totalEvents = data?.eventsHeld ?? 0
+
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const inView = useInView(sectionRef, { once: true, margin: '-60px' })
+
   return (
-    <motion.div variants={rm ? undefined : fadeUp}>
-      <Section title="Impact" action={{ label: 'My impact', to: '/profile' }}>
-        <div className="rounded-3xl bg-gradient-to-br from-primary-800 via-primary-900 to-emerald-950 shadow-xl overflow-hidden">
+    <motion.div variants={rm ? undefined : fadeUp} className="-mx-6">
+      <div ref={sectionRef} className="relative overflow-hidden" style={{ backgroundColor: '#869d61' }}>
+
+        <div className="relative px-7 pt-16 pb-20">
+          {/* Header */}
+          <motion.div
+            className="flex items-center justify-between mb-1.5"
+            initial={rm ? undefined : { opacity: 0 }}
+            animate={inView ? { opacity: 1 } : undefined}
+            transition={{ duration: 0.4 }}
+          >
+            <h2 className="font-heading text-xs font-bold text-white/90 uppercase tracking-[0.2em]">
+              Our Impact
+            </h2>
+            <Link
+              to="/profile"
+              className="flex items-center gap-0.5 text-[11px] font-semibold text-white/70 hover:text-white transition-colors"
+            >
+              My impact
+              <ChevronRight size={13} />
+            </Link>
+          </motion.div>
+
           {/* Toggles */}
-          <div className="relative px-5 pt-5 pb-4">
-            <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
-
-            <div className="relative flex items-center justify-between gap-2">
-              {/* Scope toggle */}
-              <div className="flex rounded-xl bg-white/10 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setScope('national')}
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer select-none',
-                    scope === 'national'
-                      ? 'bg-white/20 text-white shadow-lg shadow-black/10'
-                      : 'text-white/40 hover:text-white/60',
-                  )}
-                >
-                  <Globe size={12} className="inline mr-1 -mt-0.5" />
-                  National
-                </button>
-                {collectiveId && (
-                  <button
-                    type="button"
-                    onClick={() => setScope('collective')}
-                    className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer select-none',
-                      scope === 'collective'
-                        ? 'bg-white/20 text-white shadow-lg shadow-black/10'
-                        : 'text-white/40 hover:text-white/60',
-                    )}
-                  >
-                    <MapPin size={12} className="inline mr-1 -mt-0.5" />
-                    Collective
-                  </button>
+          <div className="flex items-center justify-between gap-2 mb-8">
+            <div className="flex rounded-full bg-black/15 p-0.5">
+              <button
+                type="button"
+                onClick={() => setScope('national')}
+                className={cn(
+                  'px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer select-none',
+                  scope === 'national'
+                    ? 'bg-white text-primary-800 shadow-sm'
+                    : 'text-white/70 hover:text-white',
                 )}
-              </div>
+              >
+                <Globe size={11} className="inline mr-1 -mt-0.5" />
+                National
+              </button>
+              {collectiveId && (
+                <button
+                  type="button"
+                  onClick={() => setScope('collective')}
+                  className={cn(
+                    'px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer select-none',
+                    scope === 'collective'
+                      ? 'bg-white text-primary-800 shadow-sm'
+                      : 'text-white/70 hover:text-white',
+                  )}
+                >
+                  <MapPin size={11} className="inline mr-1 -mt-0.5" />
+                  Collective
+                </button>
+              )}
+            </div>
 
-              {/* Time toggle */}
-              <div className="flex rounded-xl bg-white/10 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setTimeRange('all-time')}
-                  className={cn(
-                    'px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer select-none',
-                    timeRange === 'all-time'
-                      ? 'bg-white/20 text-white shadow-lg shadow-black/10'
-                      : 'text-white/40 hover:text-white/60',
-                  )}
-                >
-                  All Time
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTimeRange('current-year')}
-                  className={cn(
-                    'px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer select-none',
-                    timeRange === 'current-year'
-                      ? 'bg-white/20 text-white shadow-lg shadow-black/10'
-                      : 'text-white/40 hover:text-white/60',
-                  )}
-                >
-                  {new Date().getFullYear()}
-                </button>
-              </div>
+            <div className="flex rounded-full bg-black/15 p-0.5">
+              <button
+                type="button"
+                onClick={() => setTimeRange('all-time')}
+                className={cn(
+                  'px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer select-none',
+                  timeRange === 'all-time'
+                    ? 'bg-white text-primary-800 shadow-sm'
+                    : 'text-white/70 hover:text-white',
+                )}
+              >
+                All Time
+              </button>
+              <button
+                type="button"
+                onClick={() => setTimeRange('current-year')}
+                className={cn(
+                  'px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all duration-200 cursor-pointer select-none',
+                  timeRange === 'current-year'
+                    ? 'bg-white text-primary-800 shadow-sm'
+                    : 'text-white/70 hover:text-white',
+                )}
+              >
+                {new Date().getFullYear()}
+              </button>
             </div>
           </div>
 
-          {/* Stats rows */}
-          <div className="px-5 pb-5">
-            {isLoading ? (
+          {/* Content */}
+          {isLoading ? (
+            <div className="space-y-4">
+              <div className="h-24 rounded-2xl bg-white/15 animate-pulse" />
               <div className="space-y-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-[80px] rounded-2xl bg-white/[0.06] animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+                  <div key={i} className="h-[72px] rounded-xl bg-white/10 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
                 ))}
               </div>
-            ) : data ? (
+            </div>
+          ) : data ? (
+            <>
+              {/* All stats in categorised rows */}
               <div className="space-y-3">
-                <ImpactRow
-                  foundational={{ value: data.eventsAttended, label: 'Attendances', icon: <Calendar size={18} />, accent: 'bg-amber-500' }}
-                  subStats={[
-                    { value: data.eventsAttended, label: 'Community Events', icon: <Calendar size={14} /> },
-                    { value: data.volunteerHours, label: 'Vol. Hours', icon: <Clock size={14} /> },
-                  ]}
-                />
-                <ImpactRow
-                  foundational={{ value: data.treesPlanted + data.invasiveWeedsPulled, label: 'Land Restoration', icon: <TreePine size={18} />, accent: 'bg-emerald-500' }}
-                  subStats={[
-                    { value: data.treesPlanted, label: 'Trees Planted', icon: <TreePine size={14} /> },
-                    { value: data.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={14} /> },
-                  ]}
-                />
-                <ImpactRow
-                  foundational={{ value: data.cleanupEventsHeld, label: 'Cleanup Sites', icon: <Trash2 size={18} />, accent: 'bg-sky-500' }}
-                  subStats={[
-                    { value: data.rubbishCollectedTonnes > 0 ? `${data.rubbishCollectedTonnes}t` : '—', label: 'Tonnes of Rubbish', icon: <Trash2 size={14} /> },
-                    { value: data.cleanupEventsHeld, label: 'Cleanup Events', icon: <Trash2 size={14} /> },
-                  ]}
-                />
-                <ImpactRow
-                  foundational={{ value: data.collectivesCount, label: 'Collectives', icon: <Users size={18} />, accent: 'bg-rose-500' }}
-                  subStats={[
-                    { value: data.leadersTrainedCount, label: 'Leaders Trained', icon: <GraduationCap size={14} /> },
-                  ]}
-                />
+                {/* Events */}
+                <motion.div
+                  className="rounded-xl bg-white/10 p-4"
+                  initial={rm ? undefined : { opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : undefined}
+                  transition={{ delay: 0.05, duration: 0.4, ease: 'easeOut' }}
+                >
+                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
+                    Community Events
+                  </span>
+                  <div className="grid grid-cols-3 gap-3">
+                    <ImpactStat inView={inView} index={0} value={totalEvents} label="Events" icon={<Calendar size={16} />} color="bg-warning-500" />
+                    <ImpactStat inView={inView} index={1} value={data.eventsAttended} label="Attendances" icon={<Users size={16} />} color="bg-warning-600" />
+                    <ImpactStat inView={inView} index={2} value={data.volunteerHours} label="Vol. Hours" icon={<Clock size={16} />} color="bg-warning-700" />
+                  </div>
+                </motion.div>
+
+                {/* Restoration */}
+                <motion.div
+                  className="rounded-xl bg-white/10 p-4"
+                  initial={rm ? undefined : { opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : undefined}
+                  transition={{ delay: 0.2, duration: 0.4, ease: 'easeOut' }}
+                >
+                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
+                    Land Restoration
+                  </span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <ImpactStat inView={inView} index={3} value={data.treesPlanted} label="Trees Planted" icon={<TreePine size={16} />} color="bg-sprout-500" />
+                    <ImpactStat inView={inView} index={4} value={data.invasiveWeedsPulled} label="Weeds Pulled" icon={<Sprout size={16} />} color="bg-sprout-600" />
+                  </div>
+                </motion.div>
+
+                {/* Cleanup */}
+                <motion.div
+                  className="rounded-xl bg-white/10 p-4"
+                  initial={rm ? undefined : { opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : undefined}
+                  transition={{ delay: 0.35, duration: 0.4, ease: 'easeOut' }}
+                >
+                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
+                    Cleanup
+                  </span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <ImpactStat inView={inView} index={5} value={data.rubbishCollectedTonnes > 0 ? `${data.rubbishCollectedTonnes}t` : '—'} label="Rubbish Collected" icon={<Trash2 size={16} />} color="bg-sky-500" />
+                    <ImpactStat inView={inView} index={6} value={data.cleanupSites} label="Cleanup Sites" icon={<Trash2 size={16} />} color="bg-sky-600" />
+                  </div>
+                </motion.div>
+
+                {/* Community */}
+                <motion.div
+                  className="rounded-xl bg-white/10 p-4"
+                  initial={rm ? undefined : { opacity: 0, y: 16 }}
+                  animate={inView ? { opacity: 1, y: 0 } : undefined}
+                  transition={{ delay: 0.5, duration: 0.4, ease: 'easeOut' }}
+                >
+                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
+                    Community
+                  </span>
+                  <div className="grid grid-cols-2 gap-3">
+                    <ImpactStat inView={inView} index={7} value={data.collectivesCount} label="Collectives" icon={<Users size={16} />} color="bg-moss-500" />
+                    <ImpactStat inView={inView} index={8} value={data.leadersEmpowered} label="Leaders Empowered" icon={<GraduationCap size={16} />} color="bg-moss-600" />
+                  </div>
+                </motion.div>
               </div>
-            ) : null}
-          </div>
+            </>
+          ) : null}
         </div>
-      </Section>
+
+      </div>
     </motion.div>
   )
 }

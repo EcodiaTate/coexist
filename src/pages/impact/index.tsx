@@ -379,8 +379,8 @@ export default function ImpactDashboardPage() {
     if (stats.treesPlanted > 0) parts.push(`${stats.treesPlanted} trees planted`)
     if (stats.invasiveWeedsPulled > 0) parts.push(`${stats.invasiveWeedsPulled} invasive weeds pulled`)
     if (stats.rubbishCollectedTonnes > 0) parts.push(`${stats.rubbishCollectedTonnes}t rubbish collected`)
-    if (stats.cleanupEventsHeld > 0) parts.push(`${stats.cleanupEventsHeld} cleanup events`)
-    if (stats.leadersTrainedCount > 0) parts.push(`${stats.leadersTrainedCount} leaders trained`)
+    if (stats.cleanupSites > 0) parts.push(`${stats.cleanupSites} cleanup sites`)
+    if (stats.leadersEmpowered > 0) parts.push(`${stats.leadersEmpowered} leaders empowered`)
     const text = `My Co-Exist Impact: ${parts.join(', ')}! Join at coexistaus.org`
     if (navigator.share) {
       await navigator.share({ title: 'My Co-Exist Impact', text })
@@ -482,8 +482,8 @@ export default function ImpactDashboardPage() {
                 suffix="t"
               />
               <BigStat
-                value={stats.cleanupEventsHeld}
-                label="Cleanup Events"
+                value={stats.cleanupSites}
+                label="Cleanup Sites"
                 icon={<Trash2 size={20} strokeWidth={2.5} />}
                 config="cleanups"
               />
@@ -496,8 +496,8 @@ export default function ImpactDashboardPage() {
                 config="collectives"
               />
               <BigStat
-                value={stats.leadersTrainedCount}
-                label="Leaders Trained"
+                value={stats.leadersEmpowered}
+                label="Leaders Empowered"
                 icon={<GraduationCap size={20} strokeWidth={2.5} />}
                 config="leaders"
               />
