@@ -59,8 +59,6 @@ export function KeepAlive() {
   // Track previous path for cross-fade layering
   const prevPathRef = useRef<string | null>(null)
   const [departingPath, setDepartingPath] = useState<string | null>(null)
-  // Track whether the active page enter animation is done
-  const [enterDone, setEnterDone] = useState(true)
 
   useEffect(() => {
     if (!outlet) return
@@ -68,10 +66,9 @@ export function KeepAlive() {
     const cache = cacheRef.current
     const oldPath = prevPathRef.current
 
-    // Mark departure + reset enter state
+    // Mark departure for cross-fade layering
     if (oldPath && oldPath !== path) {
       setDepartingPath(oldPath)
-      setEnterDone(false)
     }
 
     const existingIdx = cache.findIndex((c) => c.path === path)
@@ -93,7 +90,6 @@ export function KeepAlive() {
 
   // Once enter animation completes, hide the departing page
   const handleEnterComplete = () => {
-    setEnterDone(true)
     setDepartingPath(null)
   }
 

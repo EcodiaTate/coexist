@@ -9,6 +9,7 @@ interface HeaderProps {
   back?: boolean
   onBack?: () => void
   rightActions?: ReactNode
+  /** Render with no background — back button gets a glass pill for contrast on images */
   transparent?: boolean
   className?: string
 }
@@ -59,10 +60,12 @@ export function Header({
               className={cn(
                 'flex items-center justify-center',
                 'w-11 h-11 -ml-1 rounded-full',
-                'text-primary-800 hover:bg-primary-50/80',
                 'cursor-pointer select-none',
                 'transition-colors duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                transparent
+                  ? 'bg-black/40 text-white hover:bg-black/50'
+                  : 'text-primary-800 hover:bg-primary-50/80',
               )}
               aria-label="Go back"
             >
