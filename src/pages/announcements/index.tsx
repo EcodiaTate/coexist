@@ -113,8 +113,16 @@ function DecorativeBackground() {
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
       <div className="absolute inset-0 bg-gradient-to-b from-primary-50/60 via-white via-40% to-primary-50/20" />
       <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-200/20 via-primary-100/8 to-transparent" />
-      <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[2px] border-primary-200/12" />
-      <div className="absolute top-[45%] -left-14 w-48 h-48 rounded-full border-[2px] border-primary-200/10" />
+      {/* Ring cluster — top-right */}
+      <div className="absolute -top-20 -right-16 w-72 h-72 rounded-full border-[2.5px] border-primary-200/14" />
+      <div className="absolute -top-8 -right-4 w-48 h-48 rounded-full border-[1.5px] border-primary-200/10" />
+      {/* Ring — mid-left */}
+      <div className="absolute top-[40%] -left-14 w-52 h-52 rounded-full border-[2px] border-primary-200/10" />
+      {/* Accent orb — bottom-right */}
+      <div className="absolute bottom-[15%] right-[8%] w-32 h-32 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-100/18 to-transparent" />
+      {/* Small accents */}
+      <div className="absolute top-[20%] left-[25%] w-10 h-10 rounded-full border border-primary-200/12" />
+      <div className="absolute bottom-[30%] left-[15%] w-6 h-6 rounded-full bg-primary-100/20" />
     </div>
   )
 }

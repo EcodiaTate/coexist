@@ -47,11 +47,6 @@ import {
     useUserResolvedCapabilities,
 } from '@/hooks/use-admin-user-roles'
 import {
-    useAdminUserMembership,
-    useAdminUpdateMembershipStatus,
-    useActiveMemberUserIds,
-} from '@/hooks/use-membership'
-import {
     CAPABILITIES,
     CATEGORY_LABELS,
     ROLE_DEFAULT_CAPS,
@@ -161,9 +156,6 @@ function UserSettingsSheet({
   const { data: collectiveRoles, isLoading: rolesLoading } = useUserCollectiveRoles(user?.id)
   const { data: capsData, isLoading: capsLoading } = useUserResolvedCapabilities(user?.id)
   const { data: allCollectives } = useAllCollectives()
-  const { data: userMembership, isLoading: membershipLoading } = useAdminUserMembership(user?.id)
-  const updateMembershipStatus = useAdminUpdateMembershipStatus()
-
   const assignRole = useAdminAssignCollectiveRole()
   const removeFromCollective = useAdminRemoveFromCollective()
   const updateCaps = useAdminUpdateCapabilities()
@@ -623,72 +615,6 @@ function UserSettingsSheet({
             )}
           </div>
 
-          {/* Membership Section */}
-          <div>
-            <h3 className="text-sm font-bold text-primary-900 mb-3">Membership</h3>
-            {membershipLoading ? (
-              <Skeleton variant="list-item" count={1} />
-            ) : userMembership ? (
-              <div className="p-3.5 rounded-xl ring-1 ring-primary-200/50 bg-white space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-primary-100 text-primary-600 flex items-center justify-center">
-                      <Crown size={15} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-primary-900">
-                        {(userMembership as any).plan?.name ?? 'Membership'}
-                      </p>
-                      <p className="text-[11px] text-primary-500">
-                        {(userMembership as any).interval ?? 'monthly'} · since{' '}
-                        {new Date(userMembership.created_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </p>
-                    </div>
-                  </div>
-                  <span className={cn(
-                    'text-[11px] font-semibold px-2 py-0.5 rounded-full',
-                    userMembership.status === 'active' && 'bg-success-200 text-success-800',
-                    userMembership.status === 'trialing' && 'bg-info-200 text-info-800',
-                    userMembership.status === 'past_due' && 'bg-warning-200 text-warning-800',
-                    userMembership.status === 'cancelled' && 'bg-neutral-200 text-neutral-600',
-                  )}>
-                    {userMembership.status}
-                  </span>
-                </div>
-                {userMembership.current_period_end && (
-                  <p className="text-[11px] text-primary-400">
-                    Period ends{' '}
-                    {new Date(userMembership.current_period_end).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </p>
-                )}
-                <Dropdown
-                  options={[
-                    { value: 'active', label: 'Active' },
-                    { value: 'trialing', label: 'Trialing' },
-                    { value: 'past_due', label: 'Past Due' },
-                    { value: 'cancelled', label: 'Cancelled' },
-                  ]}
-                  value={userMembership.status}
-                  onChange={(newStatus) => {
-                    updateMembershipStatus.mutate(
-                      { membershipId: userMembership.id, status: newStatus },
-                      {
-                        onSuccess: () => toast.success('Membership status updated'),
-                        onError: () => toast.error('Failed to update membership status'),
-                      },
-                    )
-                  }}
-                  label="Change status"
-                />
-              </div>
-            ) : (
-              <div className="py-4 px-3 rounded-xl bg-neutral-50 ring-1 ring-neutral-200/40 text-center">
-                <Crown size={20} className="text-neutral-400 mx-auto mb-1" />
-                <p className="text-xs text-neutral-500">No membership</p>
-              </div>
-            )}
-          </div>
-
           {/* Capabilities / Permissions Section - super_admin only */}
           {isSuperAdmin && isStaffRole && (
             <div>
@@ -834,8 +760,6 @@ export default function AdminUsersPage() {
 
   const { data: users, isLoading } = useAdminUsers(search, roleFilter)
   const showLoading = useDelayedLoading(isLoading)
-  const { data: memberUserIds } = useActiveMemberUserIds()
-
   useAdminHeader('User Management')
 
   const toggleUserSelection = useCallback((userId: string) => {
@@ -941,11 +865,6 @@ export default function AdminUsersPage() {
                     <span className={cn('text-[11px] font-semibold px-1.5 py-0.5 rounded-full shrink-0', roleBadgeColors[user.role] ?? roleBadgeColors.participant)}>
                       {user.role?.replace(/_/g, ' ')}
                     </span>
-                    {memberUserIds?.has(user.id) && (
-                      <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-primary-200 text-primary-700 shrink-0">
-                        Member
-                      </span>
-                    )}
                     {user.is_suspended && (
                       <span className="text-[11px] font-semibold px-1.5 py-0.5 rounded-full bg-error-200 text-error-800 shrink-0">
                         Suspended

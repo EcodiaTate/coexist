@@ -85,7 +85,6 @@ const PAGE_HERO_CONFIG: Record<string, HeroCfg> = {
   'Audit Log':           { hue: 'from-primary-900 via-primary-950 to-neutral-900',  defaultSubtitle: 'Track all administrative actions',               f: 11, w: 1, tall: true },
   'Branding & Images':   { hue: 'from-primary-800 via-primary-850 to-neutral-900',  defaultSubtitle: 'Manage app images and visual identity',          f: 0, w: 2, tall: true },
   'System':              { hue: 'from-primary-900 via-neutral-900 to-neutral-950',  defaultSubtitle: 'Infrastructure, feature flags, and health',      f: 1, w: 3, tall: true },
-  'Membership':          { hue: 'from-primary-700 via-primary-800 to-primary-950',  defaultSubtitle: 'Manage rewards and membership plans',            f: 2, w: 4, tall: true },
   'Merch Management':    { hue: 'from-primary-800 via-primary-900 to-primary-950',  defaultSubtitle: 'Products, orders, and inventory',                f: 3, w: 0, tall: true },
   'Applications':        { hue: 'from-sprout-700 via-primary-800 to-primary-950',   defaultSubtitle: 'Collective leadership applications',             f: 4, w: 1, tall: true },
   'Create Survey':       { hue: 'from-primary-800 via-primary-850 to-neutral-900',  defaultSubtitle: 'Design a new survey',                            f: 5, w: 2, tall: true },

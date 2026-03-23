@@ -84,9 +84,6 @@ const NotificationsPage = lazy(() => import('@/pages/notifications/index'))
 const AnnouncementsPage = lazy(() => import('@/pages/announcements/index'))
 const CreateAnnouncementPage = lazy(() => import('@/pages/announcements/create'))
 
-// Membership
-const MembershipPage = lazy(() => import('@/pages/membership/index'))
-
 // Donations
 const DonatePage = lazy(() => import('@/pages/donate/index'))
 const DonateThankYouPage = lazy(() => import('@/pages/donate/thank-you'))
@@ -100,9 +97,6 @@ const CheckoutPage = lazy(() => import('@/pages/shop/checkout'))
 const OrderConfirmationPage = lazy(() => import('@/pages/shop/order-confirmation'))
 const OrdersPage = lazy(() => import('@/pages/shop/orders'))
 const OrderDetailPage = lazy(() => import('@/pages/shop/order-detail'))
-
-// Admin - Membership
-const AdminMembershipPage = lazy(() => import('@/pages/admin/membership'))
 
 // Admin - Merch
 const AdminMerchPage = lazy(() => import('@/pages/admin/merch/index'))
@@ -344,7 +338,6 @@ function App() {
           <Route path="/partners" element={<PageTransition><PartnersPage /></PageTransition>} />
           <Route path="/leadership" element={<PageTransition><LeadershipPage /></PageTransition>} />
           <Route path="/lead-a-collective" element={<PageTransition><LeadACollectivePage /></PageTransition>} />
-          <Route path="/membership" element={<PageTransition><MembershipPage /></PageTransition>} />
           <Route path="/donate" element={<PageTransition><DonatePage /></PageTransition>} />
           <Route path="/donate/thank-you" element={<PageTransition><DonateThankYouPage /></PageTransition>} />
           <Route path="/donate/donors" element={<PageTransition><DonorWallPage /></PageTransition>} />
@@ -387,7 +380,6 @@ function App() {
             <Route path="audit-log" element={<AdminAuditLogPage />} />
             <Route path="system" element={<AdminSystemPage />} />
             <Route path="branding" element={<AdminBrandingPage />} />
-            <Route path="membership" element={<AdminMembershipPage />} />
             <Route path="shop" element={<AdminMerchPage />} />
             <Route path="partners" element={<AdminPartnersPage />} />
             <Route path="challenges" element={<AdminChallengesPage />} />

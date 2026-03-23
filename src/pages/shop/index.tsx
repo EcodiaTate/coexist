@@ -7,9 +7,6 @@ import { motion, useReducedMotion, useScroll, useTransform, type Variants } from
 import {
     ShoppingBag,
     Star,
-    Sparkles,
-    Lock,
-    Tag,
     ChevronRight,
     TrendingUp,
     Package,
@@ -29,12 +26,8 @@ import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
-import { Button } from '@/components/button'
 import { useProducts } from '@/hooks/use-merch'
 import { useCart } from '@/hooks/use-cart'
-import { useMemberAutoDiscount } from '@/hooks/use-member-discount'
-import { usePartnerPerks, type PartnerPerk } from '@/hooks/use-partner-perks'
-import { useMyMembership } from '@/hooks/use-membership'
 import { formatPrice, type Product } from '@/types/merch'
 import { useNationalImpact } from '@/hooks/use-impact'
 import { useLayout } from '@/hooks/use-layout'
@@ -553,136 +546,6 @@ function ImpactStrip() {
   )
 }
 
-/* ------------------------------------------------------------------ */
-/*  Partner perk card - glassmorphism style                            */
-/* ------------------------------------------------------------------ */
-
-function PerkCard({ perk, isMember }: { perk: PartnerPerk; isMember: boolean }) {
-  return (
-    <div className="shrink-0 w-64 snap-start rounded-2xl bg-white/80 backdrop-blur-sm shadow-sm border border-primary-100/40 overflow-hidden">
-      {/* Top gradient accent */}
-      <div className="h-1 bg-gradient-to-r from-moss-400 via-primary-400 to-sprout-400" />
-
-      <div className="p-4">
-        <div className="flex items-start gap-3">
-          {perk.partner_logo_url ? (
-            <img
-              src={perk.partner_logo_url}
-              alt={perk.partner_name}
-              className="w-11 h-11 rounded-2xl object-cover shrink-0 shadow-sm ring-1 ring-primary-100/40"
-            />
-          ) : (
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-100 to-moss-100 flex items-center justify-center shrink-0">
-              <Tag size={16} className="text-primary-600" />
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-primary-800 line-clamp-1">{perk.title}</p>
-            <p className="text-xs text-primary-400 mt-0.5 font-medium">{perk.partner_name}</p>
-          </div>
-        </div>
-
-        {perk.description && (
-          <p className="text-xs text-primary-500/80 mt-2.5 line-clamp-2 leading-relaxed">{perk.description}</p>
-        )}
-
-        <div className="mt-3">
-          {isMember ? (
-            <>
-              {perk.discount_code && (
-                <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-gradient-to-r from-sprout-50 to-primary-50 border border-sprout-200/40">
-                  <Sparkles size={14} className="text-sprout-600 shrink-0" />
-                  <span className="text-sm font-mono font-bold text-primary-800 tracking-wide">
-                    {perk.discount_code}
-                  </span>
-                </div>
-              )}
-              {perk.discount_percent && !perk.discount_code && (
-                <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-gradient-to-r from-sprout-50 to-primary-50 border border-sprout-200/40">
-                  <Sparkles size={14} className="text-sprout-600 shrink-0" />
-                  <span className="text-sm font-bold text-primary-800">
-                    {perk.discount_percent}% off
-                  </span>
-                </div>
-              )}
-              {perk.points_cost && perk.points_cost > 0 && (
-                <p className="text-[11px] text-primary-400 mt-1.5 font-medium">{perk.points_cost} points to redeem</p>
-              )}
-            </>
-          ) : (
-            <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-primary-50/60 border border-primary-100/30">
-              <Lock size={14} className="text-primary-300 shrink-0" />
-              <span className="text-xs font-semibold text-primary-400">Join to unlock</span>
-            </div>
-          )}
-        </div>
-
-        {perk.category && (
-          <span className="inline-block mt-2.5 px-2.5 py-0.5 rounded-full bg-moss-100/50 text-[11px] font-semibold text-moss-700 capitalize border border-moss-200/30">
-            {perk.category}
-          </span>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Partner perks section                                              */
-/* ------------------------------------------------------------------ */
-
-function PartnerPerksSection({ rm }: { rm: boolean }) {
-  const navigate = useNavigate()
-  const { data: perks } = usePartnerPerks()
-  const { data: membership } = useMyMembership()
-  const isMember = !!membership
-
-  if (!perks || perks.length === 0) return null
-
-  return (
-    <motion.div variants={rm ? undefined : fadeUp}>
-      {/* Section on a tinted panel */}
-      <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-moss-50/40 to-transparent">
-        {/* Top wave divider */}
-        <div className="absolute top-0 left-0 right-0 -translate-y-[calc(100%-1px)]">
-          <svg viewBox="0 0 1440 40" preserveAspectRatio="none" className="w-full h-5 block" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0,40 C480,0 960,30 1440,10 L1440,40 Z" className="fill-moss-50/40" />
-          </svg>
-        </div>
-
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-moss-500 to-primary-500 shadow-sm">
-              <Sparkles size={14} className="text-white" />
-            </div>
-            <h2 className="font-heading font-extrabold text-primary-800 text-lg">
-              Member Perks
-            </h2>
-          </div>
-          {!isMember && (
-            <Button variant="ghost" size="sm" onClick={() => navigate('/membership')}>
-              Learn more
-            </Button>
-          )}
-        </div>
-
-        {!isMember && (
-          <p className="text-xs text-primary-400 mb-3 font-medium">
-            Exclusive partner discounts for Co-Exist members
-          </p>
-        )}
-
-        <div className="-mx-5 lg:-mx-6">
-          <div className="flex gap-3 overflow-x-auto px-5 lg:px-6 scrollbar-none snap-x snap-proximity pb-2">
-            {perks.map((perk) => (
-              <PerkCard key={perk.id} perk={perk} isMember={isMember} />
-            ))}
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  )
-}
 
 /* ------------------------------------------------------------------ */
 /*  Section header - with gradient icon badge                          */
@@ -779,7 +642,6 @@ export default function ShopPage() {
   const { navMode } = useLayout()
   const hasBottomTabs = navMode === 'bottom-tabs'
   const isOnShopPage = location.pathname === '/shop'
-  useMemberAutoDiscount() // Pre-load member discount for cart
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState(CATEGORY_ALL)
 
@@ -927,8 +789,6 @@ export default function ShopPage() {
                     </div>
                   )}
 
-                  {/* Partner perks - on tinted panel */}
-                  <PartnerPerksSection rm={rm} />
                 </div>
               </motion.div>
             )}

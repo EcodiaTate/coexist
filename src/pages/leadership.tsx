@@ -38,25 +38,29 @@ const WHAT_LEADERS_DO = [
     icon: <CalendarDays size={22} />,
     title: 'Organise Events',
     description: 'Plan and run conservation activities like tree planting days, beach cleanups, and habitat restoration.',
-    gradient: 'from-primary-600 to-primary-800',
+    gradient: 'from-primary-600 via-primary-700 to-secondary-800',
+    shadow: 'shadow-xl shadow-primary-900/30',
   },
   {
     icon: <Users size={22} />,
     title: 'Build Community',
     description: 'Grow your local collective, welcome new members, and create a sense of belonging.',
-    gradient: 'from-sky-500 to-sky-700',
+    gradient: 'from-sky-500 via-sky-600 to-sky-800',
+    shadow: 'shadow-xl shadow-sky-900/30',
   },
   {
     icon: <TreePine size={22} />,
     title: 'Track Impact',
     description: 'Log conservation outcomes - trees planted, rubbish removed, species identified - to show real change.',
-    gradient: 'from-moss-500 to-moss-700',
+    gradient: 'from-moss-500 via-moss-600 to-moss-800',
+    shadow: 'shadow-xl shadow-moss-900/30',
   },
   {
     icon: <Megaphone size={22} />,
     title: 'Spread the Word',
     description: 'Share your collective\'s story, recruit new volunteers, and inspire your community.',
-    gradient: 'from-sprout-500 to-sprout-700',
+    gradient: 'from-warning-500 via-bark-500 to-bark-700',
+    shadow: 'shadow-xl shadow-bark-900/30',
   },
 ]
 
@@ -80,10 +84,12 @@ export default function LeadershipPage() {
     <Page noBackground className="!px-0 bg-white">
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-secondary-800">
-        {/* Decorative elements */}
-        <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5" />
-        <div className="absolute -left-10 bottom-0 w-40 h-40 rounded-full bg-white/5" />
-        <div className="absolute right-8 bottom-8 w-20 h-20 rounded-full border border-white/10" />
+        {/* Decorative shapes — "rising leaders" formation */}
+        <div className="absolute -left-14 -top-14 w-72 h-72 rounded-full border border-white/[0.07]" />
+        <div className="absolute -left-4 -top-4 w-44 h-44 rounded-full bg-white/[0.05]" />
+        <div className="absolute -right-10 bottom-[10%] w-52 h-52 rounded-full bg-white/[0.04]" />
+        <div className="absolute right-[20%] top-4 w-16 h-16 rounded-full border border-white/[0.10]" />
+        <div className="absolute left-[40%] bottom-8 w-10 h-10 rounded-full bg-white/[0.06]" />
 
         <div
           className="relative z-10 px-6 pt-14 pb-16 text-center"
@@ -125,7 +131,7 @@ export default function LeadershipPage() {
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M0,25 C60,22 100,18 140,20 C180,22 200,15 220,18 L228,8 L234,5 L240,10 C280,18 340,24 400,20 C440,16 470,22 510,25 C560,28 600,20 640,22 C670,24 690,18 710,20 L718,10 L722,6 L728,12 C760,20 820,26 880,22 C920,18 950,24 990,26 C1020,28 1050,20 1080,18 C1100,16 1120,22 1140,24 L1148,12 L1153,7 L1158,9 L1165,16 C1200,22 1260,26 1320,22 C1360,18 1400,24 1440,22 L1440,70 L0,70 Z"
+              d="M0,28 C80,24 160,20 240,22 C320,24 360,12 400,14 L408,5 L414,3 L420,8 C460,16 540,26 640,24 C740,22 800,18 880,20 C960,22 1000,10 1040,12 L1048,4 L1054,2 L1060,7 C1100,16 1180,28 1280,26 C1360,24 1400,28 1440,26 L1440,70 L0,70 Z"
               className="fill-white"
             />
           </svg>
@@ -144,23 +150,24 @@ export default function LeadershipPage() {
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-700/60 mb-3 px-1">
             What leaders do
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {WHAT_LEADERS_DO.map(({ icon, title, description, gradient }) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            {WHAT_LEADERS_DO.map(({ icon, title, description, gradient, shadow }) => (
               <div
                 key={title}
                 className={cn(
-                  'rounded-2xl p-5 shadow-lg',
+                  'rounded-2xl p-5',
                   'bg-gradient-to-br',
                   gradient,
+                  shadow,
                 )}
               >
-                <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/15 text-white mb-3">
+                <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/20 text-white mb-3.5">
                   {icon}
                 </span>
-                <span className="font-heading text-base font-bold text-white block">
+                <span className="font-heading text-[15px] font-bold text-white block">
                   {title}
                 </span>
-                <p className="text-[13px] text-white/70 mt-1 leading-relaxed">
+                <p className="text-[13px] text-white/75 mt-1.5 leading-relaxed">
                   {description}
                 </p>
               </div>
@@ -173,7 +180,7 @@ export default function LeadershipPage() {
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-700/60 mb-3 px-1">
             What we look for
           </h3>
-          <div className="rounded-2xl bg-gradient-to-br from-bark-600 to-bark-800 shadow-lg p-6 space-y-3.5">
+          <div className="rounded-2xl bg-gradient-to-br from-bark-500 via-bark-700 to-bark-800 shadow-xl shadow-bark-900/30 p-6 space-y-3.5">
             {REQUIREMENTS.map((req) => (
               <div key={req} className="flex items-start gap-3">
                 <CheckCircle2 size={18} className="text-white/60 mt-0.5 shrink-0" />
@@ -188,7 +195,7 @@ export default function LeadershipPage() {
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-700/60 mb-3 px-1">
             How to apply
           </h3>
-          <div className="rounded-2xl bg-gradient-to-br from-sprout-600 to-primary-700 shadow-lg p-6 space-y-4">
+          <div className="rounded-2xl bg-gradient-to-br from-sprout-500 via-sprout-600 to-primary-800 shadow-xl shadow-sprout-900/30 p-6 space-y-4">
             <div className="flex items-center gap-3 mb-1">
               <Sparkles size={20} className="text-white/70" />
               <span className="font-heading text-base font-bold text-white">
@@ -214,7 +221,7 @@ export default function LeadershipPage() {
         {/* Existing leader nudge */}
         <motion.div
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="flex items-center gap-3.5 px-5 py-4 rounded-2xl bg-gradient-to-r from-moss-600 to-moss-700 shadow-md"
+          className="flex items-center gap-3.5 px-5 py-4 rounded-2xl bg-gradient-to-r from-moss-500 via-moss-600 to-moss-800 shadow-xl shadow-moss-900/25"
         >
           <Users size={20} className="text-white/70 shrink-0" />
           <div className="flex-1 min-w-0">

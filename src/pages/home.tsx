@@ -1,6 +1,6 @@
 import { useCallback, useState, useRef, useEffect, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { motion, useReducedMotion, useScroll, useTransform, useInView } from 'framer-motion'
+import { motion, useReducedMotion, useMotionValue, useTransform, useInView } from 'framer-motion'
 import {
   ChevronRight,
   Calendar,
@@ -172,21 +172,22 @@ function relativeTime(iso: string): string {
 /* ------------------------------------------------------------------ */
 
 function HomeHero({ rm }: { rm: boolean }) {
-  const containerRef = useRef<HTMLElement>(null)
+  const scrollY = useMotionValue(0)
+
   useEffect(() => {
     const el = document.getElementById('main-content')
-    if (el) (containerRef as React.MutableRefObject<HTMLElement>).current = el
-  }, [])
-
-  const { scrollY: windowScrollY } = useScroll()
-  const { scrollY: containerScrollY } = useScroll({
-    container: containerRef as React.RefObject<HTMLElement>,
-  })
-
-  const scrollY = useTransform(
-    [windowScrollY, containerScrollY],
-    ([w, c]: number[]) => Math.max(w, c),
-  )
+    const onScroll = () => {
+      const w = window.scrollY
+      const c = el ? el.scrollTop : 0
+      scrollY.set(Math.max(w, c))
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    el?.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      el?.removeEventListener('scroll', onScroll)
+    }
+  }, [scrollY])
 
   /* Parallax layers - each moves at a different rate for depth */
   const bgY = useTransform(scrollY, [0, 500], [0, 80])         // slowest - far background

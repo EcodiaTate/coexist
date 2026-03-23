@@ -1369,10 +1369,12 @@ export default function ExplorePage() {
                     {/* ======== Hero Banner ======== */}
                     <motion.div variants={fadeUp} className="mb-6">
                       <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-secondary-700">
-                        {/* Decorative circles */}
-                        <div className="absolute -top-12 -right-12 w-48 h-48 rounded-full bg-white/5" aria-hidden="true" />
-                        <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-white/5" aria-hidden="true" />
-                        <div className="absolute top-8 right-16 w-16 h-16 rounded-full bg-sprout-400/15" aria-hidden="true" />
+                        {/* Decorative shapes — "explorer's horizon" formation */}
+                        <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full border border-white/[0.07]" aria-hidden="true" />
+                        <div className="absolute -top-4 -left-2 w-40 h-40 rounded-full bg-white/[0.04]" aria-hidden="true" />
+                        <div className="absolute -bottom-12 -right-12 w-56 h-56 rounded-full bg-white/[0.05]" aria-hidden="true" />
+                        <div className="absolute top-[20%] right-[15%] w-14 h-14 rounded-full border border-white/[0.10]" aria-hidden="true" />
+                        <div className="absolute bottom-[25%] left-[35%] w-10 h-10 rounded-full bg-sprout-400/12" aria-hidden="true" />
 
                         {/* Leaf decorations */}
                         <div className="absolute top-4 right-8 text-white/10" aria-hidden="true">
@@ -1792,10 +1794,12 @@ export default function ExplorePage() {
                       <div className="relative overflow-hidden bg-gradient-to-br from-secondary-700 via-primary-700 to-primary-600 px-6 pt-10 lg:px-10"
                         style={{ paddingBottom: 'calc(var(--safe-bottom) + 3.5rem)' }}
                       >
-                        {/* Decorative */}
-                        <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-white/5" aria-hidden="true" />
-                        <div className="absolute top-12 right-10 w-20 h-20 rounded-full bg-sprout-400/10" aria-hidden="true" />
-                        <div className="absolute bottom-6 left-6 text-white/8" aria-hidden="true">
+                        {/* Decorative shapes — "gathering circle" */}
+                        <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full border border-white/[0.08]" aria-hidden="true" />
+                        <div className="absolute -top-2 right-4 w-24 h-24 rounded-full bg-white/[0.05]" aria-hidden="true" />
+                        <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-white/[0.04]" aria-hidden="true" />
+                        <div className="absolute top-[50%] left-[30%] w-10 h-10 rounded-full border border-white/[0.10]" aria-hidden="true" />
+                        <div className="absolute bottom-8 right-[20%] text-white/8" aria-hidden="true">
                           <Leaf size={48} strokeWidth={1} />
                         </div>
 

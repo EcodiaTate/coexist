@@ -1,14 +1,13 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { MapPin, CreditCard, Crown, Clock, Truck, Tag, Shield, Lock, ArrowLeft } from 'lucide-react'
+import { MapPin, CreditCard, Clock, Truck, Tag, Shield, Lock, ArrowLeft } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { useToast } from '@/components/toast'
 import { useCart } from '@/hooks/use-cart'
-import { useMemberAutoDiscount } from '@/hooks/use-member-discount'
 import { useCreateMerchCheckout, useSavedAddresses } from '@/hooks/use-orders'
 import { useCartReservationSync, useMyReservations, useReservationCountdown } from '@/hooks/use-stock-reservation'
 import { redirectToCheckout } from '@/lib/stripe'
@@ -92,13 +91,10 @@ export default function CheckoutPage() {
 
   const items = useCart((s) => s.items)
   const subtotalCents = useCart((s) => s.subtotalCents())
-  const memberDiscountCents = useCart((s) => s.memberDiscountCents())
   const discountCents = useCart((s) => s.discountCents())
   const shippingCents = useCart((s) => s.shippingCents())
   const totalCents = useCart((s) => s.totalCents())
   const clearCart = useCart((s) => s.clear)
-
-  useMemberAutoDiscount()
 
   const { releaseAll } = useCartReservationSync(items)
   const { reservations } = useMyReservations()
@@ -420,15 +416,6 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span className="tabular-nums font-medium">{formatPrice(subtotalCents)}</span>
                 </div>
-                {memberDiscountCents > 0 && (
-                  <div className="flex justify-between text-primary-700">
-                    <span className="flex items-center gap-1.5">
-                      <Crown size={12} />
-                      Member discount
-                    </span>
-                    <span className="tabular-nums font-medium">-{formatPrice(memberDiscountCents)}</span>
-                  </div>
-                )}
                 {discountCents > 0 && (
                   <div className="flex justify-between text-moss-700">
                     <span className="flex items-center gap-1.5">

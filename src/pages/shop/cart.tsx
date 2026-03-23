@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Minus, Plus, Tag, ArrowRight, ArrowLeft, Crown, Clock,
+  Minus, Plus, Tag, ArrowRight, ArrowLeft, Clock,
   AlertTriangle, ShoppingBag, Truck, Shield, X, Leaf,
 } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
@@ -11,7 +11,6 @@ import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { useToast } from '@/components/toast'
 import { useCart } from '@/hooks/use-cart'
-import { useMemberAutoDiscount } from '@/hooks/use-member-discount'
 import { validatePromoCode } from '@/hooks/use-merch'
 import {
   useMyReservations,
@@ -115,12 +114,9 @@ export default function CartPage() {
   const promoCode = useCart((s) => s.promoCode)
   const setPromoCode = useCart((s) => s.setPromoCode)
   const subtotalCents = useCart((s) => s.subtotalCents())
-  const memberDiscountCents = useCart((s) => s.memberDiscountCents())
   const discountCents = useCart((s) => s.discountCents())
   const shippingCents = useCart((s) => s.shippingCents())
   const totalCents = useCart((s) => s.totalCents())
-
-  const { memberDiscount } = useMemberAutoDiscount()
 
   const { release, reserve } = useReserveStock()
   const { getReservation } = useMyReservations()
@@ -444,29 +440,6 @@ export default function CartPage() {
             )}
           </motion.div>
 
-          {/* Member discount */}
-          {memberDiscount && memberDiscountCents > 0 && (
-            <motion.div
-              variants={fadeUp}
-              className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-gradient-to-r from-primary-200/50 via-primary-100/40 to-surface-2 ring-1 ring-primary-200/40"
-            >
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-200/60 ring-1 ring-primary-300/20">
-                <Crown size={18} className="text-primary-700" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-primary-800">
-                  {memberDiscount.title}
-                </p>
-                <p className="text-xs text-primary-500">
-                  {memberDiscount.discount_percent}% member discount
-                </p>
-              </div>
-              <span className="text-sm font-bold text-primary-700 tabular-nums shrink-0">
-                -{formatPrice(memberDiscountCents)}
-              </span>
-            </motion.div>
-          )}
-
           {/* Order summary */}
           <motion.div
             variants={fadeUp}
@@ -484,15 +457,6 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span className="tabular-nums font-medium">{formatPrice(subtotalCents)}</span>
                 </div>
-                {memberDiscountCents > 0 && (
-                  <div className="flex justify-between text-primary-700">
-                    <span className="flex items-center gap-1.5">
-                      <Crown size={12} />
-                      Member discount
-                    </span>
-                    <span className="tabular-nums font-medium">-{formatPrice(memberDiscountCents)}</span>
-                  </div>
-                )}
                 {discountCents > 0 && (
                   <div className="flex justify-between text-moss-700">
                     <span className="flex items-center gap-1.5">

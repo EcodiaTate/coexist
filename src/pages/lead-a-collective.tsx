@@ -326,18 +326,18 @@ export default function LeadACollectivePage() {
         variants={shouldReduceMotion ? undefined : stagger}
         onSubmit={handleSubmit}
       >
-        {/* Intro banner */}
+        {/* Intro banner — rich gradient */}
         <motion.div
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl bg-white shadow-sm border border-primary-100/30 p-5"
+          className="rounded-2xl bg-gradient-to-br from-sprout-600 via-primary-700 to-secondary-800 shadow-xl shadow-primary-900/25 p-5"
         >
           <div className="flex items-start gap-3">
-            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary-100 shrink-0">
-              <Megaphone size={18} className="text-primary-700" />
+            <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/15 shrink-0">
+              <Megaphone size={18} className="text-white" />
             </span>
             <div>
-              <p className="text-[14px] font-semibold text-primary-900">Who We're Looking For</p>
-              <p className="text-[13px] text-primary-500 mt-1 leading-relaxed">
+              <p className="text-[14px] font-semibold text-white">Who We're Looking For</p>
+              <p className="text-[13px] text-white/70 mt-1 leading-relaxed">
                 Young people passionate about connecting people with nature and driving social impact,
                 with skills or interest in social media, content creation, community engagement, or event facilitation.
               </p>
@@ -348,11 +348,15 @@ export default function LeadACollectivePage() {
         {/* ---- Personal Details ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl bg-white shadow-sm border border-primary-100 p-5 space-y-4"
+          className="rounded-2xl overflow-hidden bg-white shadow-md border border-primary-200/40"
         >
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-500">
-            Your Details
-          </h3>
+          {/* Colored section header */}
+          <div className="bg-gradient-to-r from-primary-700 to-primary-800 px-5 py-3">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-white/80">
+              Your Details
+            </h3>
+          </div>
+          <div className="p-5 space-y-4">
 
           <div className="grid grid-cols-2 gap-3">
             <Input
@@ -404,17 +408,22 @@ export default function LeadACollectivePage() {
             onChange={(e) => setPhone(e.target.value)}
             inputClassName="bg-primary-50 border border-primary-200/60"
           />
+          </div>
         </motion.section>
 
         {/* ---- Location ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl bg-primary-100/50 shadow-sm border border-primary-200/30 p-5 space-y-4"
+          className="rounded-2xl overflow-hidden bg-white shadow-md border border-primary-200/40"
         >
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-600 flex items-center gap-1.5">
-            <MapPin size={12} />
-            Location
-          </h3>
+          {/* Colored section header */}
+          <div className="bg-gradient-to-r from-sky-600 to-sky-700 px-5 py-3">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-white/80 flex items-center gap-1.5">
+              <MapPin size={12} />
+              Location
+            </h3>
+          </div>
+          <div className="p-5 space-y-4">
 
           <div className="rounded-xl bg-white border border-primary-200/40 px-4 py-2.5 text-[14px] text-primary-700 font-medium">
             Australia
@@ -460,16 +469,20 @@ export default function LeadACollectivePage() {
             required
             inputClassName="border border-primary-200/50"
           />
+          </div>
         </motion.section>
 
         {/* ---- Application Questions ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl bg-white shadow-sm border border-primary-100 p-5 space-y-4"
+          className="rounded-2xl overflow-hidden bg-white shadow-md border border-primary-200/40"
         >
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-500">
-            Application
-          </h3>
+          <div className="bg-gradient-to-r from-moss-600 to-moss-700 px-5 py-3">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-white/80">
+              Application
+            </h3>
+          </div>
+          <div className="p-5 space-y-4">
 
           <div>
             <label className="block text-[13px] font-medium text-primary-700 mb-1.5">
@@ -528,16 +541,20 @@ export default function LeadACollectivePage() {
             placeholder="Select an option"
             triggerClassName="bg-primary-50 border border-primary-200/60"
           />
+          </div>
         </motion.section>
 
         {/* ---- Skills ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl bg-primary-100/50 shadow-sm border border-primary-200/30 p-5 space-y-3"
+          className="rounded-2xl overflow-hidden bg-white shadow-md border border-primary-200/40"
         >
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-600">
-            Skills
-          </h3>
+          <div className="bg-gradient-to-r from-sprout-600 to-sprout-700 px-5 py-3">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-white/80">
+              Skills
+            </h3>
+          </div>
+          <div className="p-5 space-y-3">
           <p className="text-[12px] text-primary-500">
             Not required for the role — we are just curious to see where we can help!
           </p>
@@ -551,17 +568,21 @@ export default function LeadACollectivePage() {
               />
             ))}
           </div>
+          </div>
         </motion.section>
 
         {/* ---- Resume Upload ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl bg-white shadow-sm border border-primary-100 p-5 space-y-3"
+          className="rounded-2xl overflow-hidden bg-white shadow-md border border-primary-200/40"
         >
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-500 flex items-center gap-1.5">
-            <Upload size={12} />
-            Resume
-          </h3>
+          <div className="bg-gradient-to-r from-bark-600 to-bark-700 px-5 py-3">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-white/80 flex items-center gap-1.5">
+              <Upload size={12} />
+              Resume
+            </h3>
+          </div>
+          <div className="p-5 space-y-3">
 
           {resumeFile ? (
             <div className="flex items-center gap-3 rounded-xl bg-primary-50 border border-primary-200/40 px-4 py-3">
@@ -594,16 +615,20 @@ export default function LeadACollectivePage() {
               />
             </label>
           )}
+          </div>
         </motion.section>
 
         {/* ---- Additional Info + How Heard ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl bg-primary-100/50 shadow-sm border border-primary-200/30 p-5 space-y-4"
+          className="rounded-2xl overflow-hidden bg-white shadow-md border border-primary-200/40"
         >
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-600">
-            Anything Else
-          </h3>
+          <div className="bg-gradient-to-r from-warning-500 to-bark-600 px-5 py-3">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-white/80">
+              Anything Else
+            </h3>
+          </div>
+          <div className="p-5 space-y-4">
 
           <textarea
             value={additionalInfo}
@@ -627,6 +652,7 @@ export default function LeadACollectivePage() {
             placeholder="Select an option"
             triggerClassName="bg-white border border-primary-200/50"
           />
+          </div>
         </motion.section>
 
         {/* ---- Submit ---- */}

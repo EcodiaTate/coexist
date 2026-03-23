@@ -1,9 +1,9 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform, type Variants } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, useMotionValue, useTransform, type Variants } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import {
-    Heart, Users, Sparkles, Crown, ChevronRight,
+    Heart, Users, Sparkles, ChevronRight,
     TreePine, Leaf, Waves, MapPin, Zap,
     TrendingUp, ShieldCheck,
 } from 'lucide-react'
@@ -394,57 +394,57 @@ function TrustBadges() {
 /* ------------------------------------------------------------------ */
 
 function DonateHero({ rm }: { rm: boolean }) {
-  const containerRef = useRef<HTMLElement>(null)
+  const scrollY = useMotionValue(0)
+
   useEffect(() => {
     const el = document.getElementById('main-content')
-    if (el) (containerRef as React.MutableRefObject<HTMLElement>).current = el
-  }, [])
-
-  const { scrollY: windowScrollY } = useScroll()
-  const { scrollY: containerScrollY } = useScroll({
-    container: containerRef as React.RefObject<HTMLElement>,
-  })
-
-  const scrollY = useTransform(
-    [windowScrollY, containerScrollY],
-    ([w, c]: number[]) => Math.max(w, c),
-  )
+    const onScroll = () => {
+      const w = window.scrollY
+      const c = el ? el.scrollTop : 0
+      scrollY.set(Math.max(w, c))
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    el?.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      el?.removeEventListener('scroll', onScroll)
+    }
+  }, [scrollY])
 
   const bgY = useTransform(scrollY, [0, 500], [0, 80])
-  const bgScale = useTransform(scrollY, [0, 400], [1, 1.08])
   const fgY = useTransform(scrollY, [0, 500], [0, 25])
-  const textY = useTransform(scrollY, [0, 500], [0, 120])
+  const textY = useTransform(scrollY, [0, 500], [0, 180])
 
   return (
     <div className="relative">
-      <div className="relative w-full h-[100vw] max-h-[480px] sm:max-h-[420px] overflow-hidden">
-        {/* Background layer */}
+      <div className="relative w-full h-[480px] sm:h-auto overflow-hidden">
+        {/* Background layer - covers container, clips sides on narrow screens */}
         <motion.div
-          className="absolute inset-x-0 top-0 lg:-top-[60%] will-change-transform"
-          style={rm ? undefined : { y: bgY, scale: bgScale }}
+          className="absolute inset-0 sm:relative sm:inset-auto will-change-transform"
+          style={rm ? undefined : { y: bgY }}
         >
           <img
             src="/img/donate-hero-bg.png"
             alt="Conservation landscape"
-            className="w-full h-auto block"
+            className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
           />
         </motion.div>
 
-        {/* Foreground cutout */}
+        {/* Foreground cutout - same sizing, pinned to top */}
         <motion.div
-          className="absolute inset-x-0 top-0 lg:-top-[60%] z-[3] will-change-transform"
+          className="absolute inset-0 z-[3] will-change-transform"
           style={rm ? undefined : { y: fgY }}
         >
           <img
             src="/img/donate-hero-fg.png"
             alt=""
-            className="w-full h-auto block"
+            className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
           />
         </motion.div>
 
         {/* Hero text */}
         <motion.div
-          className="absolute inset-x-0 top-[25%] sm:top-[18%] z-[2] flex flex-col items-center px-6 will-change-transform"
+          className="absolute inset-x-0 top-[13%] sm:top-[10%] z-[2] flex flex-col items-center px-6 will-change-transform"
           style={rm ? undefined : { y: textY }}
         >
           <span className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-[0.3em] text-white/80 mb-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
@@ -453,7 +453,7 @@ function DonateHero({ rm }: { rm: boolean }) {
           <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.4)] leading-[0.85] block">
             Donate
           </span>
-          <p className="mt-3 text-sm text-white/70 text-center max-w-xs drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
+          <p className="mt-3 text-sm text-white text-center max-w-xs drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">
             100% goes to conservation events & habitat restoration
           </p>
         </motion.div>
@@ -695,35 +695,6 @@ export default function DonatePage() {
                     </AnimatePresence>
                   </div>
                 </div>
-              </motion.div>
-
-              {/* ═══════════════════════════════════════════════════ */}
-              {/*  MEMBERSHIP CALLOUT                                */}
-              {/* ═══════════════════════════════════════════════════ */}
-              <motion.div variants={fadeUp}>
-                <Link
-                  to="/membership"
-                  className={cn(
-                    'relative flex items-center gap-4 p-5 rounded-[22px] overflow-hidden',
-                    'bg-white',
-                    'shadow-[0_4px_24px_-6px_rgba(93,77,51,0.10),0_2px_6px_rgba(93,77,51,0.04)]',
-                    'transition-all hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.14)] active:scale-[0.98] duration-200',
-                  )}
-                >
-                  <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full bg-amber-100/30 blur-2xl" />
-                  <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-bark-500 flex items-center justify-center shrink-0 shadow-md shadow-amber-200/40">
-                    <Crown size={22} className="text-white" />
-                  </div>
-                  <div className="relative flex-1 min-w-0">
-                    <p className="font-heading text-sm font-bold text-secondary-800">
-                      Want to give regularly?
-                    </p>
-                    <p className="text-xs text-bark-500 mt-0.5">
-                      Become a member for ongoing support + exclusive perks
-                    </p>
-                  </div>
-                  <ChevronRight size={18} className="relative text-bark-400 shrink-0" />
-                </Link>
               </motion.div>
 
               {/* ═══════════════════════════════════════════════════ */}
