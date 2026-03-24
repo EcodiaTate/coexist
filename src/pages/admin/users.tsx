@@ -911,7 +911,7 @@ export default function AdminUsersPage() {
               <button
                 type="button"
                 onClick={() => setProfileUserId(user.id)}
-                className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-70 transition-opacity"
+                className="flex items-center gap-3 flex-1 min-w-0 text-left active:opacity-70 transition-opacity cursor-pointer"
               >
                 <Avatar src={user.avatar_url} name={user.display_name ?? ''} size="sm" />
                 <div className="flex-1 min-w-0">
