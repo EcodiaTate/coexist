@@ -57,44 +57,72 @@ export function Page({
 
   const isDesktopNav = navMode === 'sidebar'
 
-  // Restore saved scroll position on mount, or scroll to top for new routes
+  // Restore saved scroll position on mount, or scroll to top for new routes.
+  // Double-rAF ensures the cached page is visible and laid out before we scroll,
+  // preventing the "teleport to top" flash on back-navigation.
   useEffect(() => {
     if (noScrollRestore) return
 
     const saved = scrollPositions.get(scrollKey)
 
-    if (isDesktopNav) {
-      // Desktop: scroll the window itself
-      if (saved !== undefined) {
-        requestAnimationFrame(() => window.scrollTo(0, saved))
+    const restore = () => {
+      if (isDesktopNav) {
+        if (saved !== undefined) {
+          window.scrollTo({ top: saved, behavior: 'instant' })
+        } else {
+          window.scrollTo({ top: 0, behavior: 'instant' })
+        }
       } else {
-        window.scrollTo(0, 0)
-      }
-    } else {
-      // Mobile: scroll the inner container
-      const el = scrollRef.current
-      if (!el) return
-      if (saved !== undefined) {
-        requestAnimationFrame(() => { el.scrollTop = saved })
-      } else {
-        el.scrollTop = 0
+        const el = scrollRef.current
+        if (!el) return
+        if (saved !== undefined) {
+          el.scrollTop = saved
+        } else {
+          el.scrollTop = 0
+        }
       }
     }
+
+    // Double-rAF: first rAF queues after React commit, second rAF fires after
+    // the browser has painted the new layout (KeepAlive display:none → visible).
+    requestAnimationFrame(() => {
+      requestAnimationFrame(restore)
+    })
   }, [scrollKey, noScrollRestore, isDesktopNav])
 
-  // Save scroll position on unmount
+  // Continuously save scroll position so it's always fresh for back-nav.
+  // Also saves on unmount as a fallback.
   useEffect(() => {
     if (noScrollRestore) return
 
+    let rafId = 0
+    const onScroll = () => {
+      cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        if (isDesktopNav) {
+          saveScrollPosition(scrollKey, window.scrollY)
+        } else {
+          const el = scrollRef.current
+          if (el) saveScrollPosition(scrollKey, el.scrollTop)
+        }
+      })
+    }
+
     if (isDesktopNav) {
+      window.addEventListener('scroll', onScroll, { passive: true })
       return () => {
+        window.removeEventListener('scroll', onScroll)
+        cancelAnimationFrame(rafId)
         saveScrollPosition(scrollKey, window.scrollY)
       }
     }
 
     const el = scrollRef.current
-    return () => {
-      if (el) {
+    if (el) {
+      el.addEventListener('scroll', onScroll, { passive: true })
+      return () => {
+        el.removeEventListener('scroll', onScroll)
+        cancelAnimationFrame(rafId)
         saveScrollPosition(scrollKey, el.scrollTop)
       }
     }

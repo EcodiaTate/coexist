@@ -30,7 +30,7 @@ export function KeepAlive() {
   const cacheRef = useRef<CachedPage[]>([])
   const lastProcessedRef = useRef<string | null>(null)
 
-  const { offsetX, swiping } = useSwipeBack({ enabled: true })
+  const { offsetX, swiping, animating } = useSwipeBack({ enabled: true })
 
   // ---- Synchronous cache update (guarded, idempotent) ----
   if (outlet && lastProcessedRef.current !== path) {
@@ -97,12 +97,12 @@ export function KeepAlive() {
         }
 
         // Active page
-        const vw = typeof window !== 'undefined' ? window.innerWidth || 375 : 375
-        const isCompleting = swiping && offsetX >= vw
         const swipeStyle = swiping
           ? {
               transform: `translateX(${offsetX}px)`,
-              transition: isCompleting ? 'transform 250ms ease-out' : ('none' as const),
+              // During active drag: no transition (instant tracking).
+              // During animating (commit or spring-back): smooth ease-out.
+              transition: animating ? 'transform 250ms ease-out' : ('none' as const),
               boxShadow: offsetX > 0 ? '-8px 0 24px -4px rgba(0,0,0,0.1)' : undefined,
             }
           : {}
