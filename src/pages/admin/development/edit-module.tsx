@@ -32,7 +32,7 @@ export default function AdminEditModulePage() {
   const rm = !!shouldReduceMotion
   const { stagger, fadeUp } = adminVariants(rm)
   const navigate = useNavigate()
-  const toast = useToast()
+  const { toast } = useToast()
 
   useAdminHeader('Edit Module')
 

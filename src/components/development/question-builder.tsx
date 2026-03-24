@@ -190,7 +190,7 @@ function QuestionForm({
     setDraft((d) => ({ ...d, ...update }))
   }
 
-  const updateOption = (index: number, changes: Partial<(typeof draft.options)[0]>) => {
+  const updateOption = (index: number, changes: Partial<NonNullable<typeof draft.options>[0]>) => {
     const opts = [...(draft.options ?? [])]
     opts[index] = { ...opts[index], ...changes }
 

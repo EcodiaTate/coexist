@@ -502,7 +502,7 @@ export function useAuthProvider(): AuthContextValue {
       try {
         await SocialLogin.initialize({ google: { webClientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID } })
         const result = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } })
-        const idToken = result?.result?.idToken
+        const idToken = (result?.result as any)?.idToken
         if (!idToken) return { error: { message: 'No ID token received from Google', status: 400 } as unknown as AuthError }
         const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
         return { error }
@@ -526,7 +526,7 @@ export function useAuthProvider(): AuthContextValue {
       try {
         await SocialLogin.initialize({ apple: {} })
         const result = await SocialLogin.login({ provider: 'apple', options: { scopes: ['email', 'name'] } })
-        const idToken = result?.result?.idToken
+        const idToken = (result?.result as any)?.idToken
         if (!idToken) return { error: { message: 'No ID token received from Apple', status: 400 } as unknown as AuthError }
         const { error } = await supabase.auth.signInWithIdToken({ provider: 'apple', token: idToken })
         return { error }

@@ -47,7 +47,7 @@ export default function AdminCreateModulePage() {
   const { stagger, fadeUp } = adminVariants(rm)
   const navigate = useNavigate()
   const { user } = useAuth()
-  const toast = useToast()
+  const { toast } = useToast()
 
   useAdminHeader('Create Module')
 

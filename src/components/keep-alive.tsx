@@ -34,7 +34,8 @@ function getScrollEl(wrapper: HTMLDivElement | null): HTMLElement | null {
  * were first created.
  */
 function FrozenRouter({ location, children }: { location: ReturnType<typeof useLocation>; children: ReactNode }) {
-  const locationCtx = useMemo(() => ({ location, navigationType: 'POP' as const }), [location])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const locationCtx = useMemo(() => ({ location, navigationType: 'POP' as any }), [location])
   return (
     <LocationContext.Provider value={locationCtx}>
       {children}

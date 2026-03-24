@@ -19,7 +19,7 @@ export default function LearnModulePage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
-  const toast = useToast()
+  const { toast } = useToast()
 
   const { data: module, isLoading: moduleLoading } = useDevModule(moduleId)
   const { data: blocks = [], isLoading: blocksLoading } = useDevModuleContent(moduleId)

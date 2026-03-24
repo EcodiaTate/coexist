@@ -32,7 +32,7 @@ export default function AdminCreateQuizPage() {
   const { stagger, fadeUp } = adminVariants(rm)
   const navigate = useNavigate()
   const { user } = useAuth()
-  const toast = useToast()
+  const { toast } = useToast()
 
   useAdminHeader('Create Quiz')
 

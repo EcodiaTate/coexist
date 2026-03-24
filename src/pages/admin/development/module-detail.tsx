@@ -34,8 +34,8 @@ export default function AdminModuleDetailPage() {
   const { data: analytics } = useDevAnalytics()
 
   // Module-specific analytics
-  const moduleProgress = analytics?.progress.filter((p) => p.module_id === moduleId) ?? []
-  const completedCount = moduleProgress.filter((p) => p.status === 'completed').length
+  const moduleProgress = analytics?.progress.filter((p: any) => p.module_id === moduleId) ?? []
+  const completedCount = moduleProgress.filter((p: any) => p.status === 'completed').length
   const assignedCount = moduleProgress.length
 
   const isLoading = moduleLoading || blocksLoading

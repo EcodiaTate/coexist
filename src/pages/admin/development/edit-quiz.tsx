@@ -24,7 +24,7 @@ export default function AdminEditQuizPage() {
   const rm = !!shouldReduceMotion
   const { stagger, fadeUp } = adminVariants(rm)
   const navigate = useNavigate()
-  const toast = useToast()
+  const { toast } = useToast()
   useAdminHeader('Edit Quiz')
 
   const { data: quiz, isLoading: quizLoading } = useDevQuiz(quizId)

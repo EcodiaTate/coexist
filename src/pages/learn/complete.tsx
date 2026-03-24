@@ -33,7 +33,7 @@ export default function LearnCompletePage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] pb-20 px-4">
       {/* Confetti! */}
-      {!rm && <Confetti />}
+      {!rm && <Confetti active />}
 
       <motion.div
         initial={rm ? {} : { opacity: 0, scale: 0.9, y: 20 }}

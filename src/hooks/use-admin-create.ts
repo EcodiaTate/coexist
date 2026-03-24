@@ -29,8 +29,8 @@ async function fetchCreateSummary(): Promise<CreateSummaryData> {
       .select('id', { count: 'exact', head: true })
       .eq('status', 'draft'),
     supabase.rpc('email_subscriber_count' as any),
-    supabase.from('dev_modules').select('id, status', { count: 'exact' }),
-    supabase.from('dev_sections').select('id', { count: 'exact', head: true }),
+    (supabase as any).from('dev_modules').select('id, status', { count: 'exact' }),
+    (supabase as any).from('dev_sections').select('id', { count: 'exact', head: true }),
   ])
 
   const modules = modulesRes.data ?? []
