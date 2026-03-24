@@ -1,4 +1,4 @@
-import { type ReactNode, useCallback, useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
@@ -57,14 +57,12 @@ export function Page({
 
   const isDesktopNav = navMode === 'sidebar'
 
-  // Restore scroll when this page becomes visible.
-  // KeepAlive keeps pages in the DOM with display:none, which resets scrollTop.
-  // We use both the effect (for initial mount) and an intersection observer
-  // (for when KeepAlive shows us again after back-nav).
-  const restoredForKey = useRef<string | null>(null)
-
-  const restoreScroll = useCallback(() => {
+  // Restore saved scroll position on initial mount only.
+  // KeepAlive now uses visibility:hidden instead of display:none, so the
+  // browser preserves scrollTop natively — no observer needed.
+  useEffect(() => {
     if (noScrollRestore) return
+
     const saved = scrollPositions.get(scrollKey)
 
     if (isDesktopNav) {
@@ -74,37 +72,8 @@ export function Page({
       if (!el) return
       el.scrollTop = saved ?? 0
     }
-    restoredForKey.current = scrollKey
-  }, [scrollKey, noScrollRestore, isDesktopNav])
-
-  // On mount / route change — double-rAF so the browser has painted after
-  // KeepAlive switches display:none → visible.
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(restoreScroll)
-    })
-  }, [restoreScroll])
-
-  // Intersection observer: fires when KeepAlive toggles us from hidden → visible
-  // (back-nav). The component doesn't remount so useEffect above won't re-run.
-  useEffect(() => {
-    if (noScrollRestore) return
-    const el = scrollRef.current
-    if (!el || isDesktopNav) return
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting && restoredForKey.current !== scrollKey) {
-            requestAnimationFrame(restoreScroll)
-          }
-        }
-      },
-      { threshold: 0.01 },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [scrollKey, noScrollRestore, isDesktopNav, restoreScroll])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Continuously save scroll position so it's always fresh for back-nav.
   // Also saves on unmount as a fallback.

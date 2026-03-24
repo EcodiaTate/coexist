@@ -654,7 +654,7 @@ export default function LeaderDashboardPage() {
     <Wrapper>
       <PullToRefresh onRefresh={handleRefresh} className="min-h-dvh bg-white">
         {/* ── Hero with collective cover image + rocky wave overlay ── */}
-        <div className="relative">
+        <div className={cn('relative', !isInLeaderLayout && '-mx-4 lg:-mx-6')}>
           <div className="relative w-full h-[52vw] min-h-[220px] max-h-[320px] overflow-hidden">
             {collectiveDetail?.cover_image_url ? (
               <img

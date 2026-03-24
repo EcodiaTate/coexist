@@ -521,7 +521,7 @@ export default function ProductDetailPage() {
       footer={
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           {/* Price + quantity */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center gap-3 sm:justify-start">
             <p className="font-heading text-lg font-bold text-primary-800 leading-none">
               {formatPrice((activeVariant?.price_cents ?? product.base_price_cents) * quantity)}
             </p>

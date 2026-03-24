@@ -83,13 +83,20 @@ export function KeepAlive() {
           )
         }
 
-        // Inactive: hidden
+        // Inactive: hidden but still in layout so scrollTop is preserved.
+        // visibility:hidden + pointer-events:none keeps the element in the
+        // rendering tree (scrollTop survives) while the browser skips painting.
         if (!isActive) {
           return (
             <div
               key={cached.path}
               className="flex flex-col min-h-0 min-w-0 overflow-x-clip"
-              style={{ ...gridStyle, display: 'none' }}
+              style={{
+                ...gridStyle,
+                visibility: 'hidden',
+                pointerEvents: 'none',
+                zIndex: -1,
+              }}
             >
               {cached.element}
             </div>
