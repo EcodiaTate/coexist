@@ -51,9 +51,12 @@ export function Page({
   const scrollRef = useRef<HTMLDivElement>(null)
   const { navMode } = useLayout()
 
-  // Use location.key (unique per history entry) so back-nav restores position
-  // while forward-nav starts at top (no saved position for new keys)
-  const scrollKey = location.key ?? location.pathname
+  // Freeze the scroll key to the value at first mount. KeepAlive caches this
+  // component and useLocation() returns the CURRENT route's location for all
+  // cached pages. Without freezing, back-nav would give us a new key, the save
+  // effect would re-run with a key that has no saved position, and scroll resets to 0.
+  const scrollKeyRef = useRef(location.key ?? location.pathname)
+  const scrollKey = scrollKeyRef.current
 
   const isDesktopNav = navMode === 'sidebar'
 

@@ -799,8 +799,8 @@ export default function DonatePage() {
 
         {/* Sticky donate button - no background panel */}
         <div
-          className="sticky bottom-0 z-30 px-5 lg:px-6 pb-3 pt-3"
-          style={{ paddingBottom: 'calc(var(--safe-bottom) + 0.75rem)' }}
+          className="sticky bottom-0 z-30 px-5 lg:px-6 pb-1 pt-2"
+          style={{ paddingBottom: 'calc(var(--safe-bottom) + 0.25rem)' }}
         >
           <div className="max-w-2xl mx-auto w-full">
             <Button

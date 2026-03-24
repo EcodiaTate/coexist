@@ -183,21 +183,6 @@ const _bareRoutes = [
   '/welcome-back',
 ]
 
-/* ------------------------------------------------------------------ */
-/*  Scroll to top on route change                                      */
-/* ------------------------------------------------------------------ */
-
-function ScrollToTop() {
-  const { pathname } = useLocation()
-
-  useEffect(() => {
-    // Instant scroll — smooth scroll-to-top fights with page transition
-    // animations and causes visible content jumping
-    window.scrollTo({ top: 0, behavior: 'instant' })
-  }, [pathname])
-
-  return null
-}
 
 /* ------------------------------------------------------------------ */
 /*  App                                                                */
@@ -219,7 +204,8 @@ function App() {
   return (
     <>
     {showSplash && <SplashPage onReady={handleSplashReady} />}
-    <ScrollToTop />
+{/* Scroll management handled by Page component — saves position per
+         history entry and restores on back-nav, scrolls to top for new routes */}
     <Suspense fallback={<PageFallback />}>
       <Routes>
         {/* ---- Bare routes (no app shell) ---- */}

@@ -395,7 +395,7 @@ export default function UpdatesPage() {
 
   return (
     <Page swipeBack noBackground className="!px-0 bg-surface-1" header={<Header title="Updates" back />}>
-      <div className="relative min-h-dvh">
+      <div className="relative min-h-full before:absolute before:inset-x-0 before:bottom-full before:h-[300px] before:bg-[linear-gradient(to_bottom,var(--color-primary-50)_60%,transparent)]">
         <DecorativeBackground />
 
         {/* Page content */}

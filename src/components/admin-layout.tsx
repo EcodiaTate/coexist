@@ -441,7 +441,7 @@ export function AdminLayout() {
           {/* Content rendered by nested <Route> children */}
           <div className={cn(
             'relative flex-1 overflow-clip',
-            header.fullBleed ? 'p-0' : 'p-6',
+            header.fullBleed ? 'p-0 bg-white' : 'p-6',
             !header.fullBleed && 'bg-gradient-to-b from-primary-50/40 via-white to-primary-50/20',
             showBottomTabs && 'pb-[calc(5rem+var(--safe-bottom))]',
           )}>
