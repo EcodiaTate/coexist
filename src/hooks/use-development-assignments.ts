@@ -1,81 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import type { DevModule, DevSection } from '@/hooks/use-admin-development'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
-/* ------------------------------------------------------------------ */
-
-export interface DevAssignment {
-  id: string
-  module_id: string | null
-  section_id: string | null
-  scope: 'collective' | 'individual'
-  collective_id: string | null
-  user_id: string | null
-  assigned_by: string
-  due_date: string | null
-  notes: string | null
-  created_at: string
-  module?: { id: string; title: string; category: string; estimated_minutes: number; thumbnail_url: string | null } | null
-  section?: { id: string; title: string; category: string; thumbnail_url: string | null } | null
-}
-
-/* ------------------------------------------------------------------ */
-/*  Query keys                                                         */
-/* ------------------------------------------------------------------ */
-
-const keys = {
-  myAssignments: (userId: string) => ['dev-my-assignments', userId] as const,
-  collectiveAssignments: (collectiveId: string) => ['dev-collective-assignments', collectiveId] as const,
-  collectiveProgress: (collectiveId: string) => ['dev-collective-progress', collectiveId] as const,
-}
-
-/* ------------------------------------------------------------------ */
-/*  My assignments (learner view)                                      */
-/* ------------------------------------------------------------------ */
-
-export function useMyAssignments() {
-  const { user } = useAuth()
-  return useQuery({
-    queryKey: keys.myAssignments(user?.id ?? ''),
-    queryFn: async () => {
-      // Get direct individual assignments + collective assignments for user's collectives
-      const { data, error } = await supabase
-        .from('dev_assignments')
-        .select('*, module:dev_modules(id, title, category, estimated_minutes, thumbnail_url), section:dev_sections(id, title, category, thumbnail_url)')
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      return data as DevAssignment[]
-    },
-    enabled: !!user,
-    staleTime: 2 * 60 * 1000,
-  })
-}
-
-/* ------------------------------------------------------------------ */
-/*  Collective assignments (leader view)                               */
-/* ------------------------------------------------------------------ */
-
-export function useCollectiveAssignments(collectiveId: string | undefined) {
-  return useQuery({
-    queryKey: keys.collectiveAssignments(collectiveId!),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('dev_assignments')
-        .select('*, module:dev_modules(id, title, category, estimated_minutes, thumbnail_url), section:dev_sections(id, title, category, thumbnail_url)')
-        .eq('collective_id', collectiveId!)
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      return data as DevAssignment[]
-    },
-    enabled: !!collectiveId,
-    staleTime: 2 * 60 * 1000,
-  })
-}
-
-/* ------------------------------------------------------------------ */
-/*  Collective member progress (leader dashboard)                      */
 /* ------------------------------------------------------------------ */
 
 export interface MemberProgress {
@@ -88,11 +18,91 @@ export interface MemberProgress {
   last_activity: string | null
 }
 
+/* ------------------------------------------------------------------ */
+/*  Query keys                                                         */
+/* ------------------------------------------------------------------ */
+
+const keys = {
+  myContent: (userId: string) => ['dev-my-content', userId] as const,
+  collectiveProgress: (collectiveId: string) => ['dev-collective-progress', collectiveId] as const,
+}
+
+/* ------------------------------------------------------------------ */
+/*  My content — modules/sections targeted at my roles                 */
+/* ------------------------------------------------------------------ */
+
+export function useMyTargetedContent() {
+  const { user, role, collectiveRoles } = useAuth()
+
+  // Compute user's effective roles for targeting
+  // Collective roles: leader, co_leader, assist_leader, member
+  // Global roles mapped: national_staff, national_admin, super_admin → 'national_staff'
+  const effectiveRoles = useMemo(() => {
+    const roles = new Set<string>()
+    for (const cm of collectiveRoles) {
+      roles.add(cm.role)
+    }
+    // Any staff-level global role counts as 'national_staff' for targeting
+    if (role === 'national_staff' || role === 'national_admin' || role === 'super_admin') {
+      roles.add('national_staff')
+    }
+    return Array.from(roles)
+  }, [collectiveRoles, role])
+
+  return useQuery({
+    // Include roles in the key so the query re-runs when roles load
+    queryKey: ['dev-my-content', user?.id ?? '', effectiveRoles],
+    queryFn: async () => {
+      const uid = user?.id ?? ''
+      const roleSet = new Set(effectiveRoles)
+
+      // Get all published modules
+      const { data: modules, error: modErr } = await supabase
+        .from('dev_modules')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+      if (modErr) throw modErr
+
+      // Get all published sections
+      const { data: sections, error: secErr } = await supabase
+        .from('dev_sections')
+        .select('*')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+      if (secErr) throw secErr
+
+      // Show content where:
+      //  - target_roles overlaps with user's effective roles, OR
+      //  - target_user_ids includes user's ID, OR
+      //  - no targeting set (empty arrays = visible to all)
+      const filteredModules = (modules as DevModule[]).filter((m) => {
+        if (m.target_roles.length === 0 && m.target_user_ids.length === 0) return true
+        if (m.target_user_ids.includes(uid)) return true
+        return m.target_roles.some((r) => roleSet.has(r))
+      })
+
+      const filteredSections = (sections as DevSection[]).filter((s) => {
+        if (s.target_roles.length === 0 && s.target_user_ids.length === 0) return true
+        if (s.target_user_ids.includes(uid)) return true
+        return s.target_roles.some((r) => roleSet.has(r))
+      })
+
+      return { modules: filteredModules, sections: filteredSections }
+    },
+    enabled: !!user && effectiveRoles.length > 0,
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Collective member progress (admin/leader dashboard)                */
+/* ------------------------------------------------------------------ */
+
 export function useCollectiveProgress(collectiveId: string | undefined) {
   return useQuery({
     queryKey: keys.collectiveProgress(collectiveId!),
     queryFn: async () => {
-      // Get collective members
       const { data: members, error: membersError } = await supabase
         .from('collective_members')
         .select('user_id, profile:profiles(display_name, avatar_url)')
@@ -100,7 +110,6 @@ export function useCollectiveProgress(collectiveId: string | undefined) {
         .eq('status', 'active')
       if (membersError) throw membersError
 
-      // Get all module progress for these members
       const memberIds = members.map((m) => m.user_id)
       const [progressRes, attemptsRes] = await Promise.all([
         supabase
@@ -116,7 +125,6 @@ export function useCollectiveProgress(collectiveId: string | undefined) {
       const progress = progressRes.data ?? []
       const attempts = attemptsRes.data ?? []
 
-      // Aggregate per member
       return members.map((m): MemberProgress => {
         const memberProgress = progress.filter((p) => p.user_id === m.user_id)
         const memberAttempts = attempts.filter((a) => a.user_id === m.user_id)
@@ -141,84 +149,5 @@ export function useCollectiveProgress(collectiveId: string | undefined) {
     },
     enabled: !!collectiveId,
     staleTime: 60 * 1000,
-  })
-}
-
-/* ------------------------------------------------------------------ */
-/*  Create assignment                                                  */
-/* ------------------------------------------------------------------ */
-
-export function useCreateAssignment() {
-  const qc = useQueryClient()
-  const { user } = useAuth()
-
-  return useMutation({
-    mutationFn: async (input: {
-      module_id?: string | null
-      section_id?: string | null
-      scope: 'collective' | 'individual'
-      collective_id?: string | null
-      user_ids?: string[]
-      due_date?: string | null
-      notes?: string | null
-    }) => {
-      if (!user) throw new Error('Not authenticated')
-
-      if (input.scope === 'individual' && input.user_ids && input.user_ids.length > 0) {
-        // Create one assignment per user
-        const rows = input.user_ids.map((uid) => ({
-          module_id: input.module_id ?? null,
-          section_id: input.section_id ?? null,
-          scope: 'individual' as const,
-          collective_id: null,
-          user_id: uid,
-          assigned_by: user.id,
-          due_date: input.due_date ?? null,
-          notes: input.notes ?? null,
-        }))
-        const { data, error } = await supabase
-          .from('dev_assignments')
-          .insert(rows)
-          .select()
-        if (error) throw error
-        return data
-      } else {
-        // Collective assignment
-        const { data, error } = await supabase
-          .from('dev_assignments')
-          .insert({
-            module_id: input.module_id ?? null,
-            section_id: input.section_id ?? null,
-            scope: 'collective',
-            collective_id: input.collective_id ?? null,
-            user_id: null,
-            assigned_by: user.id,
-            due_date: input.due_date ?? null,
-            notes: input.notes ?? null,
-          })
-          .select()
-        if (error) throw error
-        return data
-      }
-    },
-    onSuccess: () => {
-      if (!user) return
-      qc.invalidateQueries({ queryKey: ['dev-my-assignments'] })
-      qc.invalidateQueries({ queryKey: ['dev-collective-assignments'] })
-    },
-  })
-}
-
-export function useDeleteAssignment() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('dev_assignments').delete().eq('id', id)
-      if (error) throw error
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['dev-my-assignments'] })
-      qc.invalidateQueries({ queryKey: ['dev-collective-assignments'] })
-    },
   })
 }

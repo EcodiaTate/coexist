@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   CircleDot,
   Save,
-  Send,
   Settings,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -21,6 +20,7 @@ import {
   type QuizQuestionInput,
 } from '@/hooks/use-admin-development'
 import { QuestionBuilder } from '@/components/development/question-builder'
+import { SaveSuccessBanner } from '@/components/development/save-success-banner'
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
@@ -48,6 +48,9 @@ export default function AdminCreateQuizPage() {
   const [maxAttempts, setMaxAttempts] = useState(0)
   const [questions, setQuestions] = useState<QuizQuestionInput[]>([])
 
+  // Save success
+  const [saved, setSaved] = useState<{ id: string } | null>(null)
+
   const isSaving = createQuiz.isPending || saveQuestions.isPending
   const canSave = title.trim().length > 0
 
@@ -72,12 +75,41 @@ export default function AdminCreateQuizPage() {
         })
       }
 
-      toast.success('Quiz created')
-      navigate('/admin/development')
+      setSaved({ id: quiz.id })
     } catch {
       toast.error('Failed to create quiz')
     }
-  }, [user, title, description, passScore, randomize, timeLimit, maxAttempts, questions, canSave, createQuiz, saveQuestions, toast, navigate])
+  }, [user, title, description, passScore, randomize, timeLimit, maxAttempts, questions, canSave, createQuiz, saveQuestions, toast])
+
+  const resetForm = () => {
+    setTitle('')
+    setDescription('')
+    setPassScore(70)
+    setRandomize(false)
+    setTimeLimit('')
+    setMaxAttempts(0)
+    setQuestions([])
+    setSaved(null)
+  }
+
+  // Show success state
+  if (saved) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="max-w-3xl mx-auto py-8"
+      >
+        <SaveSuccessBanner
+          show
+          message="Quiz created!"
+          subtitle={`"${title}" is ready. You can now attach it to a module content block.`}
+          editPath={`/admin/development/quizzes/${saved.id}/edit`}
+          onDismiss={resetForm}
+        />
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div

@@ -83,8 +83,8 @@ interface RequireRoleProps {
   children: ReactNode
 }
 
-export function RequireRole({ minRole: _minRole, children }: RequireRoleProps) {
-  const { user, role: _role, isLoading } = useAuth()
+export function RequireRole({ minRole, children }: RequireRoleProps) {
+  const { user, role, isLoading } = useAuth()
   const location = useLocation()
 
   if (isLoading) {
@@ -96,10 +96,48 @@ export function RequireRole({ minRole: _minRole, children }: RequireRoleProps) {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // TODO: admin guard nullified for dev/testing - re-enable before production
-  // if (GLOBAL_RANK[role] < GLOBAL_RANK[minRole]) {
-  //   return <Navigate to="/" replace />
-  // }
+  if (_GLOBAL_RANK[role] < _GLOBAL_RANK[minRole]) {
+    return <Navigate to="/" replace />
+  }
+
+  return <>{children}</>
+}
+
+/* ------------------------------------------------------------------ */
+/*  RequireLeaderAccess - collective leader roles OR national staff+    */
+/* ------------------------------------------------------------------ */
+
+const _LEADER_ROLES: CollectiveRole[] = ['assist_leader', 'co_leader', 'leader']
+
+interface RequireLeaderAccessProps {
+  children: ReactNode
+}
+
+/**
+ * Grants access if the user holds assist_leader / co_leader / leader
+ * in any collective, OR has a global role of national_staff or above.
+ */
+export function RequireLeaderAccess({ children }: RequireLeaderAccessProps) {
+  const { user, role, collectiveRoles, isLoading } = useAuth()
+  const location = useLocation()
+
+  if (isLoading) {
+    return <div className="min-h-dvh bg-white" />
+  }
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />
+  }
+
+  // National staff and above always have access
+  const isStaffPlus = _GLOBAL_RANK[role] >= _GLOBAL_RANK.national_staff
+
+  // Check if user holds a qualifying collective role
+  const hasLeaderRole = collectiveRoles.some((m) => _LEADER_ROLES.includes(m.role as CollectiveRole))
+
+  if (!isStaffPlus && !hasLeaderRole) {
+    return <Navigate to="/" replace />
+  }
 
   return <>{children}</>
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useMemo } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -30,35 +30,238 @@ import {
   X,
   Upload,
   Link as LinkIcon,
+  Image as ImageIcon,
+  Search,
+  Check,
+  Presentation,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
+import { UploadProgress } from '@/components/upload-progress'
 import { cn } from '@/lib/cn'
-import type { ContentBlockInput, DevContentType } from '@/hooks/use-admin-development'
+import { useFileUpload } from '@/hooks/use-file-upload'
+import { useImageUpload } from '@/hooks/use-image-upload'
+import { useDevQuizzes, type ContentBlockInput, type DevContentType } from '@/hooks/use-admin-development'
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
-const BLOCK_TYPES: { type: DevContentType; label: string; icon: React.ReactNode; color: string }[] = [
-  { type: 'text', label: 'Text', icon: <Type size={16} />, color: 'bg-primary-100 text-primary-700' },
-  { type: 'video', label: 'Video', icon: <Video size={16} />, color: 'bg-sky-100 text-sky-700' },
-  { type: 'file', label: 'File', icon: <FileDown size={16} />, color: 'bg-bark-100 text-bark-700' },
-  { type: 'slideshow', label: 'Slideshow', icon: <Images size={16} />, color: 'bg-secondary-100 text-secondary-700' },
-  { type: 'quiz', label: 'Quiz', icon: <CircleDot size={16} />, color: 'bg-moss-100 text-moss-700' },
+const BLOCK_TYPES: { type: DevContentType; label: string; desc: string; icon: React.ReactNode; color: string }[] = [
+  { type: 'text', label: 'Text', desc: 'Rich markdown content', icon: <Type size={18} />, color: 'bg-primary-100 text-primary-700' },
+  { type: 'video', label: 'Video', desc: 'Upload or embed a video', icon: <Video size={18} />, color: 'bg-sky-100 text-sky-700' },
+  { type: 'file', label: 'Document', desc: 'PDF, PowerPoint, or slides', icon: <FileDown size={18} />, color: 'bg-bark-100 text-bark-700' },
+  { type: 'slideshow', label: 'Slideshow', desc: 'Image gallery with captions', icon: <Images size={18} />, color: 'bg-secondary-100 text-secondary-700' },
+  { type: 'quiz', label: 'Quiz', desc: 'Assessment checkpoint', icon: <CircleDot size={18} />, color: 'bg-moss-100 text-moss-700' },
 ]
 
-function blockIcon(type: DevContentType) {
-  return BLOCK_TYPES.find((bt) => bt.type === type)?.icon ?? <FileText size={16} />
+function blockMeta(type: DevContentType) {
+  return BLOCK_TYPES.find((bt) => bt.type === type) ?? BLOCK_TYPES[0]
 }
 
-function blockColor(type: DevContentType) {
-  return BLOCK_TYPES.find((bt) => bt.type === type)?.color ?? 'bg-gray-100 text-gray-700'
+/* ------------------------------------------------------------------ */
+/*  Drop zone component                                                */
+/* ------------------------------------------------------------------ */
+
+function DropZone({
+  accept,
+  label,
+  hint,
+  onFiles,
+  uploading,
+  progress,
+  error,
+  children,
+}: {
+  accept: string
+  label: string
+  hint?: string
+  onFiles: (files: FileList) => void
+  uploading: boolean
+  progress: number | null
+  error: string | null
+  children?: React.ReactNode
+}) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [dragOver, setDragOver] = useState(false)
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragOver(false)
+    if (e.dataTransfer.files.length > 0) onFiles(e.dataTransfer.files)
+  }
+
+  return (
+    <div className="space-y-2">
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={handleDrop}
+        onClick={() => !uploading && inputRef.current?.click()}
+        className={cn(
+          'relative flex flex-col items-center justify-center py-8 px-4 rounded-xl border-2 border-dashed transition-all cursor-pointer',
+          'active:scale-[0.98]',
+          dragOver
+            ? 'border-primary-400 bg-primary-100/60 scale-[1.01]'
+            : 'border-primary-200 bg-primary-50/30 hover:border-primary-300 hover:bg-primary-50/50',
+          uploading && 'pointer-events-none opacity-70',
+        )}
+      >
+        <Upload size={24} className="text-primary-400 mb-2" />
+        <p className="text-sm font-semibold text-primary-600">{label}</p>
+        {hint && <p className="text-xs text-primary-400 mt-0.5 text-center">{hint}</p>}
+        <input
+          ref={inputRef}
+          type="file"
+          accept={accept}
+          className="hidden"
+          onChange={(e) => e.target.files && onFiles(e.target.files)}
+          multiple={accept.startsWith('image/')}
+        />
+      </div>
+      <UploadProgress progress={progress} uploading={uploading} error={error} />
+      {children}
+    </div>
+  )
 }
 
-function blockLabel(type: DevContentType) {
-  return BLOCK_TYPES.find((bt) => bt.type === type)?.label ?? type
+/* ------------------------------------------------------------------ */
+/*  Slideshow slide item                                               */
+/* ------------------------------------------------------------------ */
+
+interface SlideItem {
+  url: string
+  caption: string
+}
+
+function SlideCard({
+  slide,
+  index,
+  onUpdateCaption,
+  onRemove,
+}: {
+  slide: SlideItem
+  index: number
+  onUpdateCaption: (caption: string) => void
+  onRemove: () => void
+}) {
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="flex gap-3 p-2.5 rounded-xl bg-white border border-primary-100 shadow-sm"
+    >
+      <img
+        src={slide.url}
+        alt={slide.caption || `Slide ${index + 1}`}
+        className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover shrink-0 bg-primary-100"
+      />
+      <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
+        <p className="text-[11px] text-primary-400 font-medium">Slide {index + 1}</p>
+        <input
+          type="text"
+          value={slide.caption}
+          onChange={(e) => onUpdateCaption(e.target.value)}
+          placeholder="Add a caption..."
+          className="w-full px-2.5 py-1.5 rounded-lg border border-primary-200 bg-white text-sm text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="flex items-center justify-center w-8 h-8 rounded-lg text-red-300 hover:text-red-500 hover:bg-red-50 transition-colors self-center shrink-0"
+      >
+        <Trash2 size={14} />
+      </button>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Quiz picker                                                        */
+/* ------------------------------------------------------------------ */
+
+function QuizPicker({
+  value,
+  onChange,
+}: {
+  value: string | null
+  onChange: (quizId: string | null) => void
+}) {
+  const { data: quizzes = [], isLoading } = useDevQuizzes()
+  const [search, setSearch] = useState('')
+  const [open, setOpen] = useState(!value)
+
+  const selected = quizzes.find((q) => q.id === value)
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase()
+    return quizzes.filter((quiz) => !q || quiz.title.toLowerCase().includes(q))
+  }, [quizzes, search])
+
+  if (selected && !open) {
+    return (
+      <div className="flex items-center gap-3 p-3 rounded-xl bg-moss-50 border border-moss-200">
+        <CircleDot size={16} className="text-moss-600 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-moss-800 truncate">{selected.title}</p>
+          <p className="text-xs text-moss-500">Pass: {selected.pass_score}% · {selected.max_attempts === 0 ? 'Unlimited' : selected.max_attempts} attempts</p>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button type="button" onClick={() => setOpen(true)} className="text-xs text-moss-500 hover:text-moss-700 font-semibold">Change</button>
+          <button type="button" onClick={() => onChange(null)} className="text-red-400 hover:text-red-600 ml-1"><X size={14} /></button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="relative">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-400" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search quizzes..."
+          className="w-full pl-9 pr-3 h-10 rounded-xl border border-primary-200 bg-white text-sm text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300"
+        />
+      </div>
+      {isLoading ? (
+        <p className="text-xs text-primary-400 text-center py-4">Loading quizzes...</p>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-6 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/30">
+          <CircleDot size={24} className="text-primary-300 mx-auto mb-1" />
+          <p className="text-xs text-primary-500">
+            {quizzes.length === 0 ? 'No quizzes yet — create one first' : 'No matching quizzes'}
+          </p>
+        </div>
+      ) : (
+        <div className="max-h-48 overflow-y-auto space-y-1 rounded-xl border border-primary-200 p-1.5">
+          {filtered.map((q) => (
+            <button
+              key={q.id}
+              type="button"
+              onClick={() => { onChange(q.id); setOpen(false); setSearch('') }}
+              className={cn(
+                'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors',
+                value === q.id ? 'bg-moss-50 ring-1 ring-moss-300' : 'hover:bg-primary-50 active:bg-primary-100',
+              )}
+            >
+              <CircleDot size={14} className="text-moss-500 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-primary-800 truncate">{q.title}</p>
+                <p className="text-xs text-primary-400">Pass: {q.pass_score}%</p>
+              </div>
+              {value === q.id && <Check size={14} className="text-moss-600 shrink-0" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -85,6 +288,7 @@ function SortableBlock({
     transition,
   }
 
+  const meta = blockMeta(block.content_type)
   const preview = getBlockPreview(block)
 
   return (
@@ -92,24 +296,29 @@ function SortableBlock({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group flex items-start gap-3 rounded-xl border border-white/60 bg-white/80 p-4 shadow-sm transition-shadow',
+        'group flex items-start gap-3 rounded-xl border border-white/60 bg-white/80 p-3.5 shadow-sm transition-shadow',
         isDragging && 'shadow-md ring-2 ring-primary-300/50 z-10',
       )}
     >
       <button
         type="button"
-        className="mt-0.5 cursor-grab touch-none text-primary-300 hover:text-primary-500 active:cursor-grabbing"
+        className="mt-1 cursor-grab touch-none text-primary-300 hover:text-primary-500 active:cursor-grabbing"
         {...attributes}
         {...listeners}
       >
         <GripVertical size={18} />
       </button>
 
+      {/* Thumbnail for visual types */}
+      {block.content_type === 'slideshow' && block.image_urls?.[0] && (
+        <img src={block.image_urls[0]} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+      )}
+
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold', blockColor(block.content_type))}>
-            {blockIcon(block.content_type)}
-            {blockLabel(block.content_type)}
+        <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+          <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold', meta.color)}>
+            {meta.icon}
+            {meta.label}
           </span>
           <span className="text-xs text-primary-400 tabular-nums">#{index + 1}</span>
           {block.title && (
@@ -117,22 +326,22 @@ function SortableBlock({
           )}
         </div>
         {preview && (
-          <p className="text-xs text-primary-500 line-clamp-2 mt-1">{preview}</p>
+          <p className="text-xs text-primary-500 line-clamp-1 mt-0.5">{preview}</p>
         )}
       </div>
 
-      <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-0.5 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         <button
           type="button"
           onClick={onEdit}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-primary-400 hover:text-primary-600 hover:bg-primary-100/60 transition-colors"
+          className="flex items-center justify-center w-9 h-9 rounded-lg text-primary-400 hover:text-primary-600 hover:bg-primary-100/60 transition-colors"
         >
           <Pencil size={14} />
         </button>
         <button
           type="button"
           onClick={onRemove}
-          className="flex items-center justify-center w-8 h-8 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-100/60 transition-colors"
+          className="flex items-center justify-center w-9 h-9 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-100/60 transition-colors"
         >
           <Trash2 size={14} />
         </button>
@@ -144,22 +353,22 @@ function SortableBlock({
 function getBlockPreview(block: ContentBlockInput): string {
   switch (block.content_type) {
     case 'text':
-      return block.text_content?.slice(0, 120) ?? ''
+      return block.text_content?.slice(0, 100) ?? ''
     case 'video':
-      return block.video_url ?? 'No video URL set'
+      return block.video_url ? (block.video_provider === 'upload' ? block.file_name ?? 'Uploaded video' : block.video_url) : 'No video'
     case 'file':
       return block.file_name ?? 'No file attached'
     case 'slideshow':
-      return `${block.image_urls?.length ?? 0} image${(block.image_urls?.length ?? 0) !== 1 ? 's' : ''}`
+      return `${block.image_urls?.length ?? 0} slide${(block.image_urls?.length ?? 0) !== 1 ? 's' : ''}`
     case 'quiz':
-      return block.quiz_id ? 'Quiz attached' : 'No quiz linked'
+      return block.quiz_id ? 'Quiz attached' : 'No quiz selected'
     default:
       return ''
   }
 }
 
 /* ------------------------------------------------------------------ */
-/*  Block editor (inline edit form)                                    */
+/*  Block edit form — real uploads, proper UX                          */
 /* ------------------------------------------------------------------ */
 
 function BlockEditForm({
@@ -172,27 +381,80 @@ function BlockEditForm({
   onCancel: () => void
 }) {
   const [draft, setDraft] = useState<ContentBlockInput>({ ...block })
+  const meta = blockMeta(draft.content_type)
+
+  // Upload hooks
+  const fileUpload = useFileUpload({ bucket: 'dev-assets', pathPrefix: 'files', maxSizeMB: 50 })
+  const videoUpload = useFileUpload({ bucket: 'dev-assets', pathPrefix: 'videos', maxSizeMB: 50 })
+  const imageUpload = useImageUpload({ bucket: 'dev-assets', pathPrefix: 'slides' })
+
+  // Slideshow slides as unified array
+  const slides: SlideItem[] = (draft.image_urls ?? []).map((url, i) => ({
+    url,
+    caption: (draft.image_captions ?? [])[i] ?? '',
+  }))
+
+  const setSlides = (updated: SlideItem[]) => {
+    setDraft({
+      ...draft,
+      image_urls: updated.map((s) => s.url),
+      image_captions: updated.map((s) => s.caption),
+    })
+  }
+
+  const handleImageFiles = async (files: FileList) => {
+    const newSlides = [...slides]
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const result = await imageUpload.upload(files[i])
+        newSlides.push({ url: result.url, caption: '' })
+      } catch { /* error shown by hook */ }
+    }
+    setSlides(newSlides)
+  }
+
+  const handleVideoFile = async (files: FileList) => {
+    const file = files[0]
+    if (!file) return
+    try {
+      const result = await videoUpload.upload(file)
+      setDraft((d) => ({ ...d, video_url: result.url, video_provider: 'upload', file_name: file.name }))
+    } catch { /* error shown by hook */ }
+  }
+
+  const handleDocFile = async (files: FileList) => {
+    const file = files[0]
+    if (!file) return
+    try {
+      const result = await fileUpload.upload(file)
+      setDraft((d) => ({ ...d, file_url: result.url, file_name: result.fileName, file_size_bytes: file.size }))
+    } catch { /* error shown by hook */ }
+  }
+
+  const isUploading = fileUpload.uploading || videoUpload.uploading || imageUpload.uploading
 
   return (
     <motion.div
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
-      className="rounded-xl border-2 border-primary-200 bg-primary-50/50 p-5 space-y-4"
+      className="rounded-xl border-2 border-primary-200 bg-primary-50/50 p-4 sm:p-5 space-y-4 overflow-hidden"
     >
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold', blockColor(draft.content_type))}>
-            {blockIcon(draft.content_type)}
-            {blockLabel(draft.content_type)}
+          <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold', meta.color)}>
+            {meta.icon}
+            {meta.label}
           </span>
           <span className="text-sm font-semibold text-primary-700">Edit Block</span>
         </div>
-        <button type="button" onClick={onCancel} className="text-primary-400 hover:text-primary-600">
+        <button type="button" onClick={onCancel} className="flex items-center justify-center w-9 h-9 rounded-lg text-primary-400 hover:text-primary-600 hover:bg-primary-100/60 transition-colors">
           <X size={18} />
         </button>
       </div>
 
+      {/* Title (all types) */}
       <Input
         label="Block Title (optional)"
         value={draft.title ?? ''}
@@ -200,6 +462,7 @@ function BlockEditForm({
         placeholder="e.g. Introduction"
       />
 
+      {/* ─── TEXT ─── */}
       {draft.content_type === 'text' && (
         <div>
           <label className="block text-sm font-medium text-primary-700 mb-1">Content (Markdown)</label>
@@ -212,108 +475,169 @@ function BlockEditForm({
         </div>
       )}
 
+      {/* ─── VIDEO ─── */}
       {draft.content_type === 'video' && (
         <div className="space-y-3">
+          {/* Source toggle */}
           <div>
-            <label className="block text-sm font-medium text-primary-700 mb-1">Video Source</label>
+            <label className="block text-sm font-medium text-primary-700 mb-1.5">Video Source</label>
             <div className="flex gap-2">
-              {(['youtube', 'vimeo', 'upload'] as const).map((provider) => (
+              {([
+                { key: 'upload', label: 'Upload', icon: <Upload size={14} /> },
+                { key: 'youtube', label: 'YouTube', icon: <Video size={14} /> },
+                { key: 'vimeo', label: 'Vimeo', icon: <Video size={14} /> },
+              ] as const).map((p) => (
                 <button
-                  key={provider}
+                  key={p.key}
                   type="button"
-                  onClick={() => setDraft({ ...draft, video_provider: provider })}
+                  onClick={() => setDraft({ ...draft, video_provider: p.key, video_url: p.key !== draft.video_provider ? '' : draft.video_url })}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors',
-                    draft.video_provider === provider
-                      ? 'bg-sky-200 text-sky-800'
-                      : 'bg-white text-primary-500 hover:bg-sky-50',
+                    'inline-flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-xl text-sm font-semibold transition-all active:scale-[0.97]',
+                    draft.video_provider === p.key
+                      ? 'bg-sky-600 text-white shadow-sm'
+                      : 'bg-white text-primary-500 border border-primary-200 hover:border-sky-300',
                   )}
                 >
-                  {provider === 'youtube' ? 'YouTube' : provider === 'vimeo' ? 'Vimeo' : 'Upload'}
+                  {p.icon}
+                  {p.label}
                 </button>
               ))}
             </div>
           </div>
-          <Input
-            label={draft.video_provider === 'upload' ? 'Video URL (from storage)' : 'Embed URL'}
-            value={draft.video_url ?? ''}
-            onChange={(e) => setDraft({ ...draft, video_url: e.target.value })}
-            placeholder={
-              draft.video_provider === 'youtube'
-                ? 'https://www.youtube.com/watch?v=...'
-                : draft.video_provider === 'vimeo'
-                  ? 'https://vimeo.com/...'
-                  : 'Paste the storage URL after uploading'
-            }
-            icon={draft.video_provider === 'upload' ? <Upload size={14} /> : <LinkIcon size={14} />}
-          />
+
+          {draft.video_provider === 'upload' ? (
+            draft.video_url ? (
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-sky-50 border border-sky-200">
+                <Video size={18} className="text-sky-600 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-sky-800 truncate">{draft.file_name ?? 'Uploaded video'}</p>
+                  <p className="text-xs text-sky-500">Ready</p>
+                </div>
+                <button type="button" onClick={() => setDraft({ ...draft, video_url: null, file_name: null })} className="text-red-400 hover:text-red-600">
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ) : (
+              <DropZone
+                accept="video/mp4,video/webm,video/quicktime"
+                label="Drop a video file or tap to browse"
+                hint="MP4, WebM, or MOV (max 50MB)"
+                onFiles={handleVideoFile}
+                uploading={videoUpload.uploading}
+                progress={videoUpload.progress}
+                error={videoUpload.error}
+              />
+            )
+          ) : (
+            <Input
+              label="Embed URL"
+              value={draft.video_url ?? ''}
+              onChange={(e) => setDraft({ ...draft, video_url: e.target.value })}
+              placeholder={
+                draft.video_provider === 'youtube'
+                  ? 'https://www.youtube.com/watch?v=...'
+                  : 'https://vimeo.com/...'
+              }
+              icon={<LinkIcon size={14} />}
+            />
+          )}
         </div>
       )}
 
+      {/* ─── FILE / DOCUMENT ─── */}
       {draft.content_type === 'file' && (
         <div className="space-y-3">
-          <Input
-            label="File URL"
-            value={draft.file_url ?? ''}
-            onChange={(e) => setDraft({ ...draft, file_url: e.target.value })}
-            placeholder="Upload a file first, then paste the URL"
-          />
-          <Input
-            label="File Name"
-            value={draft.file_name ?? ''}
-            onChange={(e) => setDraft({ ...draft, file_name: e.target.value })}
-            placeholder="e.g. Leadership Guide.pdf"
-          />
+          {draft.file_url ? (
+            <div className="flex items-center gap-3 p-3.5 rounded-xl bg-bark-50 border border-bark-200">
+              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-bark-100 shrink-0">
+                {draft.file_name?.endsWith('.pdf') ? <FileDown size={18} className="text-bark-600" /> : <Presentation size={18} className="text-bark-600" />}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-bark-800 truncate">{draft.file_name}</p>
+                <p className="text-xs text-bark-500">
+                  {draft.file_size_bytes ? `${(draft.file_size_bytes / (1024 * 1024)).toFixed(1)} MB` : 'Uploaded'}
+                </p>
+              </div>
+              <button type="button" onClick={() => setDraft({ ...draft, file_url: null, file_name: null, file_size_bytes: null })} className="text-red-400 hover:text-red-600">
+                <Trash2 size={14} />
+              </button>
+            </div>
+          ) : (
+            <DropZone
+              accept=".pdf,.pptx,.ppt,.key,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+              label="Drop a document or tap to browse"
+              hint="PDF, PowerPoint (.pptx), or Keynote (max 50MB)"
+              onFiles={handleDocFile}
+              uploading={fileUpload.uploading}
+              progress={fileUpload.progress}
+              error={fileUpload.error}
+            />
+          )}
+          <p className="text-xs text-primary-400">
+            Supports PDF, PowerPoint, and Google Slides (export as .pptx first)
+          </p>
         </div>
       )}
 
+      {/* ─── SLIDESHOW ─── */}
       {draft.content_type === 'slideshow' && (
-        <div>
-          <label className="block text-sm font-medium text-primary-700 mb-1">
-            Image URLs (one per line)
-          </label>
-          <textarea
-            className="w-full min-h-[100px] rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
-            value={(draft.image_urls ?? []).join('\n')}
-            onChange={(e) =>
-              setDraft({
-                ...draft,
-                image_urls: e.target.value.split('\n').filter(Boolean),
-              })
-            }
-            placeholder="https://storage.example.com/image1.jpg&#10;https://storage.example.com/image2.jpg"
-          />
-          <label className="block text-sm font-medium text-primary-700 mb-1 mt-3">
-            Captions (one per line, matching image order)
-          </label>
-          <textarea
-            className="w-full min-h-[80px] rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
-            value={(draft.image_captions ?? []).join('\n')}
-            onChange={(e) =>
-              setDraft({
-                ...draft,
-                image_captions: e.target.value.split('\n'),
-              })
-            }
-            placeholder="Caption for image 1&#10;Caption for image 2"
+        <div className="space-y-3">
+          {/* Existing slides */}
+          {slides.length > 0 && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-primary-700">
+                Slides ({slides.length})
+              </label>
+              <AnimatePresence mode="popLayout">
+                {slides.map((slide, i) => (
+                  <SlideCard
+                    key={`${slide.url}-${i}`}
+                    slide={slide}
+                    index={i}
+                    onUpdateCaption={(caption) => {
+                      const updated = [...slides]
+                      updated[i] = { ...updated[i], caption }
+                      setSlides(updated)
+                    }}
+                    onRemove={() => {
+                      setSlides(slides.filter((_, j) => j !== i))
+                    }}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {/* Add more images */}
+          <DropZone
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            label={slides.length > 0 ? 'Add more slides' : 'Drop images or tap to browse'}
+            hint="JPEG, PNG, WebP, or GIF — select multiple"
+            onFiles={handleImageFiles}
+            uploading={imageUpload.uploading}
+            progress={imageUpload.progress}
+            error={imageUpload.error}
           />
         </div>
       )}
 
+      {/* ─── QUIZ ─── */}
       {draft.content_type === 'quiz' && (
-        <Input
-          label="Quiz ID"
-          value={draft.quiz_id ?? ''}
-          onChange={(e) => setDraft({ ...draft, quiz_id: e.target.value || null })}
-          placeholder="Create a quiz first, then paste its ID here"
-        />
+        <div>
+          <label className="block text-sm font-medium text-primary-700 mb-2">Select a Quiz</label>
+          <QuizPicker
+            value={draft.quiz_id ?? null}
+            onChange={(id) => setDraft({ ...draft, quiz_id: id })}
+          />
+        </div>
       )}
 
+      {/* Actions */}
       <div className="flex justify-end gap-2 pt-2">
         <Button variant="ghost" size="sm" onClick={onCancel}>
           Cancel
         </Button>
-        <Button variant="primary" size="sm" onClick={() => onSave(draft)}>
+        <Button variant="primary" size="sm" onClick={() => onSave(draft)} disabled={isUploading}>
           Save Block
         </Button>
       </div>
@@ -369,7 +693,7 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
       title: null,
       text_content: type === 'text' ? '' : null,
       video_url: null,
-      video_provider: type === 'video' ? 'youtube' : null,
+      video_provider: type === 'video' ? 'upload' : null,
       file_url: null,
       file_name: null,
       file_size_bytes: null,
@@ -432,24 +756,28 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
 
       {/* Empty state */}
       {blocks.length === 0 && !showTypePicker && (
-        <div className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/30">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/30"
+        >
           <FileText size={32} className="text-primary-300 mb-3" />
           <p className="text-sm font-medium text-primary-500 mb-1">No content blocks yet</p>
           <p className="text-xs text-primary-400 mb-4">Add blocks to build your module</p>
           <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => setShowTypePicker(true)}>
             Add First Block
           </Button>
-        </div>
+        </motion.div>
       )}
 
-      {/* Add block picker */}
+      {/* Add block picker — full-width cards for better touch targets */}
       {(blocks.length > 0 || showTypePicker) && (
         <div className="pt-1">
           {showTypePicker ? (
             <motion.div
-              initial={{ opacity: 0, y: 4 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex flex-wrap gap-2 p-3 rounded-xl bg-primary-50/60 border border-primary-100"
+              className="space-y-1.5 p-3 rounded-xl bg-primary-50/60 border border-primary-100"
             >
               {BLOCK_TYPES.map((bt) => (
                 <button
@@ -457,19 +785,24 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
                   type="button"
                   onClick={() => addBlock(bt.type)}
                   className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-[0.97]',
-                    bt.color,
-                    'hover:brightness-95',
+                    'w-full flex items-center gap-3 px-4 min-h-[52px] rounded-xl text-left transition-all active:scale-[0.98]',
+                    'bg-white border border-primary-100 hover:border-primary-300 hover:shadow-sm',
                   )}
                 >
-                  {bt.icon}
-                  {bt.label}
+                  <span className={cn('flex items-center justify-center w-9 h-9 rounded-lg shrink-0', bt.color)}>
+                    {bt.icon}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-primary-800">{bt.label}</p>
+                    <p className="text-xs text-primary-400">{bt.desc}</p>
+                  </div>
+                  <Plus size={16} className="text-primary-400 shrink-0" />
                 </button>
               ))}
               <button
                 type="button"
                 onClick={() => setShowTypePicker(false)}
-                className="inline-flex items-center gap-1 px-3 py-2 rounded-lg text-sm text-primary-400 hover:text-primary-600 transition-colors"
+                className="w-full flex items-center justify-center gap-1 min-h-[44px] rounded-xl text-sm text-primary-400 hover:text-primary-600 transition-colors"
               >
                 <X size={14} />
                 Cancel
@@ -479,7 +812,7 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
             <button
               type="button"
               onClick={() => setShowTypePicker(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-primary-300 text-sm font-semibold text-primary-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/40 transition-all active:scale-[0.98] w-full justify-center"
+              className="inline-flex items-center gap-1.5 px-4 min-h-[48px] rounded-xl border border-dashed border-primary-300 text-sm font-semibold text-primary-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/40 transition-all active:scale-[0.98] w-full justify-center"
             >
               <Plus size={15} />
               Add Block

@@ -11,33 +11,32 @@ import {
 import { Skeleton } from '@/components/skeleton'
 import { ProgressRing } from '@/components/development/progress-ring'
 import { cn } from '@/lib/cn'
-import { useMyAssignments, type DevAssignment } from '@/hooks/use-development-assignments'
+import { useMyTargetedContent } from '@/hooks/use-development-assignments'
 import { useMyModuleProgress, useMySectionProgress } from '@/hooks/use-development-progress'
+import type { DevModule, DevSection } from '@/hooks/use-admin-development'
 
 /* ------------------------------------------------------------------ */
-/*  Assignment card                                                    */
+/*  Content card                                                       */
 /* ------------------------------------------------------------------ */
 
-function AssignmentCard({
-  assignment,
+function ContentCard({
+  item,
+  isModule,
   progressPct,
   status,
   delay,
   rm,
 }: {
-  assignment: DevAssignment
+  item: DevModule | DevSection
+  isModule: boolean
   progressPct: number
   status: 'not_started' | 'in_progress' | 'completed'
   delay: number
   rm: boolean
 }) {
-  const isModule = !!assignment.module_id
-  const item = isModule ? assignment.module : assignment.section
-  if (!item) return null
-
   const linkTo = isModule
-    ? `/learn/module/${assignment.module_id}`
-    : `/learn/section/${assignment.section_id}`
+    ? `/learn/module/${item.id}`
+    : `/learn/section/${item.id}`
 
   const actionLabel = status === 'completed' ? 'Review' : status === 'in_progress' ? 'Continue' : 'Start'
 
@@ -75,17 +74,12 @@ function AssignmentCard({
           </p>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
             <span className="text-xs text-primary-500 capitalize">
-              {(item.category ?? '').replace(/_/g, ' ')}
+              {item.category.replace(/_/g, ' ')}
             </span>
             {'estimated_minutes' in item && (
               <span className="flex items-center gap-0.5 text-xs text-primary-400">
                 <Clock size={10} />
-                {item.estimated_minutes}m
-              </span>
-            )}
-            {assignment.due_date && (
-              <span className="text-xs text-bark-500">
-                Due {new Date(assignment.due_date).toLocaleDateString()}
+                {(item as DevModule).estimated_minutes}m
               </span>
             )}
           </div>
@@ -112,10 +106,11 @@ export default function LearnIndexPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
 
-  const { data: assignments, isLoading: assignmentsLoading } = useMyAssignments()
+  const { data: content, isLoading: contentLoading } = useMyTargetedContent()
   const { data: moduleProgress = [] } = useMyModuleProgress()
   const { data: sectionProgress = [] } = useMySectionProgress()
 
+  // Build progress lookup
   const progressMap = useMemo(() => {
     const map = new Map<string, { pct: number; status: 'not_started' | 'in_progress' | 'completed' }>()
     for (const mp of moduleProgress) {
@@ -127,21 +122,28 @@ export default function LearnIndexPage() {
     return map
   }, [moduleProgress, sectionProgress])
 
-  const getProgress = (a: DevAssignment) => {
-    const key = a.module_id ?? a.section_id ?? ''
-    return progressMap.get(key) ?? { pct: 0, status: 'not_started' as const }
-  }
+  const getProgress = (id: string) =>
+    progressMap.get(id) ?? { pct: 0, status: 'not_started' as const }
 
-  // Group assignments
+  // Combine modules + sections into a single list
+  type ContentItem = { item: DevModule | DevSection; isModule: boolean }
+
+  const allContent: ContentItem[] = useMemo(() => {
+    if (!content) return []
+    const items: ContentItem[] = [
+      ...content.modules.map((m) => ({ item: m, isModule: true })),
+      ...content.sections.map((s) => ({ item: s, isModule: false })),
+    ]
+    return items
+  }, [content])
+
+  // Group by progress status
   const grouped = useMemo(() => {
-    const all = assignments ?? []
-    const inProgress = all.filter((a) => getProgress(a).status === 'in_progress')
-    const assigned = all.filter((a) => getProgress(a).status === 'not_started')
-    const completed = all.filter((a) => getProgress(a).status === 'completed')
-    return { inProgress, assigned, completed }
-  }, [assignments, progressMap])
-
-  const isLoading = assignmentsLoading
+    const inProgress = allContent.filter((c) => getProgress(c.item.id).status === 'in_progress')
+    const notStarted = allContent.filter((c) => getProgress(c.item.id).status === 'not_started')
+    const completed = allContent.filter((c) => getProgress(c.item.id).status === 'completed')
+    return { inProgress, notStarted, completed }
+  }, [allContent, progressMap])
 
   return (
     <div className="space-y-6 pb-20">
@@ -155,22 +157,22 @@ export default function LearnIndexPage() {
         <p className="text-sm text-primary-500 mt-0.5">Your learning and development modules</p>
       </motion.div>
 
-      {isLoading ? (
+      {contentLoading ? (
         <div className="space-y-3">
           <Skeleton className="h-20 rounded-2xl" />
           <Skeleton className="h-20 rounded-2xl" />
           <Skeleton className="h-20 rounded-2xl" />
         </div>
-      ) : (assignments ?? []).length === 0 ? (
+      ) : allContent.length === 0 ? (
         <motion.div
           initial={rm ? {} : { opacity: 0 }}
           animate={{ opacity: 1 }}
           className="flex flex-col items-center justify-center py-16 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/30"
         >
           <Compass size={40} className="text-primary-300 mb-3" />
-          <p className="text-base font-semibold text-primary-600">No modules assigned yet</p>
+          <p className="text-base font-semibold text-primary-600">No modules available yet</p>
           <p className="text-sm text-primary-400 mt-1 text-center max-w-xs">
-            Your collective leader will assign learning and development modules for you to complete
+            Development modules will appear here when they're published for your role
           </p>
         </motion.div>
       ) : (
@@ -182,12 +184,13 @@ export default function LearnIndexPage() {
                 In Progress
               </h2>
               <div className="space-y-2">
-                {grouped.inProgress.map((a, i) => {
-                  const p = getProgress(a)
+                {grouped.inProgress.map((c, i) => {
+                  const p = getProgress(c.item.id)
                   return (
-                    <AssignmentCard
-                      key={a.id}
-                      assignment={a}
+                    <ContentCard
+                      key={c.item.id}
+                      item={c.item}
+                      isModule={c.isModule}
                       progressPct={p.pct}
                       status={p.status}
                       delay={i * 0.04}
@@ -199,19 +202,20 @@ export default function LearnIndexPage() {
             </div>
           )}
 
-          {/* Assigned (not started) */}
-          {grouped.assigned.length > 0 && (
+          {/* Available (not started) */}
+          {grouped.notStarted.length > 0 && (
             <div>
               <h2 className="font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest mb-3">
-                Assigned
+                Available
               </h2>
               <div className="space-y-2">
-                {grouped.assigned.map((a, i) => {
-                  const p = getProgress(a)
+                {grouped.notStarted.map((c, i) => {
+                  const p = getProgress(c.item.id)
                   return (
-                    <AssignmentCard
-                      key={a.id}
-                      assignment={a}
+                    <ContentCard
+                      key={c.item.id}
+                      item={c.item}
+                      isModule={c.isModule}
                       progressPct={p.pct}
                       status={p.status}
                       delay={i * 0.04}
@@ -230,12 +234,13 @@ export default function LearnIndexPage() {
                 Completed
               </h2>
               <div className="space-y-2">
-                {grouped.completed.map((a, i) => {
-                  const p = getProgress(a)
+                {grouped.completed.map((c, i) => {
+                  const p = getProgress(c.item.id)
                   return (
-                    <AssignmentCard
-                      key={a.id}
-                      assignment={a}
+                    <ContentCard
+                      key={c.item.id}
+                      item={c.item}
+                      isModule={c.isModule}
                       progressPct={p.pct}
                       status={p.status}
                       delay={i * 0.04}

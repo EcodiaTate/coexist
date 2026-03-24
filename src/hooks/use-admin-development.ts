@@ -10,6 +10,15 @@ export type DevModuleStatus = 'draft' | 'published' | 'archived'
 export type DevContentType = 'text' | 'video' | 'file' | 'slideshow' | 'quiz'
 export type DevQuestionType = 'multiple_choice' | 'multi_select' | 'true_false' | 'short_answer'
 
+export type DevTargetRole = 'leader' | 'co_leader' | 'assist_leader' | 'national_staff'
+
+export const TARGET_ROLE_OPTIONS: { value: DevTargetRole; label: string }[] = [
+  { value: 'leader', label: 'Leaders' },
+  { value: 'co_leader', label: 'Co-Leaders' },
+  { value: 'assist_leader', label: 'Assist Leaders' },
+  { value: 'national_staff', label: 'National Staff' },
+]
+
 export interface DevModule {
   id: string
   title: string
@@ -19,6 +28,8 @@ export interface DevModule {
   estimated_minutes: number
   status: DevModuleStatus
   pass_score: number | null
+  target_roles: string[]
+  target_user_ids: string[]
   created_by: string
   published_at: string | null
   created_at: string
@@ -52,6 +63,8 @@ export interface DevSection {
   thumbnail_url: string | null
   status: DevModuleStatus
   prerequisite_section_id: string | null
+  target_roles: string[]
+  target_user_ids: string[]
   created_by: string
   published_at: string | null
   created_at: string
@@ -211,12 +224,16 @@ export function useCreateModule() {
       estimated_minutes?: number
       status?: DevModuleStatus
       pass_score?: number | null
+      target_roles?: string[]
+      target_user_ids?: string[]
       created_by: string
     }) => {
       const { data, error } = await supabase
         .from('dev_modules')
         .insert({
           ...input,
+          target_roles: input.target_roles ?? [],
+          target_user_ids: input.target_user_ids ?? [],
           published_at: input.status === 'published' ? new Date().toISOString() : null,
         })
         .select()
@@ -383,12 +400,16 @@ export function useCreateSection() {
       thumbnail_url?: string
       status?: DevModuleStatus
       prerequisite_section_id?: string | null
+      target_roles?: string[]
+      target_user_ids?: string[]
       created_by: string
     }) => {
       const { data, error } = await supabase
         .from('dev_sections')
         .insert({
           ...input,
+          target_roles: input.target_roles ?? [],
+          target_user_ids: input.target_user_ids ?? [],
           published_at: input.status === 'published' ? new Date().toISOString() : null,
         })
         .select()

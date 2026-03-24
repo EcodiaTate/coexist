@@ -1,4 +1,4 @@
-import { FileDown, ExternalLink } from 'lucide-react'
+import { FileDown, ExternalLink, Presentation, FileText } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 interface PdfViewerProps {
@@ -14,13 +14,37 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function getFileType(url: string, fileName?: string | null): 'pdf' | 'presentation' | 'document' {
+  const lower = (fileName ?? url).toLowerCase()
+  if (lower.endsWith('.pdf') || url.includes('application/pdf')) return 'pdf'
+  if (lower.endsWith('.pptx') || lower.endsWith('.ppt') || lower.endsWith('.key')) return 'presentation'
+  return 'document'
+}
+
+function fileIcon(type: 'pdf' | 'presentation' | 'document') {
+  switch (type) {
+    case 'pdf': return <FileDown size={18} className="text-bark-600" />
+    case 'presentation': return <Presentation size={18} className="text-bark-600" />
+    default: return <FileText size={18} className="text-bark-600" />
+  }
+}
+
+function fileLabel(type: 'pdf' | 'presentation' | 'document') {
+  switch (type) {
+    case 'pdf': return 'PDF Document'
+    case 'presentation': return 'Presentation'
+    default: return 'Document'
+  }
+}
+
 export function PdfViewer({ url, fileName, fileSizeBytes, className }: PdfViewerProps) {
-  const isPdf = url.toLowerCase().endsWith('.pdf') || url.includes('application/pdf')
+  const type = getFileType(url, fileName)
+  const canPreview = type === 'pdf'
 
   return (
     <div className={cn('rounded-xl overflow-hidden border border-primary-200', className)}>
       {/* Inline viewer for PDFs */}
-      {isPdf && (
+      {canPreview && (
         <div className="w-full aspect-[3/4] max-h-[600px] bg-primary-50">
           <iframe
             src={`${url}#toolbar=1&navpanes=0`}
@@ -30,10 +54,26 @@ export function PdfViewer({ url, fileName, fileSizeBytes, className }: PdfViewer
         </div>
       )}
 
+      {/* Presentation/doc — show a branded card with download */}
+      {!canPreview && (
+        <div className="flex flex-col items-center justify-center py-10 px-6 bg-gradient-to-br from-bark-50 to-primary-50">
+          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-sm mb-3">
+            {fileIcon(type)}
+          </div>
+          <p className="text-xs font-medium text-bark-500 mb-1">{fileLabel(type)}</p>
+          <p className="text-sm font-semibold text-primary-800 text-center max-w-xs truncate">
+            {fileName ?? 'Document'}
+          </p>
+          {fileSizeBytes && (
+            <p className="text-xs text-primary-400 mt-0.5">{formatFileSize(fileSizeBytes)}</p>
+          )}
+        </div>
+      )}
+
       {/* File info bar */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-white">
+      <div className="flex items-center gap-3 px-4 py-3 bg-white border-t border-primary-100">
         <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-bark-100 shrink-0">
-          <FileDown size={16} className="text-bark-600" />
+          {fileIcon(type)}
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-primary-800 truncate">
@@ -48,10 +88,10 @@ export function PdfViewer({ url, fileName, fileSizeBytes, className }: PdfViewer
           target="_blank"
           rel="noopener noreferrer"
           download={fileName ?? undefined}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-100 text-primary-700 text-xs font-semibold hover:bg-primary-200 transition-colors"
+          className="inline-flex items-center gap-1.5 px-3.5 min-h-[36px] rounded-lg bg-primary-100 text-primary-700 text-xs font-semibold hover:bg-primary-200 transition-colors active:scale-[0.97]"
         >
           <ExternalLink size={12} />
-          {isPdf ? 'Open' : 'Download'}
+          {canPreview ? 'Open' : 'Download'}
         </a>
       </div>
     </div>
