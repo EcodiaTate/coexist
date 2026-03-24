@@ -14,7 +14,7 @@ interface CachedPage {
  * back renders instantly with preserved scroll position & state.
  *
  * All pages occupy the same grid cell (grid-area: 1/1) so the active
- * page layers on top. Inactive pages use display:none.
+ * page layers on top. Inactive pages use visibility:hidden.
  *
  * No enter/exit animations here — instant show/hide. Individual pages
  * own their internal entrance animations (staggered lists, hero fades,
@@ -29,8 +29,24 @@ export function KeepAlive() {
 
   const cacheRef = useRef<CachedPage[]>([])
   const lastProcessedRef = useRef<string | null>(null)
+  const historyStack = useRef<string[]>([])
 
   const { offsetX, swiping, animating } = useSwipeBack({ enabled: true })
+
+  // ---- Detect back-navigation ----
+  // If the path we're navigating TO is the previous entry in our stack,
+  // this is a back-nav. We should reuse the cached element (preserving
+  // scroll and component state) rather than replacing it with a fresh outlet.
+  let isBackNav = false
+  if (lastProcessedRef.current !== path) {
+    const stack = historyStack.current
+    if (stack.length >= 2 && stack[stack.length - 2] === path) {
+      isBackNav = true
+      stack.pop() // remove the page we're leaving
+    } else {
+      stack.push(path)
+    }
+  }
 
   // ---- Synchronous cache update (guarded, idempotent) ----
   if (outlet && lastProcessedRef.current !== path) {
@@ -40,14 +56,18 @@ export function KeepAlive() {
     const existingIdx = cache.findIndex((c) => c.path === path)
     if (existingIdx >= 0) {
       const entry = cache[existingIdx]
-      entry.element = outlet as ReactElement
+      // On back-nav: keep the cached element — preserves scroll & state.
+      // On forward re-visit: update with fresh outlet.
+      if (!isBackNav) {
+        entry.element = outlet as ReactElement
+      }
       cache.splice(existingIdx, 1)
       cache.push(entry)
     } else {
       if (cache.length >= MAX_CACHED) cache.shift()
       cache.push({ path, element: outlet as ReactElement })
     }
-  } else if (outlet) {
+  } else if (outlet && !isBackNav) {
     // Same path — update element ref (query data / Suspense resolution)
     const entry = cacheRef.current.find((c) => c.path === path)
     if (entry) entry.element = outlet as ReactElement
