@@ -30,7 +30,7 @@ import {
   useImpactStats,
   useMyUpcomingEvents,
   useCollectiveUpcomingEvents,
-  useRecentAnnouncements,
+  useRecentUpdates,
 } from '@/hooks/use-home-feed'
 import { useNationalImpact, useCollectiveImpact } from '@/hooks/use-impact'
 import type { CanonicalImpact } from '@/hooks/use-impact'
@@ -42,6 +42,7 @@ import {
   Button,
   CheckInSheet,
 } from '@/components'
+import { prefetchEventDetail } from '@/hooks/use-events'
 import { cn } from '@/lib/cn'
 import { ProximityCheckInBanner } from '@/components/proximity-check-in-banner'
 
@@ -564,14 +565,14 @@ function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Updates section (announcements / staff updates / community msgs)   */
+/*  Updates section (staff updates / community msgs)                   */
 /* ------------------------------------------------------------------ */
 
 function UpdatesSection({ rm }: { rm: boolean }) {
   const navigate = useNavigate()
-  const announcements = useRecentAnnouncements()
+  const updates = useRecentUpdates()
 
-  if (announcements.isLoading) {
+  if (updates.isLoading) {
     return (
       <div className="space-y-3">
         <div className="h-3 w-28 rounded-full bg-primary-100 animate-pulse" />
@@ -586,20 +587,20 @@ function UpdatesSection({ rm }: { rm: boolean }) {
     )
   }
 
-  if (!announcements.data?.length) return null
+  if (!updates.data?.length) return null
 
   return (
     <motion.div variants={rm ? undefined : fadeUp}>
       <Section
         title="Updates"
-        action={{ label: 'View all', to: '/announcements' }}
+        action={{ label: 'View all', to: '/updates' }}
       >
         <HScroll>
-          {announcements.data.map((item) => (
+          {updates.data.map((item) => (
             <div
               key={item.id}
               className="shrink-0 w-64 snap-start rounded-2xl bg-gradient-to-br from-sprout-600 to-primary-700 shadow-lg overflow-hidden active:scale-[0.97] transition-all duration-150 cursor-pointer"
-              onClick={() => navigate('/announcements')}
+              onClick={() => navigate('/updates')}
               role="button"
               tabIndex={0}
               aria-label={item.title}
@@ -1018,7 +1019,7 @@ export default function HomePage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const queryClient = useQueryClient()
-  const { profile } = useAuth()
+  const { profile, user } = useAuth()
 
   const myCollective = useMyCollective()
   const myEvents = useMyUpcomingEvents()
@@ -1026,6 +1027,14 @@ export default function HomePage() {
   const pendingSurveys = usePendingSurveys()
   const initialLoading = myCollective.isLoading || myEvents.isLoading || impact.isLoading
   const showLoading = useDelayedLoading(initialLoading)
+
+  // Prefetch the "Your Next Event" detail page so tapping it is instant
+  const nextEventId = myEvents.data?.[0]?.id
+  useEffect(() => {
+    if (nextEventId && user?.id) {
+      prefetchEventDetail(queryClient, nextEventId, user.id)
+    }
+  }, [nextEventId, user?.id, queryClient])
 
   const firstName = profile?.display_name?.split(' ')[0]
 

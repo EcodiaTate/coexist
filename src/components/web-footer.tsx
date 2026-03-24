@@ -5,7 +5,6 @@ import {
   TAGLINE,
   INSTAGRAM_URL,
   FACEBOOK_URL,
-  CONTACT_EMAIL,
 } from '@/lib/constants'
 
 const footerLinks = [
@@ -105,6 +104,8 @@ export function WebFooter({ className }: WebFooterProps) {
                   <li key={link.label}>
                     <a
                       href={'href' in link ? link.href : '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-sm hover:text-white transition-colors duration-150 focus-visible:outline-none focus-visible:underline"
                     >
                       {link.label}

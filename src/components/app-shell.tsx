@@ -11,6 +11,8 @@ import { MenuSheetProvider, useMenuSheet } from '@/hooks/use-menu-sheet'
 import { useSyncManager } from '@/hooks/use-sync-manager'
 import { usePushRegistration } from '@/hooks/use-push'
 import { useKeyboard } from '@/hooks/use-keyboard'
+import { useRolePrefetch } from '@/hooks/use-role-prefetch'
+import { useDataPrefetch } from '@/hooks/use-data-prefetch'
 
 interface AppShellProps {
   children: ReactNode
@@ -95,6 +97,15 @@ function AppShellInner({ children }: { children: ReactNode }) {
   // stores token in DB, handles deep-link routing on tap,
   // re-registers on app resume. Runs once for all authenticated users.
   usePushRegistration()
+
+  // Role-aware chunk prefetch — downloads the user's top 5 pages first,
+  // then remaining common pages, so nav targets are instant.
+  useRolePrefetch()
+
+  // Role-aware data prefetch — warms TanStack Query cache with the
+  // actual Supabase data each page needs, so first navigation renders
+  // the final state with zero loading spinners.
+  useDataPrefetch()
 
   const showBottomTabs = navMode === 'bottom-tabs'
   const showSidebar = navMode === 'sidebar'

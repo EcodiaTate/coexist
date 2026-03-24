@@ -5,6 +5,7 @@ import {
     ClipboardCheck,
     ClipboardList,
     Mail,
+    Megaphone,
     Plus,
     Send, Zap,
     BarChart3,
@@ -12,44 +13,11 @@ import {
     Users,
     ArrowRight
 } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Skeleton } from '@/components/skeleton'
 import { cn } from '@/lib/cn'
-import { supabase } from '@/lib/supabase'
 import { useAdminTaskTemplates } from '@/hooks/use-admin-tasks'
-
-/* ------------------------------------------------------------------ */
-/*  Summary data hooks                                                 */
-/* ------------------------------------------------------------------ */
-
-function useCreateSummary() {
-  return useQuery({
-    queryKey: ['admin-create-summary'],
-    queryFn: async () => {
-      const [surveysRes, campaignsRes, draftCampaignsRes, subscribersRes] = await Promise.all([
-        supabase.from('surveys').select('id', { count: 'exact', head: true }),
-        supabase
-          .from('email_campaigns' as any)
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'sent'),
-        supabase
-          .from('email_campaigns' as any)
-          .select('id', { count: 'exact', head: true })
-          .eq('status', 'draft'),
-        supabase.rpc('email_subscriber_count' as any),
-      ])
-
-      return {
-        totalSurveys: surveysRes.count ?? 0,
-        campaignsSent: campaignsRes.count ?? 0,
-        draftCampaigns: draftCampaignsRes.count ?? 0,
-        subscribers: (subscribersRes.data as number) ?? 0,
-      }
-    },
-    staleTime: 2 * 60 * 1000,
-  })
-}
+import { useCreateSummary } from '@/hooks/use-admin-create'
 
 /* ------------------------------------------------------------------ */
 /*  Quick action card                                                  */
@@ -61,6 +29,7 @@ function QuickAction({
   description,
   to,
   bg,
+  cardBg,
   reducedMotion,
   delay = 0,
 }: {
@@ -69,6 +38,7 @@ function QuickAction({
   description: string
   to: string
   bg: string
+  cardBg: string
   reducedMotion: boolean
   delay?: number
 }) {
@@ -80,8 +50,9 @@ function QuickAction({
         transition={{ duration: 0.25, delay: reducedMotion ? 0 : 0.15 + delay * 0.06 }}
         className={cn(
           'group relative flex flex-col items-center gap-2 p-4 rounded-xl text-center',
-          'bg-white shadow-sm border border-primary-100/40',
-          'hover:shadow-md active:scale-[0.97] transition-all duration-150',
+          cardBg,
+          'shadow-sm border border-white/60',
+          'hover:shadow-md hover:brightness-[1.03] active:scale-[0.97] transition-all duration-150',
         )}
       >
         <div className={cn(
@@ -92,7 +63,7 @@ function QuickAction({
         </div>
         <div>
           <p className="text-sm font-semibold text-primary-800 leading-tight">{label}</p>
-          <p className="text-[11px] text-primary-400 mt-0.5 leading-snug">{description}</p>
+          <p className="text-[11px] text-primary-500 mt-0.5 leading-snug">{description}</p>
         </div>
       </motion.div>
     </Link>
@@ -111,6 +82,8 @@ function SectionCard({
   stats,
   actions,
   accentColor,
+  cardBg,
+  actionBg,
   reducedMotion,
   delay = 0,
 }: {
@@ -121,6 +94,8 @@ function SectionCard({
   stats?: { label: string; value: number | string }[]
   actions?: { label: string; icon: React.ReactNode; to: string }[]
   accentColor: string
+  cardBg: string
+  actionBg: string
   reducedMotion: boolean
   delay?: number
 }) {
@@ -129,12 +104,12 @@ function SectionCard({
       initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: reducedMotion ? 0 : 0.2 + delay * 0.1 }}
-      className="rounded-2xl bg-white shadow-sm border border-primary-100/40 overflow-hidden flex flex-col"
+      className={cn('rounded-2xl shadow-sm border border-white/60 overflow-hidden flex flex-col', cardBg)}
     >
       {/* Header */}
       <Link
         to={to}
-        className="flex items-center gap-3.5 p-5 hover:bg-primary-50/40 transition-[colors,transform] duration-150 active:scale-[0.99] group"
+        className="flex items-center gap-3.5 p-5 hover:brightness-[1.03] transition-[colors,transform] duration-150 active:scale-[0.99] group"
       >
         <div className={cn(
           'flex items-center justify-center w-11 h-11 rounded-xl shrink-0',
@@ -146,18 +121,18 @@ function SectionCard({
           <h3 className="font-heading text-base font-bold text-primary-800 group-hover:text-primary-600 transition-colors">
             {title}
           </h3>
-          <p className="text-xs text-primary-400 mt-0.5">{description}</p>
+          <p className="text-xs text-primary-500 mt-0.5">{description}</p>
         </div>
-        <ArrowRight size={18} className="text-primary-300 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+        <ArrowRight size={18} className="text-primary-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
       </Link>
 
       {/* Stats row */}
       {stats && stats.length > 0 && (
-        <div className="flex divide-x divide-primary-100/60 border-t border-primary-100/40">
+        <div className="flex divide-x divide-white/40 border-t border-white/40">
           {stats.map((stat) => (
             <div key={stat.label} className="flex-1 py-3 px-4 text-center">
-              <p className="text-lg font-bold text-primary-700 tabular-nums">{stat.value}</p>
-              <p className="text-[11px] text-primary-400 font-medium mt-0.5">{stat.label}</p>
+              <p className="text-lg font-bold text-primary-800 tabular-nums">{stat.value}</p>
+              <p className="text-[11px] text-primary-500 font-medium mt-0.5">{stat.label}</p>
             </div>
           ))}
         </div>
@@ -165,14 +140,15 @@ function SectionCard({
 
       {/* Quick actions */}
       {actions && actions.length > 0 && (
-        <div className="border-t border-primary-100/40 p-3 flex flex-wrap gap-2 mt-auto">
+        <div className="border-t border-white/40 p-3 flex flex-wrap gap-2 mt-auto">
           {actions.map((action) => (
             <Link
               key={action.label}
               to={action.to}
               className={cn(
                 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold',
-                'bg-primary-50/80 text-primary-600 hover:bg-primary-100 transition-[colors,transform] duration-150 active:scale-[0.97]',
+                actionBg,
+                'transition-[colors,transform] duration-150 active:scale-[0.97]',
               )}
             >
               {action.icon}
@@ -235,15 +211,26 @@ export default function AdminCreatePage() {
         <SectionHeading icon={<Zap size={14} className="text-primary-400" />} reducedMotion={rm}>
           Quick Actions
         </SectionHeading>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+          <QuickAction
+            icon={<Megaphone size={18} className="text-white" />}
+            label="New Update"
+            description="Post to all members"
+            to="/admin/create/updates"
+            bg="bg-gradient-to-br from-secondary-500 to-secondary-700"
+            cardBg="bg-gradient-to-br from-secondary-50 to-secondary-100/80"
+            reducedMotion={rm}
+            delay={0}
+          />
           <QuickAction
             icon={<Plus size={18} className="text-white" />}
             label="New Task"
             description="Assign a task to leaders"
             to="/admin/workflows"
             bg="bg-gradient-to-br from-primary-600 to-primary-700"
+            cardBg="bg-gradient-to-br from-primary-50 to-primary-100/80"
             reducedMotion={rm}
-            delay={0}
+            delay={1}
           />
           <QuickAction
             icon={<ClipboardList size={18} className="text-white" />}
@@ -251,8 +238,9 @@ export default function AdminCreatePage() {
             description="Build from scratch"
             to="/admin/surveys/create"
             bg="bg-gradient-to-br from-moss-500 to-moss-600"
+            cardBg="bg-gradient-to-br from-moss-50 to-moss-100/80"
             reducedMotion={rm}
-            delay={1}
+            delay={2}
           />
           <QuickAction
             icon={<Send size={18} className="text-white" />}
@@ -260,8 +248,9 @@ export default function AdminCreatePage() {
             description="Draft an email"
             to="/admin/email"
             bg="bg-gradient-to-br from-sky-500 to-sky-700"
+            cardBg="bg-gradient-to-br from-sky-50 to-sky-100/80"
             reducedMotion={rm}
-            delay={2}
+            delay={3}
           />
           <QuickAction
             icon={<Copy size={18} className="text-white" />}
@@ -269,8 +258,9 @@ export default function AdminCreatePage() {
             description="Survey from template"
             to="/admin/surveys/create?template=0"
             bg="bg-gradient-to-br from-bark-500 to-bark-600"
+            cardBg="bg-gradient-to-br from-bark-50 to-bark-100/80"
             reducedMotion={rm}
-            delay={3}
+            delay={4}
           />
         </div>
       </div>
@@ -295,6 +285,8 @@ export default function AdminCreatePage() {
               description="Assign tasks to collective leaders with deadlines and KPI tracking"
               to="/admin/workflows"
               accentColor="bg-gradient-to-br from-primary-600 to-primary-700"
+              cardBg="bg-gradient-to-br from-primary-50 via-primary-50/60 to-primary-100/50"
+              actionBg="bg-primary-200/50 text-primary-700 hover:bg-primary-200/80"
               stats={[
                 { label: 'Templates', value: totalTemplates },
                 { label: 'Active', value: activeTemplates },
@@ -312,6 +304,8 @@ export default function AdminCreatePage() {
               description="Collect feedback from members and post-event satisfaction"
               to="/admin/surveys"
               accentColor="bg-gradient-to-br from-moss-500 to-moss-600"
+              cardBg="bg-gradient-to-br from-moss-50 via-moss-50/60 to-moss-100/50"
+              actionBg="bg-moss-200/50 text-moss-700 hover:bg-moss-200/80"
               stats={[
                 { label: 'Surveys', value: summary?.totalSurveys ?? 0 },
                 { label: 'Templates', value: 3 },
@@ -329,6 +323,8 @@ export default function AdminCreatePage() {
               description="Campaigns, subscribers, and delivery health"
               to="/admin/email"
               accentColor="bg-gradient-to-br from-sky-500 to-sky-700"
+              cardBg="bg-gradient-to-br from-sky-50 via-sky-50/60 to-sky-100/50"
+              actionBg="bg-sky-200/50 text-sky-700 hover:bg-sky-200/80"
               stats={[
                 { label: 'Subscribers', value: summary?.subscribers ?? 0 },
                 { label: 'Sent', value: summary?.campaignsSent ?? 0 },

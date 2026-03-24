@@ -59,6 +59,7 @@ import {
   MapView,
   UploadProgress,
 } from '@/components'
+import { useToast } from '@/components/toast'
 import type { MapCenter } from '@/components'
 import { cn } from '@/lib/cn'
 
@@ -1092,6 +1093,7 @@ export default function CreateEventPage() {
 
   const createEvent = useCreateEvent()
   const inviteCollective = useInviteCollective()
+  const { toast: toastApi } = useToast()
 
   const isLastStep = step === STEPS.length - 1
   const isFirstStep = step === 0
@@ -1118,75 +1120,88 @@ export default function CreateEventPage() {
 
       const isDraft = asDraft || saveAsDraft
 
-      // Get user's collective membership
-      const { data: memberships } = await supabase
-        .from('collective_members')
-        .select('collective_id, role')
-        .eq('user_id', user.id)
-        .in('role', ['leader', 'co_leader'])
-        .limit(1)
-
-      const collectiveId = memberships?.[0]?.collective_id
-      if (!collectiveId) return
-
       // Validate date_end > date_start if both set
       if (
         data.date_start &&
         data.date_end &&
         data.date_end <= data.date_start
       ) {
+        toastApi.error('End date must be after start date')
         return
       }
 
-      const capacityNum = data.capacity ? parseInt(data.capacity, 10) : null
-      const event = await createEvent.mutateAsync({
-        collective_id: collectiveId,
-        title: data.title,
-        description: data.description || null,
-        activity_type:
-          data.activity_type as Database['public']['Enums']['activity_type'],
-        date_start: data.date_start!.toISOString(),
-        date_end: data.date_end?.toISOString() ?? null,
-        address: data.address || null,
-        capacity: capacityNum && capacityNum > 0 ? capacityNum : null,
-        cover_image_url: data.cover_image_url || null,
-        is_public: data.is_public,
-        status: isDraft ? 'draft' : 'published',
-      })
+      try {
+        // Get user's collective membership
+        const { data: memberships, error: membershipError } = await supabase
+          .from('collective_members')
+          .select('collective_id, role')
+          .eq('user_id', user.id)
+          .in('role', ['leader', 'co_leader', 'assist_leader'])
+          .limit(1)
 
-      // Auto-invite collective if selected
-      if (data.invite_collective && !isDraft) {
-        await inviteCollective.mutateAsync({
-          eventId: event.id,
-          collectiveId,
-        })
-      }
+        if (membershipError) throw membershipError
 
-      // Auto-post event as rich card to collective chat
-      if (!isDraft) {
-        const dateStr = data.date_start
-          ? new Intl.DateTimeFormat('en-AU', {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-            }).format(data.date_start)
-          : ''
-        const chatContent = `New event created!\n\n**${data.title}**\n${dateStr}${data.address ? `\n${data.address}` : ''}\n\nTap to view and register → /events/${event.id}`
-        try {
-          await supabase.from('chat_messages').insert({
-            collective_id: collectiveId,
-            user_id: user.id,
-            content: chatContent,
-            message_type: 'event_card',
-            metadata: { event_id: event.id, event_title: data.title },
-          })
-        } catch {
-          // Non-critical
+        const collectiveId = memberships?.[0]?.collective_id
+        if (!collectiveId) {
+          toastApi.error('You must be a leader of a collective to create events')
+          return
         }
-      }
 
-      navigate(`/events/${event.id}`, { replace: true })
+        const capacityNum = data.capacity ? parseInt(data.capacity, 10) : null
+        const event = await createEvent.mutateAsync({
+          collective_id: collectiveId,
+          title: data.title,
+          description: data.description || null,
+          activity_type:
+            data.activity_type as Database['public']['Enums']['activity_type'],
+          date_start: data.date_start!.toISOString(),
+          date_end: data.date_end?.toISOString() ?? null,
+          address: data.address || null,
+          capacity: capacityNum && capacityNum > 0 ? capacityNum : null,
+          cover_image_url: data.cover_image_url || null,
+          is_public: data.is_public,
+          status: isDraft ? 'draft' : 'published',
+        })
+
+        // Auto-invite collective if selected
+        if (data.invite_collective && !isDraft) {
+          await inviteCollective.mutateAsync({
+            eventId: event.id,
+            collectiveId,
+          })
+        }
+
+        // Auto-post event as rich card to collective chat
+        if (!isDraft) {
+          const dateStr = data.date_start
+            ? new Intl.DateTimeFormat('en-AU', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              }).format(data.date_start)
+            : ''
+          const chatContent = `New event created!\n\n**${data.title}**\n${dateStr}${data.address ? `\n${data.address}` : ''}\n\nTap to view and register → /events/${event.id}`
+          try {
+            await supabase.from('chat_messages').insert({
+              collective_id: collectiveId,
+              user_id: user.id,
+              content: chatContent,
+              message_type: 'event_card',
+              metadata: { event_id: event.id, event_title: data.title },
+            })
+          } catch {
+            // Non-critical
+          }
+        }
+
+        navigate(`/events/${event.id}`, { replace: true })
+      } catch (err) {
+        console.error('[create-event] publish failed:', err)
+        toastApi.error(
+          isDraft ? 'Failed to save draft' : 'Failed to publish event',
+        )
+      }
     },
-    [user, data, saveAsDraft, createEvent, inviteCollective, navigate],
+    [user, data, saveAsDraft, createEvent, inviteCollective, navigate, toastApi],
   )
 
   const goNext = useCallback(() => {

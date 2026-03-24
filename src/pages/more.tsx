@@ -101,7 +101,7 @@ export default function MorePage() {
   )
 
   const updatesLinks: MenuLink[] = [
-    { label: 'Updates', to: '/announcements', icon: <Megaphone size={17} />, iconBg: 'bg-plum-50', iconColor: 'text-plum-600' },
+    { label: 'Updates', to: '/updates', icon: <Megaphone size={17} />, iconBg: 'bg-plum-50', iconColor: 'text-plum-600' },
     { label: 'Events', to: '/events', icon: <CalendarDays size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
     { label: 'Notifications', to: '/notifications', icon: <Bell size={17} />, iconBg: 'bg-error-50', iconColor: 'text-error-500' },
   ]

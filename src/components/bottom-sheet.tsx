@@ -3,10 +3,7 @@ import { createPortal } from 'react-dom'
 import {
     motion,
     AnimatePresence,
-    useMotionValue,
-    useTransform,
     useReducedMotion,
-    type PanInfo,
 } from 'framer-motion'
 import { cn } from '@/lib/cn'
 
@@ -21,12 +18,11 @@ interface BottomSheetProps {
   className?: string
 }
 
-const DISMISS_VELOCITY = 500
-const DISMISS_THRESHOLD_FRACTION = 0.25
 const MAX_HEIGHT_FRACTION = 0.92
 const DESKTOP_BREAKPOINT = 640
+const DISMISS_VELOCITY = 0.4   // px/ms — a quick flick
+const DISMISS_DISTANCE = 0.3   // fraction of sheet height
 
-const springConfig = { type: 'spring' as const, stiffness: 280, damping: 30, mass: 0.6 }
 const instantTransition = { duration: 0 }
 
 function useIsDesktop() {
@@ -44,10 +40,6 @@ function useIsDesktop() {
   return isDesktop
 }
 
-function getVh() {
-  return typeof window !== 'undefined' ? window.innerHeight : 800
-}
-
 export function BottomSheet({
   open,
   onClose,
@@ -57,30 +49,23 @@ export function BottomSheet({
   className,
 }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const previousFocusRef = useRef<HTMLElement | null>(null)
-  const y = useMotionValue(0)
   const shouldReduceMotion = useReducedMotion()
   const isDesktop = useIsDesktop()
 
-  // Stabilise snapPoints so a new array literal each render doesn't cause effect re-fires
   const snapKey = snapPoints.join(',')
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const stableSnapPoints = useMemo(() => snapPoints, [snapKey])
 
-  const vh = getVh()
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 800
   const maxHeight = vh * MAX_HEIGHT_FRACTION
-
-  // Target y when the sheet is open - this is the declarative animate target
   const snapFraction = stableSnapPoints[Math.min(initialSnap, stableSnapPoints.length - 1)]
-  const clampedFraction = Math.min(snapFraction, MAX_HEIGHT_FRACTION)
-  const openY = maxHeight - vh * clampedFraction
+  const sheetHeight = vh * Math.min(snapFraction, MAX_HEIGHT_FRACTION)
 
-  const backdropOpacity = useTransform(y, [openY, maxHeight], [1, 0])
-
-  // Track current snap for drag-end snapping
-  const [currentSnapY, setCurrentSnapY] = useState(openY)
-
-  // Body scroll lock
+  /* ------------------------------------------------------------------ */
+  /*  Body scroll lock                                                   */
+  /* ------------------------------------------------------------------ */
   useEffect(() => {
     if (open) {
       previousFocusRef.current = document.activeElement as HTMLElement
@@ -93,7 +78,9 @@ export function BottomSheet({
     }
   }, [open])
 
-  // Auto-focus first input once per open cycle
+  /* ------------------------------------------------------------------ */
+  /*  Auto-focus first input (preventScroll so content stays at top)     */
+  /* ------------------------------------------------------------------ */
   const hasFocusedRef = useRef(false)
   useEffect(() => {
     if (open && !hasFocusedRef.current) {
@@ -102,14 +89,23 @@ export function BottomSheet({
         const focusable = sheetRef.current?.querySelector<HTMLElement>(
           'input, textarea, select, [tabindex]:not([tabindex="-1"])',
         )
-        focusable?.focus()
+        focusable?.focus({ preventScroll: true })
       }, 120)
       return () => clearTimeout(timer)
     }
     if (!open) hasFocusedRef.current = false
   }, [open])
 
-  // Escape key
+  // Reset scroll position to top when sheet opens
+  useEffect(() => {
+    if (open && scrollRef.current) {
+      scrollRef.current.scrollTop = 0
+    }
+  }, [open])
+
+  /* ------------------------------------------------------------------ */
+  /*  Escape key                                                         */
+  /* ------------------------------------------------------------------ */
   useEffect(() => {
     if (!open) return
     const handleKey = (e: KeyboardEvent) => {
@@ -119,7 +115,9 @@ export function BottomSheet({
     return () => document.removeEventListener('keydown', handleKey)
   }, [open, onClose])
 
-  // Focus trap
+  /* ------------------------------------------------------------------ */
+  /*  Focus trap                                                         */
+  /* ------------------------------------------------------------------ */
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key !== 'Tab' || !sheetRef.current) return
 
@@ -144,53 +142,87 @@ export function BottomSheet({
     }
   }, [])
 
-  // Dismissing ref to prevent onClose firing multiple times
+  /* ------------------------------------------------------------------ */
+  /*  Dismiss guard                                                      */
+  /* ------------------------------------------------------------------ */
   const dismissingRef = useRef(false)
   useEffect(() => {
     if (!open) dismissingRef.current = false
   }, [open])
 
-  const handleDragEnd = useCallback(
-    (_: unknown, info: PanInfo) => {
-      if (dismissingRef.current) return
-      const currentY = y.get()
+  /* ------------------------------------------------------------------ */
+  /*  Handle drag (pointer events on grab bar only)                      */
+  /*  pointerdown on the handle, then move/up on window so we never      */
+  /*  lose the gesture even when the pointer leaves the element.         */
+  /* ------------------------------------------------------------------ */
+  const dragState = useRef<{ startY: number; startTime: number } | null>(null)
+  const dragYRef = useRef(0)
+  const [dragY, setDragY] = useState(0)        // px offset, 0 = resting, positive = pulled down
+  const [animating, setAnimating] = useState(false) // true when snapping back with CSS transition
 
-      // Dismiss if swiped down quickly or dragged past threshold
+  useEffect(() => {
+    if (open) { setDragY(0); dragYRef.current = 0; setAnimating(false) }
+  }, [open])
+
+  // Stable refs for the values the window listeners need
+  const sheetHeightRef = useRef(sheetHeight)
+  sheetHeightRef.current = sheetHeight
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (!dragState.current) return
+      const dy = e.clientY - dragState.current.startY
+      const val = Math.max(0, dy)
+      dragYRef.current = val
+      setDragY(val)
+    }
+
+    const onUp = () => {
+      if (!dragState.current) return
+      const dy = dragYRef.current
+      const dt = Date.now() - dragState.current.startTime
+      const velocity = dt > 0 ? dy / dt : 0
+      dragState.current = null
+
       if (
-        info.velocity.y > DISMISS_VELOCITY ||
-        currentY > maxHeight * (1 - DISMISS_THRESHOLD_FRACTION)
+        (velocity > DISMISS_VELOCITY || dy > sheetHeightRef.current * DISMISS_DISTANCE) &&
+        !dismissingRef.current
       ) {
         dismissingRef.current = true
-        onClose()
-        return
+        setDragY(sheetHeightRef.current + 40)
+        setAnimating(true)
+        setTimeout(() => onCloseRef.current(), 200)
+      } else {
+        setDragY(0)
+        dragYRef.current = 0
+        setAnimating(true)
+        setTimeout(() => setAnimating(false), 200)
       }
+    }
 
-      // Find nearest snap point
-      let nearestSnapY = openY
-      let nearestDist = Infinity
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    window.addEventListener('pointercancel', onUp)
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onUp)
+    }
+  }, [])
 
-      for (let i = 0; i < stableSnapPoints.length; i++) {
-        const frac = Math.min(stableSnapPoints[i], MAX_HEIGHT_FRACTION)
-        const snapY = maxHeight - vh * frac
-        const dist = Math.abs(currentY - snapY)
-        if (dist < nearestDist) {
-          nearestDist = dist
-          nearestSnapY = snapY
-        }
-      }
+  const onHandlePointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault()
+    dragState.current = { startY: e.clientY, startTime: Date.now() }
+    setAnimating(false)
+    dragYRef.current = 0
+    setDragY(0)
+  }, [])
 
-      setCurrentSnapY(nearestSnapY)
-    },
-    [y, maxHeight, vh, openY, stableSnapPoints, onClose],
-  )
-
-  // Sync currentSnapY when openY changes
-  useEffect(() => {
-    setCurrentSnapY(openY)
-  }, [openY])
-
-  /* ---- Scroll hint state ---- */
-  const scrollRef = useRef<HTMLDivElement>(null)
+  /* ------------------------------------------------------------------ */
+  /*  Scroll hint                                                        */
+  /* ------------------------------------------------------------------ */
   const [canScrollDown, setCanScrollDown] = useState(false)
 
   useEffect(() => {
@@ -211,12 +243,13 @@ export function BottomSheet({
     }
   }, [open])
 
-  /* ---- Backdrop animation ---- */
+  /* ------------------------------------------------------------------ */
+  /*  Desktop animation config                                           */
+  /* ------------------------------------------------------------------ */
   const backdropTransition = shouldReduceMotion
     ? instantTransition
     : { duration: 0.2, ease: 'easeOut' as const }
 
-  /* ---- Content stagger ---- */
   const contentVariants = {
     hidden: { opacity: 0, y: 8 },
     visible: {
@@ -228,17 +261,27 @@ export function BottomSheet({
     },
   }
 
+  /* ------------------------------------------------------------------ */
+  /*  Backdrop opacity tracks drag                                       */
+  /* ------------------------------------------------------------------ */
+  const backdropDragOpacity = sheetHeight > 0
+    ? Math.max(0, 1 - dragY / sheetHeight)
+    : 1
+
+  /* ------------------------------------------------------------------ */
+  /*  Render                                                             */
+  /* ------------------------------------------------------------------ */
   return createPortal(
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-50" aria-label="Dialog">
-          {/* Backdrop - GPU-promoted for blur perf */}
+          {/* Backdrop */}
           <motion.div
             className="fixed inset-0 bg-black/50 gpu-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: backdropTransition }}
             exit={{ opacity: 0, transition: shouldReduceMotion ? instantTransition : { duration: 0.18, ease: [0.4, 0, 0.2, 1] } }}
-            style={isDesktop ? undefined : { opacity: backdropOpacity }}
+            style={isDesktop ? undefined : { opacity: backdropDragOpacity }}
             onClick={onClose}
             aria-hidden="true"
           />
@@ -271,7 +314,6 @@ export function BottomSheet({
                 >
                   {children}
                 </motion.div>
-                {/* Scroll hint gradient */}
                 <AnimatePresence>
                   {canScrollDown && (
                     <motion.div
@@ -286,55 +328,60 @@ export function BottomSheet({
               </motion.div>
             </div>
           ) : (
-            /* ---- Mobile: bottom sheet ---- */
+            /* -------------------------------------------------------- */
+            /*  Mobile: bottom sheet                                     */
+            /*  - Positioned with bottom:0, slides up via translateY    */
+            /*  - Framer handles enter/exit only                        */
+            /*  - Drag is raw pointer events → inline transform         */
+            /* -------------------------------------------------------- */
             <motion.div
               ref={sheetRef}
               role="dialog"
               aria-modal="true"
               aria-label="Bottom sheet"
               className={cn(
-                'fixed inset-x-0 bottom-0 z-10 bg-surface-0 rounded-t-2xl shadow-lg gpu-panel',
-                'touch-none',
+                'fixed inset-x-0 bottom-0 z-10 bg-surface-0 rounded-t-2xl shadow-lg gpu-panel flex flex-col',
                 className,
               )}
               style={{
-                height: maxHeight,
-                y,
+                maxHeight: maxHeight,
+                // During drag we set transform directly; otherwise framer controls it
+                ...(dragY > 0 || animating
+                  ? {
+                      transform: `translateY(${dragY}px)`,
+                      transition: animating ? 'transform 0.2s ease-out' : 'none',
+                    }
+                  : {}),
               }}
-              initial={{ y: maxHeight }}
-              animate={{ y: currentSnapY }}
-              exit={{ y: maxHeight }}
-              transition={shouldReduceMotion ? instantTransition : springConfig}
-              drag="y"
-              dragConstraints={{ top: 0, bottom: maxHeight }}
-              dragElastic={0.1}
-              onDragEnd={handleDragEnd}
+              // Framer only handles mount/unmount slide
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={
+                shouldReduceMotion
+                  ? instantTransition
+                  : { type: 'spring', stiffness: 400, damping: 34, mass: 0.8 }
+              }
               onKeyDown={handleKeyDown}
             >
-              {/* Handle bar - respects safe area */}
+              {/* Grab handle — only this area initiates drag */}
               <div
-                className="flex justify-center pb-2 cursor-grab active:cursor-grabbing"
+                className="flex justify-center py-3 cursor-grab active:cursor-grabbing touch-none select-none shrink-0"
                 style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 0.75rem)' }}
+                onPointerDown={onHandlePointerDown}
               >
-                <div
-                  className="h-1 w-10 rounded-full bg-primary-200"
-                  aria-hidden="true"
-                />
+                <div className="h-1 w-10 rounded-full bg-primary-200" aria-hidden="true" />
               </div>
 
-              <motion.div
+              {/* Scrollable content */}
+              <div
                 ref={scrollRef}
-                className="overflow-y-auto overscroll-contain px-5 pb-6"
-                style={{
-                  maxHeight: maxHeight - 28,
-                  paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 1.5rem)',
-                }}
-                variants={contentVariants}
-                initial="hidden"
-                animate="visible"
+                className="overflow-y-auto overscroll-contain px-5 pb-6 flex-1 min-h-0"
+                style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 1.5rem)' }}
               >
                 {children}
-              </motion.div>
+              </div>
+
               {/* Scroll hint gradient */}
               <AnimatePresence>
                 {canScrollDown && (

@@ -93,7 +93,7 @@ export function resolveNotificationRoute(
     case 'points_earned':
       return '/'
     case 'global_announcement':
-      return '/announcements'
+      return '/updates'
     case 'challenge_update':
       return '/'
     case 'chat_mention':

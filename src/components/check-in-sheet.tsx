@@ -414,12 +414,13 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
     }
   }, [step, onClose])
 
-  /* ---- Snap points: taller for details form, medium for check-in ---- */
-  const snapPoints = step === 'details' ? [0.92] : step === 'success' ? [0.7] : [0.65]
+  /* ---- Single snap point so the sheet never jumps between steps ---- */
+  const snapPoints = [0.92]
 
   return (
     <>
       <BottomSheet open={open} onClose={handleClose} snapPoints={snapPoints}>
+        <div className="h-[70vh] overflow-y-auto relative">
         <AnimatePresence mode="wait">
           {/* ══════════════════════════════════════════════════════════ */}
           {/*  STEP: Profile Details (blocks check-in)                  */}
@@ -427,9 +428,10 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
           {step === 'details' && (
             <motion.div
               key="details"
-              initial={rm ? undefined : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={rm ? undefined : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={rm ? { opacity: 0 } : { opacity: 0, y: -12 }}
+              transition={rm ? { duration: 0 } : { duration: 0.25, ease: 'easeInOut' }}
               className="pb-4"
             >
               <div className="text-center mb-5">
@@ -564,13 +566,22 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
           {step === 'checkin' && (
             <motion.div
               key="checkin"
-              initial={rm ? undefined : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={rm ? undefined : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={rm ? { opacity: 0 } : { opacity: 0, y: -12 }}
+              transition={rm ? { duration: 0 } : { duration: 0.25, ease: 'easeInOut' }}
               className="pb-2"
             >
+              <AnimatePresence mode="wait" initial={false}>
               {mode === 'scanning' ? (
-                <div className="flex flex-col items-center py-4 text-center">
+                <motion.div
+                  key="scanning"
+                  initial={rm ? undefined : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                  transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
+                  className="flex flex-col items-center py-4 text-center"
+                >
                   {isNative ? (
                     /* Native: Capacitor handles the camera overlay */
                     <div className="relative w-52 h-52 rounded-2xl bg-primary-50/60 shadow-sm flex items-center justify-center mb-5">
@@ -601,9 +612,16 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                       Cancel
                     </Button>
                   </div>
-                </div>
+                </motion.div>
               ) : mode === 'manual' ? (
-                <div className="py-4">
+                <motion.div
+                  key="manual"
+                  initial={rm ? undefined : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                  transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
+                  className="h-[70vh] flex flex-col"
+                >
                   <button
                     type="button"
                     onClick={() => { setMode('idle'); setManualCode('') }}
@@ -612,7 +630,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                     <ChevronLeft size={16} />
                     Back
                   </button>
-                  <div className="space-y-3">
+                  <div className="flex-1 flex flex-col items-center justify-center space-y-3 w-full px-4">
                     <Input
                       ref={inputRef as React.Ref<HTMLInputElement>}
                       label="Check-in Code"
@@ -633,10 +651,17 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                       Check In
                     </Button>
                   </div>
-                </div>
+                </motion.div>
               ) : (
                 /* ---- Idle: main check-in menu ---- */
-                <div className="py-2">
+                <motion.div
+                  key="idle"
+                  initial={rm ? undefined : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
+                  transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
+                  className="py-2"
+                >
                   <div className="text-center mb-5">
                     <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
                       <QrCode size={26} className="text-primary-500" />
@@ -722,8 +747,9 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                       </Button>
                     </>
                   )}
-                </div>
+                </motion.div>
               )}
+              </AnimatePresence>
             </motion.div>
           )}
 
@@ -813,8 +839,10 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
           {step === 'error' && (
             <motion.div
               key="error"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={rm ? undefined : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={rm ? { opacity: 0 } : { opacity: 0, y: -12 }}
+              transition={rm ? { duration: 0 } : { duration: 0.25, ease: 'easeInOut' }}
               className="flex flex-col items-center py-8 text-center"
             >
               <div className="w-14 h-14 rounded-full bg-error-100 flex items-center justify-center mb-4">
@@ -843,6 +871,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       </BottomSheet>
 
       <Celebration

@@ -12,21 +12,21 @@ import type {
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-export interface AnnouncementWithAuthor extends GlobalAnnouncement {
+export interface UpdateWithAuthor extends GlobalAnnouncement {
   author: Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'role'> | null
   is_read: boolean
 }
 
 /* ------------------------------------------------------------------ */
-/*  Fetch announcements (with read status for current user)            */
+/*  Fetch updates (with read status for current user)                  */
 /* ------------------------------------------------------------------ */
 
-export function useAnnouncements() {
+export function useUpdates() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
 
   const query = useQuery({
-    queryKey: ['announcements', user?.id],
+    queryKey: ['updates', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('global_announcements')
@@ -54,12 +54,12 @@ export function useAnnouncements() {
       return (data ?? []).map((a) => ({
         ...a,
         is_read: readIds.has(a.id),
-      })) as AnnouncementWithAuthor[]
+      })) as UpdateWithAuthor[]
     },
     staleTime: 2 * 60 * 1000,
   })
 
-  // Realtime for new announcements
+  // Realtime for new updates
   useEffect(() => {
     const channel = supabase
       .channel('global_announcements')
@@ -71,7 +71,7 @@ export function useAnnouncements() {
           table: 'global_announcements',
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['announcements'] })
+          queryClient.invalidateQueries({ queryKey: ['updates'] })
         },
       )
       .subscribe()
@@ -89,18 +89,18 @@ export function useAnnouncements() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Unread announcement count                                          */
+/*  Unread update count                                                */
 /* ------------------------------------------------------------------ */
 
-export function useUnreadAnnouncementCount() {
+export function useUnreadUpdateCount() {
   const { user } = useAuth()
 
   return useQuery({
-    queryKey: ['announcements-unread', user?.id],
+    queryKey: ['updates-unread', user?.id],
     queryFn: async () => {
       if (!user) return 0
 
-      // Total announcements
+      // Total updates
       const { count: total } = await supabase
         .from('global_announcements')
         .select('*', { count: 'exact', head: true })
@@ -119,50 +119,50 @@ export function useUnreadAnnouncementCount() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Mark announcement as read                                          */
+/*  Mark update as read                                                */
 /* ------------------------------------------------------------------ */
 
-export function useMarkAnnouncementRead() {
+export function useMarkUpdateRead() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (announcementId: string) => {
+    mutationFn: async (updateId: string) => {
       if (!user) return
 
       const { error } = await supabase
         .from('announcement_reads')
         .upsert(
-          { announcement_id: announcementId, user_id: user.id },
+          { announcement_id: updateId, user_id: user.id },
           { onConflict: 'announcement_id,user_id' },
         )
 
       if (error) throw error
     },
-    onMutate: async (announcementId) => {
-      await queryClient.cancelQueries({ queryKey: ['announcements'] })
-      const previous = queryClient.getQueryData<AnnouncementWithAuthor[]>(['announcements', user?.id])
-      queryClient.setQueryData<AnnouncementWithAuthor[]>(['announcements', user?.id], (old) => {
+    onMutate: async (updateId) => {
+      await queryClient.cancelQueries({ queryKey: ['updates'] })
+      const previous = queryClient.getQueryData<UpdateWithAuthor[]>(['updates', user?.id])
+      queryClient.setQueryData<UpdateWithAuthor[]>(['updates', user?.id], (old) => {
         if (!old) return old
-        return old.map(a => a.id === announcementId ? { ...a, is_read: true } : a)
+        return old.map(a => a.id === updateId ? { ...a, is_read: true } : a)
       })
       return { previous }
     },
     onError: (_err, _, context) => {
-      if (context?.previous) queryClient.setQueryData(['announcements', user?.id], context.previous)
+      if (context?.previous) queryClient.setQueryData(['updates', user?.id], context.previous)
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['announcements'] })
-      queryClient.invalidateQueries({ queryKey: ['announcements-unread'] })
+      queryClient.invalidateQueries({ queryKey: ['updates'] })
+      queryClient.invalidateQueries({ queryKey: ['updates-unread'] })
     },
   })
 }
 
 /* ------------------------------------------------------------------ */
-/*  Create announcement (staff/admin)                                  */
+/*  Create update (staff/admin)                                        */
 /* ------------------------------------------------------------------ */
 
-interface CreateAnnouncementParams {
+interface CreateUpdateParams {
   title: string
   content: string
   imageUrls?: string[]
@@ -172,12 +172,12 @@ interface CreateAnnouncementParams {
   isPinned?: boolean
 }
 
-export function useCreateAnnouncement() {
+export function useCreateUpdate() {
   const { user, profile } = useAuth()
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (params: CreateAnnouncementParams) => {
+    mutationFn: async (params: CreateUpdateParams) => {
       if (!user) throw new Error('Not authenticated')
 
       const urls = params.imageUrls ?? []
@@ -201,11 +201,11 @@ export function useCreateAnnouncement() {
       return data
     },
     onMutate: async (params) => {
-      await queryClient.cancelQueries({ queryKey: ['announcements'] })
-      const previous = queryClient.getQueryData<AnnouncementWithAuthor[]>(['announcements', user?.id])
+      await queryClient.cancelQueries({ queryKey: ['updates'] })
+      const previous = queryClient.getQueryData<UpdateWithAuthor[]>(['updates', user?.id])
 
       const urls = params.imageUrls ?? []
-      const optimistic: AnnouncementWithAuthor = {
+      const optimistic: UpdateWithAuthor = {
         id: `optimistic-${Date.now()}`,
         author_id: user!.id,
         title: params.title,
@@ -220,18 +220,18 @@ export function useCreateAnnouncement() {
         updated_at: new Date().toISOString(),
         author: { id: user!.id, display_name: profile?.display_name ?? null, avatar_url: profile?.avatar_url ?? null, role: profile?.role ?? null },
         is_read: true,
-      } as AnnouncementWithAuthor
+      } as UpdateWithAuthor
 
-      queryClient.setQueryData<AnnouncementWithAuthor[]>(['announcements', user?.id], (old) =>
+      queryClient.setQueryData<UpdateWithAuthor[]>(['updates', user?.id], (old) =>
         old ? [optimistic, ...old] : [optimistic],
       )
       return { previous }
     },
     onError: (_err, _, context) => {
-      if (context?.previous) queryClient.setQueryData(['announcements', user?.id], context.previous)
+      if (context?.previous) queryClient.setQueryData(['updates', user?.id], context.previous)
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['announcements'] })
+      queryClient.invalidateQueries({ queryKey: ['updates'] })
     },
   })
 }

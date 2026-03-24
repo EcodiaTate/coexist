@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, AnimatePresence, type Variants } from 'framer-motion'
-import { ArrowLeft, Pin, Megaphone, AlertTriangle, ChevronRight, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Pin, Megaphone, AlertTriangle, Image as ImageIcon } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Avatar } from '@/components/avatar'
@@ -9,13 +8,12 @@ import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { SearchBar } from '@/components/search-bar'
 import { cn } from '@/lib/cn'
-import { useAuth } from '@/hooks/use-auth'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import {
-    useAnnouncements,
-    useMarkAnnouncementRead,
-    type AnnouncementWithAuthor,
-} from '@/hooks/use-announcements'
+    useUpdates,
+    useMarkUpdateRead,
+    type UpdateWithAuthor,
+} from '@/hooks/use-updates'
 
 /* ------------------------------------------------------------------ */
 /*  Animations                                                         */
@@ -49,13 +47,13 @@ function formatDate(dateStr: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Get all images for an announcement                                 */
+/*  Get all images for an update                                 */
 /* ------------------------------------------------------------------ */
 
-function getImages(announcement: AnnouncementWithAuthor): string[] {
-  const urls = (announcement as any).image_urls as string[] | undefined
+function getImages(update: UpdateWithAuthor): string[] {
+  const urls = (update as any).image_urls as string[] | undefined
   if (urls && urls.length > 0) return urls
-  if (announcement.image_url) return [announcement.image_url]
+  if (update.image_url) return [update.image_url]
   return []
 }
 
@@ -128,18 +126,18 @@ function DecorativeBackground() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Full-screen announcement detail overlay                            */
+/*  Full-screen update detail overlay                            */
 /* ------------------------------------------------------------------ */
 
-function AnnouncementDetail({
-  announcement,
+function UpdateDetail({
+  update,
   onClose,
 }: {
-  announcement: AnnouncementWithAuthor
+  update: UpdateWithAuthor
   onClose: () => void
 }) {
-  const images = getImages(announcement)
-  const isUrgent = announcement.priority === 'urgent'
+  const images = getImages(update)
+  const isUrgent = update.priority === 'urgent'
   const splashImage = images[0] ?? null
   const extraImages = images.slice(1)
 
@@ -175,7 +173,7 @@ function AnnouncementDetail({
             <ArrowLeft size={20} />
           </button>
           {!splashImage && (
-            <span className="ml-2 text-sm font-semibold text-primary-500">Announcement</span>
+            <span className="ml-2 text-sm font-semibold text-primary-500">Update</span>
           )}
         </div>
       </div>
@@ -198,9 +196,9 @@ function AnnouncementDetail({
         splashImage ? '-mt-8 relative z-10' : 'pt-6',
       )}>
         {/* Badges */}
-        {(announcement.is_pinned || isUrgent) && (
+        {(update.is_pinned || isUrgent) && (
           <div className="flex items-center gap-2 mb-3">
-            {announcement.is_pinned && (
+            {update.is_pinned && (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">
                 <Pin size={10} aria-hidden="true" />
                 Pinned
@@ -217,29 +215,29 @@ function AnnouncementDetail({
 
         {/* Title */}
         <h1 className="font-heading text-2xl lg:text-3xl font-bold text-primary-900 leading-tight mb-4">
-          {announcement.title}
+          {update.title}
         </h1>
 
         {/* Author + time – no role label */}
         <div className="flex items-center gap-3 mb-6 pb-5 border-b border-primary-100">
           <Avatar
-            src={announcement.author?.avatar_url}
-            name={announcement.author?.display_name ?? 'Staff'}
+            src={update.author?.avatar_url}
+            name={update.author?.display_name ?? 'Staff'}
             size="sm"
           />
           <div className="flex-1 min-w-0">
             <span className="text-sm font-semibold text-primary-800">
-              {announcement.author?.display_name ?? 'Co-Exist Team'}
+              {update.author?.display_name ?? 'Co-Exist Team'}
             </span>
             <p className="text-xs text-primary-400 mt-0.5">
-              {formatDate(announcement.created_at)}
+              {formatDate(update.created_at)}
             </p>
           </div>
         </div>
 
         {/* Content */}
         <div className="text-[15px] lg:text-base text-primary-700 leading-[1.8] whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
-          {announcement.content}
+          {update.content}
         </div>
 
         {/* Additional images (after content, below the splash) */}
@@ -258,21 +256,21 @@ function AnnouncementDetail({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Announcement card – compact white card                             */
+/*  Update card – compact white card                                   */
 /* ------------------------------------------------------------------ */
 
-function AnnouncementCard({
-  announcement,
+function UpdateCard({
+  update,
   onRead,
   onOpen,
 }: {
-  announcement: AnnouncementWithAuthor
+  update: UpdateWithAuthor
   onRead: () => void
   onOpen: () => void
 }) {
-  const isUrgent = announcement.priority === 'urgent'
-  const isUnread = !announcement.is_read
-  const images = getImages(announcement)
+  const isUrgent = update.priority === 'urgent'
+  const isUnread = !update.is_read
+  const images = getImages(update)
 
   const handleTap = () => {
     if (isUnread) onRead()
@@ -292,22 +290,22 @@ function AnnouncementCard({
         'hover:shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]',
         'hover:border-primary-200/60',
         isUrgent && 'border-warning-200/60 bg-gradient-to-r from-white to-warning-50/30',
-        announcement.is_pinned && !isUrgent && 'border-primary-200/50 bg-gradient-to-r from-white to-primary-50/20',
+        update.is_pinned && !isUrgent && 'border-primary-200/50 bg-gradient-to-r from-white to-primary-50/20',
         isUnread && 'border-l-[3px] border-l-primary-500',
       )}
       role="article"
-      aria-label={announcement.title}
+      aria-label={update.title}
     >
       <div className="flex gap-3.5 p-3.5">
         {/* Left: Content */}
         <div className="flex-1 min-w-0">
           {/* Badges row */}
-          {(announcement.is_pinned || isUrgent || isUnread) && (
+          {(update.is_pinned || isUrgent || isUnread) && (
             <div className="flex items-center gap-1.5 mb-1.5">
               {isUnread && (
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0" aria-hidden="true" />
               )}
-              {announcement.is_pinned && (
+              {update.is_pinned && (
                 <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary-500">
                   <Pin size={9} aria-hidden="true" />
                   Pinned
@@ -324,26 +322,26 @@ function AnnouncementCard({
 
           {/* Title */}
           <h3 className="font-heading font-bold text-sm leading-snug text-primary-900 line-clamp-2 group-hover:text-primary-700 transition-colors">
-            {announcement.title}
+            {update.title}
           </h3>
 
           {/* Content preview */}
           <p className="mt-1 text-xs leading-relaxed text-primary-500 line-clamp-2">
-            {announcement.content}
+            {update.content}
           </p>
 
           {/* Footer: author + time */}
           <div className="flex items-center gap-2 mt-2.5">
             <Avatar
-              src={announcement.author?.avatar_url}
-              name={announcement.author?.display_name ?? 'Staff'}
+              src={update.author?.avatar_url}
+              name={update.author?.display_name ?? 'Staff'}
               size="xs"
             />
             <span className="text-[11px] font-semibold text-primary-700 truncate">
-              {announcement.author?.display_name ?? 'Co-Exist Team'}
+              {update.author?.display_name ?? 'Co-Exist Team'}
             </span>
             <span className="text-[10px] text-primary-300 shrink-0">
-              {formatDate(announcement.created_at)}
+              {formatDate(update.created_at)}
             </span>
             {images.length > 1 && (
               <span className="inline-flex items-center gap-0.5 text-[10px] text-primary-300 shrink-0 ml-auto">
@@ -362,18 +360,16 @@ function AnnouncementCard({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Announcements page                                                 */
+/*  Updates page                                                        */
 /* ------------------------------------------------------------------ */
 
-export default function AnnouncementsPage() {
-  const navigate = useNavigate()
-  const { isAdmin } = useAuth()
+export default function UpdatesPage() {
   const shouldReduceMotion = useReducedMotion()
-  const { pinned, regular, isLoading, refetch } = useAnnouncements()
+  const { pinned, regular, isLoading, refetch } = useUpdates()
   const showLoading = useDelayedLoading(isLoading)
-  const markRead = useMarkAnnouncementRead()
+  const markRead = useMarkUpdateRead()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<AnnouncementWithAuthor | null>(null)
+  const [selectedUpdate, setSelectedUpdate] = useState<UpdateWithAuthor | null>(null)
 
   const isEmpty = !isLoading && pinned.length === 0 && regular.length === 0
 
@@ -398,7 +394,7 @@ export default function AnnouncementsPage() {
     : regular
 
   return (
-    <Page swipeBack noBackground className="!px-0 bg-surface-1" header={<Header title="Announcements" back />}>
+    <Page swipeBack noBackground className="!px-0 bg-surface-1" header={<Header title="Updates" back />}>
       <div className="relative min-h-full">
         <DecorativeBackground />
 
@@ -415,7 +411,7 @@ export default function AnnouncementsPage() {
               <Megaphone size={14} className="text-white" />
             </div>
             <h1 className="font-heading text-xl font-bold text-primary-900 tracking-tight">
-              Announcements
+              Updates
             </h1>
           </motion.div>
 
@@ -428,42 +424,11 @@ export default function AnnouncementsPage() {
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
-              placeholder="Search announcements..."
+              placeholder="Search updates..."
               compact
-              aria-label="Search announcements"
+              aria-label="Search updates"
             />
           </motion.div>
-
-          {/* Create announcement – admin only */}
-          {isAdmin && (
-            <motion.button
-              type="button"
-              onClick={() => navigate('/announcements/create')}
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.25, delay: 0.1 }}
-              className={cn(
-                'flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-left',
-                'bg-white border border-primary-100/80',
-                'shadow-[0_1px_3px_rgba(0,0,0,0.04)]',
-                'hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-primary-200/60',
-                'transition-all duration-200 cursor-pointer active:scale-[0.98]',
-              )}
-            >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-secondary-600 flex items-center justify-center shrink-0 shadow-sm">
-                <Megaphone size={15} className="text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-primary-800">
-                  New announcement
-                </p>
-                <p className="text-[11px] text-primary-400 mt-0.5">
-                  Updates, invites, recaps, news
-                </p>
-              </div>
-              <ChevronRight size={16} strokeWidth={2.5} className="text-primary-300 shrink-0" />
-            </motion.button>
-          )}
 
           {showLoading ? (
             <div className="space-y-3">
@@ -474,7 +439,7 @@ export default function AnnouncementsPage() {
           ) : isEmpty ? (
             <EmptyState
               illustration="empty"
-              title="No announcements"
+              title="No updates yet"
               description="Check back later for updates from the Co-Exist team"
               action={{ label: 'Go Home', to: '/' }}
             />
@@ -490,11 +455,11 @@ export default function AnnouncementsPage() {
                 {filteredPinned.length > 0 && (
                   <div className="space-y-2">
                     {filteredPinned.map((a) => (
-                      <AnnouncementCard
+                      <UpdateCard
                         key={a.id}
-                        announcement={a}
+                        update={a}
                         onRead={() => markRead.mutate(a.id)}
-                        onOpen={() => setSelectedAnnouncement(a)}
+                        onOpen={() => setSelectedUpdate(a)}
                       />
                     ))}
                   </div>
@@ -515,11 +480,11 @@ export default function AnnouncementsPage() {
                 {filteredRegular.length > 0 && (
                   <div className="space-y-2">
                     {filteredRegular.map((a) => (
-                      <AnnouncementCard
+                      <UpdateCard
                         key={a.id}
-                        announcement={a}
+                        update={a}
                         onRead={() => markRead.mutate(a.id)}
-                        onOpen={() => setSelectedAnnouncement(a)}
+                        onOpen={() => setSelectedUpdate(a)}
                       />
                     ))}
                   </div>
@@ -529,7 +494,7 @@ export default function AnnouncementsPage() {
                   <EmptyState
                     illustration="search"
                     title="No results"
-                    description={`No announcements matching "${searchQuery}"`}
+                    description={`No updates matching "${searchQuery}"`}
                   />
                 )}
               </motion.div>
@@ -540,10 +505,10 @@ export default function AnnouncementsPage() {
 
       {/* Full-screen detail overlay */}
       <AnimatePresence>
-        {selectedAnnouncement && (
-          <AnnouncementDetail
-            announcement={selectedAnnouncement}
-            onClose={() => setSelectedAnnouncement(null)}
+        {selectedUpdate && (
+          <UpdateDetail
+            update={selectedUpdate}
+            onClose={() => setSelectedUpdate(null)}
           />
         )}
       </AnimatePresence>

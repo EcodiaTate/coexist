@@ -20,7 +20,7 @@ export const CAPABILITIES: CapabilityDef[] = [
 
   // Content & Moderation
   { key: 'manage_content', label: 'Manage Content', description: 'Moderate posts, photos, chat messages', category: 'content' },
-  { key: 'send_announcements', label: 'Send Announcements', description: 'Create/publish global announcements', category: 'content' },
+  { key: 'send_announcements', label: 'Send Updates', description: 'Create/publish global updates', category: 'content' },
   { key: 'manage_email', label: 'Manage Email', description: 'Create and send email campaigns', category: 'content' },
 
   // Operations

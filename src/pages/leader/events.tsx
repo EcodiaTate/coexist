@@ -10,75 +10,15 @@ import {
     ChevronRight,
     Search,
 } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader, useLeaderContext } from '@/components/leader-layout'
 import { Badge } from '@/components/badge'
 import { cn } from '@/lib/cn'
-import { supabase } from '@/lib/supabase'
 import {
     ACTIVITY_TYPE_LABELS,
     formatEventDate,
 } from '@/hooks/use-events'
-
-/* ------------------------------------------------------------------ */
-/*  Data                                                               */
-/* ------------------------------------------------------------------ */
-
-function useCollectiveEvents(collectiveId: string | undefined, filter: string) {
-  return useQuery({
-    queryKey: ['leader-events', collectiveId, filter],
-    queryFn: async () => {
-      if (!collectiveId) return []
-      const now = new Date().toISOString()
-
-      let q = supabase
-        .from('events' as any)
-        .select('id, title, date_start, date_end, address, cover_image_url, activity_type, status, event_registrations(count)')
-        .eq('collective_id', collectiveId)
-        .order('date_start', { ascending: filter === 'upcoming' })
-
-      if (filter === 'upcoming') {
-        q = q.gte('date_start', now)
-      } else if (filter === 'past') {
-        q = q.lt('date_start', now)
-      } else if (filter === 'draft') {
-        q = q.eq('status', 'draft')
-      }
-
-      const { data } = await q.limit(50)
-      return (data ?? []) as any[]
-    },
-    enabled: !!collectiveId,
-    staleTime: 2 * 60 * 1000,
-  })
-}
-
-function useEventStats(collectiveId: string | undefined) {
-  return useQuery({
-    queryKey: ['leader-event-stats', collectiveId],
-    queryFn: async () => {
-      if (!collectiveId) return { total: 0, upcoming: 0, past: 0, drafts: 0 }
-      const now = new Date().toISOString()
-
-      const [totalRes, upcomingRes, pastRes, draftRes] = await Promise.all([
-        supabase.from('events').select('id', { count: 'exact', head: true }).eq('collective_id', collectiveId),
-        supabase.from('events').select('id', { count: 'exact', head: true }).eq('collective_id', collectiveId).gte('date_start', now),
-        supabase.from('events').select('id', { count: 'exact', head: true }).eq('collective_id', collectiveId).lt('date_start', now),
-        supabase.from('events').select('id', { count: 'exact', head: true }).eq('collective_id', collectiveId).eq('status', 'draft'),
-      ])
-
-      return {
-        total: totalRes.count ?? 0,
-        upcoming: upcomingRes.count ?? 0,
-        past: pastRes.count ?? 0,
-        drafts: draftRes.count ?? 0,
-      }
-    },
-    enabled: !!collectiveId,
-    staleTime: 2 * 60 * 1000,
-  })
-}
+import { useLeaderCollectiveEvents as useCollectiveEvents, useLeaderEventStats as useEventStats } from '@/hooks/use-leader-events'
 
 /* ------------------------------------------------------------------ */
 /*  Animation                                                          */

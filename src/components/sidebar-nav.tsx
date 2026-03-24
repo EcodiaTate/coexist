@@ -24,7 +24,7 @@ const mainCategories: SidebarNavCategory[] = [
     label: 'Main',
     items: [
       { label: 'Home', path: '/', icon: <Home size={17} strokeWidth={1.5} />, desktopOnly: true },
-      { label: 'Updates', path: '/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> },
+      { label: 'Updates', path: '/updates', icon: <Megaphone size={17} strokeWidth={1.5} /> },
       { label: 'Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
       { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true },
       { label: 'Notifications', path: '/notifications', icon: <Bell size={17} strokeWidth={1.5} /> },

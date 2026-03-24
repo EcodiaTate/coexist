@@ -34,7 +34,7 @@ import {
     ExternalLink,
     Eye,
 } from 'lucide-react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { EmptyState } from '@/components/empty-state'
 import { Avatar } from '@/components/avatar'
@@ -48,9 +48,8 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { useToast } from '@/components/toast'
-import { supabase } from '@/lib/supabase'
 import { APP_NAME } from '@/lib/constants'
-import { useUnreadAnnouncementCount } from '@/hooks/use-announcements'
+import { useUnreadUpdateCount } from '@/hooks/use-updates'
 import {
     useMyTasks,
     useCompleteTask,
@@ -60,286 +59,13 @@ import {
     type MyTask,
 } from '@/hooks/use-tasks'
 import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
-
-/* ------------------------------------------------------------------ */
-/*  Data hooks                                                         */
-/* ------------------------------------------------------------------ */
-
-function useLeaderDashboard(collectiveId: string | undefined) {
-  return useQuery({
-    queryKey: ['leader-dashboard', collectiveId],
-    queryFn: async () => {
-      if (!collectiveId) throw new Error('No collective')
-
-      const now = new Date()
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-
-      const [
-        membersRes,
-        upcomingEventsRes,
-        monthEventsRes,
-        monthHoursRes,
-        recentActivityRes,
-      ] = await Promise.all([
-        supabase
-          .from('collective_members')
-          .select('id', { count: 'exact', head: true })
-          .eq('collective_id', collectiveId),
-        supabase
-          .from('events' as any)
-          .select('id, title, date_start, address, cover_image_url')
-          .eq('collective_id', collectiveId)
-          .gte('date_start', now.toISOString())
-          .order('date_start', { ascending: true })
-          .limit(5),
-        supabase
-          .from('events')
-          .select('id', { count: 'exact', head: true })
-          .eq('collective_id', collectiveId)
-          .gte('date_start', startOfMonth),
-        supabase
-          .from('event_impact')
-          .select('hours_total, events!inner(collective_id)')
-          .eq('events.collective_id' as any, collectiveId)
-          .gte('logged_at', startOfMonth),
-        supabase
-          .from('collective_members' as any)
-          .select('id, user_id, created_at, profiles(display_name, avatar_url)')
-          .eq('collective_id', collectiveId)
-          .order('created_at', { ascending: false })
-          .limit(5),
-      ])
-
-      const totalHours = ((monthHoursRes.data ?? []) as any[]).reduce(
-        (sum: number, row: any) => sum + (row.hours_total ?? 0),
-        0,
-      )
-
-      const { data: allEventIds } = await supabase
-        .from('events')
-        .select('id')
-        .eq('collective_id', collectiveId)
-        .lt('date_start', now.toISOString())
-
-      let attendanceRate = 0
-      const eventIds = (allEventIds ?? []).map((e) => e.id)
-
-      if (eventIds.length > 0) {
-        const { count: totalReg } = await supabase
-          .from('event_registrations')
-          .select('id', { count: 'exact', head: true })
-          .in('event_id', eventIds)
-          .in('status', ['registered', 'attended'])
-
-        const { count: totalAttended } = await supabase
-          .from('event_registrations')
-          .select('id', { count: 'exact', head: true })
-          .in('event_id', eventIds)
-          .eq('status', 'attended')
-
-        if (totalReg && totalReg > 0) {
-          attendanceRate = Math.round(((totalAttended ?? 0) / totalReg) * 100)
-        }
-      }
-
-      return {
-        activeMembers: membersRes.count ?? 0,
-        upcomingEvents: (upcomingEventsRes.data ?? []) as any[],
-        eventsThisMonth: monthEventsRes.count ?? 0,
-        hoursThisMonth: Math.round(totalHours),
-        recentMembers: (recentActivityRes.data ?? []) as any[],
-        attendanceRate,
-      }
-    },
-    enabled: !!collectiveId,
-    staleTime: 2 * 60 * 1000,
-  })
-}
-
-function useCollectiveFullStats(collectiveId: string | undefined) {
-  return useQuery({
-    queryKey: ['leader-impact-full', collectiveId],
-    queryFn: async () => {
-      if (!collectiveId) return null
-
-      const now = new Date()
-
-      const [impactRes, membersRes, eventsRes, pastEventsRes, cleanupRes] = await Promise.all([
-        supabase
-          .from('event_impact')
-          .select('trees_planted, hours_total, rubbish_kg, invasive_weeds_pulled, leaders_trained, events!inner(collective_id)')
-          .eq('events.collective_id' as any, collectiveId),
-        supabase
-          .from('collective_members')
-          .select('id', { count: 'exact', head: true })
-          .eq('collective_id', collectiveId),
-        supabase
-          .from('events')
-          .select('id', { count: 'exact', head: true })
-          .eq('collective_id', collectiveId),
-        supabase
-          .from('events')
-          .select('id')
-          .eq('collective_id', collectiveId)
-          .lt('date_start', now.toISOString()),
-        supabase
-          .from('events')
-          .select('id', { count: 'exact', head: true })
-          .eq('collective_id', collectiveId)
-          .in('activity_type', ['shore_cleanup', 'marine_restoration'] as any)
-          .lt('date_start', now.toISOString()),
-      ])
-
-      const rows = (impactRes.data ?? []) as any[]
-      const eventIds = (pastEventsRes.data ?? []).map((e: any) => e.id)
-
-      let attendanceCount = 0
-      let attendanceRate = 0
-      if (eventIds.length > 0) {
-        const { count: totalReg } = await supabase
-          .from('event_registrations')
-          .select('id', { count: 'exact', head: true })
-          .in('event_id', eventIds)
-          .in('status', ['registered', 'attended'])
-        const { count: totalAttended } = await supabase
-          .from('event_registrations')
-          .select('id', { count: 'exact', head: true })
-          .in('event_id', eventIds)
-          .eq('status', 'attended')
-        attendanceCount = totalAttended ?? 0
-        if (totalReg && totalReg > 0) {
-          attendanceRate = Math.round(((totalAttended ?? 0) / totalReg) * 100)
-        }
-      }
-
-      return {
-        eventsAttended: attendanceCount,
-        volunteerHours: Math.round(rows.reduce((s, r) => s + (r.hours_total ?? 0), 0)),
-        treesPlanted: rows.reduce((s, r) => s + (r.trees_planted ?? 0), 0),
-        invasiveWeedsPulled: rows.reduce((s, r) => s + (r.invasive_weeds_pulled ?? 0), 0),
-        rubbishKg: Math.round(rows.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0) * 10) / 10,
-        cleanupSites: cleanupRes.count ?? 0,
-        leadersEmpowered: rows.reduce((s, r) => s + (r.leaders_trained ?? 0), 0),
-        eventsLogged: rows.length,
-        totalMembers: membersRes.count ?? 0,
-        totalEvents: eventsRes.count ?? 0,
-        attendanceRate,
-      }
-    },
-    enabled: !!collectiveId,
-    staleTime: 5 * 60 * 1000,
-  })
-}
-
-function useEngagementScores(collectiveId: string | undefined) {
-  return useQuery({
-    queryKey: ['leader-engagement', collectiveId],
-    queryFn: async () => {
-      if (!collectiveId) throw new Error('No collective')
-
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-
-      const { data: recentEvents } = await supabase
-        .from('events' as any)
-        .select('id')
-        .eq('collective_id', collectiveId)
-        .gte('date_start', thirtyDaysAgo)
-
-      const recentEventIds = (recentEvents ?? []).map((e: any) => e.id)
-
-      let activeUserIds = new Set<string>()
-      if (recentEventIds.length > 0) {
-        const { data: activeMembers } = await supabase
-          .from('event_registrations')
-          .select('user_id')
-          .in('event_id', recentEventIds)
-          .in('status', ['attended', 'registered'])
-
-        activeUserIds = new Set((activeMembers ?? []).map((r) => r.user_id))
-      }
-
-      const { data: allMembers } = await supabase
-        .from('collective_members')
-        .select('user_id, profiles(display_name, avatar_url)')
-        .eq('collective_id', collectiveId)
-
-      const members = allMembers ?? []
-      const active = members.filter((m) => activeUserIds.has(m.user_id))
-      const atRisk = members.filter((m) => !activeUserIds.has(m.user_id))
-
-      return { active, atRisk, total: members.length }
-    },
-    enabled: !!collectiveId,
-    staleTime: 5 * 60 * 1000,
-  })
-}
-
-function usePendingItems(collectiveId: string | undefined) {
-  return useQuery({
-    queryKey: ['leader-pending', collectiveId],
-    queryFn: async () => {
-      if (!collectiveId) return []
-
-      const { data: pastEvents } = await supabase
-        .from('events' as any)
-        .select('id, title, date_start')
-        .eq('collective_id', collectiveId)
-        .lt('date_start', new Date().toISOString())
-        .order('date_start', { ascending: false })
-        .limit(10)
-
-      const events = (pastEvents ?? []) as any[]
-      if (!events.length) return []
-
-      const { data: loggedEvents } = await supabase
-        .from('event_impact')
-        .select('event_id')
-        .in(
-          'event_id',
-          events.map((e: any) => e.id),
-        )
-
-      const loggedIds = new Set(((loggedEvents ?? []) as any[]).map((l: any) => l.event_id))
-      return events
-        .filter((e: any) => !loggedIds.has(e.id))
-        .map((e: any) => ({
-          id: e.id,
-          type: 'impact_not_logged' as const,
-          message: `Impact not logged for "${e.title}"`,
-          date: e.date_start,
-        }))
-    },
-    enabled: !!collectiveId,
-    staleTime: 5 * 60 * 1000,
-  })
-}
-
-/* ------------------------------------------------------------------ */
-/*  Calendar                                                           */
-/* ------------------------------------------------------------------ */
-
-function useEventCalendar(collectiveId: string | undefined, month: Date) {
-  return useQuery({
-    queryKey: ['leader-calendar', collectiveId, month.toISOString()],
-    queryFn: async () => {
-      if (!collectiveId) return []
-
-      const start = new Date(month.getFullYear(), month.getMonth(), 1)
-      const end = new Date(month.getFullYear(), month.getMonth() + 1, 0)
-
-      const { data } = await supabase
-        .from('events' as any)
-        .select('id, title, date_start')
-        .eq('collective_id', collectiveId)
-        .gte('date_start', start.toISOString())
-        .lte('date_start', end.toISOString())
-
-      return (data ?? []) as any[]
-    },
-    enabled: !!collectiveId,
-    staleTime: 5 * 60 * 1000,
-  })
-}
+import {
+    useLeaderDashboard,
+    useCollectiveFullStats,
+    useEngagementScores,
+    usePendingItems,
+    useEventCalendar,
+} from '@/hooks/use-leader-dashboard'
 
 function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -823,7 +549,7 @@ export default function LeaderDashboardPage() {
   const collectiveSlug = leaderCtx.collectiveSlug ?? collectiveDetail?.slug ?? collectiveId
   const { data: engagement } = useEngagementScores(collectiveId)
   const { data: pendingItems = [] } = usePendingItems(collectiveId)
-  const { data: unreadAnnouncementCount = 0 } = useUnreadAnnouncementCount()
+  const { data: unreadUpdateCount = 0 } = useUnreadUpdateCount()
 
   // Tasks integration
   const { data: tasks } = useMyTasks()
@@ -911,7 +637,7 @@ export default function LeaderDashboardPage() {
     }] : []),
     { label: 'Create Event', icon: <Plus size={18} />, to: '/leader/events/create', bg: 'bg-moss-600', text: 'text-white', badge: 0 },
     { label: 'Chat', icon: <MessageCircle size={18} />, to: `/chat/${collectiveId}`, bg: 'bg-primary-600', text: 'text-white', badge: 0 },
-    { label: 'Announcements', icon: <Megaphone size={18} />, to: '/announcements', bg: 'bg-primary-400', text: 'text-white', badge: unreadAnnouncementCount },
+    { label: 'Updates', icon: <Megaphone size={18} />, to: '/updates', bg: 'bg-primary-400', text: 'text-white', badge: unreadUpdateCount },
   ]
 
   // Build impact cards from stats

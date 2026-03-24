@@ -82,9 +82,9 @@ const EditEventPage = lazy(() => import('@/pages/events/edit-event'))
 // Notifications
 const NotificationsPage = lazy(() => import('@/pages/notifications/index'))
 
-// Announcements
-const AnnouncementsPage = lazy(() => import('@/pages/announcements/index'))
-const CreateAnnouncementPage = lazy(() => import('@/pages/announcements/create'))
+// Updates
+const UpdatesPage = lazy(() => import('@/pages/updates/index'))
+const CreateUpdatePage = lazy(() => import('@/pages/updates/create'))
 
 // Donations
 const DonatePage = lazy(() => import('@/pages/donate/index'))
@@ -145,62 +145,10 @@ const NationalImpactPage = lazy(() => import('@/pages/impact/national'))
 const MapPage = lazy(() => import('@/pages/map'))
 
 /* ------------------------------------------------------------------ */
-/*  Eager preload — download core page chunks in the background        */
-/*  so navigating to any tab/sidebar link is instant (no Suspense).    */
-/*  Uses requestIdleCallback to avoid blocking initial render.         */
+/*  Eager preload moved to useRolePrefetch hook (role-aware).          */
+/*  Downloads the user's top 5 pages first based on their role,        */
+/*  then remaining common pages. See hooks/use-role-prefetch.ts.       */
 /* ------------------------------------------------------------------ */
-
-const coreImports = [
-  () => import('@/pages/home'),
-  () => import('@/pages/events/index'),
-  () => import('@/pages/chat/index'),
-  () => import('@/pages/profile/index'),
-  () => import('@/pages/collectives/discover'),
-  () => import('@/pages/notifications/index'),
-  () => import('@/pages/settings/index'),
-  () => import('@/pages/events/event-detail'),
-  () => import('@/pages/collectives/collective-detail'),
-  () => import('@/pages/donate/index'),
-  () => import('@/pages/shop/index'),
-]
-
-const secondaryImports = [
-  () => import('@/pages/profile/view-profile'),
-  () => import('@/pages/profile/edit-profile'),
-  () => import('@/pages/chat/collective-chat'),
-  () => import('@/pages/chat/channel-chat'),
-  () => import('@/pages/events/create-event'),
-  () => import('@/pages/announcements/index'),
-  () => import('@/pages/referral/index'),
-  () => import('@/pages/tasks/index'),
-  () => import('@/pages/contact'),
-  () => import('@/pages/partners'),
-  () => import('@/pages/leadership'),
-  () => import('@/pages/lead-a-collective'),
-  () => import('@/pages/reports/index'),
-  () => import('@/pages/impact/national'),
-]
-
-function preloadChunks() {
-  const idle = typeof requestIdleCallback === 'function'
-    ? requestIdleCallback
-    : (cb: () => void) => setTimeout(cb, 100)
-
-  // Phase 1: core nav targets (bottom tabs + sidebar top links)
-  idle(() => {
-    for (const load of coreImports) load()
-
-    // Phase 2: secondary pages after core is done
-    idle(() => {
-      for (const load of secondaryImports) load()
-    })
-  })
-}
-
-// Kick off preload once the module loads (after initial JS parse)
-if (typeof window !== 'undefined') {
-  preloadChunks()
-}
 
 /* ------------------------------------------------------------------ */
 /*  Loading fallback                                                   */
@@ -399,8 +347,7 @@ function App() {
           <Route path="/impact" element={<Navigate to="/profile" replace />} />
           <Route path="/referral" element={<PageTransition><ReferralPage /></PageTransition>} />
           <Route path="/notifications" element={<PageTransition><NotificationsPage /></PageTransition>} />
-          <Route path="/announcements" element={<PageTransition><AnnouncementsPage /></PageTransition>} />
-          <Route path="/announcements/create" element={<RequireRole minRole="national_admin"><PageTransition><CreateAnnouncementPage /></PageTransition></RequireRole>} />
+          <Route path="/updates" element={<PageTransition><UpdatesPage /></PageTransition>} />
           <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
 
           <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
@@ -436,6 +383,7 @@ function App() {
             <Route path="collectives/:collectiveId" element={<AdminCollectiveDetailPage />} />
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="create" element={<AdminCreatePage />} />
+            <Route path="create/updates" element={<RequireRole minRole="national_admin"><CreateUpdatePage /></RequireRole>} />
             <Route path="workflows" element={<AdminWorkflowsPage />} />
             <Route path="events" element={<AdminEventsPage />} />
             <Route path="surveys" element={<AdminSurveysPage />} />

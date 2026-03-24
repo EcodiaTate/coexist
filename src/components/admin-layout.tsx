@@ -93,6 +93,7 @@ const PAGE_HERO_CONFIG: Record<string, HeroCfg> = {
   'Content Moderation':  { hue: 'from-primary-900 via-primary-950 to-neutral-900',  defaultSubtitle: 'Review flagged content and manage reports',      f: 9, w: 1, tall: true },
   'Legal Pages':         { hue: 'from-primary-800 via-primary-900 to-neutral-900',  defaultSubtitle: 'Terms, privacy, and legal documentation',        f: 10, w: 2, tall: true },
   'Edit Legal Page':     { hue: 'from-primary-800 via-primary-900 to-neutral-900',  defaultSubtitle: 'Edit page content and settings',                 f: 10, w: 2, tall: true },
+  'New Update':          { hue: 'from-secondary-700 via-primary-800 to-primary-950', defaultSubtitle: 'Compose and publish a blog-post update',        f: 2, w: 3, tall: true },
 }
 
 const DEFAULT_HERO: HeroCfg = { hue: 'from-primary-800 via-primary-900 to-primary-950', defaultSubtitle: '', tall: true, f: 11, w: 3 }

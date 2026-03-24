@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import type {
@@ -10,6 +10,7 @@ import type {
   Database,
   TablesInsert,
 } from '@/types/database.types'
+import type { MyUpcomingEvent } from '@/hooks/use-home-feed'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -323,6 +324,87 @@ export function useEventDetail(eventId: string | undefined) {
   })
 }
 
+/**
+ * Prefetch event detail data into the query cache so navigating to
+ * /events/:id is instant. Safe to call multiple times — TanStack Query
+ * deduplicates and respects staleTime.
+ */
+export function prefetchEventDetail(
+  queryClient: QueryClient,
+  eventId: string,
+  userId: string,
+) {
+  return queryClient.prefetchQuery({
+    queryKey: ['event', eventId, userId],
+    queryFn: async () => {
+      const { data: event, error } = await supabase
+        .from('events')
+        .select('*, collectives(id, name, slug, cover_image_url, region, state), profiles!events_created_by_fkey(id, display_name, avatar_url)')
+        .eq('id', eventId)
+        .single()
+      if (error) throw error
+
+      const { count: regCount } = await supabase
+        .from('event_registrations')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId)
+        .in('status', ['registered', 'attended'])
+
+      const { data: userRegData } = await supabase
+        .from('event_registrations')
+        .select('*')
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .neq('status', 'cancelled')
+        .maybeSingle()
+
+      const { data: attendeeData } = await supabase
+        .from('event_registrations')
+        .select('profiles!event_registrations_user_id_fkey(id, display_name, avatar_url)')
+        .eq('event_id', eventId)
+        .in('status', ['registered', 'attended'])
+        .limit(8)
+
+      const attendees = (attendeeData ?? [])
+        .map((a) => a.profiles)
+        .filter(Boolean) as Pick<Profile, 'id' | 'display_name' | 'avatar_url'>[]
+
+      const { data: impact } = await supabase
+        .from('event_impact')
+        .select('*')
+        .eq('event_id', eventId)
+        .maybeSingle()
+
+      const { data: collabData } = await supabase
+        .from('collective_event_collaborators')
+        .select('collective_id, collectives:collective_id(id, name, slug, cover_image_url)')
+        .eq('event_id', eventId)
+        .eq('status', 'accepted')
+
+      const collaborators = (collabData ?? [])
+        .map((c) => c.collectives)
+        .filter(Boolean) as unknown as Pick<Collective, 'id' | 'name' | 'slug' | 'cover_image_url'>[]
+
+      const { count: inviteCount } = await supabase
+        .from('event_invites')
+        .select('id', { count: 'exact', head: true })
+        .eq('event_id', eventId)
+        .eq('collective_id', event.collective_id)
+
+      return {
+        ...event,
+        registration_count: regCount ?? 0,
+        user_registration: userRegData,
+        attendees,
+        impact,
+        collaborators,
+        has_been_invited: (inviteCount ?? 0) > 0,
+      } as EventDetailData
+    },
+    staleTime: 2 * 60 * 1000,
+  })
+}
+
 /* ------------------------------------------------------------------ */
 /*  Queries - Event Attendees (leader view)                            */
 /* ------------------------------------------------------------------ */
@@ -528,7 +610,11 @@ export function useRegisterForEvent() {
     },
     onMutate: async ({ eventId, asWaitlist }) => {
       await queryClient.cancelQueries({ queryKey: ['event', eventId] })
+      await queryClient.cancelQueries({ queryKey: ['home', 'my-upcoming-events'] })
+
       const previousEvent = queryClient.getQueryData(['event', eventId, user?.id])
+      const previousUpcoming = queryClient.getQueryData<MyUpcomingEvent[]>(['home', 'my-upcoming-events', user?.id])
+
       queryClient.setQueryData(['event', eventId, user?.id], (old: EventDetailData | undefined) => {
         if (!old) return old
         return {
@@ -537,10 +623,27 @@ export function useRegisterForEvent() {
           user_registration: { event_id: eventId, user_id: user!.id, status: asWaitlist ? 'waitlisted' : 'registered', checked_in_at: null, registered_at: new Date().toISOString() } as EventRegistration,
         }
       })
-      return { previousEvent }
+
+      // Optimistically add event to upcoming events on homepage
+      const eventDetail = queryClient.getQueryData<EventDetailData>(['event', eventId, user?.id])
+      if (eventDetail) {
+        const newEntry: MyUpcomingEvent = {
+          ...eventDetail,
+          collectives: eventDetail.collectives ? { id: eventDetail.collectives.id, name: eventDetail.collectives.name } : null,
+          registration_status: asWaitlist ? 'waitlisted' : 'registered',
+        }
+        queryClient.setQueryData<MyUpcomingEvent[]>(['home', 'my-upcoming-events', user?.id], (old) => {
+          const list = old ?? []
+          if (list.some((e) => e.id === eventId)) return list
+          return [...list, newEntry].sort((a, b) => new Date(a.date_start).getTime() - new Date(b.date_start).getTime())
+        })
+      }
+
+      return { previousEvent, previousUpcoming }
     },
     onError: (_err, { eventId }, context) => {
       if (context?.previousEvent) queryClient.setQueryData(['event', eventId, user?.id], context.previousEvent)
+      if (context?.previousUpcoming !== undefined) queryClient.setQueryData(['home', 'my-upcoming-events', user?.id], context.previousUpcoming)
     },
     onSettled: (_, __, { eventId }) => {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
@@ -569,9 +672,11 @@ export function useCancelRegistration() {
     onMutate: async (eventId: string) => {
       // Cancel outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ['my-events'] })
+      await queryClient.cancelQueries({ queryKey: ['home', 'my-upcoming-events'] })
 
-      // Snapshot previous value for rollback
+      // Snapshot previous values for rollback
       const previousUpcoming = queryClient.getQueryData<MyEventItem[]>(['my-events', 'upcoming'])
+      const previousHomeUpcoming = queryClient.getQueryData<MyUpcomingEvent[]>(['home', 'my-upcoming-events', user?.id])
 
       // Optimistically remove the event from the upcoming list
       if (previousUpcoming) {
@@ -581,12 +686,23 @@ export function useCancelRegistration() {
         )
       }
 
-      return { previousUpcoming }
+      // Optimistically remove from homepage upcoming events
+      if (previousHomeUpcoming) {
+        queryClient.setQueryData<MyUpcomingEvent[]>(
+          ['home', 'my-upcoming-events', user?.id],
+          previousHomeUpcoming.filter((e) => e.id !== eventId),
+        )
+      }
+
+      return { previousUpcoming, previousHomeUpcoming }
     },
     onError: (_err, _eventId, context) => {
       // Rollback on failure
       if (context?.previousUpcoming) {
         queryClient.setQueryData(['my-events', 'upcoming'], context.previousUpcoming)
+      }
+      if (context?.previousHomeUpcoming) {
+        queryClient.setQueryData(['home', 'my-upcoming-events', user?.id], context.previousHomeUpcoming)
       }
     },
     onSettled: (_, __, eventId) => {

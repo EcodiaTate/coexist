@@ -62,10 +62,10 @@ export function getGreeting(firstName: string | undefined): string {
 /*  Hooks                                                              */
 /* ------------------------------------------------------------------ */
 
-/** Pinned or urgent announcements */
-export function useLatestAnnouncement() {
+/** Pinned or urgent updates */
+export function useLatestUpdate() {
   return useQuery({
-    queryKey: ['home', 'announcement'],
+    queryKey: ['home', 'latest-update'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('global_announcements')
@@ -291,30 +291,37 @@ export function useMyUpcomingEvents() {
     queryFn: async () => {
       if (!user) return []
 
+      const now = new Date().toISOString()
+
       const { data, error } = await supabase
         .from('event_registrations')
-        .select('status, events(*, collectives(id, name))')
+        .select('status, events!inner(*, collectives(id, name))')
         .eq('user_id', user.id)
         .in('status', ['registered', 'waitlisted', 'attended'])
-        .order('registered_at', { ascending: true })
+        .or(`date_start.gte.${now},date_end.gte.${now}`, { referencedTable: 'events' })
+        .order('date_start', { referencedTable: 'events', ascending: true })
         .limit(5)
 
       if (error) throw error
 
-      const now = Date.now()
+      const nowMs = Date.now()
       return (data ?? [])
         .filter((r) => r.events !== null)
         .map((r) => ({
           ...(r.events as EventWithCollective),
           registration_status: r.status,
         }))
-        .filter((e) => {
-          // Include events that haven't started yet OR are still happening
-          const endMs = new Date(e.date_end ?? e.date_start).getTime()
-          const startMs = new Date(e.date_start).getTime()
-          return startMs >= now || endMs >= now
-        })
-        .sort((a, b) => new Date(a.date_start).getTime() - new Date(b.date_start).getTime()) as MyUpcomingEvent[]
+        .sort((a, b) => {
+          // Happening-now events always come first
+          const aStart = new Date(a.date_start).getTime()
+          const aEnd = a.date_end ? new Date(a.date_end).getTime() : aStart + 4 * 60 * 60 * 1000
+          const bStart = new Date(b.date_start).getTime()
+          const bEnd = b.date_end ? new Date(b.date_end).getTime() : bStart + 4 * 60 * 60 * 1000
+          const aHappening = nowMs >= aStart && nowMs <= aEnd
+          const bHappening = nowMs >= bStart && nowMs <= bEnd
+          if (aHappening !== bHappening) return aHappening ? -1 : 1
+          return aStart - bStart
+        }) as MyUpcomingEvent[]
     },
     enabled: !!user,
     staleTime: 2 * 60 * 1000,
@@ -358,10 +365,10 @@ export function useCollectiveUpcomingEvents() {
   })
 }
 
-/** Recent announcements for the home updates section */
-export function useRecentAnnouncements() {
+/** Recent updates for the home updates section */
+export function useRecentUpdates() {
   return useQuery({
-    queryKey: ['home', 'recent-announcements'],
+    queryKey: ['home', 'recent-updates'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('global_announcements')

@@ -15,13 +15,18 @@ import {
     Trash2,
     BarChart3,
 } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Dropdown } from '@/components/dropdown'
-import { supabase } from '@/lib/supabase'
 import { useCountUp } from '@/components/stat-card'
 import { cn } from '@/lib/cn'
 import { Link } from 'react-router-dom'
+import {
+    useAdminOverview,
+    useTrendData,
+    type DateRange,
+    dateRangeOptions,
+    getDateRangeStart,
+} from '@/hooks/use-admin-dashboard'
 
 /* ------------------------------------------------------------------ */
 /*  Animation helpers                                                  */
@@ -46,143 +51,6 @@ const statFadeUp = {
   }),
 }
 
-/* ------------------------------------------------------------------ */
-/*  Date range helpers                                                 */
-/* ------------------------------------------------------------------ */
-
-type DateRange = 'week' | 'month' | 'quarter' | 'year' | 'all'
-
-function getDateRangeStart(range: DateRange): string | null {
-  const now = new Date()
-  switch (range) {
-    case 'week':
-      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    case 'month':
-      return new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-    case 'quarter':
-      return new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString()
-    case 'year':
-      return new Date(now.getFullYear(), 0, 1).toISOString()
-    case 'all':
-      return null
-  }
-}
-
-const dateRangeOptions = [
-  { value: 'week', label: 'This Week' },
-  { value: 'month', label: 'This Month' },
-  { value: 'quarter', label: 'This Quarter' },
-  { value: 'year', label: 'This Year' },
-  { value: 'all', label: 'All Time' },
-]
-
-/* ------------------------------------------------------------------ */
-/*  Data hooks                                                         */
-/* ------------------------------------------------------------------ */
-
-function useAdminOverview(dateRange: DateRange) {
-  const rangeStart = getDateRangeStart(dateRange)
-
-  return useQuery({
-    queryKey: ['admin-overview', dateRange],
-    queryFn: async () => {
-      const [
-        totalMembersRes,
-        totalCollectivesRes,
-        totalEventsRes,
-        totalImpactRes,
-        periodMembersRes,
-        periodEventsRes,
-      ] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('collectives').select('id', { count: 'exact', head: true }),
-        supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
-        (() => {
-          let q = supabase.from('event_impact').select('trees_planted, hours_total, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings')
-          if (rangeStart) q = q.gte('logged_at', rangeStart)
-          return q
-        })(),
-        rangeStart
-          ? supabase
-              .from('profiles')
-              .select('id', { count: 'exact', head: true })
-              .gte('created_at', rangeStart)
-          : Promise.resolve({ count: 0 }),
-        rangeStart
-          ? supabase
-              .from('events')
-              .select('id', { count: 'exact', head: true })
-              .gte('created_at', rangeStart)
-              .lt('date_start', new Date().toISOString())
-          : Promise.resolve({ count: 0 }),
-      ])
-
-      const impact = (totalImpactRes.data ?? []) as any[]
-      const totalTrees = impact.reduce((s: number, r: any) => s + (r.trees_planted ?? 0), 0)
-      const totalHours = impact.reduce((s: number, r: any) => s + (r.hours_total ?? 0), 0)
-      const totalRubbish = impact.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0)
-      const totalArea = impact.reduce((s: number, r: any) => s + (r.area_restored_sqm ?? 0), 0)
-      const totalNativePlants = impact.reduce((s: number, r: any) => s + (r.native_plants ?? 0), 0)
-      const totalWildlife = impact.reduce((s: number, r: any) => s + (r.wildlife_sightings ?? 0), 0)
-
-      return {
-        totalMembers: totalMembersRes.count ?? 0,
-        totalCollectives: totalCollectivesRes.count ?? 0,
-        totalEvents: totalEventsRes.count ?? 0,
-        totalTrees,
-        totalHours: Math.round(totalHours),
-        totalRubbish: Math.round(totalRubbish),
-        totalArea: Math.round(totalArea),
-        totalNativePlants,
-        totalWildlife,
-        periodMembers: periodMembersRes.count ?? 0,
-        periodEvents: periodEventsRes.count ?? 0,
-      }
-    },
-    staleTime: 2 * 60 * 1000,
-  })
-}
-
-function useTrendData() {
-  return useQuery({
-    queryKey: ['admin-trends'],
-    queryFn: async () => {
-      const months: { month: string; members: number; events: number }[] = []
-      const now = new Date()
-
-      for (let i = 5; i >= 0; i--) {
-        const start = new Date(now.getFullYear(), now.getMonth() - i, 1)
-        const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
-        const monthLabel = start.toLocaleDateString('en-AU', {
-          month: 'short',
-          year: '2-digit',
-        })
-
-        const [membersRes, eventsRes] = await Promise.all([
-          supabase
-            .from('profiles')
-            .select('id', { count: 'exact', head: true })
-            .gte('created_at', start.toISOString())
-            .lte('created_at', end.toISOString()),
-          supabase
-            .from('events')
-            .select('id', { count: 'exact', head: true })
-            .gte('date_start', start.toISOString())
-            .lte('date_start', new Date(Math.min(end.getTime(), now.getTime())).toISOString()),
-        ])
-
-        months.push({
-          month: monthLabel,
-          members: membersRes.count ?? 0,
-          events: eventsRes.count ?? 0,
-        })
-      }
-
-      return months
-    },
-    staleTime: 10 * 60 * 1000,
-  })
-}
 
 /* ------------------------------------------------------------------ */
 /*  Section heading (light mode - matching leader/home style)          */

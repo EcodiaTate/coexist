@@ -167,7 +167,7 @@ const mainNavCategories: NavCategory[] = [
     labelColor: 'text-primary-400',
     dotColor: 'bg-primary-400',
     items: [
-      { label: 'Updates', path: '/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> },
+      { label: 'Updates', path: '/updates', icon: <Megaphone size={17} strokeWidth={1.5} /> },
       { label: 'Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
       { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true },
     ],
@@ -1270,7 +1270,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
     const highestHome = isStaff ? adminHomeItem : isAnyLeader ? leaderHomeItem : memberHomeItem
 
     // Chat & Updates sit alongside the highest home
-    const updatesItem: NavItem = { label: 'Updates', path: '/announcements', icon: <Megaphone size={17} strokeWidth={1.5} /> }
+    const updatesItem: NavItem = { label: 'Updates', path: '/updates', icon: <Megaphone size={17} strokeWidth={1.5} /> }
     const chatItem: NavItem = { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true }
 
     const cats: NavCategory[] = [{ label: '', items: [highestHome, updatesItem, chatItem] }]
@@ -1313,7 +1313,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
       ...cat,
       items: [
         ...(i === 0 && highestHome !== memberHomeItem ? [memberHomeItem] : []),
-        ...cat.items.filter((item) => item.path !== '/announcements' && item.path !== '/chat'),
+        ...cat.items.filter((item) => item.path !== '/updates' && item.path !== '/chat'),
       ],
     })).filter((cat) => cat.items.length > 0)
     cats.push(...memberCats)
