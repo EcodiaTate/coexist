@@ -33,7 +33,18 @@ interface PushToken {
 /* ------------------------------------------------------------------ */
 
 const FCM_PROJECT_ID = Deno.env.get('FCM_PROJECT_ID') ?? ''
-const FCM_SERVICE_ACCOUNT_KEY = Deno.env.get('FCM_SERVICE_ACCOUNT_KEY') ?? ''
+const FCM_SERVICE_ACCOUNT_KEY_RAW = Deno.env.get('FCM_SERVICE_ACCOUNT_KEY') ?? ''
+
+// Support both raw JSON and base64-encoded JSON
+let FCM_SERVICE_ACCOUNT_KEY: string
+try {
+  // Try parsing as raw JSON first
+  JSON.parse(FCM_SERVICE_ACCOUNT_KEY_RAW)
+  FCM_SERVICE_ACCOUNT_KEY = FCM_SERVICE_ACCOUNT_KEY_RAW
+} catch {
+  // Assume base64-encoded
+  FCM_SERVICE_ACCOUNT_KEY = atob(FCM_SERVICE_ACCOUNT_KEY_RAW)
+}
 
 // Base64url encoding (RFC 4648 §5) - required for JWT
 function base64url(input: string | ArrayBuffer): string {
