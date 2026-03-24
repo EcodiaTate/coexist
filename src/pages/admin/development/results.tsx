@@ -56,10 +56,10 @@ export default function AdminDevelopmentResultsPage() {
   const moduleStats = useMemo(() => {
     if (!analytics) return []
     return modules.map((m) => {
-      const progress = analytics.progress.filter((p) => p.module_id === m.id)
-      const completed = progress.filter((p) => p.status === 'completed').length
+      const progress = analytics.progress.filter((p: any) => p.module_id === m.id)
+      const completed = progress.filter((p: any) => p.status === 'completed').length
       const avgTime = progress.length > 0
-        ? Math.round(progress.reduce((sum, p) => sum + p.time_spent_sec, 0) / progress.length / 60)
+        ? Math.round(progress.reduce((sum: number, p: any) => sum + p.time_spent_sec, 0) / progress.length / 60)
         : 0
       return {
         ...m,
@@ -75,18 +75,18 @@ export default function AdminDevelopmentResultsPage() {
   const quizStats = useMemo(() => {
     if (!analytics) return []
     return quizzes.map((q) => {
-      const attempts = analytics.attempts.filter((a) => a.quiz_id === q.id)
-      const passed = attempts.filter((a) => a.passed).length
+      const attempts = analytics.attempts.filter((a: any) => a.quiz_id === q.id)
+      const passed = attempts.filter((a: any) => a.passed).length
       const avgScore = attempts.length > 0
-        ? Math.round(attempts.reduce((sum, a) => sum + a.score_pct, 0) / attempts.length)
+        ? Math.round(attempts.reduce((sum: number, a: any) => sum + a.score_pct, 0) / attempts.length)
         : 0
       return {
         ...q,
         totalAttempts: attempts.length,
         passRate: attempts.length > 0 ? Math.round((passed / attempts.length) * 100) : 0,
         avgScore,
-        highScore: attempts.length > 0 ? Math.max(...attempts.map((a) => a.score_pct)) : 0,
-        lowScore: attempts.length > 0 ? Math.min(...attempts.map((a) => a.score_pct)) : 0,
+        highScore: attempts.length > 0 ? Math.max(...attempts.map((a: any) => a.score_pct)) : 0,
+        lowScore: attempts.length > 0 ? Math.min(...attempts.map((a: any) => a.score_pct)) : 0,
       }
     }).filter((q) => q.totalAttempts > 0)
   }, [analytics, quizzes])

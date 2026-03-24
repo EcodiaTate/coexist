@@ -29,7 +29,7 @@ export default function LearnQuizPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
-  const toast = useToast()
+  const { toast } = useToast()
 
   const { data: quiz, isLoading: quizLoading } = useDevQuiz(quizId)
   const { data: questions = [], isLoading: questionsLoading } = useDevQuizQuestions(quizId)

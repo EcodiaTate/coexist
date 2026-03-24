@@ -1,5 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { supabase as _supabase } from '@/lib/supabase'
+
+// dev_* tables are not yet in the generated Database type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const supabase = _supabase as any
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -690,15 +694,15 @@ export function useDevStats() {
         supabase.from('dev_quizzes').select('id', { count: 'exact' }),
       ])
 
-      const modules = modulesRes.data ?? []
-      const sections = sectionsRes.data ?? []
+      const modules: any[] = modulesRes.data ?? []
+      const sections: any[] = sectionsRes.data ?? []
 
       return {
         totalModules: modulesRes.count ?? 0,
-        publishedModules: modules.filter((m) => m.status === 'published').length,
-        draftModules: modules.filter((m) => m.status === 'draft').length,
+        publishedModules: modules.filter((m: any) => m.status === 'published').length,
+        draftModules: modules.filter((m: any) => m.status === 'draft').length,
         totalSections: sectionsRes.count ?? 0,
-        publishedSections: sections.filter((s) => s.status === 'published').length,
+        publishedSections: sections.filter((s: any) => s.status === 'published').length,
         totalQuizzes: quizzesRes.count ?? 0,
       }
     },
@@ -719,16 +723,16 @@ export function useDevAnalytics() {
         supabase.from('dev_quiz_attempts').select('*'),
       ])
 
-      const progress = progressRes.data ?? []
-      const attempts = attemptsRes.data ?? []
+      const progress: any[] = progressRes.data ?? []
+      const attempts: any[] = attemptsRes.data ?? []
 
-      const totalLearners = new Set(progress.map((p) => p.user_id)).size
-      const completedModules = progress.filter((p) => p.status === 'completed').length
+      const totalLearners = new Set(progress.map((p: any) => p.user_id)).size
+      const completedModules = progress.filter((p: any) => p.status === 'completed').length
       const avgCompletion = progress.length > 0
-        ? Math.round(progress.reduce((sum, p) => sum + (p.progress_pct ?? 0), 0) / progress.length)
+        ? Math.round(progress.reduce((sum: number, p: any) => sum + (p.progress_pct ?? 0), 0) / progress.length)
         : 0
       const avgQuizScore = attempts.length > 0
-        ? Math.round(attempts.reduce((sum, a) => sum + a.score_pct, 0) / attempts.length)
+        ? Math.round(attempts.reduce((sum: number, a: any) => sum + a.score_pct, 0) / attempts.length)
         : 0
 
       return {
