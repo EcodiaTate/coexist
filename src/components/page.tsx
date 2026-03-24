@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef } from 'react'
+import { type ReactNode, useCallback, useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
@@ -57,38 +57,54 @@ export function Page({
 
   const isDesktopNav = navMode === 'sidebar'
 
-  // Restore saved scroll position on mount, or scroll to top for new routes.
-  // Double-rAF ensures the cached page is visible and laid out before we scroll,
-  // preventing the "teleport to top" flash on back-navigation.
-  useEffect(() => {
-    if (noScrollRestore) return
+  // Restore scroll when this page becomes visible.
+  // KeepAlive keeps pages in the DOM with display:none, which resets scrollTop.
+  // We use both the effect (for initial mount) and an intersection observer
+  // (for when KeepAlive shows us again after back-nav).
+  const restoredForKey = useRef<string | null>(null)
 
+  const restoreScroll = useCallback(() => {
+    if (noScrollRestore) return
     const saved = scrollPositions.get(scrollKey)
 
-    const restore = () => {
-      if (isDesktopNav) {
-        if (saved !== undefined) {
-          window.scrollTo({ top: saved, behavior: 'instant' })
-        } else {
-          window.scrollTo({ top: 0, behavior: 'instant' })
-        }
-      } else {
-        const el = scrollRef.current
-        if (!el) return
-        if (saved !== undefined) {
-          el.scrollTop = saved
-        } else {
-          el.scrollTop = 0
-        }
-      }
+    if (isDesktopNav) {
+      window.scrollTo({ top: saved ?? 0, behavior: 'instant' })
+    } else {
+      const el = scrollRef.current
+      if (!el) return
+      el.scrollTop = saved ?? 0
     }
-
-    // Double-rAF: first rAF queues after React commit, second rAF fires after
-    // the browser has painted the new layout (KeepAlive display:none → visible).
-    requestAnimationFrame(() => {
-      requestAnimationFrame(restore)
-    })
+    restoredForKey.current = scrollKey
   }, [scrollKey, noScrollRestore, isDesktopNav])
+
+  // On mount / route change — double-rAF so the browser has painted after
+  // KeepAlive switches display:none → visible.
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(restoreScroll)
+    })
+  }, [restoreScroll])
+
+  // Intersection observer: fires when KeepAlive toggles us from hidden → visible
+  // (back-nav). The component doesn't remount so useEffect above won't re-run.
+  useEffect(() => {
+    if (noScrollRestore) return
+    const el = scrollRef.current
+    if (!el || isDesktopNav) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && restoredForKey.current !== scrollKey) {
+            requestAnimationFrame(restoreScroll)
+          }
+        }
+      },
+      { threshold: 0.01 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [scrollKey, noScrollRestore, isDesktopNav, restoreScroll])
 
   // Continuously save scroll position so it's always fresh for back-nav.
   // Also saves on unmount as a fallback.

@@ -263,7 +263,7 @@ export default function LeadACollectivePage() {
   }
 
   return (
-    <Page noBackground className="!px-0 bg-primary-50" stickyOverlay={<Header title="" back transparent className="-mb-14" />}>
+    <Page noBackground className="!px-0 bg-primary-50" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-br from-sprout-600 via-primary-700 to-secondary-800">
         <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5" />
@@ -271,8 +271,8 @@ export default function LeadACollectivePage() {
         <div className="absolute right-12 bottom-16 w-24 h-24 rounded-full border border-white/8" />
 
         <div
-          className="relative z-10 px-6 pt-14 pb-16"
-          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}
+          className="relative z-10 px-6 pb-16"
+          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 4.5rem)' }}
         >
           <motion.div
             initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.8 }}

@@ -904,16 +904,18 @@ export default function SettingsPage() {
 
   if (!user || !profile) {
     return (
-      <Page noBackground header={<Header title="Settings" back />}>
-        <SettingsSkeleton />
+      <Page noBackground stickyOverlay={<Header title="Settings" back className="collapse-header" />}>
+        <div style={{ paddingTop: 'calc(3.5rem + var(--safe-top))' }}>
+          <SettingsSkeleton />
+        </div>
       </Page>
     )
   }
 
   return (
-    <Page noBackground header={<Header title="Settings" back />}>
+    <Page noBackground stickyOverlay={<Header title="Settings" back className="collapse-header" />}>
       {/* Background + content container */}
-      <div className="relative">
+      <div className="relative" style={{ paddingTop: 'calc(3.5rem + var(--safe-top))' }}>
         {/* Gradient background */}
         <div className="absolute inset-0 -mx-4 lg:-mx-6 bg-gradient-to-b from-primary-50/30 via-white to-primary-50/10 -z-10" />
 

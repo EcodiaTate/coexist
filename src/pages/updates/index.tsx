@@ -395,7 +395,7 @@ export default function UpdatesPage() {
 
   return (
     <Page swipeBack noBackground className="!px-0 bg-surface-1" header={<Header title="Updates" back />}>
-      <div className="relative min-h-full">
+      <div className="relative min-h-dvh">
         <DecorativeBackground />
 
         {/* Page content */}

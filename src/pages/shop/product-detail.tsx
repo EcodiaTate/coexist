@@ -517,20 +517,20 @@ export default function ProductDetailPage() {
     <Page
       swipeBack
       noBackground
-      stickyOverlay={<Header title="" back transparent className="-mb-14" />}
+      stickyOverlay={<Header title="" back transparent className="collapse-header" />}
       footer={
-        <div className="flex items-center gap-3">
-          {/* Price + quantity - compact inline */}
-          <div className="shrink-0">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          {/* Price + quantity */}
+          <div className="flex items-center gap-3">
             <p className="font-heading text-lg font-bold text-primary-800 leading-none">
               {formatPrice((activeVariant?.price_cents ?? product.base_price_cents) * quantity)}
             </p>
+            <QuantityStepper
+              value={quantity}
+              onChange={setQuantity}
+              max={availableStock || undefined}
+            />
           </div>
-          <QuantityStepper
-            value={quantity}
-            onChange={setQuantity}
-            max={availableStock || undefined}
-          />
           {/* Buttons */}
           <div className="flex gap-2 flex-1">
             <Button

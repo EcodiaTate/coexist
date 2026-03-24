@@ -579,7 +579,7 @@ export default function DonatePage() {
       noBackground
       className="!px-0 !bg-transparent"
     >
-      <div className="relative min-h-full">
+      <div className="relative min-h-dvh">
         {/* ── Rich layered background ── */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           {/* Rich golden-amber base gradient */}

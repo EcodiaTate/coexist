@@ -164,7 +164,7 @@ export default function CartPage() {
   /* ================================================================ */
   if (items.length === 0) {
     return (
-      <Page swipeBack noBackground className="!px-0" stickyOverlay={<Header title="" back transparent className="-mb-14" />}>
+      <Page swipeBack noBackground className="!px-0" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
         {/* Hero */}
         <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900">
 
@@ -175,7 +175,7 @@ export default function CartPage() {
           <div className="absolute left-[30%] top-[20%] w-2 h-2 rounded-full bg-white/10" />
           <div className="absolute right-[20%] top-[60%] w-1.5 h-1.5 rounded-full bg-white/10" />
 
-          <div className="relative z-10 px-6 pt-20 pb-16 text-center">
+          <div className="relative z-10 px-6 pb-16 text-center" style={{ paddingTop: 'calc(var(--safe-top, 0px) + 5rem)' }}>
             <motion.div
               initial={rm ? false : { opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -234,7 +234,7 @@ export default function CartPage() {
       swipeBack
       noBackground
       className="!px-0"
-      stickyOverlay={<Header title="" back transparent className="-mb-14" />}
+      stickyOverlay={<Header title="" back transparent className="collapse-header" />}
       footer={
         <div className="space-y-2">
           <div className="flex items-center justify-between">

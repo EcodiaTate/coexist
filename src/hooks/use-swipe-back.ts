@@ -18,8 +18,6 @@ interface SwipeBackOptions {
   commitFraction?: number
   /** Min velocity (px/ms) to commit even below commitFraction (default: 0.4) */
   velocityThreshold?: number
-  /** Max vertical movement before cancelling (default: 50) */
-  verticalTolerance?: number
   /** Edge zone width in px — swipe must start within this zone (default: 28) */
   edgeWidth?: number
   /** Custom back handler instead of navigate(-1) */
@@ -40,7 +38,6 @@ export function useSwipeBack({
   enabled = true,
   commitFraction = 0.35,
   velocityThreshold = 0.4,
-  verticalTolerance = 50,
   edgeWidth = 28,
   onBack,
   targetRef,
@@ -62,6 +59,7 @@ export function useSwipeBack({
         touchStart.current = { x: touch.clientX, y: touch.clientY, t: Date.now() }
         lastMove.current = { x: touch.clientX, t: Date.now() }
         cancelled.current = false
+        committed.current = false
       } else {
         touchStart.current = null
       }
@@ -69,26 +67,39 @@ export function useSwipeBack({
     [edgeWidth],
   )
 
+  const committed = useRef(false)
+
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {
       if (!touchStart.current || cancelled.current) return
       const touch = e.touches[0]
       if (!touch) return
 
+      const dx = Math.max(0, touch.clientX - touchStart.current.x)
       const dy = Math.abs(touch.clientY - touchStart.current.y)
-      if (dy > verticalTolerance) {
-        cancelled.current = true
-        setState({ offsetX: 0, swiping: false, animating: false })
-        return
+
+      // Only check direction at the very start: if the first significant
+      // movement is vertical, this is a scroll — cancel. Once the user has
+      // moved even a small amount horizontally, the gesture is locked in
+      // and vertical wobble is completely ignored.
+      if (!committed.current) {
+        if (dy > 10 && dy > dx * 2) {
+          // First meaningful movement is clearly vertical — it's a scroll
+          cancelled.current = true
+          setState({ offsetX: 0, swiping: false, animating: false })
+          return
+        }
+        if (dx > 10) {
+          committed.current = true
+        }
       }
 
-      const dx = Math.max(0, touch.clientX - touchStart.current.x)
       lastMove.current = { x: touch.clientX, t: Date.now() }
       if (dx > 4) {
         setState({ offsetX: dx, swiping: true, animating: false })
       }
     },
-    [verticalTolerance],
+    [],
   )
 
   const handleTouchEnd = useCallback(

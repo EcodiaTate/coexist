@@ -279,7 +279,7 @@ export default function AdminDashboardPage() {
 
   if (showLoading) {
     return (
-      <div className="relative min-h-dvh overflow-x-hidden bg-white">
+      <div className="relative flex-1 min-h-dvh overflow-x-hidden bg-white">
         {/* Hero skeleton */}
         <div className="relative h-[280px] bg-gradient-to-br from-primary-200 via-moss-200 to-primary-300 animate-pulse" />
 
@@ -367,7 +367,7 @@ export default function AdminDashboardPage() {
   ]
 
   return (
-    <div className="relative min-h-dvh bg-white">
+    <div className="relative flex-1 min-h-dvh bg-white">
       {/* ── Hero with gradient + wordmark + wave ── */}
       <div className="relative">
         <div className="relative w-full overflow-hidden" style={{ minHeight: '280px' }}>

@@ -542,7 +542,7 @@ export default function EventDetailPage() {
             title=""
             back
             transparent
-            className="-mb-14"
+            className="collapse-header"
             rightActions={
               <motion.button
                 type="button"
@@ -556,7 +556,7 @@ export default function EventDetailPage() {
             }
           />
         ) : (
-          <Header title="" back className="-mb-14" />
+          <Header title="" back className="collapse-header" />
         )
       }
     >
