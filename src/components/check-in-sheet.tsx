@@ -187,13 +187,15 @@ interface CheckInSheetProps {
   eventId: string
   eventTitle: string
   collectiveName?: string
+  /** When true, immediately start the QR camera scan when the sheet opens */
+  autoScan?: boolean
 }
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveName }: CheckInSheetProps) {
+export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveName, autoScan = false }: CheckInSheetProps) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const rm = useReducedMotion()
@@ -210,7 +212,9 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
   const [errorKind, setErrorKind] = useState<ErrorKind>('generic')
   const [showCelebration, setShowCelebration] = useState(false)
   const [checkedInOffline, setCheckedInOffline] = useState(false)
+  const [nativeScannerActive, setNativeScannerActive] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const autoScanTriggered = useRef(false)
 
   // Profile form state
   const [firstName, setFirstName] = useState('')
@@ -230,6 +234,8 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
       setManualCode('')
       setShowCelebration(false)
       setCheckedInOffline(false)
+      setNativeScannerActive(false)
+      autoScanTriggered.current = false
       // Pre-fill from existing profile
       if (profileData) {
         setFirstName(profileData.first_name ?? '')
@@ -241,6 +247,10 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
         setEmergencyPhone(profileData.emergency_contact_phone ?? '')
         setEmergencyRelationship(profileData.emergency_contact_relationship ?? '')
       }
+    } else {
+      // Cleanup: ensure scanner-active class is removed if sheet closes
+      document.body.classList.remove('scanner-active')
+      setNativeScannerActive(false)
     }
   }, [open, needsDetails, profileData])
 
@@ -248,6 +258,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
   useEffect(() => {
     if (mode === 'manual') requestAnimationFrame(() => inputRef.current?.focus())
   }, [mode])
+
 
   /* ---- Profile details validation ---- */
   const detailsValid = firstName.trim() && lastName.trim() && emergencyName.trim() && emergencyPhone.trim()
@@ -333,15 +344,32 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
       if (isNative) {
         // Native: use Capacitor ML Kit BarcodeScanner
         const { BarcodeScanner, BarcodeFormat } = await import('@capacitor-mlkit/barcode-scanning')
-        const { camera } = await BarcodeScanner.requestPermissions()
-        if (camera !== 'granted' && camera !== 'limited') {
+
+        // Check if we already have permission before prompting
+        const permStatus = await BarcodeScanner.checkPermissions()
+        let camPerm = permStatus.camera
+
+        // Request permission if not yet granted
+        if (camPerm !== 'granted' && camPerm !== 'limited') {
+          const result = await BarcodeScanner.requestPermissions()
+          camPerm = result.camera
+        }
+
+        if (camPerm !== 'granted' && camPerm !== 'limited') {
           setErrorKind('generic')
           setStep('error')
           return
         }
-        document.querySelector('body')?.classList.add('scanner-active')
+
+        // Make the WebView transparent so the native camera shows through
+        setNativeScannerActive(true)
+        document.body.classList.add('scanner-active')
+
         const { barcodes } = await BarcodeScanner.scan({ formats: [BarcodeFormat.QrCode] })
-        document.querySelector('body')?.classList.remove('scanner-active')
+
+        // Restore WebView visibility
+        document.body.classList.remove('scanner-active')
+        setNativeScannerActive(false)
 
         if (barcodes.length > 0 && barcodes[0].rawValue) {
           const match = barcodes[0].rawValue.match(/^coexist:\/\/event\/(.+)$/)
@@ -366,10 +394,22 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
         // (stays in 'scanning' mode - the UI renders the <video> camera view)
       }
     } catch {
-      document.querySelector('body')?.classList.remove('scanner-active')
+      document.body.classList.remove('scanner-active')
+      setNativeScannerActive(false)
       setMode('idle')
     }
   }, [eventId, isNative, isOffline, validateAndCheckIn, handleOfflineCheckIn])
+
+  // Auto-start scanning when sheet opens with autoScan prop
+  // (only if profile details are already complete — step will be 'checkin')
+  useEffect(() => {
+    if (open && autoScan && step === 'checkin' && mode === 'idle' && !autoScanTriggered.current) {
+      autoScanTriggered.current = true
+      // Small delay to let the sheet animate open
+      const timer = setTimeout(() => handleScanStart(), 350)
+      return () => clearTimeout(timer)
+    }
+  }, [open, autoScan, step, mode, handleScanStart])
 
   const handleManualSubmit = useCallback(() => {
     if (!eventId || !user || !manualCode.trim()) return
@@ -419,7 +459,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
 
   return (
     <>
-      <BottomSheet open={open} onClose={handleClose} snapPoints={snapPoints}>
+      <BottomSheet open={open && !nativeScannerActive} onClose={handleClose} snapPoints={snapPoints}>
         <div className="h-[70vh] overflow-y-auto relative">
         <AnimatePresence mode="wait">
           {/* ══════════════════════════════════════════════════════════ */}

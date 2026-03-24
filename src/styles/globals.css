@@ -566,3 +566,24 @@ button, a, [role="button"], [role="tab"], nav {
     padding-right: 1.5rem;
   }
 }
+
+/* ===== MLKit Barcode Scanner — transparent WebView ===== */
+/* When the native MLKit scanner is active it renders behind the WebView.
+   We must make html/body/root fully transparent so the camera feed shows through. */
+body.scanner-active,
+body.scanner-active #root {
+  background: transparent !important;
+  --tw-bg-opacity: 0 !important;
+}
+
+body.scanner-active .scanner-hide {
+  display: none !important;
+}
+
+body.scanner-active {
+  visibility: hidden;
+}
+
+body.scanner-active .scanner-show {
+  visibility: visible;
+}

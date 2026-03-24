@@ -578,14 +578,14 @@ export default function InventoryTab() {
             <button
               type="button"
               onClick={selectAll}
-              className="px-3 py-1.5 rounded-lg bg-white/15 text-xs font-semibold text-white hover:bg-white/25 cursor-pointer transition-colors"
+              className="px-4 min-h-11 rounded-lg bg-white/15 text-sm font-semibold text-white hover:bg-white/25 cursor-pointer transition-colors"
             >
               All
             </button>
             <button
               type="button"
               onClick={clearSelection}
-              className="px-3 py-1.5 rounded-lg bg-white/15 text-xs font-semibold text-white hover:bg-white/25 cursor-pointer transition-colors"
+              className="px-4 min-h-11 rounded-lg bg-white/15 text-sm font-semibold text-white hover:bg-white/25 cursor-pointer transition-colors"
             >
               Clear
             </button>

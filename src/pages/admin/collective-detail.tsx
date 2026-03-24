@@ -852,7 +852,7 @@ function AddMemberModal({
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value as CollectiveRole)}
             className={cn(
-              'w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
+              'w-full rounded-xl bg-primary-50/50 px-3 min-h-12 text-sm text-primary-800',
               'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
             )}
           >
@@ -1210,7 +1210,7 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
               value={state}
               onChange={(e) => setState(e.target.value)}
               className={cn(
-                'w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
+                'w-full rounded-xl bg-primary-50/50 px-3 min-h-12 text-sm text-primary-800',
                 'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
               )}
             >

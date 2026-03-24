@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion, useTransform } from 'framer-motion'
-import { useParallaxScroll } from '@/hooks/use-parallax-scroll'
+import { motion, useReducedMotion } from 'framer-motion'
+import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 import {
     Calendar, MapPin,
     Users,
@@ -53,15 +53,7 @@ const fadeUp = {
 /* ------------------------------------------------------------------ */
 
 function EventsHero({ rm }: { rm: boolean }) {
-  const scrollY = useParallaxScroll()
-
-  /* Both layers start at the same Y so they marry up at scroll=0.
-     Parallax comes from them moving at different rates on scroll. */
-  const bgY = useTransform(scrollY, [0, 500], [0, 80])
-  const bgScale = useTransform(scrollY, [0, 400], [1, 1.08])
-  const fgY = useTransform(scrollY, [0, 500], [0, 25])
-  const textY = useTransform(scrollY, [0, 500], [0, 120])
-  const textOpacity = useTransform(scrollY, [0, 300], [1, 0])
+  const { bgRef, fgRef, textRef } = useParallaxLayers({ withScale: !rm, withOpacity: !rm })
 
   /* Both images are 904×1080 (portrait). On mobile they fill the width
      and we crop the bottom via a fixed viewport height. On laptop the
@@ -74,33 +66,33 @@ function EventsHero({ rm }: { rm: boolean }) {
       {/* Container: portrait aspect on mobile, capped on desktop */}
       <div className="relative w-full h-[100vw] max-h-[480px] sm:max-h-[420px] overflow-hidden">
         {/* Background - fills container, pulled up on laptop to show upper portion */}
-        <motion.div
+        <div
+          ref={rm ? undefined : bgRef}
           className="absolute inset-x-0 top-0 lg:-top-[60%] will-change-transform"
-          style={rm ? undefined : { y: bgY, scale: bgScale }}
         >
           <img
             src="/img/events-hero-bg.png"
             alt="Conservation events"
             className="w-full h-auto block"
           />
-        </motion.div>
+        </div>
 
         {/* Foreground cutout - matches bg position exactly */}
-        <motion.div
+        <div
+          ref={rm ? undefined : fgRef}
           className="absolute inset-x-0 top-0 lg:-top-[60%] z-[3] will-change-transform"
-          style={rm ? undefined : { y: fgY }}
         >
           <img
             src="/img/events-hero-fg.png"
             alt=""
             className="w-full h-auto block"
           />
-        </motion.div>
+        </div>
 
         {/* Hero text */}
-        <motion.div
+        <div
+          ref={rm ? undefined : textRef}
           className="absolute inset-x-0 top-[25%] sm:top-[18%] z-[2] flex flex-col items-center px-6 will-change-transform"
-          style={rm ? undefined : { y: textY }}
         >
           <span className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-[0.3em] text-white/80 mb-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
             Discover
@@ -108,7 +100,7 @@ function EventsHero({ rm }: { rm: boolean }) {
           <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.4)] leading-[0.85] block">
             Events
           </span>
-        </motion.div>
+        </div>
 
         {/* Safe area spacer */}
         <div

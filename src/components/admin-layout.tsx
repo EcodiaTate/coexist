@@ -94,6 +94,15 @@ const PAGE_HERO_CONFIG: Record<string, HeroCfg> = {
   'Legal Pages':         { hue: 'from-primary-800 via-primary-900 to-neutral-900',  defaultSubtitle: 'Terms, privacy, and legal documentation',        f: 10, w: 2, tall: true },
   'Edit Legal Page':     { hue: 'from-primary-800 via-primary-900 to-neutral-900',  defaultSubtitle: 'Edit page content and settings',                 f: 10, w: 2, tall: true },
   'New Update':          { hue: 'from-secondary-700 via-primary-800 to-primary-950', defaultSubtitle: 'Compose and publish a blog-post update',        f: 2, w: 3, tall: true },
+  'Development':         { hue: 'from-amber-700 via-amber-800 to-primary-950',     defaultSubtitle: 'Learning modules, pathways, and certifications', f: 3, w: 4, tall: true },
+  'Create Module':       { hue: 'from-amber-600 via-amber-700 to-primary-900',     defaultSubtitle: 'Build a new learning module',                    f: 4, w: 0, tall: true },
+  'Edit Module':         { hue: 'from-amber-600 via-amber-700 to-primary-900',     defaultSubtitle: 'Update module content and settings',             f: 4, w: 0, tall: true },
+  'Module Detail':       { hue: 'from-amber-600 via-amber-700 to-primary-900',     defaultSubtitle: 'Module preview and completion stats',            f: 5, w: 1, tall: true },
+  'Create Section':      { hue: 'from-amber-700 via-amber-800 to-primary-950',     defaultSubtitle: 'Chain modules into a learning pathway',          f: 6, w: 2, tall: true },
+  'Edit Section':        { hue: 'from-amber-700 via-amber-800 to-primary-950',     defaultSubtitle: 'Update pathway modules and settings',            f: 6, w: 2, tall: true },
+  'Create Quiz':         { hue: 'from-amber-800 via-primary-800 to-primary-950',   defaultSubtitle: 'Design an assessment quiz',                      f: 7, w: 3, tall: true },
+  'Edit Quiz':           { hue: 'from-amber-800 via-primary-800 to-primary-950',   defaultSubtitle: 'Update quiz questions and settings',              f: 7, w: 3, tall: true },
+  'Development Results': { hue: 'from-amber-700 via-primary-900 to-primary-950',   defaultSubtitle: 'Completion rates, quiz scores, and learner data', f: 8, w: 4, tall: true },
 }
 
 const DEFAULT_HERO: HeroCfg = { hue: 'from-primary-800 via-primary-900 to-primary-950', defaultSubtitle: '', tall: true, f: 11, w: 3 }

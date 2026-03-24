@@ -1,7 +1,7 @@
 import { useCallback, useState, useRef, useEffect, useMemo, startTransition } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { motion, useReducedMotion, useTransform, useInView } from 'framer-motion'
-import { useParallaxScroll } from '@/hooks/use-parallax-scroll'
+import { motion, useReducedMotion, useInView } from 'framer-motion'
+import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 import {
   ChevronRight,
   Calendar,
@@ -174,33 +174,27 @@ function relativeTime(iso: string): string {
 /* ------------------------------------------------------------------ */
 
 function HomeHero({ rm }: { rm: boolean }) {
-  const scrollY = useParallaxScroll()
-
-  /* Parallax layers - each moves at a different rate for depth */
-  const bgY = useTransform(scrollY, [0, 500], [0, 80])         // slowest - far background
-  const bgScale = useTransform(scrollY, [0, 400], [1, 1.08])
-  const fgY = useTransform(scrollY, [0, 500], [0, 25])        // mid - foreground subjects
-  const textY = useTransform(scrollY, [0, 500], [0, 120])     // fastest - text recedes quickly
+  const { bgRef, fgRef, textRef } = useParallaxLayers({ withScale: !rm })
 
   return (
     <div className="relative">
       <div className="relative w-full h-[110vw] min-h-[480px] sm:h-auto overflow-hidden">
         {/* Layer 0: Background landscape - slowest parallax */}
-        <motion.div
+        <div
+          ref={rm ? undefined : bgRef}
           className="h-full will-change-transform"
-          style={rm ? undefined : { y: bgY, scale: bgScale }}
         >
           <img
             src="/img/home-hero-bg.png"
             alt="Australian conservation landscape"
             className="w-full h-full object-cover object-center sm:h-auto sm:object-fill block"
           />
-        </motion.div>
+        </div>
 
         {/* Layer 1: Foreground elements - medium parallax */}
-        <motion.div
+        <div
+          ref={rm ? undefined : fgRef}
           className="absolute bottom-0 inset-x-0 z-[3] flex justify-center will-change-transform"
-          style={rm ? undefined : { y: fgY }}
         >
           <div className="w-[120%] -ml-[10%] sm:w-[70%] sm:ml-0">
             <img
@@ -209,12 +203,12 @@ function HomeHero({ rm }: { rm: boolean }) {
               className="w-full h-auto block"
             />
           </div>
-        </motion.div>
+        </div>
 
         {/* Hero text - fastest parallax, recedes behind fg */}
-        <motion.div
+        <div
+          ref={rm ? undefined : textRef}
           className="absolute inset-x-0 top-[18%] sm:top-[7%] z-[2] flex flex-col items-center px-6 will-change-transform"
-          style={rm ? undefined : { y: textY }}
         >
           <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-white/80 mb-0.5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
             Welcome to
@@ -224,7 +218,7 @@ function HomeHero({ rm }: { rm: boolean }) {
             alt="Co-Exist"
             className="h-24 sm:h-32 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
           />
-        </motion.div>
+        </div>
 
         {/* Safe area spacer at top */}
         <div
@@ -464,6 +458,7 @@ function NextEventCard({
         eventId={checkInEventId}
         eventTitle={checkInEventTitle}
         collectiveName={checkInCollective}
+        autoScan
       />
     </motion.div>
   )

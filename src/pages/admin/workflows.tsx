@@ -536,7 +536,7 @@ function TemplateModal({
                   type="button"
                   onClick={() => setScheduleType(type)}
                   className={cn(
-                    'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm cursor-pointer',
+                    'flex items-center gap-1.5 px-3.5 min-h-11 rounded-lg text-sm cursor-pointer',
                     'transition-colors duration-150',
                     scheduleType === type
                       ? 'bg-primary-100 text-primary-700 font-medium'

@@ -336,7 +336,7 @@ export default function NationalImpactPage() {
               type="button"
               onClick={() => setTimeRange('all-time')}
               className={cn(
-                'px-3 py-1.5 rounded-md text-xs font-semibold transition-all active:scale-[0.95] cursor-pointer select-none',
+                'px-3.5 min-h-11 rounded-md text-sm font-semibold transition-all active:scale-[0.95] cursor-pointer select-none',
                 timeRange === 'all-time'
                   ? 'bg-white text-primary-700 shadow-sm'
                   : 'text-primary-400 hover:text-primary-600',
@@ -348,7 +348,7 @@ export default function NationalImpactPage() {
               type="button"
               onClick={() => setTimeRange('current-year')}
               className={cn(
-                'px-3 py-1.5 rounded-md text-xs font-semibold transition-all active:scale-[0.95] cursor-pointer select-none',
+                'px-3.5 min-h-11 rounded-md text-sm font-semibold transition-all active:scale-[0.95] cursor-pointer select-none',
                 timeRange === 'current-year'
                   ? 'bg-white text-primary-700 shadow-sm'
                   : 'text-primary-400 hover:text-primary-600',

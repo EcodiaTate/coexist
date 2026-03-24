@@ -11,7 +11,9 @@ import {
     BarChart3,
     Copy,
     Users,
-    ArrowRight
+    ArrowRight,
+    BookOpen,
+    GraduationCap,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Skeleton } from '@/components/skeleton'
@@ -146,7 +148,7 @@ function SectionCard({
               key={action.label}
               to={action.to}
               className={cn(
-                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold',
+                'inline-flex items-center gap-1.5 px-3.5 min-h-11 rounded-lg text-sm font-semibold',
                 actionBg,
                 'transition-[colors,transform] duration-150 active:scale-[0.97]',
               )}
@@ -211,7 +213,7 @@ export default function AdminCreatePage() {
         <SectionHeading icon={<Zap size={14} className="text-primary-400" />} reducedMotion={rm}>
           Quick Actions
         </SectionHeading>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
           <QuickAction
             icon={<Megaphone size={18} className="text-white" />}
             label="New Update"
@@ -253,6 +255,16 @@ export default function AdminCreatePage() {
             delay={3}
           />
           <QuickAction
+            icon={<BookOpen size={18} className="text-white" />}
+            label="New Module"
+            description="Build a learning module"
+            to="/admin/development/modules/new"
+            bg="bg-gradient-to-br from-amber-500 to-amber-600"
+            cardBg="bg-gradient-to-br from-amber-50 to-amber-100/80"
+            reducedMotion={rm}
+            delay={4}
+          />
+          <QuickAction
             icon={<Copy size={18} className="text-white" />}
             label="From Template"
             description="Survey from template"
@@ -260,7 +272,7 @@ export default function AdminCreatePage() {
             bg="bg-gradient-to-br from-bark-500 to-bark-600"
             cardBg="bg-gradient-to-br from-bark-50 to-bark-100/80"
             reducedMotion={rm}
-            delay={4}
+            delay={5}
           />
         </div>
       </div>
@@ -272,13 +284,14 @@ export default function AdminCreatePage() {
         </SectionHeading>
 
         {summaryLoading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
+            <Skeleton className="h-52 rounded-2xl" />
             <Skeleton className="h-52 rounded-2xl" />
             <Skeleton className="h-52 rounded-2xl" />
             <Skeleton className="h-52 rounded-2xl" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
             <SectionCard
               icon={<ClipboardCheck size={20} className="text-white" />}
               title="Tasks"
@@ -336,6 +349,26 @@ export default function AdminCreatePage() {
               ]}
               reducedMotion={rm}
               delay={2}
+            />
+            <SectionCard
+              icon={<GraduationCap size={20} className="text-white" />}
+              title="Development"
+              description="Learning modules, leadership development, and onboarding pathways"
+              to="/admin/development"
+              accentColor="bg-gradient-to-br from-amber-500 to-amber-600"
+              cardBg="bg-gradient-to-br from-amber-50 via-amber-50/60 to-amber-100/50"
+              actionBg="bg-amber-200/50 text-amber-700 hover:bg-amber-200/80"
+              stats={[
+                { label: 'Modules', value: summary?.totalModules ?? 0 },
+                { label: 'Published', value: summary?.publishedModules ?? 0 },
+                { label: 'Sections', value: summary?.totalSections ?? 0 },
+              ]}
+              actions={[
+                { label: 'New Module', icon: <BookOpen size={12} />, to: '/admin/development/modules/new' },
+                { label: 'Results', icon: <BarChart3 size={12} />, to: '/admin/development/results' },
+              ]}
+              reducedMotion={rm}
+              delay={3}
             />
           </div>
         )}

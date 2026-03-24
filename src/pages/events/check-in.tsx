@@ -210,20 +210,29 @@ export default function CheckInPage() {
     try {
       const { BarcodeScanner, BarcodeFormat } = await import('@capacitor-mlkit/barcode-scanning')
 
-      const { camera } = await BarcodeScanner.requestPermissions()
-      if (camera !== 'granted' && camera !== 'limited') {
+      // Check if we already have permission before prompting
+      const permStatus = await BarcodeScanner.checkPermissions()
+      let camPerm = permStatus.camera
+
+      if (camPerm !== 'granted' && camPerm !== 'limited') {
+        const result = await BarcodeScanner.requestPermissions()
+        camPerm = result.camera
+      }
+
+      if (camPerm !== 'granted' && camPerm !== 'limited') {
         setErrorKind('generic')
         setState('error')
         return
       }
 
-      document.querySelector('body')?.classList.add('scanner-active')
+      // Make the WebView transparent so the native camera shows through
+      document.body.classList.add('scanner-active')
 
       const { barcodes } = await BarcodeScanner.scan({
         formats: [BarcodeFormat.QrCode],
       })
 
-      document.querySelector('body')?.classList.remove('scanner-active')
+      document.body.classList.remove('scanner-active')
 
       if (barcodes.length > 0 && barcodes[0].rawValue) {
         const match = barcodes[0].rawValue.match(/^coexist:\/\/event\/(.+)$/)
@@ -248,7 +257,7 @@ export default function CheckInPage() {
       }
     } catch {
       // BarcodeScanner plugin failed - fall back to manual mode, don't auto-check-in
-      document.querySelector('body')?.classList.remove('scanner-active')
+      document.body.classList.remove('scanner-active')
       setState('manual')
     }
   }, [eventId, isNative, isOffline, validateAndCheckIn, handleOfflineCheckIn])

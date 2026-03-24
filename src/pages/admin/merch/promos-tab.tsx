@@ -244,7 +244,7 @@ export default function PromosTab() {
                         setEditPromo(promo)
                         setFormOpen(true)
                       }}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/15 text-white/90 text-xs font-semibold hover:bg-white/25 cursor-pointer transition-colors"
+                      className="flex items-center gap-1.5 px-3.5 min-h-11 rounded-lg bg-white/15 text-white/90 text-sm font-semibold hover:bg-white/25 cursor-pointer transition-colors"
                     >
                       <Edit3 size={12} />
                       Edit

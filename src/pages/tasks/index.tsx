@@ -252,7 +252,7 @@ function CollectiveGroup({
       <button
         type="button"
         onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center gap-2 w-full py-1 cursor-pointer active:scale-[0.98] transition-transform duration-150"
+        className="flex items-center gap-2 w-full min-h-11 cursor-pointer active:scale-[0.98] transition-transform duration-150"
       >
         {collapsed ? (
           <ChevronRight size={16} className="text-primary-400" />

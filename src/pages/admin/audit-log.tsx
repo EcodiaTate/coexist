@@ -213,7 +213,7 @@ export default function AdminAuditLogPage() {
                   disabled={page === 0}
                   onClick={() => setPage((p) => p - 1)}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer',
+                    'px-4 min-h-11 rounded-lg text-sm font-medium cursor-pointer',
                     page === 0
                       ? 'text-primary-300 cursor-not-allowed'
                       : 'text-primary-400 hover:bg-primary-50',
@@ -229,7 +229,7 @@ export default function AdminAuditLogPage() {
                   disabled={page >= totalPages - 1}
                   onClick={() => setPage((p) => p + 1)}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-sm font-medium cursor-pointer',
+                    'px-4 min-h-11 rounded-lg text-sm font-medium cursor-pointer',
                     page >= totalPages - 1
                       ? 'text-primary-300 cursor-not-allowed'
                       : 'text-primary-400 hover:bg-primary-50',

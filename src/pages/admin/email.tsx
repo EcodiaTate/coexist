@@ -730,7 +730,7 @@ function CampaignComposer({
                         key={tag.id}
                         onClick={() => toggleTag(tag.id)}
                         className={cn(
-                          'inline-flex items-center rounded-full text-xs font-medium px-3 py-1 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+                          'inline-flex items-center rounded-full text-sm font-medium px-3.5 min-h-11 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
                           selectedTagIds.includes(tag.id)
                             ? 'ring-2 ring-offset-1 shadow-sm'
                             : 'opacity-60 hover:opacity-100',
@@ -762,7 +762,7 @@ function CampaignComposer({
                         key={c.id}
                         onClick={() => toggleCollective(c.id)}
                         className={cn(
-                          'inline-flex items-center rounded-full text-xs font-medium px-3 py-1 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+                          'inline-flex items-center rounded-full text-sm font-medium px-3.5 min-h-11 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
                           'bg-primary-100 text-primary-600',
                           selectedCollectiveIds.includes(c.id)
                             ? 'ring-2 ring-primary-500 ring-offset-1 shadow-sm'
@@ -1356,7 +1356,7 @@ function AssignTagsSheet({
             key={tag.id}
             onClick={() => toggle(tag.id)}
             className={cn(
-              'inline-flex items-center rounded-full text-xs font-medium px-3 py-1.5 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+              'inline-flex items-center rounded-full text-sm font-medium px-3.5 min-h-11 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
               selectedIds.has(tag.id)
                 ? 'ring-2 ring-offset-1 shadow-sm'
                 : 'opacity-50 hover:opacity-100',

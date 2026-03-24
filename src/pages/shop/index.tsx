@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { motion, useReducedMotion, useTransform, type Variants } from 'framer-motion'
-import { useParallaxScroll } from '@/hooks/use-parallax-scroll'
+import { motion, useReducedMotion, type Variants } from 'framer-motion'
+import { useParallaxEngine } from '@/hooks/use-parallax-scroll'
 import {
     ShoppingBag,
     Star,
@@ -195,8 +195,14 @@ function ShopHero({
   onBack: () => void
   rm: boolean
 }) {
-  const scrollY = useParallaxScroll()
-  const textY = useTransform(scrollY, [0, 600], [0, 150])
+  const textRef = useRef<HTMLDivElement>(null)
+  const { register, unregister } = useParallaxEngine()
+
+  useEffect(() => {
+    if (rm) return
+    register(textRef, { yRange: 150, scrollEnd: 600 })
+    return () => { unregister(textRef) }
+  }, [rm, register, unregister])
 
   return (
     <div className="relative">
@@ -251,14 +257,14 @@ function ShopHero({
         </div>
 
         {/* Hero text - behind the people so they pass in front */}
-        <motion.div
-          className="absolute inset-x-0 top-[12%] z-[2] flex justify-center"
-          style={rm ? undefined : { y: textY }}
+        <div
+          ref={rm ? undefined : textRef}
+          className="absolute inset-x-0 top-[12%] z-[2] flex justify-center will-change-transform"
         >
           <h1 style={{ fontSize: 'clamp(3.5rem, 10vw, 10rem)' }} className="font-heading font-bold text-[#fff] tracking-tight drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
             Shop
           </h1>
-        </motion.div>
+        </div>
       </div>
 
       {/* Smooth transition into content - sits on top of the overflowing bg */}

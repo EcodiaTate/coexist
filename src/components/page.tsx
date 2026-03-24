@@ -1,22 +1,6 @@
-import { type ReactNode, useEffect, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { type ReactNode, useRef } from 'react'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
-
-/** Global scroll-position cache keyed by history entry */
-const scrollPositions = new Map<string, number>()
-
-/** Cap cache size to prevent unbounded memory growth */
-const MAX_SCROLL_ENTRIES = 100
-
-function saveScrollPosition(key: string, pos: number) {
-  if (scrollPositions.size >= MAX_SCROLL_ENTRIES) {
-    // Evict oldest entry
-    const firstKey = scrollPositions.keys().next().value
-    if (firstKey !== undefined) scrollPositions.delete(firstKey)
-  }
-  scrollPositions.set(key, pos)
-}
 
 interface PageProps {
   /** Optional header component (e.g. <Header />) */
@@ -30,8 +14,6 @@ interface PageProps {
   children: ReactNode
   /** Additional class names */
   className?: string
-  /** Disable scroll restoration (e.g. for modals, sheets) */
-  noScrollRestore?: boolean
   /** Hide the default atmospheric background (when the page provides its own) */
   noBackground?: boolean
   /** @deprecated Swipe-back is now handled globally by KeepAlive */
@@ -44,77 +26,16 @@ export function Page({
   footer,
   children,
   className,
-  noScrollRestore = false,
   noBackground = false,
 }: PageProps) {
-  const location = useLocation()
   const scrollRef = useRef<HTMLDivElement>(null)
   const { navMode } = useLayout()
 
-  // Freeze the scroll key to the value at first mount. KeepAlive caches this
-  // component and useLocation() returns the CURRENT route's location for all
-  // cached pages. Without freezing, back-nav would give us a new key, the save
-  // effect would re-run with a key that has no saved position, and scroll resets to 0.
-  const scrollKeyRef = useRef(location.key ?? location.pathname)
-  const scrollKey = scrollKeyRef.current
-
   const isDesktopNav = navMode === 'sidebar'
 
-  // Restore saved scroll position on initial mount only.
-  // KeepAlive now uses visibility:hidden instead of display:none, so the
-  // browser preserves scrollTop natively — no observer needed.
-  useEffect(() => {
-    if (noScrollRestore) return
-
-    const saved = scrollPositions.get(scrollKey)
-
-    if (isDesktopNav) {
-      window.scrollTo({ top: saved ?? 0, behavior: 'instant' })
-    } else {
-      const el = scrollRef.current
-      if (!el) return
-      el.scrollTop = saved ?? 0
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Continuously save scroll position so it's always fresh for back-nav.
-  // Also saves on unmount as a fallback.
-  useEffect(() => {
-    if (noScrollRestore) return
-
-    let rafId = 0
-    const onScroll = () => {
-      cancelAnimationFrame(rafId)
-      rafId = requestAnimationFrame(() => {
-        if (isDesktopNav) {
-          saveScrollPosition(scrollKey, window.scrollY)
-        } else {
-          const el = scrollRef.current
-          if (el) saveScrollPosition(scrollKey, el.scrollTop)
-        }
-      })
-    }
-
-    if (isDesktopNav) {
-      window.addEventListener('scroll', onScroll, { passive: true })
-      return () => {
-        window.removeEventListener('scroll', onScroll)
-        cancelAnimationFrame(rafId)
-        saveScrollPosition(scrollKey, window.scrollY)
-      }
-    }
-
-    const el = scrollRef.current
-    if (el) {
-      el.addEventListener('scroll', onScroll, { passive: true })
-      return () => {
-        el.removeEventListener('scroll', onScroll)
-        cancelAnimationFrame(rafId)
-        saveScrollPosition(scrollKey, el.scrollTop)
-      }
-    }
-  }, [scrollKey, noScrollRestore, isDesktopNav])
+  // Scroll save/restore is handled entirely by KeepAlive, which captures
+  // scrollTop from #main-content before hiding a page and restores it
+  // after showing. Page just provides the scroll container.
 
   const hasBottomTabs = navMode === 'bottom-tabs'
 

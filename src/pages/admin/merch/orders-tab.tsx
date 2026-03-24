@@ -634,7 +634,7 @@ export default function OrdersTab() {
               <button
                 type="button"
                 onClick={() => handleCopyId(selectedOrder.id)}
-                className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs text-primary-400 hover:bg-primary-50 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 min-h-11 rounded-lg text-sm text-primary-400 hover:bg-primary-50 cursor-pointer"
               >
                 <Copy size={12} />
                 Copy ID

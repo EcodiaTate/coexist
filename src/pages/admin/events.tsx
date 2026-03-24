@@ -241,18 +241,18 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
               <Link
                 to={`/events/${event.id}/day`}
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
+                className="flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
                 title="Event Day"
               >
-                <ClipboardList size={13} />
+                <ClipboardList size={16} />
               </Link>
               <Link
                 to={`/events/${event.id}/edit`}
                 onClick={(e) => e.stopPropagation()}
-                className="flex items-center justify-center w-7 h-7 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
+                className="flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
                 title="Edit Event"
               >
-                <Pencil size={13} />
+                <Pencil size={16} />
               </Link>
             </div>
           </div>
@@ -531,14 +531,14 @@ export default function AdminEventsPage() {
 
             <div className="flex items-center gap-2">
               {/* Status toggle */}
-              <div className="flex items-center gap-0.5 rounded-xl shadow-sm bg-white p-0.5">
+              <div className="flex items-center gap-0.5 rounded-xl shadow-sm bg-white p-0.5 overflow-x-auto">
                 {(['upcoming', 'past', 'draft', 'cancelled', 'all'] as const).map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => setStatusFilter(s)}
                     className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-semibold capitalize',
+                      'px-3.5 min-h-11 rounded-lg text-sm font-semibold capitalize',
                       'active:scale-[0.95] transition-[colors,transform] duration-150 cursor-pointer select-none',
                       statusFilter === s
                         ? 'bg-primary-100 text-primary-800'

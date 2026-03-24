@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, startTransition } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   MapPin,
@@ -7,6 +7,8 @@ import {
   Camera,
   Save,
   X,
+  Lock,
+  Pencil,
 } from 'lucide-react'
 import {
   useEventDetail,
@@ -43,6 +45,8 @@ type ActivityType = Database['public']['Enums']['activity_type']
 export default function EditEventPage() {
   const { id: eventId } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const isDayOfMode = searchParams.get('mode') === 'day-of'
   const shouldReduceMotion = useReducedMotion()
 
   const { data: event, isLoading } = useEventDetail(eventId)
@@ -104,25 +108,36 @@ export default function EditEventPage() {
   }
 
   const handleSave = useCallback(async () => {
-    if (!eventId || !title.trim() || !activityType || !dateStart) return
+    if (!eventId) return
 
-    const capacityNum = capacity ? parseInt(capacity, 10) : null
-
-    await updateEvent.mutateAsync({
-      eventId,
-      title,
-      description: description || null,
-      activity_type: activityType as ActivityType,
-      date_start: dateStart.toISOString(),
-      date_end: dateEnd?.toISOString() ?? null,
-      address: address || null,
-      capacity: capacityNum && capacityNum > 0 ? capacityNum : null,
-      cover_image_url: coverImageUrl || null,
-      is_public: isPublic,
-    })
+    if (isDayOfMode) {
+      // Day-of mode: only update time and address
+      if (!dateStart) return
+      await updateEvent.mutateAsync({
+        eventId,
+        date_start: dateStart.toISOString(),
+        date_end: dateEnd?.toISOString() ?? null,
+        address: address || null,
+      })
+    } else {
+      if (!title.trim() || !activityType || !dateStart) return
+      const capacityNum = capacity ? parseInt(capacity, 10) : null
+      await updateEvent.mutateAsync({
+        eventId,
+        title,
+        description: description || null,
+        activity_type: activityType as ActivityType,
+        date_start: dateStart.toISOString(),
+        date_end: dateEnd?.toISOString() ?? null,
+        address: address || null,
+        capacity: capacityNum && capacityNum > 0 ? capacityNum : null,
+        cover_image_url: coverImageUrl || null,
+        is_public: isPublic,
+      })
+    }
 
     navigate(`/events/${eventId}`, { replace: true })
-  }, [eventId, title, description, activityType, dateStart, dateEnd, address, capacity, coverImageUrl, isPublic, updateEvent, navigate])
+  }, [eventId, isDayOfMode, title, description, activityType, dateStart, dateEnd, address, capacity, coverImageUrl, isPublic, updateEvent, navigate])
 
   const stagger = {
     hidden: {},
@@ -134,9 +149,11 @@ export default function EditEventPage() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
   }
 
+  const pageTitle = isDayOfMode ? 'Edit Time & Location' : 'Edit Event'
+
   if (showLoading) {
     return (
-      <Page swipeBack header={<Header title="Edit Event" back />}>
+      <Page swipeBack header={<Header title={pageTitle} back />}>
         <div className="pt-4 space-y-4">
           <Skeleton variant="title" />
           <Skeleton variant="text" count={3} />
@@ -147,7 +164,7 @@ export default function EditEventPage() {
   }
   if (!event) {
     return (
-      <Page swipeBack header={<Header title="Edit Event" back />}>
+      <Page swipeBack header={<Header title={pageTitle} back />}>
         <EmptyState
           illustration="error"
           title="Event not found"
@@ -158,12 +175,14 @@ export default function EditEventPage() {
     )
   }
 
-  const canSave = title.trim().length > 0 && activityType !== '' && dateStart !== null
+  const canSave = isDayOfMode
+    ? dateStart !== null
+    : title.trim().length > 0 && activityType !== '' && dateStart !== null
 
   return (
     <Page
       swipeBack
-      header={<Header title="Edit Event" back />}
+      header={<Header title={pageTitle} back />}
       footer={
         <Button
           variant="primary"
@@ -185,14 +204,29 @@ export default function EditEventPage() {
         className="pt-4 pb-8 space-y-6"
       >
         {/* Basics */}
-        <motion.div variants={fadeUp} className="space-y-4">
-          <h3 className="text-sm font-semibold text-primary-800">Basics</h3>
+        <motion.div variants={fadeUp} className={cn(
+          'space-y-4 rounded-2xl p-4 border',
+          isDayOfMode
+            ? 'bg-primary-50/30 border-primary-100/40 opacity-60 pointer-events-none'
+            : 'bg-white border-primary-100/40',
+        )}>
+          <h3 className="text-sm font-semibold flex items-center gap-1.5">
+            {isDayOfMode ? (
+              <>
+                <Lock size={13} className="text-primary-300" />
+                <span className="text-primary-400">Basics</span>
+              </>
+            ) : (
+              <span className="text-primary-800">Basics</span>
+            )}
+          </h3>
           <Input
             label="Event Title"
             placeholder="e.g. Byron Bay Dune Planting Day"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
+            disabled={isDayOfMode}
           />
           <Dropdown
             label="Activity Type"
@@ -203,6 +237,7 @@ export default function EditEventPage() {
               value: o.value,
               label: o.label,
             }))}
+            disabled={isDayOfMode}
           />
           <Input
             type="textarea"
@@ -211,12 +246,27 @@ export default function EditEventPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={4}
+            disabled={isDayOfMode}
           />
         </motion.div>
 
-        {/* Date & Time */}
-        <motion.div variants={fadeUp} className="space-y-4">
-          <h3 className="text-sm font-semibold text-primary-800">Date & Time</h3>
+        {/* Date & Time — editable in day-of mode */}
+        <motion.div variants={fadeUp} className={cn(
+          'space-y-4 rounded-2xl p-4 border',
+          isDayOfMode
+            ? 'bg-moss-50/60 border-moss-300 ring-2 ring-moss-200'
+            : 'bg-white border-primary-100/40',
+        )}>
+          <h3 className="text-sm font-semibold flex items-center gap-1.5">
+            {isDayOfMode ? (
+              <>
+                <Pencil size={13} className="text-moss-600" />
+                <span className="text-moss-700">Date & Time</span>
+              </>
+            ) : (
+              <span className="text-primary-800">Date & Time</span>
+            )}
+          </h3>
           <DatePicker
             label="Start Date & Time"
             value={dateStart}
@@ -232,9 +282,23 @@ export default function EditEventPage() {
           />
         </motion.div>
 
-        {/* Location */}
-        <motion.div variants={fadeUp} className="space-y-4">
-          <h3 className="text-sm font-semibold text-primary-800">Location</h3>
+        {/* Location — editable in day-of mode */}
+        <motion.div variants={fadeUp} className={cn(
+          'space-y-4 rounded-2xl p-4 border',
+          isDayOfMode
+            ? 'bg-moss-50/60 border-moss-300 ring-2 ring-moss-200'
+            : 'bg-white border-primary-100/40',
+        )}>
+          <h3 className="text-sm font-semibold flex items-center gap-1.5">
+            {isDayOfMode ? (
+              <>
+                <Pencil size={13} className="text-moss-600" />
+                <span className="text-moss-700">Location</span>
+              </>
+            ) : (
+              <span className="text-primary-800">Location</span>
+            )}
+          </h3>
           <Input
             label="Address"
             placeholder="Search for an address..."
@@ -260,25 +324,55 @@ export default function EditEventPage() {
         </motion.div>
 
         {/* Details */}
-        <motion.div variants={fadeUp} className="space-y-4">
-          <h3 className="text-sm font-semibold text-primary-800">Details</h3>
+        <motion.div variants={fadeUp} className={cn(
+          'space-y-4 rounded-2xl p-4 border',
+          isDayOfMode
+            ? 'bg-primary-50/30 border-primary-100/40 opacity-60 pointer-events-none'
+            : 'bg-white border-primary-100/40',
+        )}>
+          <h3 className="text-sm font-semibold flex items-center gap-1.5">
+            {isDayOfMode ? (
+              <>
+                <Lock size={13} className="text-primary-300" />
+                <span className="text-primary-400">Details</span>
+              </>
+            ) : (
+              <span className="text-primary-800">Details</span>
+            )}
+          </h3>
           <Input
             label="Capacity"
             placeholder="Max participants (leave empty for unlimited)"
             value={capacity}
             onChange={(e) => setCapacity(e.target.value)}
+            disabled={isDayOfMode}
           />
           <Toggle
             label="Public Event"
             description="Anyone can discover and register for this event"
             checked={isPublic}
             onChange={setIsPublic}
+            disabled={isDayOfMode}
           />
         </motion.div>
 
         {/* Cover Image */}
-        <motion.div variants={fadeUp} className="space-y-3">
-          <h3 className="text-sm font-semibold text-primary-800">Cover Image</h3>
+        <motion.div variants={fadeUp} className={cn(
+          'space-y-3 rounded-2xl p-4 border',
+          isDayOfMode
+            ? 'bg-primary-50/30 border-primary-100/40 opacity-60 pointer-events-none'
+            : 'bg-white border-primary-100/40',
+        )}>
+          <h3 className="text-sm font-semibold flex items-center gap-1.5">
+            {isDayOfMode ? (
+              <>
+                <Lock size={13} className="text-primary-300" />
+                <span className="text-primary-400">Cover Image</span>
+              </>
+            ) : (
+              <span className="text-primary-800">Cover Image</span>
+            )}
+          </h3>
           {coverImageUrl ? (
             <div className="relative rounded-xl overflow-hidden">
               <img
@@ -287,20 +381,22 @@ export default function EditEventPage() {
                 className="w-full object-cover"
                 style={{ aspectRatio: '16/9' }}
               />
-              <button
-                type="button"
-                onClick={() => setCoverImageUrl('')}
-                className="absolute top-2 right-2 min-w-11 min-h-11 rounded-full bg-black/50 text-white flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
-                aria-label="Remove cover image"
-              >
-                <X size={16} />
-              </button>
+              {!isDayOfMode && (
+                <button
+                  type="button"
+                  onClick={() => setCoverImageUrl('')}
+                  className="absolute top-2 right-2 min-w-11 min-h-11 rounded-full bg-black/50 text-white flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+                  aria-label="Remove cover image"
+                >
+                  <X size={16} />
+                </button>
+              )}
             </div>
           ) : (
             <button
               type="button"
               onClick={handleUpload}
-              disabled={cameraLoading || uploading}
+              disabled={isDayOfMode || cameraLoading || uploading}
               className={cn(
                 'w-full min-h-11 py-12 rounded-xl border-2 border-dashed border-primary-200 hover:border-primary-400',
                 'cursor-pointer select-none',
@@ -315,22 +411,26 @@ export default function EditEventPage() {
               <p className="text-sm font-medium mt-2">Tap to upload a cover photo</p>
             </button>
           )}
-          <UploadProgress
-            progress={progress}
-            uploading={uploading}
-            error={uploadError}
-            variant="bar"
-          />
-          {!coverImageUrl && (
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<Camera size={14} />}
-              onClick={handleUpload}
-              disabled={cameraLoading || uploading}
-            >
-              Choose Photo
-            </Button>
+          {!isDayOfMode && (
+            <>
+              <UploadProgress
+                progress={progress}
+                uploading={uploading}
+                error={uploadError}
+                variant="bar"
+              />
+              {!coverImageUrl && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<Camera size={14} />}
+                  onClick={handleUpload}
+                  disabled={cameraLoading || uploading}
+                >
+                  Choose Photo
+                </Button>
+              )}
+            </>
           )}
         </motion.div>
       </motion.div>

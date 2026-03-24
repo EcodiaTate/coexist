@@ -125,6 +125,17 @@ const AdminPartnersPage = lazy(() => import('@/pages/admin/partners'))
 const AdminChallengesPage = lazy(() => import('@/pages/admin/challenges'))
 const ModerationQueuePage = lazy(() => import('@/pages/admin/moderation/index'))
 
+// Admin Development (L&D)
+const AdminDevelopmentPage = lazy(() => import('@/pages/admin/development/index'))
+const AdminCreateModulePage = lazy(() => import('@/pages/admin/development/create-module'))
+const AdminEditModulePage = lazy(() => import('@/pages/admin/development/edit-module'))
+const AdminModuleDetailPage = lazy(() => import('@/pages/admin/development/module-detail'))
+const AdminCreateSectionPage = lazy(() => import('@/pages/admin/development/create-section'))
+const AdminEditSectionPage = lazy(() => import('@/pages/admin/development/edit-section'))
+const AdminCreateQuizPage = lazy(() => import('@/pages/admin/development/create-quiz'))
+const AdminEditQuizPage = lazy(() => import('@/pages/admin/development/edit-quiz'))
+const AdminDevResultsPage = lazy(() => import('@/pages/admin/development/results'))
+
 // Contact, Partners, Leadership
 const ContactPage = lazy(() => import('@/pages/contact'))
 const PartnersPage = lazy(() => import('@/pages/partners'))
@@ -136,6 +147,17 @@ const LeaderDashboardPage = lazy(() => import('@/pages/leader/index'))
 const LeaderEventsPage = lazy(() => import('@/pages/leader/events'))
 const LeaderTasksPage = lazy(() => import('@/pages/leader/tasks'))
 const LeaderReportsPage = lazy(() => import('@/pages/reports/index'))
+
+// Leader Development
+const LeaderDevPage = lazy(() => import('@/pages/leader/development/index'))
+const LeaderDevProgressPage = lazy(() => import('@/pages/leader/development/progress'))
+
+// Learner pages (My Leadership Journey)
+const LearnIndexPage = lazy(() => import('@/pages/learn/index'))
+const LearnModulePage = lazy(() => import('@/pages/learn/module'))
+const LearnSectionPage = lazy(() => import('@/pages/learn/section'))
+const LearnQuizPage = lazy(() => import('@/pages/learn/quiz'))
+const LearnCompletePage = lazy(() => import('@/pages/learn/complete'))
 
 // Reports & National Impact
 const ReportsPage = lazy(() => import('@/pages/reports/index'))
@@ -353,6 +375,13 @@ function App() {
           <Route path="/reports" element={<PageTransition><ReportsPage /></PageTransition>} />
           <Route path="/impact/national" element={<PageTransition><NationalImpactPage /></PageTransition>} />
 
+          {/* ---- My Leadership Journey (learner) ---- */}
+          <Route path="/learn" element={<PageTransition><LearnIndexPage /></PageTransition>} />
+          <Route path="/learn/module/:moduleId" element={<PageTransition><LearnModulePage /></PageTransition>} />
+          <Route path="/learn/section/:sectionId" element={<PageTransition><LearnSectionPage /></PageTransition>} />
+          <Route path="/learn/quiz/:quizId" element={<PageTransition><LearnQuizPage /></PageTransition>} />
+          <Route path="/learn/complete" element={<PageTransition><LearnCompletePage /></PageTransition>} />
+
           {/* ---- Leader Dashboard & sub-pages ---- */}
           <Route path="/leader" element={<LeaderLayoutRoute />}>
             <Route index element={<LeaderDashboardPage />} />
@@ -360,6 +389,8 @@ function App() {
             <Route path="events/create" element={<CreateEventPage />} />
             <Route path="tasks" element={<LeaderTasksPage />} />
             <Route path="reports" element={<LeaderReportsPage />} />
+            <Route path="development" element={<LeaderDevPage />} />
+            <Route path="development/progress" element={<LeaderDevProgressPage />} />
           </Route>
 
           {/* ---- Admin routes (staff+) ---- */}
@@ -388,6 +419,15 @@ function App() {
             <Route path="challenges" element={<AdminChallengesPage />} />
             <Route path="moderation" element={<ModerationQueuePage />} />
             <Route path="dev-tools" element={<DevToolsPage />} />
+            <Route path="development" element={<AdminDevelopmentPage />} />
+            <Route path="development/modules/new" element={<AdminCreateModulePage />} />
+            <Route path="development/modules/:moduleId" element={<AdminModuleDetailPage />} />
+            <Route path="development/modules/:moduleId/edit" element={<AdminEditModulePage />} />
+            <Route path="development/sections/new" element={<AdminCreateSectionPage />} />
+            <Route path="development/sections/:sectionId/edit" element={<AdminEditSectionPage />} />
+            <Route path="development/quizzes/new" element={<AdminCreateQuizPage />} />
+            <Route path="development/quizzes/:quizId/edit" element={<AdminEditQuizPage />} />
+            <Route path="development/results" element={<AdminDevResultsPage />} />
           </Route>
 
         </Route>

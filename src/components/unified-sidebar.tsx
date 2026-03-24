@@ -27,7 +27,9 @@ import {
     ChevronRight,
     Home,
     MessageCircle,
-    Sparkles
+    Sparkles,
+    GraduationCap,
+    BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { APP_NAME } from '@/lib/constants'
@@ -121,6 +123,14 @@ const adminNavCategories: NavCategory[] = [
     ],
   },
   {
+    label: 'Development',
+    labelColor: 'text-amber-600',
+    dotColor: 'bg-amber-500',
+    items: [
+      { label: 'Development', path: '/admin/development', icon: <GraduationCap size={17} strokeWidth={1.5} /> },
+    ],
+  },
+  {
     label: 'Settings',
     labelColor: 'text-bark-500',
     dotColor: 'bg-bark-400',
@@ -154,6 +164,15 @@ const leaderNavCategories: NavCategory[] = [
     items: [
       { label: 'Events', path: '/leader/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
       { label: 'Tasks', path: '/leader/tasks', icon: <ClipboardCheck size={17} strokeWidth={1.5} /> },
+    ],
+  },
+  {
+    label: 'Growth',
+    labelColor: 'text-moss-500',
+    dotColor: 'bg-moss-500',
+    items: [
+      { label: 'Development', path: '/leader/development', icon: <GraduationCap size={17} strokeWidth={1.5} /> },
+      { label: 'My Learning', path: '/learn', icon: <BookOpen size={17} strokeWidth={1.5} /> },
     ],
   },
 ]

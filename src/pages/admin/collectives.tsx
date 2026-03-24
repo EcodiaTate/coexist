@@ -127,7 +127,7 @@ function CreateCollectiveModal({
             value={state}
             onChange={(e) => setState(e.target.value)}
             className={cn(
-              'w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
+              'w-full rounded-xl bg-primary-50/50 px-3 min-h-12 text-sm text-primary-800',
               'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
             )}
           >
@@ -234,14 +234,14 @@ export default function AdminCollectivesPage() {
               compact
               className="flex-1"
             />
-            <div className="flex items-center gap-1 rounded-xl shadow-sm bg-white p-0.5">
+            <div className="flex items-center gap-0.5 rounded-xl shadow-sm bg-white p-0.5">
               {(['active', 'archived', 'all'] as const).map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setStatusFilter(s)}
                   className={cn(
-                    'px-3 py-1.5 rounded-lg text-xs font-semibold capitalize',
+                    'px-3.5 min-h-11 rounded-lg text-sm font-semibold capitalize',
                     'transition-colors duration-150 cursor-pointer select-none',
                     statusFilter === s
                       ? 'bg-primary-100 text-primary-800'
@@ -357,7 +357,7 @@ export default function AdminCollectivesPage() {
                             e.stopPropagation()
                             setArchiveTarget(c)
                           }}
-                          className="p-2 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
+                          className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                           aria-label={c.is_active ? `Archive ${c.name}` : `Restore ${c.name}`}
                         >
                           {c.is_active ? <Archive size={16} /> : <RotateCcw size={16} />}

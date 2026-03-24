@@ -790,7 +790,7 @@ function PushTestSuite() {
             <select
               value={collectiveId ?? ''}
               onChange={(e) => setCollectiveId(e.target.value || undefined)}
-              className="w-full rounded-lg bg-primary-50/50 px-2.5 py-1.5 text-xs text-primary-800 outline-none"
+              className="w-full rounded-lg bg-primary-50/50 px-3 min-h-11 text-sm text-primary-800 outline-none"
             >
               <option value="">Skip</option>
               {collectives.map((c) => (
@@ -965,7 +965,7 @@ export default function DevToolsPage() {
                   type="button"
                   onClick={() => setSelectedActivity(opt.value)}
                   className={cn(
-                    'px-3 py-1.5 rounded-full text-xs font-medium transition-[color,background-color,box-shadow,transform] duration-150',
+                    'px-3.5 min-h-11 rounded-full text-sm font-medium transition-[color,background-color,box-shadow,transform] duration-150',
                     'cursor-pointer select-none active:scale-[0.97]',
                     selectedActivity === opt.value
                       ? 'bg-primary-600 text-white shadow-sm'
@@ -1135,27 +1135,27 @@ function TestEventCard({
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
         <button type="button" onClick={() => navigate(`/events/${event.id}/day`)}
-          className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
+          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
           <ClipboardCheck size={16} className="text-primary-500" />
           <span className="text-[11px] font-medium text-primary-600">Day</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/check-in`)}
-          className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
+          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
           <QrCode size={16} className="text-success-500" />
           <span className="text-[11px] font-medium text-primary-600">Check-In</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/impact`)}
-          className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
+          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
           <TreePine size={16} className="text-success-600" />
           <span className="text-[11px] font-medium text-primary-600">Impact</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/survey`)}
-          className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
+          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
           <Star size={16} className="text-warning-500" />
           <span className="text-[11px] font-medium text-primary-600">Survey</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}`)}
-          className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
+          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
           <MapPin size={16} className="text-info-500" />
           <span className="text-[11px] font-medium text-primary-600">Detail</span>
         </button>

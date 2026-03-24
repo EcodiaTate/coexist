@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion, useTransform, type Variants } from 'framer-motion'
-import { useParallaxScroll } from '@/hooks/use-parallax-scroll'
+import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
+import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 import { useQuery } from '@tanstack/react-query'
 import {
     Heart, Users, Sparkles, ChevronRight,
@@ -395,43 +395,39 @@ function TrustBadges() {
 /* ------------------------------------------------------------------ */
 
 function DonateHero({ rm }: { rm: boolean }) {
-  const scrollY = useParallaxScroll()
-
-  const bgY = useTransform(scrollY, [0, 500], [0, 80])
-  const fgY = useTransform(scrollY, [0, 500], [0, 25])
-  const textY = useTransform(scrollY, [0, 500], [0, 180])
+  const { bgRef, fgRef, textRef } = useParallaxLayers({ textRange: 180, withScale: false })
 
   return (
     <div className="relative">
       <div className="relative w-full h-[480px] sm:h-auto overflow-hidden">
         {/* Background layer - covers container, clips sides on narrow screens */}
-        <motion.div
+        <div
+          ref={rm ? undefined : bgRef}
           className="absolute inset-0 sm:relative sm:inset-auto will-change-transform"
-          style={rm ? undefined : { y: bgY }}
         >
           <img
             src="/img/donate-hero-bg.png"
             alt="Conservation landscape"
             className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
           />
-        </motion.div>
+        </div>
 
         {/* Foreground cutout - same sizing, pinned to top */}
-        <motion.div
+        <div
+          ref={rm ? undefined : fgRef}
           className="absolute inset-0 z-[3] will-change-transform"
-          style={rm ? undefined : { y: fgY }}
         >
           <img
             src="/img/donate-hero-fg.png"
             alt=""
             className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
           />
-        </motion.div>
+        </div>
 
         {/* Hero text */}
-        <motion.div
+        <div
+          ref={rm ? undefined : textRef}
           className="absolute inset-x-0 top-[13%] sm:top-[10%] z-[2] flex flex-col items-center px-6 will-change-transform"
-          style={rm ? undefined : { y: textY }}
         >
           <span className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-[0.3em] text-white/80 mb-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
             Support
@@ -442,7 +438,7 @@ function DonateHero({ rm }: { rm: boolean }) {
           <p className="mt-3 text-sm text-white text-center max-w-xs drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">
             100% goes to conservation events & habitat restoration
           </p>
-        </motion.div>
+        </div>
 
         {/* Safe area spacer */}
         <div

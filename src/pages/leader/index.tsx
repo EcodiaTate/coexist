@@ -7,6 +7,7 @@ import {
     Clock,
     CalendarCheck,
     Plus,
+    Pencil,
     Megaphone,
     TreePine,
     ChevronRight,
@@ -588,6 +589,12 @@ export default function LeaderDashboardPage() {
     }) ?? null
   }, [data?.upcomingEvents, mountTime])
 
+  // Next upcoming event for "Edit Event" quick action (must be before early returns)
+  const nextUpcomingEvent = useMemo(() => {
+    if (!data?.upcomingEvents?.length) return null
+    return (data.upcomingEvents as any[])[0] ?? null
+  }, [data?.upcomingEvents])
+
   if (showLoading) {
     return (
       <Wrapper>
@@ -635,7 +642,14 @@ export default function LeaderDashboardPage() {
       badge: 0,
       pulse: true,
     }] : []),
-    { label: 'Create Event', icon: <Plus size={18} />, to: '/leader/events/create', bg: 'bg-moss-600', text: 'text-white', badge: 0 },
+    ...(nextUpcomingEvent ? [{
+      label: 'Edit Event',
+      icon: <Pencil size={18} />,
+      to: `/events/${nextUpcomingEvent.id}/edit?mode=day-of`,
+      bg: 'bg-moss-600',
+      text: 'text-white',
+      badge: 0,
+    }] : []),
     { label: 'Chat', icon: <MessageCircle size={18} />, to: `/chat/${collectiveId}`, bg: 'bg-primary-600', text: 'text-white', badge: 0 },
     { label: 'Updates', icon: <Megaphone size={18} />, to: '/updates', bg: 'bg-primary-400', text: 'text-white', badge: unreadUpdateCount },
   ]
@@ -753,7 +767,7 @@ export default function LeaderDashboardPage() {
           {/* ── Quick actions ── */}
           <motion.div variants={rm ? undefined : fadeUp}>
             <SectionHeader>Quick Actions</SectionHeader>
-            <div className={cn('grid gap-2', currentEvent ? 'grid-cols-4' : 'grid-cols-3')}>
+            <div className={cn('grid gap-2', quickActions.length >= 4 ? 'grid-cols-4' : quickActions.length === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
               {quickActions.map((action) => (
                 <Link
                   key={action.label}
