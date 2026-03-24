@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { lazy, Suspense, useState, useCallback, useEffect } from 'react'
-import { RequireAuth, RequireRole } from '@/components/route-guard'
+import { RequireAuth, RequireRole, RequireLeaderAccess } from '@/components/route-guard'
 import { AppShell } from '@/components/app-shell'
 import { AdminLayout as AdminLayoutRoute } from '@/components/admin-layout'
 import { LeaderLayout as LeaderLayoutRoute } from '@/components/leader-layout'
@@ -147,10 +147,6 @@ const LeaderDashboardPage = lazy(() => import('@/pages/leader/index'))
 const LeaderEventsPage = lazy(() => import('@/pages/leader/events'))
 const LeaderTasksPage = lazy(() => import('@/pages/leader/tasks'))
 const LeaderReportsPage = lazy(() => import('@/pages/reports/index'))
-
-// Leader Development
-const LeaderDevPage = lazy(() => import('@/pages/leader/development/index'))
-const LeaderDevProgressPage = lazy(() => import('@/pages/leader/development/progress'))
 
 // Learner pages (My Leadership Journey)
 const LearnIndexPage = lazy(() => import('@/pages/learn/index'))
@@ -383,14 +379,12 @@ function App() {
           <Route path="/learn/complete" element={<PageTransition><LearnCompletePage /></PageTransition>} />
 
           {/* ---- Leader Dashboard & sub-pages ---- */}
-          <Route path="/leader" element={<LeaderLayoutRoute />}>
+          <Route path="/leader" element={<RequireLeaderAccess><LeaderLayoutRoute /></RequireLeaderAccess>}>
             <Route index element={<LeaderDashboardPage />} />
             <Route path="events" element={<LeaderEventsPage />} />
             <Route path="events/create" element={<CreateEventPage />} />
             <Route path="tasks" element={<LeaderTasksPage />} />
             <Route path="reports" element={<LeaderReportsPage />} />
-            <Route path="development" element={<LeaderDevPage />} />
-            <Route path="development/progress" element={<LeaderDevProgressPage />} />
           </Route>
 
           {/* ---- Admin routes (staff+) ---- */}

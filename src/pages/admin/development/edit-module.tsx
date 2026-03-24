@@ -2,20 +2,12 @@ import { useState, useCallback, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
-import {
-  ArrowLeft,
-  BookOpen,
-  Eye,
-  EyeOff,
-  Save,
-  Send,
-} from 'lucide-react'
+import { ArrowLeft, BookOpen, Eye, EyeOff, Save, Send } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
 import { useToast } from '@/components/toast'
-import { cn } from '@/lib/cn'
 import {
   useDevModule,
   useDevModuleContent,
@@ -25,6 +17,8 @@ import {
   type ContentBlockInput,
 } from '@/hooks/use-admin-development'
 import { BlockEditor, generateBlockKey } from '@/components/development/block-editor'
+import { AudiencePicker } from '@/components/development/audience-picker'
+import { SaveSuccessBanner } from '@/components/development/save-success-banner'
 
 const CATEGORY_OPTIONS = [
   { value: 'learning', label: 'Learning' },
@@ -52,11 +46,12 @@ export default function AdminEditModulePage() {
   const [category, setCategory] = useState<DevCategory>('learning')
   const [estimatedMinutes, setEstimatedMinutes] = useState(10)
   const [thumbnailUrl, setThumbnailUrl] = useState('')
+  const [targetRoles, setTargetRoles] = useState<string[]>([])
   const [isPreview, setIsPreview] = useState(false)
   const [blocks, setBlocks] = useState<(ContentBlockInput & { _key: string })[]>([])
   const [initialized, setInitialized] = useState(false)
+  const [saved, setSaved] = useState<{ status: 'draft' | 'published' } | null>(null)
 
-  // Populate form from loaded data
   useEffect(() => {
     if (module && !initialized) {
       setTitle(module.title)
@@ -64,17 +59,13 @@ export default function AdminEditModulePage() {
       setCategory(module.category)
       setEstimatedMinutes(module.estimated_minutes)
       setThumbnailUrl(module.thumbnail_url ?? '')
+      setTargetRoles(module.target_roles ?? [])
     }
   }, [module, initialized])
 
   useEffect(() => {
     if (existingBlocks.length > 0 && !initialized) {
-      setBlocks(
-        existingBlocks.map((b) => ({
-          ...b,
-          _key: generateBlockKey(),
-        })),
-      )
+      setBlocks(existingBlocks.map((b) => ({ ...b, _key: generateBlockKey() })))
       setInitialized(true)
     }
   }, [existingBlocks, initialized])
@@ -85,7 +76,6 @@ export default function AdminEditModulePage() {
   const handleSave = useCallback(
     async (status: 'draft' | 'published') => {
       if (!moduleId) return
-
       try {
         await updateModule.mutateAsync({
           id: moduleId,
@@ -94,25 +84,37 @@ export default function AdminEditModulePage() {
           category,
           estimated_minutes: estimatedMinutes,
           thumbnail_url: thumbnailUrl || null,
+          target_roles: targetRoles,
           status,
         })
-
         await saveContent.mutateAsync({
           moduleId,
           blocks: blocks.map(({ _key, ...rest }) => rest),
         })
-
-        toast.success('Module updated')
-        navigate('/admin/development')
+        setSaved({ status })
       } catch {
         toast.error('Failed to update module')
       }
     },
-    [moduleId, title, description, category, estimatedMinutes, thumbnailUrl, blocks, updateModule, saveContent, toast, navigate],
+    [moduleId, title, description, category, estimatedMinutes, thumbnailUrl, targetRoles, blocks, updateModule, saveContent, toast],
   )
 
   if (moduleLoading || blocksLoading) {
     return <div className="max-w-3xl mx-auto py-20 text-center text-primary-400">Loading...</div>
+  }
+
+  if (saved) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl mx-auto py-8">
+        <SaveSuccessBanner
+          show
+          message={saved.status === 'published' ? 'Module published!' : 'Draft saved!'}
+          subtitle={`"${title}" has been updated successfully.`}
+          editPath={`/admin/development/modules/${moduleId}/edit`}
+          onDismiss={() => setSaved(null)}
+        />
+      </motion.div>
+    )
   }
 
   return (
@@ -141,7 +143,10 @@ export default function AdminEditModulePage() {
           <Dropdown label="Category" options={CATEGORY_OPTIONS} value={category} onChange={(v) => setCategory(v as DevCategory)} />
           <Input label="Estimated Minutes" type="number" value={String(estimatedMinutes)} onChange={(e) => setEstimatedMinutes(Math.max(1, parseInt(e.target.value) || 1))} />
         </div>
-        <Input label="Thumbnail URL" value={thumbnailUrl} onChange={(e) => setThumbnailUrl(e.target.value)} />
+      </motion.div>
+
+      <motion.div variants={fadeUp} className="rounded-2xl bg-gradient-to-br from-white to-amber-50/30 border border-white/60 shadow-sm p-5">
+        <AudiencePicker selectedRoles={targetRoles} onRolesChange={setTargetRoles} />
       </motion.div>
 
       <motion.div variants={fadeUp}>
@@ -150,7 +155,10 @@ export default function AdminEditModulePage() {
       </motion.div>
 
       <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-4 px-4 py-3 bg-white/90 backdrop-blur-md border-t border-primary-100 flex items-center justify-between gap-3">
-        <p className="text-xs text-primary-500">{blocks.length} block{blocks.length !== 1 ? 's' : ''}</p>
+        <p className="text-xs text-primary-500">
+          {blocks.length} block{blocks.length !== 1 ? 's' : ''}
+          {targetRoles.length > 0 && ` · ${targetRoles.length} role${targetRoles.length !== 1 ? 's' : ''}`}
+        </p>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => navigate('/admin/development')}>Cancel</Button>
           <Button variant="secondary" size="sm" icon={<Save size={14} />} onClick={() => handleSave('draft')} loading={isSaving} disabled={!title.trim()}>Save Draft</Button>

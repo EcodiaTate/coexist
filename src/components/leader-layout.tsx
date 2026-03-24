@@ -83,8 +83,6 @@ const PAGE_HERO_CONFIG: Record<string, LeaderHeroCfg> = {
   'Tasks':          { hue: 'from-bark-600 via-bark-700 to-primary-900',    defaultSubtitle: 'Stay on top of your responsibilities',      f: 2, w: 2 },
   'Reports':        { hue: 'from-primary-700 via-primary-800 to-moss-900', defaultSubtitle: 'Generate impact and activity reports',       f: 3, w: 3 },
   'Create Event':   { hue: 'from-moss-500 via-moss-600 to-primary-800',   defaultSubtitle: 'Plan a new conservation activity',           f: 0, w: 1 },
-  'Development':    { hue: 'from-amber-600 via-amber-700 to-primary-900', defaultSubtitle: 'Browse and assign learning content',          f: 1, w: 2 },
-  'Member Progress': { hue: 'from-amber-600 via-moss-700 to-primary-900', defaultSubtitle: 'Track your collective\'s learning progress',  f: 2, w: 3 },
 }
 
 const DEFAULT_HERO: LeaderHeroCfg = { hue: 'from-moss-600 via-moss-700 to-primary-900', defaultSubtitle: '', f: 2, w: 0 }

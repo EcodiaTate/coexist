@@ -95,9 +95,9 @@ const adminNavCategories: NavCategory[] = [
   {
     label: 'People',
     sectionHeader: 'Admin',
-    sectionBorderColor: 'border-bark-400',
-    labelColor: 'text-bark-500',
-    dotColor: 'bg-bark-400',
+    sectionBorderColor: 'border-amber-500',
+    labelColor: 'text-amber-600',
+    dotColor: 'bg-amber-500',
     items: [
       { label: 'Users', path: '/admin/users', icon: <Users size={17} strokeWidth={1.5} />, capability: 'manage_users' },
       { label: 'Applications', path: '/admin/applications', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_users' },
@@ -105,8 +105,8 @@ const adminNavCategories: NavCategory[] = [
   },
   {
     label: 'Programme',
-    labelColor: 'text-bark-500',
-    dotColor: 'bg-bark-400',
+    labelColor: 'text-amber-600',
+    dotColor: 'bg-amber-500',
     items: [
       { label: 'Collectives', path: '/admin/collectives', icon: <MapPin size={17} strokeWidth={1.5} />, capability: 'manage_collectives' },
       { label: 'Events', path: '/admin/events', icon: <CalendarDays size={17} strokeWidth={1.5} />, capability: 'manage_events' },
@@ -116,8 +116,8 @@ const adminNavCategories: NavCategory[] = [
   },
   {
     label: '',
-    labelColor: 'text-bark-500',
-    dotColor: 'bg-bark-400',
+    labelColor: 'text-amber-600',
+    dotColor: 'bg-amber-500',
     items: [
       { label: 'Create', path: '/admin/create', icon: <Sparkles size={17} strokeWidth={1.5} /> },
     ],
@@ -132,8 +132,8 @@ const adminNavCategories: NavCategory[] = [
   },
   {
     label: 'Settings',
-    labelColor: 'text-bark-500',
-    dotColor: 'bg-bark-400',
+    labelColor: 'text-amber-600',
+    dotColor: 'bg-amber-500',
     items: [
       { label: 'Charity', path: '/admin/charity', icon: <Heart size={17} strokeWidth={1.5} />, capability: 'manage_charity' },
       { label: 'Branding', path: '/admin/branding', icon: <Image size={17} strokeWidth={1.5} />, capability: 'manage_system' },
@@ -142,8 +142,8 @@ const adminNavCategories: NavCategory[] = [
   },
   {
     label: 'Operations',
-    labelColor: 'text-bark-500',
-    dotColor: 'bg-bark-400',
+    labelColor: 'text-amber-600',
+    dotColor: 'bg-amber-500',
     items: [
       { label: 'Reports', path: '/admin/reports', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_reports' },
       { label: 'Exports', path: '/admin/exports', icon: <Download size={17} strokeWidth={1.5} />, capability: 'manage_exports' },
@@ -164,15 +164,7 @@ const leaderNavCategories: NavCategory[] = [
     items: [
       { label: 'Events', path: '/leader/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
       { label: 'Tasks', path: '/leader/tasks', icon: <ClipboardCheck size={17} strokeWidth={1.5} /> },
-    ],
-  },
-  {
-    label: 'Growth',
-    labelColor: 'text-moss-500',
-    dotColor: 'bg-moss-500',
-    items: [
-      { label: 'Development', path: '/leader/development', icon: <GraduationCap size={17} strokeWidth={1.5} /> },
-      { label: 'My Learning', path: '/learn', icon: <BookOpen size={17} strokeWidth={1.5} /> },
+      { label: 'Development', path: '/learn', icon: <GraduationCap size={17} strokeWidth={1.5} /> },
     ],
   },
 ]
@@ -189,6 +181,7 @@ const mainNavCategories: NavCategory[] = [
       { label: 'Updates', path: '/updates', icon: <Megaphone size={17} strokeWidth={1.5} /> },
       { label: 'Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
       { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true },
+      { label: 'Development', path: '/learn', icon: <GraduationCap size={17} strokeWidth={1.5} /> },
     ],
   },
   {

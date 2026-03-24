@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo, createContext, useContext } 
 import type { User, Session, AuthError } from '@supabase/supabase-js'
 import { Capacitor } from '@capacitor/core'
 import { Preferences } from '@capacitor/preferences'
+import { SocialLogin } from '@capgo/capacitor-social-login'
 import { supabase } from '@/lib/supabase'
 import { resolveCapabilities } from '@/lib/capabilities'
 import type { Database } from '@/types/database.types'
@@ -496,6 +497,22 @@ export function useAuthProvider(): AuthContextValue {
   }, [])
 
   const signInWithGoogle = useCallback(async () => {
+    // Native: use Google SDK → get ID token → pass to Supabase
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await SocialLogin.initialize({ google: { webClientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID } })
+        const result = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } })
+        const idToken = result?.result?.idToken
+        if (!idToken) return { error: { message: 'No ID token received from Google', status: 400 } as unknown as AuthError }
+        const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
+        return { error }
+      } catch (err: any) {
+        // User cancelled = not an error
+        if (err?.message?.includes('cancel') || err?.code === 'SIGN_IN_CANCELLED') return { error: null }
+        return { error: { message: err?.message ?? 'Google sign-in failed', status: 500 } as unknown as AuthError }
+      }
+    }
+    // Web: use Supabase OAuth redirect
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin },
@@ -504,6 +521,22 @@ export function useAuthProvider(): AuthContextValue {
   }, [])
 
   const signInWithApple = useCallback(async () => {
+    // Native: use Apple SDK → get ID token → pass to Supabase
+    if (Capacitor.isNativePlatform()) {
+      try {
+        await SocialLogin.initialize({ apple: {} })
+        const result = await SocialLogin.login({ provider: 'apple', options: { scopes: ['email', 'name'] } })
+        const idToken = result?.result?.idToken
+        if (!idToken) return { error: { message: 'No ID token received from Apple', status: 400 } as unknown as AuthError }
+        const { error } = await supabase.auth.signInWithIdToken({ provider: 'apple', token: idToken })
+        return { error }
+      } catch (err: any) {
+        // User cancelled = not an error
+        if (err?.message?.includes('cancel') || err?.code === '1001') return { error: null }
+        return { error: { message: err?.message ?? 'Apple sign-in failed', status: 500 } as unknown as AuthError }
+      }
+    }
+    // Web: use Supabase OAuth redirect
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: { redirectTo: window.location.origin },

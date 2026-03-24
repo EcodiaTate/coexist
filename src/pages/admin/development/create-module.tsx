@@ -14,7 +14,6 @@ import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
-import { Toggle } from '@/components/toggle'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -25,6 +24,8 @@ import {
   type ContentBlockInput,
 } from '@/hooks/use-admin-development'
 import { BlockEditor, generateBlockKey } from '@/components/development/block-editor'
+import { AudiencePicker } from '@/components/development/audience-picker'
+import { SaveSuccessBanner } from '@/components/development/save-success-banner'
 
 /* ------------------------------------------------------------------ */
 /*  Category options                                                   */
@@ -59,8 +60,12 @@ export default function AdminCreateModulePage() {
   const [category, setCategory] = useState<DevCategory>('learning')
   const [estimatedMinutes, setEstimatedMinutes] = useState(10)
   const [thumbnailUrl, setThumbnailUrl] = useState('')
+  const [targetRoles, setTargetRoles] = useState<string[]>(['leader', 'co_leader', 'assist_leader'])
   const [isPreview, setIsPreview] = useState(false)
   const [blocks, setBlocks] = useState<(ContentBlockInput & { _key: string })[]>([])
+
+  // Save success state
+  const [saved, setSaved] = useState<{ status: 'draft' | 'published'; id: string } | null>(null)
 
   const isSaving = createModule.isPending || saveContent.isPending
   const canPublish = title.trim().length > 0 && blocks.length > 0
@@ -85,6 +90,7 @@ export default function AdminCreateModulePage() {
           estimated_minutes: estimatedMinutes,
           thumbnail_url: thumbnailUrl || undefined,
           status,
+          target_roles: targetRoles,
           created_by: user.id,
         })
 
@@ -95,14 +101,47 @@ export default function AdminCreateModulePage() {
           })
         }
 
-        toast.success(status === 'published' ? 'Module published' : 'Draft saved')
-        navigate('/admin/development')
+        setSaved({ status, id: mod.id })
       } catch {
         toast.error('Failed to save module')
       }
     },
-    [user, title, description, category, estimatedMinutes, thumbnailUrl, blocks, canPublish, createModule, saveContent, toast, navigate],
+    [user, title, description, category, estimatedMinutes, thumbnailUrl, targetRoles, blocks, canPublish, createModule, saveContent, toast],
   )
+
+  const resetForm = () => {
+    setTitle('')
+    setDescription('')
+    setCategory('learning')
+    setEstimatedMinutes(10)
+    setThumbnailUrl('')
+    setTargetRoles(['leader', 'co_leader', 'assist_leader'])
+    setBlocks([])
+    setSaved(null)
+  }
+
+  // Show success state
+  if (saved) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="max-w-3xl mx-auto py-8"
+      >
+        <SaveSuccessBanner
+          show
+          message={saved.status === 'published' ? 'Module published!' : 'Draft saved!'}
+          subtitle={
+            saved.status === 'published'
+              ? `"${title}" is now live and visible to the target audience`
+              : `"${title}" has been saved. You can continue editing or publish it later.`
+          }
+          editPath={`/admin/development/modules/${saved.id}/edit`}
+          onDismiss={resetForm}
+        />
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div
@@ -173,12 +212,16 @@ export default function AdminCreateModulePage() {
             onChange={(e) => setEstimatedMinutes(Math.max(1, parseInt(e.target.value) || 1))}
           />
         </div>
+      </motion.div>
 
-        <Input
-          label="Thumbnail URL (optional)"
-          value={thumbnailUrl}
-          onChange={(e) => setThumbnailUrl(e.target.value)}
-          placeholder="Upload to dev-assets bucket first"
+      {/* Audience targeting */}
+      <motion.div
+        variants={fadeUp}
+        className="rounded-2xl bg-gradient-to-br from-white to-amber-50/30 border border-white/60 shadow-sm p-5"
+      >
+        <AudiencePicker
+          selectedRoles={targetRoles}
+          onRolesChange={setTargetRoles}
         />
       </motion.div>
 
@@ -197,6 +240,7 @@ export default function AdminCreateModulePage() {
       >
         <p className="text-xs text-primary-500">
           {blocks.length} block{blocks.length !== 1 ? 's' : ''}
+          {targetRoles.length > 0 && ` · ${targetRoles.length} role${targetRoles.length !== 1 ? 's' : ''}`}
           {!title.trim() && ' · Add a title'}
         </p>
         <div className="flex items-center gap-2">

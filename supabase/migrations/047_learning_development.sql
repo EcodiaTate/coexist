@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS dev_modules (
   estimated_minutes integer NOT NULL DEFAULT 10,
   status            dev_module_status NOT NULL DEFAULT 'draft',
   pass_score        integer,
+  -- Targeting: who sees this module (empty = everyone authenticated)
+  target_roles      text[] NOT NULL DEFAULT '{}',       -- e.g. {'leader','co_leader','assist_leader','national_staff'}
+  target_user_ids   uuid[] NOT NULL DEFAULT '{}',       -- specific individual users
   created_by        uuid NOT NULL REFERENCES profiles(id) ON DELETE SET NULL,
   published_at      timestamptz,
   created_at        timestamptz NOT NULL DEFAULT now(),
@@ -98,6 +101,8 @@ CREATE TABLE IF NOT EXISTS dev_sections (
   thumbnail_url            text,
   status                   dev_module_status NOT NULL DEFAULT 'draft',
   prerequisite_section_id  uuid REFERENCES dev_sections(id) ON DELETE SET NULL,
+  target_roles             text[] NOT NULL DEFAULT '{}',
+  target_user_ids          uuid[] NOT NULL DEFAULT '{}',
   created_by               uuid NOT NULL REFERENCES profiles(id) ON DELETE SET NULL,
   published_at             timestamptz,
   created_at               timestamptz NOT NULL DEFAULT now(),
@@ -513,6 +518,8 @@ VALUES (
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'application/vnd.ms-powerpoint',
+    'application/x-iwork-keynote-sffkey',
     'video/mp4', 'video/webm', 'video/quicktime'
   ]
 ) ON CONFLICT (id) DO NOTHING;

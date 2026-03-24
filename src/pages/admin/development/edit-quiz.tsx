@@ -16,6 +16,7 @@ import {
   type QuizQuestionInput,
 } from '@/hooks/use-admin-development'
 import { QuestionBuilder } from '@/components/development/question-builder'
+import { SaveSuccessBanner } from '@/components/development/save-success-banner'
 
 export default function AdminEditQuizPage() {
   const { quizId } = useParams<{ quizId: string }>()
@@ -39,6 +40,7 @@ export default function AdminEditQuizPage() {
   const [maxAttempts, setMaxAttempts] = useState(0)
   const [questions, setQuestions] = useState<QuizQuestionInput[]>([])
   const [initialized, setInitialized] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     if (quiz && !initialized) {
@@ -87,12 +89,25 @@ export default function AdminEditQuizPage() {
         max_attempts: maxAttempts,
       })
       await saveQuestions.mutateAsync({ quizId, questions })
-      toast.success('Quiz updated')
-      navigate('/admin/development')
+      setSaved(true)
     } catch { toast.error('Failed to update quiz') }
   }, [quizId, title, description, passScore, randomize, timeLimit, maxAttempts, questions, updateQuiz, saveQuestions, toast, navigate])
 
   if (quizLoading || questionsLoading) return <div className="max-w-3xl mx-auto py-20 text-center text-primary-400">Loading...</div>
+
+  if (saved) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl mx-auto py-8">
+        <SaveSuccessBanner
+          show
+          message="Quiz updated!"
+          subtitle={`"${title}" has been saved successfully.`}
+          editPath={`/admin/development/quizzes/${quizId}/edit`}
+          onDismiss={() => setSaved(false)}
+        />
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="max-w-3xl mx-auto space-y-6">

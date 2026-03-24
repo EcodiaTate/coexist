@@ -38,6 +38,8 @@ import { Toggle } from '@/components/toggle'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
+import { AudiencePicker } from '@/components/development/audience-picker'
+import { SaveSuccessBanner } from '@/components/development/save-success-banner'
 import {
   useCreateSection,
   useSaveSectionModules,
@@ -221,6 +223,8 @@ export default function AdminCreateSectionPage() {
   const [prerequisiteId, setPrerequisiteId] = useState<string>('')
   const [moduleItems, setModuleItems] = useState<ModuleItem[]>([])
   const [showPicker, setShowPicker] = useState(false)
+  const [targetRoles, setTargetRoles] = useState<string[]>(['leader', 'co_leader', 'assist_leader'])
+  const [saved, setSaved] = useState<{ status: 'draft' | 'published'; id: string } | null>(null)
 
   const selectedIds = useMemo(() => new Set(moduleItems.map((m) => m.module.id)), [moduleItems])
   const prerequisiteOptions = useMemo(
@@ -273,6 +277,7 @@ export default function AdminCreateSectionPage() {
           thumbnail_url: thumbnailUrl || undefined,
           status,
           prerequisite_section_id: prerequisiteId || null,
+          target_roles: targetRoles,
           created_by: user.id,
         })
 
@@ -287,14 +292,33 @@ export default function AdminCreateSectionPage() {
           })
         }
 
-        toast.success(status === 'published' ? 'Section published' : 'Draft saved')
-        navigate('/admin/development')
+        setSaved({ status, id: section.id })
       } catch {
         toast.error('Failed to save section')
       }
     },
     [user, title, description, category, thumbnailUrl, prerequisiteId, moduleItems, createSection, saveSectionModules, toast, navigate],
   )
+
+  if (saved) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-3xl mx-auto py-8">
+        <SaveSuccessBanner
+          show
+          message={saved.status === 'published' ? 'Section published!' : 'Draft saved!'}
+          subtitle={`"${title}" has been ${saved.status === 'published' ? 'published and is visible to the target audience' : 'saved as a draft'}.`}
+          editPath={`/admin/development/sections/${saved.id}/edit`}
+          onDismiss={() => {
+            setSaved(null)
+            setTitle('')
+            setDescription('')
+            setModuleItems([])
+            setTargetRoles(['leader', 'co_leader', 'assist_leader'])
+          }}
+        />
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div
@@ -364,6 +388,14 @@ export default function AdminCreateSectionPage() {
           onChange={(e) => setThumbnailUrl(e.target.value)}
           placeholder="Upload to dev-assets bucket first"
         />
+      </motion.div>
+
+      {/* Audience targeting */}
+      <motion.div
+        variants={fadeUp}
+        className="rounded-2xl bg-gradient-to-br from-white to-amber-50/30 border border-white/60 shadow-sm p-5"
+      >
+        <AudiencePicker selectedRoles={targetRoles} onRolesChange={setTargetRoles} />
       </motion.div>
 
       {/* Module list */}
