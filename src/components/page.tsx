@@ -39,9 +39,8 @@ export function Page({
 
   const hasBottomTabs = navMode === 'bottom-tabs'
 
-  // header is rendered inside the scroll container as a sticky overlay so it
-  // never pushes content down. When header is present (without stickyOverlay)
-  // we add top padding so non-hero content clears the back-button area.
+  // Standard header rendered directly in scroll container (takes layout space).
+  // stickyOverlay pages supply their own header (usually transparent + collapse-header).
   const hasInlineHeader = !!header && !stickyOverlay
 
   return (
@@ -95,16 +94,9 @@ export function Page({
             -mb-14 collapses layout space so it floats over content.
             stickyOverlay pages supply their own (usually transparent). */}
         {stickyOverlay}
-        {hasInlineHeader && (
-          <div className="-mb-14">
-            {header}
-          </div>
-        )}
+        {hasInlineHeader && header}
 
-        <div
-          className="relative"
-          style={hasInlineHeader ? { paddingTop: '3.5rem' } : undefined}
-        >
+        <div className="relative">
           {children}
         </div>
       </main>

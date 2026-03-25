@@ -470,24 +470,27 @@ export default function AdminDevelopmentPage() {
         )}
       </motion.section>
 
-      {/* ── Unassigned Modules ── */}
-      {!isLoading && unassignedModules.length > 0 && (
-        <motion.section variants={fadeUp} className="space-y-3">
-          <SectionHeader
-            icon={<BookOpen size={17} className="text-white" />}
-            iconBg="bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm"
-            label="Unassigned Modules"
-            count={unassignedModules.length}
-            newTo="/admin/development/modules/new"
-            newLabel="New"
-          />
-          <div className="space-y-2">
-            {unassignedModules.map((m) => (
-              <ModuleRow key={m.id} module={m} onDelete={() => deleteModule.mutate(m.id)} />
-            ))}
-          </div>
-        </motion.section>
-      )}
+      {/* ── Modules (nested under sections) ── */}
+      <motion.section variants={fadeUp} className="space-y-3 ml-4 border-l-2 border-primary-100 pl-4">
+        <SectionHeader
+          icon={<BookOpen size={17} className="text-white" />}
+          iconBg="bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm"
+          label="Modules"
+          count={(modules ?? []).length}
+          newTo="/admin/development/modules/new"
+          newLabel="New"
+        />
+        {!isLoading && unassignedModules.length > 0 && (
+          <>
+            <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Unassigned</p>
+            <div className="space-y-2">
+              {unassignedModules.map((m) => (
+                <ModuleRow key={m.id} module={m} onDelete={() => deleteModule.mutate(m.id)} />
+              ))}
+            </div>
+          </>
+        )}
+      </motion.section>
 
       {/* ── Quizzes ── */}
       <motion.section variants={fadeUp} className="space-y-3">
