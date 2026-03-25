@@ -230,7 +230,7 @@ export default function LeadACollectivePage() {
           <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/5" />
           <div
             className="relative z-10 px-6 pb-16 text-center"
-            style={{ paddingTop: 'calc(var(--safe-top, 0px) + 4.5rem)' }}
+            style={{ paddingTop: '4.5rem' }}
           >
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 mb-5">
               <Star size={32} className="text-white" />
@@ -271,7 +271,7 @@ export default function LeadACollectivePage() {
 
         <div
           className="relative z-10 px-6 pb-16"
-          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 4.5rem)' }}
+          style={{ paddingTop: '4.5rem' }}
         >
           <motion.div
             initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.8 }}

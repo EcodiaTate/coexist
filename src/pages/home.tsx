@@ -220,11 +220,6 @@ function HomeHero({ rm }: { rm: boolean }) {
           />
         </div>
 
-        {/* Safe area spacer at top */}
-        <div
-          className="absolute top-0 left-0 right-0 z-40"
-          style={{ paddingTop: 'var(--safe-top, 0px)' }}
-        />
       </div>
 
       {/* Wave transition - pinned to bottom of image */}

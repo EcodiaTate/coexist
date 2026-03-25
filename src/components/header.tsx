@@ -42,12 +42,12 @@ export function Header({
   return (
     <div
       className={cn(
-        'sticky top-0 z-40',
+        'sticky z-40',
         'px-4',
         className,
       )}
       style={{
-        paddingTop: 'var(--safe-top)',
+        top: 'var(--safe-top)',
       }}
       aria-label={`${title} page header`}
     >

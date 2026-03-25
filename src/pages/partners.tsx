@@ -127,7 +127,7 @@ export default function PartnersPage() {
 
         <div
           className="relative z-10 px-6 pt-10 pb-14 text-center"
-          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 2.5rem)' }}
+          style={{ paddingTop: '2.5rem' }}
         >
           <motion.div
             initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.8 }}

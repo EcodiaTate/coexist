@@ -194,7 +194,7 @@ export default function CheckoutPage() {
 
         <div
           className="relative z-10 px-6 pb-12 flex items-center gap-4"
-          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}
+          style={{ paddingTop: '3.5rem' }}
         >
           <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 shrink-0 ring-1 ring-white/10">
             <Lock size={22} className="text-white/90" />

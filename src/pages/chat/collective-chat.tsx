@@ -67,7 +67,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useInviteCollaborator, useEventDetail, type EventDetailData } from '@/hooks/use-events'
-import type { Tables } from '@/types/database.types'
+import type { Tables, Json } from '@/types/database.types'
 
 type EventRegistration = Tables<'event_registrations'>
 import { useCamera } from '@/hooks/use-camera'
@@ -900,7 +900,7 @@ export default function CollectiveChatPage() {
     setShowAnnouncementSheet(false)
     toast.info('Posting announcement...')
     createAnnouncement.mutate(
-      { collectiveId, ...data },
+      { collectiveId, ...data, metadata: data.metadata as Record<string, Json | undefined> | undefined },
       {
         onSuccess: () => toast.success('Announcement posted!'),
         onError: () => toast.error('Failed to create announcement'),
