@@ -413,7 +413,7 @@ export default function CreateUpdatePage() {
                     Select collective
                   </label>
                   {(myCollectives ?? []).map((m) => {
-                    const collective = m.collectives as unknown as { name: string } | null
+                    const collective = m.collectives as unknown as { name: string; cover_image_url?: string | null; region?: string | null; state?: string | null } | null
                     if (!collective) return null
                     const isSelected = selectedCollectiveId === m.collective_id
                     return (
