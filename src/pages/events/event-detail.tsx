@@ -1144,38 +1144,38 @@ export default function EventDetailPage() {
               <h3 className={cn('text-sm font-bold', accent.text)}>Impact Summary</h3>
             </div>
             <div className="relative grid grid-cols-2 gap-3">
-              {event.impact.trees_planted > 0 && (
+              {(event.impact.trees_planted ?? 0) > 0 && (
                 <StatCard
                   label="Trees Planted"
-                  value={event.impact.trees_planted}
+                  value={event.impact.trees_planted ?? 0}
                   icon={<TreePine size={18} />}
                 />
               )}
-              {event.impact.rubbish_kg > 0 && (
+              {(event.impact.rubbish_kg ?? 0) > 0 && (
                 <StatCard
                   label="Rubbish (kg)"
-                  value={event.impact.rubbish_kg}
+                  value={event.impact.rubbish_kg ?? 0}
                   icon={<Trash2 size={18} />}
                 />
               )}
-              {event.impact.hours_total > 0 && (
+              {(event.impact.hours_total ?? 0) > 0 && (
                 <StatCard
                   label="Volunteer Hours"
-                  value={event.impact.hours_total}
+                  value={event.impact.hours_total ?? 0}
                   icon={<Clock size={18} />}
                 />
               )}
-              {event.impact.area_restored_sqm > 0 && (
+              {(event.impact.area_restored_sqm ?? 0) > 0 && (
                 <StatCard
                   label="Area (sqm)"
-                  value={event.impact.area_restored_sqm}
+                  value={event.impact.area_restored_sqm ?? 0}
                   icon={<MapPin size={18} />}
                 />
               )}
-              {event.impact.native_plants > 0 && (
+              {(event.impact.native_plants ?? 0) > 0 && (
                 <StatCard
                   label="Native Plants"
-                  value={event.impact.native_plants}
+                  value={event.impact.native_plants ?? 0}
                   icon={<Leaf size={18} />}
                 />
               )}
