@@ -152,13 +152,11 @@ function UpdateDetail({
       transition={{ duration: 0.2 }}
     >
       {/* Back button – floats over splash image */}
-      <div className="sticky top-0 z-20">
-        <Header title="" back onBack={onClose} transparent={!!splashImage} />
-      </div>
+      <Header title="" back onBack={onClose} transparent={!!splashImage} className={splashImage ? 'collapse-header' : ''} />
 
       {/* Splash / hero image – full bleed */}
       {splashImage && (
-        <div className="-mt-14 relative">
+        <div className="relative">
           <img
             src={splashImage}
             alt=""
@@ -378,7 +376,7 @@ export default function UpdatesPage() {
     : regular
 
   return (
-    <Page swipeBack noBackground className="!px-0 bg-surface-1" header={<Header title="Updates" back />}>
+    <Page swipeBack noBackground className="!px-0 bg-surface-1" header={<Header title="Updates" back transparent />}>
       <div className="relative min-h-full before:absolute before:inset-x-0 before:bottom-full before:h-[300px] before:bg-[linear-gradient(to_bottom,var(--color-primary-50)_60%,transparent)]">
         <DecorativeBackground />
 
