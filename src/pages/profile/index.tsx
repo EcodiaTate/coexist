@@ -230,7 +230,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Settings button */}
-          <div className="relative z-10 flex justify-end px-4">
+          <div className="relative z-10 flex justify-end px-4 mt-2">
             <button
               onClick={() => navigate('/settings')}
               className="flex items-center justify-center w-11 h-11 rounded-full bg-white/15 text-white/90 hover:bg-white/25 active:scale-[0.93] transition-[colors,transform] duration-150"

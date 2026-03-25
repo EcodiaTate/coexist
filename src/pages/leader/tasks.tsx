@@ -26,50 +26,6 @@ import {
 import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 
 /* ------------------------------------------------------------------ */
-/*  Streak helper                                                      */
-/* ------------------------------------------------------------------ */
-
-function getStreak(tasks: MyTask[]): number {
-  // Collect unique completion days (dedup multiple tasks completed on the same day)
-  const completionDays = new Set<string>()
-  for (const t of tasks) {
-    if (t.status === 'completed' && t.completed_at) {
-      const d = new Date(t.completed_at)
-      completionDays.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`)
-    }
-  }
-
-  if (completionDays.size === 0) return 0
-
-  // Sort unique days descending
-  const sortedDays = Array.from(completionDays)
-    .map((key) => {
-      const [y, m, d] = key.split('-').map(Number)
-      return new Date(y, m, d)
-    })
-    .sort((a, b) => b.getTime() - a.getTime())
-
-  let streak = 0
-  const now = new Date()
-  let checkDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-
-  for (const day of sortedDays) {
-    const diff = Math.round((checkDate.getTime() - day.getTime()) / 86400000)
-    if (diff === 0) {
-      // Same day as checkDate — count it but don't advance checkDate
-      streak++
-    } else if (diff === 1) {
-      // Consecutive day
-      streak++
-      checkDate = day
-    } else {
-      break
-    }
-  }
-  return streak
-}
-
-/* ------------------------------------------------------------------ */
 /*  Task card                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -410,8 +366,6 @@ export default function LeaderTasksPage() {
   const totalPending = groups.reduce((sum, g) => sum + g.pendingCount, 0)
   const totalOverdue = groups.reduce((sum, g) => sum + g.overdueCount, 0)
   const totalCompleted = groups.reduce((sum, g) => g.tasks.filter((t) => t.status === 'completed').length + sum, 0)
-  const allTasks = groups.flatMap((g) => g.tasks)
-  const streak = getStreak(allTasks)
 
   if (showLoading) {
     return (
@@ -488,7 +442,7 @@ export default function LeaderTasksPage() {
         {/* Momentum dashboard */}
         <motion.div
           variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-3"
         >
           <div className="rounded-2xl bg-gradient-to-br from-moss-50 to-emerald-100/50 p-4 flex flex-col items-center justify-center text-center">
             <div className="relative w-12 h-12 mb-2">
@@ -528,26 +482,6 @@ export default function LeaderTasksPage() {
             )}>Overdue</p>
           </div>
 
-          <div className={cn(
-            'rounded-2xl p-4 flex flex-col items-center justify-center text-center',
-            streak >= 3
-              ? 'bg-gradient-to-br from-amber-50 to-orange-100/60'
-              : 'bg-gradient-to-br from-amber-50/60 to-amber-100/30',
-          )}>
-            <div className="flex items-center gap-0.5">
-              {streak >= 3 && <Flame size={16} className="text-amber-500" />}
-              <p className={cn(
-                'font-heading text-2xl font-extrabold tabular-nums leading-none',
-                streak >= 3 ? 'text-amber-600' : 'text-primary-300',
-              )}>
-                {streak}
-              </p>
-            </div>
-            <p className={cn(
-              'text-[11px] font-semibold uppercase tracking-wider mt-1.5',
-              streak >= 3 ? 'text-amber-500' : 'text-primary-300',
-            )}>Streak</p>
-          </div>
         </motion.div>
 
         {/* Task groups */}
