@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
@@ -18,7 +18,6 @@ import {
     CheckCircle2,
     AlertTriangle,
     Send,
-    TrendingUp,
     MapPin,
     Trash2,
     Sprout,
@@ -30,10 +29,7 @@ import {
     Share2,
     Copy,
     Check,
-    Sparkles,
     ClipboardCheck,
-    ExternalLink,
-    Eye,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -186,7 +182,7 @@ function TaskCard({ task }: { task: MyTask }) {
     <motion.div
       layout={!shouldReduceMotion ? 'position' : false}
       className={cn(
-        'rounded-2xl overflow-hidden transition-[opacity,box-shadow] duration-200',
+        'rounded-2xl overflow-hidden transition-opacity duration-200',
         isCompleted && 'opacity-50',
         isSkipped && 'opacity-40',
         !isCompleted && !isSkipped && 'bg-primary-50/40 shadow-sm border border-primary-100/40',
@@ -495,7 +491,7 @@ function InviteAction({ collectiveSlug, collectiveId, collectiveName }: { collec
         <button
           type="button"
           onClick={handleCopy}
-          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-white border border-primary-100 text-xs font-semibold text-primary-600 hover:bg-primary-50 active:scale-[0.97] transition-all cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-white border border-primary-100 text-xs font-semibold text-primary-600 hover:bg-primary-50 active:scale-[0.97] transition-transform cursor-pointer"
         >
           {copied ? <Check size={13} /> : <Copy size={13} />}
           {copied ? 'Copied!' : 'Copy'}
@@ -503,7 +499,7 @@ function InviteAction({ collectiveSlug, collectiveId, collectiveName }: { collec
         <button
           type="button"
           onClick={handleShare}
-          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-moss-600 text-xs font-bold text-white hover:bg-moss-500 active:scale-[0.97] transition-all cursor-pointer shadow-sm"
+          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-moss-600 text-xs font-bold text-white hover:bg-moss-500 active:scale-[0.97] transition-transform cursor-pointer shadow-sm"
         >
           <Share2 size={13} />
           Share
@@ -516,6 +512,14 @@ function InviteAction({ collectiveSlug, collectiveId, collectiveName }: { collec
 /* ------------------------------------------------------------------ */
 /*  Leader Dashboard Page                                              */
 /* ------------------------------------------------------------------ */
+
+function LeaderPassthroughWrapper({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
+}
+
+function LeaderPageWrapper({ children }: { children: React.ReactNode }) {
+  return <Page swipeBack noBackground stickyOverlay={<Header title="" back transparent className="collapse-header" />}>{children}</Page>
+}
 
 export default function LeaderDashboardPage() {
   const navigate = useNavigate()
@@ -568,32 +572,27 @@ export default function LeaderDashboardPage() {
   const collectiveNameRaw = collectiveDetail?.name ?? 'Your Collective'
   const collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
 
-  const fullBleedOpts = useRef({ fullBleed: true as const }).current
+  const fullBleedOpts = useMemo(() => ({ fullBleed: true as const }), [])
   useLeaderHeader('Dashboard', fullBleedOpts)
 
-  const Wrapper = useMemo(() => {
-    if (isInLeaderLayout) {
-      return ({ children }: { children: React.ReactNode }) => <>{children}</>
-    }
-    return ({ children }: { children: React.ReactNode }) => <Page swipeBack noBackground stickyOverlay={<Header title="" back transparent className="collapse-header" />}>{children}</Page>
-  }, [isInLeaderLayout])
+  const Wrapper = isInLeaderLayout ? LeaderPassthroughWrapper : LeaderPageWrapper
 
   // Find an event within ±3 hours of now (must be before early returns)
   const [mountTime] = useState(() => Date.now())
   const currentEvent = useMemo(() => {
     if (!data?.upcomingEvents) return null
     const THREE_HOURS = 3 * 60 * 60 * 1000
-    return (data.upcomingEvents as any[]).find((e: any) => {
+    return (data.upcomingEvents as { date_start: string; id: string }[]).find((e) => {
       const start = new Date(e.date_start).getTime()
       return mountTime >= start - THREE_HOURS && mountTime <= start + THREE_HOURS
     }) ?? null
-  }, [data?.upcomingEvents, mountTime])
+  }, [data, mountTime])
 
   // Next upcoming event for "Edit Event" quick action (must be before early returns)
   const nextUpcomingEvent = useMemo(() => {
     if (!data?.upcomingEvents?.length) return null
-    return (data.upcomingEvents as any[])[0] ?? null
-  }, [data?.upcomingEvents])
+    return (data.upcomingEvents as { date_start: string; id: string }[])[0] ?? null
+  }, [data])
 
   if (showLoading) {
     return (
@@ -607,10 +606,10 @@ export default function LeaderDashboardPage() {
                 <div key={i} className="h-20 rounded-2xl bg-primary-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
               ))}
             </div>
-            <div className="h-12 rounded-2xl bg-primary-50 animate-pulse" />
+            <div className="h-12 rounded-2xl bg-primary-50" />
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-20 rounded-2xl bg-primary-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+                <div key={i} className="h-20 rounded-2xl bg-primary-50" />
               ))}
             </div>
           </div>
@@ -773,7 +772,7 @@ export default function LeaderDashboardPage() {
                   key={action.label}
                   to={action.to}
                   className={cn(
-                    'group relative flex flex-col items-center gap-1.5 rounded-xl bg-primary-50/50 shadow-sm border border-primary-100/40 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150',
+                    'group relative flex flex-col items-center gap-1.5 rounded-xl bg-primary-50/50 shadow-sm border border-primary-100/40 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150',
                     action.pulse && 'ring-2 ring-amber-400/50 shadow-amber-200/30',
                   )}
                 >
@@ -862,7 +861,7 @@ export default function LeaderDashboardPage() {
                   <Link
                     key={event.id}
                     to={`/events/${event.id}`}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-moss-50/50 shadow-sm border border-moss-100/40 hover:shadow-md active:scale-[0.99] transition-all duration-150"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-moss-50/50 shadow-sm border border-moss-100/40 hover:shadow-md active:scale-[0.99] transition-transform duration-150"
                   >
                     {event.cover_image_url ? (
                       <img
@@ -1010,7 +1009,7 @@ export default function LeaderDashboardPage() {
                   </p>
                   <div className="rounded-2xl bg-primary-50/40 shadow-sm border border-primary-100/40 overflow-hidden">
                     {data.recentMembers.map((member, idx) => {
-                      const profile = (member as any).profiles
+                      const profile = (member as unknown as { profiles?: { display_name?: string; avatar_url?: string } }).profiles
                       return (
                         <Link
                           key={member.id}
@@ -1032,7 +1031,7 @@ export default function LeaderDashboardPage() {
                             </p>
                             <p className="text-[11px] text-primary-400 mt-0.5">
                               Joined{' '}
-                              {new Date(member.created_at).toLocaleDateString('en-AU', {
+                              {new Date(member.joined_at).toLocaleDateString('en-AU', {
                                 day: 'numeric',
                                 month: 'short',
                               })}

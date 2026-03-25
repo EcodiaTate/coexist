@@ -7,30 +7,39 @@ import type {
   OrderStatus,
   PromoCode,
   ReturnRequest,
-  ProductReview,
-  ShippingConfig,
 } from '@/types/merch'
 
 /* ------------------------------------------------------------------ */
 /*  Products (admin - includes archived & draft)                       */
 /* ------------------------------------------------------------------ */
 
+interface OrderItemRow {
+  product_id?: string
+  product_name?: string
+  price_cents?: number
+  quantity?: number
+}
+
+interface OrderRow {
+  total_cents: number
+  items: OrderItemRow[] | unknown
+  created_at: string
+}
+
 /** Map a DB row back to the app-level Product type */
-function fromDbProduct(row: Record<string, any>): Product {
+function fromDbProduct(row: Record<string, unknown>): Product {
   return {
-    id: row.id,
-    name: row.name,
-    slug: row.slug ?? '',
-    description: row.description ?? '',
-    images: row.images ?? [],
-    category: row.category ?? null,
-    status: row.status ?? 'active',
-    base_price_cents: row.base_price_cents ?? (row.price != null ? Math.round(Number(row.price) * 100) : 0),
+    id: row.id as string,
+    name: row.name as string,
+    slug: (row.slug as string) ?? '',
+    description: (row.description as string) ?? '',
+    images: (row.images as string[]) ?? [],
+    category: (row.category as string) ?? null,
+    status: (row.status as string) ?? 'active',
+    base_price_cents: (row.base_price_cents as number) ?? (row.price != null ? Math.round(Number(row.price) * 100) : 0),
     variants: Array.isArray(row.variants) ? row.variants : [],
-    avg_rating: row.avg_rating ?? null,
-    review_count: row.review_count ?? 0,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
   }
 }
 
@@ -80,9 +89,9 @@ function toDbProduct(product: Record<string, unknown>) {
 export function useCreateProduct() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (product: Omit<Product, 'id' | 'variants' | 'avg_rating' | 'review_count' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (product: Omit<Product, 'id' | 'variants' | 'created_at' | 'updated_at'>) => {
       const row = toDbProduct(product as Record<string, unknown>)
-      const { data, error } = await supabase.from('merch_products').insert(row as any).select().single()
+      const { data, error } = await supabase.from('merch_products').insert(row as never).select().single()
       if (error) throw error
       return data
     },
@@ -97,7 +106,7 @@ export function useUpdateProduct() {
       const row = toDbProduct(updates as Record<string, unknown>)
       const { data, error } = await supabase
         .from('merch_products')
-        .update(row as any)
+        .update(row as never)
         .eq('id', id)
         .select()
       if (error) throw error
@@ -149,14 +158,14 @@ export function useAdjustStock() {
       adjustment: number
     }) => {
       if (adjustment > 0) {
-        const { error } = await (supabase as any).rpc('increment_stock', {
+        const { error } = await (supabase as unknown as { rpc: (fn: string, params: Record<string, unknown>) => Promise<{ error: unknown }> }).rpc('increment_stock', {
           p_product_id: productId,
           p_variant_key: variantKey,
           p_quantity: adjustment,
         })
         if (error) throw error
       } else if (adjustment < 0) {
-        const { error } = await (supabase as any).rpc('decrement_stock', {
+        const { error } = await (supabase as unknown as { rpc: (fn: string, params: Record<string, unknown>) => Promise<{ error: unknown }> }).rpc('decrement_stock', {
           p_product_id: productId,
           p_variant_key: variantKey,
           p_quantity: Math.abs(adjustment),
@@ -204,7 +213,7 @@ export function useAdminOrders(statusFilter?: OrderStatus) {
 
       const { data, error } = await query
       if (error) throw error
-      return data as any as (Order & { profiles: { display_name: string | null; avatar_url: string | null } | null })[]
+      return data as unknown as (Order & { profiles: { display_name: string | null; avatar_url: string | null } | null })[]
     },
     staleTime: 30 * 1000,
     placeholderData: keepPreviousData,
@@ -328,7 +337,7 @@ export function useUpsertVariant() {
 
       const { error } = await supabase
         .from('merch_products')
-        .update({ variants: updated as any })
+        .update({ variants: updated as unknown as never })
         .eq('id', productId)
       if (error) throw error
     },
@@ -346,7 +355,7 @@ export function useUpdateOrderNotes() {
     mutationFn: async ({ orderId, notes }: { orderId: string; notes: string }) => {
       const { error } = await supabase
         .from('merch_orders')
-        .update({ admin_notes: notes, updated_at: new Date().toISOString() } as any)
+        .update({ admin_notes: notes, updated_at: new Date().toISOString() } as never)
         .eq('id', orderId)
       if (error) throw error
     },
@@ -377,7 +386,7 @@ export function useUpsertPromoCode() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (promo: Partial<PromoCode> & { code: string }) => {
-      const { error } = await supabase.from('promo_codes').upsert(promo as any)
+      const { error } = await supabase.from('promo_codes').upsert(promo as never)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-promo-codes'] }),
@@ -393,7 +402,7 @@ export function useAdminReturns() {
     queryKey: ['admin-returns'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('return_requests' as any)
+        .from('return_requests' as never)
         .select('*, order:merch_orders(id, status, total_cents), profiles(display_name, avatar_url)')
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -409,18 +418,17 @@ export function useUpdateReturnStatus() {
     mutationFn: async ({
       returnId,
       status,
-      adminNotes,
     }: {
       returnId: string
       status: 'approved' | 'denied'
       adminNotes?: string
     }) => {
       const { error } = await supabase
-        .from('return_requests' as any)
+        .from('return_requests' as never)
         .update({
           status,
           reviewed_at: new Date().toISOString(),
-        } as any)
+        } as never)
         .eq('id', returnId)
       if (error) throw error
 
@@ -433,54 +441,6 @@ export function useUpdateReturnStatus() {
       qc.invalidateQueries({ queryKey: ['admin-returns'] })
       qc.invalidateQueries({ queryKey: ['admin-orders'] })
     },
-  })
-}
-
-/* ------------------------------------------------------------------ */
-/*  Review moderation                                                  */
-/* ------------------------------------------------------------------ */
-
-export function useAdminReviews() {
-  return useQuery({
-    queryKey: ['admin-reviews'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('product_reviews')
-        .select('*, profiles(display_name, avatar_url)')
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      return data as unknown as ProductReview[]
-    },
-    staleTime: 60 * 1000,
-  })
-}
-
-export function useModerateReview() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: async ({
-      reviewId,
-      approved,
-    }: {
-      reviewId: string
-      approved: boolean
-    }) => {
-      if (approved) {
-        const { error } = await supabase
-          .from('product_reviews')
-          .update({ is_approved: true })
-          .eq('id', reviewId)
-        if (error) throw error
-      } else {
-        // Remove = delete the review
-        const { error } = await supabase
-          .from('product_reviews')
-          .delete()
-          .eq('id', reviewId)
-        if (error) throw error
-      }
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-reviews'] }),
   })
 }
 
@@ -498,7 +458,7 @@ export function useUpdateShippingConfig() {
       ]
       for (const entry of entries) {
         const { error } = await supabase
-          .from('shipping_config' as any)
+          .from('shipping_config' as never)
           .upsert(entry, { onConflict: 'key' })
         if (error) throw error
       }
@@ -537,18 +497,18 @@ export function useSalesAnalytics(period: 'week' | 'month' | 'year') {
 
       if (error) throw error
 
-      const orders = (data ?? []) as any[]
-      const total_revenue_cents = orders.reduce((sum: number, o: any) => sum + (o.total_cents ?? 0), 0)
+      const orders = (data ?? []) as unknown as OrderRow[]
+      const total_revenue_cents = orders.reduce((sum, o) => sum + (o.total_cents ?? 0), 0)
       const total_orders = orders.length
-      const total_units_sold = orders.reduce((sum: number, o: any) => {
+      const total_units_sold = orders.reduce((sum, o) => {
         if (!Array.isArray(o.items)) return sum
-        return sum + o.items.reduce((s: number, i: any) => s + (i.quantity ?? 1), 0)
+        return sum + (o.items as OrderItemRow[]).reduce((s, i) => s + (i.quantity ?? 1), 0)
       }, 0)
 
       const productMap = new Map<string, { product_id: string; product_name: string; units: number; revenue_cents: number }>()
       for (const o of orders) {
         if (!Array.isArray(o.items)) continue
-        for (const item of o.items) {
+        for (const item of o.items as OrderItemRow[]) {
           const key = item.product_id ?? item.product_name ?? 'unknown'
           const existing = productMap.get(key) ?? { product_id: key, product_name: item.product_name ?? key, units: 0, revenue_cents: 0 }
           existing.units += item.quantity ?? 1
@@ -590,18 +550,18 @@ export async function exportOrdersCsv(statusFilter?: OrderStatus) {
   const { data, error } = await query
   if (error) throw error
 
-  const rows = (data as any[]).map((o) => ({
-    order_id: o.id,
-    date: o.created_at,
-    customer: o.profiles?.display_name ?? 'Unknown',
-    status: o.status,
+  const rows = (data as unknown as Record<string, unknown>[]).map((o) => ({
+    order_id: o.id as string,
+    date: o.created_at as string,
+    customer: (o.profiles as { display_name: string | null } | null)?.display_name ?? 'Unknown',
+    status: o.status as string,
     items: Array.isArray(o.items)
-      ? o.items.map((i: any) => `${i.product_name ?? i.product_id} x${i.quantity}`).join('; ')
+      ? (o.items as OrderItemRow[]).map((i) => `${i.product_name ?? i.product_id} x${i.quantity}`).join('; ')
       : '',
-    total: ((o.total_cents ?? 0) / 100).toFixed(2),
-    tracking: o.tracking_number ?? '',
+    total: (((o.total_cents as number) ?? 0) / 100).toFixed(2),
+    tracking: (o.tracking_number as string) ?? '',
     address: o.shipping_address
-      ? `${o.shipping_address}, ${o.shipping_city ?? ''} ${o.shipping_state ?? ''} ${o.shipping_postcode ?? ''}`
+      ? `${o.shipping_address}, ${(o.shipping_city as string) ?? ''} ${(o.shipping_state as string) ?? ''} ${(o.shipping_postcode as string) ?? ''}`
       : '',
   }))
 

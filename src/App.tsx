@@ -1,6 +1,6 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import { lazy, Suspense, useState, useCallback, useEffect } from 'react'
-import { RequireAuth, RequireRole, RequireLeaderAccess } from '@/components/route-guard'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { lazy, Suspense, useState, useCallback } from 'react'
+import { RequireAuth, RequireRole, RequireLeaderAccess, RequireCapability } from '@/components/route-guard'
 import { AppShell } from '@/components/app-shell'
 import { AdminLayout as AdminLayoutRoute } from '@/components/admin-layout'
 import { LeaderLayout as LeaderLayoutRoute } from '@/components/leader-layout'
@@ -27,6 +27,11 @@ const DownloadPage = lazy(() => import('@/pages/public/download'))
 // Legal
 const TermsOfServicePage = lazy(() => import('@/pages/legal/terms'))
 const PrivacyPolicyPage = lazy(() => import('@/pages/legal/privacy'))
+const AboutPage = lazy(() => import('@/pages/legal/about'))
+const AccessibilityPage = lazy(() => import('@/pages/legal/accessibility'))
+const CookiePolicyPage = lazy(() => import('@/pages/legal/cookies'))
+const DataPolicyPage = lazy(() => import('@/pages/legal/data-policy'))
+const DisclaimerPage = lazy(() => import('@/pages/legal/disclaimer'))
 
 // Public / Auth
 const WelcomePage = lazy(() => import('@/pages/auth/welcome'))
@@ -124,6 +129,8 @@ const DevToolsPage = lazy(() => import('@/pages/admin/dev-tools'))
 const AdminPartnersPage = lazy(() => import('@/pages/admin/partners'))
 const AdminChallengesPage = lazy(() => import('@/pages/admin/challenges'))
 const ModerationQueuePage = lazy(() => import('@/pages/admin/moderation/index'))
+const AdminContactsPage = lazy(() => import('@/pages/admin/contacts'))
+const AdminLegalPagesPage = lazy(() => import('@/pages/admin/legal-pages'))
 
 // Admin Development (L&D)
 const AdminDevelopmentPage = lazy(() => import('@/pages/admin/development/index'))
@@ -188,18 +195,11 @@ function PageFallback() {
 /*  Bare routes (no app shell chrome)                                  */
 /* ------------------------------------------------------------------ */
 
-const _bareRoutes = [
-  '/welcome',
-  '/signup',
-  '/login',
-  '/forgot-password',
-  '/verify-email',
-  '/suspended',
-  '/accept-terms',
-  '/onboarding',
-  '/leader-welcome',
-  '/welcome-back',
-]
+/** Bare routes (no app shell chrome) — kept for reference */
+// const _bareRoutes = [
+//   '/welcome', '/signup', '/login', '/forgot-password', '/verify-email',
+//   '/suspended', '/accept-terms', '/onboarding', '/leader-welcome', '/welcome-back',
+// ]
 
 
 /* ------------------------------------------------------------------ */
@@ -288,25 +288,31 @@ function App() {
         <Route
           path="/onboarding"
           element={
-            <AppShell bare>
-              <OnboardingPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell bare>
+                <OnboardingPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/leader-welcome"
           element={
-            <AppShell bare>
-              <LeaderWelcomePage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell bare>
+                <LeaderWelcomePage />
+              </AppShell>
+            </RequireAuth>
           }
         />
         <Route
           path="/welcome-back"
           element={
-            <AppShell bare>
-              <WelcomeBackPage />
-            </AppShell>
+            <RequireAuth>
+              <AppShell bare>
+                <WelcomeBackPage />
+              </AppShell>
+            </RequireAuth>
           }
         />
 
@@ -390,38 +396,40 @@ function App() {
           {/* ---- Admin routes (staff+) ---- */}
           <Route path="/admin" element={<RequireRole minRole="national_staff"><AdminLayoutRoute /></RequireRole>}>
             <Route index element={<AdminDashboardPage />} />
-            <Route path="collectives" element={<AdminCollectivesPage />} />
-            <Route path="collectives/:collectiveId" element={<AdminCollectiveDetailPage />} />
-            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="collectives" element={<RequireCapability cap="manage_collectives"><AdminCollectivesPage /></RequireCapability>} />
+            <Route path="collectives/:collectiveId" element={<RequireCapability cap="manage_collectives"><AdminCollectiveDetailPage /></RequireCapability>} />
+            <Route path="users" element={<RequireCapability cap="manage_users"><AdminUsersPage /></RequireCapability>} />
             <Route path="create" element={<AdminCreatePage />} />
             <Route path="create/updates" element={<RequireRole minRole="national_admin"><CreateUpdatePage /></RequireRole>} />
-            <Route path="workflows" element={<AdminWorkflowsPage />} />
-            <Route path="events" element={<AdminEventsPage />} />
-            <Route path="surveys" element={<AdminSurveysPage />} />
-            <Route path="applications" element={<AdminApplicationsPage />} />
-            <Route path="surveys/create" element={<AdminCreateSurveyPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="national-impact" element={<NationalImpactPage />} />
-            <Route path="email" element={<AdminEmailPage />} />
-            <Route path="charity" element={<AdminCharityPage />} />
-            <Route path="exports" element={<AdminExportsPage />} />
-            <Route path="audit-log" element={<AdminAuditLogPage />} />
-            <Route path="system" element={<AdminSystemPage />} />
-            <Route path="branding" element={<AdminBrandingPage />} />
-            <Route path="shop" element={<AdminMerchPage />} />
-            <Route path="partners" element={<AdminPartnersPage />} />
-            <Route path="challenges" element={<AdminChallengesPage />} />
-            <Route path="moderation" element={<ModerationQueuePage />} />
-            <Route path="dev-tools" element={<DevToolsPage />} />
-            <Route path="development" element={<AdminDevelopmentPage />} />
-            <Route path="development/modules/new" element={<AdminCreateModulePage />} />
-            <Route path="development/modules/:moduleId" element={<AdminModuleDetailPage />} />
-            <Route path="development/modules/:moduleId/edit" element={<AdminEditModulePage />} />
-            <Route path="development/sections/new" element={<AdminCreateSectionPage />} />
-            <Route path="development/sections/:sectionId/edit" element={<AdminEditSectionPage />} />
-            <Route path="development/quizzes/new" element={<AdminCreateQuizPage />} />
-            <Route path="development/quizzes/:quizId/edit" element={<AdminEditQuizPage />} />
-            <Route path="development/results" element={<AdminDevResultsPage />} />
+            <Route path="workflows" element={<RequireCapability cap="manage_workflows"><AdminWorkflowsPage /></RequireCapability>} />
+            <Route path="events" element={<RequireCapability cap="manage_events"><AdminEventsPage /></RequireCapability>} />
+            <Route path="surveys" element={<RequireCapability cap="manage_surveys"><AdminSurveysPage /></RequireCapability>} />
+            <Route path="applications" element={<RequireCapability cap="manage_users"><AdminApplicationsPage /></RequireCapability>} />
+            <Route path="surveys/create" element={<RequireCapability cap="manage_surveys"><AdminCreateSurveyPage /></RequireCapability>} />
+            <Route path="reports" element={<RequireCapability cap="view_reports"><ReportsPage /></RequireCapability>} />
+            <Route path="national-impact" element={<RequireCapability cap="view_reports"><NationalImpactPage /></RequireCapability>} />
+            <Route path="email" element={<RequireCapability cap="manage_email"><AdminEmailPage /></RequireCapability>} />
+            <Route path="charity" element={<RequireCapability cap="manage_charity"><AdminCharityPage /></RequireCapability>} />
+            <Route path="exports" element={<RequireCapability cap="manage_exports"><AdminExportsPage /></RequireCapability>} />
+            <Route path="audit-log" element={<RequireCapability cap="view_audit_log"><AdminAuditLogPage /></RequireCapability>} />
+            <Route path="system" element={<RequireCapability cap="manage_system"><AdminSystemPage /></RequireCapability>} />
+            <Route path="branding" element={<RequireCapability cap="manage_system"><AdminBrandingPage /></RequireCapability>} />
+            <Route path="shop" element={<RequireCapability cap="manage_merch"><AdminMerchPage /></RequireCapability>} />
+            <Route path="partners" element={<RequireCapability cap="manage_partners"><AdminPartnersPage /></RequireCapability>} />
+            <Route path="challenges" element={<RequireCapability cap="manage_challenges"><AdminChallengesPage /></RequireCapability>} />
+            <Route path="moderation" element={<RequireCapability cap="manage_content"><ModerationQueuePage /></RequireCapability>} />
+            <Route path="contacts" element={<AdminContactsPage />} />
+            <Route path="legal-pages" element={<RequireCapability cap="manage_system"><AdminLegalPagesPage /></RequireCapability>} />
+            <Route path="dev-tools" element={<RequireCapability cap="manage_system"><DevToolsPage /></RequireCapability>} />
+            <Route path="development" element={<RequireCapability cap="manage_content"><AdminDevelopmentPage /></RequireCapability>} />
+            <Route path="development/modules/new" element={<RequireCapability cap="manage_content"><AdminCreateModulePage /></RequireCapability>} />
+            <Route path="development/modules/:moduleId" element={<RequireCapability cap="manage_content"><AdminModuleDetailPage /></RequireCapability>} />
+            <Route path="development/modules/:moduleId/edit" element={<RequireCapability cap="manage_content"><AdminEditModulePage /></RequireCapability>} />
+            <Route path="development/sections/new" element={<RequireCapability cap="manage_content"><AdminCreateSectionPage /></RequireCapability>} />
+            <Route path="development/sections/:sectionId/edit" element={<RequireCapability cap="manage_content"><AdminEditSectionPage /></RequireCapability>} />
+            <Route path="development/quizzes/new" element={<RequireCapability cap="manage_content"><AdminCreateQuizPage /></RequireCapability>} />
+            <Route path="development/quizzes/:quizId/edit" element={<RequireCapability cap="manage_content"><AdminEditQuizPage /></RequireCapability>} />
+            <Route path="development/results" element={<RequireCapability cap="manage_content"><AdminDevResultsPage /></RequireCapability>} />
           </Route>
 
         </Route>
@@ -440,6 +448,46 @@ function App() {
           element={
             <AppShell bare>
               <PrivacyPolicyPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <AppShell bare>
+              <AboutPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/accessibility"
+          element={
+            <AppShell bare>
+              <AccessibilityPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/cookies"
+          element={
+            <AppShell bare>
+              <CookiePolicyPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/data-policy"
+          element={
+            <AppShell bare>
+              <DataPolicyPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/disclaimer"
+          element={
+            <AppShell bare>
+              <DisclaimerPage />
             </AppShell>
           }
         />
@@ -485,14 +533,14 @@ function App() {
   )
 }
 
-/** Temporary placeholder for unbuilt pages */
-function _PlaceholderPage({ title }: { title: string }) {
-  return (
-    <div className="flex flex-col items-center justify-center flex-1 p-6">
-      <h1 className="font-heading text-2xl font-bold text-black">{title}</h1>
-      <p className="mt-2 text-sm text-primary-400">Coming soon</p>
-    </div>
-  )
-}
+/** Temporary placeholder for unbuilt pages — kept for reference */
+// function _PlaceholderPage({ title }: { title: string }) {
+//   return (
+//     <div className="flex flex-col items-center justify-center flex-1 p-6">
+//       <h1 className="font-heading text-2xl font-bold text-black">{title}</h1>
+//       <p className="mt-2 text-sm text-primary-400">Coming soon</p>
+//     </div>
+//   )
+// }
 
 export default App

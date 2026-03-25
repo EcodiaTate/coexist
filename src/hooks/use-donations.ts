@@ -18,6 +18,7 @@ export function useDonationProjects() {
     queryKey: ['donation-projects'],
     queryFn: async () => {
       const { data, error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from('donation_projects' as any)
         .select('*')
         .eq('is_active', true)
@@ -160,13 +161,21 @@ export function useDonorWall() {
         .order('created_at', { ascending: false })
         .limit(100)
       if (error) throw error
-      return ((data ?? []) as any[]).map((d): DonorWallEntry => ({
+      interface DonationRow {
+        id: string
+        amount: number
+        message: string | null
+        on_behalf_of: string | null
+        created_at: string
+        profiles: { display_name: string | null; avatar_url: string | null } | null
+      }
+      return ((data ?? []) as DonationRow[]).map((d): DonorWallEntry => ({
         id: d.id,
-        display_name: (d.profiles as { display_name: string | null } | null)?.display_name ?? null,
+        display_name: d.profiles?.display_name ?? null,
         on_behalf_of: d.on_behalf_of,
         amount: d.amount,
         message: d.message,
-        avatar_url: (d.profiles as { avatar_url: string | null } | null)?.avatar_url ?? null,
+        avatar_url: d.profiles?.avatar_url ?? null,
         created_at: d.created_at,
       }))
     },

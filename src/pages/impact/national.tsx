@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   TreePine,
-  Clock,
   Trash2,
   Sprout,
   CalendarDays,
@@ -10,7 +9,6 @@ import {
   MapPin,
   Download,
   Share2,
-  TrendingUp,
   Trophy,
   GraduationCap,
   Globe,
@@ -21,7 +19,6 @@ import { Header } from '@/components/header'
 import { useAdminHeader, useIsAdminLayout } from '@/components/admin-layout'
 import { CountUp } from '@/components/count-up'
 import { Button } from '@/components/button'
-import { Skeleton } from '@/components/skeleton'
 import { cn } from '@/lib/cn'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useNationalImpact } from '@/hooks/use-impact'
@@ -91,13 +88,13 @@ function useTrends() {
 
       for (let i = 5; i >= 0; i--) {
         const start = new Date(now.getFullYear(), now.getMonth() - i, 1)
-        const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
+        const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1) // first of next month
 
         const { data } = await supabase
           .from('event_impact')
           .select('hours_total')
           .gte('logged_at', start.toISOString())
-          .lte('logged_at', end.toISOString())
+          .lt('logged_at', end.toISOString())
 
         const hours = (data ?? []).reduce((s, r) => s + (r.hours_total ?? 0), 0)
 
@@ -123,7 +120,7 @@ function useByActivity() {
         .lt('date_start', new Date().toISOString())
         .limit(10000)
 
-      const events = (data ?? []) as any[]
+      const events = (data ?? []) as { activity_type?: string; collectives?: { state?: string } | null }[]
 
       const byActivity: Record<string, number> = {}
       const byState: Record<string, number> = {}
@@ -131,7 +128,7 @@ function useByActivity() {
       for (const ev of events) {
         const type = ev.activity_type ?? 'Other'
         byActivity[type] = (byActivity[type] ?? 0) + 1
-        const state = (ev.collectives as any)?.state ?? 'Unknown'
+        const state = ev.collectives?.state ?? 'Unknown'
         byState[state] = (byState[state] ?? 0) + 1
       }
 
@@ -336,7 +333,7 @@ export default function NationalImpactPage() {
               type="button"
               onClick={() => setTimeRange('all-time')}
               className={cn(
-                'px-3.5 min-h-11 rounded-md text-sm font-semibold transition-all active:scale-[0.95] cursor-pointer select-none',
+                'px-3.5 min-h-11 rounded-md text-sm font-semibold transition-transform active:scale-[0.95] cursor-pointer select-none',
                 timeRange === 'all-time'
                   ? 'bg-white text-primary-700 shadow-sm'
                   : 'text-primary-400 hover:text-primary-600',
@@ -348,7 +345,7 @@ export default function NationalImpactPage() {
               type="button"
               onClick={() => setTimeRange('current-year')}
               className={cn(
-                'px-3.5 min-h-11 rounded-md text-sm font-semibold transition-all active:scale-[0.95] cursor-pointer select-none',
+                'px-3.5 min-h-11 rounded-md text-sm font-semibold transition-transform active:scale-[0.95] cursor-pointer select-none',
                 timeRange === 'current-year'
                   ? 'bg-white text-primary-700 shadow-sm'
                   : 'text-primary-400 hover:text-primary-600',
@@ -585,7 +582,7 @@ export default function NationalImpactPage() {
                 <div
                   key={c.id}
                   className={cn(
-                    'flex items-center gap-4 py-3.5 rounded-2xl px-3 transition-all',
+                    'flex items-center gap-4 py-3.5 rounded-2xl px-3 transition-colors',
                     i === 0 && 'bg-gradient-to-r from-warning-50/80 to-transparent',
                   )}
                 >

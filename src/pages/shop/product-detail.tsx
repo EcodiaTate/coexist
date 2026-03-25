@@ -4,7 +4,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
     ShoppingBag,
-    Star,
     ChevronLeft,
     ChevronRight,
     Minus,
@@ -22,10 +21,9 @@ import { Button } from '@/components/button'
 import { Card } from '@/components/card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
-import { Avatar } from '@/components/avatar'
 import { Modal } from '@/components/modal'
 import { useToast } from '@/components/toast'
-import { useProduct, useRelatedProducts, useProductReviews } from '@/hooks/use-merch'
+import { useProduct, useRelatedProducts } from '@/hooks/use-merch'
 import { useCart } from '@/hooks/use-cart'
 import { useAvailableStock, useReserveStock } from '@/hooks/use-stock-reservation'
 import { formatPrice, type ProductVariant, type Product } from '@/types/merch'
@@ -45,10 +43,6 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 28 } },
 }
 
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.92 },
-  visible: { opacity: 1, scale: 1, transition: { type: 'spring' as const, stiffness: 300, damping: 25 } },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Swipeable image gallery                                            */
@@ -120,7 +114,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
             >
               <span
                 className={cn(
-                  'rounded-full transition-all duration-200',
+                  'rounded-full transition-[width,background-color] duration-200',
                   i === currentIndex
                     ? 'w-6 h-2 bg-white'
                     : 'w-2 h-2 bg-white/50',
@@ -141,7 +135,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
               'hidden lg:flex absolute left-3 top-1/2 -translate-y-1/2',
               'items-center justify-center w-10 h-10 rounded-full',
               'bg-white shadow-md',
-              'cursor-pointer select-none active:scale-[0.95] transition-all duration-150',
+              'cursor-pointer select-none active:scale-[0.95] transition-transform duration-150',
               'hover:bg-white hover:shadow-lg',
               currentIndex === 0 && 'opacity-0 pointer-events-none',
             )}
@@ -156,7 +150,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
               'hidden lg:flex absolute right-3 top-1/2 -translate-y-1/2',
               'items-center justify-center w-10 h-10 rounded-full',
               'bg-white shadow-md',
-              'cursor-pointer select-none active:scale-[0.95] transition-all duration-150',
+              'cursor-pointer select-none active:scale-[0.95] transition-transform duration-150',
               'hover:bg-white hover:shadow-lg',
               currentIndex === images.length - 1 && 'opacity-0 pointer-events-none',
             )}
@@ -173,29 +167,6 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
           {currentIndex + 1}/{images.length}
         </span>
       )}
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Star rating display                                                */
-/* ------------------------------------------------------------------ */
-
-function Stars({ rating, size = 14 }: { rating: number; size?: number }) {
-  return (
-    <div className="flex items-center gap-0.5" aria-label={`${rating} out of 5 stars`}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          size={size}
-          className={cn(
-            'transition-colors duration-150',
-            i < Math.round(rating)
-              ? 'text-warning-400 fill-warning-400'
-              : 'text-primary-200',
-          )}
-        />
-      ))}
     </div>
   )
 }
@@ -246,7 +217,7 @@ function QuantityStepper({
         disabled={value <= 1}
         className={cn(
           'flex items-center justify-center w-10 h-10 rounded-lg',
-          'cursor-pointer select-none active:scale-[0.93] transition-all duration-150',
+          'cursor-pointer select-none active:scale-[0.93] transition-transform duration-150',
           value <= 1
             ? 'text-primary-200 cursor-not-allowed'
             : 'text-primary-600 hover:bg-primary-50',
@@ -264,7 +235,7 @@ function QuantityStepper({
         disabled={max !== undefined && value >= max}
         className={cn(
           'flex items-center justify-center w-10 h-10 rounded-lg',
-          'cursor-pointer select-none active:scale-[0.93] transition-all duration-150',
+          'cursor-pointer select-none active:scale-[0.93] transition-transform duration-150',
           max !== undefined && value >= max
             ? 'text-primary-200 cursor-not-allowed'
             : 'text-primary-600 hover:bg-primary-50',
@@ -415,7 +386,6 @@ export default function ProductDetailPage() {
 
   const { data: product, isLoading } = useProduct(slug)
   const showLoading = useDelayedLoading(isLoading)
-  const { data: reviews } = useProductReviews(product?.id)
   const { data: related } = useRelatedProducts(product?.id)
   const addItem = useCart((s) => s.addItem)
   const { reserve } = useReserveStock()
@@ -444,12 +414,6 @@ export default function ProductDetailPage() {
     () => product ? [...new Set(product.variants.map((v) => v.colour).filter(Boolean))] as string[] : [],
     [product],
   )
-
-  const ratingDisplay = useMemo(() => {
-    if (!reviews || reviews.length === 0) return null
-    const avg = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-    return { avg: Math.round(avg * 10) / 10, count: reviews.length }
-  }, [reviews])
 
   const handleAddToCart = useCallback(async () => {
     if (!product || !activeVariant) return
@@ -585,17 +549,6 @@ export default function ProductDetailPage() {
               {formatPrice(activeVariant?.price_cents ?? product.base_price_cents)}
             </span>
 
-            {ratingDisplay && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-warning-50/80">
-                <Stars rating={ratingDisplay.avg} size={13} />
-                <span className="text-sm font-semibold text-warning-700">
-                  {ratingDisplay.avg}
-                </span>
-                <span className="text-xs text-primary-400">
-                  ({ratingDisplay.count})
-                </span>
-              </div>
-            )}
           </div>
 
           {/* Stock status badges - uses realtime available stock */}
@@ -673,7 +626,7 @@ export default function ProductDetailPage() {
                         whileTap={available ? { scale: 0.93 } : undefined}
                         className={cn(
                           'relative px-5 py-2.5 min-h-11 min-w-[3.5rem] rounded-xl text-sm font-semibold',
-                          'transition-all duration-200 cursor-pointer select-none',
+                          'transition-transform duration-200 cursor-pointer select-none',
                           isSelected
                             ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md'
                             : available
@@ -716,7 +669,7 @@ export default function ProductDetailPage() {
                         whileTap={available ? { scale: 0.93 } : undefined}
                         className={cn(
                           'relative px-5 py-2.5 min-h-11 rounded-xl text-sm font-semibold',
-                          'transition-all duration-200 cursor-pointer select-none',
+                          'transition-transform duration-200 cursor-pointer select-none',
                           isSelected
                             ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md'
                             : available
@@ -740,65 +693,6 @@ export default function ProductDetailPage() {
         <motion.div variants={fadeUp}>
           <TrustBadges />
         </motion.div>
-
-        {/* ---- Reviews ---- */}
-        {reviews && reviews.length > 0 && (
-          <>
-            <Divider />
-
-            <motion.div variants={fadeUp}>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="font-heading text-lg font-bold text-primary-800">
-                  Reviews
-                </h2>
-                {ratingDisplay && (
-                  <div className="flex items-center gap-2">
-                    <Stars rating={ratingDisplay.avg} size={16} />
-                    <span className="font-heading font-bold text-primary-800">
-                      {ratingDisplay.avg}
-                    </span>
-                    <span className="text-sm text-primary-400">
-                      ({ratingDisplay.count})
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                {reviews.slice(0, 5).map((review) => (
-                  <motion.div
-                    key={review.id}
-                    variants={scaleIn}
-                    className="p-4 rounded-2xl bg-surface-0 shadow-sm border border-primary-50"
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <Avatar
-                        src={review.profiles?.avatar_url}
-                        name={review.profiles?.display_name ?? 'Anonymous'}
-                        size="sm"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-primary-800 truncate">
-                          {review.profiles?.display_name ?? 'Anonymous'}
-                        </p>
-                        <Stars rating={review.rating} size={12} />
-                      </div>
-                      <time className="text-xs text-primary-300 shrink-0">
-                        {new Date(review.created_at).toLocaleDateString('en-AU', {
-                          month: 'short',
-                          day: 'numeric',
-                        })}
-                      </time>
-                    </div>
-                    {review.text && (
-                      <p className="text-sm text-primary-500 leading-relaxed">{review.text}</p>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </>
-        )}
 
         {/* ---- Related products ---- */}
         {related && related.length > 0 && (

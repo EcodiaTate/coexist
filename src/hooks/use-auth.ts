@@ -5,6 +5,7 @@ import { Preferences } from '@capacitor/preferences'
 import { SocialLogin } from '@capgo/capacitor-social-login'
 import { supabase } from '@/lib/supabase'
 import { resolveCapabilities } from '@/lib/capabilities'
+import { CURRENT_TOS_VERSION } from '@/lib/constants'
 import type { Database } from '@/types/database.types'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
@@ -134,8 +135,6 @@ interface AuthContextValue {
   markOnboardingComplete: () => void
 }
 
-const CURRENT_TOS_VERSION = '1.0'
-
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 /* ------------------------------------------------------------------ */
@@ -179,12 +178,12 @@ export function useAuthProvider(): AuthContextValue {
   const fetchPermissionOverrides = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('staff_roles' as any)
+        .from('staff_roles' as never)
         .select('permissions')
         .eq('user_id', userId)
         .maybeSingle()
       if (error) return null
-      return (data as any)?.permissions as Record<string, boolean> | null
+      return (data as { permissions?: Record<string, boolean> } | null)?.permissions ?? null
     } catch {
       return null
     }
@@ -276,8 +275,8 @@ export function useAuthProvider(): AuthContextValue {
     // Check suspension server-side (the RPC handles expiry clearance securely)
     if (profileData?.is_suspended) {
       try {
-        const { data: suspCheck } = await supabase.rpc('check_user_suspended' as any, { uid: userId })
-        if (suspCheck && !(suspCheck as any).suspended) {
+        const { data: suspCheck } = await supabase.rpc('check_user_suspended' as never, { uid: userId })
+        if (suspCheck && !(suspCheck as unknown as { suspended: boolean }).suspended) {
           // Server cleared the expired suspension - refresh profile data
           profileData.is_suspended = false
           profileData.suspended_reason = null
@@ -290,12 +289,12 @@ export function useAuthProvider(): AuthContextValue {
 
     // Check if account is pending deletion and user logged back in (recovery)
     // Use server-side RPC to handle this securely instead of direct client update
-    if ((profileData as any)?.deletion_status === 'pending_deletion') {
+    if ((profileData as unknown as { deletion_status?: string })?.deletion_status === 'pending_deletion') {
       try {
-        await supabase.rpc('recover_pending_deletion' as any, { uid: userId })
-        ;(profileData as any).deletion_status = 'active'
-        ;(profileData as any).deleted_at = null
-        ;(profileData as any).deletion_requested_at = null
+        await supabase.rpc('recover_pending_deletion' as never, { uid: userId })
+        ;(profileData as unknown as Record<string, unknown>).deletion_status = 'active'
+        ;(profileData as unknown as Record<string, unknown>).deleted_at = null
+        ;(profileData as unknown as Record<string, unknown>).deletion_requested_at = null
       } catch {
         // If RPC doesn't exist yet, the account stays pending - server wins
       }
@@ -362,6 +361,15 @@ export function useAuthProvider(): AuthContextValue {
             try {
               console.log('[auth] loadUserData start (deferred)', userId)
               await loadUserData(userId)
+
+              // Accept pending referral code (stored during signup, consumed once)
+              try {
+                const pendingRef = localStorage.getItem('coexist_referral_code')
+                if (pendingRef) {
+                  localStorage.removeItem('coexist_referral_code')
+                  await supabase.rpc('accept_referral', { referral_code: pendingRef })
+                }
+              } catch { /* referral acceptance is best-effort */ }
             } catch (err) {
               console.error('[auth] loadUserData failed:', err)
             } finally {
@@ -502,14 +510,15 @@ export function useAuthProvider(): AuthContextValue {
       try {
         await SocialLogin.initialize({ google: { webClientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID } })
         const result = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } })
-        const idToken = (result?.result as any)?.idToken
+        const idToken = (result?.result as Record<string, unknown>)?.idToken as string | undefined
         if (!idToken) return { error: { message: 'No ID token received from Google', status: 400 } as unknown as AuthError }
         const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
         return { error }
-      } catch (err: any) {
+      } catch (err: unknown) {
         // User cancelled = not an error
-        if (err?.message?.includes('cancel') || err?.code === 'SIGN_IN_CANCELLED') return { error: null }
-        return { error: { message: err?.message ?? 'Google sign-in failed', status: 500 } as unknown as AuthError }
+        const e = err as { message?: string; code?: string }
+        if (e?.message?.includes('cancel') || e?.code === 'SIGN_IN_CANCELLED') return { error: null }
+        return { error: { message: e?.message ?? 'Google sign-in failed', status: 500 } as unknown as AuthError }
       }
     }
     // Web: use Supabase OAuth redirect
@@ -526,14 +535,15 @@ export function useAuthProvider(): AuthContextValue {
       try {
         await SocialLogin.initialize({ apple: {} })
         const result = await SocialLogin.login({ provider: 'apple', options: { scopes: ['email', 'name'] } })
-        const idToken = (result?.result as any)?.idToken
+        const idToken = (result?.result as Record<string, unknown>)?.idToken as string | undefined
         if (!idToken) return { error: { message: 'No ID token received from Apple', status: 400 } as unknown as AuthError }
         const { error } = await supabase.auth.signInWithIdToken({ provider: 'apple', token: idToken })
         return { error }
-      } catch (err: any) {
+      } catch (err: unknown) {
         // User cancelled = not an error
-        if (err?.message?.includes('cancel') || err?.code === '1001') return { error: null }
-        return { error: { message: err?.message ?? 'Apple sign-in failed', status: 500 } as unknown as AuthError }
+        const e = err as { message?: string; code?: string }
+        if (e?.message?.includes('cancel') || e?.code === '1001') return { error: null }
+        return { error: { message: e?.message ?? 'Apple sign-in failed', status: 500 } as unknown as AuthError }
       }
     }
     // Web: use Supabase OAuth redirect

@@ -148,6 +148,9 @@ function toCsv(headers: string[], rows: unknown[][]): string {
   return [headers.join(','), ...rows.map((r) => r.map(escapeCsv).join(','))].join('\n')
 }
 
+/** Safety limit for browser-side CSV exports to prevent OOM */
+const EXPORT_ROW_LIMIT = 10_000
+
 function downloadCsv(csv: string, filename: string) {
   const blob = new Blob([csv], { type: 'text/csv' })
   const url = URL.createObjectURL(blob)
@@ -200,28 +203,30 @@ export default function AdminExportsPage() {
           .from('profiles')
           .select('display_name, role, created_at')
           .order('created_at', { ascending: false })
+          .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
           ['Name', 'Role', 'Join Date'],
-          ((data ?? []) as any[]).map((r: any) => [r.display_name, r.role, r.created_at]),
+          (data ?? []).map((r) => [r.display_name, r.role, r.created_at]),
         )
       } else if (exportId === 'attendance') {
         let query = supabase
           .from('event_registrations')
-          .select('event_id, user_id, checked_in, checked_in_at, events(title), profiles(display_name)' as any)
-          .order('checked_in_at' as any, { ascending: false })
+          .select('event_id, user_id, checked_in, checked_in_at, events(title), profiles(display_name)')
+          .order('checked_in_at', { ascending: false })
+          .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
           ['Event', 'Name', 'Checked In', 'Check-in Time'],
-          (data ?? []).map((r: any) => [
-            r.events?.title, r.profiles?.display_name,
-            r.checked_in ? 'Yes' : 'No', r.checked_in_at ?? '',
+          (data ?? []).map((r: Record<string, unknown>) => [
+            (r.events as Record<string, unknown> | null)?.title, (r.profiles as Record<string, unknown> | null)?.display_name,
+            r.checked_in ? 'Yes' : 'No', (r.checked_in_at as string) ?? '',
           ]),
         )
       } else if (exportId === 'impact-csv') {
@@ -229,14 +234,15 @@ export default function AdminExportsPage() {
           .from('event_impact')
           .select('event_id, trees_planted, hours_total, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings, invasive_weeds_pulled, leaders_trained, logged_at, events(title)')
           .order('logged_at', { ascending: false })
+          .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('logged_at', dateStart)
         if (dateEnd) query = query.lte('logged_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
           ['Event', 'Trees', 'Hours', 'Rubbish (kg)', 'Area Restored (m2)', 'Native Plants', 'Wildlife Sightings', 'Invasive Weeds Pulled', 'Leaders Trained', 'Date'],
-          (data ?? []).map((r: any) => [
-            r.events?.title ?? r.event_id, r.trees_planted ?? 0,
+          (data ?? []).map((r) => [
+            (r as Record<string, unknown>).events ?? r.event_id, r.trees_planted ?? 0,
             r.hours_total ?? 0, r.rubbish_kg ?? 0,
             r.area_restored_sqm ?? 0, r.native_plants ?? 0, r.wildlife_sightings ?? 0,
             r.invasive_weeds_pulled ?? 0, r.leaders_trained ?? 0, r.logged_at,
@@ -245,97 +251,103 @@ export default function AdminExportsPage() {
       } else if (exportId === 'survey') {
         const { data, error } = await supabase
           .from('survey_responses')
-          .select('id, survey_id, user_id, answers, created_at, surveys(title)' as any)
+          .select('id, survey_id, user_id, answers, created_at, surveys(title)')
           .order('created_at', { ascending: false })
+          .limit(EXPORT_ROW_LIMIT)
         if (error) throw error
         csv = toCsv(
           ['Response ID', 'Survey', 'User ID', 'Answers', 'Submitted'],
-          (data ?? []).map((r: any) => [
-            r.id, r.surveys?.title ?? r.survey_id, r.user_id, JSON.stringify(r.answers), r.created_at,
+          (data ?? []).map((r) => [
+            r.id, (r as unknown as Record<string, Record<string, unknown>>).surveys?.title ?? r.survey_id, r.user_id, JSON.stringify(r.answers), r.created_at,
           ]),
         )
       } else if (exportId === 'financial') {
         let query = supabase
-          .from('donations' as any)
+          .from('donations' as string & keyof never)
           .select('id, amount_cents, currency, donor_name, donor_email, receipt_number, created_at')
           .order('created_at', { ascending: false })
+          .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
           ['ID', 'Amount', 'Currency', 'Donor Name', 'Donor Email', 'Receipt #', 'Date'],
-          ((data ?? []) as any[]).map((r: any) => [
-            r.id, ((r.amount_cents ?? 0) / 100).toFixed(2), r.currency ?? 'AUD',
+          ((data ?? []) as Record<string, unknown>[]).map((r) => [
+            r.id, (((r.amount_cents as number) ?? 0) / 100).toFixed(2), (r.currency as string) ?? 'AUD',
             r.donor_name, r.donor_email, r.receipt_number, r.created_at,
           ]),
         )
       } else if (exportId === 'orders') {
         let query = supabase
           .from('merch_orders')
-          .select('id, status, total_cents, shipping_name, shipping_address, shipping_city, shipping_state, shipping_postcode, created_at' as any)
+          .select('id, status, total_cents, shipping_name, shipping_address, shipping_city, shipping_state, shipping_postcode, created_at')
           .order('created_at', { ascending: false })
+          .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
           ['Order ID', 'Status', 'Total', 'Name', 'Address', 'City', 'State', 'Postcode', 'Date'],
-          ((data ?? []) as any[]).map((r: any) => [
-            r.id, r.status, ((r.total_cents ?? 0) / 100).toFixed(2),
+          ((data ?? []) as Record<string, unknown>[]).map((r) => [
+            r.id, r.status, (((r.total_cents as number) ?? 0) / 100).toFixed(2),
             r.shipping_name, r.shipping_address, r.shipping_city,
             r.shipping_state, r.shipping_postcode, r.created_at,
           ]),
         )
       } else if (exportId === 'reconciliation') {
         let query = supabase
-          .from('payments' as any)
+          .from('payments' as string & keyof never)
           .select('id, stripe_payment_id, amount_cents, status, type, created_at')
           .order('created_at', { ascending: false })
+          .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
           ['ID', 'Stripe Payment ID', 'Amount', 'Status', 'Type', 'Date'],
-          ((data ?? []) as any[]).map((r: any) => [
-            r.id, r.stripe_payment_id, ((r.amount_cents ?? 0) / 100).toFixed(2),
+          ((data ?? []) as Record<string, unknown>[]).map((r) => [
+            r.id, r.stripe_payment_id, (((r.amount_cents as number) ?? 0) / 100).toFixed(2),
             r.status, r.type, r.created_at,
           ]),
         )
       } else if (exportId === 'gst') {
         let query = supabase
           .from('merch_orders')
-          .select('id, total_cents, gst_cents, status, created_at' as any)
-          .eq('status', 'completed' as any)
+          .select('id, total_cents, gst_cents, status, created_at')
+          .eq('status', 'completed')
           .order('created_at', { ascending: false })
+          .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
           ['Order ID', 'Total (ex GST)', 'GST', 'Total (inc GST)', 'Date'],
-          ((data ?? []) as any[]).map((r: any) => {
-            const gst = (r.gst_cents ?? 0) / 100
-            const total = (r.total_cents ?? 0) / 100
+          ((data ?? []) as Record<string, unknown>[]).map((r) => {
+            const gst = ((r.gst_cents as number) ?? 0) / 100
+            const total = ((r.total_cents as number) ?? 0) / 100
             return [r.id, (total - gst).toFixed(2), gst.toFixed(2), total.toFixed(2), r.created_at]
           }),
         )
       } else if (exportId === 'donation-tax') {
         let query = supabase
-          .from('donations' as any)
+          .from('donations' as string & keyof never)
           .select('donor_name, donor_email, amount_cents, receipt_number, created_at')
           .order('donor_email')
+          .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('created_at', dateStart)
         if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         // Group by donor
         const byDonor: Record<string, { name: string; email: string; total: number; count: number }> = {}
-        for (const d of (data ?? []) as any[]) {
-          const key = d.donor_email ?? 'unknown'
-          if (!byDonor[key]) byDonor[key] = { name: d.donor_name ?? '', email: key, total: 0, count: 0 }
-          byDonor[key].total += (d.amount_cents ?? 0)
+        for (const d of (data ?? []) as Record<string, unknown>[]) {
+          const key = (d.donor_email as string) ?? 'unknown'
+          if (!byDonor[key]) byDonor[key] = { name: (d.donor_name as string) ?? '', email: key, total: 0, count: 0 }
+          byDonor[key].total += ((d.amount_cents as number) ?? 0)
           byDonor[key].count++
         }
         csv = toCsv(

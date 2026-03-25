@@ -1,12 +1,15 @@
-import { useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   PartyPopper,
   ArrowRight,
   BookOpen,
   Layers,
+  Star,
+  Sparkles,
 } from 'lucide-react'
+import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Confetti } from '@/components/confetti'
 import { useDevModule, useDevSection } from '@/hooks/use-admin-development'
@@ -21,7 +24,7 @@ export default function LearnCompletePage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
 
-  const type = searchParams.get('type') // 'module' | 'section'
+  const type = searchParams.get('type')
   const id = searchParams.get('id')
 
   const { data: module } = useDevModule(type === 'module' ? (id ?? undefined) : undefined)
@@ -31,83 +34,111 @@ export default function LearnCompletePage() {
   const isModule = type === 'module'
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] pb-20 px-4">
-      {/* Confetti! */}
-      {!rm && <Confetti active />}
+    <Page swipeBack noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
+      {/* Background gradient */}
+      <div className="relative min-h-[85vh] flex flex-col items-center justify-center overflow-hidden">
+        {/* Soft radial gradient bg */}
+        <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-primary-50/30 pointer-events-none" />
 
-      <motion.div
-        initial={rm ? {} : { opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, type: 'spring', stiffness: 200, damping: 20 }}
-        className="text-center max-w-md"
-      >
-        {/* Icon */}
-        <motion.div
-          initial={rm ? {} : { scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: 'spring', stiffness: 300, damping: 15 }}
-          className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-moss-100 to-moss-200 mb-6"
-        >
-          <PartyPopper size={36} className="text-moss-600" />
-        </motion.div>
+        {/* Decorative shapes */}
+        <div className="absolute -left-20 top-[20%] w-64 h-64 rounded-full bg-moss-100/30 pointer-events-none" />
+        <div className="absolute -right-16 bottom-[15%] w-48 h-48 rounded-full bg-primary-100/30 pointer-events-none" />
+        <div className="absolute left-[60%] top-[10%] w-20 h-20 rounded-full border border-moss-200/40 pointer-events-none" />
+        <div className="absolute left-[20%] bottom-[25%] w-12 h-12 rounded-full bg-moss-100/40 pointer-events-none" />
 
-        {/* Heading */}
-        <motion.h1
-          initial={rm ? {} : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="font-heading text-2xl font-bold text-primary-800 mb-2"
-        >
-          {isModule ? 'Module Complete!' : 'Section Complete!'}
-        </motion.h1>
+        {/* Confetti */}
+        {!rm && <Confetti active />}
 
-        <motion.p
-          initial={rm ? {} : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-sm text-primary-500 mb-8"
-        >
-          You've completed <span className="font-semibold text-primary-700">{title}</span>.
-          Great work on your leadership journey!
-        </motion.p>
-
-        {/* Completed card */}
-        <motion.div
-          initial={rm ? {} : { opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-white border border-white/60 shadow-sm mb-8"
-        >
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-moss-100 to-moss-200">
-            {isModule ? (
-              <BookOpen size={18} className="text-moss-600" />
-            ) : (
-              <Layers size={18} className="text-moss-600" />
-            )}
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-semibold text-primary-800">{title}</p>
-            <p className="text-xs text-moss-600 font-medium">Completed</p>
-          </div>
-        </motion.div>
-
-        {/* Actions */}
-        <motion.div
-          initial={rm ? {} : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-3"
-        >
-          <Button
-            variant="primary"
-            size="lg"
-            icon={<ArrowRight size={16} />}
-            onClick={() => navigate('/learn')}
+        <div className="relative z-10 text-center px-6 max-w-md">
+          {/* Celebration icon */}
+          <motion.div
+            initial={rm ? {} : { scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.15, type: 'spring', stiffness: 250, damping: 14 }}
+            className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-moss-200 to-moss-300 shadow-lg shadow-moss-300/30 mb-8"
           >
-            Continue Learning
-          </Button>
-        </motion.div>
-      </motion.div>
-    </div>
+            <PartyPopper size={44} className="text-moss-700" />
+          </motion.div>
+
+          {/* Stars decoration */}
+          <motion.div
+            initial={rm ? {} : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="flex items-center justify-center gap-1.5 mb-4"
+          >
+            {[...Array(3)].map((_, i) => (
+              <motion.div
+                key={i}
+                initial={rm ? {} : { scale: 0, rotate: -30 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ delay: 0.5 + i * 0.1, type: 'spring', stiffness: 300, damping: 12 }}
+              >
+                <Star size={18} className="text-moss-400 fill-moss-400" />
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Heading */}
+          <motion.h1
+            initial={rm ? {} : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="font-heading text-3xl font-bold text-primary-800 mb-2"
+          >
+            {isModule ? 'Module Complete!' : 'Section Complete!'}
+          </motion.h1>
+
+          <motion.p
+            initial={rm ? {} : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35 }}
+            className="text-[14px] text-primary-500 mb-8 leading-relaxed"
+          >
+            You've completed <span className="font-bold text-primary-700">{title}</span>.
+            <br />Great work on your leadership journey!
+          </motion.p>
+
+          {/* Completed card */}
+          <motion.div
+            initial={rm ? {} : { opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+            className="inline-flex items-center gap-3 px-5 py-3.5 rounded-2xl bg-white border border-moss-200/60 shadow-sm mb-10"
+          >
+            <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-moss-100 to-moss-200">
+              {isModule ? (
+                <BookOpen size={20} className="text-moss-600" />
+              ) : (
+                <Layers size={20} className="text-moss-600" />
+              )}
+            </div>
+            <div className="text-left">
+              <p className="text-[13px] font-bold text-primary-800">{title}</p>
+              <div className="flex items-center gap-1 mt-0.5">
+                <Sparkles size={11} className="text-moss-500" />
+                <p className="text-[11px] text-moss-600 font-bold">Completed</p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Action */}
+          <motion.div
+            initial={rm ? {} : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.55 }}
+          >
+            <Button
+              variant="primary"
+              size="lg"
+              icon={<ArrowRight size={16} />}
+              onClick={() => navigate('/learn')}
+            >
+              Continue Learning
+            </Button>
+          </motion.div>
+        </div>
+      </div>
+    </Page>
   )
 }

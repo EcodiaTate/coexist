@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, startTransition } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useQuery } from '@tanstack/react-query'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
   Plus,
@@ -18,16 +18,12 @@ import {
   X,
   Trash2,
   Pencil,
-  ChevronDown,
-  ChevronUp,
   BarChart3,
   AlertTriangle,
   CheckCircle,
-  Clock,
   Target,
   Zap,
   Sparkles,
-  Eye,
   Users,
   User,
 } from 'lucide-react'
@@ -331,7 +327,7 @@ function TemplateModal({
   const [attachmentLabel, setAttachmentLabel] = useState(template?.attachment_label ?? '')
 
   // Dynamic timeline state
-  const [useDynamicTimeline, setUseDynamicTimeline] = useState((template as any)?.use_dynamic_timeline ?? false)
+  const [useDynamicTimeline, setUseDynamicTimeline] = useState((template as unknown as Record<string, unknown>)?.use_dynamic_timeline ?? false)
   const [tlAnchor, setTlAnchor] = useState<TimelineAnchor>('next_event')
   const [tlActivityTypeFilter, setTlActivityTypeFilter] = useState('')
   const [tlOffsetDays, setTlOffsetDays] = useState('-3')
@@ -704,7 +700,7 @@ function KpiDashboard() {
 
   const collectiveOptions = useMemo(() => [
     { value: '', label: 'All Collectives' },
-    ...(collectives ?? []).map((c: any) => ({ value: c.id, label: c.name })),
+    ...(collectives ?? []).map((c: Record<string, unknown>) => ({ value: c.id, label: c.name })),
   ], [collectives])
 
   return (
@@ -834,7 +830,7 @@ export default function AdminWorkflowsPage() {
   // Extend scope options with per-collective options
   const fullScopeOptions = useMemo(() => [
     ...scopeOptions,
-    ...(collectives ?? []).map((c: any) => ({ value: c.id, label: c.name })),
+    ...(collectives ?? []).map((c: Record<string, unknown>) => ({ value: c.id, label: c.name })),
   ], [collectives])
 
   const heroActions = useMemo(() =>
@@ -907,7 +903,7 @@ export default function AdminWorkflowsPage() {
                   type="button"
                   onClick={() => {
                     setTipDismissed(true)
-                    try { localStorage.setItem('workflows-tip-dismissed', '1') } catch {}
+                    try { localStorage.setItem('workflows-tip-dismissed', '1') } catch { /* ignore storage errors */ }
                   }}
                   className="shrink-0 p-1 rounded-lg text-info-400 hover:text-info-600 hover:bg-info-100 cursor-pointer transition-colors"
                   aria-label="Dismiss tip"
@@ -959,7 +955,7 @@ export default function AdminWorkflowsPage() {
                               <ScheduleIcon size={12} />
                               {formatSchedule(template)}
                             </span>
-                            {(template as any).use_dynamic_timeline && (
+                            {(template as unknown as Record<string, unknown>).use_dynamic_timeline && (
                               <>
                                 <span className="text-primary-200">·</span>
                                 <span className="flex items-center gap-1 text-moss-600 font-medium">

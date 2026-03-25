@@ -13,21 +13,21 @@ async function fetchLeaderCollectiveEvents(collectiveId: string, filter: string)
   const now = new Date().toISOString()
 
   let q = supabase
-    .from('events' as any)
+    .from('events')
     .select('id, title, date_start, date_end, address, cover_image_url, activity_type, status, event_registrations(count)')
     .eq('collective_id', collectiveId)
     .order('date_start', { ascending: filter === 'upcoming' })
 
   if (filter === 'upcoming') {
-    q = q.gte('date_start', now)
+    q = q.gte('date_start', now).neq('status', 'draft')
   } else if (filter === 'past') {
-    q = q.lt('date_start', now)
+    q = q.lt('date_start', now).neq('status', 'draft')
   } else if (filter === 'draft') {
     q = q.eq('status', 'draft')
   }
 
   const { data } = await q.limit(50)
-  return (data ?? []) as any[]
+  return (data ?? []) as Record<string, unknown>[]
 }
 
 export function useLeaderCollectiveEvents(collectiveId: string | undefined, filter: string) {

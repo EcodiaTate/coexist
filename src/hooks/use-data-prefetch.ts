@@ -153,12 +153,12 @@ export function useDataPrefetch() {
           return (data ?? [])
             .filter((r) => {
               if (!r.events) return false
-              const evt = r.events as any
+              const evt = r.events as { date_start: string; date_end: string | null }
               const endMs = new Date(evt.date_end ?? evt.date_start).getTime()
               const startMs = new Date(evt.date_start).getTime()
               return startMs >= now || endMs >= now
             })
-            .map((r) => ({ ...(r.events as any), registration_status: r.status }))
+            .map((r) => ({ ...(r.events as Record<string, unknown>), registration_status: r.status }))
         },
         staleTime: STALE_TIME,
       })
@@ -227,6 +227,7 @@ export function useDataPrefetch() {
           queryKey: ['my-tasks', userId, staffCollectiveIds],
           queryFn: async () => {
             const { data, error } = await supabase
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               .from('task_instances' as any)
               .select(`
                 *,

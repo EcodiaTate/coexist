@@ -2,9 +2,7 @@ import { useState, useMemo } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
-import { adminVariants } from '@/lib/admin-motion'
 import {
-    ArrowLeft,
     Users,
     CalendarDays,
     MapPin,
@@ -16,7 +14,6 @@ import {
     UserMinus,
     UserPlus,
     RotateCcw,
-    Search,
     Download,
     Archive,
     AlertTriangle,
@@ -30,8 +27,11 @@ import {
     Trash2,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
+import { SearchBar } from '@/components/search-bar'
+import { Dropdown } from '@/components/dropdown'
 import { Avatar } from '@/components/avatar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -501,7 +501,6 @@ function EventRow({ event, reducedMotion, delay = 0 }: { event: AdminCollectiveE
 
 function MembersTab({ collectiveId }: { collectiveId: string }) {
   const { toast } = useToast()
-  const { isSuperAdmin } = useAuth()
   const [search, setSearch] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [roleAssignMember, setRoleAssignMember] = useState<AdminCollectiveMember | null>(null)
@@ -576,31 +575,14 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
       {/* ── Search & controls ── */}
       <div className="rounded-2xl bg-gradient-to-r from-primary-50/80 via-white to-primary-50/60 border border-primary-100/60 p-4">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="relative flex-1">
-            <Search
-              size={16}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-primary-400 pointer-events-none"
-            />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or handle..."
-              className={cn(
-                'w-full rounded-full bg-white py-2.5 pl-10 pr-4 text-sm text-primary-800',
-                'placeholder:text-primary-300 shadow-sm',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400',
-                'transition-shadow duration-200',
-              )}
-            />
-          </div>
+          <SearchBar value={search} onChange={setSearch} placeholder="Search by name or handle..." compact className="flex-1" />
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setShowInactive((p) => !p)}
               className={cn(
                 'h-10 px-3.5 rounded-full text-xs font-semibold',
-                'active:scale-[0.95] transition-[color,background-color,box-shadow,transform] duration-200 cursor-pointer select-none',
+                'active:scale-[0.95] transition-[color,background-color,transform] duration-200 cursor-pointer select-none',
                 showInactive
                   ? 'bg-primary-700 text-white shadow-md'
                   : 'bg-white text-primary-500 hover:bg-primary-50 shadow-sm',
@@ -649,7 +631,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
               <div
                 key={member.id}
                 className={cn(
-                  'flex items-center gap-3 rounded-2xl px-4 py-3 transition-[color,background-color,box-shadow] duration-200',
+                  'flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors duration-200',
                   isInactive
                     ? 'opacity-50 bg-neutral-50/80'
                     : 'bg-white shadow-sm hover:shadow-md',
@@ -754,7 +736,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                     disabled={isActive}
                     className={cn(
                       'flex w-full items-center gap-3 rounded-xl px-4 py-3.5 min-h-11 text-sm',
-                      'active:scale-[0.97] transition-[color,background-color,box-shadow,transform] duration-150 cursor-pointer select-none border',
+                      'active:scale-[0.97] transition-[color,background-color,transform] duration-150 cursor-pointer select-none border',
                       isActive
                         ? cn(accent.bg, accent.border, 'text-primary-700')
                         : 'bg-white border-transparent text-primary-800 hover:bg-primary-50',
@@ -844,25 +826,12 @@ function AddMemberModal({
           placeholder="Search by name..."
         />
 
-        <div>
-          <label className="block text-xs font-semibold text-primary-500 uppercase tracking-wider mb-1.5">
-            Role
-          </label>
-          <select
-            value={selectedRole}
-            onChange={(e) => setSelectedRole(e.target.value as CollectiveRole)}
-            className={cn(
-              'w-full rounded-xl bg-primary-50/50 px-3 min-h-12 text-sm text-primary-800',
-              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-            )}
-          >
-            {ALL_ROLES.map((r) => (
-              <option key={r} value={r}>
-                {ROLE_LABELS[r]}
-              </option>
-            ))}
-          </select>
-        </div>
+        <Dropdown
+          label="Role"
+          options={ALL_ROLES.map((r) => ({ value: r, label: ROLE_LABELS[r] }))}
+          value={selectedRole}
+          onChange={(v) => setSelectedRole(v as CollectiveRole)}
+        />
 
         {/* Results */}
         {query.length >= 2 && (
@@ -951,7 +920,7 @@ function EventsTab({ collectiveId, reducedMotion }: { collectiveId: string; redu
               onClick={() => setStatusFilter(s)}
               className={cn(
                 'h-9 px-4 rounded-full text-xs font-semibold capitalize',
-                'active:scale-[0.95] transition-[color,background-color,box-shadow,transform] duration-200 cursor-pointer select-none shadow-sm',
+                'active:scale-[0.95] transition-[color,background-color,transform] duration-200 cursor-pointer select-none shadow-sm',
                 isActive ? colors.active : colors.inactive,
                 isActive && 'shadow-md',
               )}
@@ -1177,23 +1146,14 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
             placeholder="url-safe-name"
           />
 
-          <div>
-            <label className="block text-xs font-semibold text-primary-500 uppercase tracking-wider mb-1.5">
-              Description
-            </label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Tell people what this collective is about..."
-              rows={4}
-              className={cn(
-                'w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
-                'placeholder:text-primary-300',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-                'resize-none transition-shadow duration-200',
-              )}
-            />
-          </div>
+          <Input
+            type="textarea"
+            label="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Tell people what this collective is about..."
+            rows={4}
+          />
 
           <Input
             label="Region"
@@ -1202,24 +1162,13 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
             placeholder="e.g. Byron Bay"
           />
 
-          <div>
-            <label className="block text-xs font-semibold text-primary-500 uppercase tracking-wider mb-1.5">
-              State
-            </label>
-            <select
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              className={cn(
-                'w-full rounded-xl bg-primary-50/50 px-3 min-h-12 text-sm text-primary-800',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-              )}
-            >
-              <option value="">Select state...</option>
-              {AUSTRALIAN_STATES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
+          <Dropdown
+            label="State"
+            placeholder="Select state..."
+            options={AUSTRALIAN_STATES.map((s) => ({ value: s, label: s }))}
+            value={state}
+            onChange={setState}
+          />
 
           <div className="pt-1">
             <Button
@@ -1371,21 +1320,7 @@ export default function AdminCollectiveDetailPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* ── Back link ── */}
-      <motion.div
-        initial={rm ? {} : { opacity: 0, x: -8 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.25 }}
-      >
-        <button
-          type="button"
-          onClick={() => navigate('/admin/collectives')}
-          className="flex items-center gap-1.5 text-sm text-primary-400 hover:text-primary-600 active:scale-[0.97] transition-[colors,transform] cursor-pointer select-none group"
-        >
-          <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
-          All Collectives
-        </button>
-      </motion.div>
+      <Header title="" back onBack={() => navigate('/admin/collectives')} />
 
       {/* ── Tab bar - rich pill style ── */}
       <motion.div
@@ -1404,7 +1339,7 @@ export default function AdminCollectiveDetailPage() {
                 onClick={() => setActiveTab(tab.key)}
                 className={cn(
                   'relative flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold',
-                  'rounded-xl active:scale-[0.97] transition-[color,background-color,box-shadow,transform] duration-200 cursor-pointer select-none',
+                  'rounded-xl active:scale-[0.97] transition-[color,background-color,transform] duration-200 cursor-pointer select-none',
                   isActive
                     ? 'bg-primary-700 text-white shadow-lg'
                     : 'text-primary-400 hover:text-primary-600 hover:bg-white/80',

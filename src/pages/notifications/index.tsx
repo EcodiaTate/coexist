@@ -64,7 +64,8 @@ function DecorativeBackground() {
 /*  Time helpers                                                       */
 /* ------------------------------------------------------------------ */
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string | null): string {
+  if (!dateStr) return 'just now'
   const now = Date.now()
   const then = new Date(dateStr).getTime()
   const diff = Math.floor((now - then) / 1000)
@@ -138,7 +139,7 @@ function NotificationRow({
         className={cn(
           'relative flex items-start gap-3.5 w-full px-4 py-4 text-left rounded-2xl',
           'cursor-pointer select-none',
-          'transition-all duration-200',
+          'transition-colors duration-200',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-inset',
           isUnread
             ? 'bg-white shadow-sm border border-primary-100/50'

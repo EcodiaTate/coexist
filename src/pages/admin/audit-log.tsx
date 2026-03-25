@@ -16,7 +16,7 @@ import { EmptyState } from '@/components/empty-state'
 import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
 import { Avatar } from '@/components/avatar'
 import { cn } from '@/lib/cn'
-import { supabase } from '@/lib/supabase'
+import { supabase, escapeIlike } from '@/lib/supabase'
 
 const actionTypeOptions = [
   { value: 'all', label: 'All Actions' },
@@ -34,9 +34,6 @@ const actionTypeOptions = [
   { value: 'challenge_ended', label: 'Challenge Ended' },
   { value: 'challenge_deleted', label: 'Challenge Deleted' },
   { value: 'survey_deleted', label: 'Survey Deleted' },
-  { value: 'feature_flag_toggled', label: 'Feature Flag Toggled' },
-  { value: 'feature_flag_added', label: 'Feature Flag Added' },
-  { value: 'feature_flag_deleted', label: 'Feature Flag Deleted' },
   { value: 'content_auto_flagged', label: 'Content Auto-Flagged' },
   { value: 'content_removed', label: 'Content Removed' },
   { value: 'impersonation_started', label: 'Impersonation Started' },
@@ -52,7 +49,6 @@ const actionColors: Record<string, string> = {
   collective_deleted: 'text-error-600 bg-error-50',
   challenge_deleted: 'text-error-600 bg-error-50',
   survey_deleted: 'text-error-600 bg-error-50',
-  feature_flag_deleted: 'text-error-600 bg-error-50',
   content_auto_flagged: 'text-warning-600 bg-warning-50',
   content_removed: 'text-error-600 bg-error-50',
   impersonation_started: 'text-error-600 bg-error-50',
@@ -65,7 +61,7 @@ function useAuditLog(search: string, actionFilter: string, page: number) {
     queryKey: ['admin-audit-log', search, actionFilter, page],
     queryFn: async () => {
       let query = supabase
-        .from('audit_log' as any)
+        .from('audit_log' as string & keyof never)
         .select('*, profiles!audit_log_user_id_fkey(display_name, avatar_url)', {
           count: 'exact',
         })
@@ -73,7 +69,7 @@ function useAuditLog(search: string, actionFilter: string, page: number) {
         .range(page * pageSize, (page + 1) * pageSize - 1)
 
       if (search) {
-        query = query.ilike('action', `%${search}%`)
+        query = query.ilike('action', `%${escapeIlike(search)}%`)
       }
 
       if (actionFilter && actionFilter !== 'all') {
@@ -151,7 +147,7 @@ export default function AdminAuditLogPage() {
           <>
             <StaggeredList className="space-y-1">
               {data.logs.map((_log) => {
-                const log = _log as any
+                const log = _log as Record<string, unknown>
                 const profile = log.profiles
                 const colorClass =
                   actionColors[log.action] ?? actionColors.default

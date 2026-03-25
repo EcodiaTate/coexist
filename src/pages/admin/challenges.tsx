@@ -73,7 +73,7 @@ export default function AdminChallengesPage() {
   const heroStats = useMemo(() => (
     <AdminHeroStatRow>
       <AdminHeroStat value={challenges?.length ?? 0} label="Total" icon={<Trophy size={18} />} color="warning" delay={0} reducedMotion={false} />
-      <AdminHeroStat value={challenges?.filter((c: any) => (c as any).status === 'active').length ?? 0} label="Active" icon={<Zap size={18} />} color="success" delay={1} reducedMotion={false} />
+      <AdminHeroStat value={challenges?.filter((c) => (c as unknown as Record<string, unknown>).status === 'active').length ?? 0} label="Active" icon={<Zap size={18} />} color="success" delay={1} reducedMotion={false} />
     </AdminHeroStatRow>
   ), [challenges])
 
@@ -159,7 +159,7 @@ export default function AdminChallengesPage() {
           ) : (
             <StaggeredList className="space-y-3">
               {challenges.map((challenge) => {
-                const isActive = (challenge as any).status === 'active'
+                const isActive = (challenge as unknown as Record<string, unknown>).status === 'active'
 
                 return (
                   <StaggeredItem

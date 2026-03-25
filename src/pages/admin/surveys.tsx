@@ -137,7 +137,7 @@ export default function AdminSurveysPage() {
   const exportResultsCSV = () => {
     if (!results?.length) return
     const headers = ['Response ID', 'User ID', 'Answers', 'Submitted At']
-    const rows = results.map((r: any) => [r.id, r.user_id, JSON.stringify(r.answers), r.created_at])
+    const rows = results.map((r) => [r.id, r.user_id, JSON.stringify(r.answers), r.created_at])
     const csv = [headers, ...rows].map((row) => row.join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
@@ -200,12 +200,12 @@ export default function AdminSurveysPage() {
                       <span
                         className={cn(
                           'text-[11px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
-                          (survey as any).status === 'active' || survey.is_active
+                          (survey as unknown as Record<string, unknown>).status === 'active' || survey.is_active
                             ? 'bg-success-100 text-success-700'
                             : 'bg-white text-primary-400',
                         )}
                       >
-                        {(survey as any).status ?? (survey.is_active ? 'active' : 'inactive')}
+                        {((survey as unknown as Record<string, unknown>).status as string) ?? (survey.is_active ? 'active' : 'inactive')}
                       </span>
                     </div>
                     <p className="text-xs text-primary-400 mt-0.5">

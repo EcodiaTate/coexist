@@ -258,15 +258,7 @@ function QuestionForm({
       </div>
 
       {/* Question text */}
-      <div>
-        <label className="block text-sm font-medium text-primary-700 mb-1">Question</label>
-        <textarea
-          className="w-full min-h-[80px] rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
-          value={draft.question_text}
-          onChange={(e) => setDraft((d) => ({ ...d, question_text: e.target.value }))}
-          placeholder="Enter your question..."
-        />
-      </div>
+      <Input type="textarea" label="Question" value={draft.question_text} onChange={(e) => setDraft((d) => ({ ...d, question_text: e.target.value }))} placeholder="Enter your question..." rows={3} />
 
       {/* Points */}
       <Input
@@ -329,15 +321,7 @@ function QuestionForm({
       )}
 
       {/* Explanation */}
-      <div>
-        <label className="block text-sm font-medium text-primary-700 mb-1">Explanation (shown after answering)</label>
-        <textarea
-          className="w-full min-h-[60px] rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
-          value={draft.explanation ?? ''}
-          onChange={(e) => setDraft((d) => ({ ...d, explanation: e.target.value || null }))}
-          placeholder="Explain why this is the correct answer..."
-        />
-      </div>
+      <Input type="textarea" label="Explanation" value={draft.explanation ?? ''} onChange={(e) => setDraft((d) => ({ ...d, explanation: e.target.value || null }))} placeholder="Explain why this is the correct answer..." rows={2} />
 
       {/* Actions */}
       <div className="flex justify-end gap-2 pt-2">
@@ -441,7 +425,7 @@ export function QuestionBuilder({ questions, onChange, className }: QuestionBuil
         <button
           type="button"
           onClick={() => setIsAdding(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-primary-300 text-sm font-semibold text-primary-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/40 transition-all active:scale-[0.98] w-full justify-center"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-primary-300 text-sm font-semibold text-primary-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/40 transition-transform active:scale-[0.98] w-full justify-center"
         >
           <Plus size={15} />
           Add Question

@@ -200,7 +200,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
   const { user } = useAuth()
   const rm = useReducedMotion()
   const { isOffline } = useOffline()
-  const { data: profileData, isLoading: profileLoading } = useProfile()
+  const { data: profileData } = useProfile()
   const updateProfile = useUpdateProfile()
   const checkInMutation = useCheckIn()
 
@@ -501,7 +501,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                         onChange={(e) => setFirstName(e.target.value)}
                         placeholder="First name"
                         maxLength={50}
-                        className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                        className="[&_input]:bg-surface-3"
                       />
                       <Input
                         label="Last Name *"
@@ -509,7 +509,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                         onChange={(e) => setLastName(e.target.value)}
                         placeholder="Last name"
                         maxLength={50}
-                        className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                        className="[&_input]:bg-surface-3"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-2.5">
@@ -520,7 +520,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                         placeholder="Age"
                         type="number"
                         maxLength={3}
-                        className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                        className="[&_input]:bg-surface-3"
                       />
                       <Input
                         label="Gender"
@@ -528,7 +528,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                         onChange={(e) => setGender(e.target.value)}
                         placeholder="e.g. Female"
                         maxLength={30}
-                        className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                        className="[&_input]:bg-surface-3"
                       />
                     </div>
                     <Input
@@ -538,7 +538,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                       placeholder="your@email.com"
                       type="email"
                       maxLength={100}
-                      className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                      className="[&_input]:bg-surface-3"
                     />
                   </div>
                 </div>
@@ -557,7 +557,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                       onChange={(e) => setEmergencyName(e.target.value)}
                       placeholder="Full name"
                       maxLength={100}
-                      className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                      className="[&_input]:bg-surface-3"
                     />
                     <Input
                       label="Contact Phone *"
@@ -566,7 +566,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                       placeholder="0400 000 000"
                       type="tel"
                       maxLength={20}
-                      className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                      className="[&_input]:bg-surface-3"
                     />
                     <Input
                       label="Relationship"
@@ -574,7 +574,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                       onChange={(e) => setEmergencyRelationship(e.target.value)}
                       placeholder="e.g. Parent, Partner"
                       maxLength={50}
-                      className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                      className="[&_input]:bg-surface-3"
                     />
                   </div>
                 </div>
@@ -679,7 +679,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                       onChange={(e) => setManualCode(e.target.value.toUpperCase())}
                       autoComplete="off"
                       maxLength={6}
-                      className="text-center text-lg tracking-[0.3em] font-heading font-bold [&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                      className="text-center text-lg tracking-[0.3em] font-heading font-bold [&_input]:bg-surface-3"
                     />
                     <Button
                       variant="primary"

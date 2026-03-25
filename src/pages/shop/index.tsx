@@ -7,7 +7,6 @@ import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { useParallaxEngine } from '@/hooks/use-parallax-scroll'
 import {
     ShoppingBag,
-    Star,
     ChevronRight,
     TrendingUp,
     Package,
@@ -32,6 +31,7 @@ import { useCart } from '@/hooks/use-cart'
 import { formatPrice, type Product } from '@/types/merch'
 import { useNationalImpact } from '@/hooks/use-impact'
 import { useLayout } from '@/hooks/use-layout'
+import { Header } from '@/components/header'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -146,7 +146,7 @@ function CategoryPills({
           type="button"
           onClick={() => onChange(CATEGORY_ALL)}
           className={cn(
-            'shrink-0 snap-start px-4 h-10 rounded-2xl text-sm font-semibold transition-all duration-200 select-none cursor-pointer',
+            'shrink-0 snap-start px-4 h-10 rounded-2xl text-sm font-semibold transition-transform duration-200 select-none cursor-pointer',
             'flex items-center gap-1.5 active:scale-[0.96]',
             active === CATEGORY_ALL
               ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md shadow-primary-400/20'
@@ -162,7 +162,7 @@ function CategoryPills({
             type="button"
             onClick={() => onChange(cat)}
             className={cn(
-              'shrink-0 snap-start px-4 h-10 rounded-2xl text-sm font-semibold capitalize transition-all duration-200 select-none cursor-pointer whitespace-nowrap',
+              'shrink-0 snap-start px-4 h-10 rounded-2xl text-sm font-semibold capitalize transition-transform duration-200 select-none cursor-pointer whitespace-nowrap',
               'flex items-center gap-1.5 active:scale-[0.96]',
               active === cat
                 ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md shadow-primary-400/20'
@@ -189,10 +189,8 @@ function CategoryPills({
 /* ------------------------------------------------------------------ */
 
 function ShopHero({
-  onBack,
   rm,
 }: {
-  onBack: () => void
   rm: boolean
 }) {
   const textRef = useRef<HTMLDivElement>(null)
@@ -235,26 +233,6 @@ function ShopHero({
           </div>
         </div>
 
-
-        {/* Top bar: back + cart */}
-        <div
-          className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-4"
-          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 0.75rem)' }}
-        >
-          <button
-            type="button"
-            onClick={onBack}
-            className="flex items-center justify-center w-10 h-10 text-black active:scale-[0.95] transition-transform cursor-pointer"
-            aria-label="Go back"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5" />
-              <path d="M12 19l-7-7 7-7" />
-            </svg>
-          </button>
-          {/* spacer - cart moved outside hero */}
-          <div className="w-10" />
-        </div>
 
         {/* Hero text - behind the people so they pass in front */}
         <div
@@ -382,12 +360,6 @@ function ProductCard({ product, onClick, index }: { product: Product; onClick: (
             <span className="font-heading font-extrabold text-base text-primary-700">
               {formatPrice(product.base_price_cents)}
             </span>
-            {product.avg_rating !== null && product.review_count > 0 && (
-              <span className="flex items-center gap-1 text-xs text-primary-500 bg-amber-50 px-2 py-0.5 rounded-full">
-                <Star size={10} className="text-amber-400" fill="currentColor" />
-                <span className="font-semibold">{product.avg_rating.toFixed(1)}</span>
-              </span>
-            )}
           </div>
         </div>
       </div>
@@ -447,12 +419,6 @@ function FeaturedProduct({ product, onClick }: { product: Product; onClick: () =
               <span className="font-heading font-extrabold text-lg text-white">
                 {formatPrice(product.base_price_cents)}
               </span>
-              {product.avg_rating !== null && product.review_count > 0 && (
-                <span className="flex items-center gap-1 text-white/70 text-xs bg-white/10 px-2 py-0.5 rounded-full">
-                  <Star size={11} fill="currentColor" className="text-amber-300" />
-                  {product.avg_rating.toFixed(1)} ({product.review_count})
-                </span>
-              )}
             </div>
           </div>
         </div>
@@ -654,7 +620,7 @@ export default function ShopPage() {
     if (!products || products.length === 0) return null
     const candidates = products
       .filter((p) => p.images.length > 0 && p.variants.some((v) => v.stock > 0 && v.is_active))
-      .sort((a, b) => (b.avg_rating ?? 0) - (a.avg_rating ?? 0))
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     return candidates[0] ?? null
   }, [products])
 
@@ -673,7 +639,7 @@ export default function ShopPage() {
   }, [queryClient])
 
   return (
-    <Page className="!px-0 bg-[#f0f4ec]">
+    <Page className="!px-0 bg-[#f0f4ec]" stickyOverlay={<Header title="" back transparent />}>
       <PullToRefresh onRefresh={handleRefresh} background={<ShopBackground rm={rm} />}>
         <div className="relative min-h-dvh">
           {/* Main content */}
@@ -690,7 +656,6 @@ export default function ShopPage() {
                 {/* Hero - full bleed with wave transition */}
                 <motion.div variants={rm ? undefined : fadeUp}>
                   <ShopHero
-                    onBack={() => navigate(-1)}
                     rm={rm}
                   />
                 </motion.div>

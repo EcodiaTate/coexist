@@ -170,7 +170,7 @@ export default function LeaderEventsPage() {
           <button
             type="button"
             onClick={() => navigate('/leader/events/create')}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-moss-500 to-moss-600 py-3.5 text-sm font-bold text-white shadow-md shadow-moss-500/20 hover:shadow-lg hover:shadow-moss-500/30 active:scale-[0.98] transition-[box-shadow,transform] duration-150 cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-moss-500 to-moss-600 py-3.5 text-sm font-bold text-white shadow-md shadow-moss-500/20 active:scale-[0.98] transition-transform duration-150 cursor-pointer"
           >
             <Plus size={18} strokeWidth={2.5} />
             Create New Event
@@ -186,7 +186,7 @@ export default function LeaderEventsPage() {
                 type="button"
                 onClick={() => setFilter(f.id)}
                 className={cn(
-                  'flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-[background-color,color,box-shadow] duration-150 cursor-pointer select-none whitespace-nowrap',
+                  'flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 cursor-pointer select-none whitespace-nowrap',
                   filter === f.id
                     ? 'bg-moss-600 text-white shadow-sm'
                     : 'text-primary-500 hover:text-primary-700 hover:bg-primary-50',
@@ -216,7 +216,7 @@ export default function LeaderEventsPage() {
           </motion.div>
         ) : (
           <div className="space-y-3">
-            {events.map((event: any, idx: number) => {
+            {events.map((event: Record<string, unknown>, idx: number) => {
               const regCount = event.event_registrations?.[0]?.count ?? 0
 
               return (
@@ -227,7 +227,7 @@ export default function LeaderEventsPage() {
                 >
                   <Link
                     to={`/events/${event.id}`}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-white shadow-sm border border-primary-50/60 hover:shadow-md hover:border-moss-100 active:scale-[0.99] transition-[box-shadow,border-color,transform] duration-200"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white shadow-sm border border-primary-50/60 hover:shadow-md hover:border-moss-100 active:scale-[0.99] transition-[border-color,transform] duration-200"
                   >
                     {/* Cover thumbnail */}
                     {event.cover_image_url ? (

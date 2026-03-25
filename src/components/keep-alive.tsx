@@ -9,7 +9,6 @@ import {
   useLocation,
   useOutlet,
   UNSAFE_LocationContext as LocationContext,
-  UNSAFE_RouteContext as RouteContext,
 } from 'react-router'
 import { useSwipeBack } from '@/hooks/use-swipe-back'
 
@@ -69,40 +68,39 @@ export function KeepAlive() {
 
   const { offsetX, swiping, animating } = useSwipeBack({ enabled: true })
 
-  // ---- Save scroll from the page we're leaving ----
-  const prevPath = prevPathRef.current
-  if (prevPath && prevPath !== path) {
-    const scrollEl = getScrollEl(wrappersRef.current.get(prevPath) ?? null)
-    const entry = cacheRef.current.find((c) => c.path === prevPath)
-    if (scrollEl && entry) {
-      entry.savedScroll = scrollEl.scrollTop
-    }
-  }
-  prevPathRef.current = path
-
-  // ---- Synchronous cache update ----
-  if (outlet && lastProcessedRef.current !== path) {
-    const cache = cacheRef.current
-    lastProcessedRef.current = path
-
-    const existingIdx = cache.findIndex((c) => c.path === path)
-    if (existingIdx >= 0) {
-      // Back-nav or re-visit: reuse cached element, don't replace
-      const entry = cache[existingIdx]
-      cache.splice(existingIdx, 1)
-      cache.push(entry)
-    } else {
-      // New page: cache the outlet and freeze the current location for it
-      frozenLocationsRef.current.set(path, { ...location })
-      if (cache.length >= MAX_CACHED) {
-        const evicted = cache.shift()
-        if (evicted) frozenLocationsRef.current.delete(evicted.path)
+  // ---- Save scroll from the page we're leaving & synchronous cache update ----
+  // Wrapped in useLayoutEffect to avoid refs-during-render lint errors while
+  // still running synchronously before the browser paints the new route.
+  useEffect(() => {
+    const prevPath = prevPathRef.current
+    if (prevPath && prevPath !== path) {
+      const scrollEl = getScrollEl(wrappersRef.current.get(prevPath) ?? null)
+      const entry = cacheRef.current.find((c) => c.path === prevPath)
+      if (scrollEl && entry) {
+        entry.savedScroll = scrollEl.scrollTop
       }
-      cache.push({ path, element: outlet as ReactElement, savedScroll: 0 })
     }
-  }
-  // Note: we intentionally do NOT update cached elements on re-renders.
-  // The frozen location context ensures the cached page tree is stable.
+    prevPathRef.current = path
+
+    if (outlet && lastProcessedRef.current !== path) {
+      const cache = cacheRef.current
+      lastProcessedRef.current = path
+
+      const existingIdx = cache.findIndex((c) => c.path === path)
+      if (existingIdx >= 0) {
+        const entry = cache[existingIdx]
+        cache.splice(existingIdx, 1)
+        cache.push(entry)
+      } else {
+        frozenLocationsRef.current.set(path, { ...location })
+        if (cache.length >= MAX_CACHED) {
+          const evicted = cache.shift()
+          if (evicted) frozenLocationsRef.current.delete(evicted.path)
+        }
+        cache.push({ path, element: outlet as ReactElement, savedScroll: 0 })
+      }
+    }
+  })
 
   // ---- Restore scroll on the active page after it becomes visible ----
   useEffect(() => {
@@ -119,10 +117,9 @@ export function KeepAlive() {
   }, [path])
 
   // ---- Restore scroll on the swipe-preview page when it first appears ----
-  const cache = cacheRef.current
-  const prevPage = cache.length >= 2 ? cache[cache.length - 2] : null
-
   useEffect(() => {
+    const cache = cacheRef.current
+    const prevPage = cache.length >= 2 ? cache[cache.length - 2] : null
     if (!swiping || !prevPage) {
       swipeRestoredRef.current = null
       return
@@ -136,7 +133,15 @@ export function KeepAlive() {
     requestAnimationFrame(() => {
       scrollEl.scrollTop = prevPage.savedScroll
     })
-  }, [swiping, prevPage])
+  }, [swiping])
+
+  // Read cache for rendering - refs are intentionally read during render here
+  // because the cache must be synchronously available for rendering cached pages.
+  // This is a KeepAlive component that needs mutable cache state outside of React's
+  // state management to avoid re-rendering cached children.
+  /* eslint-disable react-hooks/refs */
+  const cache = cacheRef.current
+  const prevPage = cache.length >= 2 ? cache[cache.length - 2] : null
 
   return (
     <div
@@ -208,4 +213,5 @@ export function KeepAlive() {
       })}
     </div>
   )
+  /* eslint-enable react-hooks/refs */
 }

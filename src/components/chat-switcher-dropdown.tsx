@@ -1,10 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Lock, Leaf } from 'lucide-react'
+import { ChevronDown, Lock, Leaf, Star } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { useMyCollectives } from '@/hooks/use-collective'
+import { useMyCollectives, useCollectives } from '@/hooks/use-collective'
 import { useMyStaffChannels } from '@/hooks/use-staff-channels'
+import { useAuth } from '@/hooks/use-auth'
+import { supabase } from '@/lib/supabase'
+import { useQueryClient } from '@tanstack/react-query'
+import { useToast } from '@/components/toast'
 
 interface ChatSwitcherDropdownProps {
   currentCollectiveId?: string
@@ -16,10 +20,17 @@ export function ChatSwitcherDropdown({
   currentChannelId,
 }: ChatSwitcherDropdownProps) {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { toast } = useToast()
+  const { user, profile, isStaff, isAdmin, isSuperAdmin } = useAuth()
+  const isGlobalStaff = isStaff || isAdmin || isSuperAdmin
   const { data: myCollectives } = useMyCollectives()
+  const { data: allCollectives } = useCollectives()
   const { data: staffChannels } = useMyStaffChannels()
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const primaryChatId = (profile as unknown as Record<string, unknown> | null)?.primary_chat_id as string | undefined
 
   // Close on outside click
   useEffect(() => {
@@ -39,7 +50,31 @@ export function ChatSwitcherDropdown({
   }).filter(Boolean) as { id: string; name: string; coverUrl: string | null }[] ?? []
 
   const channels = staffChannels ?? []
-  const hasOptions = collectives.length > 1 || channels.length > 0
+
+  // Staff/admin: show collectives they're NOT a member of
+  const myCollectiveIds = new Set(collectives.map((c) => c.id))
+  const otherCollectives = isGlobalStaff
+    ? (allCollectives ?? [])
+        .filter((c) => !myCollectiveIds.has(c.id))
+        .map((c) => ({ id: c.id, name: c.name, coverUrl: c.cover_image_url }))
+    : []
+
+  const hasOptions = collectives.length > 1 || channels.length > 0 || otherCollectives.length > 0
+
+  const handleSetPrimary = async (collectiveId: string) => {
+    if (!user) return
+    const newPrimary = primaryChatId === collectiveId ? null : collectiveId
+    const { error } = await supabase
+      .from('profiles')
+      .update({ primary_chat_id: newPrimary } as Record<string, unknown>)
+      .eq('id', user.id)
+    if (error) {
+      toast.error('Failed to update default chat')
+      return
+    }
+    queryClient.invalidateQueries({ queryKey: ['profile'] })
+    toast.success(newPrimary ? 'Set as your default chat' : 'Default chat cleared')
+  }
 
   if (!hasOptions) return null
 
@@ -48,7 +83,7 @@ export function ChatSwitcherDropdown({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
         aria-label="Switch chat"
         aria-expanded={open}
       >
@@ -62,40 +97,71 @@ export function ChatSwitcherDropdown({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute right-0 top-full mt-1 z-50 w-64 max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-8rem)] rounded-2xl bg-white shadow-xl ring-1 ring-primary-200/60 overflow-hidden"
+            className="absolute right-0 top-full mt-1 z-50 w-72 max-w-[calc(100vw-2rem)] max-h-[calc(100dvh-8rem)] rounded-2xl bg-white shadow-xl ring-1 ring-primary-200/60 overflow-hidden"
           >
             <div className="max-h-[inherit] overflow-y-auto py-1.5">
               {/* Collectives */}
               {collectives.length > 0 && (
                 <div>
                   <p className="text-[10px] uppercase tracking-wider font-extrabold text-primary-400 px-3.5 pt-2 pb-1">Collectives</p>
-                  {collectives.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => {
-                        setOpen(false)
-                        if (c.id !== currentCollectiveId) navigate(`/chat/${c.id}`)
-                      }}
-                      className={cn(
-                        'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
-                        c.id === currentCollectiveId
-                          ? 'bg-primary-50 text-primary-900 font-bold'
-                          : 'text-primary-700 hover:bg-primary-50/60',
-                      )}
-                    >
-                      <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0">
-                        {c.coverUrl ? (
-                          <img src={c.coverUrl} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-400 to-secondary-600">
-                            <Leaf size={14} className="text-white" />
+                  {collectives.map((c) => {
+                    const isPrimary = primaryChatId === c.id
+                    const isCurrent = c.id === currentCollectiveId
+
+                    return (
+                      <div key={c.id} className="flex items-center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setOpen(false)
+                            if (!isCurrent) navigate(`/chat/${c.id}`)
+                          }}
+                          className={cn(
+                            'flex flex-1 items-center gap-3 pl-3.5 pr-1 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
+                            isCurrent
+                              ? 'bg-primary-50 text-primary-900 font-bold'
+                              : 'text-primary-700 hover:bg-primary-50/60',
+                          )}
+                        >
+                          <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0 relative">
+                            {c.coverUrl ? (
+                              <img src={c.coverUrl} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-400 to-secondary-600">
+                                <Leaf size={14} className="text-white" />
+                              </div>
+                            )}
                           </div>
+                          <span className="truncate flex-1">{c.name}</span>
+                          {isPrimary && (
+                            <span className="text-[10px] font-bold text-primary-500 bg-primary-100 px-1.5 py-0.5 rounded-full shrink-0">
+                              Default
+                            </span>
+                          )}
+                        </button>
+                        {/* Set as default button (only show when user has 2+ collectives) */}
+                        {collectives.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleSetPrimary(c.id)
+                            }}
+                            className={cn(
+                              'flex items-center justify-center min-h-9 min-w-9 rounded-full mr-1.5 transition-colors duration-150 cursor-pointer select-none',
+                              isPrimary
+                                ? 'text-primary-500 hover:bg-primary-100'
+                                : 'text-primary-300 hover:text-primary-500 hover:bg-primary-50',
+                            )}
+                            aria-label={isPrimary ? 'Remove as default chat' : 'Set as default chat'}
+                            title={isPrimary ? 'Remove as default' : 'Set as default'}
+                          >
+                            <Star size={14} className={isPrimary ? 'fill-current' : ''} />
+                          </button>
                         )}
                       </div>
-                      <span className="truncate">{c.name}</span>
-                    </button>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
 
@@ -125,6 +191,44 @@ export function ChatSwitcherDropdown({
                       <span className="truncate">{ch.name}</span>
                     </button>
                   ))}
+                </div>
+              )}
+
+              {/* All collectives (staff/admin only) */}
+              {otherCollectives.length > 0 && (
+                <div>
+                  {(collectives.length > 0 || channels.length > 0) && <div className="h-px bg-primary-100 mx-3 my-1" />}
+                  <p className="text-[10px] uppercase tracking-wider font-extrabold text-primary-400 px-3.5 pt-2 pb-1">All Collectives</p>
+                  {otherCollectives.map((c) => {
+                    const isCurrent = c.id === currentCollectiveId
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setOpen(false)
+                          if (!isCurrent) navigate(`/chat/${c.id}`)
+                        }}
+                        className={cn(
+                          'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
+                          isCurrent
+                            ? 'bg-primary-50 text-primary-900 font-bold'
+                            : 'text-primary-700 hover:bg-primary-50/60',
+                        )}
+                      >
+                        <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0">
+                          {c.coverUrl ? (
+                            <img src={c.coverUrl} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-400 to-secondary-600">
+                              <Leaf size={14} className="text-white" />
+                            </div>
+                          )}
+                        </div>
+                        <span className="truncate">{c.name}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>

@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion'
-import { Trees, Waves, Bird, Sprout, Bug, Flower2, Droplets, Fence, Leaf } from 'lucide-react'
+import { Trees, Waves, Bird, Sprout, Flower2, Droplets, Fence, Leaf } from 'lucide-react'
 import { Chip } from '@/components/chip'
 import { Button } from '@/components/button'
 

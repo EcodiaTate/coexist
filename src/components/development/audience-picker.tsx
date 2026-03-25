@@ -1,18 +1,14 @@
-import { useState, useMemo } from 'react'
 import {
   Users,
-  User,
   Check,
-  Search,
-  X,
   Shield,
   Crown,
   UserPlus,
   Briefcase,
 } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
-import { TARGET_ROLE_OPTIONS, type DevTargetRole } from '@/hooks/use-admin-development'
+import { TARGET_ROLE_OPTIONS } from '@/hooks/use-admin-development'
 
 /* ------------------------------------------------------------------ */
 /*  Role icons                                                         */
@@ -93,7 +89,7 @@ export function AudiencePicker({
               type="button"
               onClick={() => toggleRole(role.value)}
               className={cn(
-                'flex items-center gap-2.5 px-3.5 min-h-[48px] rounded-xl border-2 text-left transition-all active:scale-[0.97]',
+                'flex items-center gap-2.5 px-3.5 min-h-[48px] rounded-xl border-2 text-left transition-transform active:scale-[0.97]',
                 isSelected
                   ? ROLE_COLORS[role.value]
                   : 'border-primary-200 bg-white text-primary-500 hover:border-primary-300',

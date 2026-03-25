@@ -38,18 +38,27 @@ const LeaderHeaderContext = createContext<LeaderHeaderContextValue | null>(null)
 /**
  * Call from any leader page to set the page header title and optional actions.
  */
+interface LeaderHeaderOpts {
+  subtitle?: string
+  actions?: ReactNode
+  heroContent?: ReactNode
+  fullBleed?: boolean
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLeaderHeader(
   title: string,
-  opts?: { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean } | ReactNode,
+  opts?: LeaderHeaderOpts | ReactNode,
 ) {
   const ctx = useContext(LeaderHeaderContext)
   // Destructure opts to get stable primitive deps - avoids re-firing on every render
   // when callers pass an inline object literal like { fullBleed: true }
-  const isOptsObject = opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any) || 'fullBleed' in (opts as any))
-  const subtitle = isOptsObject ? (opts as any).subtitle : undefined
-  const actions = isOptsObject ? (opts as any).actions : (!isOptsObject ? opts as ReactNode : undefined)
-  const heroContent = isOptsObject ? (opts as any).heroContent : undefined
-  const fullBleed = isOptsObject ? (opts as any).fullBleed : undefined
+  const isOptsObject = opts != null && typeof opts === 'object' && !('$$typeof' in (opts as Record<string, unknown>)) && ('subtitle' in (opts as Record<string, unknown>) || 'actions' in (opts as Record<string, unknown>) || 'heroContent' in (opts as Record<string, unknown>) || 'fullBleed' in (opts as Record<string, unknown>))
+  const optsRecord = isOptsObject ? (opts as LeaderHeaderOpts) : undefined
+  const subtitle = optsRecord?.subtitle
+  const actions = optsRecord ? optsRecord.actions : (!isOptsObject ? opts as ReactNode : undefined)
+  const heroContent = optsRecord?.heroContent
+  const fullBleed = optsRecord?.fullBleed
 
   useEffect(() => {
     if (isOptsObject) {
@@ -61,12 +70,14 @@ export function useLeaderHeader(
 }
 
 /** Access the leader's collective context from any leader sub-page */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLeaderContext() {
   const ctx = useContext(LeaderHeaderContext)
   return { collectiveId: ctx?.collectiveId, collectiveSlug: ctx?.collectiveSlug }
 }
 
 /** Returns true when the component is rendered inside the leader layout. */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useIsLeaderLayout() {
   return useContext(LeaderHeaderContext) !== null
 }
@@ -227,7 +238,7 @@ export function LeaderLayout() {
   const collectiveSlug = collectiveDetail?.slug ?? collectiveId
   const collectiveNameRaw = collectiveDetail?.name ?? 'My Collective'
   // Strip trailing "Collective" - e.g. "Byron Bay Collective" → "Byron Bay"
-  const collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
+  const _collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
 
   // Scroll content to top on route change — instant to avoid fighting
   // with page transition animations

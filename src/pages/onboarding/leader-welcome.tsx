@@ -1,7 +1,9 @@
-import { useNavigate } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Crown, CalendarPlus, Users, MessageSquare, BarChart3, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/button'
+import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/cn'
 
 const stagger = {
@@ -39,7 +41,19 @@ const LEADER_TOOLS = [
 
 export default function LeaderWelcomePage() {
   const navigate = useNavigate()
+  const { collectiveRoles, isStaff, markOnboardingComplete } = useAuth()
   const shouldReduceMotion = useReducedMotion()
+
+  // Mark onboarding done on mount so the user isn't sent back here
+  useEffect(() => { markOnboardingComplete() }, [markOnboardingComplete])
+
+  // If user isn't a leader/staff, redirect to home
+  const hasLeaderRole = collectiveRoles.some(
+    (m) => m.role === 'leader' || m.role === 'co_leader' || m.role === 'assist_leader',
+  )
+  if (!hasLeaderRole && !isStaff) {
+    return <Navigate to="/" replace />
+  }
 
   return (
     <div className="min-h-dvh flex flex-col bg-white">

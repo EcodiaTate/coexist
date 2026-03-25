@@ -99,7 +99,7 @@ export default function DonorWallPage() {
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-sm font-semibold text-primary-400">
-                    ${donor.amount}
+                    ${Number(donor.amount).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   </p>
                   <p className="text-xs text-primary-400">
                     {formatRelativeDate(donor.created_at)}

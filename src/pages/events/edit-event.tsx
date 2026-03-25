@@ -110,6 +110,12 @@ export default function EditEventPage() {
   const handleSave = useCallback(async () => {
     if (!eventId) return
 
+    // Build PostGIS-compatible location point from map pin coordinates
+    const locationPoint =
+      locationLat != null && locationLng != null
+        ? `POINT(${locationLng} ${locationLat})`
+        : null
+
     if (isDayOfMode) {
       // Day-of mode: only update time and address
       if (!dateStart) return
@@ -118,6 +124,7 @@ export default function EditEventPage() {
         date_start: dateStart.toISOString(),
         date_end: dateEnd?.toISOString() ?? null,
         address: address || null,
+        location_point: locationPoint,
       })
     } else {
       if (!title.trim() || !activityType || !dateStart) return
@@ -130,6 +137,7 @@ export default function EditEventPage() {
         date_start: dateStart.toISOString(),
         date_end: dateEnd?.toISOString() ?? null,
         address: address || null,
+        location_point: locationPoint,
         capacity: capacityNum && capacityNum > 0 ? capacityNum : null,
         cover_image_url: coverImageUrl || null,
         is_public: isPublic,
@@ -137,7 +145,7 @@ export default function EditEventPage() {
     }
 
     navigate(`/events/${eventId}`, { replace: true })
-  }, [eventId, isDayOfMode, title, description, activityType, dateStart, dateEnd, address, capacity, coverImageUrl, isPublic, updateEvent, navigate])
+  }, [eventId, isDayOfMode, title, description, activityType, dateStart, dateEnd, address, locationLat, locationLng, capacity, coverImageUrl, isPublic, updateEvent, navigate])
 
   const stagger = {
     hidden: {},
@@ -385,7 +393,7 @@ export default function EditEventPage() {
                 <button
                   type="button"
                   onClick={() => setCoverImageUrl('')}
-                  className="absolute top-2 right-2 min-w-11 min-h-11 rounded-full bg-black/50 text-white flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+                  className="absolute top-2 right-2 min-w-11 min-h-11 rounded-full bg-black/50 text-white flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
                   aria-label="Remove cover image"
                 >
                   <X size={16} />
@@ -400,7 +408,7 @@ export default function EditEventPage() {
               className={cn(
                 'w-full min-h-11 py-12 rounded-xl border-2 border-dashed border-primary-200 hover:border-primary-400',
                 'cursor-pointer select-none',
-                'active:scale-[0.97] transition-all duration-150',
+                'active:scale-[0.97] transition-transform duration-150',
                 'flex flex-col items-center justify-center',
                 'text-primary-400 hover:text-primary-500',
                 'disabled:opacity-50 disabled:cursor-not-allowed',

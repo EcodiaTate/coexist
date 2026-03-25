@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
-import { resolveCapabilities, type CapabilityKey } from '@/lib/capabilities'
+import { resolveCapabilities } from '@/lib/capabilities'
 
 /* ------------------------------------------------------------------ */
 /*  useCapabilities — current user's resolved capability set           */
@@ -29,11 +29,12 @@ export function useCapabilities(): UseCapabilitiesReturn {
     queryFn: async () => {
       if (!user) return null
       const { data } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from('staff_roles' as any)
         .select('permissions')
         .eq('user_id', user.id)
         .maybeSingle()
-      return (data as any)?.permissions as Record<string, boolean> | null
+      return (data as Record<string, unknown> | null)?.permissions as Record<string, boolean> | null
     },
     enabled: !!user && isStaff,
     staleTime: 5 * 60 * 1000,
@@ -77,12 +78,13 @@ export function useUserCapabilities(userId: string | undefined) {
 
       // Fetch staff overrides
       const { data: staffRole } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from('staff_roles' as any)
         .select('permissions')
         .eq('user_id', userId)
         .maybeSingle()
 
-      const overrides = (staffRole as any)?.permissions as Record<string, boolean> | null
+      const overrides = (staffRole as Record<string, unknown> | null)?.permissions as Record<string, boolean> | null
       const capabilities = resolveCapabilities(role, overrides)
 
       return { role, overrides, capabilities }

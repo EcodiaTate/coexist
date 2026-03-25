@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 
@@ -26,14 +26,15 @@ export function SlotCounter({
   suffix = '',
 }: SlotCounterProps) {
   const shouldReduceMotion = useReducedMotion()
-  const prevRef = useRef(value)
   const [displayValue, setDisplayValue] = useState(value)
+  const [prevValue, setPrevValue] = useState(value)
   const [direction, setDirection] = useState<'up' | 'down'>('up')
 
-  if (value !== prevRef.current) {
-    setDirection(value > prevRef.current ? 'up' : 'down')
+  // Derive state from props (React-recommended setState-during-render pattern)
+  if (value !== prevValue) {
+    setDirection(value > prevValue ? 'up' : 'down')
     setDisplayValue(value)
-    prevRef.current = value
+    setPrevValue(value)
   }
 
   const formatted = new Intl.NumberFormat(locale).format(displayValue)

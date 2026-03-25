@@ -1,20 +1,18 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   QrCode,
   Check,
   CheckCheck,
   Users,
-  Clock,
-  Search,
   UserCheck,
-  UserX,
   UserPlus,
   ChevronRight,
   Phone,
   AlertTriangle,
   Accessibility,
+  BookOpen,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import {
@@ -25,6 +23,8 @@ import {
   usePromoteFromWaitlist,
   formatEventDate,
 } from '@/hooks/use-events'
+import { useCollectiveRole } from '@/hooks/use-collective-role'
+import { useAuth } from '@/hooks/use-auth'
 import type { AttendeeWithStatus } from '@/hooks/use-events'
 import {
   Page,
@@ -38,6 +38,8 @@ import {
 } from '@/components'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { ProfileModal } from '@/components/profile-modal'
+import { EmergencyContacts } from '@/components/emergency-contacts'
+import { SearchBar } from '@/components/search-bar'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -102,7 +104,7 @@ function AttendeeRow({
       layout
       className={cn(
         'flex items-center gap-3 px-4 py-3.5 cursor-pointer rounded-xl mb-1.5',
-        'transition-[color,background-color,box-shadow] duration-200',
+        'transition-colors duration-200',
         isCheckedIn
           ? 'bg-gradient-to-r from-success-50 to-moss-50/50 ring-1 ring-success-200/50'
           : isWaitlisted
@@ -273,9 +275,12 @@ export default function EventDayPage() {
   const { id: eventId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const { profile } = useAuth()
 
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: attendees, isLoading: attendeesLoading } = useEventAttendees(eventId)
+  const { isAssistLeader, isLoading: roleLoading } = useCollectiveRole(event?.collective_id)
+  const isStaff = profile?.role === 'national_staff' || profile?.role === 'national_admin' || profile?.role === 'super_admin'
 
   const checkIn = useCheckIn()
   const bulkCheckIn = useBulkCheckIn()
@@ -297,6 +302,7 @@ export default function EventDayPage() {
   const [checkingInUserId, setCheckingInUserId] = useState<string | null>(null)
   const [promotingUserId, setPromotingUserId] = useState<string | null>(null)
   const [selectedAttendee, setSelectedAttendee] = useState<AttendeeWithStatus | null>(null)
+  const [activeTab, setActiveTab] = useState<'attendees' | 'contacts'>('attendees')
   const [profileUserId, setProfileUserId] = useState<string | null>(null)
 
   const filteredAttendees = useMemo(() => {
@@ -347,7 +353,7 @@ export default function EventDayPage() {
     [eventId, promote],
   )
 
-  const isLoading = eventLoading || attendeesLoading
+  const isLoading = eventLoading || attendeesLoading || roleLoading
   const showLoading = useDelayedLoading(isLoading)
 
   if (showLoading) {
@@ -372,6 +378,20 @@ export default function EventDayPage() {
           title="Event not found"
           description="This event could not be loaded."
           action={{ label: 'Go Back', onClick: () => navigate(-1) }}
+        />
+      </Page>
+    )
+  }
+
+  // Role gate: only assist-leaders+ and national staff can access the day-of dashboard
+  if (!isAssistLeader && !isStaff) {
+    return (
+      <Page swipeBack header={<Header title="Event Day" back />}>
+        <EmptyState
+          illustration="error"
+          title="Leader access only"
+          description="The event day dashboard is available to event leaders and assist-leaders."
+          action={{ label: 'View Event', onClick: () => navigate(`/events/${eventId}`) }}
         />
       </Page>
     )
@@ -450,61 +470,87 @@ export default function EventDayPage() {
           </motion.div>
         )}
 
-        {/* Search */}
-        <motion.div variants={fadeUp} className="relative mb-3">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 pointer-events-none">
-            <Search size={18} />
-          </span>
-          <input
-            type="text"
-            placeholder="Search attendees..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+        {/* Tab switcher */}
+        <motion.div variants={fadeUp} className="flex rounded-xl bg-primary-50/60 p-1 mb-4">
+          <button
+            onClick={() => setActiveTab('attendees')}
             className={cn(
-              'w-full rounded-lg bg-primary-50/50',
-              'pl-10 pr-4 py-2.5 text-[16px]',
-              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-              'placeholder:text-primary-400',
+              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-150',
+              activeTab === 'attendees'
+                ? 'bg-white text-primary-800 shadow-sm'
+                : 'text-primary-400 active:bg-white/50',
             )}
-          />
-        </motion.div>
-
-        {/* Attendee list */}
-        <motion.div variants={fadeUp}>
-        {filteredAttendees.length === 0 ? (
-          <EmptyState
-            illustration="search"
-            title="No attendees found"
-            description={searchQuery ? 'Try a different search' : 'No one has registered yet'}
-          />
-        ) : (
-          <div className="space-y-0">
-            {filteredAttendees.map((attendee) => (
-              <AttendeeRow
-                key={attendee.user_id}
-                attendee={attendee}
-                onCheckIn={() => handleCheckIn(attendee.user_id)}
-                onPromote={attendee.status === 'waitlisted' ? () => handlePromote(attendee.user_id) : undefined}
-                onViewDetails={() => setProfileUserId(attendee.user_id)}
-                isPending={checkingInUserId === attendee.user_id}
-                isPromoting={promotingUserId === attendee.user_id}
-              />
-            ))}
-          </div>
-        )}
-        </motion.div>
-
-        {/* Post-event action */}
-        <motion.div variants={fadeUp} className="mt-6">
-          <Button
-            variant="secondary"
-            fullWidth
-            onClick={() => navigate(`/events/${eventId}/impact`)}
-            icon={<ChevronRight size={16} />}
           >
-            Log Impact Data
-          </Button>
+            <Users size={15} />
+            Attendees
+          </button>
+          <button
+            onClick={() => setActiveTab('contacts')}
+            className={cn(
+              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-150',
+              activeTab === 'contacts'
+                ? 'bg-white text-primary-800 shadow-sm'
+                : 'text-primary-400 active:bg-white/50',
+            )}
+          >
+            <BookOpen size={15} />
+            Contacts
+          </button>
         </motion.div>
+
+        {activeTab === 'attendees' ? (
+          <>
+            {/* Search */}
+            <motion.div variants={fadeUp} className="mb-3">
+              <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search attendees..." compact />
+            </motion.div>
+
+            {/* Attendee list */}
+            <motion.div variants={fadeUp}>
+            {filteredAttendees.length === 0 ? (
+              <EmptyState
+                illustration="search"
+                title="No attendees found"
+                description={searchQuery ? 'Try a different search' : 'No one has registered yet'}
+              />
+            ) : (
+              <div className="space-y-0">
+                {filteredAttendees.map((attendee) => (
+                  <AttendeeRow
+                    key={attendee.user_id}
+                    attendee={attendee}
+                    onCheckIn={() => handleCheckIn(attendee.user_id)}
+                    onPromote={attendee.status === 'waitlisted' ? () => handlePromote(attendee.user_id) : undefined}
+                    onViewDetails={() => setSelectedAttendee(attendee)}
+                    isPending={checkingInUserId === attendee.user_id}
+                    isPromoting={promotingUserId === attendee.user_id}
+                  />
+                ))}
+              </div>
+            )}
+            </motion.div>
+
+            {/* Post-event action */}
+            <motion.div variants={fadeUp} className="mt-6">
+              <Button
+                variant="secondary"
+                fullWidth
+                onClick={() => navigate(`/events/${eventId}/impact`)}
+                icon={<ChevronRight size={16} />}
+              >
+                Log Impact Data
+              </Button>
+            </motion.div>
+          </>
+        ) : (
+          <motion.div
+            variants={fadeUp}
+            initial={shouldReduceMotion ? false : 'hidden'}
+            animate="visible"
+          >
+            <EmergencyContacts eventState={event.collectives?.state} />
+          </motion.div>
+        )}
       </motion.div>
 
       {/* QR Code bottom sheet */}

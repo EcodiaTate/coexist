@@ -66,7 +66,7 @@ function AppStoreBadge({ className, onClick }: { className?: string; onClick?: (
         'inline-flex items-center gap-3 px-5 py-3.5',
         'rounded-xl bg-black text-white',
         'hover:bg-gray-900 active:scale-[0.97]',
-        'transition-all duration-150',
+        'transition-colors duration-150',
         'cursor-pointer select-none',
         'shadow-lg shadow-black/15',
         'min-h-14',
@@ -94,7 +94,7 @@ function PlayStoreBadge({ className, onClick }: { className?: string; onClick?: 
         'inline-flex items-center gap-3 px-5 py-3.5',
         'rounded-xl bg-black text-white',
         'hover:bg-gray-900 active:scale-[0.97]',
-        'transition-all duration-150',
+        'transition-colors duration-150',
         'cursor-pointer select-none',
         'shadow-lg shadow-black/15',
         'min-h-14',
@@ -261,7 +261,7 @@ export default function DownloadPage() {
                 <button
                   type="button"
                   onClick={() => window.location.href = WEB_APP_URL}
-                  className="w-full py-3 rounded-xl bg-white/10 text-white/70 text-sm font-medium hover:bg-white/15 active:scale-[0.97] transition-all cursor-pointer select-none"
+                  className="w-full py-3 rounded-xl bg-white/10 text-white/70 text-sm font-medium hover:bg-white/15 active:scale-[0.97] transition-transform cursor-pointer select-none"
                 >
                   Or continue on web
                 </button>
@@ -278,7 +278,7 @@ export default function DownloadPage() {
                 <button
                   type="button"
                   onClick={() => window.location.href = WEB_APP_URL}
-                  className="w-full py-3 rounded-xl bg-white/10 text-white/70 text-sm font-medium hover:bg-white/15 active:scale-[0.97] transition-all cursor-pointer select-none"
+                  className="w-full py-3 rounded-xl bg-white/10 text-white/70 text-sm font-medium hover:bg-white/15 active:scale-[0.97] transition-transform cursor-pointer select-none"
                 >
                   Or continue on web
                 </button>
@@ -301,7 +301,7 @@ export default function DownloadPage() {
                 <button
                   type="button"
                   onClick={() => window.location.href = WEB_APP_URL}
-                  className="w-full py-3 rounded-xl bg-white/10 text-white/70 text-sm font-medium hover:bg-white/15 active:scale-[0.97] transition-all cursor-pointer select-none"
+                  className="w-full py-3 rounded-xl bg-white/10 text-white/70 text-sm font-medium hover:bg-white/15 active:scale-[0.97] transition-transform cursor-pointer select-none"
                 >
                   <span className="flex items-center justify-center gap-2">
                     <Globe size={16} />

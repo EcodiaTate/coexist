@@ -9,9 +9,10 @@ import {
     Users,
     Globe,
     Shield,
-    X, FileText, Megaphone, ChevronLeft, Send, Sparkles
+    X, FileText, Megaphone, Send, Sparkles
 } from 'lucide-react'
 import { Button } from '@/components/button'
+import { Input } from '@/components/input'
 import { Avatar } from '@/components/avatar'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { UploadProgress } from '@/components/upload-progress'
@@ -81,18 +82,6 @@ export default function CreateUpdatePage() {
 
   useAdminHeader('New Update', {
     subtitle: 'Compose and publish a blog-post update',
-    actions: (
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/10 transition-all duration-150 cursor-pointer"
-        >
-          <ChevronLeft size={16} />
-          Back
-        </button>
-      </div>
-    ),
   })
 
   // Only admin staff can create updates
@@ -192,49 +181,25 @@ export default function CreateUpdatePage() {
 
           {/* White body */}
           <div className="bg-white px-5 py-5 space-y-4">
-            <div>
-              <input
-                id="ann-title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Give it a title..."
-                maxLength={200}
-                className={cn(
-                  'w-full px-4 py-3 rounded-xl',
-                  'bg-primary-50/70 text-primary-900 placeholder:text-primary-300',
-                  'border border-primary-200/50 outline-none',
-                  'focus:ring-2 focus:ring-primary-400/40 focus:border-primary-300',
-                  'font-heading text-xl font-bold leading-tight',
-                  'transition-all duration-150',
-                )}
-              />
-            </div>
+            <Input
+              label="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Give it a title..."
+              maxLength={200}
+              inputClassName="bg-surface-3 font-heading text-xl font-bold leading-tight"
+            />
 
             <div>
-              <label
-                htmlFor="ann-content"
-                className="block text-sm font-semibold text-primary-800 mb-1.5"
-              >
-                Content
-              </label>
-              <p className="text-xs text-primary-400 mb-2">
-                Write your update, invite, recap, or anything you'd like to share.
-              </p>
-              <textarea
-                id="ann-content"
+              <Input
+                type="textarea"
+                label="Content"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Write your update...&#10;&#10;Share news, event invites, recaps - anything the community needs to know."
                 rows={10}
                 maxLength={10000}
-                className={cn(
-                  'w-full px-4 py-3.5 rounded-xl text-sm resize-none',
-                  'bg-primary-50/70 text-primary-900 placeholder:text-primary-300',
-                  'border border-primary-200/50 outline-none leading-relaxed',
-                  'focus:ring-2 focus:ring-primary-400/40 focus:border-primary-300',
-                  'transition-all duration-150',
-                )}
+                helperText="Write your update, invite, recap, or anything you'd like to share."
               />
               <div className="flex justify-end mt-1">
                 <span className="text-xs text-primary-300">{content.length}/10,000</span>
@@ -282,7 +247,7 @@ export default function CreateUpdatePage() {
                         'flex items-center justify-center w-7 h-7 rounded-full',
                         'bg-black/60 text-white opacity-0 group-hover:opacity-100',
                         'cursor-pointer select-none',
-                        'hover:bg-black/80 active:scale-[0.97] transition-all duration-150',
+                        'hover:bg-black/80 active:scale-[0.97] transition-transform duration-150',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:opacity-100',
                       )}
                       aria-label={`Remove photo ${i + 1}`}
@@ -303,7 +268,7 @@ export default function CreateUpdatePage() {
                   'border-2 border-dashed border-moss-300/50 bg-moss-50/40',
                   'text-sm text-moss-600 font-medium',
                   'cursor-pointer hover:border-moss-400/60 hover:bg-moss-50/80',
-                  'transition-all duration-150 active:scale-[0.99]',
+                  'transition-transform duration-150 active:scale-[0.99]',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
                 )}
               >
@@ -359,7 +324,7 @@ export default function CreateUpdatePage() {
                   onClick={() => setPriority('normal')}
                   className={cn(
                     'flex-1 flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-semibold',
-                    'transition-all duration-150 active:scale-[0.97] cursor-pointer select-none',
+                    'transition-transform duration-150 active:scale-[0.97] cursor-pointer select-none',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                     priority === 'normal'
                       ? 'bg-primary-600 text-white shadow-md'
@@ -375,7 +340,7 @@ export default function CreateUpdatePage() {
                   onClick={() => setPriority('urgent')}
                   className={cn(
                     'flex-1 flex items-center justify-center gap-2 h-11 rounded-xl text-sm font-semibold',
-                    'transition-all duration-150 active:scale-[0.97] cursor-pointer select-none',
+                    'transition-transform duration-150 active:scale-[0.97] cursor-pointer select-none',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-400',
                     priority === 'urgent'
                       ? 'bg-warning-500 text-white shadow-md'
@@ -408,7 +373,7 @@ export default function CreateUpdatePage() {
                       onClick={() => setTargetAudience(opt.value)}
                       className={cn(
                         'flex items-center gap-3.5 w-full px-4 py-3.5 rounded-xl text-left',
-                        'transition-all duration-150 active:scale-[0.98] cursor-pointer select-none',
+                        'transition-transform duration-150 active:scale-[0.98] cursor-pointer select-none',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                         isSelected
                           ? 'bg-primary-50 ring-2 ring-primary-500 shadow-sm'
@@ -448,7 +413,7 @@ export default function CreateUpdatePage() {
                     Select collective
                   </label>
                   {(myCollectives ?? []).map((m) => {
-                    const collective = m.collectives as any
+                    const collective = m.collectives as unknown as { name: string } | null
                     if (!collective) return null
                     const isSelected = selectedCollectiveId === m.collective_id
                     return (
@@ -458,7 +423,7 @@ export default function CreateUpdatePage() {
                         onClick={() => setSelectedCollectiveId(m.collective_id)}
                         className={cn(
                           'flex items-center gap-3 w-full px-4 py-3 rounded-xl text-left',
-                          'transition-all duration-150 cursor-pointer select-none',
+                          'transition-colors duration-150 cursor-pointer select-none',
                           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                           isSelected
                             ? 'bg-primary-50 ring-2 ring-primary-500 shadow-sm'
@@ -504,7 +469,7 @@ export default function CreateUpdatePage() {
               onClick={() => setIsPinned(!isPinned)}
               className={cn(
                 'flex items-center gap-3.5 w-full px-4 py-3.5 rounded-xl',
-                'transition-all duration-150 active:scale-[0.98] cursor-pointer select-none',
+                'transition-transform duration-150 active:scale-[0.98] cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 isPinned
                   ? 'bg-primary-50 ring-2 ring-primary-500 shadow-sm'
@@ -547,7 +512,7 @@ export default function CreateUpdatePage() {
               'text-sm font-semibold',
               'bg-white text-primary-700 ring-1 ring-primary-200',
               'shadow-sm hover:shadow-md hover:bg-primary-50 hover:ring-primary-300',
-              'transition-all duration-150 active:scale-[0.97] cursor-pointer select-none',
+              'transition-transform duration-150 active:scale-[0.97] cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               'disabled:opacity-40 disabled:cursor-not-allowed',
             )}

@@ -30,14 +30,13 @@ import {
   X,
   Upload,
   Link as LinkIcon,
-  Image as ImageIcon,
-  Search,
   Check,
   Presentation,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
+import { SearchBar } from '@/components/search-bar'
 import { UploadProgress } from '@/components/upload-progress'
 import { cn } from '@/lib/cn'
 import { useFileUpload } from '@/hooks/use-file-upload'
@@ -100,7 +99,7 @@ function DropZone({
         onDrop={handleDrop}
         onClick={() => !uploading && inputRef.current?.click()}
         className={cn(
-          'relative flex flex-col items-center justify-center py-8 px-4 rounded-xl border-2 border-dashed transition-all cursor-pointer',
+          'relative flex flex-col items-center justify-center py-8 px-4 rounded-xl border-2 border-dashed transition-colors cursor-pointer',
           'active:scale-[0.98]',
           dragOver
             ? 'border-primary-400 bg-primary-100/60 scale-[1.01]'
@@ -161,12 +160,11 @@ function SlideCard({
       />
       <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
         <p className="text-[11px] text-primary-400 font-medium">Slide {index + 1}</p>
-        <input
-          type="text"
+        <Input
+          label="Caption"
           value={slide.caption}
           onChange={(e) => onUpdateCaption(e.target.value)}
           placeholder="Add a caption..."
-          className="w-full px-2.5 py-1.5 rounded-lg border border-primary-200 bg-white text-sm text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300"
         />
       </div>
       <button
@@ -219,16 +217,7 @@ function QuizPicker({
 
   return (
     <div className="space-y-2">
-      <div className="relative">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search quizzes..."
-          className="w-full pl-9 pr-3 h-10 rounded-xl border border-primary-200 bg-white text-sm text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300"
-        />
-      </div>
+      <SearchBar value={search} onChange={setSearch} placeholder="Search quizzes..." compact />
       {isLoading ? (
         <p className="text-xs text-primary-400 text-center py-4">Loading quizzes...</p>
       ) : filtered.length === 0 ? (
@@ -464,15 +453,7 @@ function BlockEditForm({
 
       {/* ─── TEXT ─── */}
       {draft.content_type === 'text' && (
-        <div>
-          <label className="block text-sm font-medium text-primary-700 mb-1">Content (Markdown)</label>
-          <textarea
-            className="w-full min-h-[160px] rounded-xl border border-primary-200 bg-white px-4 py-3 text-sm text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
-            value={draft.text_content ?? ''}
-            onChange={(e) => setDraft({ ...draft, text_content: e.target.value })}
-            placeholder="Write your content in Markdown..."
-          />
-        </div>
+        <Input type="textarea" label="Content" value={draft.text_content ?? ''} onChange={(e) => setDraft({ ...draft, text_content: e.target.value })} placeholder="Write your content in Markdown..." rows={6} />
       )}
 
       {/* ─── VIDEO ─── */}
@@ -492,7 +473,7 @@ function BlockEditForm({
                   type="button"
                   onClick={() => setDraft({ ...draft, video_provider: p.key, video_url: p.key !== draft.video_provider ? '' : draft.video_url })}
                   className={cn(
-                    'inline-flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-xl text-sm font-semibold transition-all active:scale-[0.97]',
+                    'inline-flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-xl text-sm font-semibold transition-transform active:scale-[0.97]',
                     draft.video_provider === p.key
                       ? 'bg-sky-600 text-white shadow-sm'
                       : 'bg-white text-primary-500 border border-primary-200 hover:border-sky-300',
@@ -656,6 +637,7 @@ interface BlockEditorProps {
 }
 
 let nextKey = 0
+// eslint-disable-next-line react-refresh/only-export-components
 export function generateBlockKey() {
   return `block-${Date.now()}-${nextKey++}`
 }
@@ -785,7 +767,7 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
                   type="button"
                   onClick={() => addBlock(bt.type)}
                   className={cn(
-                    'w-full flex items-center gap-3 px-4 min-h-[52px] rounded-xl text-left transition-all active:scale-[0.98]',
+                    'w-full flex items-center gap-3 px-4 min-h-[52px] rounded-xl text-left transition-transform active:scale-[0.98]',
                     'bg-white border border-primary-100 hover:border-primary-300 hover:shadow-sm',
                   )}
                 >
@@ -812,7 +794,7 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
             <button
               type="button"
               onClick={() => setShowTypePicker(true)}
-              className="inline-flex items-center gap-1.5 px-4 min-h-[48px] rounded-xl border border-dashed border-primary-300 text-sm font-semibold text-primary-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/40 transition-all active:scale-[0.98] w-full justify-center"
+              className="inline-flex items-center gap-1.5 px-4 min-h-[48px] rounded-xl border border-dashed border-primary-300 text-sm font-semibold text-primary-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/40 transition-transform active:scale-[0.98] w-full justify-center"
             >
               <Plus size={15} />
               Add Block

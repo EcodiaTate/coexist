@@ -42,13 +42,13 @@ export function useUserCollectiveRoles(userId: string | undefined) {
         .order('role', { ascending: false })
 
       if (error) throw error
-      return (data ?? []).map((row: any) => ({
+      return (data ?? []).map((row) => ({
         id: row.id,
         collective_id: row.collective_id,
         role: row.role as CollectiveRole,
         status: row.status,
         joined_at: row.joined_at,
-        collective: row.collectives,
+        collective: row.collectives as UserCollectiveRole['collective'],
       })) as UserCollectiveRole[]
     },
     enabled: !!userId,
@@ -86,6 +86,14 @@ export function useAdminAssignCollectiveRole() {
       if (error) throw error
 
       if (role === 'leader') {
+        // Demote any existing leaders in this collective to co_leader
+        await supabase
+          .from('collective_members')
+          .update({ role: 'co_leader' })
+          .eq('collective_id', collectiveId)
+          .eq('role', 'leader')
+          .neq('user_id', userId)
+
         await supabase
           .from('collectives')
           .update({ leader_id: userId })
@@ -186,6 +194,7 @@ export function useAdminUpdateCapabilities() {
       permissions: Record<string, boolean>
     }) => {
       const { error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from('staff_roles' as any)
         .upsert(
           { user_id: userId, permissions },
@@ -198,7 +207,7 @@ export function useAdminUpdateCapabilities() {
       await queryClient.cancelQueries({ queryKey: key })
       const previous = queryClient.getQueryData(key)
 
-      queryClient.setQueryData(key, (old: any) => {
+      queryClient.setQueryData(key, (old: { role: UserRole; overrides: Record<string, boolean>; capabilities: Set<string> } | undefined) => {
         if (!old) return old
         const newCaps = resolveCapabilities(old.role, variables.permissions)
         return { ...old, overrides: variables.permissions, capabilities: newCaps }
@@ -231,11 +240,12 @@ export function useUserResolvedCapabilities(userId: string | undefined) {
 
       const [profileRes, staffRes] = await Promise.all([
         supabase.from('profiles').select('role').eq('id', userId).single(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         supabase.from('staff_roles' as any).select('permissions').eq('user_id', userId).maybeSingle(),
       ])
 
       const role = (profileRes.data?.role ?? 'participant') as UserRole
-      const overrides = ((staffRes.data as any)?.permissions as Record<string, boolean>) ?? {}
+      const overrides = ((staffRes.data as Record<string, unknown> | null)?.permissions as Record<string, boolean>) ?? {}
       const capabilities = resolveCapabilities(role, overrides)
 
       return { role, overrides, capabilities }

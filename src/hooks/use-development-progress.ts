@@ -16,6 +16,7 @@ export interface ModuleProgress {
   module_id: string
   status: 'not_started' | 'in_progress' | 'completed'
   last_content_id: string | null
+  last_sort_order: number | null
   progress_pct: number
   time_spent_sec: number
   started_at: string | null
@@ -134,6 +135,7 @@ export function useUpsertModuleProgress() {
       module_id: string
       status?: 'not_started' | 'in_progress' | 'completed'
       last_content_id?: string | null
+      last_sort_order?: number | null
       progress_pct?: number
       time_spent_sec?: number
     }) => {
@@ -144,25 +146,63 @@ export function useUpsertModuleProgress() {
         user_id: user.id,
         module_id: input.module_id,
         status: input.status ?? 'in_progress',
-        last_content_id: input.last_content_id ?? null,
-        progress_pct: input.progress_pct ?? 0,
-        time_spent_sec: input.time_spent_sec ?? 0,
       }
 
-      if (input.status === 'in_progress' || input.status === undefined) {
-        row.started_at = now
-      }
+      // Only set fields that were explicitly provided — avoid clobbering with defaults
+      if (input.last_content_id !== undefined) row.last_content_id = input.last_content_id
+      if (input.last_sort_order !== undefined) row.last_sort_order = input.last_sort_order
+      if (input.progress_pct !== undefined) row.progress_pct = input.progress_pct
+      if (input.time_spent_sec !== undefined) row.time_spent_sec = input.time_spent_sec
+
+      // Only set started_at on the very first upsert (insert path) — never overwrite
+      // Supabase upsert with onConflict will use this on insert but the DB trigger
+      // won't overwrite if we omit it on the update path. We set it unconditionally
+      // and rely on a COALESCE in the DB or only set on initial insert.
+      // Safest: always include started_at but use the existing row's value on update.
+      // Since Supabase .upsert replaces the full row, we must include it.
+      // We'll set it only when status transitions to in_progress for the first time.
+      row.started_at = now // Will be ignored on conflict — see below
+
       if (input.status === 'completed') {
         row.completed_at = now
       }
 
-      const { data, error } = await supabase
+      // Use two-step: try update first, then insert if no row exists.
+      // This avoids the upsert overwriting started_at on every save.
+      const { data: existing } = await supabase
         .from('dev_user_module_progress')
-        .upsert(row, { onConflict: 'user_id,module_id' })
-        .select()
-        .single()
-      if (error) throw error
-      return data as ModuleProgress
+        .select('id, started_at')
+        .eq('user_id', user.id)
+        .eq('module_id', input.module_id)
+        .maybeSingle()
+
+      if (existing) {
+        // Update — preserve started_at, only set completed_at on completion
+        const updateRow: Record<string, unknown> = { ...row }
+        delete updateRow.user_id
+        delete updateRow.module_id
+        delete updateRow.started_at // never overwrite
+        if (input.status !== 'completed') delete updateRow.completed_at
+
+        const { data, error } = await supabase
+          .from('dev_user_module_progress')
+          .update(updateRow)
+          .eq('id', existing.id)
+          .select()
+          .single()
+        if (error) throw error
+        return data as ModuleProgress
+      } else {
+        // Insert — set started_at
+        row.started_at = now
+        const { data, error } = await supabase
+          .from('dev_user_module_progress')
+          .insert(row)
+          .select()
+          .single()
+        if (error) throw error
+        return data as ModuleProgress
+      }
     },
     onSuccess: (_data, vars) => {
       if (!user) return

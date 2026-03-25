@@ -12,7 +12,7 @@ import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { useToast } from '@/components/toast'
 import { useAdminPromoCodes, useUpsertPromoCode } from '@/hooks/use-admin-merch'
-import { formatPrice, type PromoCode, type PromoType } from '@/types/merch'
+import { type PromoCode, type PromoType } from '@/types/merch'
 import { cn } from '@/lib/cn'
 
 const SNAP_POINTS_75 = [0.75]
@@ -68,7 +68,7 @@ function PromoFormSheet({
         setType(promo?.type ?? 'percentage')
         setValue(promo ? String(promo.value) : '')
         setMaxUses(promo?.max_uses ? String(promo.max_uses) : '')
-        setExpiresAt(promo?.expires_at?.slice(0, 10) ?? '')
+        setExpiresAt(promo?.valid_to?.slice(0, 10) ?? '')
         setIsActive(promo?.is_active ?? true)
       })
     }
@@ -86,7 +86,7 @@ function PromoFormSheet({
         type,
         value: Number(value),
         max_uses: maxUses ? Number(maxUses) : null,
-        expires_at: expiresAt || null,
+        valid_to: expiresAt || null,
         is_active: isActive,
       })
       toast.success(promo ? 'Promo updated' : 'Promo created')
@@ -126,7 +126,7 @@ function PromoFormSheet({
                 type="button"
                 onClick={() => setType(t)}
                 className={cn(
-                  'flex-1 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-[color,background-color,box-shadow] duration-150',
+                  'flex-1 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors duration-150',
                   type === t
                     ? `${TYPE_COLOURS[t]} ring-2 shadow-sm`
                     : 'bg-primary-50/60 text-primary-400 hover:bg-primary-100/60',
@@ -254,7 +254,7 @@ export default function PromosTab() {
                   <div className="flex items-baseline gap-1 mb-2">
                     <span className="font-heading text-2xl font-bold text-white tabular-nums">
                       {promo.type === 'percentage' && `${promo.value}%`}
-                      {promo.type === 'flat' && formatPrice(promo.value)}
+                      {promo.type === 'flat' && `$${Number(promo.value).toFixed(2)}`}
                       {promo.type === 'free_shipping' && 'Free'}
                     </span>
                     <span className="text-xs text-white/50">
@@ -263,10 +263,10 @@ export default function PromosTab() {
                   </div>
 
                   <div className="flex items-center gap-3 text-xs text-white/60">
-                    <span>{promo.uses}{promo.max_uses ? ` / ${promo.max_uses}` : ''} uses</span>
-                    {promo.expires_at && (
+                    <span>{promo.uses_count}{promo.max_uses ? ` / ${promo.max_uses}` : ''} uses</span>
+                    {promo.valid_to && (
                       <span>
-                        Exp {new Date(promo.expires_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                        Exp {new Date(promo.valid_to).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                       </span>
                     )}
                   </div>

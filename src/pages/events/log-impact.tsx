@@ -28,6 +28,8 @@ import {
   ACTIVITY_TYPE_LABELS,
   getEventDuration,
 } from '@/hooks/use-events'
+import { useCollectiveRole } from '@/hooks/use-collective-role'
+import { useAuth } from '@/hooks/use-auth'
 import type { ImpactField } from '@/hooks/use-events'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
@@ -117,7 +119,7 @@ function SpeciesTracker({
             <button
               type="button"
               onClick={() => updateCount(i, s.count - 1)}
-              className="min-w-11 min-h-11 rounded-full bg-white flex items-center justify-center text-primary-400 hover:bg-primary-50 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-all duration-150"
+              className="min-w-11 min-h-11 rounded-full bg-white flex items-center justify-center text-primary-400 hover:bg-primary-50 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-transform duration-150"
               aria-label={`Decrease ${s.name} count`}
             >
               −
@@ -128,7 +130,7 @@ function SpeciesTracker({
             <button
               type="button"
               onClick={() => updateCount(i, s.count + 1)}
-              className="min-w-11 min-h-11 rounded-full bg-white flex items-center justify-center text-primary-400 hover:bg-primary-50 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-all duration-150"
+              className="min-w-11 min-h-11 rounded-full bg-white flex items-center justify-center text-primary-400 hover:bg-primary-50 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-transform duration-150"
               aria-label={`Increase ${s.name} count`}
             >
               +
@@ -137,7 +139,7 @@ function SpeciesTracker({
           <button
             type="button"
             onClick={() => removeSpecies(i)}
-            className="min-w-11 min-h-11 flex items-center justify-center text-primary-400 hover:text-error-500 cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+            className="min-w-11 min-h-11 flex items-center justify-center text-primary-400 hover:text-error-500 cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
             aria-label={`Remove ${s.name}`}
           >
             <X size={14} />
@@ -153,9 +155,9 @@ function SpeciesTracker({
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && addSpecies()}
           className={cn(
-            'flex-1 rounded-lg bg-primary-50/50',
+            'flex-1 rounded-lg bg-surface-3',
             'px-3 py-2 text-[16px]',
-            'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
+            'focus:outline-none focus:ring-2 focus:ring-primary-400',
             'placeholder:text-primary-400',
           )}
         />
@@ -209,7 +211,7 @@ function PhotoUploadSection({
             <button
               type="button"
               onClick={() => onRemove(i)}
-              className="absolute top-1 right-1 min-w-11 min-h-11 rounded-full bg-black/50 text-white flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+              className="absolute top-1 right-1 min-w-11 min-h-11 rounded-full bg-black/50 text-white flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
               aria-label={`Remove photo ${i + 1}`}
             >
               <X size={10} />
@@ -226,7 +228,7 @@ function PhotoUploadSection({
             'flex flex-col items-center justify-center text-primary-400',
             'hover:bg-primary-100 hover:text-primary-500',
             'cursor-pointer select-none',
-            'active:scale-[0.97] transition-all duration-150',
+            'active:scale-[0.97] transition-transform duration-150',
             'disabled:opacity-50 disabled:cursor-not-allowed',
           )}
           aria-label="Add photo"
@@ -255,10 +257,13 @@ export default function LogImpactPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
 
+  const { profile } = useAuth()
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: existingImpact, isLoading: impactLoading } = useEventImpact(eventId)
   const { data: attendees } = useEventAttendees(eventId)
   const logImpact = useLogImpact()
+  const { isAssistLeader, isLoading: roleLoading } = useCollectiveRole(event?.collective_id)
+  const isStaff = profile?.role === 'national_staff' || profile?.role === 'national_admin' || profile?.role === 'super_admin'
 
   const stagger = {
     hidden: {},
@@ -271,6 +276,19 @@ export default function LogImpactPage() {
   }
 
   const [submitted, setSubmitted] = useState(false)
+
+  // 48h edit window enforcement
+  const { isEditWindowExpired, hoursRemaining: editHoursRemaining } = useMemo(() => {
+    if (!existingImpact) return { isEditWindowExpired: false, hoursRemaining: 48 }
+    const loggedAt = new Date(existingImpact.logged_at).getTime()
+    const hoursSince = (Date.now() - loggedAt) / (1000 * 60 * 60)
+    return {
+      isEditWindowExpired: hoursSince >= 48,
+      hoursRemaining: Math.max(0, Math.ceil(48 - hoursSince)),
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recompute when existingImpact changes
+  }, [existingImpact?.logged_at])
+  const canEdit = !isEditWindowExpired || isStaff
 
   // Form state - numbers stored as strings for input handling
   const [formValues, setFormValues] = useState<Record<string, string>>({
@@ -288,6 +306,7 @@ export default function LogImpactPage() {
   const [photos, setPhotos] = useState<string[]>([])
   const [beforePhotos, setBeforePhotos] = useState<string[]>([])
   const [afterPhotos, setAfterPhotos] = useState<string[]>([])
+  const [drawnArea, setDrawnArea] = useState<Record<string, unknown> | null>(null)
 
   // Camera + upload hooks for each photo section
   const camera = useCamera()
@@ -329,6 +348,15 @@ export default function LogImpactPage() {
           leaders_trained: String(existingImpact.leaders_trained),
         })
         setNotes(existingImpact.notes ?? '')
+        // Restore species and photos from custom_metrics
+        const cm = existingImpact.custom_metrics as Record<string, unknown> | null
+        if (cm) {
+          if (Array.isArray(cm.species)) setSpecies(cm.species as SpeciesEntry[])
+          if (Array.isArray(cm.photos)) setPhotos(cm.photos as string[])
+          if (Array.isArray(cm.before_photos)) setBeforePhotos(cm.before_photos as string[])
+          if (Array.isArray(cm.after_photos)) setAfterPhotos(cm.after_photos as string[])
+          if (cm.drawn_area && typeof cm.drawn_area === 'object') setDrawnArea(cm.drawn_area as Record<string, unknown>)
+        }
         // Back-calculate duration from stored hours_total
         if (existingImpact.hours_total && checkedInCount > 0) {
           setEventDurationHours(String(Math.round((existingImpact.hours_total / checkedInCount) * 10) / 10))
@@ -358,7 +386,7 @@ export default function LogImpactPage() {
   const activityType = event?.activity_type as Database['public']['Enums']['activity_type'] | undefined
 
   // Activity-specific fields only (hours handled separately)
-  const { impactFields, allFields } = useMemo(() => {
+  const { allFields } = useMemo(() => {
     const fields = activityType ? IMPACT_FIELDS_BY_ACTIVITY[activityType] : []
     return { impactFields: fields, allFields: fields.filter((f: ImpactField) => f.key !== 'hours_total') }
   }, [activityType])
@@ -382,13 +410,14 @@ export default function LogImpactPage() {
         photos: photos.length > 0 ? photos : undefined,
         before_photos: beforePhotos.length > 0 ? beforePhotos : undefined,
         after_photos: afterPhotos.length > 0 ? afterPhotos : undefined,
-      } as any,
+        drawn_area: drawnArea ?? undefined,
+      } as unknown as Record<string, unknown>,
     })
 
     setSubmitted(true)
-  }, [eventId, formValues, notes, species, logImpact, computedHoursTotal, photos, beforePhotos, afterPhotos])
+  }, [eventId, formValues, notes, species, logImpact, computedHoursTotal, photos, beforePhotos, afterPhotos, drawnArea])
 
-  const isLoading = eventLoading || impactLoading
+  const isLoading = eventLoading || impactLoading || roleLoading
   const showLoading = useDelayedLoading(isLoading)
 
   if (showLoading) {
@@ -410,6 +439,20 @@ export default function LogImpactPage() {
           title="Event not found"
           description="Could not find this event."
           action={{ label: 'Go Back', onClick: () => navigate(-1) }}
+        />
+      </Page>
+    )
+  }
+
+  // Role gate: only assist-leaders+ and national staff can log impact
+  if (!isAssistLeader && !isStaff) {
+    return (
+      <Page swipeBack header={<Header title="Log Impact" back />}>
+        <EmptyState
+          illustration="error"
+          title="Leader access only"
+          description="Impact logging is available to event leaders and assist-leaders."
+          action={{ label: 'View Event', onClick: () => navigate(`/events/${eventId}`) }}
         />
       </Page>
     )
@@ -481,6 +524,7 @@ export default function LogImpactPage() {
           fullWidth
           icon={<Save size={18} />}
           loading={logImpact.isPending}
+          disabled={!canEdit}
           onClick={handleSubmit}
         >
           {existingImpact ? 'Update Impact' : 'Submit Impact'}
@@ -503,10 +547,16 @@ export default function LogImpactPage() {
           )}
         </motion.div>
 
-        {existingImpact && (
+        {existingImpact && isEditWindowExpired && !isStaff && (
+          <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-error-50 text-error-700 text-sm">
+            <Clock size={16} />
+            The 48-hour edit window has passed. Contact a national admin to make changes.
+          </motion.div>
+        )}
+        {existingImpact && !isEditWindowExpired && (
           <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning-50 text-warning-700 text-sm">
             <Clock size={16} />
-            Editing existing impact data. You can update within 48 hours.
+            Editing existing impact data. {editHoursRemaining} hours remaining to update.
           </motion.div>
         )}
 
@@ -533,9 +583,9 @@ export default function LogImpactPage() {
                     onChange={(e) => setEventDurationHours(e.target.value)}
                     placeholder="0"
                     className={cn(
-                      'w-24 rounded-lg bg-primary-50/50',
+                      'w-24 rounded-lg bg-surface-3',
                       'px-3 py-2 text-[16px] text-right font-semibold text-primary-800',
-                      'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
+                      'focus:outline-none focus:ring-2 focus:ring-primary-400',
                     )}
                     min="0"
                     step="0.5"
@@ -596,9 +646,9 @@ export default function LogImpactPage() {
                       }))
                     }
                     className={cn(
-                      'w-24 rounded-lg bg-primary-50/50',
+                      'w-24 rounded-lg bg-surface-3',
                       'px-3 py-2 text-[16px] text-right font-semibold text-primary-800',
-                      'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
+                      'focus:outline-none focus:ring-2 focus:ring-primary-400',
                     )}
                     min="0"
                     step="any"
@@ -674,6 +724,7 @@ export default function LogImpactPage() {
               zoom={15}
               aria-label="Draw the area you worked on"
               className="aspect-[16/10] rounded-lg"
+              onChange={(geojson: Record<string, unknown> | null) => setDrawnArea(geojson)}
             />
           </Suspense>
         </motion.div>

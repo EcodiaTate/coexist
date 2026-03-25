@@ -21,6 +21,10 @@ export type NotificationType =
   | 'challenge_update'
   | 'chat_mention'
   | 'chat_messages'
+  | 'chat_reply'
+  | 'chat_image'
+  | 'chat_poll'
+  | 'chat_announcement'
   | 'survey_request'
 
 export interface NotificationPreferences {
@@ -36,6 +40,10 @@ export interface NotificationPreferences {
   challenge_update: boolean
   chat_mention: boolean
   chat_messages: boolean
+  chat_reply: boolean
+  chat_image: boolean
+  chat_poll: boolean
+  chat_announcement: boolean
   survey_request: boolean
   quiet_hours_enabled: boolean
   quiet_hours_start: string // "22:00"
@@ -56,6 +64,10 @@ export const DEFAULT_PREFERENCES: NotificationPreferences = {
   challenge_update: true,
   chat_mention: true,
   chat_messages: true,
+  chat_reply: true,
+  chat_image: true,
+  chat_poll: true,
+  chat_announcement: true,
   survey_request: true,
   quiet_hours_enabled: false,
   quiet_hours_start: '22:00',
@@ -98,6 +110,10 @@ export function resolveNotificationRoute(
       return '/'
     case 'chat_mention':
     case 'chat_messages':
+    case 'chat_reply':
+    case 'chat_image':
+    case 'chat_poll':
+    case 'chat_announcement':
       return data?.collective_id ? `/chat/${data.collective_id}` : '/chat'
     case 'survey_request':
       return data?.event_id ? `/events/${data.event_id}/survey` : '/events'
@@ -141,6 +157,14 @@ export function getNotificationMeta(type: string): { emoji: string; color: strin
       return { emoji: '\u{1F4AC}', color: 'bg-info-100' }
     case 'chat_messages':
       return { emoji: '\u{1F4AC}', color: 'bg-neutral-100' }
+    case 'chat_reply':
+      return { emoji: '\u{21A9}\u{FE0F}', color: 'bg-info-100' }
+    case 'chat_image':
+      return { emoji: '\u{1F4F7}', color: 'bg-accent-100' }
+    case 'chat_poll':
+      return { emoji: '\u{1F4CA}', color: 'bg-primary-100' }
+    case 'chat_announcement':
+      return { emoji: '\u{1F4E3}', color: 'bg-warning-100' }
     case 'survey_request':
       return { emoji: '\u{1F4CB}', color: 'bg-primary-100' }
     default:
@@ -156,7 +180,7 @@ function groupByDay(notifications: Notification[]): GroupedNotifications[] {
   const groups: Record<string, Notification[]> = {}
 
   for (const n of notifications) {
-    const date = new Date(n.created_at)
+    const date = new Date(n.created_at ?? Date.now())
     const key = date.toISOString().slice(0, 10) // YYYY-MM-DD
 
     if (!groups[key]) groups[key] = []
@@ -234,7 +258,24 @@ export function useNotifications() {
               return [payload.new as Notification, ...old].slice(0, 100)
             },
           )
-          // Also update unread count
+          queryClient.invalidateQueries({ queryKey: ['notifications-unread', user.id] })
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const deletedId = (payload.old as { id?: string })?.id
+          if (!deletedId) return
+          queryClient.setQueryData<Notification[]>(
+            ['notifications', user.id],
+            (old) => old?.filter(n => n.id !== deletedId),
+          )
           queryClient.invalidateQueries({ queryKey: ['notifications-unread', user.id] })
         },
       )
@@ -291,11 +332,15 @@ export function useMarkRead() {
       await queryClient.cancelQueries({ queryKey: ['notifications', user?.id] })
       const previous = queryClient.getQueryData<Notification[]>(['notifications', user?.id])
       const previousUnread = queryClient.getQueryData<number>(['notifications-unread', user?.id])
+      // Only decrement unread count if this notification was actually unread
+      const wasUnread = previous?.find(n => n.id === notificationId && !n.read_at)
       queryClient.setQueryData<Notification[]>(['notifications', user?.id], (old) => {
         if (!old) return old
         return old.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)
       })
-      queryClient.setQueryData<number>(['notifications-unread', user?.id], (old) => Math.max(0, (old ?? 0) - 1))
+      if (wasUnread) {
+        queryClient.setQueryData<number>(['notifications-unread', user?.id], (old) => Math.max(0, (old ?? 0) - 1))
+      }
       return { previous, previousUnread }
     },
     onError: (_err, _, context) => {

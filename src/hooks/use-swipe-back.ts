@@ -49,6 +49,7 @@ export function useSwipeBack({
   const touchStart = useRef<{ x: number; y: number; t: number } | null>(null)
   const lastMove = useRef<{ x: number; t: number } | null>(null)
   const cancelled = useRef(false)
+  const committed = useRef(false)
   const active = enabled && (isMobile || isNative)
 
   const handleTouchStart = useCallback(
@@ -66,8 +67,6 @@ export function useSwipeBack({
     },
     [edgeWidth],
   )
-
-  const committed = useRef(false)
 
   const handleTouchMove = useCallback(
     (e: TouchEvent) => {

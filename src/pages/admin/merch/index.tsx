@@ -10,7 +10,6 @@ import OrdersTab from './orders-tab'
 import InventoryTab from './inventory-tab'
 import AnalyticsTab from './analytics-tab'
 import PromosTab from './promos-tab'
-import ReviewsTab from './reviews-tab'
 import ShippingTab from './shipping-tab'
 
 /* Combined tab components */
@@ -34,10 +33,6 @@ function OperationsTab() {
       <section>
         <SectionHeader label="Shipping" />
         <ShippingTab />
-      </section>
-      <section>
-        <SectionHeader label="Reviews" />
-        <ReviewsTab />
       </section>
     </div>
   )

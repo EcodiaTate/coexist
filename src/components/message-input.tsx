@@ -13,6 +13,7 @@ import {
   Megaphone,
   Bell,
   X,
+  FileCode2,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { containsProfanity } from '@/lib/profanity'
@@ -20,6 +21,8 @@ import { containsProfanity } from '@/lib/profanity'
 interface MessageInputProps {
   onSend: (message: string) => void
   onAttach?: () => void
+  /** Called when user picks an .html file — receives the file's text content */
+  onAttachHtml?: (htmlContent: string) => void
   onTyping?: () => void
   placeholder?: string
   disabled?: boolean
@@ -40,6 +43,7 @@ interface MessageInputProps {
 export function MessageInput({
   onSend,
   onAttach,
+  onAttachHtml,
   onTyping,
   placeholder = 'Type a message...',
   disabled = false,
@@ -52,13 +56,30 @@ export function MessageInput({
   isLeader = false,
   onCreatePoll,
   onCreateAnnouncement,
-  onCreateEventInvite,
   onBroadcastNotification,
 }: MessageInputProps) {
   const shouldReduceMotion = useReducedMotion()
   const [value, setValue] = useState(initialValue)
   const [showLeaderActions, setShowLeaderActions] = useState(false)
   const [profanityWarning, setProfanityWarning] = useState(false)
+  const htmlInputRef = useRef<HTMLInputElement>(null)
+
+  const handleHtmlFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file || !onAttachHtml) return
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          onAttachHtml(reader.result)
+        }
+      }
+      reader.readAsText(file)
+      // Reset so the same file can be re-selected
+      e.target.value = ''
+    },
+    [onAttachHtml],
+  )
 
   // Sync when initialValue changes (e.g. entering edit mode)
   useEffect(() => {
@@ -155,7 +176,7 @@ export function MessageInput({
               <button
                 type="button"
                 onClick={() => setShowLeaderActions(false)}
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
                 aria-label="Close actions"
               >
                 <X size={14} />
@@ -173,7 +194,7 @@ export function MessageInput({
                   disabled={!action.onClick}
                   className={cn(
                     'flex flex-1 flex-col items-center gap-1 rounded-xl py-2.5 px-1',
-                    'transition-all duration-150 active:scale-[0.95] cursor-pointer select-none min-h-11',
+                    'transition-transform duration-150 active:scale-[0.95] cursor-pointer select-none min-h-11',
                     action.color,
                     'hover:shadow-sm',
                     !action.onClick && 'opacity-40 cursor-default',
@@ -223,9 +244,8 @@ export function MessageInput({
           role="toolbar"
           aria-label={ariaLabel}
           className={cn(
-            'flex items-end gap-2 rounded-2xl bg-primary-50/60 px-3.5 py-2.5',
-            'transition-all duration-200',
-            'ring-1 ring-primary-200/50',
+            'flex items-end gap-2 rounded-2xl bg-surface-3 px-3.5 py-2.5',
+            'transition-[background-color,box-shadow] duration-200',
             'focus-within:bg-white focus-within:shadow-md focus-within:ring-2 focus-within:ring-primary-400/70',
             disabled && 'opacity-50',
           )}
@@ -239,7 +259,7 @@ export function MessageInput({
               aria-label="Leader actions"
               className={cn(
                 'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center',
-                'transition-all duration-200 active:scale-[0.93]',
+                'transition-transform duration-200 active:scale-[0.93]',
                 showLeaderActions
                   ? 'bg-primary-600 text-white rotate-45'
                   : 'text-primary-400 hover:bg-primary-100 hover:text-primary-600',
@@ -257,7 +277,7 @@ export function MessageInput({
               type="button"
               onClick={onAttach}
               disabled={disabled}
-              aria-label="Attach file"
+              aria-label="Attach photo"
               className={cn(
                 'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center text-primary-400',
                 'transition-[colors,transform] duration-150 active:scale-[0.93]',
@@ -268,6 +288,34 @@ export function MessageInput({
             >
               <Paperclip size={20} aria-hidden="true" />
             </button>
+          )}
+
+          {/* HTML file attach button */}
+          {onAttachHtml && (
+            <>
+              <input
+                ref={htmlInputRef}
+                type="file"
+                accept=".html,.htm"
+                className="hidden"
+                onChange={handleHtmlFileChange}
+              />
+              <button
+                type="button"
+                onClick={() => htmlInputRef.current?.click()}
+                disabled={disabled}
+                aria-label="Attach HTML file"
+                className={cn(
+                  'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center text-primary-400',
+                  'transition-[colors,transform] duration-150 active:scale-[0.93]',
+                  'hover:bg-primary-100 hover:text-primary-600',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                  'disabled:pointer-events-none',
+                )}
+              >
+                <FileCode2 size={20} aria-hidden="true" />
+              </button>
+            </>
           )}
 
           {/* Textarea */}
@@ -305,7 +353,7 @@ export function MessageInput({
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 className={cn(
                   'flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 min-w-11 min-h-11 flex items-center justify-center text-white',
-                  'transition-all duration-150',
+                  'transition-colors duration-150',
                   'hover:from-primary-600 hover:to-primary-800',
                   'shadow-lg shadow-primary-300/40',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1',

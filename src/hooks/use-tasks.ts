@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
@@ -8,6 +8,15 @@ import { resolveAndGenerateDynamicInstances } from '@/hooks/use-timeline-rules'
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
+
+interface TaskInstanceRow extends Record<string, unknown> {
+  id: string
+  assigned_user_id: string | null
+  task_templates: unknown
+  collectives: unknown
+  events: unknown
+  profiles: unknown
+}
 
 export interface MyTask extends TaskInstance {
   template: TaskTemplate
@@ -24,7 +33,22 @@ export interface CollectiveTaskGroup {
 }
 
 /* ------------------------------------------------------------------ */
-/*  useMyTasks — all pending tasks for current user across collectives */
+/*  Role hierarchy helper                                              */
+/* ------------------------------------------------------------------ */
+
+const ROLE_RANK: Record<string, number> = {
+  assist_leader: 0,
+  co_leader: 1,
+  leader: 2,
+}
+
+/** Returns true if the user's role in a collective meets the template's minimum */
+function meetsRoleRequirement(userRole: string, requiredRole: string): boolean {
+  return (ROLE_RANK[userRole] ?? -1) >= (ROLE_RANK[requiredRole] ?? 99)
+}
+
+/* ------------------------------------------------------------------ */
+/*  useMyTasks — current + recent tasks for current user               */
 /* ------------------------------------------------------------------ */
 
 export function useMyTasks() {
@@ -44,8 +68,12 @@ export function useMyTasks() {
     queryFn: async () => {
       if (!user || staffCollectiveIds.length === 0) return []
 
+      // Only fetch instances from the last 30 days to prevent unbounded growth
+      const cutoff = new Date()
+      cutoff.setDate(cutoff.getDate() - 30)
+
       const { data, error } = await supabase
-        .from('task_instances' as any)
+        .from('task_instances' as never)
         .select(`
           *,
           task_templates(*),
@@ -54,14 +82,26 @@ export function useMyTasks() {
           profiles!task_instances_completed_by_fkey(display_name, avatar_url)
         `)
         .in('collective_id', staffCollectiveIds)
+        .gte('due_date', cutoff.toISOString())
         .order('due_date', { ascending: true })
 
       if (error) throw error
 
-      // Filter: for individual tasks (assigned_user_id set), only show the current user's instances
+      // Build a role lookup per collective
+      const roleMap = new Map(collectiveRoles.map((m) => [m.collective_id, m.role]))
+
       return (data ?? [])
-        .filter((row: any) => !row.assigned_user_id || row.assigned_user_id === user!.id)
-        .map((row: any) => ({
+        .filter((row: TaskInstanceRow) => {
+          // For individual tasks, only show the current user's instances
+          if (row.assigned_user_id && row.assigned_user_id !== user!.id) return false
+          // Filter by assignee_role: only show tasks the user's collective role qualifies for
+          const tpl = row.task_templates as Record<string, unknown> | null
+          const requiredRole = (tpl?.assignee_role as string) ?? 'assist_leader'
+          const userRole = roleMap.get(row.collective_id as string) ?? ''
+          if (!meetsRoleRequirement(userRole, requiredRole)) return false
+          return true
+        })
+        .map((row: TaskInstanceRow) => ({
           ...row,
           template: row.task_templates,
           collective: row.collectives,
@@ -86,8 +126,11 @@ export function useCollectiveTasks(collectiveId: string | undefined) {
     queryFn: async () => {
       if (!collectiveId) return []
 
+      const cutoff = new Date()
+      cutoff.setDate(cutoff.getDate() - 30)
+
       const { data, error } = await supabase
-        .from('task_instances' as any)
+        .from('task_instances' as never)
         .select(`
           *,
           task_templates(*),
@@ -96,11 +139,12 @@ export function useCollectiveTasks(collectiveId: string | undefined) {
           profiles!task_instances_completed_by_fkey(display_name, avatar_url)
         `)
         .eq('collective_id', collectiveId)
+        .gte('due_date', cutoff.toISOString())
         .order('due_date', { ascending: true })
 
       if (error) throw error
 
-      return (data ?? []).map((row: any) => ({
+      return (data ?? []).map((row: TaskInstanceRow) => ({
         ...row,
         template: row.task_templates,
         collective: row.collectives,
@@ -132,7 +176,7 @@ export function useCompleteTask() {
       if (!user) throw new Error('Not authenticated')
 
       const { error } = await supabase
-        .from('task_instances' as any)
+        .from('task_instances' as never)
         .update({
           status: 'completed',
           completed_at: new Date().toISOString(),
@@ -187,7 +231,7 @@ export function useSkipTask() {
   return useMutation({
     mutationFn: async (instanceId: string) => {
       const { error } = await supabase
-        .from('task_instances' as any)
+        .from('task_instances' as never)
         .update({ status: 'skipped' })
         .eq('id', instanceId)
 
@@ -212,6 +256,17 @@ export function useSkipTask() {
 /*  useGenerateTaskInstances — lazy generation for current period      */
 /* ------------------------------------------------------------------ */
 
+interface TemplateRow {
+  id: string
+  schedule_type: string
+  assignment_mode?: string
+  assignee_role?: string
+  collective_id: string | null
+  use_dynamic_timeline?: boolean
+  event_offset_days?: number | null
+  [key: string]: unknown
+}
+
 export function useGenerateTaskInstances() {
   const queryClient = useQueryClient()
   const { user, collectiveRoles } = useAuth()
@@ -220,44 +275,67 @@ export function useGenerateTaskInstances() {
     mutationFn: async () => {
       if (!user) return
 
-      const staffCollectiveIds = collectiveRoles
-        .filter((m) => m.role === 'assist_leader' || m.role === 'co_leader' || m.role === 'leader')
-        .map((m) => m.collective_id)
+      const staffRoles = collectiveRoles.filter(
+        (m) => m.role === 'assist_leader' || m.role === 'co_leader' || m.role === 'leader',
+      )
+      const staffCollectiveIds = staffRoles.map((m) => m.collective_id)
 
       if (staffCollectiveIds.length === 0) return
 
-      // Fetch active templates that apply to user's collectives
+      // Build a role lookup per collective for assignee_role filtering
+      const roleMap = new Map(staffRoles.map((m) => [m.collective_id, m.role]))
+
+      // Fetch ALL active templates (including event_relative)
       const { data: templates } = await supabase
-        .from('task_templates' as any)
+        .from('task_templates' as never)
         .select('*')
         .eq('is_active', true)
-        .neq('schedule_type', 'event_relative') // Event-relative handled separately
 
       if (!templates?.length) return
 
-      // Separate once vs recurring templates, and split recurring by assignment mode
-      const onceTemplates = (templates as any[]).filter((t) => t.schedule_type === 'once')
-      const collectiveRecurring = (templates as any[]).filter(
-        (t) => t.schedule_type !== 'once' && (t.assignment_mode ?? 'collective') === 'collective',
+      const typedTemplates = templates as unknown as TemplateRow[]
+
+      // Split templates by type
+      const onceTemplates = typedTemplates.filter((t) => t.schedule_type === 'once')
+      const collectiveRecurring = typedTemplates.filter(
+        (t) =>
+          (t.schedule_type === 'weekly' || t.schedule_type === 'monthly') &&
+          (t.assignment_mode ?? 'collective') === 'collective',
       )
-      const individualRecurring = (templates as any[]).filter(
-        (t) => t.schedule_type !== 'once' && t.assignment_mode === 'individual',
+      const individualRecurring = typedTemplates.filter(
+        (t) =>
+          (t.schedule_type === 'weekly' || t.schedule_type === 'monthly') &&
+          t.assignment_mode === 'individual',
       )
+      // Non-dynamic event_relative templates (legacy fixed-offset)
+      const legacyEventRelative = typedTemplates.filter(
+        (t) => t.schedule_type === 'event_relative' && !t.use_dynamic_timeline,
+      )
+      // Dynamic event_relative handled by resolveAndGenerateDynamicInstances
+
+      /** Helper: get collectives this user qualifies for given a template's assignee_role */
+      const getTargetCollectives = (template: TemplateRow): string[] => {
+        const candidates = template.collective_id
+          ? [template.collective_id].filter((id: string) => staffCollectiveIds.includes(id))
+          : staffCollectiveIds
+        const requiredRole = template.assignee_role ?? 'assist_leader'
+        return candidates.filter((cId) => meetsRoleRequirement(roleMap.get(cId) ?? '', requiredRole))
+      }
 
       // --- Handle collective recurring templates (weekly/monthly) ---
-      // One instance per collective per period — any staff can complete
+      // One instance per collective per period — any qualifying staff can complete
+      // Use INSERT with ON CONFLICT DO NOTHING to avoid overwriting completed/skipped tasks
       for (const template of collectiveRecurring) {
         const periodKey = getCurrentPeriodKey(template.schedule_type)
         if (!periodKey) continue
 
-        const targetCollectives = template.collective_id
-          ? [template.collective_id].filter((id: string) => staffCollectiveIds.includes(id))
-          : staffCollectiveIds
+        const targetCollectives = getTargetCollectives(template)
 
         for (const collectiveId of targetCollectives) {
-          const dueDate = getDueDate(template as TaskTemplate, periodKey)
+          const dueDate = getDueDate(template as unknown as TaskTemplate, periodKey)
+          // INSERT ... ON CONFLICT DO NOTHING: only creates if no row exists for this period
           await supabase
-            .from('task_instances' as any)
+            .from('task_instances' as never)
             .upsert(
               {
                 template_id: template.id,
@@ -266,7 +344,7 @@ export function useGenerateTaskInstances() {
                 period_key: periodKey,
                 status: 'pending',
               },
-              { onConflict: 'template_id,collective_id,period_key' },
+              { onConflict: 'template_id,collective_id,period_key', ignoreDuplicates: true },
             )
         }
       }
@@ -274,41 +352,36 @@ export function useGenerateTaskInstances() {
       // --- Handle individual recurring templates (weekly/monthly) ---
       // One instance per USER per collective per period
       if (individualRecurring.length > 0) {
-        const indivTemplateIds = individualRecurring.map((t: any) => t.id)
-
-        // Check which individual-recurring tasks this user already has for the current periods
-        const periodsToCheck: string[] = []
-        for (const template of individualRecurring) {
-          const pk = getCurrentPeriodKey(template.schedule_type)
-          if (pk) periodsToCheck.push(`${pk}:${user.id}`)
-        }
+        const indivTemplateIds = individualRecurring.map((t) => t.id)
 
         const { data: existingIndiv } = await supabase
-          .from('task_instances' as any)
+          .from('task_instances' as never)
           .select('template_id, collective_id, period_key')
           .in('template_id', indivTemplateIds)
           .eq('assigned_user_id', user.id)
 
         const existingIndivKeys = new Set(
-          (existingIndiv ?? []).map((r: any) => `${r.template_id}:${r.collective_id}:${r.period_key}`),
+          (existingIndiv ?? []).map(
+            (r: { template_id: string; collective_id: string; period_key: string }) =>
+              `${r.template_id}:${r.collective_id}:${r.period_key}`,
+          ),
         )
 
         for (const template of individualRecurring) {
           const basePeriodKey = getCurrentPeriodKey(template.schedule_type)
           if (!basePeriodKey) continue
 
+          // Encode user ID into period_key for uniqueness within the unique constraint
           const periodKey = `${basePeriodKey}:${user.id}`
-          const targetCollectives = template.collective_id
-            ? [template.collective_id].filter((id: string) => staffCollectiveIds.includes(id))
-            : staffCollectiveIds
+          const targetCollectives = getTargetCollectives(template)
 
           for (const collectiveId of targetCollectives) {
             const key = `${template.id}:${collectiveId}:${periodKey}`
             if (existingIndivKeys.has(key)) continue
 
-            const dueDate = getDueDate(template as TaskTemplate, basePeriodKey)
+            const dueDate = getDueDate(template as unknown as TaskTemplate, basePeriodKey)
             await supabase
-              .from('task_instances' as any)
+              .from('task_instances' as never)
               .insert({
                 template_id: template.id,
                 collective_id: collectiveId,
@@ -323,22 +396,22 @@ export function useGenerateTaskInstances() {
 
       // --- Handle once templates (per-user, never regenerate after any status) ---
       if (onceTemplates.length > 0) {
-        const onceTemplateIds = onceTemplates.map((t: any) => t.id)
+        const onceTemplateIds = onceTemplates.map((t) => t.id)
 
         const { data: existingOnce } = await supabase
-          .from('task_instances' as any)
+          .from('task_instances' as never)
           .select('template_id, collective_id')
           .in('template_id', onceTemplateIds)
           .eq('assigned_user_id', user.id)
 
         const existingKeys = new Set(
-          (existingOnce ?? []).map((r: any) => `${r.template_id}:${r.collective_id}`),
+          (existingOnce ?? []).map(
+            (r: { template_id: string; collective_id: string }) => `${r.template_id}:${r.collective_id}`,
+          ),
         )
 
         for (const template of onceTemplates) {
-          const targetCollectives = template.collective_id
-            ? [template.collective_id].filter((id: string) => staffCollectiveIds.includes(id))
-            : staffCollectiveIds
+          const targetCollectives = getTargetCollectives(template)
 
           for (const collectiveId of targetCollectives) {
             const key = `${template.id}:${collectiveId}`
@@ -350,7 +423,7 @@ export function useGenerateTaskInstances() {
             dueDate.setHours(23, 59, 59, 999)
 
             await supabase
-              .from('task_instances' as any)
+              .from('task_instances' as never)
               .insert({
                 template_id: template.id,
                 collective_id: collectiveId,
@@ -359,6 +432,55 @@ export function useGenerateTaskInstances() {
                 assigned_user_id: user.id,
                 status: 'pending',
               })
+          }
+        }
+      }
+
+      // --- Handle legacy (non-dynamic) event_relative templates ---
+      // These use a fixed event_offset_days against each collective's next upcoming event
+      if (legacyEventRelative.length > 0) {
+        for (const template of legacyEventRelative) {
+          const targetCollectives = getTargetCollectives(template)
+          const offsetDays = template.event_offset_days ?? 0
+
+          for (const collectiveId of targetCollectives) {
+            // Find the next published event for this collective
+            const { data: events } = await supabase
+              .from('events')
+              .select('id, title, date_start')
+              .eq('collective_id', collectiveId)
+              .eq('status', 'published')
+              .gte('date_start', new Date().toISOString())
+              .order('date_start', { ascending: true })
+              .limit(1)
+
+            if (!events?.length) continue
+            const event = events[0]
+
+            const eventDate = new Date(event.date_start)
+            const dueDate = new Date(eventDate)
+            dueDate.setDate(dueDate.getDate() + offsetDays)
+            dueDate.setHours(23, 59, 59, 999)
+
+            // Skip if due date is already in the past
+            if (dueDate < new Date()) continue
+
+            const periodKey = `event:${event.id}`
+
+            // Use ignoreDuplicates to avoid overwriting completed/skipped instances
+            await supabase
+              .from('task_instances' as never)
+              .upsert(
+                {
+                  template_id: template.id,
+                  collective_id: collectiveId,
+                  event_id: event.id,
+                  due_date: dueDate.toISOString(),
+                  period_key: periodKey,
+                  status: 'pending',
+                },
+                { onConflict: 'template_id,collective_id,period_key', ignoreDuplicates: true },
+              )
           }
         }
       }

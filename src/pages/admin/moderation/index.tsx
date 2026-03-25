@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
-  Shield,
   Check,
   Trash2,
   AlertTriangle,
@@ -23,6 +22,7 @@ import { PullToRefresh } from '@/components/pull-to-refresh'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
+import { logAudit } from '@/lib/audit'
 import { useAuth } from '@/hooks/use-auth'
 import type { ContentReport, Profile, Enums } from '@/types/database.types'
 
@@ -39,10 +39,8 @@ interface ReportWithReporter extends ContentReport {
 /* ------------------------------------------------------------------ */
 
 const contentTypeConfig: Record<string, { icon: typeof FileText; label: string; color: string }> = {
-  post: { icon: FileText, label: 'Post', color: 'text-info-600 bg-info-100' },
   photo: { icon: ImageIcon, label: 'Photo', color: 'text-plum-600 bg-plum-100' },
   chat_message: { icon: MessageSquare, label: 'Chat Message', color: 'text-success-600 bg-success-100' },
-  comment: { icon: MessageSquare, label: 'Comment', color: 'text-warning-600 bg-warning-100' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -88,6 +86,7 @@ function useReviewReport() {
         .eq('id', reportId)
 
       if (error) throw error
+      await logAudit({ action: action === 'removed' ? 'content_removed' : `content_${action}`, target_type: 'content_report', target_id: reportId })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['moderation-queue'] })
@@ -125,7 +124,7 @@ function ReportCard({
 }) {
   const shouldReduceMotion = useReducedMotion()
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
-  const config = contentTypeConfig[report.content_type] ?? contentTypeConfig.post
+  const config = contentTypeConfig[report.content_type] ?? contentTypeConfig.photo
   const TypeIcon = config.icon
 
   return (

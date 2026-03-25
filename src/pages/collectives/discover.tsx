@@ -81,7 +81,7 @@ function CollectiveCard({ collective }: { collective: CollectiveWithLeader }) {
     >
       <Link
         to={`/collectives/${collective.slug}`}
-        className="group flex gap-3 rounded-2xl bg-white shadow-sm border border-secondary-50/60 p-3 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]"
+        className="group flex gap-3 rounded-2xl bg-white shadow-sm border border-secondary-50/60 p-3 transition-transform duration-200 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98]"
       >
         {/* Cover thumbnail */}
         <div className="h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-secondary-100">
@@ -162,7 +162,7 @@ export default function DiscoverCollectivesPage() {
               type="button"
               onClick={() => setView(view === 'list' ? 'map' : 'list')}
               aria-label={view === 'list' ? 'Switch to map view' : 'Switch to list view'}
-              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-surface-3 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-surface-3 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
             >
               {view === 'list' ? <Map size={20} /> : <List size={20} />}
             </button>
@@ -219,7 +219,7 @@ export default function DiscoverCollectivesPage() {
                 type="button"
                 onClick={() => setSelectedState(null)}
                 className={cn(
-                  'shrink-0 rounded-full px-3 py-1.5 min-h-11 text-xs font-semibold active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                  'shrink-0 rounded-full px-3 py-1.5 min-h-11 text-xs font-semibold active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                   selectedState === null
                     ? 'bg-secondary-700 text-white shadow-sm'
                     : 'bg-white/90 text-primary-400 border border-secondary-100/50 hover:bg-white',
@@ -233,7 +233,7 @@ export default function DiscoverCollectivesPage() {
                   type="button"
                   onClick={() => setSelectedState(selectedState === state ? null : state)}
                   className={cn(
-                    'shrink-0 rounded-full px-3 py-1.5 min-h-11 text-xs font-semibold active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                    'shrink-0 rounded-full px-3 py-1.5 min-h-11 text-xs font-semibold active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                     selectedState === state
                       ? 'bg-secondary-700 text-white shadow-sm'
                       : 'bg-white/90 text-primary-400 border border-secondary-100/50 hover:bg-white',

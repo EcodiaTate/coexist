@@ -23,7 +23,6 @@ import {
   Repeat,
   Accessibility,
   Mountain,
-  Shirt,
   Backpack,
   Sparkles,
   Check,
@@ -35,7 +34,6 @@ import {
   HelpCircle,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
-import { useCollectiveRole } from '@/hooks/use-collective-role'
 import {
   useCreateEvent,
   useInviteCollective,
@@ -54,8 +52,6 @@ import {
   DatePicker,
   Toggle,
   Card,
-  Badge,
-  Skeleton,
   MapView,
   UploadProgress,
 } from '@/components'
@@ -619,7 +615,7 @@ function StepCoverImage({
           disabled={cameraLoading || uploading}
           className={cn(
             'w-full min-h-11 cursor-pointer select-none',
-            'active:scale-[0.98] transition-all duration-200',
+            'active:scale-[0.98] transition-transform duration-200',
             'flex flex-col items-center justify-center',
             'disabled:opacity-50 disabled:cursor-not-allowed',
             data.cover_image_url
@@ -729,7 +725,7 @@ function StepVisibility({
         onClick={() => onChange({ is_public: true })}
         className={cn(
           'w-full min-h-11 flex items-center gap-4 p-4 rounded-2xl cursor-pointer select-none text-left',
-          'active:scale-[0.97] transition-all duration-200',
+          'active:scale-[0.97] transition-transform duration-200',
           'border',
           data.is_public
             ? 'border-primary-400 shadow-md bg-gradient-to-r from-primary-50 to-sprout-50 ring-1 ring-primary-300/50'
@@ -765,7 +761,7 @@ function StepVisibility({
         onClick={() => onChange({ is_public: false })}
         className={cn(
           'w-full min-h-11 flex items-center gap-4 p-4 rounded-2xl cursor-pointer select-none text-left',
-          'active:scale-[0.97] transition-all duration-200',
+          'active:scale-[0.97] transition-transform duration-200',
           'border',
           !data.is_public
             ? 'border-plum-400 shadow-md bg-gradient-to-r from-plum-50 to-primary-50 ring-1 ring-plum-300/50'
@@ -1083,13 +1079,13 @@ function ProgressStepper({
 
 export default function CreateEventPage() {
   const navigate = useNavigate()
-  const { user, profile } = useAuth()
+  const { user } = useAuth()
   const shouldReduceMotion = useReducedMotion()
 
   const [step, setStep] = useState(0)
   const [direction, setDirection] = useState(1) // 1 = forward, -1 = back
   const [data, setData] = useState<EventFormData>(INITIAL_DATA)
-  const [saveAsDraft, setSaveAsDraft] = useState(false)
+  const [saveAsDraft] = useState(false)
 
   const createEvent = useCreateEvent()
   const inviteCollective = useInviteCollective()
@@ -1148,6 +1144,13 @@ export default function CreateEventPage() {
         }
 
         const capacityNum = data.capacity ? parseInt(data.capacity, 10) : null
+
+        // Build PostGIS-compatible location point from map pin coordinates
+        const locationPoint =
+          data.location_lat != null && data.location_lng != null
+            ? `POINT(${data.location_lng} ${data.location_lat})`
+            : null
+
         const event = await createEvent.mutateAsync({
           collective_id: collectiveId,
           title: data.title,
@@ -1157,6 +1160,7 @@ export default function CreateEventPage() {
           date_start: data.date_start!.toISOString(),
           date_end: data.date_end?.toISOString() ?? null,
           address: data.address || null,
+          location_point: locationPoint,
           capacity: capacityNum && capacityNum > 0 ? capacityNum : null,
           cover_image_url: data.cover_image_url || null,
           is_public: data.is_public,

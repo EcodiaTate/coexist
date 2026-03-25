@@ -2,6 +2,7 @@ import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Handshake, Globe, ExternalLink } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { cn } from '@/lib/cn'
@@ -115,7 +116,7 @@ export default function PartnersPage() {
   const { data: partners, isLoading } = usePartnerOrganisations()
 
   return (
-    <Page noBackground className="!px-0 bg-white">
+    <Page swipeBack noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-br from-moss-700 via-primary-800 to-secondary-800">
         {/* Decorative shapes */}

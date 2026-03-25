@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
-import { Package, ChevronRight } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -120,7 +120,7 @@ export default function OrdersPage() {
                     </span>
                     <div className="flex items-center gap-1">
                       <span className="font-heading font-bold text-sm text-primary-800">
-                        {formatPrice(order.total_cents)}
+                        {formatPrice(order.total_cents ?? 0)}
                       </span>
                       <ChevronRight size={16} className="text-primary-400" />
                     </div>

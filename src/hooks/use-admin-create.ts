@@ -18,22 +18,24 @@ export interface CreateSummaryData {
 }
 
 async function fetchCreateSummary(): Promise<CreateSummaryData> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- untyped tables: email_campaigns, dev_modules, dev_sections
+  const sb = supabase as any
   const [surveysRes, campaignsRes, draftCampaignsRes, subscribersRes, modulesRes, sectionsRes] = await Promise.all([
     supabase.from('surveys').select('id', { count: 'exact', head: true }),
-    supabase
-      .from('email_campaigns' as any)
+    sb
+      .from('email_campaigns')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'sent'),
-    supabase
-      .from('email_campaigns' as any)
+    sb
+      .from('email_campaigns')
       .select('id', { count: 'exact', head: true })
       .eq('status', 'draft'),
-    supabase.rpc('email_subscriber_count' as any),
-    (supabase as any).from('dev_modules').select('id, status', { count: 'exact' }),
-    (supabase as any).from('dev_sections').select('id', { count: 'exact', head: true }),
+    sb.rpc('email_subscriber_count'),
+    sb.from('dev_modules').select('id, status', { count: 'exact' }),
+    sb.from('dev_sections').select('id', { count: 'exact', head: true }),
   ])
 
-  const modules = modulesRes.data ?? []
+  const modules = (modulesRes.data ?? []) as Record<string, unknown>[]
 
   return {
     totalSurveys: surveysRes.count ?? 0,
@@ -41,7 +43,7 @@ async function fetchCreateSummary(): Promise<CreateSummaryData> {
     draftCampaigns: draftCampaignsRes.count ?? 0,
     subscribers: (subscribersRes.data as number) ?? 0,
     totalModules: modulesRes.count ?? 0,
-    publishedModules: modules.filter((m: any) => m.status === 'published').length,
+    publishedModules: modules.filter((m) => m.status === 'published').length,
     totalSections: sectionsRes.count ?? 0,
   }
 }

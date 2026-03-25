@@ -319,7 +319,7 @@ function MyEventCard({
                 'mt-3 min-h-11 flex items-center justify-center gap-1 text-caption font-medium text-white/50',
                 'hover:text-error',
                 'cursor-pointer select-none',
-                'active:scale-[0.97] transition-all duration-150',
+                'active:scale-[0.97] transition-transform duration-150',
               )}
               aria-label="Cancel registration"
             >
@@ -435,7 +435,6 @@ function EventListSkeleton() {
 /* ------------------------------------------------------------------ */
 
 export default function EventsPage() {
-  const navigate = useNavigate()
   const [activityFilter, setActivityFilter] = useState<ActivityType | ''>('')
   const [collectiveFilter, setCollectiveFilter] = useState<string>('')
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)

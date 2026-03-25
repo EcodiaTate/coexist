@@ -2,15 +2,16 @@ import { useCallback, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { MessageCircle, Users, ChevronRight, Lock, Globe, MapPin, Leaf, MessagesSquare } from 'lucide-react'
+import { MessageCircle, Users, ChevronRight, Lock, Globe, MapPin, Leaf, MessagesSquare, Shield } from 'lucide-react'
 import { Page } from '@/components/page'
 import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { cn } from '@/lib/cn'
-import { useMyCollectives } from '@/hooks/use-collective'
+import { useMyCollectives, useCollectives } from '@/hooks/use-collective'
 import { useUnreadCounts } from '@/hooks/use-chat'
 import { useMyStaffChannels, useChannelUnreadCounts, type StaffChannel } from '@/hooks/use-staff-channels'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { useAuth } from '@/hooks/use-auth'
 
 /* ------------------------------------------------------------------ */
 /*  Staff channel type config                                          */
@@ -128,7 +129,7 @@ function DecorativeBackground() {
 /*  Staff channel row                                                  */
 /* ------------------------------------------------------------------ */
 
-function StaffChannelRow({ channel, unread, index }: { channel: StaffChannel; unread: number; index: number }) {
+function StaffChannelRow({ channel, unread }: { channel: StaffChannel; unread: number; index: number }) {
   const shouldReduceMotion = useReducedMotion()
   const hasUnread = unread > 0
   const config = CHANNEL_TYPE_CONFIG[channel.type] ?? CHANNEL_TYPE_CONFIG.staff_collective
@@ -142,7 +143,7 @@ function StaffChannelRow({ channel, unread, index }: { channel: StaffChannel; un
         to={`/chat/channel/${channel.id}`}
         className={cn(
           'group relative flex items-center gap-4 rounded-[20px] p-4',
-          'transition-all duration-200 active:scale-[0.97]',
+          'transition-transform duration-200 active:scale-[0.97]',
           'shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12),0_1px_4px_rgba(61,77,51,0.05)]',
           'border',
           config.cardBg,
@@ -208,7 +209,6 @@ function CollectiveChatRow({
   collective,
   collectiveId,
   unread,
-  index,
 }: {
   collective: {
     id: string
@@ -237,7 +237,7 @@ function CollectiveChatRow({
           'bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf]',
           'border border-primary-200/35',
           'shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12),0_1px_4px_rgba(61,77,51,0.05)]',
-          'transition-all duration-200 active:scale-[0.97]',
+          'transition-transform duration-200 active:scale-[0.97]',
           hasUnread
             ? 'ring-2 ring-primary-400/70 shadow-[0_6px_28px_-4px_rgba(61,77,51,0.18)]'
             : 'hover:shadow-[0_8px_32px_-6px_rgba(61,77,51,0.16)] hover:ring-1 hover:ring-primary-300/40',
@@ -340,18 +340,37 @@ export default function ChatListPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const { profile, isStaff, isAdmin, isSuperAdmin } = useAuth()
+  const isGlobalStaff = isStaff || isAdmin || isSuperAdmin
   const { data: myCollectives, isLoading } = useMyCollectives()
+  const { data: allCollectives } = useCollectives()
   const { data: unreadCounts = {} } = useUnreadCounts()
   const { data: staffChannels, isLoading: channelsLoading } = useMyStaffChannels()
   const { data: channelUnreads = {} } = useChannelUnreadCounts()
   const showLoading = useDelayedLoading(isLoading && channelsLoading)
+
+  // For staff/admin: collectives they're NOT already a member of
+  const myCollectiveIds = new Set(myCollectives?.map((m) => m.collective_id) ?? [])
+  const otherCollectives = isGlobalStaff
+    ? (allCollectives ?? []).filter((c) => !myCollectiveIds.has(c.id))
+    : []
 
   // Auto-redirect to primary collective chat (once per session)
   useEffect(() => {
     if (hasRedirectedThisSession) return
     if (isLoading || !myCollectives?.length) return
 
-    // Pick primary collective: highest role, then earliest join
+    const myCollectiveIds = new Set(myCollectives.map((m) => m.collective_id))
+
+    // Use user's chosen primary chat if they've set one and still belong to that collective
+    const userPrimary = (profile as unknown as { primary_chat_id?: string } | null)?.primary_chat_id
+    if (userPrimary && myCollectiveIds.has(userPrimary)) {
+      hasRedirectedThisSession = true
+      navigate(`/chat/${userPrimary}`, { replace: true })
+      return
+    }
+
+    // Fallback: pick primary collective by highest role, then earliest join
     const sorted = [...myCollectives].sort((a, b) => {
       const rankA = ROLE_RANK[a.role] ?? 0
       const rankB = ROLE_RANK[b.role] ?? 0
@@ -364,11 +383,12 @@ export default function ChatListPage() {
       hasRedirectedThisSession = true
       navigate(`/chat/${primaryId}`, { replace: true })
     }
-  }, [isLoading, myCollectives, navigate])
+  }, [isLoading, myCollectives, navigate, profile])
 
   const handleRefresh = useCallback(async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['my-collectives'] }),
+      queryClient.invalidateQueries({ queryKey: ['collectives'] }),
       queryClient.invalidateQueries({ queryKey: ['unread-counts'] }),
       queryClient.invalidateQueries({ queryKey: ['my-staff-channels'] }),
       queryClient.invalidateQueries({ queryKey: ['channel-unread'] }),
@@ -406,7 +426,7 @@ export default function ChatListPage() {
   }
   if (isLoading && channelsLoading) return null
 
-  if (!myCollectives?.length && !hasStaffChannels) {
+  if (!myCollectives?.length && !hasStaffChannels && !isGlobalStaff) {
     return (
       <Page noBackground className="!px-0 bg-surface-1">
         <div className="relative min-h-full">
@@ -512,6 +532,29 @@ export default function ChatListPage() {
                         />
                       )
                     })}
+                  </motion.div>
+                </motion.div>
+              )}
+
+              {/* All Collectives section (staff/admin only) */}
+              {isGlobalStaff && otherCollectives.length > 0 && (
+                <motion.div variants={fadeUp}>
+                  <SectionDivider icon={Shield} label="All Collectives" />
+                  <motion.div
+                    className="space-y-3"
+                    variants={shouldReduceMotion ? undefined : stagger}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {otherCollectives.map((collective) => (
+                      <CollectiveChatRow
+                        key={collective.id}
+                        collective={collective}
+                        collectiveId={collective.id}
+                        unread={0}
+                        index={0}
+                      />
+                    ))}
                   </motion.div>
                 </motion.div>
               )}

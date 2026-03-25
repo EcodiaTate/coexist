@@ -7,7 +7,6 @@ import {
     FileText,
     Save,
     CheckCircle,
-    ArrowLeft,
     Eye,
     Bold,
     Italic,
@@ -27,6 +26,7 @@ import {
     AlignLeft,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Toggle } from '@/components/toggle'
@@ -58,7 +58,7 @@ function ToolbarBtn({
         onClick()
       }}
       className={cn(
-        'flex items-center justify-center w-8 h-8 rounded-lg transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+        'flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-150 cursor-pointer',
         active
           ? 'bg-primary-100 text-primary-800'
           : 'text-primary-400 hover:bg-primary-50 hover:text-primary-700',
@@ -178,7 +178,7 @@ function PageCard({
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left rounded-2xl bg-white p-5 shadow-sm hover:shadow-md transition-[color,background-color,box-shadow] duration-200 cursor-pointer group"
+      className="w-full text-left rounded-2xl bg-white p-5 shadow-sm transition-colors duration-200 cursor-pointer group"
     >
       <div className="flex items-start gap-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 group-hover:bg-primary-100 transition-colors">
@@ -318,17 +318,8 @@ export default function AdminLegalPagesPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.25 }}
         >
-          {/* Back + actions bar */}
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="flex items-center gap-1.5 text-sm text-primary-400 hover:text-primary-700 transition-colors cursor-pointer"
-            >
-              <ArrowLeft size={16} />
-              All pages
-            </button>
-            <div className="flex items-center gap-2">
+          <Header title="" back onBack={handleBack} />
+          <div className="flex items-center justify-end gap-2">
               <Button
                 variant="ghost"
                 size="sm"
@@ -346,7 +337,6 @@ export default function AdminLegalPagesPage() {
               >
                 {saved ? 'Saved!' : 'Save'}
               </Button>
-            </div>
           </div>
 
           {/* Slug badge */}
@@ -365,7 +355,7 @@ export default function AdminLegalPagesPage() {
               label="Page Title"
               value={form.title}
               onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-              className="[&_input]:bg-white [&_input]:border [&_input]:border-primary-200 [&_input]:pt-7"
+              className="[&_input]:bg-surface-3 [&_input]:pt-7"
             />
             <Input
               type="textarea"

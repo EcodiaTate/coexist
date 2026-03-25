@@ -3,7 +3,6 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
-  Image,
   Upload,
   Trash2,
   Check,
@@ -98,11 +97,11 @@ function useAppImagesAdmin() {
     queryKey: ['app-images'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('app_images' as any)
+        .from('app_images' as string & keyof never)
         .select('*')
       if (error) throw error
       const map: Record<string, { url: string; label: string }> = {}
-      for (const row of (data ?? []) as any[]) {
+      for (const row of (data ?? []) as Record<string, unknown>[]) {
         map[row.key] = { url: row.url, label: row.label }
       }
       return map
@@ -132,8 +131,8 @@ function ImageSlotCard({
   const updateMutation = useMutation({
     mutationFn: async (url: string) => {
       const { error } = await supabase
-        .from('app_images' as any)
-        .upsert({ key: slot.key, url, label: slot.label } as any, { onConflict: 'key' })
+        .from('app_images' as string & keyof never)
+        .upsert({ key: slot.key, url, label: slot.label } as Record<string, unknown>, { onConflict: 'key' })
       if (error) throw error
     },
     onSuccess: () => {

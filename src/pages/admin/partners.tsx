@@ -126,7 +126,7 @@ export default function AdminPartnersPage() {
     mutationFn: async (form: typeof orgForm) => {
       const { data, error } = await supabase
         .from('organisations')
-        .insert(form as any)
+        .insert(form as Record<string, unknown>)
         .select()
         .single()
       if (error) throw error
@@ -134,7 +134,7 @@ export default function AdminPartnersPage() {
     },
     onMutate: async (form) => {
       await queryClient.cancelQueries({ queryKey: ['admin-organisations'] })
-      const previous = queryClient.getQueryData<any[]>(['admin-organisations'])
+      const previous = queryClient.getQueryData<Record<string, unknown>[]>(['admin-organisations'])
 
       const optimistic = {
         id: `temp-${crypto.randomUUID()}`,
@@ -143,8 +143,8 @@ export default function AdminPartnersPage() {
         created_at: new Date().toISOString(),
       }
 
-      queryClient.setQueryData<any[]>(['admin-organisations'], (old = []) =>
-        [...old, optimistic].sort((a, b) => a.name.localeCompare(b.name)),
+      queryClient.setQueryData<Record<string, unknown>[]>(['admin-organisations'], (old = []) =>
+        [...old, optimistic].sort((a, b) => (a.name as string).localeCompare(b.name as string)),
       )
 
       setShowCreateOrg(false)
@@ -177,7 +177,7 @@ export default function AdminPartnersPage() {
           organisation_id: form.organisation_id || null,
           category: form.category,
           terms_and_conditions: form.terms,
-        } as any)
+        } as Record<string, unknown>)
         .select('*, organisations(name, logo_url)')
         .single()
       if (error) throw error
@@ -185,7 +185,7 @@ export default function AdminPartnersPage() {
     },
     onMutate: async (form) => {
       await queryClient.cancelQueries({ queryKey: ['admin-partner-offers'] })
-      const previous = queryClient.getQueryData<any[]>(['admin-partner-offers'])
+      const previous = queryClient.getQueryData<Record<string, unknown>[]>(['admin-partner-offers'])
 
       const matchedOrg = organisations?.find((o) => o.id === form.organisation_id)
       const optimistic = {
@@ -199,7 +199,7 @@ export default function AdminPartnersPage() {
         created_at: new Date().toISOString(),
       }
 
-      queryClient.setQueryData<any[]>(['admin-partner-offers'], (old = []) =>
+      queryClient.setQueryData<Record<string, unknown>[]>(['admin-partner-offers'], (old = []) =>
         [optimistic, ...old],
       )
 
@@ -236,15 +236,15 @@ export default function AdminPartnersPage() {
       await queryClient.cancelQueries({ queryKey: orgKey })
       await queryClient.cancelQueries({ queryKey: offerKey })
 
-      const previousOrgs = queryClient.getQueryData<any[]>(orgKey)
-      const previousOffers = queryClient.getQueryData<any[]>(offerKey)
+      const previousOrgs = queryClient.getQueryData<Record<string, unknown>[]>(orgKey)
+      const previousOffers = queryClient.getQueryData<Record<string, unknown>[]>(offerKey)
 
       if (type === 'org') {
-        queryClient.setQueryData<any[]>(orgKey, (old = []) =>
+        queryClient.setQueryData<Record<string, unknown>[]>(orgKey, (old = []) =>
           old.filter((o) => o.id !== id),
         )
       } else {
-        queryClient.setQueryData<any[]>(offerKey, (old = []) =>
+        queryClient.setQueryData<Record<string, unknown>[]>(offerKey, (old = []) =>
           old.filter((o) => o.id !== id),
         )
       }
@@ -396,7 +396,7 @@ export default function AdminPartnersPage() {
             />
           ) : (
             <StaggeredList className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {offers.map((offer: any) => (
+              {offers.map((offer) => (
                 <StaggeredItem
                   key={offer.id}
                   className={cn(
@@ -409,9 +409,9 @@ export default function AdminPartnersPage() {
                       <h3 className="font-heading text-sm font-semibold text-primary-800">
                         {offer.title}
                       </h3>
-                      {(offer as any).organisations?.name && (
+                      {(offer as unknown as Record<string, Record<string, unknown>>).organisations?.name && (
                         <p className="text-xs text-primary-400 mt-0.5">
-                          by {(offer as any).organisations.name}
+                          by {(offer as unknown as Record<string, Record<string, unknown>>).organisations.name as string}
                         </p>
                       )}
                     </div>

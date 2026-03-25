@@ -8,14 +8,14 @@ import {
 } from '@/lib/constants'
 
 const footerLinks = [
-  { label: 'About', href: 'https://coexistaus.org/about' },
+  { label: 'About', to: '/about' },
   { label: 'Privacy', to: '/privacy' },
   { label: 'Terms', to: '/terms' },
+  { label: 'Data Policy', to: '/data-policy' },
+  { label: 'Disclaimer', to: '/disclaimer' },
+  { label: 'Accessibility', to: '/accessibility' },
+  { label: 'Cookies', to: '/cookies' },
   { label: 'Contact', to: '/contact' },
-  {
-    label: 'Manage Cookies',
-    onClick: () => window.dispatchEvent(new CustomEvent('coexist:open-cookie-consent')),
-  },
 ]
 
 const socialLinks = [
@@ -95,7 +95,7 @@ export function WebFooter({ className }: WebFooterProps) {
                     <button
                       type="button"
                       onClick={link.onClick}
-                      className="text-sm hover:text-white min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150 focus-visible:outline-none focus-visible:underline"
+                      className="text-sm hover:text-white min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150 focus-visible:outline-none focus-visible:underline"
                     >
                       {link.label}
                     </button>

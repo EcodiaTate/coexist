@@ -1,8 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
-import type { Database } from '@/types/database.types'
-
-type CollectiveRole = Database['public']['Enums']['collective_role']
+import { supabase, escapeIlike } from '@/lib/supabase'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -59,6 +56,21 @@ export interface KpiStat {
   rate: number
 }
 
+interface KpiInstanceRow {
+  id: string
+  collective_id: string
+  status: string
+  due_date: string
+  completed_at: string | null
+  completed_by: string | null
+  template_id: string
+  collectives: { id: string; name: string } | null
+}
+
+interface TemplateRow extends Record<string, unknown> {
+  collectives: unknown
+}
+
 /* ------------------------------------------------------------------ */
 /*  Schedule helpers                                                   */
 /* ------------------------------------------------------------------ */
@@ -93,11 +105,14 @@ function ordinalSuffix(n: number): string {
 export function getCurrentPeriodKey(scheduleType: string): string {
   const now = new Date()
   if (scheduleType === 'weekly') {
-    const year = now.getFullYear()
-    const jan1 = new Date(year, 0, 1)
-    const days = Math.floor((now.getTime() - jan1.getTime()) / 86400000)
-    const week = Math.ceil((days + jan1.getDay() + 1) / 7)
-    return `${year}-W${String(week).padStart(2, '0')}`
+    // ISO 8601 week calculation
+    const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
+    // Set to nearest Thursday: current date + 4 - current day number (Mon=1, Sun=7)
+    const dayNum = d.getUTCDay() || 7
+    d.setUTCDate(d.getUTCDate() + 4 - dayNum)
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1))
+    const week = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7)
+    return `${d.getUTCFullYear()}-W${String(week).padStart(2, '0')}`
   }
   if (scheduleType === 'monthly') {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
@@ -105,7 +120,8 @@ export function getCurrentPeriodKey(scheduleType: string): string {
   return ''
 }
 
-export function getDueDate(template: TaskTemplate, periodKey: string): string {
+ 
+export function getDueDate(template: TaskTemplate, _periodKey: string): string {
   const now = new Date()
   if (template.schedule_type === 'weekly') {
     const dow = template.day_of_week ?? 0
@@ -159,7 +175,7 @@ export function useAdminTaskTemplates(filters?: {
     queryKey: ['admin-task-templates', filters],
     queryFn: async () => {
       let query = supabase
-        .from('task_templates' as any)
+        .from('task_templates' as never)
         .select('*, collectives(id, name)')
         .order('sort_order')
         .order('created_at', { ascending: false })
@@ -175,12 +191,12 @@ export function useAdminTaskTemplates(filters?: {
       }
 
       if (filters?.search) {
-        query = query.ilike('title', `%${filters.search}%`)
+        query = query.ilike('title', `%${escapeIlike(filters.search)}%`)
       }
 
       const { data, error } = await query
       if (error) throw error
-      return (data ?? []).map((row: any) => ({
+      return (data ?? []).map((row: TemplateRow) => ({
         ...row,
         collective: row.collectives,
       })) as TaskTemplate[]
@@ -212,7 +228,7 @@ export function useAdminCreateTemplate() {
       if (!user) throw new Error('Not authenticated')
 
       const { data, error } = await supabase
-        .from('task_templates' as any)
+        .from('task_templates' as never)
         .insert({
           ...input,
           collective_id: input.collective_id || null,
@@ -221,7 +237,7 @@ export function useAdminCreateTemplate() {
         .select('*, collectives(id, name)')
         .single()
       if (error) throw error
-      const row = data as any
+      const row = data as TemplateRow
       return { ...row, collective: row.collectives } as TaskTemplate
     },
     onSuccess: (created) => {
@@ -244,13 +260,13 @@ export function useAdminUpdateTemplate() {
       ...updates
     }: Partial<TaskTemplate> & { id: string }) => {
       const { data, error } = await supabase
-        .from('task_templates' as any)
+        .from('task_templates' as never)
         .update(updates)
         .eq('id', id)
         .select('*, collectives(id, name)')
         .single()
       if (error) throw error
-      const row = data as any
+      const row = data as TemplateRow
       return { ...row, collective: row.collectives } as TaskTemplate
     },
     onSuccess: (updated) => {
@@ -269,7 +285,7 @@ export function useAdminToggleTemplate() {
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
       const { error } = await supabase
-        .from('task_templates' as any)
+        .from('task_templates' as never)
         .update({ is_active })
         .eq('id', id)
       if (error) throw error
@@ -285,13 +301,20 @@ export function useAdminDeleteTemplate() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('task_templates' as any)
+        .from('task_templates' as never)
         .delete()
         .eq('id', id)
       if (error) throw error
+      return id
     },
-    onSuccess: () => {
+    onSuccess: (deletedId) => {
       queryClient.invalidateQueries({ queryKey: ['admin-task-templates'] })
+      // DB cascade deletes the timeline_rule, but clear the stale cache entry
+      queryClient.removeQueries({ queryKey: ['timeline-rule', deletedId] })
+      // Also invalidate task instance queries since cascade deletes those too
+      queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['collective-tasks'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-kpi-dashboard'] })
     },
   })
 }
@@ -309,8 +332,9 @@ export function useAdminKpiDashboard(filters?: {
     queryKey: ['admin-kpi-dashboard', filters],
     queryFn: async () => {
       let query = supabase
-        .from('task_instances' as any)
+        .from('task_instances' as never)
         .select('id, collective_id, status, due_date, completed_at, completed_by, template_id, collectives(id, name)')
+        .limit(5000)
 
       if (filters?.collectiveId) {
         query = query.eq('collective_id', filters.collectiveId)
@@ -324,7 +348,7 @@ export function useAdminKpiDashboard(filters?: {
 
       const { data, error } = await query
       if (error) throw error
-      const instances = (data ?? []) as any[]
+      const instances = (data ?? []) as unknown as KpiInstanceRow[]
 
       // Aggregate per collective
       const byCollective = new Map<string, { name: string; total: number; completed: number; overdue: number }>()
@@ -357,10 +381,10 @@ export function useAdminKpiDashboard(filters?: {
       // Overall stats
       const totals = {
         total: instances.length,
-        completed: instances.filter((i: any) => i.status === 'completed').length,
-        overdue: instances.filter((i: any) => i.status === 'pending' && new Date(i.due_date) < now).length,
+        completed: instances.filter((i) => i.status === 'completed').length,
+        overdue: instances.filter((i) => i.status === 'pending' && new Date(i.due_date) < now).length,
         rate: instances.length > 0
-          ? Math.round((instances.filter((i: any) => i.status === 'completed').length / instances.length) * 100)
+          ? Math.round((instances.filter((i) => i.status === 'completed').length / instances.length) * 100)
           : 0,
       }
 

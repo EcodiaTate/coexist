@@ -127,7 +127,7 @@ export default function LeafletDrawMap({
       drawnItems.clearLayers()
       drawnItems.addLayer(e.layer)
       emitArea()
-    }) as any)
+    }) as unknown as L.LeafletEventHandlerFn)
 
     map.on(L.Draw.Event.EDITED, () => emitArea())
     map.on(L.Draw.Event.DELETED, () => emitArea())

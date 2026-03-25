@@ -66,13 +66,13 @@ function useAdminUsers(search: string, roleFilter: string) {
   return useQuery({
     queryKey: ['admin-users', search, roleFilter],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_list_users' as any, {
+      const { data, error } = await supabase.rpc('admin_list_users' as string & keyof never, {
         search_term: search,
         role_filter: roleFilter || 'all',
         result_limit: 50,
       })
       if (error) throw error
-      return (data ?? []) as any[]
+      return (data ?? []) as Record<string, unknown>[]
     },
     staleTime: 30 * 1000,
   })
@@ -146,11 +146,11 @@ function UserSettingsSheet({
   open,
   onClose,
 }: {
-  user: any
+  user: Record<string, unknown>
   open: boolean
   onClose: () => void
 }) {
-  const { isSuperAdmin } = useAuth()
+  const { user: currentUser, isSuperAdmin } = useAuth()
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
@@ -224,7 +224,7 @@ function UserSettingsSheet({
   /* ---- Optimistic cache helpers ---- */
   const patchUserInCache = useCallback(
     (userId: string, patch: Record<string, unknown>) => {
-      queryClient.setQueriesData<any[]>({ queryKey: ['admin-users'] }, (old) =>
+      queryClient.setQueriesData<Record<string, unknown>[]>({ queryKey: ['admin-users'] }, (old) =>
         old?.map((u) => (u.id === userId ? { ...u, ...patch } : u)),
       )
     },
@@ -233,7 +233,7 @@ function UserSettingsSheet({
 
   const removeUserFromCache = useCallback(
     (userId: string) => {
-      queryClient.setQueriesData<any[]>({ queryKey: ['admin-users'] }, (old) =>
+      queryClient.setQueriesData<Record<string, unknown>[]>({ queryKey: ['admin-users'] }, (old) =>
         old?.filter((u) => u.id !== userId),
       )
     },
@@ -243,26 +243,29 @@ function UserSettingsSheet({
   /* ---- Mutations ---- */
   const changeRoleMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      if (userId === currentUser?.id) {
+        throw new Error('You cannot change your own role')
+      }
       if ((role === 'super_admin' || role === 'national_admin') && !isSuperAdmin) {
         throw new Error('Only super admins can assign admin roles')
       }
       const { error } = await supabase
         .from('profiles')
-        .update({ role } as any)
+        .update({ role } as Record<string, unknown>)
         .eq('id', userId)
       if (error) throw error
       await logAudit({ action: 'role_changed', target_type: 'user', target_id: userId, details: { new_role: role } })
     },
     onMutate: async ({ userId, role }) => {
       await queryClient.cancelQueries({ queryKey: ['admin-users'] })
-      const previous = queryClient.getQueriesData<any[]>({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueriesData<Record<string, unknown>[]>({ queryKey: ['admin-users'] })
       patchUserInCache(userId, { role })
       setShowRoleChange(false)
       return { previous }
     },
     onSuccess: () => toast.success('Role updated'),
     onError: (_err, _vars, ctx) => {
-      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as any, data))
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as unknown as string[], data))
       toast.error('Failed to update role')
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
@@ -270,6 +273,9 @@ function UserSettingsSheet({
 
   const suspendMutation = useMutation({
     mutationFn: async ({ userId, reason }: { userId: string; reason: string }) => {
+      if (userId === currentUser?.id) {
+        throw new Error('You cannot suspend your own account')
+      }
       const { error } = await supabase
         .from('profiles')
         .update({ is_suspended: true, suspended_reason: reason })
@@ -279,7 +285,7 @@ function UserSettingsSheet({
     },
     onMutate: async ({ userId }) => {
       await queryClient.cancelQueries({ queryKey: ['admin-users'] })
-      const previous = queryClient.getQueriesData<any[]>({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueriesData<Record<string, unknown>[]>({ queryKey: ['admin-users'] })
       patchUserInCache(userId, { is_suspended: true })
       setShowSuspendForm(false)
       setSuspendReason('')
@@ -287,7 +293,7 @@ function UserSettingsSheet({
     },
     onSuccess: () => toast.success('User suspended'),
     onError: (_err, _vars, ctx) => {
-      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as any, data))
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as unknown as string[], data))
       toast.error('Failed to suspend user')
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
@@ -304,13 +310,13 @@ function UserSettingsSheet({
     },
     onMutate: async (userId) => {
       await queryClient.cancelQueries({ queryKey: ['admin-users'] })
-      const previous = queryClient.getQueriesData<any[]>({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueriesData<Record<string, unknown>[]>({ queryKey: ['admin-users'] })
       patchUserInCache(userId, { is_suspended: false })
       return { previous }
     },
     onSuccess: () => toast.success('User unsuspended'),
     onError: (_err, _vars, ctx) => {
-      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as any, data))
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as unknown as string[], data))
       toast.error('Failed to unsuspend user')
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
@@ -318,13 +324,16 @@ function UserSettingsSheet({
 
   const deleteMutation = useMutation({
     mutationFn: async (userId: string) => {
+      if (userId === currentUser?.id) {
+        throw new Error('You cannot delete your own account')
+      }
       const { error } = await supabase.functions.invoke('delete-user', { body: { userId } })
       if (error) throw error
       await logAudit({ action: 'user_deleted', target_type: 'user', target_id: userId })
     },
     onMutate: async (userId) => {
       await queryClient.cancelQueries({ queryKey: ['admin-users'] })
-      const previous = queryClient.getQueriesData<any[]>({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueriesData<Record<string, unknown>[]>({ queryKey: ['admin-users'] })
       removeUserFromCache(userId)
       setShowDeleteConfirm(false)
       onClose()
@@ -332,7 +341,7 @@ function UserSettingsSheet({
     },
     onSuccess: () => toast.success('User deleted'),
     onError: (_err, _vars, ctx) => {
-      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as any, data))
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as unknown as string[], data))
       toast.error('Failed to delete user')
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
@@ -613,7 +622,7 @@ function UserSettingsSheet({
                       key={membership.id}
                       layout
                       className={cn(
-                        'flex items-center gap-3 p-3 rounded-xl transition-[color,background-color,box-shadow] duration-200',
+                        'flex items-center gap-3 p-3 rounded-xl transition-colors duration-200',
                         COLLECTIVE_ROLE_SURFACE[membership.role],
                       )}
                     >
@@ -804,7 +813,7 @@ function UserSettingsSheet({
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [settingsUser, setSettingsUser] = useState<any>(null)
+  const [settingsUser, setSettingsUser] = useState<Record<string, unknown> | null>(null)
   const [profileUserId, setProfileUserId] = useState<string | null>(null)
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
 
@@ -891,7 +900,7 @@ export default function AdminUsersPage() {
               key={user.id}
               className={cn(
                 'flex items-center gap-3 p-3.5 rounded-xl',
-                'transition-[color,background-color,box-shadow] duration-200',
+                'transition-colors duration-200',
                 user.is_suspended
                   ? 'bg-error-50 ring-1 ring-error-200/60 opacity-70'
                   : 'bg-gradient-to-r from-primary-50 to-moss-50/60 ring-1 ring-primary-200/50 shadow-sm',

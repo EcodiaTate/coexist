@@ -124,9 +124,9 @@ export const Input = forwardRef<
 
   const sharedClasses = cn(
     'peer w-full rounded-lg px-4 pt-7 pb-2',
-    inputClassName ?? 'bg-white',
+    inputClassName ?? 'bg-surface-3',
     'text-[16px] leading-normal text-primary-800',
-    'outline-none transition-all duration-150',
+    'outline-none transition-colors duration-150',
     'disabled:opacity-50 disabled:cursor-not-allowed',
     (isSearch || icon) && 'pl-10',
     isPassword && 'pr-12',
@@ -218,7 +218,7 @@ export const Input = forwardRef<
         {/* Floating label */}
         <motion.label
           htmlFor={id}
-          {...(labelMotion as any)}
+          {...(labelMotion as Record<string, unknown>)}
           className={cn(
             'absolute left-4 top-3 pointer-events-none',
             'text-[16px] leading-normal origin-left',
@@ -241,7 +241,7 @@ export const Input = forwardRef<
               'min-w-11 min-h-11 flex items-center justify-center',
               'rounded-xl text-primary-400 hover:text-primary-800',
               'cursor-pointer select-none',
-              'active:scale-[0.97] transition-all duration-150',
+              'active:scale-[0.97] transition-transform duration-150',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             )}
           >

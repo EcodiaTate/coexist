@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState, useMemo, type ReactNode } from 'react'
+import { useEffect, useRef, useCallback, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
@@ -60,6 +60,7 @@ function MobileSheet({
   const [visible, setVisible] = useState(false)
 
   // Mount → visible (triggers CSS transition in)
+  /* eslint-disable react-hooks/set-state-in-effect -- intentional cascading render for CSS transition */
   useEffect(() => {
     if (open) {
       setMounted(true)
@@ -75,6 +76,7 @@ function MobileSheet({
       return () => clearTimeout(timer)
     }
   }, [open, mounted])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Also unmount when transition actually ends (whichever comes first)
   const onTransitionEnd = useCallback((e: React.TransitionEvent) => {
@@ -156,12 +158,20 @@ function MobileSheet({
     if (!visible) return
     const el = scrollRef.current
     if (!el) return
-    const check = () => setCanScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 8)
-    const raf = requestAnimationFrame(check)
+    let rafId = 0
+    const check = () => {
+      cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        setCanScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 8)
+      })
+    }
+    const initialRaf = requestAnimationFrame(() => {
+      setCanScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 8)
+    })
     el.addEventListener('scroll', check, { passive: true })
     const ro = new ResizeObserver(check)
     ro.observe(el)
-    return () => { cancelAnimationFrame(raf); el.removeEventListener('scroll', check); ro.disconnect() }
+    return () => { cancelAnimationFrame(initialRaf); cancelAnimationFrame(rafId); el.removeEventListener('scroll', check); ro.disconnect() }
   }, [visible])
 
   if (!mounted) return null
@@ -236,19 +246,12 @@ export function BottomSheet({
   open,
   onClose,
   children,
-  snapPoints = [0.5],
-  initialSnap = 0,
+  snapPoints: _snapPoints = [0.5],
+  initialSnap: _initialSnap = 0,
   className,
 }: BottomSheetProps) {
-  const sheetRef = useRef<HTMLDivElement>(null)
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const previousFocusRef = useRef<HTMLElement | null>(null)
   const shouldReduceMotion = useReducedMotion()
   const isDesktop = useIsDesktop()
-
-  const snapKey = snapPoints.join(',')
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stableSnapPoints = useMemo(() => snapPoints, [snapKey])
 
   const vh = typeof window !== 'undefined' ? window.innerHeight : 800
   const maxHeight = vh * MAX_HEIGHT_FRACTION
@@ -351,12 +354,20 @@ function DesktopModal({
     if (!open) return
     const el = scrollRef.current
     if (!el) return
-    const check = () => setCanScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 8)
-    const raf = requestAnimationFrame(check)
+    let rafId = 0
+    const check = () => {
+      cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        setCanScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 8)
+      })
+    }
+    const initialRaf = requestAnimationFrame(() => {
+      setCanScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 8)
+    })
     el.addEventListener('scroll', check, { passive: true })
     const ro = new ResizeObserver(check)
     ro.observe(el)
-    return () => { cancelAnimationFrame(raf); el.removeEventListener('scroll', check); ro.disconnect() }
+    return () => { cancelAnimationFrame(initialRaf); cancelAnimationFrame(rafId); el.removeEventListener('scroll', check); ro.disconnect() }
   }, [open])
 
   const backdropTransition = shouldReduceMotion

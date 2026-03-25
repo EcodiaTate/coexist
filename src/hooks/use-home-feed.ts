@@ -297,7 +297,7 @@ export function useMyUpcomingEvents() {
         .from('event_registrations')
         .select('status, events!inner(*, collectives(id, name))')
         .eq('user_id', user.id)
-        .in('status', ['registered', 'waitlisted', 'attended'])
+        .in('status', ['registered', 'waitlisted'])
         .or(`date_start.gte.${now},date_end.gte.${now}`, { referencedTable: 'events' })
         .order('date_start', { referencedTable: 'events', ascending: true })
         .limit(5)
@@ -385,52 +385,6 @@ export function useRecentUpdates() {
       })[]
     },
     staleTime: 2 * 60 * 1000,
-  })
-}
-
-/** Suggested connections - people from shared collectives/events */
-export function useSuggestedConnections() {
-  const { user } = useAuth()
-
-  return useQuery({
-    queryKey: ['home', 'suggested-connections', user?.id],
-    queryFn: async () => {
-      if (!user) return []
-
-      // Get user's collective ids
-      const { data: memberships } = await supabase
-        .from('collective_members')
-        .select('collective_id')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
-
-      const collectiveIds = (memberships ?? []).map((m) => m.collective_id)
-      if (collectiveIds.length === 0) return []
-
-      // Get other members from same collectives
-      const { data, error } = await supabase
-        .from('collective_members')
-        .select('user_id, profiles(id, display_name, avatar_url)')
-        .in('collective_id', collectiveIds)
-        .neq('user_id', user.id)
-        .eq('status', 'active')
-        .limit(15)
-      if (error) throw error
-
-      // Deduplicate by user_id
-      const seen = new Set<string>()
-      const profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url'>[] = []
-      for (const row of data ?? []) {
-        if (row.profiles && !seen.has(row.user_id)) {
-          seen.add(row.user_id)
-          profiles.push(row.profiles as Pick<Profile, 'id' | 'display_name' | 'avatar_url'>)
-        }
-      }
-
-      return profiles.slice(0, 10)
-    },
-    enabled: !!user,
-    staleTime: 10 * 60 * 1000,
   })
 }
 

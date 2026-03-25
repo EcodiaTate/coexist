@@ -565,6 +565,22 @@ export function useRegisterForEvent() {
     mutationFn: async ({ eventId, asWaitlist = false }: { eventId: string; asWaitlist?: boolean }) => {
       if (!user) throw new Error('Must be signed in')
 
+      // Check capacity before registering (prevents race condition when
+      // multiple users register simultaneously for the last spot)
+      if (!asWaitlist) {
+        const [{ data: eventData }, { count: regCount }] = await Promise.all([
+          supabase.from('events').select('capacity').eq('id', eventId).single(),
+          supabase.from('event_registrations')
+            .select('id', { count: 'exact', head: true })
+            .eq('event_id', eventId)
+            .in('status', ['registered', 'attended']),
+        ])
+        if (eventData?.capacity && (regCount ?? 0) >= eventData.capacity) {
+          // Capacity is full — auto-switch to waitlist
+          asWaitlist = true
+        }
+      }
+
       // Use upsert to handle re-registration after cancellation
       // (the cancelled row still exists with the unique event_id+user_id constraint)
       const { error } = await supabase
@@ -673,15 +689,17 @@ export function useCancelRegistration() {
       // Cancel outgoing refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ['my-events'] })
       await queryClient.cancelQueries({ queryKey: ['home', 'my-upcoming-events'] })
+      await queryClient.cancelQueries({ queryKey: ['event', eventId] })
 
       // Snapshot previous values for rollback
-      const previousUpcoming = queryClient.getQueryData<MyEventItem[]>(['my-events', 'upcoming'])
+      const previousUpcoming = queryClient.getQueryData<MyEventItem[]>(['my-events', 'upcoming', user?.id])
       const previousHomeUpcoming = queryClient.getQueryData<MyUpcomingEvent[]>(['home', 'my-upcoming-events', user?.id])
+      const previousEvent = queryClient.getQueryData<EventDetailData>(['event', eventId, user?.id])
 
       // Optimistically remove the event from the upcoming list
       if (previousUpcoming) {
         queryClient.setQueryData<MyEventItem[]>(
-          ['my-events', 'upcoming'],
+          ['my-events', 'upcoming', user?.id],
           previousUpcoming.filter((e) => e.id !== eventId),
         )
       }
@@ -694,15 +712,30 @@ export function useCancelRegistration() {
         )
       }
 
-      return { previousUpcoming, previousHomeUpcoming }
+      // Optimistically update event detail: decrement count, clear user registration
+      if (previousEvent) {
+        const wasRegistered = previousEvent.user_registration?.status === 'registered' || previousEvent.user_registration?.status === 'attended'
+        queryClient.setQueryData<EventDetailData>(['event', eventId, user?.id], {
+          ...previousEvent,
+          registration_count: wasRegistered
+            ? Math.max(0, previousEvent.registration_count - 1)
+            : previousEvent.registration_count,
+          user_registration: null,
+        })
+      }
+
+      return { previousUpcoming, previousHomeUpcoming, previousEvent }
     },
-    onError: (_err, _eventId, context) => {
+    onError: (_err, eventId, context) => {
       // Rollback on failure
       if (context?.previousUpcoming) {
-        queryClient.setQueryData(['my-events', 'upcoming'], context.previousUpcoming)
+        queryClient.setQueryData(['my-events', 'upcoming', user?.id], context.previousUpcoming)
       }
       if (context?.previousHomeUpcoming) {
         queryClient.setQueryData(['home', 'my-upcoming-events', user?.id], context.previousHomeUpcoming)
+      }
+      if (context?.previousEvent) {
+        queryClient.setQueryData(['event', eventId, user?.id], context.previousEvent)
       }
     },
     onSettled: (_, __, eventId) => {
@@ -725,7 +758,7 @@ export function useCheckIn() {
 
   return useMutation({
     mutationFn: async ({ eventId, userId }: { eventId: string; userId: string }) => {
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from('event_registrations')
         .update({
           status: 'attended',
@@ -733,7 +766,9 @@ export function useCheckIn() {
         })
         .eq('event_id', eventId)
         .eq('user_id', userId)
+        .in('status', ['registered', 'invited'])
       if (error) throw error
+      if (count === 0) throw new Error('User is not in a checkable status (registered or invited)')
     },
     onMutate: async ({ eventId, userId }) => {
       await queryClient.cancelQueries({ queryKey: ['event-attendees', eventId] })
@@ -785,6 +820,8 @@ export function useBulkCheckIn() {
     onSettled: (_, __, eventId) => {
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
     },
   })
 }
@@ -845,25 +882,25 @@ export function useUpdateEvent() {
       await queryClient.cancelQueries({ queryKey: ['leader-events'] })
 
       // Snapshot for rollback
-      const previousLeaderEvents = queryClient.getQueriesData<any[]>({ queryKey: ['leader-events'] })
+      const previousLeaderEvents = queryClient.getQueriesData<Record<string, unknown>[]>({ queryKey: ['leader-events'] })
 
       // Optimistically update all leader-events cache entries
-      queryClient.setQueriesData<any[]>(
+      queryClient.setQueriesData<Record<string, unknown>[]>(
         { queryKey: ['leader-events'] },
-        (old) => old?.map((ev: any) =>
-          ev.id === eventId ? { ...ev, ...updates } : ev,
+        (old) => old?.map((ev) =>
+          (ev as { id?: string }).id === eventId ? { ...ev, ...updates } : ev,
         ),
       )
 
       // Optimistically update event detail cache
-      queryClient.setQueriesData<any>(
+      queryClient.setQueriesData<Record<string, unknown>>(
         { queryKey: ['event', eventId] },
-        (old: any) => old ? { ...old, ...updates } : old,
+        (old) => old ? { ...old, ...updates } : old,
       )
 
       return { previousLeaderEvents }
     },
-    onError: (_err, { eventId }, context) => {
+    onError: (_err, _vars, context) => {
       // Rollback leader-events on failure
       if (context?.previousLeaderEvents) {
         for (const [key, data] of context.previousLeaderEvents) {
@@ -911,7 +948,7 @@ export function useCancelEvent() {
         })
 
         for (const reg of registrations) {
-          const displayName = (reg as any).profiles?.display_name ?? 'there'
+          const displayName = (reg as unknown as { profiles?: { display_name: string | null } }).profiles?.display_name ?? 'there'
           supabase.functions.invoke('send-email', {
             body: {
               type: 'event_cancelled',
@@ -932,15 +969,15 @@ export function useCancelEvent() {
       await queryClient.cancelQueries({ queryKey: ['leader-events'] })
       // Optimistically set status to cancelled
       const previous = queryClient.getQueryData(['event', eventId])
-      const previousLeaderEvents = queryClient.getQueriesData<any[]>({ queryKey: ['leader-events'] })
+      const previousLeaderEvents = queryClient.getQueriesData<Record<string, unknown>[]>({ queryKey: ['leader-events'] })
       queryClient.setQueriesData<EventDetailData>(
         { queryKey: ['event', eventId] },
         (old) => old ? { ...old, status: 'cancelled' } : old,
       )
-      queryClient.setQueriesData<any[]>(
+      queryClient.setQueriesData<Record<string, unknown>[]>(
         { queryKey: ['leader-events'] },
-        (old) => old?.map((ev: any) =>
-          ev.id === eventId ? { ...ev, status: 'cancelled' } : ev,
+        (old) => old?.map((ev) =>
+          (ev as { id?: string }).id === eventId ? { ...ev, status: 'cancelled' } : ev,
         ),
       )
       return { previous, previousLeaderEvents, eventId }
@@ -980,7 +1017,8 @@ export function useDuplicateEvent() {
         .single()
       if (fetchErr) throw fetchErr
 
-      const { id: _, created_at: _ca, updated_at: _ua, status: _s, ...rest } = source
+       
+      const { id: _id, created_at: _ca, updated_at: _ua, status: _s, ...rest } = source
       const { data, error } = await supabase
         .from('events')
         .insert({
@@ -1011,13 +1049,13 @@ export function useDuplicateEvent() {
 
 async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
   // Check if auto-surveys are enabled
-  const { data: config } = await (supabase as any)
+  const { data: config } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
     .from('app_settings')
     .select('value')
     .eq('key', 'auto_survey_config')
     .maybeSingle()
 
-  const autoConfig = (config as any)?.value as { enabled?: boolean } | null
+  const autoConfig = (config as { value?: { enabled?: boolean } } | null)?.value
   if (autoConfig && autoConfig.enabled === false) return
 
   // Get all checked-in attendees
@@ -1029,16 +1067,26 @@ async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
 
   if (!attendees?.length) return
 
-  // Check who already has a survey response
+  // Check who already has a survey response or existing survey notification
   const userIds = attendees.map((a) => a.user_id)
-  const { data: existingResponses } = await (supabase as any)
-    .from('post_event_survey_responses')
-    .select('user_id')
-    .eq('event_id', eventId)
-    .in('user_id', userIds)
+  const [{ data: existingResponses }, { data: existingNotifications }] = await Promise.all([
+    (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      .from('post_event_survey_responses')
+      .select('user_id')
+      .eq('event_id', eventId)
+      .in('user_id', userIds),
+    supabase.from('notifications')
+      .select('user_id')
+      .eq('type', 'survey_request')
+      .filter('data->>event_id', 'eq', eventId)
+      .in('user_id', userIds),
+  ])
 
-  const respondedIds = new Set((existingResponses ?? []).map((r: any) => r.user_id))
-  const pendingUsers = userIds.filter((id) => !respondedIds.has(id))
+  const excludedIds = new Set([
+    ...(existingResponses ?? []).map((r: { user_id: string }) => r.user_id),
+    ...(existingNotifications ?? []).map((n) => n.user_id),
+  ])
+  const pendingUsers = userIds.filter((id) => !excludedIds.has(id))
   if (!pendingUsers.length) return
 
   // Insert notifications for each attendee
@@ -1121,6 +1169,9 @@ export function useLogImpact() {
       queryClient.invalidateQueries({ queryKey: ['event-impact', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['home', 'impact-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      queryClient.invalidateQueries({ queryKey: ['leader-events'] })
+      queryClient.invalidateQueries({ queryKey: ['leader-event-stats'] })
     },
   })
 }
@@ -1170,7 +1221,7 @@ export function useInviteCollective() {
         // ── Remind flow: 24h cooldown, post rich announcement to chat ──
 
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-        const { data: recentReminders } = await (supabase as any)
+        const { data: recentReminders } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
           .from('chat_messages')
           .select('created_at')
           .eq('collective_id', collectiveId)
@@ -1182,7 +1233,7 @@ export function useInviteCollective() {
         }
 
         // Create a rich announcement in the chat
-        const { data: announcement, error: annErr } = await (supabase as any)
+        const { data: announcement, error: annErr } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
           .from('chat_announcements')
           .insert({
             collective_id: collectiveId,
@@ -1203,7 +1254,7 @@ export function useInviteCollective() {
           content: announcement.title,
           message_type: 'announcement',
           announcement_id: announcement.id,
-        } as any)
+        } as never)
 
         return { reminded: true }
       }
@@ -1221,7 +1272,7 @@ export function useInviteCollective() {
       if (inviteErr) throw inviteErr
 
       // Create a rich announcement in the chat
-      const { data: announcement, error: annErr } = await (supabase as any)
+      const { data: announcement, error: annErr } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_announcements')
         .insert({
           collective_id: collectiveId,
@@ -1242,7 +1293,7 @@ export function useInviteCollective() {
           content: announcement.title,
           message_type: 'announcement',
           announcement_id: announcement.id,
-        } as any).then(undefined, console.error)
+        } as never).then(undefined, console.error)
       }
 
       // Get all collective members
@@ -1270,6 +1321,14 @@ export function useInviteCollective() {
           .upsert(registrations, { onConflict: 'event_id,user_id', ignoreDuplicates: true })
         if (error) console.error('[invite-all] registration upsert error:', error)
 
+        // Batch-fetch display names for invite emails
+        const invitedUserIds = registrations.map((r) => r.user_id)
+        const { data: invitedProfiles } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .in('id', invitedUserIds)
+        const nameMap = new Map((invitedProfiles ?? []).map((p) => [p.id, p.display_name]))
+
         // Send invite emails
         for (const reg of registrations) {
           supabase.functions.invoke('send-email', {
@@ -1277,7 +1336,7 @@ export function useInviteCollective() {
               type: 'event_invite',
               userId: reg.user_id,
               data: {
-                name: '',
+                name: nameMap.get(reg.user_id) ?? 'there',
                 inviter_name: inviterName,
                 event_title: event.title,
                 event_date: eventDate,
@@ -1288,7 +1347,6 @@ export function useInviteCollective() {
         }
 
         // Send push notifications
-        const invitedUserIds = registrations.map((r) => r.user_id)
         supabase.functions.invoke('send-push', {
           body: {
             userIds: invitedUserIds,
@@ -1344,11 +1402,10 @@ export function usePromoteFromWaitlist() {
       if (error) throw error
 
       // Send waitlist promotion email
-      const { data: event } = await supabase
-        .from('events')
-        .select('title, date_start')
-        .eq('id', eventId)
-        .single()
+      const [{ data: event }, { data: promotedProfile }] = await Promise.all([
+        supabase.from('events').select('title, date_start').eq('id', eventId).single(),
+        supabase.from('profiles').select('display_name').eq('id', userId).single(),
+      ])
 
       if (event) {
         supabase.functions.invoke('send-email', {
@@ -1356,7 +1413,7 @@ export function usePromoteFromWaitlist() {
             type: 'waitlist_promoted',
             userId,
             data: {
-              name: '', // resolved via userId
+              name: promotedProfile?.display_name ?? 'there',
               event_title: event.title,
               event_date: new Date(event.date_start).toLocaleString('en-AU', {
                 weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
@@ -1403,6 +1460,10 @@ export function generateIcsFile(event: Event): string {
   const formatIcsDate = (d: Date) =>
     d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 
+  // ICS requires escaping backslashes, semicolons, commas, and newlines
+  const escapeIcs = (s: string) =>
+    s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n')
+
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -1410,9 +1471,9 @@ export function generateIcsFile(event: Event): string {
     'BEGIN:VEVENT',
     `DTSTART:${formatIcsDate(start)}`,
     `DTEND:${formatIcsDate(end)}`,
-    `SUMMARY:${event.title}`,
-    `DESCRIPTION:${(event.description ?? '').replace(/\n/g, '\\n')}`,
-    `LOCATION:${event.address ?? ''}`,
+    `SUMMARY:${escapeIcs(event.title)}`,
+    `DESCRIPTION:${escapeIcs(event.description ?? '')}`,
+    `LOCATION:${escapeIcs(event.address ?? '')}`,
     'BEGIN:VALARM',
     'TRIGGER:-P1D',
     'ACTION:DISPLAY',

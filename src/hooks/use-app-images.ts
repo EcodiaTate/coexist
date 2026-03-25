@@ -41,6 +41,7 @@ export function useAppImages() {
   const query = useQuery({
     queryKey: ['app-images'],
     queryFn: async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
         .from('app_images')
         .select('key, url, label')

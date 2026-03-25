@@ -125,14 +125,24 @@ serve(async (req: Request) => {
         const customerEmail = await getUserEmail(body.user_id)
 
         if (body.frequency === 'monthly') {
-          // Recurring: create a dynamic price on a generic donation product
-          const product = await stripe.products.create({
-            name: `Co-Exist Monthly Donation - $${body.amount}`,
-            metadata: { type: 'recurring_donation' },
+          // Recurring: reuse a single donation product, create price per amount
+          const existingProducts = await stripe.products.search({
+            query: "metadata['type']:'recurring_donation'",
+            limit: 1,
           })
+          let productId: string
+          if (existingProducts.data.length > 0) {
+            productId = existingProducts.data[0].id
+          } else {
+            const product = await stripe.products.create({
+              name: 'Co-Exist Monthly Donation',
+              metadata: { type: 'recurring_donation' },
+            })
+            productId = product.id
+          }
 
           const price = await stripe.prices.create({
-            product: product.id,
+            product: productId,
             unit_amount: Math.round(body.amount * 100),
             currency: 'aud',
             recurring: { interval: 'month' },
@@ -225,21 +235,23 @@ serve(async (req: Request) => {
         const productIds = [...new Set(body.items.map((i: { product_id: string }) => i.product_id))]
         const { data: dbProducts } = await supabase
           .from('merch_products')
-          .select('id, name, price, images, variants')
+          .select('id, name, base_price_cents, price, images, variants')
           .in('id', productIds)
           .eq('is_active', true)
 
-        const productMap = new Map<string, { name: string; price: number; images: string[]; variants: any[] }>()
+        interface DbVariant { id: string; price_cents: number; is_active: boolean }
+        const productMap = new Map<string, { name: string; base_price_cents: number; price: number; images: string[]; variants: DbVariant[] }>()
         for (const p of dbProducts ?? []) {
           productMap.set(p.id, {
             name: p.name,
+            base_price_cents: p.base_price_cents ?? Math.round((p.price ?? 0) * 100),
             price: p.price,
             images: p.images ?? [],
-            variants: Array.isArray(p.variants) ? p.variants : [],
+            variants: Array.isArray(p.variants) ? p.variants as DbVariant[] : [],
           })
         }
 
-        // Build Stripe line items using server-verified prices
+        // Build Stripe line items using server-verified variant prices
         const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = []
         let serverTotalCents = 0
         for (const item of body.items as Array<{ product_id: string; variant_id: string; quantity: number; price_cents: number; variant_label?: string }>) {
@@ -247,8 +259,12 @@ serve(async (req: Request) => {
           if (!product) {
             return json({ error: `Product ${item.product_id} not found or inactive` }, 400)
           }
-          // Use the server-side price (converted to cents), not the client-submitted one
-          const unitPriceCents = Math.round(product.price * 100)
+          // Look up the specific variant's price_cents from the server-side JSONB
+          const dbVariant = product.variants.find((v) => v.id === item.variant_id)
+          const unitPriceCents = dbVariant?.price_cents ?? product.base_price_cents
+          if (dbVariant && !dbVariant.is_active) {
+            return json({ error: `Variant ${item.variant_id} is no longer available` }, 400)
+          }
           const variantLabel = item.variant_label ?? item.variant_id ?? 'Standard'
           serverTotalCents += unitPriceCents * item.quantity
           lineItems.push({
@@ -280,15 +296,28 @@ serve(async (req: Request) => {
           serverTotalCents += shippingCents
         }
 
-        // Insert pending order into DB using server-computed total
+        // Compute server-side discount cents (applied after line items are built)
+        // Note: the actual Stripe coupon handles the discount in Stripe's total,
+        // but we need to record accurate cents in our DB for order display.
+        const serverSubtotalCents = serverTotalCents - shippingCents
+        const discountCents = typeof body.discount_cents === 'number' ? Math.max(0, Math.round(body.discount_cents)) : 0
+        const memberDiscountCents = typeof body.member_discount_cents === 'number' ? Math.max(0, Math.round(body.member_discount_cents)) : 0
+        const dbTotalCents = Math.max(0, serverSubtotalCents - memberDiscountCents - discountCents + shippingCents)
+
+        // Insert pending order into DB with full price breakdown
         const { data: order, error: orderError } = await supabase
           .from('merch_orders')
           .insert({
             user_id: body.user_id,
             status: 'pending',
             items: body.items,
-            total: serverTotalCents / 100,
+            subtotal_cents: serverSubtotalCents,
+            discount_cents: discountCents + memberDiscountCents,
+            shipping_cents: shippingCents,
+            total_cents: dbTotalCents,
+            total: dbTotalCents / 100,
             shipping_address: body.shipping_address,
+            promo_code_id: body.promo_code_id ?? null,
           })
           .select()
           .single()
@@ -333,7 +362,8 @@ serve(async (req: Request) => {
             if (promo.type === 'percentage') {
               couponParams.percent_off = Number(promo.value)
             } else if (promo.type === 'flat') {
-              couponParams.amount_off = Number(promo.value)
+              // DB stores value in dollars; Stripe amount_off expects cents
+              couponParams.amount_off = Math.round(Number(promo.value) * 100)
             }
             // free_shipping is handled by zeroing shipping_cents client-side
 

@@ -28,7 +28,7 @@ import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { WhatsNext } from '@/components/whats-next'
 import { useToast } from '@/components/toast'
 import { parseLocationPoint } from '@/lib/geo'
-import { useAuth } from '@/hooks/use-auth'
+
 import {
     useCollective,
     useCollectiveLeaders,
@@ -69,7 +69,7 @@ export default function CollectiveDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { user } = useAuth()
+
   const shouldReduceMotion = useReducedMotion()
 
   // Fetch collective by slug (or UUID for backwards compat)
@@ -83,7 +83,8 @@ export default function CollectiveDetailPage() {
   const { data: pastEvents = [] } = useCollectiveEvents(collectiveId, 'past')
   const { data: stats } = useCollectiveStats(collectiveId)
   const { data: membership } = useCollectiveMembership(collectiveId)
-  const { isLeader } = useCollectiveRole(collectiveId)
+  const { isLeader, isCoLeader } = useCollectiveRole(collectiveId)
+  const canManage = isLeader || isCoLeader
 
   const joinCollective = useJoinCollective()
   const leaveCollective = useLeaveCollective()
@@ -155,12 +156,12 @@ export default function CollectiveDetailPage() {
           transparent
           className="-mb-14"
           rightActions={
-            isLeader ? (
+            canManage ? (
               <button
                 type="button"
                 onClick={() => navigate(`/collectives/${slug}/manage`)}
                 aria-label="Manage collective"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full bg-black/40 text-white hover:bg-black/50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full bg-black/40 text-white hover:bg-black/50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
               >
                 <Settings size={20} />
               </button>
@@ -423,10 +424,10 @@ export default function CollectiveDetailPage() {
             <EmptyState
               illustration="empty"
               title="No upcoming events"
-              description={isLeader
+              description={canManage
                 ? 'Create an event to get your collective moving'
                 : 'Check back soon or ask your leader to create one'}
-              action={isLeader
+              action={canManage
                 ? { label: 'Create Event', to: '/events/create' }
                 : undefined}
               className="min-h-[140px] py-4"

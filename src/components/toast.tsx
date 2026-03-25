@@ -83,6 +83,7 @@ const noopToast: ToastContextValue = {
   toast: { success: noop, error: noop, info: noop, warning: noop },
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useToast(): ToastContextValue {
   const ctx = useContext(ToastContext)
   // Return no-op during HMR transitions when context may be temporarily null

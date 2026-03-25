@@ -13,11 +13,11 @@ import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { StatCard } from '@/components/stat-card'
 import { Skeleton } from '@/components/skeleton'
-import { EmptyState } from '@/components/empty-state'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useReferralCode, useReferralStats } from '@/hooks/use-referral'
+import { analytics, ANALYTICS_EVENTS } from '@/lib/analytics'
 
 /* ------------------------------------------------------------------ */
 /*  Animation                                                          */
@@ -58,33 +58,59 @@ export default function ReferralPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const { toast } = useToast()
-  const { data: code, isLoading: codeLoading } = useReferralCode()
+  const { data: code, isLoading: codeLoading, createCode } = useReferralCode()
   const showLoading = useDelayedLoading(codeLoading)
   const { data: stats } = useReferralStats()
 
   const [copied, setCopied] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
 
   const referralLink = code
     ? `${window.location.origin}/signup?ref=${code}`
     : ''
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(referralLink)
-    setCopied(true)
-    toast.success('Link copied!')
-    setTimeout(() => setCopied(false), 2000)
+    if (!referralLink) return
+    try {
+      await navigator.clipboard.writeText(referralLink)
+      setCopied(true)
+      toast.success('Link copied!')
+      analytics.track(ANALYTICS_EVENTS.REFERRAL_SHARED, { method: 'copy' })
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error('Could not copy link')
+    }
   }
 
   const handleShare = async () => {
+    if (!referralLink) return
     const shareData = {
       title: 'Join Co-Exist',
       text: 'Join me on Co-Exist - the conservation movement for young Australians!',
       url: referralLink,
     }
-    if (navigator.share) {
-      await navigator.share(shareData)
-    } else {
-      await handleCopy()
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+        analytics.track(ANALYTICS_EVENTS.REFERRAL_SHARED, { method: 'native_share' })
+      } else {
+        await handleCopy()
+      }
+    } catch (err) {
+      // User cancelled the share dialog — not an error
+      if (err instanceof Error && err.name === 'AbortError') return
+      toast.error('Could not share link')
+    }
+  }
+
+  const handleCreateCode = async () => {
+    setIsCreating(true)
+    try {
+      await createCode.mutateAsync()
+    } catch {
+      toast.error('Could not generate referral code')
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -188,38 +214,52 @@ export default function ReferralPage() {
             <h3 className="font-heading text-sm font-semibold text-primary-800 mb-2">
               Your Referral Code
             </h3>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 rounded-xl bg-white/90 border border-moss-200/40 px-4 py-3 text-center font-heading text-lg font-bold text-primary-800 tracking-wider select-all shadow-sm">
-                {code}
+            {code ? (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 rounded-xl bg-white/90 border border-moss-200/40 px-4 py-3 text-center font-heading text-lg font-bold text-primary-800 tracking-wider select-all shadow-sm">
+                  {code}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopy}
+                  className={cn(
+                    'flex items-center justify-center min-h-11 min-w-11 rounded-xl active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none shadow-sm',
+                    copied
+                      ? 'bg-success-100/80 border border-success-200/40 text-success-600'
+                      : 'bg-white/90 border border-moss-200/40 text-primary-500 hover:bg-moss-50/60',
+                  )}
+                  aria-label="Copy code"
+                >
+                  {copied ? <CheckCircle size={20} /> : <Copy size={20} />}
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={handleCopy}
-                className={cn(
-                  'flex items-center justify-center min-h-11 min-w-11 rounded-xl active:scale-[0.97] transition-all duration-150 cursor-pointer select-none shadow-sm',
-                  copied
-                    ? 'bg-success-100/80 border border-success-200/40 text-success-600'
-                    : 'bg-white/90 border border-moss-200/40 text-primary-500 hover:bg-moss-50/60',
-                )}
-                aria-label="Copy code"
+            ) : (
+              <Button
+                variant="secondary"
+                size="md"
+                fullWidth
+                loading={isCreating}
+                onClick={handleCreateCode}
               >
-                {copied ? <CheckCircle size={20} /> : <Copy size={20} />}
-              </button>
-            </div>
+                Generate Your Code
+              </Button>
+            )}
           </motion.div>
 
           {/* Share button */}
-          <motion.div variants={fadeUp} className="mt-4">
-            <Button
-              variant="primary"
-              size="md"
-              fullWidth
-              icon={<Share2 size={16} />}
-              onClick={handleShare}
-            >
-              Share Invite Link
-            </Button>
-          </motion.div>
+          {code && (
+            <motion.div variants={fadeUp} className="mt-4">
+              <Button
+                variant="primary"
+                size="md"
+                fullWidth
+                icon={<Share2 size={16} />}
+                onClick={handleShare}
+              >
+                Share Invite Link
+              </Button>
+            </motion.div>
+          )}
 
           {/* Stats */}
           {stats && (

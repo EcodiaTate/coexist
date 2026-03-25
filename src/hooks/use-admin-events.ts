@@ -45,23 +45,33 @@ async function fetchAdminEventsData(): Promise<AdminEventsData> {
   const { data: events, error } = await supabase
     .from('events')
     .select(
-      'id, title, date_start, date_end, address, cover_image_url, collective_id, capacity, activity_type, status, collectives(name, region, state)' as any,
+      'id, title, date_start, date_end, address, cover_image_url, collective_id, capacity, activity_type, status, collectives(name, region, state)',
     )
-    .order('date_start' as any, { ascending: true })
+    .order('date_start', { ascending: true })
     .limit(200)
 
   if (error) throw error
 
-  const enriched: AdminEvent[] = await Promise.all(
-    ((events ?? []) as any[]).map(async (event: any) => {
-      const { count } = await supabase
-        .from('event_registrations')
-        .select('id', { count: 'exact', head: true })
-        .eq('event_id', event.id)
+  const eventList = (events ?? []) as (Omit<AdminEvent, 'registrationCount'>)[]
 
-      return { ...event, registrationCount: count ?? 0 }
-    }),
-  )
+  // Batch-fetch registration counts in one query instead of N
+  const eventIds = eventList.map((e) => e.id)
+  const regCounts = new Map<string, number>()
+  if (eventIds.length > 0) {
+    const { data: regRows } = await supabase
+      .from('event_registrations')
+      .select('event_id')
+      .in('event_id', eventIds)
+
+    for (const row of (regRows ?? []) as { event_id: string }[]) {
+      regCounts.set(row.event_id, (regCounts.get(row.event_id) ?? 0) + 1)
+    }
+  }
+
+  const enriched: AdminEvent[] = eventList.map((event) => ({
+    ...event,
+    registrationCount: regCounts.get(event.id) ?? 0,
+  } as AdminEvent))
 
   const upcoming = enriched.filter((e) => e.date_start >= now)
   const past = enriched.filter((e) => e.date_start < now)

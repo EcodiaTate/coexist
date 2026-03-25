@@ -118,7 +118,7 @@ export function CenteredDialog({ open, onClose, children, className }: CenteredD
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="absolute top-2 right-2 z-10 flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.93] transition-all duration-150 cursor-pointer select-none"
+              className="absolute top-2 right-2 z-10 flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.93] transition-transform duration-150 cursor-pointer select-none"
             >
               <X size={18} />
             </button>

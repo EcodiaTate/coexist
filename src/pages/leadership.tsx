@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { cn } from '@/lib/cn'
 
@@ -81,7 +82,7 @@ export default function LeadershipPage() {
   const navigate = useNavigate()
 
   return (
-    <Page noBackground className="!px-0 bg-white">
+    <Page swipeBack noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-secondary-800">
         {/* Decorative shapes - "rising leaders" formation */}

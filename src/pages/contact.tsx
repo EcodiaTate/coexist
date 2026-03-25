@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import {
   Mail,
-  Phone,
   MapPin,
   Send,
   Globe,
@@ -10,6 +9,7 @@ import {
   Facebook,
 } from 'lucide-react'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { useToast } from '@/components/toast'
@@ -84,7 +84,7 @@ export default function ContactPage() {
 
     setSending(true)
     try {
-      const { error } = await (supabase as any)
+      const { error } = await (supabase as unknown as { from: (table: string) => { insert: (data: Record<string, unknown>) => Promise<{ error: unknown }> } })
         .from('contact_submissions')
         .insert({
           name: name.trim(),
@@ -106,19 +106,8 @@ export default function ContactPage() {
 
   return (
     <Page
-      header={
-        <header
-          className="sticky top-0 z-40 px-5 pt-2 pb-3"
-          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 0.5rem)' }}
-        >
-          <h1 className="font-heading text-2xl font-bold text-primary-900">
-            Contact Us
-          </h1>
-          <p className="text-[13px] text-primary-400 mt-0.5">
-            We'd love to hear from you
-          </p>
-        </header>
-      }
+      swipeBack
+      header={<Header title="" back />}
       className="bg-surface-1"
     >
       <motion.div
@@ -154,25 +143,15 @@ export default function ContactPage() {
             required
           />
 
-          <div>
-            <label className="block text-[13px] font-medium text-primary-700 mb-1.5">
-              Message
-            </label>
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="How can we help?"
-              required
-              rows={5}
-              className={cn(
-                'w-full rounded-xl border border-primary-200 bg-white',
-                'px-3.5 py-2.5 text-[15px] text-primary-900',
-                'placeholder:text-primary-300',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
-                'resize-none',
-              )}
-            />
-          </div>
+          <Input
+            type="textarea"
+            label="Message"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="How can we help?"
+            required
+            rows={5}
+          />
 
           <Button
             type="submit"

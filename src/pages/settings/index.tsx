@@ -249,6 +249,7 @@ function NotificationPrefsSheet({
     { key: 'global_announcement', label: 'Announcements', description: 'National Co-Exist announcements' },
     { key: 'challenge_update', label: 'Challenges', description: 'Challenge progress and updates' },
     { key: 'points_earned', label: 'Points Earned', description: 'When you earn points' },
+    { key: 'survey_request', label: 'Surveys', description: 'Post-event survey requests' },
   ]
 
   return (
@@ -288,7 +289,7 @@ function ChatPrefsSheet({
   onUpdate: (key: keyof NotificationPreferences, value: boolean) => void
 }) {
   return (
-    <BottomSheet open={open} onClose={onClose} snapPoints={[0.4]}>
+    <BottomSheet open={open} onClose={onClose} snapPoints={[0.65]}>
       <h2 className="font-heading text-lg font-semibold text-primary-800 mb-4">
         Chat Preferences
       </h2>
@@ -297,13 +298,37 @@ function ChatPrefsSheet({
           checked={prefs.chat_messages}
           onChange={(val) => onUpdate('chat_messages', val)}
           label="Chat Messages"
-          description="Notifications for new messages in collectives"
+          description="All new messages in your collectives"
         />
         <Toggle
           checked={prefs.chat_mention}
           onChange={(val) => onUpdate('chat_mention', val)}
-          label="@Mentions Only"
-          description="Only get notified when someone @mentions you"
+          label="@Mentions"
+          description="When someone @mentions you in chat"
+        />
+        <Toggle
+          checked={prefs.chat_reply}
+          onChange={(val) => onUpdate('chat_reply', val)}
+          label="Replies"
+          description="When someone replies to your message"
+        />
+        <Toggle
+          checked={prefs.chat_image}
+          onChange={(val) => onUpdate('chat_image', val)}
+          label="Photos"
+          description="When someone shares a photo in chat"
+        />
+        <Toggle
+          checked={prefs.chat_poll}
+          onChange={(val) => onUpdate('chat_poll', val)}
+          label="Polls"
+          description="When a new poll is created in chat"
+        />
+        <Toggle
+          checked={prefs.chat_announcement}
+          onChange={(val) => onUpdate('chat_announcement', val)}
+          label="Announcements"
+          description="When a leader posts an announcement in chat"
         />
       </div>
     </BottomSheet>
@@ -351,7 +376,7 @@ function QuietHoursSheet({
               type="time"
               value={prefs.quiet_hours_start}
               onChange={(e) => onUpdate('quiet_hours_start', e.target.value)}
-              className="w-full rounded-lg bg-primary-50/50 px-3 py-2 text-sm text-primary-800 focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none"
+              className="w-full rounded-lg bg-surface-3 px-3 py-2 text-sm text-primary-800 focus:ring-2 focus:ring-primary-500 outline-none"
             />
           </div>
           <div className="flex-1">
@@ -360,7 +385,7 @@ function QuietHoursSheet({
               type="time"
               value={prefs.quiet_hours_end}
               onChange={(e) => onUpdate('quiet_hours_end', e.target.value)}
-              className="w-full rounded-lg bg-primary-50/50 px-3 py-2 text-sm text-primary-800 focus:ring-2 focus:ring-primary-500 focus:bg-white outline-none"
+              className="w-full rounded-lg bg-surface-3 px-3 py-2 text-sm text-primary-800 focus:ring-2 focus:ring-primary-500 outline-none"
             />
           </div>
         </div>
@@ -386,6 +411,16 @@ function ChangePasswordSheet({
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Reset form state when sheet reopens
+  useEffect(() => {
+    if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting form on open is intentional
+      setNewPassword('')
+      setConfirmPassword('')
+      setError('')
+    }
+  }, [open])
 
   const handleSubmit = async () => {
     setError('')
@@ -461,6 +496,15 @@ function ChangeEmailSheet({
   const [newEmail, setNewEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Reset form state when sheet reopens
+  useEffect(() => {
+    if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- resetting form on open is intentional
+      setNewEmail('')
+      setError('')
+    }
+  }, [open])
 
   const handleSubmit = async () => {
     setError('')
@@ -719,16 +763,13 @@ function DataPrivacySheet({
   open: boolean
   onClose: () => void
 }) {
-  const { user } = useAuth()
   const { toast } = useToast()
   const [exporting, setExporting] = useState(false)
 
   const handleExport = async () => {
     setExporting(true)
     try {
-      const { data, error } = await supabase.functions.invoke('data-export', {
-        body: { userId: user?.id },
-      })
+      const { data, error } = await supabase.functions.invoke('data-export')
       if (error) throw error
 
       // Download as JSON file
@@ -818,29 +859,35 @@ export default function SettingsPage() {
   const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT_PREFERENCES)
   const [soundEnabled, setSoundEnabled] = useState(true)
   // Hydrate prefs from profile on mount / when profile loads
-  const savedPrefsJson = JSON.stringify((profile as any)?.notification_preferences ?? null)
+  type ProfileExt = { notification_preferences?: Partial<NotificationPreferences> & { sound_enabled?: boolean; profile_visible?: boolean }; marketing_opt_in?: boolean; deleted_at?: string; deletion_status?: string; deletion_requested_at?: string }
+  const profileExt = profile as unknown as ProfileExt | null
+  const savedPrefsJson = JSON.stringify(profileExt?.notification_preferences ?? null)
+  const [profileVisible, setProfileVisible] = useState(true)
+  const [marketingOptIn, setMarketingOptIn] = useState(true)
   useEffect(() => {
-    const saved = (profile as any)?.notification_preferences
+    const saved = profileExt?.notification_preferences
     if (saved) {
       setPrefs((prev) => ({
         ...prev,
         ...(saved as Partial<NotificationPreferences>),
       }))
+      // Hydrate sound + visibility from notification_preferences JSON
+      if (saved.sound_enabled !== undefined) setSoundEnabled(saved.sound_enabled)
+      if (saved.profile_visible !== undefined) setProfileVisible(saved.profile_visible)
     }
+    // Hydrate marketing opt-in from profile
+    if (profileExt) setMarketingOptIn(profileExt.marketing_opt_in !== false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedPrefsJson])
-  const [profileVisible, setProfileVisible] = useState(true)
-  const [marketingOptIn, setMarketingOptIn] = useState(
-    (profile as any)?.marketing_opt_in !== false,
-  )
 
   const handleMarketingToggle = useCallback(
     (value: boolean) => {
+      if (!user) return
       setMarketingOptIn(value)
       supabase
         .from('profiles')
-        .update({ marketing_opt_in: value } as any)
-        .eq('id', user?.id ?? '')
+        .update({ marketing_opt_in: value } as unknown as Record<string, unknown>)
+        .eq('id', user.id)
         .then(({ error }) => {
           if (error) {
             console.error('Failed to save marketing opt-in:', error)
@@ -848,7 +895,27 @@ export default function SettingsPage() {
           }
         })
     },
-    [user?.id],
+    [user],
+  )
+
+  /** Persist the full notification_preferences JSONB (includes sound_enabled + profile_visible) */
+  const persistPrefs = useCallback(
+    (updated: Record<string, unknown>, rollbackFn?: () => void) => {
+      if (!user) return
+      supabase
+        .from('profiles')
+        .update({
+          notification_preferences: updated,
+        } as unknown as Record<string, unknown>)
+        .eq('id', user.id)
+        .then(({ error }) => {
+          if (error) {
+            console.error('Failed to save preferences:', error)
+            rollbackFn?.()
+          }
+        })
+    },
+    [user],
   )
 
   const updatePref = useCallback(
@@ -856,23 +923,40 @@ export default function SettingsPage() {
       setPrefs((prev) => {
         const updated = { ...prev, [key]: value }
         const rollback = prev
-        // Persist to Supabase using the freshly computed value
-        supabase
-          .from('profiles')
-          .update({
-            notification_preferences: updated,
-          } as any)
-          .eq('id', user?.id ?? '')
-          .then(({ error }) => {
-            if (error) {
-              console.error('Failed to save preferences:', error)
-              setPrefs(rollback)
-            }
-          })
+        persistPrefs(
+          { ...updated, sound_enabled: soundEnabled, profile_visible: profileVisible },
+          () => setPrefs(rollback),
+        )
         return updated
       })
     },
-    [user?.id],
+    [persistPrefs, soundEnabled, profileVisible],
+  )
+
+  const handleSoundToggle = useCallback(
+    (value: boolean) => {
+      if (!user) return
+      const prev = soundEnabled
+      setSoundEnabled(value)
+      persistPrefs(
+        { ...prefs, sound_enabled: value, profile_visible: profileVisible },
+        () => setSoundEnabled(prev),
+      )
+    },
+    [user, prefs, profileVisible, soundEnabled, persistPrefs],
+  )
+
+  const handleVisibilityToggle = useCallback(
+    (value: boolean) => {
+      if (!user) return
+      const prev = profileVisible
+      setProfileVisible(value)
+      persistPrefs(
+        { ...prefs, sound_enabled: soundEnabled, profile_visible: value },
+        () => setProfileVisible(prev),
+      )
+    },
+    [user, prefs, soundEnabled, profileVisible, persistPrefs],
   )
 
   const handleLogout = async () => {
@@ -882,6 +966,7 @@ export default function SettingsPage() {
   }
 
   const handleDeleteAccount = async () => {
+    if (!user) return
     // Soft-delete: mark account for deletion (30-day grace)
     const { error } = await supabase
       .from('profiles')
@@ -889,8 +974,8 @@ export default function SettingsPage() {
         deleted_at: new Date().toISOString(),
         deletion_status: 'pending_deletion',
         deletion_requested_at: new Date().toISOString(),
-      } as any)
-      .eq('id', user?.id ?? '')
+      } as unknown as Record<string, unknown>)
+      .eq('id', user.id)
 
     if (error) {
       toast.error('Failed to delete account. Please contact support.')
@@ -945,7 +1030,7 @@ export default function SettingsPage() {
               <MenuRow
                 icon={<MessageSquare size={18} />}
                 label="Chat Preferences"
-                subtitle="Mute collectives, @mention-only mode"
+                subtitle="Messages, replies, polls, announcements"
                 onClick={() => setShowChatPrefs(true)}
               />
               <MenuRow
@@ -964,11 +1049,11 @@ export default function SettingsPage() {
                 rightContent={
                   <Toggle
                     checked={soundEnabled}
-                    onChange={setSoundEnabled}
+                    onChange={handleSoundToggle}
                     size="sm"
                   />
                 }
-                onClick={() => setSoundEnabled(!soundEnabled)}
+                onClick={() => handleSoundToggle(!soundEnabled)}
                 hideDivider
               />
             </div>
@@ -986,11 +1071,11 @@ export default function SettingsPage() {
                 rightContent={
                   <Toggle
                     checked={profileVisible}
-                    onChange={setProfileVisible}
+                    onChange={handleVisibilityToggle}
                     size="sm"
                   />
                 }
-                onClick={() => setProfileVisible(!profileVisible)}
+                onClick={() => handleVisibilityToggle(!profileVisible)}
               />
               <MenuRow
                 icon={<Mail size={18} />}

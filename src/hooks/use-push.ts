@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { Capacitor } from '@capacitor/core'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
@@ -174,6 +175,7 @@ async function requestAndRegister(plugin: NonNullable<typeof PushNotifications>)
 export function usePushRegistration() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const tokenRef = useRef<string | null>(null)
   const listenersRef = useRef<Array<{ remove: () => void }>>([])
 
@@ -227,23 +229,62 @@ export function usePushRegistration() {
       )
 
       // Notification received while app is open (foreground)
+      // Invalidate relevant queries so UI reflects the new data
       const receivedListener = await plugin.addListener(
         'pushNotificationReceived',
-        (_notification: unknown) => {
-          // Foreground notifications - could show in-app toast
+        (notification: unknown) => {
+          const n = notification as { data?: Record<string, string> }
+          const notifType = n.data?.type ?? ''
+
+          // Refresh chat-related queries when a chat push arrives
+          if (notifType.startsWith('chat_')) {
+            const collectiveId = n.data?.collective_id
+            if (collectiveId) {
+              queryClient.invalidateQueries({ queryKey: ['chat-messages', collectiveId] })
+            }
+            queryClient.invalidateQueries({ queryKey: ['unread-counts'] })
+            queryClient.invalidateQueries({ queryKey: ['channel-unread'] })
+          }
+
+          // Always refresh notification counts
+          queryClient.invalidateQueries({ queryKey: ['notifications-unread', user!.id] })
         },
       )
 
-      // Notification tapped — deep link routing
+      // Notification tapped — deep link routing + mark in-app notification read
       const actionListener = await plugin.addListener(
         'pushNotificationActionPerformed',
-        (action: unknown) => {
+        async (action: unknown) => {
           const a = action as PushNotificationActionPerformed
-          const route = resolveNotificationRoute(
-            a.notification.data?.type ?? '',
-            a.notification.data,
-          )
+          const notifData = a.notification.data ?? {}
+          const route = resolveNotificationRoute(notifData.type ?? '', notifData)
           navigate(route)
+
+          // Mark the matching in-app notification as read so the feed stays in sync.
+          // Match on type + recent timestamp since push doesn't carry the notification row ID.
+          try {
+            const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString()
+            const { data: matching } = await supabase
+              .from('notifications')
+              .select('id')
+              .eq('user_id', user!.id)
+              .eq('type', notifData.type ?? '')
+              .is('read_at', null)
+              .gte('created_at', fiveMinAgo)
+              .order('created_at', { ascending: false })
+              .limit(1)
+
+            if (matching?.[0]) {
+              await supabase
+                .from('notifications')
+                .update({ read_at: new Date().toISOString() })
+                .eq('id', matching[0].id)
+              queryClient.invalidateQueries({ queryKey: ['notifications', user!.id] })
+              queryClient.invalidateQueries({ queryKey: ['notifications-unread', user!.id] })
+            }
+          } catch {
+            // Best-effort — don't block navigation on mark-read failure
+          }
         },
       )
 
@@ -287,7 +328,7 @@ export function usePushRegistration() {
       listenersRef.current = []
       resumeListener?.remove()
     }
-  }, [user, navigate])
+  }, [user, navigate, queryClient])
 
   return { tokenRef }
 }

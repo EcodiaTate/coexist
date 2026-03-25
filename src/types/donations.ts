@@ -14,17 +14,19 @@ export interface DonationProject {
 
 export interface Donation {
   id: string
-  user_id: string
-  project_id: string | null
+  user_id: string | null
   amount: number
-  frequency: DonationFrequency
+  amount_cents: number | null
+  currency: string
+  stripe_payment_id: string | null
+  project_name: string | null
   message: string | null
   on_behalf_of: string | null
   is_public: boolean
-  stripe_payment_intent_id: string | null
-  stripe_subscription_id: string | null
-  status: 'pending' | 'succeeded' | 'failed' | 'cancelled'
-  points_awarded: number
+  status: 'pending' | 'succeeded' | 'failed' | 'cancelled' | 'refunded'
+  donor_name: string | null
+  donor_email: string | null
+  receipt_number: string | null
   created_at: string
 }
 
@@ -38,11 +40,11 @@ export interface DonationWithProfile extends Donation {
 export interface RecurringDonation {
   id: string
   user_id: string
-  project_id: string | null
   amount: number
+  currency: string
   stripe_subscription_id: string
-  status: 'active' | 'cancelled' | 'past_due'
-  next_billing_date: string | null
+  status: 'active' | 'cancelled' | 'paused' | 'past_due'
+  cancelled_at: string | null
   created_at: string
 }
 

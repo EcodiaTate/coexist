@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useRef, useMemo } from 'react'
+import { useEffect, useCallback, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
@@ -12,7 +12,7 @@ export interface ChatMessageWithSender extends ChatMessage {
   profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url'> | null
   reply_message: Pick<ChatMessage, 'id' | 'content' | 'user_id'> | null
   sender_role?: string
-  message_type?: 'text' | 'image' | 'voice' | 'video' | 'poll' | 'announcement' | 'system'
+  message_type?: 'text' | 'image' | 'voice' | 'video' | 'poll' | 'announcement' | 'system' | 'html'
   poll_id?: string | null
   announcement_id?: string | null
   /** Client-only: optimistic message not yet confirmed by server */
@@ -118,6 +118,7 @@ export function useChatMessages(collectiveId: string | undefined) {
           profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
         `)
         .eq('collective_id', collectiveId)
+        .is('channel_id', null)
         .order('created_at', { ascending: false })
         .limit(PAGE_SIZE)
 
@@ -179,76 +180,64 @@ export function useChatMessages(collectiveId: string | undefined) {
         async (payload) => {
           const newMsg = payload.new as ChatMessageWithSender
 
-          // If this is our own message from optimistic update, replace it
+          // Skip messages that belong to a staff channel (they have a channel_id)
+          if ((newMsg as unknown as Record<string, unknown>).channel_id) return
+
+          // Fetch full message with profile join outside of setQueryData to avoid race conditions
+          const { data } = await supabase
+            .from('chat_messages')
+            .select(`
+              *,
+              profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
+            `)
+            .eq('id', newMsg.id)
+            .single()
+
+          if (!data) return
+
+          // Resolve reply_message if needed
+          if ((data as Record<string, unknown>).reply_to_id) {
+            const { data: reply } = await supabase
+              .from('chat_messages')
+              .select('id, content, user_id')
+              .eq('id', (data as Record<string, unknown>).reply_to_id as string)
+              .single();
+            (data as Record<string, unknown>).reply_message = reply ?? null
+          } else {
+            (data as Record<string, unknown>).reply_message = null
+          }
+
+          const fullMsg = data as unknown as ChatMessageWithSender
+
           queryClient.setQueryData(
             ['chat-messages', collectiveId],
             (old: { pages: ChatMessageWithSender[][]; pageParams: (string | null)[] } | undefined) => {
               if (!old) return old
 
-              // Check if we have an optimistic version of this message
-              const hasOptimistic = old.pages[0]?.some(
-                (m) => m._optimistic && m.user_id === newMsg.user_id && m._optimisticId,
+              let firstPage = old.pages[0] ?? []
+
+              // Replace optimistic message from same user with matching content
+              const optimisticIdx = firstPage.findIndex(
+                (m) =>
+                  m._optimistic &&
+                  m.user_id === fullMsg.user_id &&
+                  m.content === fullMsg.content,
               )
 
-              // Fetch full message with profile join (no self-ref FK)
-              supabase
-                .from('chat_messages')
-                .select(`
-                  *,
-                  profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
-                `)
-                .eq('id', newMsg.id)
-                .single()
-                .then(async ({ data }) => {
-                  // Resolve reply_message if needed
-                  if (data && (data as Record<string, unknown>).reply_to_id) {
-                    const { data: reply } = await supabase
-                      .from('chat_messages')
-                      .select('id, content, user_id')
-                      .eq('id', (data as Record<string, unknown>).reply_to_id as string)
-                      .single();
-                    (data as Record<string, unknown>).reply_message = reply ?? null
-                  } else if (data) {
-                    (data as Record<string, unknown>).reply_message = null
-                  }
-                  if (!data) return
-                  queryClient.setQueryData(
-                    ['chat-messages', collectiveId],
-                    (current: { pages: ChatMessageWithSender[][]; pageParams: (string | null)[] } | undefined) => {
-                      if (!current) return current
+              if (optimisticIdx !== -1) {
+                firstPage = [...firstPage]
+                firstPage[optimisticIdx] = {
+                  ...fullMsg,
+                  _optimistic: false,
+                  _optimisticId: undefined,
+                  _confirmed: true,
+                } as ChatMessageWithSender
+              } else if (!firstPage.some((m) => m.id === fullMsg.id)) {
+                // New message from someone else - prepend
+                firstPage = [fullMsg, ...firstPage]
+              }
 
-                      // Remove any optimistic message that matches this real one
-                      let firstPage = current.pages[0] ?? []
-
-                      // Replace optimistic message from same user sent around same time
-                      const optimisticIdx = firstPage.findIndex(
-                        (m) =>
-                          m._optimistic &&
-                          m.user_id === (data as unknown as ChatMessageWithSender).user_id &&
-                          m.content === (data as unknown as ChatMessageWithSender).content,
-                      )
-
-                      if (optimisticIdx !== -1) {
-                        // Merge server data into the optimistic slot, mark as confirmed
-                        firstPage = [...firstPage]
-                        firstPage[optimisticIdx] = {
-                          ...(data as unknown as ChatMessageWithSender),
-                          _optimistic: false,
-                          _optimisticId: undefined,
-                          _confirmed: true, // Skip entrance animation
-                        } as ChatMessageWithSender
-                      } else if (!firstPage.some((m) => m.id === (data as unknown as ChatMessageWithSender).id)) {
-                        // New message from someone else - prepend
-                        firstPage = [data as unknown as ChatMessageWithSender, ...firstPage]
-                      }
-
-                      return { ...current, pages: [firstPage, ...current.pages.slice(1)] }
-                    },
-                  )
-                })
-
-              // Return old for now - the .then() above will update with full data
-              return old
+              return { ...old, pages: [firstPage, ...old.pages.slice(1)] }
             },
           )
         },
@@ -262,7 +251,10 @@ export function useChatMessages(collectiveId: string | undefined) {
           filter: `collective_id=eq.${collectiveId}`,
         },
         (payload) => {
-          const { profiles: _, reply_message: __, ...columnUpdates } = payload.new as Record<string, unknown>
+          // Skip channel messages
+          if ((payload.new as Record<string, unknown>).channel_id) return
+
+          const { profiles: _profiles, reply_message: _reply, ...columnUpdates } = payload.new as Record<string, unknown>
           queryClient.setQueryData(
             ['chat-messages', collectiveId],
             (old: { pages: ChatMessageWithSender[][]; pageParams: (string | null)[] } | undefined) => {
@@ -316,7 +308,8 @@ export function useSendMessage() {
       }
       sendTimestamps.current.push(now)
 
-      if (input.content && input.content.length > MAX_MESSAGE_LENGTH) {
+      const isHtml = input.messageType === 'html'
+      if (!isHtml && input.content && input.content.length > MAX_MESSAGE_LENGTH) {
         throw new Error(`Message too long (max ${MAX_MESSAGE_LENGTH} characters)`)
       }
 
@@ -325,7 +318,7 @@ export function useSendMessage() {
         .insert({
           collective_id: input.collectiveId,
           user_id: user.id,
-          content: input.content?.slice(0, MAX_MESSAGE_LENGTH) ?? null,
+          content: isHtml ? (input.content ?? null) : (input.content?.slice(0, MAX_MESSAGE_LENGTH) ?? null),
           image_url: input.imageUrl ?? null,
           voice_url: input.voiceUrl ?? null,
           video_url: input.videoUrl ?? null,
@@ -393,6 +386,59 @@ export function useSendMessage() {
             last_read_at: new Date().toISOString(),
           }, { onConflict: 'collective_id,user_id' })
           .then()
+
+        // Send push notification to other members (fire-and-forget, non-blocking)
+        const senderName = profile?.display_name ?? 'Someone'
+        const messageType = input.messageType ?? 'text'
+
+        // Determine notification type and body
+        let pushType = 'chat_messages'
+        let pushBody = input.content?.slice(0, 200) ?? ''
+        const pushTitle = senderName
+
+        if (input.replyToId) {
+          pushType = 'chat_reply'
+          pushBody = `Replied: ${pushBody || 'a message'}`
+        } else if (messageType === 'image' || input.imageUrl) {
+          pushType = 'chat_image'
+          pushBody = 'Sent a photo'
+        } else if (messageType === 'voice' || input.voiceUrl) {
+          pushBody = 'Sent a voice message'
+        } else if (messageType === 'video' || input.videoUrl) {
+          pushBody = 'Sent a video'
+        } else if (messageType === 'poll') {
+          pushType = 'chat_poll'
+          pushBody = 'Created a poll'
+        } else if (messageType === 'announcement') {
+          pushType = 'chat_announcement'
+          pushBody = 'Posted an announcement'
+        }
+
+        // Fetch members and send push (background, non-blocking)
+        supabase
+          .from('collective_members')
+          .select('user_id')
+          .eq('collective_id', input.collectiveId)
+          .eq('status', 'active')
+          .then(({ data: members }) => {
+            const recipientIds = (members ?? [])
+              .map((m: { user_id: string }) => m.user_id)
+              .filter((id: string) => id !== user.id)
+
+            if (recipientIds.length > 0) {
+              supabase.functions.invoke('send-push', {
+                body: {
+                  userIds: recipientIds,
+                  title: pushTitle,
+                  body: pushBody,
+                  data: {
+                    type: pushType,
+                    collective_id: input.collectiveId,
+                  },
+                },
+              })
+            }
+          })
       }
     },
     onError: (_err, input, context) => {
@@ -599,26 +645,29 @@ export function useUnreadCounts() {
         .eq('user_id', user.id)
 
       const receiptMap = new Map(receipts?.map((r) => [r.collective_id, r.last_read_at]) ?? [])
-      const counts: Record<string, number> = {}
 
-      for (const m of memberships) {
-        const lastRead = receiptMap.get(m.collective_id)
-        let query = supabase
-          .from('chat_messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('collective_id', m.collective_id)
-          .eq('is_deleted', false)
-          .neq('user_id', user.id)
+      // Run all count queries in parallel instead of sequentially
+      const results = await Promise.all(
+        memberships.map(async (m) => {
+          const lastRead = receiptMap.get(m.collective_id)
+          let query = supabase
+            .from('chat_messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('collective_id', m.collective_id)
+            .is('channel_id', null)
+            .eq('is_deleted', false)
+            .neq('user_id', user.id)
 
-        if (lastRead) {
-          query = query.gt('created_at', lastRead)
-        }
+          if (lastRead) {
+            query = query.gt('created_at', lastRead)
+          }
 
-        const { count } = await query
-        counts[m.collective_id] = count ?? 0
-      }
+          const { count } = await query
+          return [m.collective_id, count ?? 0] as const
+        }),
+      )
 
-      return counts
+      return Object.fromEntries(results)
     },
     enabled: !!user,
     staleTime: 30 * 1000,
@@ -686,7 +735,7 @@ export function useCreatePoll() {
         text,
       }))
 
-      const { data: poll, error } = await (supabase as any)
+      const { data: poll, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_polls')
         .insert({
           collective_id: collectiveId,
@@ -707,7 +756,7 @@ export function useCreatePoll() {
         collectiveId,
         content: question,
         messageType: 'poll',
-        pollId: (poll as any).id,
+        pollId: (poll as unknown as { id: string }).id,
       })
 
       return poll
@@ -726,7 +775,7 @@ export function usePollVote() {
     mutationFn: async ({ pollId, optionId, collectiveId }: { pollId: string; optionId: string; collectiveId: string }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { error } = await (supabase as any)
+      const { error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_poll_votes')
         .upsert({
           poll_id: pollId,
@@ -769,7 +818,7 @@ export function useRemovePollVote() {
     mutationFn: async ({ pollId, optionId, collectiveId }: { pollId: string; optionId: string; collectiveId: string }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { error } = await (supabase as any)
+      const { error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_poll_votes')
         .delete()
         .eq('poll_id', pollId)
@@ -811,7 +860,7 @@ export function usePollDetail(pollId: string | undefined) {
     queryFn: async () => {
       if (!pollId) throw new Error('No poll ID')
 
-      const { data: poll, error } = await (supabase as any)
+      const { data: poll, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_polls')
         .select(`
           *,
@@ -823,14 +872,14 @@ export function usePollDetail(pollId: string | undefined) {
       if (error) throw error
 
       // Get vote counts
-      const { data: votes } = await (supabase as any)
+      const { data: votes } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_poll_votes')
         .select('option_id, user_id')
         .eq('poll_id', pollId)
 
       const voteCounts: Record<string, number> = {}
       const userVotes: string[] = []
-      let totalVoters = new Set<string>()
+      const totalVoters = new Set<string>()
 
       for (const v of votes ?? []) {
         voteCounts[v.option_id] = (voteCounts[v.option_id] ?? 0) + 1
@@ -879,7 +928,7 @@ export function useCreateAnnouncement() {
     }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { data: announcement, error } = await (supabase as any)
+      const { data: announcement, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_announcements')
         .insert({
           collective_id: collectiveId,
@@ -912,14 +961,12 @@ export function useCreateAnnouncement() {
 }
 
 export function useAnnouncementDetail(announcementId: string | undefined) {
-  const { user } = useAuth()
-
   return useQuery({
     queryKey: ['chat-announcement', announcementId],
     queryFn: async () => {
       if (!announcementId) throw new Error('No announcement ID')
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_announcements')
         .select(`
           *,
@@ -931,7 +978,7 @@ export function useAnnouncementDetail(announcementId: string | undefined) {
       if (error) throw error
 
       // Get responses
-      const { data: responses } = await (supabase as any)
+      const { data: responses } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_announcement_responses')
         .select('*')
         .eq('announcement_id', announcementId)
@@ -958,13 +1005,13 @@ export function useRespondToAnnouncement() {
       if (!user) throw new Error('Not authenticated')
 
       // Remove existing response first (single-choice)
-      await (supabase as any)
+      await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_announcement_responses')
         .delete()
         .eq('announcement_id', announcementId)
         .eq('user_id', user.id)
 
-      const { error } = await (supabase as any)
+      const { error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_announcement_responses')
         .insert({
           announcement_id: announcementId,
@@ -1012,7 +1059,7 @@ export function useBroadcastLog(collectiveId: string | undefined) {
     queryFn: async () => {
       if (!collectiveId) throw new Error('No collective ID')
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_broadcast_log')
         .select(`
           *,
@@ -1068,15 +1115,28 @@ export function useSendBroadcastNotification() {
               title,
               body,
               data: {
-                type: 'chat_messages',
+                type: 'chat_announcement',
                 collective_id: collectiveId,
               },
             },
           })
         : { data: { sent: 0 } }
 
+      // Create in-app notification rows so users see it in their feed
+      if (recipientIds.length > 0) {
+        await supabase.from('notifications').insert(
+          recipientIds.map((uid: string) => ({
+            user_id: uid,
+            type: 'chat_announcement',
+            title,
+            body,
+            data: { collective_id: collectiveId },
+          })),
+        )
+      }
+
       // Log the broadcast for dedup visibility
-      const { error } = await (supabase as any)
+      const { error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
         .from('chat_broadcast_log')
         .insert({
           collective_id: collectiveId,

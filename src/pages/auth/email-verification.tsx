@@ -14,14 +14,20 @@ export default function EmailVerificationPage() {
 
   const [resending, setResending] = useState(false)
   const [resent, setResent] = useState(false)
+  const [resendError, setResendError] = useState<string | null>(null)
 
   async function handleResend() {
     if (!email || resending) return
     setResending(true)
-    await supabase.auth.resend({ type: 'signup', email })
+    setResendError(null)
+    const { error } = await supabase.auth.resend({ type: 'signup', email })
     setResending(false)
-    setResent(true)
-    setTimeout(() => setResent(false), 5000)
+    if (error) {
+      setResendError(error.message)
+    } else {
+      setResent(true)
+      setTimeout(() => setResent(false), 5000)
+    }
   }
 
   return (
@@ -105,6 +111,12 @@ export default function EmailVerificationPage() {
           Back to login
         </Button>
       </motion.div>
+
+      {resendError && (
+        <p className="mt-4 text-sm text-error text-center" role="alert">
+          {resendError}
+        </p>
+      )}
 
       <p className="mt-8 text-xs text-primary-400 text-center max-w-xs">
         Didn't receive the email? Check your spam folder or try a different email address.

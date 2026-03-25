@@ -117,7 +117,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
               'relative flex items-center justify-center',
               'min-w-11 min-h-11 w-11 h-11 rounded-full',
               'text-primary-400 hover:text-primary-800 hover:bg-primary-50',
-              'active:scale-[0.97] transition-all duration-150',
+              'active:scale-[0.97] transition-transform duration-150',
               'cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             )}
@@ -148,7 +148,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                 'flex items-center justify-center gap-2 rounded-full',
                 'min-h-11 min-w-11',
                 'cursor-pointer select-none',
-                'active:scale-[0.97] transition-all duration-150',
+                'active:scale-[0.97] transition-transform duration-150',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 dropdownOpen && 'ring-2 ring-primary-200',
               )}
@@ -191,7 +191,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                       {profile?.display_name}
                     </p>
                     <p className="text-caption text-primary-400 truncate">
-                      @{(profile as any)?.handle}
+                      @{(profile as Record<string, unknown>)?.handle as string}
                     </p>
                   </div>
 
@@ -266,7 +266,7 @@ function DropdownItem({
         'min-h-11',
         'text-sm text-left',
         'cursor-pointer select-none',
-        'active:scale-[0.97] transition-all duration-150',
+        'active:scale-[0.97] transition-transform duration-150',
         'focus-visible:outline-none focus-visible:bg-white',
         danger
           ? 'text-error hover:bg-error-50'

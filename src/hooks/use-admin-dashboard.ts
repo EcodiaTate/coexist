@@ -85,17 +85,18 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
       : Promise.resolve({ count: 0 }),
   ])
 
-  const impact = (totalImpactRes.data ?? []) as any[]
+  interface ImpactRow { trees_planted: number; hours_total: number; rubbish_kg: number; area_restored_sqm: number; native_plants: number; wildlife_sightings: number }
+  const impact = (totalImpactRes.data ?? []) as ImpactRow[]
   return {
     totalMembers: totalMembersRes.count ?? 0,
     totalCollectives: totalCollectivesRes.count ?? 0,
     totalEvents: totalEventsRes.count ?? 0,
-    totalTrees: impact.reduce((s: number, r: any) => s + (r.trees_planted ?? 0), 0),
-    totalHours: Math.round(impact.reduce((s: number, r: any) => s + (r.hours_total ?? 0), 0)),
-    totalRubbish: Math.round(impact.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0)),
-    totalArea: Math.round(impact.reduce((s: number, r: any) => s + (r.area_restored_sqm ?? 0), 0)),
-    totalNativePlants: impact.reduce((s: number, r: any) => s + (r.native_plants ?? 0), 0),
-    totalWildlife: impact.reduce((s: number, r: any) => s + (r.wildlife_sightings ?? 0), 0),
+    totalTrees: impact.reduce((s, r) => s + (r.trees_planted ?? 0), 0),
+    totalHours: Math.round(impact.reduce((s, r) => s + (r.hours_total ?? 0), 0)),
+    totalRubbish: Math.round(impact.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0)),
+    totalArea: Math.round(impact.reduce((s, r) => s + (r.area_restored_sqm ?? 0), 0)),
+    totalNativePlants: impact.reduce((s, r) => s + (r.native_plants ?? 0), 0),
+    totalWildlife: impact.reduce((s, r) => s + (r.wildlife_sightings ?? 0), 0),
     periodMembers: periodMembersRes.count ?? 0,
     periodEvents: periodEventsRes.count ?? 0,
   }
@@ -126,38 +127,44 @@ export interface TrendMonth {
 }
 
 async function fetchTrendData(): Promise<TrendMonth[]> {
-  const months: TrendMonth[] = []
   const now = new Date()
 
-  for (let i = 5; i >= 0; i--) {
+  // Build all 6 month ranges up-front, then fetch in parallel
+  const ranges = Array.from({ length: 6 }, (_, idx) => {
+    const i = 5 - idx
     const start = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 0)
     const monthLabel = start.toLocaleDateString('en-AU', {
       month: 'short',
       year: '2-digit',
     })
+    return { start, end, monthLabel }
+  })
 
-    const [membersRes, eventsRes] = await Promise.all([
-      supabase
-        .from('profiles')
-        .select('id', { count: 'exact', head: true })
-        .gte('created_at', start.toISOString())
-        .lte('created_at', end.toISOString()),
-      supabase
-        .from('events')
-        .select('id', { count: 'exact', head: true })
-        .gte('date_start', start.toISOString())
-        .lte('date_start', new Date(Math.min(end.getTime(), now.getTime())).toISOString()),
-    ])
+  const results = await Promise.all(
+    ranges.map(async ({ start, end, monthLabel }) => {
+      const [membersRes, eventsRes] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .gte('created_at', start.toISOString())
+          .lte('created_at', end.toISOString()),
+        supabase
+          .from('events')
+          .select('id', { count: 'exact', head: true })
+          .gte('date_start', start.toISOString())
+          .lte('date_start', new Date(Math.min(end.getTime(), now.getTime())).toISOString()),
+      ])
 
-    months.push({
-      month: monthLabel,
-      members: membersRes.count ?? 0,
-      events: eventsRes.count ?? 0,
-    })
-  }
+      return {
+        month: monthLabel,
+        members: membersRes.count ?? 0,
+        events: eventsRes.count ?? 0,
+      }
+    }),
+  )
 
-  return months
+  return results
 }
 
 export function useTrendData() {

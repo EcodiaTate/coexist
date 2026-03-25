@@ -11,3 +11,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
   },
 })
+
+/** Escape special PostgREST LIKE/ILIKE characters in user-supplied search input */
+export function escapeIlike(input: string): string {
+  return input.replace(/[%_\\]/g, (ch) => `\\${ch}`)
+}

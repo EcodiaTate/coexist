@@ -1,13 +1,12 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { FileText, Shield } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import { Button } from '@/components/button'
 import { Checkbox } from '@/components/checkbox'
 import { Header } from '@/components/header'
 import { useAuth } from '@/hooks/use-auth'
-
-const CURRENT_TOS_VERSION = '1.0'
+import { CURRENT_TOS_VERSION } from '@/lib/constants'
 
 const stagger = {
   hidden: {},
@@ -21,10 +20,17 @@ const fadeUp = {
 
 export default function AcceptTermsPage() {
   const navigate = useNavigate()
-  const { acceptTos, signOut } = useAuth()
+  const { acceptTos, signOut, isSuspended, user, needsTosAcceptance } = useAuth()
   const shouldReduceMotion = useReducedMotion()
   const [agreed, setAgreed] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Suspended users should not be on this page
+  if (isSuspended) return <Navigate to="/suspended" replace />
+  // If not authenticated, redirect to login
+  if (!user) return <Navigate to="/login" replace />
+  // If TOS is already accepted, go home
+  if (!needsTosAcceptance) return <Navigate to="/" replace />
 
   const handleAccept = async () => {
     setIsSubmitting(true)

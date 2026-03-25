@@ -29,8 +29,6 @@ function makeProduct(overrides: Partial<Product> = {}): Product {
     status: 'active',
     base_price_cents: 3500,
     variants: [],
-    avg_rating: 4.5,
-    review_count: 12,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
     ...overrides,
@@ -43,10 +41,11 @@ function makePromo(overrides: Partial<PromoCode> = {}): PromoCode {
     code: 'SAVE20',
     type: 'percentage',
     value: 20,
-    min_order_cents: null,
+    min_order_amount: null,
     max_uses: null,
-    uses: 0,
-    expires_at: null,
+    uses_count: 0,
+    valid_from: null,
+    valid_to: null,
     is_active: true,
     created_at: '2026-01-01T00:00:00Z',
     ...overrides,
@@ -156,8 +155,8 @@ describe('useCart (Zustand store)', () => {
     })
 
     it('calculates flat discount capped at subtotal', () => {
-      useCart.getState().addItem(product, variant) // subtotal = 3500
-      useCart.getState().setPromoCode(makePromo({ type: 'flat', value: 5000 }))
+      useCart.getState().addItem(product, variant) // subtotal = 3500 cents = $35
+      useCart.getState().setPromoCode(makePromo({ type: 'flat', value: 50 })) // $50 → 5000 cents, capped at subtotal
       expect(useCart.getState().discountCents()).toBe(3500) // capped
     })
 
@@ -167,10 +166,10 @@ describe('useCart (Zustand store)', () => {
       expect(useCart.getState().discountCents()).toBe(0)
     })
 
-    it('returns 0 if subtotal below min_order_cents', () => {
-      useCart.getState().addItem(product, variant) // subtotal = 3500
+    it('returns 0 if subtotal below min_order_amount', () => {
+      useCart.getState().addItem(product, variant) // subtotal = 3500 cents = $35
       useCart.getState().setPromoCode(
-        makePromo({ type: 'percentage', value: 20, min_order_cents: 5000 }),
+        makePromo({ type: 'percentage', value: 20, min_order_amount: 50 }), // $50 minimum
       )
       expect(useCart.getState().discountCents()).toBe(0)
     })
@@ -204,7 +203,7 @@ describe('useCart (Zustand store)', () => {
 
     it('never goes below 0', () => {
       useCart.getState().addItem(product, variant) // 3500
-      useCart.getState().setPromoCode(makePromo({ type: 'flat', value: 99999 }))
+      useCart.getState().setPromoCode(makePromo({ type: 'flat', value: 999.99 }))
       expect(useCart.getState().totalCents()).toBeGreaterThanOrEqual(0)
     })
   })

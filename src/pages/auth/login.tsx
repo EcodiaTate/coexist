@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowLeft, Mail } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import { Header } from '@/components/header'
 import { OGMeta } from '@/components/og-meta'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -41,8 +42,10 @@ export default function LoginPage() {
 
     if (authError) {
       setError(authError.message)
-      setIsSubmitting(false)
     }
+    // Always reset — on success, onAuthStateChange handles navigation;
+    // if that's slow the user can retry rather than staring at a spinner.
+    setIsSubmitting(false)
   }
 
   async function handleSocial(provider: 'google' | 'apple') {
@@ -141,30 +144,7 @@ export default function LoginPage() {
           className="flex-1 flex flex-col"
         >
           {/* Back button */}
-          <motion.div
-            initial={rm ? {} : { opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
-            className="px-5 pt-3"
-            style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
-          >
-            <motion.button
-              type="button"
-              onClick={() => navigate('/welcome')}
-              whileTap={rm ? undefined : { scale: 0.92 }}
-              className={cn(
-                'flex items-center justify-center',
-                'w-10 h-10 rounded-full',
-                'bg-white/[0.15]',
-                'text-white/80',
-                'cursor-pointer select-none',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30',
-              )}
-              aria-label="Go back"
-            >
-              <ArrowLeft size={20} />
-            </motion.button>
-          </motion.div>
+          <Header title="" back onBack={() => navigate('/welcome')} transparent />
 
           {/* Wordmark + heading */}
           <div className="px-6 pt-10 pb-2 flex flex-col items-center text-center">
@@ -211,7 +191,7 @@ export default function LoginPage() {
                   'h-[52px] rounded-2xl',
                   'bg-white/[0.15]',
                   'text-sm text-white font-semibold',
-                  'active:scale-[0.97] transition-all duration-200',
+                  'active:scale-[0.97] transition-transform duration-200',
                   'cursor-pointer hover:bg-white/[0.18]',
                 )}
               >
@@ -232,7 +212,7 @@ export default function LoginPage() {
                   'h-[52px] rounded-2xl',
                   'bg-white/[0.15]',
                   'text-sm text-white font-semibold',
-                  'active:scale-[0.97] transition-all duration-200',
+                  'active:scale-[0.97] transition-transform duration-200',
                   'cursor-pointer hover:bg-white/[0.18]',
                 )}
               >

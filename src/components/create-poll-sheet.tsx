@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, BarChart3 } from 'lucide-react'
 import { CenteredDialog } from '@/components/centered-dialog'
 import { Button } from '@/components/button'
-import { cn } from '@/lib/cn'
+import { Input } from '@/components/input'
+import { Checkbox } from '@/components/checkbox'
 
 interface CreatePollSheetProps {
   open: boolean
@@ -66,30 +66,24 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
 
         {/* Question */}
         <div className="mb-4">
-          <label htmlFor="poll-question" className="text-xs font-semibold text-primary-600 mb-1 block">
-            Question
-          </label>
-          <input
-            id="poll-question"
-            type="text"
+          <Input
+            label="Question"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="What would you like to ask?"
             maxLength={200}
-            className="w-full rounded-xl bg-primary-50/40 px-3.5 py-2.5 text-sm text-primary-800 placeholder:text-primary-400 outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white min-h-11"
           />
         </div>
 
         {/* Options */}
         <div className="mb-4">
-          <label className="text-xs font-semibold text-primary-600 mb-1.5 block">
+          <p className="text-xs font-semibold text-primary-600 mb-1.5">
             Options (min 2, max 8)
-          </label>
+          </p>
           <div className="space-y-2">
             {options.map((opt, i) => (
               <div key={i} className="flex items-center gap-2">
-                <input
-                  type="text"
+                <Input
                   value={opt}
                   onChange={(e) => {
                     const newOpts = [...options]
@@ -98,13 +92,13 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
                   }}
                   placeholder={`Option ${i + 1}`}
                   maxLength={100}
-                  className="flex-1 rounded-xl bg-primary-50/40 px-3 py-2 text-sm text-primary-800 placeholder:text-primary-400 outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white min-h-11"
+                  className="flex-1"
                 />
                 {options.length > 2 && (
                   <button
                     type="button"
                     onClick={() => removeOption(i)}
-                    className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-error-400 hover:bg-error-50 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none"
+                    className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-error-400 hover:bg-error-50 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
                     aria-label={`Remove option ${i + 1}`}
                   >
                     <Trash2 size={16} />
@@ -118,7 +112,7 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
             <button
               type="button"
               onClick={addOption}
-              className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-primary-500 hover:text-primary-700 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none min-h-11 px-1"
+              className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-primary-500 hover:text-primary-700 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none min-h-11 px-1"
             >
               <Plus size={14} />
               Add option
@@ -128,24 +122,8 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
 
         {/* Toggles */}
         <div className="space-y-3 mb-5">
-          <label className="flex items-center gap-3 cursor-pointer select-none min-h-11">
-            <input
-              type="checkbox"
-              checked={allowMultiple}
-              onChange={(e) => setAllowMultiple(e.target.checked)}
-              className="h-5 w-5 rounded text-primary-600 focus:ring-primary-400 accent-primary-600"
-            />
-            <span className="text-sm text-primary-700">Allow multiple votes</span>
-          </label>
-          <label className="flex items-center gap-3 cursor-pointer select-none min-h-11">
-            <input
-              type="checkbox"
-              checked={anonymous}
-              onChange={(e) => setAnonymous(e.target.checked)}
-              className="h-5 w-5 rounded text-primary-600 focus:ring-primary-400 accent-primary-600"
-            />
-            <span className="text-sm text-primary-700">Anonymous voting</span>
-          </label>
+          <Checkbox checked={allowMultiple} onChange={setAllowMultiple} label="Allow multiple votes" />
+          <Checkbox checked={anonymous} onChange={setAnonymous} label="Anonymous voting" />
         </div>
 
         {/* Submit */}

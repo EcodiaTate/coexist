@@ -1,15 +1,14 @@
-import { useState, useCallback, useMemo, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useState, useCallback, useMemo } from 'react'
+import { useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   Star,
   CheckCircle2,
   Send,
-  ChevronLeft,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
-import { useEventDetail, ACTIVITY_TYPE_LABELS } from '@/hooks/use-events'
+import { useEventDetail, ACTIVITY_TYPE_LABELS, isPastEvent } from '@/hooks/use-events'
 import {
   Page,
   Header,
@@ -47,6 +46,7 @@ function useSurveyQuestions(activityType: string | undefined) {
     queryKey: ['post-event-survey-template', activityType],
     queryFn: async () => {
       if (!activityType) return []
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- survey tables not in generated DB types yet
       const { data, error } = await (supabase as any)
         .from('post_event_survey_templates')
         .select('*')
@@ -60,12 +60,32 @@ function useSurveyQuestions(activityType: string | undefined) {
   })
 }
 
+function useAttendanceCheck(eventId: string | undefined) {
+  const { user } = useAuth()
+  return useQuery({
+    queryKey: ['attendance-check', eventId, user?.id],
+    queryFn: async () => {
+      if (!eventId || !user) return null
+      const { data } = await supabase
+        .from('event_registrations')
+        .select('status, checked_in_at')
+        .eq('event_id', eventId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+      return data
+    },
+    enabled: !!eventId && !!user,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 function useExistingResponse(eventId: string | undefined) {
   const { user } = useAuth()
   return useQuery({
     queryKey: ['post-event-survey-response', eventId, user?.id],
     queryFn: async () => {
       if (!eventId || !user) return null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- survey tables not in generated DB types yet
       const { data } = await (supabase as any)
         .from('post_event_survey_responses')
         .select('*')
@@ -85,6 +105,7 @@ function useSubmitSurvey() {
   return useMutation({
     mutationFn: async ({ eventId, answers }: { eventId: string; answers: Record<string, unknown> }) => {
       if (!user) throw new Error('Not authenticated')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- survey tables not in generated DB types yet
       const { error } = await (supabase as any)
         .from('post_event_survey_responses')
         .upsert(
@@ -116,7 +137,7 @@ function RatingInput({ value, onChange }: { value: number; onChange: (v: number)
           type="button"
           onClick={() => onChange(star)}
           className={cn(
-            'flex items-center justify-center w-11 h-11 rounded-full transition-all duration-150',
+            'flex items-center justify-center w-11 h-11 rounded-full transition-colors duration-150',
             'cursor-pointer select-none active:scale-[0.93]',
             star <= value
               ? 'bg-warning-100 text-warning-500'
@@ -143,7 +164,7 @@ function YesNoInput({ value, onChange }: { value: boolean | null; onChange: (v: 
           type="button"
           onClick={() => onChange(opt.val)}
           className={cn(
-            'flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-150',
+            'flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150',
             'cursor-pointer select-none active:scale-[0.97]',
             value === opt.val
               ? 'bg-primary-600 text-white shadow-sm'
@@ -174,7 +195,7 @@ function MultipleChoiceInput({
           type="button"
           onClick={() => onChange(opt)}
           className={cn(
-            'w-full text-left px-4 py-2.5 rounded-xl text-sm transition-all duration-150',
+            'w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors duration-150',
             'cursor-pointer select-none active:scale-[0.98]',
             value === opt
               ? 'bg-primary-600 text-white shadow-sm font-medium'
@@ -194,28 +215,27 @@ function MultipleChoiceInput({
 
 export default function PostEventSurveyPage() {
   const { id: eventId } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
 
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: questions, isLoading: questionsLoading } = useSurveyQuestions(event?.activity_type)
   const { data: existingResponse } = useExistingResponse(eventId)
+  const { data: attendance, isLoading: attendanceLoading } = useAttendanceCheck(eventId)
   const submitMutation = useSubmitSurvey()
 
-  const [answers, setAnswers] = useState<Record<string, unknown>>({})
+  const [userAnswers, setUserAnswers] = useState<Record<string, unknown>>({})
   const [submitted, setSubmitted] = useState(false)
 
-  // Pre-fill from existing response (during render, not in effect)
-  const prevExistingRef = useRef(existingResponse)
-  if (existingResponse !== prevExistingRef.current) {
-    prevExistingRef.current = existingResponse
-    if ((existingResponse as any)?.answers && Object.keys(answers).length === 0) {
-      setAnswers((existingResponse as any).answers as Record<string, unknown>)
-    }
-  }
+  // Pre-fill from existing response, user edits override
+  const existingAnswers = useMemo(() => {
+    const resp = existingResponse as Record<string, unknown> | null | undefined
+    return (resp?.answers as Record<string, unknown>) ?? {}
+  }, [existingResponse])
+
+  const answers: Record<string, unknown> = Object.keys(userAnswers).length > 0 ? userAnswers : existingAnswers
 
   const setAnswer = useCallback((key: string, value: unknown) => {
-    setAnswers((prev) => ({ ...prev, [key]: value }))
+    setUserAnswers((prev) => ({ ...prev, [key]: value }))
   }, [])
 
   const requiredKeys = useMemo(
@@ -234,7 +254,15 @@ export default function PostEventSurveyPage() {
     setSubmitted(true)
   }, [eventId, canSubmit, answers, submitMutation])
 
-  const isLoading = eventLoading || questionsLoading
+  // Compute survey window expiry once (stable across renders)
+  const surveyWindowExpired = useMemo(() => {
+    if (!event || !isPastEvent(event)) return false
+    const eventEnd = new Date(event.date_end ?? event.date_start).getTime()
+    return (Date.now() - eventEnd) / (1000 * 60 * 60 * 24) > 7
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- recompute when event changes
+  }, [event?.date_end, event?.date_start])
+
+  const isLoading = eventLoading || questionsLoading || attendanceLoading
   const showLoading = useDelayedLoading(isLoading)
 
   if (showLoading) {
@@ -261,6 +289,34 @@ export default function PostEventSurveyPage() {
     )
   }
 
+  // Attendance verification: only attendees who checked in can submit
+  if (attendance && attendance.status !== 'attended') {
+    return (
+      <Page swipeBack header={<Header title="Survey" back />}>
+        <EmptyState
+          illustration="error"
+          title="Survey not available"
+          description="Only attendees who checked in can complete the post-event survey."
+          action={{ label: 'Back to Event', to: `/events/${eventId}` }}
+        />
+      </Page>
+    )
+  }
+
+  // 7-day survey window: surveys close 7 days after event end (unless already submitted)
+  if (surveyWindowExpired && !existingResponse) {
+    return (
+      <Page swipeBack header={<Header title="Survey" back />}>
+        <EmptyState
+          illustration="error"
+          title="Survey closed"
+          description="The feedback window for this event has closed (7 days after the event)."
+          action={{ label: 'Back to Event', to: `/events/${eventId}` }}
+        />
+      </Page>
+    )
+  }
+
   if (!questions?.length) {
     return (
       <Page swipeBack header={<Header title="Survey" back />}>
@@ -274,36 +330,34 @@ export default function PostEventSurveyPage() {
     )
   }
 
-  if (submitted || (existingResponse && Object.keys(answers).length === 0)) {
-    if (submitted) {
-      return (
-        <Page swipeBack header={<Header title="Survey" back />}>
-          <div className="p-4">
-            <motion.div
-              initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-12 space-y-4"
-            >
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-success-100 text-success-600 mx-auto">
-                <CheckCircle2 size={32} />
-              </div>
-              <h2 className="font-heading text-xl font-bold text-primary-800">Thanks for your feedback!</h2>
-              <p className="text-sm text-primary-400 max-w-xs mx-auto">
-                Your response helps us improve future {ACTIVITY_TYPE_LABELS[event.activity_type] ?? 'events'}.
-              </p>
-            </motion.div>
+  if (submitted) {
+    return (
+      <Page swipeBack header={<Header title="Survey" back />}>
+        <div className="p-4">
+          <motion.div
+            initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-12 space-y-4"
+          >
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-success-100 text-success-600 mx-auto">
+              <CheckCircle2 size={32} />
+            </div>
+            <h2 className="font-heading text-xl font-bold text-primary-800">Thanks for your feedback!</h2>
+            <p className="text-sm text-primary-400 max-w-xs mx-auto">
+              Your response helps us improve future {ACTIVITY_TYPE_LABELS[event.activity_type] ?? 'events'}.
+            </p>
+          </motion.div>
 
-            <WhatsNext
-              suggestions={[
-                { label: 'View Event', to: `/events/${eventId}` },
-                { label: 'My Events', to: '/events' },
-                { label: 'Home', to: '/' },
-              ]}
-            />
-          </div>
-        </Page>
-      )
-    }
+          <WhatsNext
+            suggestions={[
+              { label: 'View Event', to: `/events/${eventId}` },
+              { label: 'My Events', to: '/events' },
+              { label: 'Home', to: '/' },
+            ]}
+          />
+        </div>
+      </Page>
+    )
   }
 
   return (
@@ -345,7 +399,7 @@ export default function PostEventSurveyPage() {
           animate="visible"
           variants={shouldReduceMotion ? undefined : { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
         >
-          {questions.map((q, idx) => (
+          {questions.map((q) => (
             <motion.div
               key={q.question_key}
               variants={shouldReduceMotion ? undefined : { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
@@ -380,18 +434,12 @@ export default function PostEventSurveyPage() {
               )}
 
               {q.question_type === 'free_text' && (
-                <textarea
-                  className={cn(
-                    'w-full px-4 py-3 rounded-xl text-sm resize-none',
-                    'bg-primary-50 border border-primary-100 text-primary-800',
-                    'placeholder:text-primary-300',
-                    'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
-                    'transition-all duration-150',
-                  )}
-                  rows={3}
-                  placeholder="Your answer..."
+                <Input
+                  type="textarea"
                   value={String(answers[q.question_key] ?? '')}
                   onChange={(e) => setAnswer(q.question_key, e.target.value)}
+                  placeholder="Your answer..."
+                  rows={3}
                 />
               )}
 
