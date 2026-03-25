@@ -195,7 +195,7 @@ export default function ProfilePage() {
     )
   }
 
-  const memberSince = new Date(profile.created_at).toLocaleDateString('en-AU', {
+  const memberSince = new Date(profile.created_at ?? Date.now()).toLocaleDateString('en-AU', {
     month: 'long',
     year: 'numeric',
   })
@@ -524,7 +524,7 @@ export default function ProfilePage() {
                       </p>
                     </div>
                     <Badge variant="default" size="sm">
-                      {membership.role.replace('_', ' ')}
+                      {(membership.role ?? '').replace('_', ' ')}
                     </Badge>
                   </Card>
                 )
