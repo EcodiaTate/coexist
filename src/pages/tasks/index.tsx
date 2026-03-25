@@ -9,12 +9,12 @@ import {
   ChevronRight,
   Calendar,
   SkipForward,
-  MessageSquare,
   Users,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Skeleton } from '@/components/skeleton'
@@ -30,7 +30,7 @@ import {
   useGroupedTasks,
   type MyTask,
 } from '@/hooks/use-tasks'
-import { formatSchedule, CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
+import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 
 /* ------------------------------------------------------------------ */
 /*  Task card                                                          */
@@ -322,7 +322,7 @@ export default function TasksPage() {
 
   if (showLoading) {
     return (
-      <Page>
+      <Page swipeBack header={<Header title="" back />}>
         <div className="py-4">
           <Skeleton variant="list-item" count={6} />
         </div>
@@ -331,7 +331,7 @@ export default function TasksPage() {
   }
   if (!groups.length) {
     return (
-      <Page>
+      <Page swipeBack header={<Header title="" back />}>
         <EmptyState
           illustration="empty"
           title="All caught up!"
@@ -342,7 +342,7 @@ export default function TasksPage() {
   }
 
   return (
-    <Page>
+    <Page swipeBack header={<Header title="" back />}>
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="py-4 space-y-6">
           {/* Summary bar */}

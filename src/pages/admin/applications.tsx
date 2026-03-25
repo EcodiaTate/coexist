@@ -13,10 +13,7 @@ import {
   XCircle,
   Eye,
   ChevronDown,
-  ChevronUp,
   FileText,
-  Download,
-  Settings,
   Plus,
   Trash2,
   Bell,
@@ -37,7 +34,6 @@ import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
 import { TabBar } from '@/components/tab-bar'
-import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { Toggle } from '@/components/toggle'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -156,7 +152,7 @@ function useApplications() {
     queryKey: ['admin-applications'],
     queryFn: async () => {
       const { data, error } = await (supabase
-        .from as any)('collective_applications')
+        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('collective_applications')
         .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -171,7 +167,7 @@ function useNotificationRecipients() {
     queryKey: ['admin-application-recipients'],
     queryFn: async () => {
       const { data, error } = await (supabase
-        .from as any)('notification_recipients')
+        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('notification_recipients')
         .select('*, profile:profiles!notification_recipients_user_id_fkey(display_name)')
         .eq('event_type', 'collective_application')
       if (error) throw error
@@ -242,7 +238,8 @@ function ApplicationCard({
   const statusCfg = STATUS_CONFIG[app.status] ?? STATUS_CONFIG.pending
 
   const initials = `${app.first_name[0] ?? ''}${app.last_name[0] ?? ''}`.toUpperCase()
-  const daysAgo = Math.floor((Date.now() - new Date(app.created_at).getTime()) / 86400000)
+  const [nowMs] = useState(() => Date.now())
+  const daysAgo = Math.floor((nowMs - new Date(app.created_at).getTime()) / 86400000)
   const timeLabel = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : `${daysAgo}d ago`
 
   return (
@@ -412,18 +409,13 @@ function ApplicationCard({
               {/* ── Staff Notes ── */}
               <div className="rounded-xl bg-warning-50/40 border border-warning-100/60 p-4">
                 <SectionHeader icon={<MessageSquare size={13} />} label="Staff Notes (Internal)" color="text-warning-600" />
-                <textarea
+                <Input
+                  type="textarea"
+                  label="Notes"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
                   placeholder="Add internal notes about this applicant..."
-                  className={cn(
-                    'w-full rounded-xl border border-warning-200/60 bg-white',
-                    'px-3.5 py-2.5 text-[14px] text-primary-900',
-                    'placeholder:text-primary-300',
-                    'focus:outline-none focus:ring-2 focus:ring-warning-300 focus:border-transparent',
-                    'resize-none transition-shadow',
-                  )}
+                  rows={2}
                 />
               </div>
 
@@ -501,7 +493,7 @@ function NotificationSettingsTab() {
   const addRecipient = useMutation({
     mutationFn: async (userId: string) => {
       const { error } = await (supabase
-        .from as any)('notification_recipients')
+        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('notification_recipients')
         .insert({ event_type: 'collective_application', user_id: userId })
       if (error) throw error
     },
@@ -516,7 +508,7 @@ function NotificationSettingsTab() {
   const removeRecipient = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await (supabase
-        .from as any)('notification_recipients')
+        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('notification_recipients')
         .delete()
         .eq('id', id)
       if (error) throw error
@@ -531,7 +523,7 @@ function NotificationSettingsTab() {
   const toggleNotifType = useMutation({
     mutationFn: async ({ id, field, value }: { id: string; field: 'notify_email' | 'notify_push'; value: boolean }) => {
       const { error } = await (supabase
-        .from as any)('notification_recipients')
+        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('notification_recipients')
         .update({ [field]: value })
         .eq('id', id)
       if (error) throw error
@@ -599,7 +591,7 @@ function NotificationSettingsTab() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-[14px] font-medium text-primary-800 truncate">
-                      {(r as any).profile?.display_name ?? r.user_id.slice(0, 8)}
+                      {(r as unknown as Record<string, Record<string, unknown>>).profile?.display_name as string ?? r.user_id.slice(0, 8)}
                     </p>
                   </div>
                   <Toggle
@@ -686,7 +678,7 @@ export default function AdminApplicationsPage() {
     mutationFn: async ({ id, status, notes }: { id: string; status: string; notes?: string }) => {
       const { data: { user } } = await supabase.auth.getUser()
       const { error } = await (supabase
-        .from as any)('collective_applications')
+        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('collective_applications')
         .update({
           status,
           notes: notes || null,
@@ -807,7 +799,7 @@ export default function AdminApplicationsPage() {
                     onClick={() => setStatusFilter(f.value)}
                     className={cn(
                       'inline-flex items-center gap-1.5 text-sm font-semibold px-3.5 min-h-11 rounded-full',
-                      'transition-all duration-150 cursor-pointer shrink-0 border active:scale-[0.95]',
+                      'transition-transform duration-150 cursor-pointer shrink-0 border active:scale-[0.95]',
                       isActive
                         ? cfg
                           ? `${cfg.bg} ${cfg.color} ${cfg.border}`

@@ -2,7 +2,6 @@ import { Link, useLocation } from 'react-router-dom'
 import {
   CalendarDays,
   BarChart3,
-  Settings,
   Shield,
   ShoppingBag,
   Heart,
@@ -83,7 +82,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
             className={cn(
               'flex items-center gap-3 min-w-0',
               'rounded-xl p-2',
-              'transition-all duration-200 active:scale-[0.97]',
+              'transition-transform duration-200 active:scale-[0.97]',
               'cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               collapsed && 'justify-center',
@@ -104,9 +103,9 @@ export function SidebarNav({ className }: SidebarNavProps) {
                 <p className="font-heading text-[13px] font-semibold text-primary-800 truncate">
                   {profile?.display_name}
                 </p>
-                {(profile as any)?.collective_name && (
+                {(profile as Record<string, unknown>)?.collective_name && (
                   <p className="text-[11px] text-primary-400 truncate">
-                    {(profile as any).collective_name}
+                    {String((profile as Record<string, unknown>).collective_name)}
                   </p>
                 )}
               </div>

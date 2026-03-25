@@ -8,7 +8,6 @@ import {
   CheckCircle,
   Building2,
   FileText,
-  CalendarDays,
   Shield,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -25,13 +24,13 @@ function useCharitySettings() {
     queryKey: ['charity-settings'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('charity_settings' as any)
+        .from('charity_settings' as string & keyof never)
         .select('*')
       if (error) throw error
 
       // Convert array of key-value pairs to object
       const settings: Record<string, string> = {}
-      for (const row of (data ?? []) as any[]) {
+      for (const row of (data ?? []) as Record<string, unknown>[]) {
         settings[row.key] = row.value
       }
       return settings
@@ -79,7 +78,7 @@ export default function AdminCharityPage() {
       const entries = Object.entries(form)
       for (const [key, value] of entries) {
         const { error } = await supabase
-          .from('charity_settings' as any)
+          .from('charity_settings' as string & keyof never)
           .upsert({ key, value }, { onConflict: 'key' })
         if (error) throw error
       }

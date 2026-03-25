@@ -15,7 +15,8 @@ import {
     ShoppingBag,
     MoreHorizontal,
     Handshake,
-    Sparkles
+    Sparkles,
+    Phone,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
@@ -44,19 +45,28 @@ const AdminHeaderContext = createContext<AdminHeaderContextValue | null>(null)
  * Call from any admin page to set the page header title and optional actions.
  * Pass subtitle and heroContent to populate the shared hero bar.
  */
+interface AdminHeaderOpts {
+  subtitle?: string
+  actions?: ReactNode
+  heroContent?: ReactNode
+  fullBleed?: boolean
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAdminHeader(
   title: string,
-  opts?: { subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean } | ReactNode,
+  opts?: AdminHeaderOpts | ReactNode,
 ) {
   const ctx = useContext(AdminHeaderContext)
 
   // Extract individual values so the effect only re-fires when they actually change,
   // not when a new wrapper object is created each render.
-  const isOptsObject = opts && typeof opts === 'object' && !('$$typeof' in (opts as any)) && ('subtitle' in (opts as any) || 'actions' in (opts as any) || 'heroContent' in (opts as any) || 'fullBleed' in (opts as any))
-  const subtitle = isOptsObject ? (opts as any).subtitle : undefined
-  const actions = isOptsObject ? (opts as any).actions : (opts as ReactNode)
-  const heroContent = isOptsObject ? (opts as any).heroContent : undefined
-  const fullBleed = isOptsObject ? (opts as any).fullBleed : undefined
+  const isOptsObject = opts != null && typeof opts === 'object' && !('$$typeof' in (opts as Record<string, unknown>)) && ('subtitle' in (opts as Record<string, unknown>) || 'actions' in (opts as Record<string, unknown>) || 'heroContent' in (opts as Record<string, unknown>) || 'fullBleed' in (opts as Record<string, unknown>))
+  const optsRecord = isOptsObject ? (opts as AdminHeaderOpts) : undefined
+  const subtitle = optsRecord?.subtitle
+  const actions = optsRecord ? optsRecord.actions : (opts as ReactNode)
+  const heroContent = optsRecord?.heroContent
+  const fullBleed = optsRecord?.fullBleed
 
   useEffect(() => {
     ctx?.setHeader({ title, subtitle, actions, heroContent, fullBleed })
@@ -103,6 +113,7 @@ const PAGE_HERO_CONFIG: Record<string, HeroCfg> = {
   'Create Quiz':         { hue: 'from-amber-800 via-primary-800 to-primary-950',   defaultSubtitle: 'Design an assessment quiz',                      f: 7, w: 3, tall: true },
   'Edit Quiz':           { hue: 'from-amber-800 via-primary-800 to-primary-950',   defaultSubtitle: 'Update quiz questions and settings',              f: 7, w: 3, tall: true },
   'Development Results': { hue: 'from-amber-700 via-primary-900 to-primary-950',   defaultSubtitle: 'Completion rates, quiz scores, and learner data', f: 8, w: 4, tall: true },
+  'Emergency Contacts':  { hue: 'from-red-700 via-primary-800 to-primary-950',    defaultSubtitle: 'Manage emergency and internal contact directory',  f: 9, w: 0, tall: true },
 }
 
 const DEFAULT_HERO: HeroCfg = { hue: 'from-primary-800 via-primary-900 to-primary-950', defaultSubtitle: '', tall: true, f: 11, w: 3 }
@@ -221,6 +232,7 @@ const SHAPE_FORMATIONS: ShapeFormation[] = [
 ]
 
 /** Returns true when the component is rendered inside the admin layout. */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useIsAdminLayout() {
   return useContext(AdminHeaderContext) !== null
 }
@@ -244,7 +256,7 @@ interface AdminNavCategory {
   superAdminOnly?: boolean
 }
 
-const adminNavCategories: AdminNavCategory[] = [
+const _adminNavCategories: AdminNavCategory[] = [
   {
     label: 'Overview',
     items: [
@@ -263,8 +275,9 @@ const adminNavCategories: AdminNavCategory[] = [
     items: [
       { label: 'Collectives', path: '/admin/collectives', icon: <MapPin size={17} strokeWidth={1.5} />, capability: 'manage_collectives' },
       { label: 'Events', path: '/admin/events', icon: <CalendarDays size={17} strokeWidth={1.5} />, capability: 'manage_events' },
-      { label: 'Partners', path: '/admin/partners', icon: <Handshake size={17} strokeWidth={1.5} />, capability: 'manage_events' },
-      { label: 'Shop', path: '/admin/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} /> },
+      { label: 'Partners', path: '/admin/partners', icon: <Handshake size={17} strokeWidth={1.5} />, capability: 'manage_partners' },
+      { label: 'Shop', path: '/admin/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} />, capability: 'manage_merch' },
+      { label: 'Contacts', path: '/admin/contacts', icon: <Phone size={17} strokeWidth={1.5} /> },
     ],
   },
   {
@@ -365,7 +378,7 @@ export function AdminLayout() {
     scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' })
   }, [location.pathname])
 
-  const setHeader = useCallback((opts: { title: string; subtitle?: string; actions?: ReactNode; heroContent?: ReactNode }) => {
+  const setHeader = useCallback((opts: { title: string; subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }) => {
     setHeaderState(opts)
   }, [])
 

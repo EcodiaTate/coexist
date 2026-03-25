@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Calendar, MapPin, Check } from 'lucide-react'
@@ -6,7 +7,6 @@ import { useAuth } from '@/hooks/use-auth'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
-import { cn } from '@/lib/cn'
 import type { Database } from '@/types/database.types'
 
 type Event = Database['public']['Tables']['events']['Row']
@@ -53,16 +53,26 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
   })
   const showLoading = useDelayedLoading(isLoading)
 
+  const [rsvpedEvents, setRsvpedEvents] = useState<Set<string>>(new Set())
+  const [rsvpingEvent, setRsvpingEvent] = useState<string | null>(null)
+
   const rsvpMutation = useMutation({
     mutationFn: async (eventId: string) => {
       if (!user) throw new Error('Not authenticated')
+      setRsvpingEvent(eventId)
       const { error } = await supabase
         .from('event_registrations')
         .insert({ event_id: eventId, user_id: user.id, status: 'registered' })
       if (error) throw error
+      return eventId
     },
-    onSuccess: () => {
+    onSuccess: (eventId) => {
+      setRsvpedEvents((prev) => new Set(prev).add(eventId))
+      setRsvpingEvent(null)
       queryClient.invalidateQueries({ queryKey: ['onboarding-events'] })
+    },
+    onError: () => {
+      setRsvpingEvent(null)
     },
   })
 
@@ -113,12 +123,12 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
 
                 <Button
                   size="sm"
-                  variant={rsvpMutation.isPending ? 'ghost' : 'primary'}
+                  variant={rsvpedEvents.has(event.id) ? 'ghost' : 'primary'}
                   onClick={() => rsvpMutation.mutate(event.id)}
-                  disabled={rsvpMutation.isPending}
-                  icon={rsvpMutation.isSuccess ? <Check size={14} /> : undefined}
+                  disabled={rsvpingEvent === event.id || rsvpedEvents.has(event.id)}
+                  icon={rsvpedEvents.has(event.id) ? <Check size={14} /> : undefined}
                 >
-                  {rsvpMutation.isSuccess ? 'Going' : 'RSVP'}
+                  {rsvpedEvents.has(event.id) ? 'Going' : rsvpingEvent === event.id ? 'Saving...' : 'RSVP'}
                 </Button>
               </motion.div>
             ))

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -20,8 +21,12 @@ const fadeUp = {
 
 export default function WelcomeBackPage() {
   const navigate = useNavigate()
-  const { user, profile } = useAuth()
+  const { user, profile, markOnboardingComplete } = useAuth()
   const shouldReduceMotion = useReducedMotion()
+
+  // Mark onboarding done on mount — this page is for returning users
+  // whose profile already has onboarding_completed but the local flag was lost
+  useEffect(() => { markOnboardingComplete() }, [markOnboardingComplete])
 
   const { data: missedData, isLoading } = useQuery({
     queryKey: ['welcome-back', user?.id],
@@ -34,7 +39,8 @@ export default function WelcomeBackPage() {
 
       const [eventsRes] = await Promise.all([
         supabase
-          .from('events' as any)
+          // eslint-disable-next-line @typescript-eslint/prefer-as-const
+          .from('events' as 'events')
           .select('id, title', { count: 'exact' })
           .eq('status', 'completed')
           .gte('date_start', thirtyDaysAgo.toISOString())

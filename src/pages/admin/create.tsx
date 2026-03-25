@@ -54,7 +54,7 @@ function QuickAction({
           'group relative flex flex-col items-center gap-2 p-4 rounded-xl text-center',
           cardBg,
           'shadow-sm border border-white/60',
-          'hover:shadow-md hover:brightness-[1.03] active:scale-[0.97] transition-all duration-150',
+          'hover:shadow-md hover:brightness-[1.03] active:scale-[0.97] transition-transform duration-150',
         )}
       >
         <div className={cn(

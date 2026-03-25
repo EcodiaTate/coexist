@@ -91,14 +91,20 @@ export async function syncOfflineCheckIns(): Promise<number> {
   const remaining: PendingCheckIn[] = []
 
   for (const item of queue) {
-    const { error } = await supabase
+    // Only update if the user is still in a checkable status (registered/invited)
+    // to prevent re-checking-in a cancelled user
+    const { error, count } = await supabase
       .from('event_registrations')
       .update({ status: 'attended', checked_in_at: item.timestamp })
       .eq('event_id', item.eventId)
       .eq('user_id', item.userId)
+      .in('status', ['registered', 'invited'])
 
     if (error) {
       remaining.push(item)
+    } else if (count === 0) {
+      // Registration was cancelled or already attended — discard silently
+      synced++
     } else {
       synced++
     }

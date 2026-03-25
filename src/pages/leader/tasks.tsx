@@ -30,24 +30,38 @@ import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 /* ------------------------------------------------------------------ */
 
 function getStreak(tasks: MyTask[]): number {
-  const completed = tasks
-    .filter((t) => t.status === 'completed' && t.completed_at)
-    .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime())
+  // Collect unique completion days (dedup multiple tasks completed on the same day)
+  const completionDays = new Set<string>()
+  for (const t of tasks) {
+    if (t.status === 'completed' && t.completed_at) {
+      const d = new Date(t.completed_at)
+      completionDays.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`)
+    }
+  }
 
-  if (completed.length === 0) return 0
+  if (completionDays.size === 0) return 0
+
+  // Sort unique days descending
+  const sortedDays = Array.from(completionDays)
+    .map((key) => {
+      const [y, m, d] = key.split('-').map(Number)
+      return new Date(y, m, d)
+    })
+    .sort((a, b) => b.getTime() - a.getTime())
 
   let streak = 0
   const now = new Date()
   let checkDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
-  for (const task of completed) {
-    const taskDate = new Date(task.completed_at!)
-    const taskDay = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate())
-    const diff = Math.round((checkDate.getTime() - taskDay.getTime()) / 86400000)
-
-    if (diff <= 1) {
+  for (const day of sortedDays) {
+    const diff = Math.round((checkDate.getTime() - day.getTime()) / 86400000)
+    if (diff === 0) {
+      // Same day as checkDate — count it but don't advance checkDate
       streak++
-      checkDate = taskDay
+    } else if (diff === 1) {
+      // Consecutive day
+      streak++
+      checkDate = day
     } else {
       break
     }
@@ -88,7 +102,7 @@ function TaskCard({ task }: { task: MyTask }) {
     <motion.div
       layout={!shouldReduceMotion ? 'position' : false}
       className={cn(
-        'rounded-2xl overflow-hidden transition-[opacity,box-shadow] duration-200',
+        'rounded-2xl overflow-hidden transition-opacity duration-200',
         isCompleted && 'opacity-50',
         isSkipped && 'opacity-40',
         !isCompleted && !isSkipped && 'bg-white shadow-sm',

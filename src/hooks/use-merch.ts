@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import type { Product, ProductReview, ShippingConfig } from '@/types/merch'
+import type { Product, ShippingConfig } from '@/types/merch'
 
 /* ------------------------------------------------------------------ */
 /*  Product listing                                                    */
@@ -14,6 +14,7 @@ export function useProducts() {
         .from('merch_products')
         .select('*')
         .eq('is_active', true)
+        .eq('status', 'active')
         .order('created_at', { ascending: false })
 
       if (error) throw error
@@ -36,6 +37,7 @@ export function useProduct(slug: string | undefined) {
         .from('merch_products')
         .select('*')
         .eq('slug', slug!)
+        .eq('is_active', true)
         .single()
       if (error) throw error
       return data as unknown as Product
@@ -57,33 +59,12 @@ export function useRelatedProducts(productId: string | undefined) {
         .from('merch_products')
         .select('*')
         .eq('is_active', true)
+        .eq('status', 'active')
         .neq('id', productId!)
         .limit(4)
 
       if (error) throw error
       return data as unknown as Product[]
-    },
-    staleTime: 5 * 60 * 1000,
-  })
-}
-
-/* ------------------------------------------------------------------ */
-/*  Product reviews                                                    */
-/* ------------------------------------------------------------------ */
-
-export function useProductReviews(productId: string | undefined) {
-  return useQuery({
-    queryKey: ['product-reviews', productId],
-    enabled: !!productId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('product_reviews')
-        .select('*, profiles(display_name, avatar_url)')
-        .eq('product_id', productId!)
-        .eq('is_approved', true)
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      return data as unknown as ProductReview[]
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -126,6 +107,7 @@ export function useShippingConfig() {
     queryKey: ['shipping-config'],
     queryFn: async () => {
       const { data, error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from('shipping_config' as any)
         .select('*')
       if (error) throw error
@@ -134,7 +116,7 @@ export function useShippingConfig() {
         flat_rate_cents: 995,
         free_shipping_threshold_cents: null,
       }
-      for (const row of (data ?? []) as any[]) {
+      for (const row of (data ?? []) as { key: string; value: string | null }[]) {
         if (row.key === 'flat_rate_cents') config.flat_rate_cents = parseInt(row.value) || 995
         if (row.key === 'free_shipping_threshold_cents') {
           config.free_shipping_threshold_cents = row.value ? parseInt(row.value) || null : null
@@ -150,7 +132,8 @@ export function useShippingConfig() {
 /*  Promo code validation                                              */
 /* ------------------------------------------------------------------ */
 
-/** Validate a promo code (called imperatively) */
+/** Validate a promo code (called imperatively).
+ *  Maps the raw DB row to the app-level PromoCode interface. */
 export async function validatePromoCode(code: string) {
   const { data, error } = await supabase
     .from('promo_codes')
@@ -163,7 +146,23 @@ export async function validatePromoCode(code: string) {
 
   const now = new Date()
   if (data.valid_to && new Date(data.valid_to) < now) return { valid: false, promo: null }
-  if (data.max_uses && data.uses_count >= data.max_uses) return { valid: false, promo: null }
+  if (data.valid_from && new Date(data.valid_from) > now) return { valid: false, promo: null }
+  if (data.max_uses && (data.uses_count ?? 0) >= data.max_uses) return { valid: false, promo: null }
 
-  return { valid: true, promo: data }
+  // Map DB row directly — field names now match the PromoCode interface
+  const promo: import('@/types/merch').PromoCode = {
+    id: data.id,
+    code: data.code,
+    type: data.type,
+    value: Number(data.value),
+    min_order_amount: data.min_order_amount != null ? Number(data.min_order_amount) : null,
+    max_uses: data.max_uses ?? null,
+    uses_count: data.uses_count ?? 0,
+    valid_from: data.valid_from ?? null,
+    valid_to: data.valid_to ?? null,
+    is_active: data.is_active ?? true,
+    created_at: data.created_at,
+  }
+
+  return { valid: true, promo }
 }

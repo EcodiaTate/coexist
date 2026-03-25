@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Megaphone, CalendarPlus, ClipboardCheck, ListChecks, MapPin, Calendar, Clock } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -65,11 +66,20 @@ export function ChatBubble({
   const roleStyle = roleBadge ? ROLE_COLORS[roleBadge] ?? { bg: 'bg-primary-100', text: 'text-primary-600' } : null
 
   // Long press handling for mobile
-  let longPressTimer: ReturnType<typeof setTimeout> | null = null
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Clean up timer on unmount to prevent memory leak
+  useEffect(() => {
+    return () => {
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current)
+      }
+    }
+  }, [])
 
   const handleTouchStart = () => {
     if (!onLongPress) return
-    longPressTimer = setTimeout(() => {
+    longPressTimerRef.current = setTimeout(() => {
       onLongPress()
       // Haptic feedback if available
       if ('vibrate' in navigator) {
@@ -79,9 +89,9 @@ export function ChatBubble({
   }
 
   const handleTouchEnd = () => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer)
-      longPressTimer = null
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
     }
   }
 
@@ -106,7 +116,7 @@ export function ChatBubble({
       {!sent && (
         <button
           type="button"
-          className="flex-shrink-0 self-end flex items-center justify-center min-h-11 min-w-11 rounded-full cursor-pointer select-none active:scale-[0.93] transition-all duration-150"
+          className="flex-shrink-0 self-end flex items-center justify-center min-h-11 min-w-11 rounded-full cursor-pointer select-none active:scale-[0.93] transition-transform duration-150"
           onClick={() => senderId && onAvatarTap?.(senderId)}
           aria-label={senderName ? `View ${senderName}'s profile` : 'View profile'}
         >
@@ -140,7 +150,7 @@ export function ChatBubble({
           <div className="flex items-center gap-2 px-1 mb-1">
             <button
               type="button"
-              className="text-[13px] font-bold text-primary-700 hover:text-primary-800 min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-all duration-150"
+              className="text-[13px] font-bold text-primary-700 hover:text-primary-800 min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
               onClick={() => senderId && onSenderTap?.(senderId)}
             >
               {senderName}
@@ -160,7 +170,7 @@ export function ChatBubble({
         {/* Bubble */}
         <div
           className={cn(
-            'rounded-2xl px-4 py-3 transition-all duration-150',
+            'rounded-2xl px-4 py-3 transition-colors duration-150',
             sent
               ? 'rounded-br-md bg-gradient-to-br from-primary-600 to-primary-800 text-white shadow-lg shadow-primary-300/30'
               : 'rounded-bl-md bg-white text-primary-900 ring-1 ring-primary-200/70 shadow-md',
@@ -261,7 +271,7 @@ export function PollCard({
   totalVotes,
   userVotes,
   isClosed,
-  allowMultiple,
+  allowMultiple: _allowMultiple,
   anonymous,
   creatorName,
   closesAt,
@@ -321,7 +331,7 @@ export function PollCard({
                 }
               }}
               className={cn(
-                'relative w-full overflow-hidden rounded-xl px-3.5 py-3 text-left transition-all duration-200',
+                'relative w-full overflow-hidden rounded-xl px-3.5 py-3 text-left transition-transform duration-200',
                 'min-h-11 cursor-pointer select-none',
                 isSelected
                   ? 'bg-primary-600/20 shadow-md ring-2 ring-primary-400/40'
@@ -548,7 +558,7 @@ export function AnnouncementCard({
           <button
             type="button"
             onClick={() => onViewEvent(metadata.event_id as string)}
-            className="w-full rounded-xl bg-primary-600 py-2.5 text-center text-sm font-semibold text-white mb-2 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none min-h-11"
+            className="w-full rounded-xl bg-primary-600 py-2.5 text-center text-sm font-semibold text-white mb-2 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none min-h-11"
           >
             View Event Details
           </button>
@@ -568,7 +578,7 @@ export function AnnouncementCard({
                   type="button"
                   onClick={() => onRespond(opt)}
                   className={cn(
-                    'flex-1 rounded-xl py-2 text-center text-xs font-semibold transition-all duration-150 min-h-11',
+                    'flex-1 rounded-xl py-2 text-center text-xs font-semibold transition-transform duration-150 min-h-11',
                     'active:scale-[0.95] cursor-pointer select-none',
                     isSelected
                       ? 'bg-primary-600 text-white shadow-sm'

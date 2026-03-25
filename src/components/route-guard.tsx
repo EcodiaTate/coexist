@@ -67,7 +67,9 @@ export function RequireAuth({ children }: RequireAuthProps) {
   // Redirect to onboarding ONLY if:
   // 1. Profile explicitly says not completed, AND
   // 2. The persistent local flag is not set (prevents re-onboarding on fetch failures)
-  if (!onboardingDone && (!profile || !profile.onboarding_completed) && !location.pathname.startsWith('/onboarding')) {
+  const onboardingPaths = ['/onboarding', '/leader-welcome', '/welcome-back']
+  const isOnboardingPath = onboardingPaths.some((p) => location.pathname.startsWith(p))
+  if (!onboardingDone && (!profile || !profile.onboarding_completed) && !isOnboardingPath) {
     return <Navigate to="/onboarding" replace />
   }
 
@@ -189,7 +191,7 @@ export function RequireCollectiveRole({
   collectiveId,
   children,
 }: RequireCollectiveRoleProps) {
-  const { user, isLoading: authLoading } = useAuth()
+  const { user, role, isLoading: authLoading } = useAuth()
   const { hasMinRole, isLoading } = useCollectiveRole(collectiveId)
   const location = useLocation()
 
@@ -202,7 +204,10 @@ export function RequireCollectiveRole({
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  if (!hasMinRole(minRole)) {
+  // National staff+ always have access to collective-scoped routes
+  const isStaffPlus = _GLOBAL_RANK[role] >= _GLOBAL_RANK.national_staff
+
+  if (!isStaffPlus && !hasMinRole(minRole)) {
     return <Navigate to="/" replace />
   }
 

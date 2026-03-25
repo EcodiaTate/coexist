@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState, useEffect, type ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { PanelLeftClose } from 'lucide-react'
@@ -151,7 +151,7 @@ export function SidebarShell({
 
   // Skip wordmark animation when switching between suites (not cold app load)
   const skipWordmarkAnim = anySidebarMounted
-  anySidebarMounted = true
+  useEffect(() => { anySidebarMounted = true }, [])
 
   /* ---- Pick animation set ---- */
   const containerV = reduced ? undefined : isFirstMount ? staggerContainer : quickFadeContainer
@@ -344,7 +344,7 @@ export function SidebarShell({
             'text-primary-300',
             collapseHover,
             'cursor-pointer select-none',
-            'transition-all duration-200',
+            'transition-colors duration-200',
             'focus-visible:outline-none focus-visible:ring-2',
             focusRing,
           )}

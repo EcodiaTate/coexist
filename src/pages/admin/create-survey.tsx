@@ -1,9 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
-import { adminVariants } from '@/lib/admin-motion'
+import { useReducedMotion } from 'framer-motion'
 import {
-  ArrowLeft,
   Plus,
   Trash2,
   ClipboardList,
@@ -11,17 +9,16 @@ import {
   MessageSquare,
   CircleDot,
   ToggleLeft,
-  GripVertical,
   Check,
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
 import { Toggle } from '@/components/toggle'
 import { useToast } from '@/components/toast'
-import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 
 /* ------------------------------------------------------------------ */
@@ -122,7 +119,7 @@ export default function CreateSurveyPage() {
         questions: JSON.stringify(questions),
         auto_send_after_event: autoSendAfterEvent,
         status: 'active',
-      } as any)
+      } as Record<string, unknown>)
       if (error) throw error
     },
     onSuccess: () => {
@@ -156,15 +153,7 @@ export default function CreateSurveyPage() {
 
   return (
     <div className="max-w-2xl mx-auto pb-8">
-      {/* Back nav */}
-      <button
-        type="button"
-        onClick={() => navigate('/admin/surveys')}
-        className="inline-flex items-center gap-1.5 text-sm text-primary-400 hover:text-primary-800 transition-colors mb-6 cursor-pointer"
-      >
-        <ArrowLeft size={16} />
-        Back to Surveys
-      </button>
+      <Header title="" back onBack={() => navigate('/admin/surveys')} />
 
       {/* ── Page header ── */}
       <div className="mb-8">

@@ -1,9 +1,10 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/cn'
+import { Button } from '@/components/button'
 
 import { StepProfilePhoto } from './steps/step-profile-photo'
 import { StepNameHandle } from './steps/step-name-handle'
@@ -29,12 +30,17 @@ const slideVariants = {
 
 export default function OnboardingPage() {
   const navigate = useNavigate()
-  const { user, refreshProfile, markOnboardingComplete } = useAuth()
+  const { user, collectiveRoles, isStaff, refreshProfile, markOnboardingComplete } = useAuth()
   const shouldReduceMotion = useReducedMotion()
 
   const [step, setStep] = useState(0)
   const [direction, setDirection] = useState(1)
   const [showCelebration, setShowCelebration] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  // Track whether the user who just completed onboarding is a leader,
+  // so the celebration screen routes them to /leader-welcome.
+  const isLeaderAfterComplete = useRef(false)
 
   // Shared onboarding data
   const [data, setData] = useState({
@@ -55,50 +61,73 @@ export default function OnboardingPage() {
   const completeOnboarding = useCallback(async () => {
     if (!user) return
 
-    // Build profile payload - upsert guarantees the row exists even if the
-    // auth trigger hasn't fired yet, preventing the FK violation on
-    // collective_members when we insert below.
-    const profilePayload: Record<string, unknown> = {
-      id: user.id,
-      onboarding_completed: true,
-      updated_at: new Date().toISOString(),
-    }
+    setIsSubmitting(true)
+    setSubmitError(null)
 
-    if (data.displayName) profilePayload.display_name = data.displayName
-    if (data.instagramHandle) profilePayload.instagram_handle = data.instagramHandle
-    if (data.location) profilePayload.location = data.location
-    if (data.interests.length > 0) profilePayload.interests = data.interests
-    if (data.avatarUrl) profilePayload.avatar_url = data.avatarUrl
-
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .upsert(profilePayload as any, { onConflict: 'id' })
-
-    if (profileError) {
-      console.error('[onboarding] Failed to save profile:', profileError)
-      return
-    }
-
-    // Join collective if selected - profile row is now guaranteed to exist
-    if (data.collectiveId) {
-      const { error: memberError } = await supabase
-        .from('collective_members')
-        .insert({
-          collective_id: data.collectiveId,
-          user_id: user.id,
-          role: 'member',
-          status: 'active',
-        })
-
-      if (memberError) {
-        console.error('[onboarding] Failed to join collective:', memberError)
+    try {
+      // Build profile payload - upsert guarantees the row exists even if the
+      // auth trigger hasn't fired yet, preventing the FK violation on
+      // collective_members when we insert below.
+      const profilePayload: Record<string, unknown> = {
+        id: user.id,
+        onboarding_completed: true,
+        updated_at: new Date().toISOString(),
       }
-    }
 
-    markOnboardingComplete()
-    await refreshProfile()
-    setShowCelebration(true)
-  }, [user, data, markOnboardingComplete, refreshProfile])
+      if (data.displayName) profilePayload.display_name = data.displayName
+      if (data.instagramHandle) profilePayload.instagram_handle = data.instagramHandle
+      if (data.location) profilePayload.location = data.location
+      if (data.interests.length > 0) profilePayload.interests = data.interests
+      if (data.avatarUrl) profilePayload.avatar_url = data.avatarUrl
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert(profilePayload as Record<string, unknown>, { onConflict: 'id' })
+
+      if (profileError) {
+        console.error('[onboarding] Failed to save profile:', profileError)
+        setSubmitError('Something went wrong saving your profile. Tap retry.')
+        return
+      }
+
+      // Join collective if selected - profile row is now guaranteed to exist.
+      // Use upsert with onConflict to handle re-onboarding (user already a member).
+      if (data.collectiveId) {
+        const { error: memberError } = await supabase
+          .from('collective_members')
+          .upsert(
+            {
+              collective_id: data.collectiveId,
+              user_id: user.id,
+              role: 'member',
+              status: 'active',
+            },
+            { onConflict: 'collective_id,user_id' },
+          )
+
+        if (memberError) {
+          console.error('[onboarding] Failed to join collective:', memberError)
+          // Non-fatal — don't block onboarding completion
+        }
+      }
+
+      markOnboardingComplete()
+      await refreshProfile()
+
+      // Check if user holds a leader-tier collective role
+      const hasLeaderRole = collectiveRoles.some(
+        (m) => m.role === 'leader' || m.role === 'co_leader' || m.role === 'assist_leader',
+      )
+      isLeaderAfterComplete.current = hasLeaderRole || isStaff
+
+      setShowCelebration(true)
+    } catch (err) {
+      console.error('[onboarding] Unexpected error:', err)
+      setSubmitError('Something went wrong. Tap retry.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [user, data, collectiveRoles, isStaff, markOnboardingComplete, refreshProfile])
 
   const goNext = useCallback(() => {
     if (step < TOTAL_STEPS - 1) {
@@ -117,7 +146,13 @@ export default function OnboardingPage() {
   }, [step])
 
   if (showCelebration) {
-    return <StepCelebration onContinue={() => navigate('/', { replace: true })} />
+    return (
+      <StepCelebration
+        onContinue={() =>
+          navigate(isLeaderAfterComplete.current ? '/leader-welcome' : '/', { replace: true })
+        }
+      />
+    )
   }
 
   const steps = [
@@ -209,6 +244,22 @@ export default function OnboardingPage() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Error banner + retry */}
+      {submitError && (
+        <div className="px-6 pb-4">
+          <p className="text-sm text-red-600 text-center mb-2">{submitError}</p>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            loading={isSubmitting}
+            onClick={completeOnboarding}
+          >
+            Retry
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

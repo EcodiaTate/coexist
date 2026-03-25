@@ -15,6 +15,7 @@ import {
   ChevronRight,
   Leaf,
   CalendarDays,
+  FileText,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Avatar } from '@/components/avatar'
@@ -58,14 +59,15 @@ function MenuSection({
         {title}
       </h3>
       <div className="rounded-2xl bg-surface-0 shadow-sm overflow-hidden">
-        {items.map(({ label, to, icon, iconBg, iconColor, description }, idx) => (
+        { }
+        {items.map(({ label, to, icon, iconBg, iconColor, description: _description }, idx) => (
           <button
             key={to}
             type="button"
             onClick={() => navigate(to)}
             className={cn(
               'w-full flex items-center gap-3.5 px-4 py-3 min-h-12',
-              'text-left transition-all duration-150',
+              'text-left transition-colors duration-150',
               'active:bg-surface-3 active:scale-[0.99]',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
               'cursor-pointer select-none',
@@ -128,6 +130,16 @@ export default function MorePage() {
 
   const adminLinks: MenuLink[] = [
     { label: 'Admin Dashboard', to: '/admin', icon: <Shield size={17} />, iconBg: 'bg-error-100/60', iconColor: 'text-error-700' },
+  ]
+
+  const legalLinks: MenuLink[] = [
+    { label: 'About', to: '/about', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
+    { label: 'Terms of Service', to: '/terms', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
+    { label: 'Privacy Policy', to: '/privacy', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
+    { label: 'Data Policy', to: '/data-policy', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
+    { label: 'Disclaimer', to: '/disclaimer', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
+    { label: 'Accessibility', to: '/accessibility', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
+    { label: 'Cookie Policy', to: '/cookies', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
   ]
 
   return (
@@ -196,6 +208,8 @@ export default function MorePage() {
         {isStaff && (
           <MenuSection title="Admin" items={adminLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />
         )}
+
+        <MenuSection title="Legal" items={legalLinks} navigate={navigate} shouldReduceMotion={shouldReduceMotion} />
 
         {/* Footer tagline */}
         <motion.div

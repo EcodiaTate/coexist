@@ -93,7 +93,7 @@ export function UserCard({
               'absolute right-3 top-3 rounded-full p-1 text-primary-400',
               'min-h-11 min-w-11 flex items-center justify-center',
               'cursor-pointer select-none',
-              'active:scale-[0.97] transition-all duration-150',
+              'active:scale-[0.97] transition-transform duration-150',
               'hover:bg-primary-50 hover:text-primary-400',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             )}

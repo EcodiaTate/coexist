@@ -7,8 +7,9 @@ import {
     TreePine,
     ArrowRight,
     Navigation,
-    X
+    X,
 } from 'lucide-react'
+import { Header } from '@/components/header'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { cn } from '@/lib/cn'
@@ -397,32 +398,28 @@ export default function MapPage() {
       <div
         className={cn(
           'absolute top-0 left-0 right-0 z-[500]',
-          'pt-[var(--safe-top,0px)]',
         )}
       >
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2.5 rounded-2xl bg-white px-4 py-2.5 shadow-sm">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-400">
-              <MapPin size={16} className="text-white" />
+        <Header
+          title=""
+          back
+          transparent
+          rightActions={
+            <div className="flex items-center gap-2.5 rounded-2xl bg-white px-4 py-2.5 shadow-sm">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-400">
+                <MapPin size={16} className="text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-secondary-700">
+                  {COLLECTIVES.length} Collectives
+                </p>
+                <p className="text-xs text-secondary-500">
+                  {totalMembers.toLocaleString()} members across Australia
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-secondary-700">
-                {COLLECTIVES.length} Collectives
-              </p>
-              <p className="text-xs text-secondary-500">
-                {totalMembers.toLocaleString()} members across Australia
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => navigate(-1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm active:scale-[0.93] transition-transform duration-150 cursor-pointer"
-            aria-label="Go back"
-          >
-            <X size={18} className="text-secondary-700" />
-          </button>
-        </div>
+          }
+        />
       </div>
 
       {/* ---- Full-screen map ---- */}
@@ -553,8 +550,6 @@ export default function MapPage() {
               className={cn(
                 'flex gap-2 overflow-x-auto scrollbar-hide',
                 'pb-1 pt-1',
-                // Fade edges
-                '[mask-image:linear-gradient(to_right,transparent,black_12px,black_calc(100%-12px),transparent)]',
               )}
             >
               {COLLECTIVES.map((c) => (

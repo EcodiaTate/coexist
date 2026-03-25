@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
@@ -167,7 +167,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
         className={cn(
           'block rounded-2xl overflow-hidden',
           'bg-white shadow-sm',
-          'hover:shadow-md active:scale-[0.99] transition-[color,background-color,box-shadow,transform] duration-150',
+          'active:scale-[0.99] transition-[color,background-color,transform] duration-150',
           isPast && 'opacity-60',
         )}
       >
@@ -375,7 +375,7 @@ function PastEventRow({ event, index }: { event: AdminEvent; index: number }) {
         className={cn(
           'flex items-center gap-3 p-3 rounded-xl',
           'bg-white/60',
-          'hover:bg-white hover:shadow-sm active:scale-[0.99] transition-[color,background-color,box-shadow,transform] duration-150',
+          'hover:bg-white hover:shadow-sm active:scale-[0.99] transition-[color,background-color,transform] duration-150',
         )}
       >
         {event.cover_image_url ? (

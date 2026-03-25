@@ -167,7 +167,7 @@ export default function ProfilePage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
-  const { user, profile: authProfile } = useAuth()
+  useAuth()
   const { data: profile, isLoading: profileLoading } = useProfile()
   const { data: collectives, isLoading: collectivesLoading } = useProfileCollectives()
   const { data: stats, isLoading: statsLoading } = useProfileStats()

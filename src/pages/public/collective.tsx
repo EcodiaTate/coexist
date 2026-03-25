@@ -56,7 +56,7 @@ function AppStoreBadge({ className, onClick }: { className?: string; onClick?: (
         'inline-flex items-center gap-2.5 px-5 py-3',
         'rounded-xl bg-black text-white',
         'hover:bg-gray-900 active:scale-[0.97]',
-        'transition-all duration-150',
+        'transition-colors duration-150',
         'cursor-pointer select-none',
         'shadow-lg shadow-black/15',
         className,
@@ -83,7 +83,7 @@ function PlayStoreBadge({ className, onClick }: { className?: string; onClick?: 
         'inline-flex items-center gap-2.5 px-5 py-3',
         'rounded-xl bg-black text-white',
         'hover:bg-gray-900 active:scale-[0.97]',
-        'transition-all duration-150',
+        'transition-colors duration-150',
         'cursor-pointer select-none',
         'shadow-lg shadow-black/15',
         className,
@@ -187,7 +187,7 @@ export default function PublicCollectivePage() {
         <button
           type="button"
           onClick={() => window.location.href = '/download'}
-          className="mt-6 px-6 py-3 rounded-xl bg-primary-800 text-white font-heading font-semibold hover:bg-primary-900 active:scale-[0.97] transition-all cursor-pointer"
+          className="mt-6 px-6 py-3 rounded-xl bg-primary-800 text-white font-heading font-semibold hover:bg-primary-900 active:scale-[0.97] transition-transform cursor-pointer"
         >
           Get the {APP_NAME} App
         </button>
@@ -429,7 +429,7 @@ export default function PublicCollectivePage() {
                   'rounded-xl bg-white text-primary-800',
                   'font-heading font-semibold',
                   'hover:bg-white/90 active:scale-[0.97]',
-                  'transition-all duration-150',
+                  'transition-colors duration-150',
                   'cursor-pointer select-none',
                   'shadow-lg shadow-black/10',
                 )}
@@ -461,7 +461,7 @@ export default function PublicCollectivePage() {
                   'rounded-xl bg-white/10 text-white/80',
                   'text-sm font-medium',
                   'hover:bg-white/15 active:scale-[0.97]',
-                  'transition-all duration-150',
+                  'transition-colors duration-150',
                   'cursor-pointer select-none',
                 )}
               >
@@ -495,7 +495,7 @@ export default function PublicCollectivePage() {
               'flex-1 flex items-center justify-center gap-2 py-3',
               'rounded-xl bg-primary-800 text-white',
               'font-heading font-semibold text-sm',
-              'active:scale-[0.97] transition-all',
+              'active:scale-[0.97] transition-transform',
               'cursor-pointer select-none',
             )}
           >
@@ -508,7 +508,7 @@ export default function PublicCollectivePage() {
               'flex-1 flex items-center justify-center gap-2 py-3',
               'rounded-xl bg-moss-100 text-moss-800',
               'font-heading font-semibold text-sm',
-              'active:scale-[0.97] transition-all',
+              'active:scale-[0.97] transition-transform',
               'cursor-pointer select-none',
             )}
           >

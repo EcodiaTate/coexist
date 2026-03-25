@@ -85,7 +85,7 @@ export default function OrderConfirmationPage() {
               </Button>
             </Link>
           )}
-          <Link to="/shop" tabIndex={-1}>
+          <Link to="/shop" tabIndex={-1} className="block mt-3">
             <Button variant="ghost" fullWidth icon={<ArrowRight size={16} />}>
               Continue shopping
             </Button>

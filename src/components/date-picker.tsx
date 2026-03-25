@@ -137,14 +137,14 @@ export function DatePicker({
           aria-label={label ?? defaultPlaceholder}
           aria-describedby={error ? errorId : undefined}
           className={cn(
-            'flex items-center w-full rounded-lg bg-primary-50/50 px-4 py-3 min-h-12',
+            'flex items-center w-full rounded-lg bg-surface-3 px-4 py-3 min-h-12',
             'text-[16px] leading-normal text-left',
             'cursor-pointer select-none',
-            'transition-all duration-150 active:scale-[0.98]',
+            'transition-transform duration-150 active:scale-[0.98]',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
             error
               ? 'ring-2 ring-error'
-              : 'hover:bg-primary-100/50 hover:shadow-sm',
+              : 'hover:bg-primary-200/50 hover:shadow-sm',
           )}
         >
           <IconComponent

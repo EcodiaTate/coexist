@@ -1,11 +1,13 @@
 import { useState, useEffect, useMemo, startTransition } from 'react'
-import { Megaphone, CalendarPlus, ChevronDown, Search, Users2, Check, MapPin, Calendar } from 'lucide-react'
+import { Megaphone, CalendarPlus, ChevronDown, Users2, Check, MapPin, Calendar } from 'lucide-react'
 import { CenteredDialog } from '@/components/centered-dialog'
 import { Button } from '@/components/button'
+import { Input } from '@/components/input'
+import { SearchBar } from '@/components/search-bar'
 import { Avatar } from '@/components/avatar'
 import { cn } from '@/lib/cn'
 import { useCollectiveEvents, type EventWithCollective } from '@/hooks/use-events'
-import { useCollectives, type CollectiveWithLeader } from '@/hooks/use-collective'
+import { useCollectives } from '@/hooks/use-collective'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -70,11 +72,11 @@ function EventPicker({
         type="button"
         onClick={() => setDropdownOpen(!dropdownOpen)}
         className={cn(
-          'w-full rounded-xl px-3.5 py-2.5 text-left text-sm min-h-11 flex items-center gap-2 transition-all duration-150',
+          'w-full rounded-xl px-3.5 py-2.5 text-left text-sm min-h-11 flex items-center gap-2 transition-transform duration-150',
           'active:scale-[0.99] cursor-pointer select-none',
           selectedId
             ? 'bg-primary-50 text-primary-800 ring-2 ring-primary-400'
-            : 'bg-primary-50/50 text-primary-400 ring-1 ring-primary-200/60',
+            : 'bg-primary-100/60 text-primary-400 ring-1 ring-primary-200/60',
           dropdownOpen && 'ring-2 ring-primary-400 bg-white',
         )}
       >
@@ -175,15 +177,8 @@ function CollectivePicker({
   return (
     <div>
       {/* Search */}
-      <div className="relative mb-2">
-        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search collectives..."
-          className="w-full rounded-xl bg-primary-50/50 pl-8 pr-3.5 py-2 text-sm text-primary-800 placeholder:text-primary-400 outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white min-h-11"
-        />
+      <div className="mb-2">
+        <SearchBar value={search} onChange={setSearch} placeholder="Search collectives..." compact />
       </div>
 
       {/* Selected count */}
@@ -231,7 +226,7 @@ function CollectivePicker({
                 </div>
                 <div
                   className={cn(
-                    'flex items-center justify-center h-5 w-5 rounded-md border-2 transition-all duration-150 shrink-0',
+                    'flex items-center justify-center h-5 w-5 rounded-md border-2 transition-colors duration-150 shrink-0',
                     isSelected
                       ? 'bg-primary-600 border-primary-600'
                       : 'border-primary-300 bg-white',
@@ -362,7 +357,7 @@ export function CreateAnnouncementSheet({
                 type="button"
                 onClick={() => setType(opt.value)}
                 className={cn(
-                  'flex-1 rounded-xl py-2.5 px-2 text-center transition-all duration-150 min-h-11',
+                  'flex-1 rounded-xl py-2.5 px-2 text-center transition-transform duration-150 min-h-11',
                   'active:scale-[0.95] cursor-pointer select-none',
                   type === opt.value
                     ? 'bg-primary-600 text-white shadow-sm'
@@ -398,33 +393,25 @@ export function CreateAnnouncementSheet({
 
         {/* Title */}
         <div className="mb-3">
-          <label htmlFor="ann-title" className="text-xs font-semibold text-primary-600 mb-1 block">
-            Title
-          </label>
-          <input
-            id="ann-title"
-            type="text"
+          <Input
+            label="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder={type === 'event_invite' ? 'Come join us at...' : 'Your announcement title'}
             maxLength={150}
-            className="w-full rounded-xl bg-primary-50/50 px-3.5 py-2.5 text-sm text-primary-800 placeholder:text-primary-400 outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white min-h-11"
           />
         </div>
 
         {/* Body */}
         <div className="mb-3">
-          <label htmlFor="ann-body" className="text-xs font-semibold text-primary-600 mb-1 block">
-            Details (optional)
-          </label>
-          <textarea
-            id="ann-body"
+          <Input
+            type="textarea"
+            label="Details"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Add more details..."
             rows={3}
             maxLength={500}
-            className="w-full rounded-xl bg-primary-50/50 px-3.5 py-2.5 text-sm text-primary-800 placeholder:text-primary-400 outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white resize-none"
           />
         </div>
 
@@ -449,17 +436,12 @@ export function CreateAnnouncementSheet({
             {/* Collaboration message */}
             {inviteCollectiveIds.length > 0 && (
               <div className="mt-2.5">
-                <label htmlFor="collab-msg" className="text-[11px] font-semibold text-primary-500 mb-1 block">
-                  Message to invited collectives (optional)
-                </label>
-                <input
-                  id="collab-msg"
-                  type="text"
+                <Input
+                  label="Collaboration Message"
                   value={inviteMessage}
                   onChange={(e) => setInviteMessage(e.target.value)}
                   placeholder="Hey! Want to join forces on this one?"
                   maxLength={300}
-                  className="w-full rounded-xl bg-primary-50/50 px-3.5 py-2 text-sm text-primary-800 placeholder:text-primary-400 outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white min-h-11"
                 />
               </div>
             )}

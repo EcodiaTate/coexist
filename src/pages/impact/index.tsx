@@ -1,11 +1,9 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import {
     TreePine,
-    Clock,
-    Calendar,
     Trash2,
     Sprout,
     GraduationCap,
@@ -107,7 +105,7 @@ function ImpactSkeleton() {
         <div className="h-32 rounded-3xl bg-primary-100/30 animate-pulse" />
         <div className="h-32 rounded-3xl bg-primary-100/30 animate-pulse" />
       </div>
-      <div className="h-48 rounded-3xl bg-primary-100/30 animate-pulse" />
+      <div className="h-48 rounded-3xl bg-primary-100/30" />
     </div>
   )
 }
@@ -235,10 +233,18 @@ function ActivitySparkline({ data }: { data: { month: string; count: number }[] 
 /* ─── ring chart ─── */
 function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
   const shouldReduceMotion = useReducedMotion()
+
+  // Precompute cumulative offsets (must be before early return)
+  const cumulativeOffsets = useMemo(() =>
+    data.reduce<number[]>((acc, item, i) => {
+      acc.push(i === 0 ? 0 : acc[i - 1] + data[i - 1].count)
+      return acc
+    }, [])
+  , [data])
+
   if (data.length === 0) return null
 
   const total = data.reduce((sum, d) => sum + d.count, 0)
-  let cumulative = 0
   const radius = 44
   const circumference = 2 * Math.PI * radius
 
@@ -247,11 +253,10 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
       <div className="relative w-40 h-40 shrink-0">
         <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
           <circle cx="50" cy="50" r={radius} fill="none" strokeWidth="11" className="stroke-primary-100/50" />
-          {data.map((item) => {
+          {data.map((item, idx) => {
             const pct = item.count / total
             const dashLen = pct * circumference
-            const offset = -(cumulative / total) * circumference
-            cumulative += item.count
+            const offset = -(cumulativeOffsets[idx] / total) * circumference
             return (
               <motion.circle
                 key={item.category}
@@ -331,7 +336,12 @@ export default function ImpactDashboardPage() {
   const { data: streak } = useStreak()
 
   const handleRefresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ['impact'] })
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['impact-stats'] }),
+      queryClient.invalidateQueries({ queryKey: ['monthly-activity'] }),
+      queryClient.invalidateQueries({ queryKey: ['impact-by-category'] }),
+      queryClient.invalidateQueries({ queryKey: ['streak'] }),
+    ])
   }, [queryClient])
 
   if (showLoading) {
@@ -555,7 +565,7 @@ export default function ImpactDashboardPage() {
               transition={{ delay: 0.35, type: 'spring', stiffness: 200, damping: 22 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate('/impact/national')}
-              className="w-full flex items-center gap-5 rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-xl shadow-primary-300/30 p-6 min-h-11 text-left active:scale-[0.97] transition-all duration-150 hover:shadow-2xl cursor-pointer select-none overflow-hidden relative"
+              className="w-full flex items-center gap-5 rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-xl shadow-primary-300/30 p-6 min-h-11 text-left active:scale-[0.97] transition-transform duration-150 hover:shadow-2xl cursor-pointer select-none overflow-hidden relative"
             >
               <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
               <div className="relative flex items-center justify-center w-13 h-13 rounded-2xl bg-white/20">

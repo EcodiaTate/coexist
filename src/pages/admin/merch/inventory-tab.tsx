@@ -24,8 +24,6 @@ import { cn } from '@/lib/cn'
 
 type StockFilter = 'all' | 'low' | 'out'
 type SortMode = 'stock-asc' | 'name' | 'product'
-type ViewMode = 'product' | 'flat'
-
 interface FlatVariant {
   product: Product
   variant: ProductVariant
@@ -112,7 +110,7 @@ function InlineStepper({
         type="button"
         onClick={(e) => { e.stopPropagation(); handleAdjust(-1) }}
         disabled={item.variant.stock === 0}
-        className="flex items-center justify-center w-8 h-8 rounded-l-xl bg-white/80 border border-primary-200/30 text-primary-500 hover:bg-error-50 hover:text-error-600 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:scale-[0.92] transition-all duration-150"
+        className="flex items-center justify-center w-8 h-8 rounded-l-xl bg-white/80 border border-primary-200/30 text-primary-500 hover:bg-error-50 hover:text-error-600 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer active:scale-[0.92] transition-transform duration-150"
       >
         <Minus size={12} />
       </button>
@@ -122,7 +120,7 @@ function InlineStepper({
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); handleAdjust(1) }}
-        className="flex items-center justify-center w-8 h-8 rounded-r-xl bg-white/80 border border-primary-200/30 text-primary-500 hover:bg-success-50 hover:text-success-600 cursor-pointer active:scale-[0.92] transition-all duration-150"
+        className="flex items-center justify-center w-8 h-8 rounded-r-xl bg-white/80 border border-primary-200/30 text-primary-500 hover:bg-success-50 hover:text-success-600 cursor-pointer active:scale-[0.92] transition-transform duration-150"
       >
         <Plus size={12} />
       </button>
@@ -222,7 +220,7 @@ function BatchAdjustSheet({
                 type="button"
                 disabled={processing}
                 onClick={() => handleBatchApply(qa.value)}
-                className="py-3 rounded-xl text-sm font-bold bg-gradient-to-br from-success-500 to-success-600 text-white shadow-md hover:shadow-lg cursor-pointer active:scale-[0.95] transition-all duration-150 disabled:opacity-50"
+                className="py-3 rounded-xl text-sm font-bold bg-gradient-to-br from-success-500 to-success-600 text-white shadow-md hover:shadow-lg cursor-pointer active:scale-[0.95] transition-transform duration-150 disabled:opacity-50"
               >
                 {qa.label}
               </button>
@@ -241,7 +239,7 @@ function BatchAdjustSheet({
               value={adjustment}
               onChange={(e) => setAdjustment(e.target.value)}
               placeholder="+/- amount"
-              className="flex-1 h-12 px-4 rounded-xl bg-white border border-primary-200/30 text-sm font-semibold text-primary-800 placeholder:text-primary-400/50 outline-none focus:ring-2 focus:ring-primary-300/50 tabular-nums"
+              className="flex-1 h-12 px-4 rounded-xl bg-surface-3 text-sm font-semibold text-primary-800 placeholder:text-primary-400/50 outline-none focus:ring-2 focus:ring-primary-300/50 tabular-nums"
             />
             <Button
               variant="primary"
@@ -546,7 +544,7 @@ export default function InventoryTab() {
               s === 'stock-asc' ? 'name' : s === 'name' ? 'product' : 'stock-asc',
             )
           }
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/30 text-secondary-700 cursor-pointer transition-[color,background-color,box-shadow,transform] hover:shadow-sm active:scale-[0.97] shrink-0 mb-px"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/30 text-secondary-700 cursor-pointer transition-[color,background-color,transform] hover:shadow-sm active:scale-[0.97] shrink-0 mb-px"
         >
           <ArrowUpDown size={12} />
           {sort === 'stock-asc' ? 'Stock ↑' : sort === 'name' ? 'A-Z' : 'Product'}

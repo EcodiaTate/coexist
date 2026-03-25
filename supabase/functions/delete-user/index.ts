@@ -1,4 +1,4 @@
-// @ts-nocheck - Deno Edge Function
+// Deno Edge Function
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -78,8 +78,6 @@ serve(async (req: Request) => {
     // Order matters: delete dependent rows first to avoid FK violations
     await Promise.all([
       supabase.from('notifications').delete().eq('user_id', userId),
-      supabase.from('post_likes').delete().eq('user_id', userId),
-      supabase.from('post_comments').delete().eq('user_id', userId),
       supabase.from('points_ledger').delete().eq('user_id', userId),
       supabase.from('chat_messages').delete().eq('user_id', userId),
       supabase.from('event_registrations').delete().eq('user_id', userId),
@@ -106,9 +104,6 @@ serve(async (req: Request) => {
         .update({ shipping_name: 'Deleted User', shipping_address: null, shipping_city: null, shipping_state: null, shipping_postcode: null })
         .eq('user_id', userId),
     ])
-
-    // Delete posts (after comments/likes are gone)
-    await supabase.from('posts').delete().eq('user_id', userId)
 
     // Delete profile
     await supabase.from('profiles').delete().eq('id', userId)

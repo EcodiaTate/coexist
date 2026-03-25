@@ -1,8 +1,7 @@
 import { useState, useMemo, useRef } from 'react'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Search,
   Download,
   UserMinus,
   Shield,
@@ -11,23 +10,21 @@ import {
   Crown,
   Pencil,
   Users,
-  X,
-  ChevronRight,
   Camera,
   ImagePlus,
   Trash2,
-  MapPin,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Avatar } from '@/components/avatar'
 import { Input } from '@/components/input'
+import { Dropdown } from '@/components/dropdown'
+import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
-import { UserCard } from '@/components/user-card'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
@@ -186,23 +183,14 @@ function EditCollectiveSheet({
         </div>
 
         {/* Description */}
-        <div>
-          <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
-            Description
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Tell people what your collective is about..."
-            rows={3}
-            className={cn(
-              'mt-1 w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
-              'placeholder:text-primary-400',
-              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-              'resize-none',
-            )}
-          />
-        </div>
+        <Input
+          type="textarea"
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Tell people what your collective is about..."
+          rows={3}
+        />
 
         {/* Region + State */}
         <div className="grid grid-cols-2 gap-3">
@@ -218,24 +206,14 @@ function EditCollectiveSheet({
               className="mt-1"
             />
           </div>
-          <div>
-            <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
-              State
-            </label>
-            <select
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              className={cn(
-                'mt-1 w-full rounded-xl bg-primary-50/50 px-3 min-h-12 text-sm text-primary-800',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-              )}
-            >
-              <option value="">Select...</option>
-              {AUSTRALIAN_STATES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
+          <Dropdown
+            label="State"
+            placeholder="Select..."
+            options={AUSTRALIAN_STATES.map((s) => ({ value: s, label: s }))}
+            value={state}
+            onChange={setState}
+            className="mt-1"
+          />
         </div>
 
         <Button
@@ -256,17 +234,30 @@ function EditCollectiveSheet({
 /*  Role assignment sheet                                              */
 /* ------------------------------------------------------------------ */
 
+const ROLE_RANK: Record<CollectiveRole, number> = {
+  member: 0,
+  assist_leader: 1,
+  co_leader: 2,
+  leader: 3,
+}
+
 function RoleAssignSheet({
   member,
   onClose,
   onAssign,
+  myRole,
 }: {
   member: CollectiveMemberWithProfile | null
   onClose: () => void
   onAssign: (role: CollectiveRole) => void
+  myRole: CollectiveRole | null
 }) {
   if (!member) return null
-  const assignableRoles: CollectiveRole[] = ['member', 'assist_leader', 'co_leader']
+  const myRank = myRole ? ROLE_RANK[myRole] : -1
+  // Can only assign roles strictly below own rank
+  const assignableRoles = (['member', 'assist_leader', 'co_leader'] as CollectiveRole[]).filter(
+    (r) => ROLE_RANK[r] < myRank,
+  )
 
   return (
     <BottomSheet open={!!member} onClose={onClose}>
@@ -290,7 +281,7 @@ function RoleAssignSheet({
                 onClick={() => onAssign(role)}
                 disabled={isActive}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                  'flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                   isActive
                     ? 'bg-white text-primary-400'
                     : 'text-primary-800 hover:bg-primary-50',
@@ -323,7 +314,8 @@ export default function CollectiveManagePage() {
   // Fetch collective by slug, derive UUID for sub-queries
   const { data: collective, isLoading: loadingCollective } = useCollective(slug)
   const collectiveId = collective?.id
-  const { isLeader } = useCollectiveRole(collectiveId)
+  const { isLeader, isCoLeader, role: myRole } = useCollectiveRole(collectiveId)
+  const canManage = isLeader || isCoLeader
   const { data: members = [], isLoading: loadingMembers } = useCollectiveMembers(collectiveId)
   const showLoading = useDelayedLoading(loadingCollective || loadingMembers)
   const updateCollective = useUpdateCollective()
@@ -427,13 +419,13 @@ export default function CollectiveManagePage() {
   }
   if (loadingCollective || loadingMembers) return null
 
-  if (!collective || !isLeader) {
+  if (!collective || !canManage) {
     return (
       <Page swipeBack header={<Header title="Manage" back />}>
         <EmptyState
           illustration="error"
           title="Access denied"
-          description="Only collective leaders can manage the collective"
+          description="Only leaders and co-leaders can manage the collective"
           action={{ label: 'Go Back', onClick: () => navigate(-1) }}
         />
       </Page>
@@ -452,7 +444,7 @@ export default function CollectiveManagePage() {
               type="button"
               onClick={handleExportCSV}
               aria-label="Export members CSV"
-              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
             >
               <Download size={20} />
             </button>
@@ -500,23 +492,8 @@ export default function CollectiveManagePage() {
             </h3>
           </div>
 
-          <div className="relative mb-3">
-            <Search
-              size={16}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 pointer-events-none"
-            />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search members..."
-              aria-label="Search members"
-              className={cn(
-                'w-full rounded-xl bg-primary-50/50 py-2 pl-9 pr-3 text-sm text-primary-800',
-                'placeholder:text-primary-400',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-              )}
-            />
+          <div className="mb-3">
+            <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search members..." compact />
           </div>
 
           {/* Member list */}
@@ -537,7 +514,7 @@ export default function CollectiveManagePage() {
                     type="button"
                     onClick={() => setSelectedUser(member)}
                     aria-label={`View ${member.profiles?.display_name}`}
-                    className="flex items-center justify-center min-h-11 min-w-11 rounded-full active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                    className="flex items-center justify-center min-h-11 min-w-11 rounded-full active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                   >
                     <Avatar
                       src={member.profiles?.avatar_url}
@@ -550,7 +527,7 @@ export default function CollectiveManagePage() {
                   <button
                     type="button"
                     onClick={() => setSelectedUser(member)}
-                    className="flex-1 min-w-0 min-h-11 text-left active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                    className="flex-1 min-w-0 min-h-11 text-left active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                   >
                     <p className="text-sm font-medium text-primary-800 truncate">
                       {member.profiles?.display_name ?? 'Unknown'}
@@ -569,14 +546,14 @@ export default function CollectiveManagePage() {
                     </div>
                   </button>
 
-                  {/* Actions (not for self, not for leader role) */}
-                  {!isCurrentUser && member.role !== 'leader' && (
+                  {/* Actions: not for self, and only for members ranked below you */}
+                  {!isCurrentUser && ROLE_RANK[member.role] < (myRole ? ROLE_RANK[myRole] : -1) && (
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => setRoleAssignMember(member)}
                         aria-label="Change role"
-                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                       >
                         <Shield size={16} />
                       </button>
@@ -584,7 +561,7 @@ export default function CollectiveManagePage() {
                         type="button"
                         onClick={() => setRemovingMember(member)}
                         aria-label="Remove member"
-                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-error-50 hover:text-error-500 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-error-50 hover:text-error-500 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                       >
                         <UserMinus size={16} />
                       </button>
@@ -611,6 +588,7 @@ export default function CollectiveManagePage() {
         member={roleAssignMember}
         onClose={() => setRoleAssignMember(null)}
         onAssign={handleAssignRole}
+        myRole={myRole}
       />
 
       {/* Remove member confirmation */}

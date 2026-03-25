@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -56,6 +56,7 @@ import {
     Page,
     Header,
     Button,
+    Input,
     Avatar,
     Badge, EmptyState,
     ConfirmationSheet,
@@ -211,7 +212,7 @@ function InfoChip({
       <span
         className={cn(
           'flex items-center justify-center w-10 h-10 rounded-xl shrink-0',
-          'shadow-sm transition-all duration-200',
+          'shadow-sm transition-colors duration-200',
           accent.bg, accent.text, accent.border, 'border',
         )}
         aria-hidden="true"
@@ -228,7 +229,7 @@ function InfoChip({
           onClick={action.onClick}
           className={cn(
             'min-h-11 flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-[13px] font-bold shrink-0 mt-0.5',
-            'cursor-pointer select-none active:scale-[0.97] transition-all duration-150',
+            'cursor-pointer select-none active:scale-[0.97] transition-transform duration-150',
             accent.bg, accent.text, accent.border, 'border',
             'hover:shadow-sm',
           )}
@@ -249,7 +250,7 @@ function InfoChip({
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user, isStaff: isGlobalStaff, isAdmin: isGlobalAdmin } = useAuth()
+  const { isStaff: isGlobalStaff } = useAuth()
   const { toast } = useToast()
   const shouldReduceMotion = useReducedMotion()
 
@@ -271,7 +272,13 @@ export default function EventDetailPage() {
   const [cancelReason, setCancelReason] = useState('')
   const [inviteMessage, setInviteMessage] = useState('')
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
-  const [mountTime] = useState(() => Date.now())
+  const [now, setNow] = useState(() => Date.now())
+
+  // Re-evaluate active state every 60s so "Check In Now" appears on time
+  useEffect(() => {
+    const timer = setInterval(() => setNow(Date.now()), 60_000)
+    return () => clearInterval(timer)
+  }, [])
 
   const accent = event ? (activityAccent[event.activity_type] ?? defaultAccent) : defaultAccent
   const past = event ? isPastEvent(event) : false
@@ -283,8 +290,8 @@ export default function EventDetailPage() {
     const start = new Date(event.date_start).getTime()
     const end = event.date_end ? new Date(event.date_end).getTime() : start + 3 * 60 * 60 * 1000
     const earlyWindow = start - 60 * 60 * 1000 // 1 hour before
-    return mountTime >= earlyWindow && mountTime <= end
-  }, [event, mountTime])
+    return now >= earlyWindow && now <= end
+  }, [event, now])
   const userStatus = event?.user_registration?.status ?? null
   // Only show leader tools if user has a role in THIS event's collective (or is global staff)
   const belongsToCollective = collectiveRole.role !== null
@@ -548,7 +555,7 @@ export default function EventDetailPage() {
                 type="button"
                 onClick={handleShare}
                 whileTap={{ scale: 0.9 }}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/40 text-white cursor-pointer select-none active:scale-95 transition-all duration-150"
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/40 text-white cursor-pointer select-none active:scale-95 transition-transform duration-150"
                 aria-label="Share event"
               >
                 <Share2 size={18} />
@@ -723,7 +730,7 @@ export default function EventDetailPage() {
               <button
                 type="button"
                 onClick={() => navigate(`/events/${event.id}/day`)}
-                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
               >
                 <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-moss-500 to-moss-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                   <ClipboardList size={16} className="text-white" />
@@ -733,7 +740,7 @@ export default function EventDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowQrSheet(true)}
-                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
               >
                 <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                   <QrCode size={16} className="text-white" />
@@ -744,7 +751,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={() => navigate(`/events/${event.id}/impact`)}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-sprout-500 to-sprout-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                     <Leaf size={16} className="text-white" />
@@ -756,7 +763,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={() => navigate(`/events/${event.id}/edit`)}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                     <Pencil size={16} className="text-white" />
@@ -769,7 +776,7 @@ export default function EventDetailPage() {
                   type="button"
                   onClick={handleDuplicate}
                   disabled={duplicateEventMutation.isPending}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none disabled:opacity-50"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none disabled:opacity-50"
                 >
                   <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                     <Copy size={16} className="text-white" />
@@ -781,7 +788,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={handleOpenInviteSheet}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <div className={cn(
                     'w-9 h-9 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform bg-gradient-to-br',
@@ -796,7 +803,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowCancelEventSheet(true)}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-error-100/60 p-3 hover:shadow-md active:scale-[0.96] transition-all duration-150 cursor-pointer select-none"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-error-100/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-error-400 to-error-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
                     <Ban size={16} className="text-white" />
@@ -929,7 +936,7 @@ export default function EventDetailPage() {
                   onClick={() => setDescriptionExpanded(true)}
                   className={cn(
                     'min-h-11 flex items-center justify-center text-caption font-bold mt-1.5',
-                    'cursor-pointer select-none active:scale-[0.97] transition-all duration-150',
+                    'cursor-pointer select-none active:scale-[0.97] transition-transform duration-150',
                     accent.text,
                   )}
                 >
@@ -1008,74 +1015,86 @@ export default function EventDetailPage() {
         </motion.div>
 
         {/* ── Event details pills (what_to_bring, terrain, difficulty, etc.) ── */}
-        {((event as any).what_to_bring || (event as any).what_to_wear || (event as any).meeting_point || (event as any).terrain || (event as any).difficulty || (event as any).wheelchair_access) && (
-          <motion.div
-            variants={shouldReduceMotion ? undefined : fadeUp}
-            className={cn(
-              'rounded-2xl p-4.5 relative overflow-hidden',
-              'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
-              accent.border, accent.bg,
-            )}
-          >
-            <div className={cn('absolute inset-0 opacity-20 bg-gradient-to-tl', accent.gradient)} aria-hidden="true" />
-            <div className="absolute inset-0 bg-white/75" aria-hidden="true" />
-            <h3 className={cn('relative text-sm font-bold mb-3', accent.text)}>Good to know</h3>
-            <div className="relative space-y-3">
-              {(event as any).meeting_point && (
-                <div className="flex items-start gap-2.5">
-                  <MapPin size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
-                  <div>
-                    <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">Meeting point</p>
-                    <p className="text-sm font-medium text-primary-700">{(event as any).meeting_point}</p>
-                  </div>
-                </div>
+        {(() => {
+          // Extended event fields not yet in generated DB types
+          const ext = event as unknown as {
+            what_to_bring?: string
+            what_to_wear?: string
+            meeting_point?: string
+            terrain?: string
+            difficulty?: keyof typeof difficultyConfig
+            wheelchair_access?: boolean
+          }
+          if (!ext.what_to_bring && !ext.what_to_wear && !ext.meeting_point && !ext.terrain && !ext.difficulty && !ext.wheelchair_access) return null
+          return (
+            <motion.div
+              variants={shouldReduceMotion ? undefined : fadeUp}
+              className={cn(
+                'rounded-2xl p-4.5 relative overflow-hidden',
+                'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
+                accent.border, accent.bg,
               )}
-              {(event as any).what_to_bring && (
-                <div className="flex items-start gap-2.5">
-                  <Backpack size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
-                  <div>
-                    <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">What to bring</p>
-                    <p className="text-sm font-medium text-primary-700">{(event as any).what_to_bring}</p>
+            >
+              <div className={cn('absolute inset-0 opacity-20 bg-gradient-to-tl', accent.gradient)} aria-hidden="true" />
+              <div className="absolute inset-0 bg-white/75" aria-hidden="true" />
+              <h3 className={cn('relative text-sm font-bold mb-3', accent.text)}>Good to know</h3>
+              <div className="relative space-y-3">
+                {ext.meeting_point && (
+                  <div className="flex items-start gap-2.5">
+                    <MapPin size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">Meeting point</p>
+                      <p className="text-sm font-medium text-primary-700">{ext.meeting_point}</p>
+                    </div>
                   </div>
-                </div>
-              )}
-              {(event as any).what_to_wear && (
-                <div className="flex items-start gap-2.5">
-                  <Shirt size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
-                  <div>
-                    <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">What to wear</p>
-                    <p className="text-sm font-medium text-primary-700">{(event as any).what_to_wear}</p>
+                )}
+                {ext.what_to_bring && (
+                  <div className="flex items-start gap-2.5">
+                    <Backpack size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">What to bring</p>
+                      <p className="text-sm font-medium text-primary-700">{ext.what_to_bring}</p>
+                    </div>
                   </div>
-                </div>
-              )}
-              <div className="flex flex-wrap gap-2">
-                {(event as any).difficulty && (() => {
-                  const d = difficultyConfig[(event as any).difficulty as keyof typeof difficultyConfig]
-                  if (!d) return null
-                  const Icon = d.icon
-                  return (
-                    <span className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold', d.color)}>
-                      <Icon size={13} />
-                      {d.label}
+                )}
+                {ext.what_to_wear && (
+                  <div className="flex items-start gap-2.5">
+                    <Shirt size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">What to wear</p>
+                      <p className="text-sm font-medium text-primary-700">{ext.what_to_wear}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {ext.difficulty && (() => {
+                    const d = difficultyConfig[ext.difficulty!]
+                    if (!d) return null
+                    const Icon = d.icon
+                    return (
+                      <span className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold', d.color)}>
+                        <Icon size={13} />
+                        {d.label}
+                      </span>
+                    )
+                  })()}
+                  {ext.terrain && (
+                    <span className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold', accent.bg, accent.text)}>
+                      <Mountain size={13} />
+                      {ext.terrain}
                     </span>
-                  )
-                })()}
-                {(event as any).terrain && (
-                  <span className={cn('inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold', accent.bg, accent.text)}>
-                    <Mountain size={13} />
-                    {(event as any).terrain}
-                  </span>
-                )}
-                {(event as any).wheelchair_access && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold bg-info-100 text-info-700">
-                    <Accessibility size={13} />
-                    Wheelchair accessible
-                  </span>
-                )}
+                  )}
+                  {ext.wheelchair_access && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold bg-info-100 text-info-700">
+                      <Accessibility size={13} />
+                      Wheelchair accessible
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          </motion.div>
-        )}
+            </motion.div>
+          )
+        })()}
 
         {/* ── Action buttons row ── */}
         {!past && (
@@ -1258,7 +1277,7 @@ export default function EventDetailPage() {
               downloadIcsFile(event)
               setShowCalendarSheet(false)
             }}
-            className="flex items-center gap-3 w-full min-h-11 px-4 py-3 rounded-xl hover:bg-primary-50 cursor-pointer select-none text-left active:scale-[0.97] transition-all duration-150"
+            className="flex items-center gap-3 w-full min-h-11 px-4 py-3 rounded-xl hover:bg-primary-50 cursor-pointer select-none text-left active:scale-[0.97] transition-transform duration-150"
           >
             <CalendarPlus size={20} className="text-primary-400 shrink-0" />
             <div>
@@ -1272,7 +1291,7 @@ export default function EventDetailPage() {
               window.open(getGoogleCalendarUrl(event), '_blank')
               setShowCalendarSheet(false)
             }}
-            className="flex items-center gap-3 w-full min-h-11 px-4 py-3 rounded-xl hover:bg-primary-50 cursor-pointer select-none text-left active:scale-[0.97] transition-all duration-150"
+            className="flex items-center gap-3 w-full min-h-11 px-4 py-3 rounded-xl hover:bg-primary-50 cursor-pointer select-none text-left active:scale-[0.97] transition-transform duration-150"
           >
             <Calendar size={20} className="text-primary-400 shrink-0" />
             <div>
@@ -1298,18 +1317,13 @@ export default function EventDetailPage() {
               All registered and invited attendees will be notified. This cannot be undone.
             </p>
           </div>
-          <textarea
-            placeholder="Reason for cancellation (optional)"
+          <Input
+            type="textarea"
+            label="Cancellation Reason"
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
+            placeholder="Reason for cancellation (optional)"
             rows={3}
-            className={cn(
-              'w-full px-4 py-3 rounded-xl text-sm resize-none',
-              'bg-primary-50 border border-primary-100 text-primary-800',
-              'placeholder:text-primary-300',
-              'focus:outline-none focus:ring-2 focus:ring-error-400 focus:border-transparent',
-              'transition-all duration-150',
-            )}
           />
           <div className="flex gap-2">
             <Button
@@ -1381,22 +1395,14 @@ export default function EventDetailPage() {
           </div>
 
           {/* Custom message */}
-          <div>
-            <label className="text-xs font-semibold text-primary-600 mb-1.5 block">Message</label>
-            <textarea
-              placeholder="Add a personalised message..."
-              value={inviteMessage}
-              onChange={(e) => setInviteMessage(e.target.value)}
-              rows={3}
-              className={cn(
-                'w-full px-4 py-3 rounded-xl text-sm resize-none',
-                'bg-primary-50 border border-primary-100 text-primary-800',
-                'placeholder:text-primary-300',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
-                'transition-all duration-150',
-              )}
-            />
-          </div>
+          <Input
+            type="textarea"
+            label="Message"
+            value={inviteMessage}
+            onChange={(e) => setInviteMessage(e.target.value)}
+            placeholder="Add a personalised message..."
+            rows={3}
+          />
 
           <div className="flex gap-2">
             <Button

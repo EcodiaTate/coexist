@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ShieldX, Mail } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
@@ -8,8 +8,12 @@ import { CONTACT_EMAIL } from '@/lib/constants'
 
 export default function SuspendedAccountPage() {
   const navigate = useNavigate()
-  const { profile, signOut } = useAuth()
+  const { profile, signOut, isSuspended, user } = useAuth()
   const shouldReduceMotion = useReducedMotion()
+
+  // Non-suspended or unauthenticated users shouldn't see this page
+  if (!user) return <Navigate to="/login" replace />
+  if (!isSuspended) return <Navigate to="/" replace />
 
   const reason = profile?.suspended_reason ?? 'No reason provided.'
 

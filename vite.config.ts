@@ -13,11 +13,14 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  optimizeDeps: {
+    exclude: ['posthog-js'],
+  },
   build: {
     outDir: 'dist',
     sourcemap: false,
     rollupOptions: {
-      external: ['@capacitor-mlkit/barcode-scanning'],
+      external: ['@capacitor-mlkit/barcode-scanning', 'posthog-js'],
       output: {
         manualChunks(id) {
           if (id.includes('react-dom') || id.includes('react-router')) return 'vendor'

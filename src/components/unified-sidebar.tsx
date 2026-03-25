@@ -30,6 +30,7 @@ import {
     Sparkles,
     GraduationCap,
     BookOpen,
+    Phone,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { APP_NAME } from '@/lib/constants'
@@ -110,8 +111,9 @@ const adminNavCategories: NavCategory[] = [
     items: [
       { label: 'Collectives', path: '/admin/collectives', icon: <MapPin size={17} strokeWidth={1.5} />, capability: 'manage_collectives' },
       { label: 'Events', path: '/admin/events', icon: <CalendarDays size={17} strokeWidth={1.5} />, capability: 'manage_events' },
-      { label: 'Partners', path: '/admin/partners', icon: <Handshake size={17} strokeWidth={1.5} />, capability: 'manage_events' },
-      { label: 'Shop', path: '/admin/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} /> },
+      { label: 'Partners', path: '/admin/partners', icon: <Handshake size={17} strokeWidth={1.5} />, capability: 'manage_partners' },
+      { label: 'Shop', path: '/admin/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} />, capability: 'manage_merch' },
+      { label: 'Contacts', path: '/admin/contacts', icon: <Phone size={17} strokeWidth={1.5} /> },
     ],
   },
   {
@@ -127,7 +129,7 @@ const adminNavCategories: NavCategory[] = [
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
-      { label: 'Development', path: '/admin/development', icon: <GraduationCap size={17} strokeWidth={1.5} /> },
+      { label: 'Development', path: '/admin/development', icon: <GraduationCap size={17} strokeWidth={1.5} />, capability: 'manage_content' },
     ],
   },
   {
@@ -137,6 +139,7 @@ const adminNavCategories: NavCategory[] = [
     items: [
       { label: 'Charity', path: '/admin/charity', icon: <Heart size={17} strokeWidth={1.5} />, capability: 'manage_charity' },
       { label: 'Branding', path: '/admin/branding', icon: <Image size={17} strokeWidth={1.5} />, capability: 'manage_system' },
+      { label: 'Legal Pages', path: '/admin/legal-pages', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'manage_system' },
       { label: 'System', path: '/admin/system', icon: <Settings size={17} strokeWidth={1.5} />, capability: 'manage_system' },
     ],
   },
@@ -164,7 +167,6 @@ const leaderNavCategories: NavCategory[] = [
     items: [
       { label: 'Events', path: '/leader/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
       { label: 'Tasks', path: '/leader/tasks', icon: <ClipboardCheck size={17} strokeWidth={1.5} /> },
-      { label: 'Development', path: '/learn', icon: <GraduationCap size={17} strokeWidth={1.5} /> },
     ],
   },
 ]
@@ -181,7 +183,6 @@ const mainNavCategories: NavCategory[] = [
       { label: 'Updates', path: '/updates', icon: <Megaphone size={17} strokeWidth={1.5} /> },
       { label: 'Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
       { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true },
-      { label: 'Development', path: '/learn', icon: <GraduationCap size={17} strokeWidth={1.5} /> },
     ],
   },
   {
@@ -269,6 +270,7 @@ function getSuiteIdentity(suite: Suite, collectiveName: string): SuiteIdentity {
 
 const EASE = [0.25, 0.1, 0.25, 1] as const
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function SuiteSwitcher({
   suite,
   collapsed,
@@ -714,7 +716,7 @@ function MobileProfileCard({ onNavigate }: { onNavigate: (path: string) => void 
         'rounded-2xl border border-primary-100/40',
         'cursor-pointer select-none text-left',
         'hover:from-primary-50 hover:to-primary-50/50',
-        'transition-all duration-200 active:scale-[0.98]',
+        'transition-transform duration-200 active:scale-[0.98]',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
       )}
     >
@@ -741,6 +743,7 @@ function MobileProfileCard({ onNavigate }: { onNavigate: (path: string) => void 
 /*  Mobile suite icon switcher - compact 3-icon toggle                 */
 /* ------------------------------------------------------------------ */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function MobileSuiteSwitcher({
   suite,
   availableSuites,
@@ -833,6 +836,7 @@ function MobileSuiteSwitcher({
 /*  Desktop suite icon switcher - works expanded & collapsed           */
 /* ------------------------------------------------------------------ */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function DesktopSuiteSwitcher({
   suite,
   availableSuites,
@@ -865,7 +869,7 @@ function DesktopSuiteSwitcher({
                 'relative flex items-center justify-center',
                 'w-10 h-10 rounded-xl',
                 'cursor-pointer select-none',
-                'transition-all duration-200 active:scale-[0.93]',
+                'transition-transform duration-200 active:scale-[0.93]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               )}
               aria-label={id.label}
@@ -972,13 +976,9 @@ function MobileSidebarOverlay({
   open,
   onClose,
   suite: urlSuite,
-  collectiveName,
-  availableSuites,
-  allSuiteCategories,
   flatCategories,
   isActive,
   reduced,
-  profile,
 }: {
   open: boolean
   onClose: () => void
@@ -989,7 +989,7 @@ function MobileSidebarOverlay({
   flatCategories: NavCategory[]
   isActive: (path: string) => boolean
   reduced: boolean
-  profile: any
+  profile: Record<string, unknown> | null | undefined
 }) {
   const navigate = useNavigate()
   const location = useLocation()
@@ -1124,7 +1124,7 @@ function MobileSidebarOverlay({
                     className={cn(
                       'flex items-center justify-center w-11 h-11 rounded-xl',
                       'bg-primary-50/60 text-primary-400 hover:text-primary-700 hover:bg-primary-100/60',
-                      'transition-all duration-150 active:scale-[0.90]',
+                      'transition-transform duration-150 active:scale-[0.90]',
                       'cursor-pointer select-none',
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                     )}
@@ -1212,9 +1212,8 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
     (import.meta.env.VITE_DEV_EMAILS ?? '').split(',').map((e: string) => e.trim().toLowerCase()).includes(user.email.toLowerCase())
 
   // Skip entry animations on cold mount, animate on suite switches
-  const hasMounted = useRef(false)
-  const skip = !hasMounted.current
-  if (!hasMounted.current) hasMounted.current = true
+  const hasMounted = useRef<true | null>(null)
+  if (hasMounted.current == null) hasMounted.current = true
 
   // Determine current suite
   const suite: Suite = location.pathname.startsWith('/admin')
@@ -1287,6 +1286,18 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
 
     const cats: NavCategory[] = [{ label: '', items: [highestHome, updatesItem, chatItem] }]
 
+    // Shared Development section - leaders and staff only
+    if (isAnyLeader || isStaff) {
+      cats.push({
+        label: 'Development',
+        labelColor: 'text-sprout-600',
+        dotColor: 'bg-sprout-500',
+        items: [
+          { label: 'Learn', path: '/learn', icon: <BookOpen size={17} strokeWidth={1.5} /> },
+        ],
+      })
+    }
+
     // Admin categories - prepend Admin Home if not the highest role
     if (isStaff) {
       const adminCats = adminNavCategories
@@ -1340,17 +1351,8 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
     return location.pathname.startsWith(path)
   }
 
-  const accent = getAccentClasses(suite)
   const reduced = !!shouldReduceMotion
   const isMobileMode = navMode === 'bottom-tabs'
-
-  // Local suite state for desktop - must be declared before any early returns
-  const [desktopSuite, setDesktopSuite] = useState<Suite>(suite)
-
-  // Sync local suite when the URL-derived suite changes
-  useEffect(() => {
-    setDesktopSuite(suite)
-  }, [suite])
 
   // ── Mobile mode: render overlay sidebar ──
   if (isMobileMode) {
@@ -1485,7 +1487,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
               'text-primary-300',
               dAccent.collapseHover,
               'cursor-pointer select-none',
-              'transition-all duration-200 active:scale-[0.90]',
+              'transition-transform duration-200 active:scale-[0.90]',
               'focus-visible:outline-none focus-visible:ring-2',
               dAccent.focusRing,
             )}

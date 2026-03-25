@@ -176,12 +176,18 @@ export function useCollectiveEvents(collectiveId: string | undefined, type: 'upc
         .from('events')
         .select('*')
         .eq('collective_id', collectiveId)
-        .eq('status', type === 'upcoming' ? 'published' : 'completed')
 
       if (type === 'upcoming') {
-        query = query.or(`date_start.gte.${now},date_end.gte.${now}`).order('date_start', { ascending: true })
+        query = query
+          .eq('status', 'published')
+          .or(`date_start.gte.${now},date_end.gte.${now}`)
+          .order('date_start', { ascending: true })
       } else {
-        query = query.lt('date_end', now).order('date_start', { ascending: false })
+        // Past events: both 'completed' and 'published' events whose end date has passed
+        query = query
+          .in('status', ['published', 'completed'])
+          .lt('date_end', now)
+          .order('date_start', { ascending: false })
       }
 
       const { data, error } = await query.limit(20)
@@ -322,14 +328,20 @@ export function useJoinCollective() {
   return useMutation({
     mutationFn: async (collectiveId: string) => {
       if (!user) throw new Error('Not authenticated')
+      // Use upsert to handle re-joining after leaving or being removed.
+      // The table has UNIQUE(collective_id, user_id), so a plain insert
+      // would fail for users who previously left/were removed.
       const { error } = await supabase
         .from('collective_members')
-        .insert({
-          collective_id: collectiveId,
-          user_id: user.id,
-          role: 'member',
-          status: 'active',
-        })
+        .upsert(
+          {
+            collective_id: collectiveId,
+            user_id: user.id,
+            role: 'member',
+            status: 'active',
+          },
+          { onConflict: 'collective_id,user_id' },
+        )
       if (error) throw error
     },
     onMutate: async (collectiveId) => {
@@ -366,6 +378,20 @@ export function useLeaveCollective() {
   return useMutation({
     mutationFn: async (collectiveId: string) => {
       if (!user) throw new Error('Not authenticated')
+
+      // Prevent leaders from leaving — they must transfer leadership first
+      const { data: membership } = await supabase
+        .from('collective_members')
+        .select('role')
+        .eq('collective_id', collectiveId)
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single()
+
+      if (membership?.role === 'leader') {
+        throw new Error('Leaders must transfer leadership before leaving. Promote another member to leader first.')
+      }
+
       const { error } = await supabase
         .from('collective_members')
         .update({ status: 'left' })
@@ -431,9 +457,40 @@ export function useUpdateCollective() {
 
 export function useRemoveMember() {
   const queryClient = useQueryClient()
+  const { user, isStaff, isAdmin, isSuperAdmin } = useAuth()
+
+  const isGlobalStaff = isStaff || isAdmin || isSuperAdmin
 
   return useMutation({
     mutationFn: async ({ collectiveId, userId }: { collectiveId: string; userId: string }) => {
+      if (!user) throw new Error('Not authenticated')
+
+      // Enforce hierarchy: can only remove members ranked strictly below you
+      // Global staff/admin can remove anyone
+      const [{ data: actorRow }, { data: targetRow }] = await Promise.all([
+        supabase
+          .from('collective_members')
+          .select('role')
+          .eq('collective_id', collectiveId)
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle(),
+        supabase
+          .from('collective_members')
+          .select('role')
+          .eq('collective_id', collectiveId)
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .single(),
+      ])
+
+      const actorRank = isGlobalStaff ? 99 : (actorRow ? ROLE_RANK[actorRow.role as CollectiveRole] : -1)
+      const targetRank = targetRow ? ROLE_RANK[targetRow.role as CollectiveRole] : -1
+
+      if (targetRank >= actorRank) {
+        throw new Error('Cannot remove a member at or above your rank')
+      }
+
       const { error } = await supabase
         .from('collective_members')
         .update({ status: 'removed' })
@@ -461,11 +518,51 @@ export function useRemoveMember() {
 /*  Update member role (leader)                                        */
 /* ------------------------------------------------------------------ */
 
+const ROLE_RANK: Record<CollectiveRole, number> = {
+  member: 0,
+  assist_leader: 1,
+  co_leader: 2,
+  leader: 3,
+}
+
 export function useUpdateMemberRole() {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
 
   return useMutation({
     mutationFn: async ({ collectiveId, userId, role }: { collectiveId: string; userId: string; role: CollectiveRole }) => {
+      if (!user) throw new Error('Not authenticated')
+
+      // Fetch both the actor's and target's current roles to enforce hierarchy
+      const [{ data: actorRow }, { data: targetRow }] = await Promise.all([
+        supabase
+          .from('collective_members')
+          .select('role')
+          .eq('collective_id', collectiveId)
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single(),
+        supabase
+          .from('collective_members')
+          .select('role')
+          .eq('collective_id', collectiveId)
+          .eq('user_id', userId)
+          .eq('status', 'active')
+          .single(),
+      ])
+
+      const actorRank = actorRow ? ROLE_RANK[actorRow.role as CollectiveRole] : -1
+      const targetRank = targetRow ? ROLE_RANK[targetRow.role as CollectiveRole] : -1
+
+      // Can only change roles of members ranked strictly below you
+      if (targetRank >= actorRank) {
+        throw new Error('Cannot change the role of a member at or above your rank')
+      }
+      // Can only assign roles strictly below your own
+      if (ROLE_RANK[role] >= actorRank) {
+        throw new Error('Cannot promote a member to your rank or above')
+      }
+
       const { error } = await supabase
         .from('collective_members')
         .update({ role })

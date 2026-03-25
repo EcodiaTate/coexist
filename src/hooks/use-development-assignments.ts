@@ -5,6 +5,7 @@ import { supabase as _supabase } from '@/lib/supabase'
 // dev_* tables are not yet in the generated Database type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const supabase = _supabase as any
+
 import { useAuth } from '@/hooks/use-auth'
 import type { DevModule, DevSection } from '@/hooks/use-admin-development'
 
@@ -94,7 +95,7 @@ export function useMyTargetedContent() {
 
       return { modules: filteredModules, sections: filteredSections }
     },
-    enabled: !!user && effectiveRoles.length > 0,
+    enabled: !!user,
     staleTime: 2 * 60 * 1000,
   })
 }
@@ -114,7 +115,9 @@ export function useCollectiveProgress(collectiveId: string | undefined) {
         .eq('status', 'active')
       if (membersError) throw membersError
 
-      const memberIds = members.map((m: any) => m.user_id)
+      const memberIds = (members as Record<string, unknown>[]).map((m) => m.user_id as string)
+      if (memberIds.length === 0) return []
+
       const [progressRes, attemptsRes] = await Promise.all([
         supabase
           .from('dev_user_module_progress')
@@ -126,27 +129,27 @@ export function useCollectiveProgress(collectiveId: string | undefined) {
           .in('user_id', memberIds),
       ])
 
-      const progress: any[] = progressRes.data ?? []
-      const attempts: any[] = attemptsRes.data ?? []
+      const progress = (progressRes.data ?? []) as Record<string, unknown>[]
+      const attempts = (attemptsRes.data ?? []) as Record<string, unknown>[]
 
-      return members.map((m: any): MemberProgress => {
-        const memberProgress = progress.filter((p: any) => p.user_id === m.user_id)
-        const memberAttempts = attempts.filter((a: any) => a.user_id === m.user_id)
+      return (members as Record<string, unknown>[]).map((m): MemberProgress => {
+        const memberProgress = progress.filter((p) => p.user_id === m.user_id)
+        const memberAttempts = attempts.filter((a) => a.user_id === m.user_id)
         const profile = m.profile as { display_name: string; avatar_url: string | null } | null
 
         return {
-          user_id: m.user_id,
+          user_id: m.user_id as string,
           display_name: profile?.display_name ?? 'Unknown',
           avatar_url: profile?.avatar_url ?? null,
-          modules_completed: memberProgress.filter((p: any) => p.status === 'completed').length,
+          modules_completed: memberProgress.filter((p) => p.status === 'completed').length,
           modules_total: memberProgress.length,
           avg_quiz_score:
             memberAttempts.length > 0
-              ? Math.round(memberAttempts.reduce((sum: number, a: any) => sum + a.score_pct, 0) / memberAttempts.length)
+              ? Math.round(memberAttempts.reduce((sum: number, a) => sum + (a.score_pct as number), 0) / memberAttempts.length)
               : null,
           last_activity:
             memberProgress.length > 0
-              ? memberProgress.sort((a: any, b: any) => b.updated_at.localeCompare(a.updated_at))[0].updated_at
+              ? memberProgress.sort((a, b) => (b.updated_at as string).localeCompare(a.updated_at as string))[0].updated_at as string
               : null,
         }
       })

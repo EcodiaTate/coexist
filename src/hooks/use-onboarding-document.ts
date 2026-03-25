@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 
+// app_images table not yet in generated Database type
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const sb = supabase as any
+
 const QUERY_KEY = ['onboarding-document']
 
 export interface OnboardingDocumentConfig {
@@ -16,7 +20,7 @@ export function useOnboardingDocument() {
   return useQuery({
     queryKey: QUERY_KEY,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await sb
         .from('app_images')
         .select('url, label')
         .eq('key', 'onboarding_document')
@@ -38,7 +42,7 @@ export function useUpdateOnboardingDocument() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async ({ url, title }: { url: string; title: string }) => {
-      const { error } = await (supabase as any)
+      const { error } = await sb
         .from('app_images')
         .upsert(
           { key: 'onboarding_document', url, label: title },
@@ -60,7 +64,7 @@ export function useRemoveOnboardingDocument() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async () => {
-      const { error } = await (supabase as any)
+      const { error } = await sb
         .from('app_images')
         .delete()
         .eq('key', 'onboarding_document')

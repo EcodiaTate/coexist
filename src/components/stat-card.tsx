@@ -17,6 +17,7 @@ interface StatCardProps {
   'aria-label'?: string
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCountUp(target: number, duration: number, enabled: boolean) {
   const [current, setCurrent] = useState(enabled ? 0 : target)
 

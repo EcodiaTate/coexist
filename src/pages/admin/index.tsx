@@ -25,7 +25,6 @@ import {
     useTrendData,
     type DateRange,
     dateRangeOptions,
-    getDateRangeStart,
 } from '@/hooks/use-admin-dashboard'
 
 /* ------------------------------------------------------------------ */
@@ -101,7 +100,7 @@ function TrendChart({
   color,
   barColor,
 }: {
-  data: { month: string; [key: string]: any }[]
+  data: { month: string; [key: string]: unknown }[]
   dataKey: string
   label: string
   icon: React.ReactNode

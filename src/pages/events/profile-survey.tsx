@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { User, Phone, AlertTriangle, Heart } from 'lucide-react'
+import { User, AlertTriangle, Heart } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -10,6 +10,7 @@ import { Chip } from '@/components/chip'
 import { useToast } from '@/components/toast'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile, useUpdateProfile } from '@/hooks/use-profile'
+import type { Profile } from '@/types/database.types'
 
 const DISCOVERY_OPTIONS = [
   'Social media',
@@ -24,13 +25,38 @@ const DISCOVERY_OPTIONS = [
 /**
  * Profile details survey shown after a user's first event check-in.
  * Collects essential information that helps leaders run safe events.
+ *
+ * Wrapper handles loading state so the form only mounts once profile data
+ * is available — useState initializers see the real values.
  */
 export default function ProfileSurveyPage() {
+  useAuth()
+  const { data: profile, isLoading } = useProfile()
+
+  if (isLoading) {
+    return (
+      <Page swipeBack header={<Header title="Quick Profile Setup" back />}>
+        <div className="pt-8 px-4 space-y-4">
+          <div className="w-14 h-14 rounded-full bg-primary-100 mx-auto animate-pulse" />
+          <div className="h-4 bg-primary-100 rounded animate-pulse w-3/4 mx-auto" />
+          <div className="h-4 bg-primary-100 rounded animate-pulse w-1/2 mx-auto" />
+        </div>
+      </Page>
+    )
+  }
+
+  // Key by profile.id so if it somehow changes, form resets
+  return <ProfileSurveyForm key={profile?.id ?? 'new'} profile={profile ?? null} />
+}
+
+/* ------------------------------------------------------------------ */
+/*  Form component (only mounts after profile is loaded)               */
+/* ------------------------------------------------------------------ */
+
+function ProfileSurveyForm({ profile }: { profile: Profile | null }) {
   const { id: eventId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
-  const { user } = useAuth()
-  const { data: profile } = useProfile()
   const updateProfile = useUpdateProfile()
   const { toast } = useToast()
 
@@ -152,7 +178,7 @@ export default function ProfileSurveyPage() {
                 onChange={(e) => setFirstName(e.target.value)}
                 placeholder="First name"
                 maxLength={50}
-                className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                className="[&_input]:bg-surface-3"
               />
               <Input
                 label="Last Name"
@@ -160,7 +186,7 @@ export default function ProfileSurveyPage() {
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder="Last name"
                 maxLength={50}
-                className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                className="[&_input]:bg-surface-3"
               />
             </div>
             <Input
@@ -169,7 +195,7 @@ export default function ProfileSurveyPage() {
               onChange={(e) => setPronouns(e.target.value)}
               placeholder="e.g. she/her, they/them"
               maxLength={30}
-              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+              className="[&_input]:bg-surface-3"
             />
             <div className="grid grid-cols-2 gap-3">
               <Input
@@ -179,7 +205,7 @@ export default function ProfileSurveyPage() {
                 placeholder="Age"
                 type="number"
                 maxLength={3}
-                className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                className="[&_input]:bg-surface-3"
               />
               <Input
                 label="Gender"
@@ -187,7 +213,7 @@ export default function ProfileSurveyPage() {
                 onChange={(e) => setGender(e.target.value)}
                 placeholder="e.g. Female"
                 maxLength={30}
-                className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+                className="[&_input]:bg-surface-3"
               />
             </div>
             <Input
@@ -197,7 +223,7 @@ export default function ProfileSurveyPage() {
               placeholder="your@email.com"
               type="email"
               maxLength={100}
-              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+              className="[&_input]:bg-surface-3"
             />
             <Input
               label="Postcode"
@@ -205,7 +231,7 @@ export default function ProfileSurveyPage() {
               onChange={(e) => setPostcode(e.target.value)}
               placeholder="e.g. 2481"
               maxLength={10}
-              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+              className="[&_input]:bg-surface-3"
             />
           </div>
         </motion.div>
@@ -262,7 +288,7 @@ export default function ProfileSurveyPage() {
               onChange={(e) => setEmergencyContactName(e.target.value)}
               placeholder="Full name"
               maxLength={100}
-              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+              className="[&_input]:bg-surface-3"
             />
             <Input
               label="Contact Phone"
@@ -271,7 +297,7 @@ export default function ProfileSurveyPage() {
               placeholder="0400 000 000"
               type="tel"
               maxLength={20}
-              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+              className="[&_input]:bg-surface-3"
             />
             <Input
               label="Relationship"
@@ -279,7 +305,7 @@ export default function ProfileSurveyPage() {
               onChange={(e) => setEmergencyContactRelationship(e.target.value)}
               placeholder="e.g. Parent, Partner"
               maxLength={50}
-              className="[&_input]:bg-primary-50/80 [&_input]:border [&_input]:border-primary-200"
+              className="[&_input]:bg-surface-3"
             />
           </div>
         </motion.div>

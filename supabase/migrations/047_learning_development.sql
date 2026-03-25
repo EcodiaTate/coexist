@@ -65,6 +65,11 @@ CREATE TABLE IF NOT EXISTS dev_modules (
   updated_at        timestamptz NOT NULL DEFAULT now()
 );
 
+-- Patch columns that may be missing if the table was created by a partial earlier run
+ALTER TABLE dev_modules ADD COLUMN IF NOT EXISTS target_roles    text[] NOT NULL DEFAULT '{}';
+ALTER TABLE dev_modules ADD COLUMN IF NOT EXISTS target_user_ids uuid[] NOT NULL DEFAULT '{}';
+ALTER TABLE dev_modules ADD COLUMN IF NOT EXISTS published_at    timestamptz;
+
 -- 3. Module content blocks
 CREATE TABLE IF NOT EXISTS dev_module_content (
   id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -108,6 +113,10 @@ CREATE TABLE IF NOT EXISTS dev_sections (
   created_at               timestamptz NOT NULL DEFAULT now(),
   updated_at               timestamptz NOT NULL DEFAULT now()
 );
+
+ALTER TABLE dev_sections ADD COLUMN IF NOT EXISTS target_roles    text[] NOT NULL DEFAULT '{}';
+ALTER TABLE dev_sections ADD COLUMN IF NOT EXISTS target_user_ids uuid[] NOT NULL DEFAULT '{}';
+ALTER TABLE dev_sections ADD COLUMN IF NOT EXISTS published_at    timestamptz;
 
 -- 5. Section ↔ module junction
 CREATE TABLE IF NOT EXISTS dev_section_modules (
@@ -240,21 +249,27 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS trg_dev_modules_updated ON dev_modules;
 CREATE TRIGGER trg_dev_modules_updated BEFORE UPDATE ON dev_modules
   FOR EACH ROW EXECUTE FUNCTION dev_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_dev_module_content_updated ON dev_module_content;
 CREATE TRIGGER trg_dev_module_content_updated BEFORE UPDATE ON dev_module_content
   FOR EACH ROW EXECUTE FUNCTION dev_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_dev_sections_updated ON dev_sections;
 CREATE TRIGGER trg_dev_sections_updated BEFORE UPDATE ON dev_sections
   FOR EACH ROW EXECUTE FUNCTION dev_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_dev_quizzes_updated ON dev_quizzes;
 CREATE TRIGGER trg_dev_quizzes_updated BEFORE UPDATE ON dev_quizzes
   FOR EACH ROW EXECUTE FUNCTION dev_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_dev_user_module_progress_updated ON dev_user_module_progress;
 CREATE TRIGGER trg_dev_user_module_progress_updated BEFORE UPDATE ON dev_user_module_progress
   FOR EACH ROW EXECUTE FUNCTION dev_set_updated_at();
 
+DROP TRIGGER IF EXISTS trg_dev_user_section_progress_updated ON dev_user_section_progress;
 CREATE TRIGGER trg_dev_user_section_progress_updated BEFORE UPDATE ON dev_user_section_progress
   FOR EACH ROW EXECUTE FUNCTION dev_set_updated_at();
 
@@ -276,20 +291,25 @@ ALTER TABLE dev_quiz_responses       ENABLE ROW LEVEL SECURITY;
 
 -- ── Modules ──
 
+DROP POLICY IF EXISTS "dev_modules_select" ON dev_modules;
 CREATE POLICY "dev_modules_select" ON dev_modules FOR SELECT TO authenticated
   USING (status = 'published' OR is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_modules_insert" ON dev_modules;
 CREATE POLICY "dev_modules_insert" ON dev_modules FOR INSERT TO authenticated
   WITH CHECK (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_modules_update" ON dev_modules;
 CREATE POLICY "dev_modules_update" ON dev_modules FOR UPDATE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_modules_delete" ON dev_modules;
 CREATE POLICY "dev_modules_delete" ON dev_modules FOR DELETE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
 -- ── Module content ──
 
+DROP POLICY IF EXISTS "dev_module_content_select" ON dev_module_content;
 CREATE POLICY "dev_module_content_select" ON dev_module_content FOR SELECT TO authenticated
   USING (
     EXISTS (
@@ -298,31 +318,39 @@ CREATE POLICY "dev_module_content_select" ON dev_module_content FOR SELECT TO au
     )
   );
 
+DROP POLICY IF EXISTS "dev_module_content_insert" ON dev_module_content;
 CREATE POLICY "dev_module_content_insert" ON dev_module_content FOR INSERT TO authenticated
   WITH CHECK (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_module_content_update" ON dev_module_content;
 CREATE POLICY "dev_module_content_update" ON dev_module_content FOR UPDATE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_module_content_delete" ON dev_module_content;
 CREATE POLICY "dev_module_content_delete" ON dev_module_content FOR DELETE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
 -- ── Sections ──
 
+DROP POLICY IF EXISTS "dev_sections_select" ON dev_sections;
 CREATE POLICY "dev_sections_select" ON dev_sections FOR SELECT TO authenticated
   USING (status = 'published' OR is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_sections_insert" ON dev_sections;
 CREATE POLICY "dev_sections_insert" ON dev_sections FOR INSERT TO authenticated
   WITH CHECK (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_sections_update" ON dev_sections;
 CREATE POLICY "dev_sections_update" ON dev_sections FOR UPDATE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_sections_delete" ON dev_sections;
 CREATE POLICY "dev_sections_delete" ON dev_sections FOR DELETE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
 -- ── Section modules ──
 
+DROP POLICY IF EXISTS "dev_section_modules_select" ON dev_section_modules;
 CREATE POLICY "dev_section_modules_select" ON dev_section_modules FOR SELECT TO authenticated
   USING (
     EXISTS (
@@ -331,59 +359,75 @@ CREATE POLICY "dev_section_modules_select" ON dev_section_modules FOR SELECT TO 
     )
   );
 
+DROP POLICY IF EXISTS "dev_section_modules_insert" ON dev_section_modules;
 CREATE POLICY "dev_section_modules_insert" ON dev_section_modules FOR INSERT TO authenticated
   WITH CHECK (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_section_modules_update" ON dev_section_modules;
 CREATE POLICY "dev_section_modules_update" ON dev_section_modules FOR UPDATE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_section_modules_delete" ON dev_section_modules;
 CREATE POLICY "dev_section_modules_delete" ON dev_section_modules FOR DELETE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
 -- ── Quizzes ──
 
+DROP POLICY IF EXISTS "dev_quizzes_select" ON dev_quizzes;
 CREATE POLICY "dev_quizzes_select" ON dev_quizzes FOR SELECT TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "dev_quizzes_insert" ON dev_quizzes;
 CREATE POLICY "dev_quizzes_insert" ON dev_quizzes FOR INSERT TO authenticated
   WITH CHECK (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_quizzes_update" ON dev_quizzes;
 CREATE POLICY "dev_quizzes_update" ON dev_quizzes FOR UPDATE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_quizzes_delete" ON dev_quizzes;
 CREATE POLICY "dev_quizzes_delete" ON dev_quizzes FOR DELETE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
 -- ── Quiz questions ──
 
+DROP POLICY IF EXISTS "dev_quiz_questions_select" ON dev_quiz_questions;
 CREATE POLICY "dev_quiz_questions_select" ON dev_quiz_questions FOR SELECT TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "dev_quiz_questions_insert" ON dev_quiz_questions;
 CREATE POLICY "dev_quiz_questions_insert" ON dev_quiz_questions FOR INSERT TO authenticated
   WITH CHECK (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_quiz_questions_update" ON dev_quiz_questions;
 CREATE POLICY "dev_quiz_questions_update" ON dev_quiz_questions FOR UPDATE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_quiz_questions_delete" ON dev_quiz_questions;
 CREATE POLICY "dev_quiz_questions_delete" ON dev_quiz_questions FOR DELETE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
 -- ── Quiz options ──
 
+DROP POLICY IF EXISTS "dev_quiz_options_select" ON dev_quiz_options;
 CREATE POLICY "dev_quiz_options_select" ON dev_quiz_options FOR SELECT TO authenticated
   USING (true);
 
+DROP POLICY IF EXISTS "dev_quiz_options_insert" ON dev_quiz_options;
 CREATE POLICY "dev_quiz_options_insert" ON dev_quiz_options FOR INSERT TO authenticated
   WITH CHECK (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_quiz_options_update" ON dev_quiz_options;
 CREATE POLICY "dev_quiz_options_update" ON dev_quiz_options FOR UPDATE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_quiz_options_delete" ON dev_quiz_options;
 CREATE POLICY "dev_quiz_options_delete" ON dev_quiz_options FOR DELETE TO authenticated
   USING (is_admin_or_staff(auth.uid()));
 
 -- ── Assignments ──
 
+DROP POLICY IF EXISTS "dev_assignments_select" ON dev_assignments;
 CREATE POLICY "dev_assignments_select" ON dev_assignments FOR SELECT TO authenticated
   USING (
     user_id = auth.uid()
@@ -395,6 +439,7 @@ CREATE POLICY "dev_assignments_select" ON dev_assignments FOR SELECT TO authenti
     OR is_admin_or_staff(auth.uid())
   );
 
+DROP POLICY IF EXISTS "dev_assignments_insert" ON dev_assignments;
 CREATE POLICY "dev_assignments_insert" ON dev_assignments FOR INSERT TO authenticated
   WITH CHECK (
     is_admin_or_staff(auth.uid())
@@ -404,6 +449,7 @@ CREATE POLICY "dev_assignments_insert" ON dev_assignments FOR INSERT TO authenti
     )
   );
 
+DROP POLICY IF EXISTS "dev_assignments_update" ON dev_assignments;
 CREATE POLICY "dev_assignments_update" ON dev_assignments FOR UPDATE TO authenticated
   USING (
     is_admin_or_staff(auth.uid())
@@ -413,6 +459,7 @@ CREATE POLICY "dev_assignments_update" ON dev_assignments FOR UPDATE TO authenti
     )
   );
 
+DROP POLICY IF EXISTS "dev_assignments_delete" ON dev_assignments;
 CREATE POLICY "dev_assignments_delete" ON dev_assignments FOR DELETE TO authenticated
   USING (
     is_admin_or_staff(auth.uid())
@@ -424,6 +471,7 @@ CREATE POLICY "dev_assignments_delete" ON dev_assignments FOR DELETE TO authenti
 
 -- ── User module progress ──
 
+DROP POLICY IF EXISTS "dev_user_module_progress_select" ON dev_user_module_progress;
 CREATE POLICY "dev_user_module_progress_select" ON dev_user_module_progress FOR SELECT TO authenticated
   USING (
     user_id = auth.uid()
@@ -437,14 +485,17 @@ CREATE POLICY "dev_user_module_progress_select" ON dev_user_module_progress FOR 
     )
   );
 
+DROP POLICY IF EXISTS "dev_user_module_progress_insert" ON dev_user_module_progress;
 CREATE POLICY "dev_user_module_progress_insert" ON dev_user_module_progress FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "dev_user_module_progress_update" ON dev_user_module_progress;
 CREATE POLICY "dev_user_module_progress_update" ON dev_user_module_progress FOR UPDATE TO authenticated
   USING (user_id = auth.uid());
 
 -- ── User section progress ──
 
+DROP POLICY IF EXISTS "dev_user_section_progress_select" ON dev_user_section_progress;
 CREATE POLICY "dev_user_section_progress_select" ON dev_user_section_progress FOR SELECT TO authenticated
   USING (
     user_id = auth.uid()
@@ -458,14 +509,17 @@ CREATE POLICY "dev_user_section_progress_select" ON dev_user_section_progress FO
     )
   );
 
+DROP POLICY IF EXISTS "dev_user_section_progress_insert" ON dev_user_section_progress;
 CREATE POLICY "dev_user_section_progress_insert" ON dev_user_section_progress FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
+DROP POLICY IF EXISTS "dev_user_section_progress_update" ON dev_user_section_progress;
 CREATE POLICY "dev_user_section_progress_update" ON dev_user_section_progress FOR UPDATE TO authenticated
   USING (user_id = auth.uid());
 
 -- ── Quiz attempts ──
 
+DROP POLICY IF EXISTS "dev_quiz_attempts_select" ON dev_quiz_attempts;
 CREATE POLICY "dev_quiz_attempts_select" ON dev_quiz_attempts FOR SELECT TO authenticated
   USING (
     user_id = auth.uid()
@@ -479,11 +533,13 @@ CREATE POLICY "dev_quiz_attempts_select" ON dev_quiz_attempts FOR SELECT TO auth
     )
   );
 
+DROP POLICY IF EXISTS "dev_quiz_attempts_insert" ON dev_quiz_attempts;
 CREATE POLICY "dev_quiz_attempts_insert" ON dev_quiz_attempts FOR INSERT TO authenticated
   WITH CHECK (user_id = auth.uid());
 
 -- ── Quiz responses ──
 
+DROP POLICY IF EXISTS "dev_quiz_responses_select" ON dev_quiz_responses;
 CREATE POLICY "dev_quiz_responses_select" ON dev_quiz_responses FOR SELECT TO authenticated
   USING (
     EXISTS (
@@ -495,6 +551,7 @@ CREATE POLICY "dev_quiz_responses_select" ON dev_quiz_responses FOR SELECT TO au
     )
   );
 
+DROP POLICY IF EXISTS "dev_quiz_responses_insert" ON dev_quiz_responses;
 CREATE POLICY "dev_quiz_responses_insert" ON dev_quiz_responses FOR INSERT TO authenticated
   WITH CHECK (
     EXISTS (
@@ -524,14 +581,18 @@ VALUES (
   ]
 ) ON CONFLICT (id) DO NOTHING;
 
+DROP POLICY IF EXISTS "dev_assets_public_read" ON storage.objects;
 CREATE POLICY "dev_assets_public_read" ON storage.objects FOR SELECT
   USING (bucket_id = 'dev-assets');
 
+DROP POLICY IF EXISTS "dev_assets_staff_insert" ON storage.objects;
 CREATE POLICY "dev_assets_staff_insert" ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (bucket_id = 'dev-assets' AND is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_assets_staff_update" ON storage.objects;
 CREATE POLICY "dev_assets_staff_update" ON storage.objects FOR UPDATE TO authenticated
   USING (bucket_id = 'dev-assets' AND is_admin_or_staff(auth.uid()));
 
+DROP POLICY IF EXISTS "dev_assets_staff_delete" ON storage.objects;
 CREATE POLICY "dev_assets_staff_delete" ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'dev-assets' AND is_admin_or_staff(auth.uid()));

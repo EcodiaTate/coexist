@@ -4,6 +4,16 @@ import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase'
 import { parseLocationPoint } from '@/lib/geo'
 
+interface RegistrationEvent {
+  id: string
+  title: string
+  activity_type: string
+  date_start: string
+  date_end: string | null
+  location_point: unknown
+  status: string
+}
+
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
@@ -87,9 +97,6 @@ export function useEventProximity(): UseEventProximityReturn {
       const now = new Date()
 
       // Find events the user is registered for, happening now or very soon
-      const windowStart = new Date(now.getTime() - TIME_WINDOW_MS)
-      const windowEnd = new Date(now.getTime() + TIME_WINDOW_MS)
-
       const { data: registrations } = await supabase
         .from('event_registrations')
         .select(`
@@ -115,7 +122,7 @@ export function useEventProximity(): UseEventProximityReturn {
       let closestDist = Infinity
 
       for (const reg of registrations) {
-        const event = (reg as any).events
+        const event = (reg as unknown as { events: RegistrationEvent | null }).events
         if (!event || event.status !== 'published') continue
         if (dismissedRef.current.has(event.id)) continue
 

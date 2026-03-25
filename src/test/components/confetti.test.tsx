@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, act } from '@testing-library/react'
+import { render, act } from '@testing-library/react'
 import { Confetti } from '@/components/confetti'
 
 // Mock framer-motion
@@ -9,7 +9,7 @@ vi.mock('framer-motion', async () => {
     ...actual,
     motion: {
       ...actual.motion,
-      div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+      div: ({ children, ...props }: Record<string, unknown> & { children?: React.ReactNode }) => <div {...props}>{children}</div>,
     },
     useReducedMotion: () => false,
     AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -38,7 +38,7 @@ describe('Confetti', () => {
   })
 
   it('auto-clears after duration', () => {
-    const { container } = render(<Confetti active count={5} duration={1000} />)
+    render(<Confetti active count={5} duration={1000} />)
     // Initially visible
     expect(document.querySelector('[aria-hidden="true"]')).toBeInTheDocument()
 

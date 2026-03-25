@@ -1,0 +1,294 @@
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { Maximize2, Minimize2 } from 'lucide-react'
+import { cn } from '@/lib/cn'
+
+interface HtmlChatBubbleProps {
+  /** Full HTML document string to render inside a sandboxed iframe */
+  htmlContent: string
+  sent: boolean
+  timestamp: Date
+  senderName?: string
+  senderAvatar?: string
+  senderId?: string
+  roleBadge?: string
+  className?: string
+  skipAnimation?: boolean
+  onAvatarTap?: (userId: string) => void
+  onSenderTap?: (userId: string) => void
+  onLongPress?: () => void
+}
+
+const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
+  Leader: { bg: 'bg-primary-700', text: 'text-white' },
+  'Co-Leader': { bg: 'bg-primary-300', text: 'text-primary-900' },
+  'Assist Leader': { bg: 'bg-primary-200', text: 'text-primary-800' },
+}
+
+function formatTime(date: Date): string {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date)
+}
+
+/**
+ * Strip <script> tags from HTML string as a basic safety measure.
+ * The sandboxed iframe already blocks script execution, but this
+ * provides defence-in-depth.
+ */
+function stripScripts(html: string): string {
+  return html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+}
+
+/**
+ * Chat bubble that renders a full HTML document inside a sandboxed iframe.
+ * This preserves the document's own CSS, layout, fonts — everything renders
+ * exactly as the original file. Scripts are stripped and the iframe sandbox
+ * blocks execution as defence-in-depth.
+ */
+export function HtmlChatBubble({
+  htmlContent,
+  sent,
+  timestamp,
+  senderName,
+  senderAvatar,
+  senderId,
+  roleBadge,
+  className,
+  skipAnimation = false,
+  onAvatarTap,
+  onSenderTap,
+  onLongPress,
+}: HtmlChatBubbleProps) {
+  const shouldReduceMotion = useReducedMotion()
+  const [isExpanded, setIsExpanded] = useState(false)
+  const [iframeHeight, setIframeHeight] = useState(300)
+  const inlineIframeRef = useRef<HTMLIFrameElement>(null)
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const roleStyle = roleBadge
+    ? ROLE_COLORS[roleBadge] ?? { bg: 'bg-primary-100', text: 'text-primary-600' }
+    : null
+
+  // Strip scripts — iframe sandbox already blocks them but defence-in-depth
+  const safeHtml = stripScripts(htmlContent)
+
+  const toggleExpand = useCallback(() => {
+    setIsExpanded((v) => !v)
+  }, [])
+
+  const handleTouchStart = () => {
+    if (!onLongPress) return
+    longPressTimerRef.current = setTimeout(() => {
+      onLongPress()
+      if ('vibrate' in navigator) navigator.vibrate(15)
+    }, 500)
+  }
+
+  const handleTouchEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current)
+      longPressTimerRef.current = null
+    }
+  }
+
+  // Auto-size the inline iframe to fit its content
+  useEffect(() => {
+    const iframe = inlineIframeRef.current
+    if (!iframe) return
+
+    const handleLoad = () => {
+      try {
+        const doc = iframe.contentDocument
+        if (doc?.body) {
+          // Give it a moment to render
+          requestAnimationFrame(() => {
+            const height = doc.documentElement.scrollHeight || doc.body.scrollHeight
+            // Clamp between 120px and 500px for inline view
+            setIframeHeight(Math.max(120, Math.min(height, 500)))
+          })
+        }
+      } catch {
+        // Cross-origin — fall back to default height
+      }
+    }
+
+    iframe.addEventListener('load', handleLoad)
+    return () => iframe.removeEventListener('load', handleLoad)
+  }, [safeHtml])
+
+  const label = `${sent ? 'Sent' : 'Received'} HTML message${senderName ? ` from ${senderName}` : ''}`
+
+  /* ─── Fullscreen overlay ────────────────────────────────────────── */
+  if (isExpanded) {
+    return (
+      <motion.div
+        className="fixed inset-0 z-50 flex flex-col bg-white"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        {/* Toolbar */}
+        <div className="flex items-center justify-between px-4 py-3 border-b border-primary-100 bg-white/95 backdrop-blur-sm safe-top">
+          <div className="flex items-center gap-2">
+            {senderName && (
+              <span className="text-sm font-bold text-primary-700">{senderName}</span>
+            )}
+            <span className="text-xs text-primary-400">HTML Content</span>
+          </div>
+          <button
+            type="button"
+            onClick={toggleExpand}
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-700 active:bg-primary-200 transition-colors"
+            aria-label="Exit fullscreen"
+          >
+            <Minimize2 size={20} />
+          </button>
+        </div>
+
+        {/* Full-viewport iframe — user can pinch-zoom natively */}
+        <iframe
+          srcDoc={safeHtml}
+          sandbox="allow-same-origin"
+          title="HTML content (fullscreen)"
+          className="flex-1 w-full border-none"
+          style={{ background: 'white' }}
+        />
+      </motion.div>
+    )
+  }
+
+  /* ─── Inline bubble ────────────────────────────────────────────── */
+  return (
+    <motion.div
+      role="listitem"
+      aria-label={label}
+      initial={shouldReduceMotion || skipAnimation ? false : { opacity: 0, y: 8, scale: 0.97 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+      className={cn(
+        'flex gap-2.5',
+        sent ? 'flex-row-reverse' : 'flex-row',
+        'w-full',
+        className,
+      )}
+    >
+      {/* Avatar (received only) */}
+      {!sent && (
+        <button
+          type="button"
+          className="flex-shrink-0 self-end flex items-center justify-center min-h-11 min-w-11 rounded-full cursor-pointer select-none active:scale-[0.93] transition-transform duration-150"
+          onClick={() => senderId && onAvatarTap?.(senderId)}
+          aria-label={senderName ? `View ${senderName}'s profile` : 'View profile'}
+        >
+          {senderAvatar ? (
+            <img
+              src={senderAvatar}
+              alt=""
+              loading="lazy"
+              className="h-10 w-10 rounded-full object-cover ring-[2.5px] ring-white shadow-md"
+            />
+          ) : (
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-xs font-extrabold text-white ring-[2.5px] ring-white shadow-md"
+              aria-hidden="true"
+            >
+              {senderName?.charAt(0)?.toUpperCase() ?? '?'}
+            </div>
+          )}
+        </button>
+      )}
+
+      {/* Bubble content */}
+      <div
+        className={cn(
+          'flex flex-col gap-0.5',
+          'w-full max-w-[92%] sm:max-w-[85%]',
+          sent ? 'items-end' : 'items-start',
+        )}
+      >
+        {/* Sender name + role badge (received only) */}
+        {!sent && senderName && (
+          <div className="flex items-center gap-2 px-1 mb-1">
+            <button
+              type="button"
+              className="text-[13px] font-bold text-primary-700 hover:text-primary-800 min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
+              onClick={() => senderId && onSenderTap?.(senderId)}
+            >
+              {senderName}
+            </button>
+            {roleBadge && roleStyle && (
+              <span className={cn(
+                'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-extrabold leading-tight shadow-sm',
+                roleStyle.bg,
+                roleStyle.text,
+              )}>
+                {roleBadge}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* HTML bubble */}
+        <div
+          className={cn(
+            'w-full rounded-2xl overflow-hidden transition-colors duration-150',
+            sent
+              ? 'rounded-br-md bg-white shadow-lg ring-1 ring-primary-200/60'
+              : 'rounded-bl-md bg-white shadow-md ring-1 ring-primary-200/70',
+          )}
+        >
+          {/* Expand button bar */}
+          <div className={cn(
+            'flex items-center justify-between px-3 py-2 border-b border-primary-100/60',
+            'bg-gradient-to-r from-primary-50/80 to-transparent',
+          )}>
+            <span className="text-[11px] font-semibold text-primary-500 uppercase tracking-wider">
+              Rich Content
+            </span>
+            <button
+              type="button"
+              onClick={toggleExpand}
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-primary-500 active:bg-primary-100 transition-colors cursor-pointer"
+              aria-label="Expand to fullscreen"
+            >
+              <Maximize2 size={15} />
+            </button>
+          </div>
+
+          {/* Sandboxed iframe — renders the full HTML document faithfully */}
+          <iframe
+            ref={inlineIframeRef}
+            srcDoc={safeHtml}
+            sandbox="allow-same-origin"
+            title="HTML content"
+            className="w-full border-none"
+            style={{
+              height: iframeHeight,
+              background: 'white',
+              display: 'block',
+            }}
+          />
+
+          {/* Timestamp */}
+          <div className={cn(
+            'px-3 pb-2 pt-1',
+            sent ? 'text-right' : 'text-left',
+          )}>
+            <time
+              dateTime={timestamp.toISOString()}
+              className="text-[11px] font-medium tabular-nums text-primary-400"
+            >
+              {formatTime(timestamp)}
+            </time>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  )
+}

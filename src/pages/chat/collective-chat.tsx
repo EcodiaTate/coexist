@@ -2,6 +2,7 @@ import {
   useState,
   useRef,
   useEffect,
+  useLayoutEffect,
   useCallback,
   useMemo,
   Fragment,
@@ -24,10 +25,10 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Avatar } from '@/components/avatar'
 import { ChatBubble, PollCard, AnnouncementCard } from '@/components/chat-bubble'
+import { HtmlChatBubble } from '@/components/html-chat-bubble'
 import { MessageInput } from '@/components/message-input'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
-import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { useToast } from '@/components/toast'
@@ -41,7 +42,7 @@ import { ProfileModal } from '@/components/profile-modal'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { useCollective, useCollectiveMembers, useMyCollectives, useRemoveMember } from '@/hooks/use-collective'
+import { useCollective, useCollectiveMembers, useRemoveMember } from '@/hooks/use-collective'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import {
   useChatMessages,
@@ -147,7 +148,7 @@ function MessageActionsSheet({
         <button
           type="button"
           onClick={onReply}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
         >
           <Reply size={18} className="text-primary-400" />
           Reply
@@ -157,51 +158,35 @@ function MessageActionsSheet({
           <button
             type="button"
             onClick={onEdit}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
           >
             <Pencil size={18} className="text-primary-400" />
             Edit message
           </button>
         )}
 
-        {/* Own message delete (non-moderator) */}
-        {isOwnMessage && !isModerator && (
+        {/* Moderator actions: pin */}
+        {isModerator && (
           <button
             type="button"
-            onClick={() => {
-              onClose()
-              onDelete()
-            }}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-error-600 hover:bg-error-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+            onClick={onPin}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+          >
+            <Pin size={18} className="text-primary-400" />
+            {message.is_pinned ? 'Unpin message' : 'Pin message'}
+          </button>
+        )}
+
+        {/* Delete: own message (anyone) or any message (moderator) */}
+        {(isOwnMessage || isModerator) && (
+          <button
+            type="button"
+            onClick={onDelete}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-error-600 hover:bg-error-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
           >
             <Trash2 size={18} />
             Delete message
           </button>
-        )}
-
-        {/* Moderator actions: pin + delete any message */}
-        {isModerator && (
-          <>
-            <button
-              type="button"
-              onClick={onPin}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
-            >
-              <Pin size={18} className="text-primary-400" />
-              {message.is_pinned ? 'Unpin message' : 'Pin message'}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onClose()
-                onDelete()
-              }}
-              className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-error-600 hover:bg-error-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
-            >
-              <Trash2 size={18} />
-              Delete message
-            </button>
-          </>
         )}
       </div>
     </BottomSheet>
@@ -244,7 +229,7 @@ function PinnedMessageBar({
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none"
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
             aria-label={expanded ? 'Collapse pinned messages' : 'Show all pinned messages'}
           >
             <ChevronDown size={16} className={cn('transition-transform duration-200', expanded && 'rotate-180')} />
@@ -257,7 +242,7 @@ function PinnedMessageBar({
           <button
             type="button"
             onClick={() => onUnpin(latest.id)}
-            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-300 hover:text-primary-500 hover:bg-primary-100 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none"
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-300 hover:text-primary-500 hover:bg-primary-100 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
             aria-label="Unpin message"
           >
             <X size={16} />
@@ -292,7 +277,7 @@ function PinnedMessageBar({
                     <button
                       type="button"
                       onClick={() => onUnpin(msg.id)}
-                      className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-300 hover:text-error-500 hover:bg-error-50 active:scale-[0.95] transition-all duration-150 cursor-pointer select-none"
+                      className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-300 hover:text-error-500 hover:bg-error-50 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
                       aria-label={`Unpin: ${msg.content?.slice(0, 30) ?? 'message'}`}
                     >
                       <X size={14} />
@@ -336,7 +321,7 @@ function ChatSearchOverlay({
           className="flex-1"
           aria-label="Search messages"
         />
-        <button type="button" onClick={onClose} aria-label="Close search" className="flex items-center justify-center shrink-0 min-h-11 min-w-11 rounded-full hover:bg-primary-100/60 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none">
+        <button type="button" onClick={onClose} aria-label="Close search" className="flex items-center justify-center shrink-0 min-h-11 min-w-11 rounded-full hover:bg-primary-100/60 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none">
           <X size={18} className="text-primary-400" />
         </button>
       </div>
@@ -563,6 +548,13 @@ function InlineAnnouncement({
 /*  Member management sheet (leader moderation)                        */
 /* ------------------------------------------------------------------ */
 
+const MANAGE_ROLE_RANK: Record<string, number> = {
+  member: 0,
+  assist_leader: 1,
+  co_leader: 2,
+  leader: 3,
+}
+
 function ManageMembersSheet({
   open,
   onClose,
@@ -572,8 +564,9 @@ function ManageMembersSheet({
   onClose: () => void
   collectiveId: string | undefined
 }) {
-  const { user } = useAuth()
+  const { user, isStaff, isAdmin, isSuperAdmin } = useAuth()
   const { data: members = [] } = useCollectiveMembers(open ? collectiveId : undefined)
+  const { role: myCollectiveRole } = useCollectiveRole(collectiveId)
   const removeMember = useRemoveMember()
   const { toast } = useToast()
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null)
@@ -589,9 +582,12 @@ function ManageMembersSheet({
     setConfirmRemove(null)
   }
 
-  // Filter out yourself and sort leaders to bottom (can't remove leaders)
+  const isGlobalStaff = isStaff || isAdmin || isSuperAdmin
+  const myRank = isGlobalStaff ? 99 : (myCollectiveRole ? MANAGE_ROLE_RANK[myCollectiveRole] ?? -1 : -1)
+
+  // Filter: can remove members ranked strictly below you, never yourself
   const removableMembers = members.filter(
-    (m) => m.user_id !== user?.id && m.role === 'member',
+    (m) => m.user_id !== user?.id && (MANAGE_ROLE_RANK[m.role] ?? 0) < myRank,
   )
 
   return (
@@ -617,13 +613,20 @@ function ManageMembersSheet({
                     name={m.profiles?.display_name}
                     size="sm"
                   />
-                  <span className="flex-1 text-sm font-medium text-primary-800 truncate">
-                    {m.profiles?.display_name ?? 'Member'}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium text-primary-800 truncate block">
+                      {m.profiles?.display_name ?? 'Member'}
+                    </span>
+                    {m.role !== 'member' && (
+                      <span className="text-[11px] font-semibold text-primary-500 capitalize">
+                        {m.role.replace('_', ' ')}
+                      </span>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => setConfirmRemove(m.user_id)}
-                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-error-600 hover:bg-error-50 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none min-h-11"
+                    className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold text-error-600 hover:bg-error-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none min-h-11"
                   >
                     <UserMinus size={14} />
                     Remove
@@ -663,7 +666,6 @@ const fadeUp = {
 
 export default function CollectiveChatPage() {
   const { collectiveId } = useParams<{ collectiveId: string }>()
-  const navigate = useNavigate()
   const { toast } = useToast()
   const { user, isStaff, isAdmin, isSuperAdmin } = useAuth()
   const shouldReduceMotion = useReducedMotion()
@@ -716,6 +718,7 @@ export default function CollectiveChatPage() {
   const [showSearch, setShowSearch] = useState(false)
   const [showScrollDown, setShowScrollDown] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<ChatMessageWithSender | null>(null)
   const [showPollSheet, setShowPollSheet] = useState(false)
   const [showAnnouncementSheet, setShowAnnouncementSheet] = useState(false)
   const [announcementType, setAnnouncementType] = useState<'announcement' | 'event_invite' | 'rsvp'>('announcement')
@@ -726,6 +729,11 @@ export default function CollectiveChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const initialScrollDone = useRef(false)
+
+  // Reset scroll state when switching chats
+  useEffect(() => {
+    initialScrollDone.current = false
+  }, [collectiveId])
 
   // Flatten pages (already newest-first, reverse for display)
   const allMessages = useMemo(() => {
@@ -750,40 +758,57 @@ export default function CollectiveChatPage() {
     return groups
   }, [allMessages])
 
-  // Instant scroll to bottom on first load, smooth on subsequent new messages
-  useEffect(() => {
-    if (!initialScrollDone.current) {
-      if (allMessages.length > 0) {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })
-        // Delay marking initial scroll done so the scroll handler doesn't
-        // set showScrollDown during the layout shift
-        requestAnimationFrame(() => {
-          initialScrollDone.current = true
-        })
+  // Instant scroll to bottom BEFORE paint on first load (no visible jump)
+  useLayoutEffect(() => {
+    if (!initialScrollDone.current && allMessages.length > 0) {
+      const container = scrollContainerRef.current
+      if (container) {
+        container.scrollTop = container.scrollHeight
       }
-    } else if (!showScrollDown) {
+      // Also position the sentinel in case layout shifts slightly after paint
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })
+      requestAnimationFrame(() => {
+        // Double-check after paint - ensures we're truly at the bottom
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
+        }
+        initialScrollDone.current = true
+      })
+    }
+  }, [allMessages.length])
+
+  // Smooth scroll on subsequent new messages (only after initial load)
+  useEffect(() => {
+    if (initialScrollDone.current && !showScrollDown) {
       messagesEndRef.current?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth' })
     }
   }, [allMessages.length, shouldReduceMotion, showScrollDown])
 
-  // Mark as read on mount + new messages
+  // Mark as read on mount + when user is at bottom and new messages arrive
   useEffect(() => {
-    markRead()
-  }, [markRead, allMessages.length])
+    if (!showScrollDown) {
+      markRead()
+    }
+  }, [markRead, allMessages.length, showScrollDown])
 
   // Scroll detection for "scroll to bottom" button + infinite scroll
+  const scrollRafId = useRef(0)
+  useEffect(() => () => cancelAnimationFrame(scrollRafId.current), [])
   const handleScroll = useCallback(() => {
     if (!initialScrollDone.current) return
-    const container = scrollContainerRef.current
-    if (!container) return
+    cancelAnimationFrame(scrollRafId.current)
+    scrollRafId.current = requestAnimationFrame(() => {
+      const container = scrollContainerRef.current
+      if (!container) return
 
-    const { scrollTop, scrollHeight, clientHeight } = container
-    const distanceFromBottom = scrollHeight - scrollTop - clientHeight
-    setShowScrollDown(distanceFromBottom > 200)
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+      setShowScrollDown(distanceFromBottom > 200)
 
-    if (scrollTop < 200 && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage()
-    }
+      if (scrollTop < 200 && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage()
+      }
+    })
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   // Handlers
@@ -850,6 +875,19 @@ export default function CollectiveChatPage() {
     }
   }
 
+  const handleAttachHtml = async (htmlContent: string) => {
+    if (!collectiveId) return
+    try {
+      await sendMessage.mutateAsync({
+        collectiveId,
+        content: htmlContent,
+        messageType: 'html',
+      })
+    } catch {
+      toast.error('Failed to send HTML content')
+    }
+  }
+
   const handleMessageLongPress = (msg: ChatMessageWithSender) => {
     if (msg._optimistic) return
     setSelectedMessage(msg)
@@ -872,14 +910,16 @@ export default function CollectiveChatPage() {
 
   const handleDelete = () => {
     if (!selectedMessage) return
+    setDeleteTarget(selectedMessage)
+    setSelectedMessage(null)
     setShowDeleteConfirm(true)
   }
 
   const confirmDelete = async () => {
-    if (!selectedMessage || !collectiveId) return
+    if (!deleteTarget || !collectiveId) return
     try {
       await deleteMessage.mutateAsync({
-        messageId: selectedMessage.id,
+        messageId: deleteTarget.id,
         collectiveId,
       })
       toast.info('Message removed')
@@ -887,7 +927,7 @@ export default function CollectiveChatPage() {
       toast.error('Failed to delete message')
     }
     setShowDeleteConfirm(false)
-    setSelectedMessage(null)
+    setDeleteTarget(null)
   }
 
   const handlePin = async () => {
@@ -1011,7 +1051,7 @@ export default function CollectiveChatPage() {
                   type="button"
                   onClick={() => setShowManageMembers(true)}
                   aria-label="Manage members"
-                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <Users size={20} />
                 </button>
@@ -1020,7 +1060,7 @@ export default function CollectiveChatPage() {
                 type="button"
                 onClick={() => setShowSearch(true)}
                 aria-label="Search messages"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
               >
                 <Search size={20} />
               </button>
@@ -1111,6 +1151,20 @@ export default function CollectiveChatPage() {
                           {msg.content}
                         </p>
                       </div>
+                    ) : messageType === 'html' ? (
+                      <HtmlChatBubble
+                        htmlContent={msg.content ?? ''}
+                        sent={isSent}
+                        timestamp={new Date(msg.created_at)}
+                        senderName={msg.profiles?.display_name ?? undefined}
+                        senderAvatar={msg.profiles?.avatar_url ?? undefined}
+                        senderId={msg.user_id ?? undefined}
+                        roleBadge={roleBadge}
+                        skipAnimation={msg._confirmed}
+                        onAvatarTap={(userId) => setProfileUserId(userId)}
+                        onSenderTap={(userId) => setProfileUserId(userId)}
+                        onLongPress={() => handleMessageLongPress(msg)}
+                      />
                     ) : (
                       <div
                         role="button"
@@ -1143,7 +1197,7 @@ export default function CollectiveChatPage() {
                           }
                         />
 
-                        {(msg as any).updated_at && (msg as any).updated_at !== msg.created_at && (
+                        {(msg as unknown as { updated_at?: string }).updated_at && (msg as unknown as { updated_at?: string }).updated_at !== msg.created_at && (
                           <p className={cn(
                             'text-[11px] text-primary-400 mt-0.5',
                             isSent ? 'text-right pr-2' : 'pl-10',
@@ -1211,7 +1265,7 @@ export default function CollectiveChatPage() {
                 type="button"
                 onClick={() => setReplyTo(null)}
                 aria-label="Cancel reply"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
               >
                 <X size={16} />
               </button>
@@ -1239,7 +1293,7 @@ export default function CollectiveChatPage() {
                 type="button"
                 onClick={() => { setEditingMessage(null); setEditText('') }}
                 aria-label="Cancel edit"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
               >
                 <X size={16} />
               </button>
@@ -1259,7 +1313,7 @@ export default function CollectiveChatPage() {
             onClick={scrollToBottom}
             aria-label="Scroll to latest messages"
             className={cn(
-              'absolute right-4 z-20 flex min-h-12 min-w-12 items-center justify-center rounded-full bg-white shadow-lg ring-2 ring-primary-200/60 text-primary-600 hover:bg-primary-50 active:scale-[0.93] transition-all duration-150 cursor-pointer select-none',
+              'absolute right-4 z-20 flex min-h-12 min-w-12 items-center justify-center rounded-full bg-white shadow-lg ring-2 ring-primary-200/60 text-primary-600 hover:bg-primary-50 active:scale-[0.93] transition-transform duration-150 cursor-pointer select-none',
               hasBottomTabs ? 'bottom-32' : 'bottom-20',
             )}
           >
@@ -1297,6 +1351,7 @@ export default function CollectiveChatPage() {
         <MessageInput
           onSend={handleSend}
           onAttach={isOffline ? undefined : handleAttach}
+          onAttachHtml={isOffline ? undefined : handleAttachHtml}
           onTyping={sendTyping}
           placeholder={
             editingMessage
@@ -1335,7 +1390,7 @@ export default function CollectiveChatPage() {
       {/* Delete message confirmation */}
       <ConfirmationSheet
         open={showDeleteConfirm}
-        onClose={() => { setShowDeleteConfirm(false); setSelectedMessage(null) }}
+        onClose={() => { setShowDeleteConfirm(false); setDeleteTarget(null) }}
         onConfirm={confirmDelete}
         title="Delete this message?"
         description="This message will be permanently removed for everyone in the chat."

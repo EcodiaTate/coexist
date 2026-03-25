@@ -82,7 +82,7 @@ function VariantOptionRow({
           value={option.name}
           onChange={(e) => onChange({ ...option, name: e.target.value })}
           placeholder="Option name (e.g. Size)"
-          className="flex-1 h-11 px-3 rounded-lg bg-primary-50/50 text-[16px] sm:text-sm font-semibold text-primary-800 placeholder:text-primary-400/50 outline-none focus:ring-2 focus:ring-primary-300/50"
+          className="flex-1 h-11 px-3 rounded-lg bg-surface-3 text-[16px] sm:text-sm font-semibold text-primary-800 placeholder:text-primary-400/50 outline-none focus:ring-2 focus:ring-primary-300/50"
         />
         <button
           type="button"
@@ -302,7 +302,7 @@ function ProductFormSheet({
         // Update variants as full JSONB replace
         await supabase
           .from('merch_products')
-          .update({ variants: variantsToSave as any })
+          .update({ variants: variantsToSave as unknown as Record<string, unknown> })
           .eq('id', product.id)
       } else {
         const created = await createProduct.mutateAsync({
@@ -314,11 +314,11 @@ function ProductFormSheet({
           status,
           images,
         })
-        const newId = (created as any)?.id
+        const newId = (created as Record<string, unknown>)?.id as string | undefined
         if (newId && variantsToSave.length > 0) {
           await supabase
             .from('merch_products')
-            .update({ variants: variantsToSave.map((v) => ({ ...v, product_id: newId })) as any })
+            .update({ variants: variantsToSave.map((v) => ({ ...v, product_id: newId })) as unknown as Record<string, unknown> })
             .eq('id', newId)
         }
       }
@@ -468,7 +468,7 @@ function ProductFormSheet({
                 type="button"
                 onClick={() => setStatus(s)}
                 className={cn(
-                  'flex-1 min-h-[44px] rounded-xl text-sm font-semibold capitalize cursor-pointer transition-all duration-150',
+                  'flex-1 min-h-[44px] rounded-xl text-sm font-semibold capitalize cursor-pointer transition-colors duration-150',
                   status === s && s === 'active' && 'bg-success-100 text-success-700 ring-2 ring-success-300 shadow-sm',
                   status === s && s === 'draft' && 'bg-warning-100 text-warning-700 ring-2 ring-warning-300 shadow-sm',
                   status === s && s === 'archived' && 'bg-primary-100 text-primary-600 ring-2 ring-primary-300 shadow-sm',
@@ -714,7 +714,7 @@ function StockAdjustSheet({
     const adj = Number(adjustment)
     if (isNaN(adj) || adj === 0 || !reason.trim()) return
     try {
-      await adjustStock.mutateAsync({ productId: variantId, variantKey: variantId, adjustment: adj } as any)
+      await adjustStock.mutateAsync({ productId: variantId, variantKey: variantId, adjustment: adj })
       toast.success(`Stock adjusted by ${adj > 0 ? '+' : ''}${adj}`)
       onClose()
     } catch {
@@ -900,11 +900,6 @@ export default function ProductsTab() {
                       {product.category && (
                         <span className="px-1.5 py-px bg-primary-100/60 rounded text-[10px] font-medium text-primary-500 hidden sm:inline">
                           {product.category}
-                        </span>
-                      )}
-                      {product.review_count > 0 && (
-                        <span className="text-[11px] text-primary-400 hidden sm:inline">
-                          {product.avg_rating?.toFixed(1)} ({product.review_count})
                         </span>
                       )}
                     </div>

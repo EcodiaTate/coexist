@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef, useEffect, useMemo, startTransition } from 'react'
+import { useCallback, useState, useRef, useEffect, startTransition } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion, useInView } from 'framer-motion'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
@@ -210,13 +210,13 @@ function HomeHero({ rm }: { rm: boolean }) {
           ref={rm ? undefined : textRef}
           className="absolute inset-x-0 top-[18%] sm:top-[7%] z-[2] flex flex-col items-center px-6 will-change-transform"
         >
-          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-white/80 mb-0.5 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
+          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-white/80 mb-0.5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
             Welcome to
           </span>
           <img
             src="/logos/white-wordmark.webp"
             alt="Co-Exist"
-            className="h-24 sm:h-32 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
+            className="h-24 sm:h-32 w-auto object-contain"
           />
         </div>
 
@@ -299,7 +299,7 @@ function NextEventCard({
       <motion.div variants={rm ? undefined : fadeUp}>
         <Section title="Your Next Event">
           <div
-            className="rounded-2xl bg-gradient-to-br from-primary-600 to-moss-600 shadow-lg p-6 text-center cursor-pointer active:scale-[0.98] transition-all duration-150"
+            className="rounded-2xl bg-gradient-to-br from-primary-600 to-moss-600 shadow-lg p-6 text-center cursor-pointer active:scale-[0.98] transition-transform duration-150"
             onClick={() => navigate('/events')}
             role="button"
             tabIndex={0}
@@ -334,7 +334,7 @@ function NextEventCard({
         <div
           className={cn(
             'relative rounded-2xl overflow-hidden',
-            'active:scale-[0.98] transition-all duration-150 cursor-pointer',
+            'active:scale-[0.98] transition-transform duration-150 cursor-pointer',
             happeningNow
               ? 'bg-gradient-to-br from-primary-500 to-primary-700 ring-2 ring-primary-400/60 shadow-xl shadow-primary-500/30'
               : 'bg-gradient-to-br from-primary-600 to-primary-800 shadow-md',
@@ -352,6 +352,7 @@ function NextEventCard({
               <img
                 src={nextEvent.cover_image_url}
                 alt=""
+                loading="lazy"
                 className="absolute inset-0 w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
@@ -505,7 +506,7 @@ function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
             return (
               <div
                 key={event.id}
-                className="shrink-0 w-56 snap-start rounded-2xl bg-gradient-to-br from-primary-400 to-sprout-500 shadow-lg overflow-hidden active:scale-[0.97] transition-all duration-150 cursor-pointer"
+                className="shrink-0 w-56 snap-start rounded-2xl bg-gradient-to-br from-primary-400 to-sprout-500 shadow-lg overflow-hidden active:scale-[0.97] transition-transform duration-150 cursor-pointer"
                 onClick={() => navigate(`/events/${event.id}`)}
                 role="button"
                 tabIndex={0}
@@ -516,6 +517,7 @@ function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
                   <img
                     src={event.cover_image_url}
                     alt=""
+                    loading="lazy"
                     className="w-full h-24 object-cover"
                   />
                 )}
@@ -594,7 +596,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
           {updates.data.map((item) => (
             <div
               key={item.id}
-              className="shrink-0 w-64 snap-start rounded-2xl bg-gradient-to-br from-sprout-600 to-primary-700 shadow-lg overflow-hidden active:scale-[0.97] transition-all duration-150 cursor-pointer"
+              className="shrink-0 w-64 snap-start rounded-2xl bg-gradient-to-br from-sprout-600 to-primary-700 shadow-lg overflow-hidden active:scale-[0.97] transition-transform duration-150 cursor-pointer"
               onClick={() => navigate('/updates')}
               role="button"
               tabIndex={0}
@@ -605,6 +607,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
                 <img
                   src={item.image_url}
                   alt=""
+                  loading="lazy"
                   className="w-full h-24 object-cover"
                 />
               )}
@@ -637,6 +640,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
                     <img
                       src={item.author.avatar_url}
                       alt=""
+                      loading="lazy"
                       className="w-5 h-5 rounded-full object-cover"
                     />
                   ) : (
@@ -799,7 +803,7 @@ function HomeImpactSection({
                 type="button"
                 onClick={() => setScope('national')}
                 className={cn(
-                  'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-[0.95] cursor-pointer select-none',
+                  'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
                   scope === 'national'
                     ? 'bg-white text-primary-800 shadow-sm'
                     : 'text-white/70 hover:text-white',
@@ -813,7 +817,7 @@ function HomeImpactSection({
                   type="button"
                   onClick={() => setScope('collective')}
                   className={cn(
-                    'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-[0.95] cursor-pointer select-none',
+                    'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
                     scope === 'collective'
                       ? 'bg-white text-primary-800 shadow-sm'
                       : 'text-white/70 hover:text-white',
@@ -830,7 +834,7 @@ function HomeImpactSection({
                 type="button"
                 onClick={() => setTimeRange('all-time')}
                 className={cn(
-                  'px-3 min-h-9 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-[0.95] cursor-pointer select-none',
+                  'px-3 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
                   timeRange === 'all-time'
                     ? 'bg-white text-primary-800 shadow-sm'
                     : 'text-white/70 hover:text-white',
@@ -842,7 +846,7 @@ function HomeImpactSection({
                 type="button"
                 onClick={() => setTimeRange('current-year')}
                 className={cn(
-                  'px-3 min-h-9 rounded-full text-[11px] font-semibold transition-all duration-200 active:scale-[0.95] cursor-pointer select-none',
+                  'px-3 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
                   timeRange === 'current-year'
                     ? 'bg-white text-primary-800 shadow-sm'
                     : 'text-white/70 hover:text-white',
@@ -957,7 +961,7 @@ function CtaCards({ rm }: { rm: boolean }) {
             'relative rounded-2xl overflow-hidden p-5',
             'bg-gradient-to-br from-primary-500 to-primary-800',
             'shadow-lg',
-            'active:scale-[0.97] transition-all duration-150 cursor-pointer',
+            'active:scale-[0.97] transition-transform duration-150 cursor-pointer',
           )}
           onClick={() => navigate('/donate')}
           role="button"
@@ -982,7 +986,7 @@ function CtaCards({ rm }: { rm: boolean }) {
             'relative rounded-2xl overflow-hidden p-5',
             'bg-gradient-to-br from-bark-500 to-bark-800',
             'shadow-lg',
-            'active:scale-[0.97] transition-all duration-150 cursor-pointer',
+            'active:scale-[0.97] transition-transform duration-150 cursor-pointer',
           )}
           onClick={() => navigate('/shop')}
           role="button"
@@ -1099,7 +1103,7 @@ export default function HomePage() {
                 {pendingSurveys.data.map((survey) => (
                   <div
                     key={survey.event_id}
-                    className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-bark-600 to-bark-700 shadow-lg p-4 active:scale-[0.98] transition-all duration-150 cursor-pointer"
+                    className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-bark-600 to-bark-700 shadow-lg p-4 active:scale-[0.98] transition-transform duration-150 cursor-pointer"
                     onClick={() => navigate(`/events/${survey.event_id}/survey`)}
                     role="button"
                     tabIndex={0}

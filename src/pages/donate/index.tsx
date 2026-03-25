@@ -1,14 +1,15 @@
 import { useState, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 import { useQuery } from '@tanstack/react-query'
 import {
-    Heart, Users, Sparkles, ChevronRight,
+    Heart, Users, Sparkles, ChevronRight, Repeat,
     TreePine, Leaf, Waves, MapPin, Zap,
     TrendingUp, ShieldCheck,
 } from 'lucide-react'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Toggle } from '@/components/toggle'
@@ -21,6 +22,7 @@ import { supabase } from '@/lib/supabase'
 import {
     PRESET_AMOUNTS,
     getImpactMessage,
+    type DonationFrequency,
     type DonationProject,
 } from '@/types/donations'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -43,11 +45,11 @@ function useDonateNationalStats() {
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
       ])
 
-      const logs = (impactRes.data ?? []) as any[]
+      const logs = (impactRes.data ?? []) as Record<string, unknown>[]
       return {
-        totalTrees: logs.reduce((s: number, r: any) => s + (r.trees_planted ?? 0), 0),
-        totalRubbishKg: Math.round(logs.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0)),
-        totalNativePlants: logs.reduce((s: number, r: any) => s + (r.native_plants ?? 0), 0),
+        totalTrees: logs.reduce((s: number, r: Record<string, unknown>) => s + ((r.trees_planted as number) ?? 0), 0),
+        totalRubbishKg: Math.round(logs.reduce((s: number, r: Record<string, unknown>) => s + ((r.rubbish_kg as number) ?? 0), 0)),
+        totalNativePlants: logs.reduce((s: number, r: Record<string, unknown>) => s + ((r.native_plants as number) ?? 0), 0),
         totalEvents: eventsRes.count ?? 0,
         totalMembers: membersRes.count ?? 0,
         totalCollectives: collectivesRes.count ?? 0,
@@ -266,7 +268,7 @@ function ProjectThermometer({
       whileTap={{ scale: 0.97 }}
       variants={scaleIn}
       className={cn(
-        'w-full rounded-[20px] text-left transition-all duration-200 overflow-hidden',
+        'w-full rounded-[20px] text-left transition-colors duration-200 overflow-hidden',
         selected
           ? 'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.14)] ring-2 ring-primary-400 bg-white'
           : 'bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.14)] hover:-translate-y-0.5',
@@ -336,7 +338,7 @@ function AmountPill({
       whileTap={{ scale: 0.93 }}
       className={cn(
         'relative h-[4.5rem] rounded-2xl font-heading font-bold',
-        'transition-all duration-200 cursor-pointer flex flex-col items-center justify-center gap-1',
+        'transition-colors duration-200 cursor-pointer flex flex-col items-center justify-center gap-1',
         selected
           ? 'bg-gradient-to-br from-primary-600 via-primary-700 to-moss-700 text-white shadow-lg shadow-primary-700/25 border border-primary-500/30'
           : 'bg-white text-secondary-800 hover:bg-gray-50 shadow-sm shadow-bark-200/15',
@@ -516,7 +518,6 @@ function SectionHeader({
 /* ------------------------------------------------------------------ */
 
 export default function DonatePage() {
-  const navigate = useNavigate()
   const { toast } = useToast()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
@@ -527,14 +528,16 @@ export default function DonatePage() {
 
   const [selectedAmount, setSelectedAmount] = useState<number | null>(25)
   const [customAmount, setCustomAmount] = useState('')
+  const [frequency, setFrequency] = useState<DonationFrequency>('one_time')
   const [selectedProject, setSelectedProject] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [onBehalfOf, setOnBehalfOf] = useState('')
   const [showOrg, setShowOrg] = useState(false)
   const [isPublic, setIsPublic] = useState(true)
 
-  const effectiveAmount = selectedAmount ?? (customAmount ? Number(customAmount) : 0)
-  const isValid = effectiveAmount >= 1
+  const parsedCustom = customAmount ? Number(customAmount) : 0
+  const effectiveAmount = selectedAmount ?? (Number.isFinite(parsedCustom) ? parsedCustom : 0)
+  const isValid = effectiveAmount >= 1 && effectiveAmount <= 50000
 
   const handlePresetSelect = useCallback((amount: number) => {
     setSelectedAmount(amount)
@@ -542,7 +545,14 @@ export default function DonatePage() {
   }, [])
 
   const handleCustomChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setCustomAmount(e.target.value)
+    // Strip non-numeric chars except decimal point, prevent negatives
+    const raw = e.target.value.replace(/[^0-9.]/g, '')
+    // Allow only one decimal point, limit to 2 decimal places
+    const parts = raw.split('.')
+    const sanitized = parts.length > 1
+      ? `${parts[0]}.${parts[1].slice(0, 2)}`
+      : raw
+    setCustomAmount(sanitized)
     setSelectedAmount(null)
   }, [])
 
@@ -551,7 +561,7 @@ export default function DonatePage() {
     try {
       const result = await createDonation.mutateAsync({
         amount: effectiveAmount,
-        frequency: 'one_time',
+        frequency,
         projectId: selectedProject ?? undefined,
         message: message.trim() || undefined,
         onBehalfOf: showOrg && onBehalfOf.trim() ? onBehalfOf.trim() : undefined,
@@ -566,14 +576,16 @@ export default function DonatePage() {
       toast.error('Something went wrong. Please try again.')
     }
   }, [
-    isValid, effectiveAmount, selectedProject,
+    isValid, effectiveAmount, frequency, selectedProject,
     message, onBehalfOf, showOrg, isPublic, createDonation, toast,
   ])
 
   return (
     <Page
+      swipeBack
       noBackground
       className="!px-0 !bg-transparent"
+      stickyOverlay={<Header title="" back transparent className="collapse-header" />}
     >
       <div className="relative min-h-dvh">
         {/* ── Rich layered background ── */}
@@ -626,7 +638,7 @@ export default function DonatePage() {
                     'flex items-center gap-3 p-4 rounded-[20px]',
                     'bg-white',
                     'shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)]',
-                    'transition-all hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.14)] hover:-translate-y-0.5 active:scale-[0.98] duration-200',
+                    'transition-transform hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.14)] hover:-translate-y-0.5 active:scale-[0.98] duration-200',
                   )}
                 >
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-bark-500 to-moss-600 flex items-center justify-center shrink-0 shadow-md shadow-bark-400/25">
@@ -675,6 +687,22 @@ export default function DonatePage() {
                         <ImpactBadge amount={effectiveAmount} />
                       )}
                     </AnimatePresence>
+                  </div>
+
+                  {/* Frequency toggle */}
+                  <div className="mt-4 flex items-center gap-3 p-3 rounded-2xl bg-primary-50/60">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-moss-600 flex items-center justify-center shrink-0 shadow-sm">
+                      <Repeat size={16} className="text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <Toggle
+                        label="Make it monthly"
+                        description={frequency === 'monthly' ? `$${effectiveAmount || 0}/mo — cancel anytime` : undefined}
+                        checked={frequency === 'monthly'}
+                        onChange={(v) => setFrequency(v ? 'monthly' : 'one_time')}
+                        size="sm"
+                      />
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -809,7 +837,7 @@ export default function DonatePage() {
               onClick={handleDonate}
               className="shadow-[0_-4px_24px_-4px_rgba(61,77,51,0.20),0_4px_16px_-4px_rgba(61,77,51,0.15)]"
             >
-              Donate{effectiveAmount > 0 ? ` $${effectiveAmount}` : ''}
+              Donate{effectiveAmount > 0 ? ` $${effectiveAmount}` : ''}{frequency === 'monthly' ? '/mo' : ''}
             </Button>
           </div>
         </div>

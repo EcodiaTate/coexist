@@ -83,14 +83,28 @@ serve(async (req: Request) => {
             break
           }
 
-          // 1. Record donation
+          // Resolve project name from project_id if provided
+          let projectName: string | null = null
+          if (metadata.project_id) {
+            const { data: proj } = await supabase
+              .from('donation_projects')
+              .select('name')
+              .eq('id', metadata.project_id)
+              .maybeSingle()
+            projectName = proj?.name ?? metadata.project_id
+          }
+
+          // 1. Record donation (include all metadata fields)
           const { error: donationError } = await supabase.from('donations').insert({
             user_id: metadata.user_id,
             amount: amountDollars,
             currency: 'AUD',
             stripe_payment_id: paymentIntentId ?? session.id,
-            project_name: metadata.project_id || null,
+            project_name: projectName,
             message: metadata.message || null,
+            on_behalf_of: metadata.on_behalf_of || null,
+            is_public: metadata.is_public !== 'false',
+            status: 'succeeded',
           })
 
           if (donationError) {
@@ -116,7 +130,7 @@ serve(async (req: Request) => {
             amount: amountDollars.toFixed(2),
             currency: 'AUD',
             date: new Date().toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }),
-            project_name: metadata.project_id || '',
+            project_name: projectName || '',
             message: metadata.message || '',
             points_earned: points,
             is_recurring: metadata.frequency === 'monthly',
@@ -301,6 +315,8 @@ serve(async (req: Request) => {
           currency: 'AUD',
           stripe_payment_id: recurringPaymentId,
           message: 'Monthly recurring donation',
+          is_public: false,
+          status: 'succeeded',
         })
 
         if (recurDonError) {

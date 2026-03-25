@@ -26,7 +26,6 @@ import { useProfile, useUpdateProfile } from '@/hooks/use-profile'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { supabase } from '@/lib/supabase'
 
 const INTEREST_OPTIONS = [
   'Tree Planting',
@@ -98,7 +97,7 @@ function SectionCard({
 /*  Input wrapper - shared styling                                     */
 /* ------------------------------------------------------------------ */
 
-const inputStyle = '[&_input]:bg-surface-1 [&_input]:border [&_input]:border-primary-200 [&_input]:focus:border-primary-400 [&_textarea]:bg-surface-1 [&_textarea]:border [&_textarea]:border-primary-200 [&_textarea]:focus:border-primary-400'
+const inputStyle = '[&_input]:bg-surface-3 [&_textarea]:bg-surface-3'
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
@@ -111,7 +110,8 @@ export default function EditProfilePage() {
   const { data: profile, isLoading } = useProfile()
   const showLoading = useDelayedLoading(isLoading)
   const updateProfile = useUpdateProfile()
-  const { capture, pickFromGallery, loading: cameraLoading } = useCamera()
+   
+  const { capture: _capture, pickFromGallery, loading: cameraLoading } = useCamera()
   const { upload, progress, uploading, error: uploadError } = useImageUpload({ bucket: 'avatars' })
   const { toast } = useToast()
 
@@ -175,16 +175,13 @@ export default function EditProfilePage() {
 
   const handleAvatarChange = async () => {
     const result = await pickFromGallery()
-    if (!result) return
+    if (!result || !authProfile?.id) return
 
     try {
-      const path = `${authProfile?.id}/avatar.jpg`
+      const path = `${authProfile.id}/avatar.jpg`
       const uploaded = await upload(result.blob, path)
 
-      await supabase
-        .from('profiles')
-        .update({ avatar_url: uploaded.url })
-        .eq('id', authProfile!.id)
+      await updateProfile.mutateAsync({ avatar_url: uploaded.url })
 
       toast.success('Avatar updated!')
     } catch {
@@ -564,7 +561,7 @@ export default function EditProfilePage() {
                     key={opt.value}
                     onClick={() => setVisibility(opt.value)}
                     className={cn(
-                      'w-full flex items-start gap-3 rounded-xl px-4 py-3 text-left transition-all duration-150 active:scale-[0.98]',
+                      'w-full flex items-start gap-3 rounded-xl px-4 py-3 text-left transition-transform duration-150 active:scale-[0.98]',
                       visibility === opt.value
                         ? 'ring-2 ring-primary-500 bg-primary-50/60 shadow-sm'
                         : 'bg-surface-1 border border-primary-100 hover:border-primary-200',

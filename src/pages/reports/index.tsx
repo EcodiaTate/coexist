@@ -106,7 +106,7 @@ function useReportHistory() {
     queryKey: ['report-history'],
     queryFn: async () => {
       // report_history table not yet created  return empty until migration is run
-      return [] as any[]
+      return [] as Record<string, unknown>[]
     },
     staleTime: 60 * 1000,
   })
@@ -133,7 +133,7 @@ export default function ReportsPage() {
     new Set(impactMetrics),
   )
   const [scheduleRecurring, setScheduleRecurring] = useState(false)
-  const [showPreview, setShowPreview] = useState(false)
+  const [_showPreview, _setShowPreview] = useState(false)
   const [generating, setGenerating] = useState(false)
 
   const { data: collectives } = useCollectivesList()
@@ -196,7 +196,7 @@ export default function ReportsPage() {
                     onClick={() => setReportType(rt.value)}
                     className={cn(
                       'w-full flex items-start gap-3 p-3 rounded-xl text-left min-h-11',
-                      'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                      'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                       reportType === rt.value
                         ? 'bg-white ring-1 ring-primary-300 shadow-sm'
                         : 'bg-white shadow-sm hover:bg-primary-50',

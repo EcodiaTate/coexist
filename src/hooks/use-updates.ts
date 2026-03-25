@@ -18,12 +18,58 @@ export interface UpdateWithAuthor extends GlobalAnnouncement {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Audience filter helper                                             */
+/*                                                                     */
+/*  Applies target_audience filtering client-side based on the         */
+/*  current user's role and collective memberships.                    */
+/* ------------------------------------------------------------------ */
+
+function filterByAudience(
+  announcements: UpdateWithAuthor[],
+  userRole: string | null | undefined,
+  collectiveIds: string[],
+): UpdateWithAuthor[] {
+  const isLeaderRole = ['leader', 'co_leader', 'assist_leader'].includes(
+    userRole ?? '',
+  )
+  const isStaffOrAdmin = ['national_staff', 'national_admin', 'super_admin'].includes(
+    userRole ?? '',
+  )
+
+  return announcements.filter((a) => {
+    // Staff/admins always see everything
+    if (isStaffOrAdmin) return true
+
+    switch (a.target_audience) {
+      case 'all':
+        return true
+      case 'leaders':
+        return isLeaderRole
+      case 'collective_specific':
+        return a.target_collective_id
+          ? collectiveIds.includes(a.target_collective_id)
+          : true
+      default:
+        return true
+    }
+  })
+}
+
+/* ------------------------------------------------------------------ */
 /*  Fetch updates (with read status for current user)                  */
 /* ------------------------------------------------------------------ */
 
 export function useUpdates() {
-  const { user } = useAuth()
+  const { user, profile, collectiveRoles } = useAuth()
   const queryClient = useQueryClient()
+
+  const collectiveIds = collectiveRoles.map((m) => m.collective_id)
+  const highestCollectiveRole = collectiveRoles.length > 0
+    ? collectiveRoles.reduce((best, m) => {
+        const rank: Record<string, number> = { member: 0, assist_leader: 1, co_leader: 2, leader: 3 }
+        return (rank[m.role] ?? 0) > (rank[best.role] ?? 0) ? m : best
+      }, collectiveRoles[0]).role
+    : null
 
   const query = useQuery({
     queryKey: ['updates', user?.id],
@@ -59,19 +105,22 @@ export function useUpdates() {
     staleTime: 2 * 60 * 1000,
   })
 
-  // Realtime for new updates
+  // Realtime for new, updated, and deleted announcements
   useEffect(() => {
     const channel = supabase
       .channel('global_announcements')
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'global_announcements',
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ['updates'] })
+          queryClient.invalidateQueries({ queryKey: ['updates-unread'] })
+          queryClient.invalidateQueries({ queryKey: ['home', 'latest-update'] })
+          queryClient.invalidateQueries({ queryKey: ['home', 'recent-updates'] })
         },
       )
       .subscribe()
@@ -81,11 +130,13 @@ export function useUpdates() {
     }
   }, [queryClient])
 
-  // Split pinned + regular
-  const pinned = (query.data ?? []).filter((a) => a.is_pinned)
-  const regular = (query.data ?? []).filter((a) => !a.is_pinned)
+  // Apply audience filtering, then split pinned + regular
+  const effectiveRole = profile?.role ?? highestCollectiveRole
+  const filtered = filterByAudience(query.data ?? [], effectiveRole, collectiveIds)
+  const pinned = filtered.filter((a) => a.is_pinned)
+  const regular = filtered.filter((a) => !a.is_pinned)
 
-  return { ...query, pinned, regular }
+  return { ...query, pinned, regular, all: filtered }
 }
 
 /* ------------------------------------------------------------------ */
@@ -93,25 +144,64 @@ export function useUpdates() {
 /* ------------------------------------------------------------------ */
 
 export function useUnreadUpdateCount() {
-  const { user } = useAuth()
+  const { user, profile, collectiveRoles } = useAuth()
+
+  const collectiveIds = collectiveRoles.map((m) => m.collective_id)
+  const highestCollectiveRole = collectiveRoles.length > 0
+    ? collectiveRoles.reduce((best, m) => {
+        const rank: Record<string, number> = { member: 0, assist_leader: 1, co_leader: 2, leader: 3 }
+        return (rank[m.role] ?? 0) > (rank[best.role] ?? 0) ? m : best
+      }, collectiveRoles[0]).role
+    : null
 
   return useQuery({
     queryKey: ['updates-unread', user?.id],
     queryFn: async () => {
       if (!user) return 0
 
-      // Total updates
-      const { count: total } = await supabase
+      // Fetch all announcement IDs (lightweight — id + audience fields only)
+      const { data: announcements } = await supabase
         .from('global_announcements')
-        .select('*', { count: 'exact', head: true })
+        .select('id, target_audience, target_collective_id')
 
-      // Read by user
-      const { count: readCount } = await supabase
+      if (!announcements || announcements.length === 0) return 0
+
+      // Apply audience filtering
+      const effectiveRole = profile?.role ?? highestCollectiveRole
+      const isLeaderRole = ['leader', 'co_leader', 'assist_leader'].includes(effectiveRole ?? '')
+      const isStaffOrAdmin = ['national_staff', 'national_admin', 'super_admin'].includes(effectiveRole ?? '')
+
+      const visibleIds = new Set(
+        announcements
+          .filter((a) => {
+            if (isStaffOrAdmin) return true
+            switch (a.target_audience) {
+              case 'all': return true
+              case 'leaders': return isLeaderRole
+              case 'collective_specific':
+                return a.target_collective_id ? collectiveIds.includes(a.target_collective_id) : true
+              default: return true
+            }
+          })
+          .map((a) => a.id),
+      )
+
+      // Fetch user's reads
+      const { data: reads } = await supabase
         .from('announcement_reads')
-        .select('*', { count: 'exact', head: true })
+        .select('announcement_id')
         .eq('user_id', user.id)
 
-      return Math.max(0, (total ?? 0) - (readCount ?? 0))
+      const readIds = new Set((reads ?? []).map((r) => r.announcement_id))
+
+      // Count visible announcements that haven't been read
+      // Also ignore reads for deleted announcements (readId not in visibleIds)
+      let unread = 0
+      for (const id of visibleIds) {
+        if (!readIds.has(id)) unread++
+      }
+
+      return unread
     },
     enabled: !!user,
     staleTime: 60 * 1000,
@@ -141,11 +231,19 @@ export function useMarkUpdateRead() {
     },
     onMutate: async (updateId) => {
       await queryClient.cancelQueries({ queryKey: ['updates'] })
+      await queryClient.cancelQueries({ queryKey: ['updates-unread'] })
       const previous = queryClient.getQueryData<UpdateWithAuthor[]>(['updates', user?.id])
+
       queryClient.setQueryData<UpdateWithAuthor[]>(['updates', user?.id], (old) => {
         if (!old) return old
         return old.map(a => a.id === updateId ? { ...a, is_read: true } : a)
       })
+
+      // Optimistically decrement unread count
+      queryClient.setQueryData<number>(['updates-unread', user?.id], (old) =>
+        old != null && old > 0 ? old - 1 : 0,
+      )
+
       return { previous }
     },
     onError: (_err, _, context) => {
@@ -222,9 +320,22 @@ export function useCreateUpdate() {
         is_read: true,
       } as UpdateWithAuthor
 
-      queryClient.setQueryData<UpdateWithAuthor[]>(['updates', user?.id], (old) =>
-        old ? [optimistic, ...old] : [optimistic],
-      )
+      // Insert optimistic entry respecting pinned sort order
+      queryClient.setQueryData<UpdateWithAuthor[]>(['updates', user?.id], (old) => {
+        if (!old) return [optimistic]
+        if (optimistic.is_pinned) {
+          // Prepend to the list (pinned items come first)
+          return [optimistic, ...old]
+        }
+        // Insert after all pinned items
+        const firstNonPinnedIdx = old.findIndex((a) => !a.is_pinned)
+        if (firstNonPinnedIdx === -1) return [...old, optimistic]
+        return [
+          ...old.slice(0, firstNonPinnedIdx),
+          optimistic,
+          ...old.slice(firstNonPinnedIdx),
+        ]
+      })
       return { previous }
     },
     onError: (_err, _, context) => {
@@ -232,6 +343,9 @@ export function useCreateUpdate() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['updates'] })
+      queryClient.invalidateQueries({ queryKey: ['updates-unread'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'latest-update'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'recent-updates'] })
     },
   })
 }

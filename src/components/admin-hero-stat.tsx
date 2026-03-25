@@ -12,6 +12,7 @@ import { cn } from '@/lib/cn'
 /*  give its stats a distinct visual identity.                         */
 /* ------------------------------------------------------------------ */
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const HERO_STAT_COLORS = {
   // Greens / nature
   primary:  { bg: 'bg-gradient-to-br from-primary-600 to-primary-800',  icon: 'bg-primary-500/30 text-primary-200',  value: 'text-white',   shadow: 'shadow-primary-900/20' },

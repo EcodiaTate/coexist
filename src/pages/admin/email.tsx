@@ -11,7 +11,6 @@ import {
     FileText,
     BarChart3,
     Plus,
-    Search,
     Trash2,
     Copy,
     Eye,
@@ -19,7 +18,6 @@ import {
     CheckCircle2,
     MousePointerClick,
     Save,
-    ArrowLeft,
     Sparkles,
     RefreshCw,
     MapPin,
@@ -27,6 +25,7 @@ import {
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
+import { Header } from '@/components/header'
 import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -34,6 +33,7 @@ import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
 import { TabBar } from '@/components/tab-bar'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
+import { SearchBar } from '@/components/search-bar'
 import { Toggle } from '@/components/toggle'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
@@ -112,17 +112,17 @@ function useEmailMarketingStats() {
     queryKey: ['admin-email-marketing-stats'],
     queryFn: async () => {
       const [subscribersRes, campaignsRes, bouncesRes, suppressedRes] = await Promise.all([
-        supabase.rpc('email_subscriber_count' as any),
+        supabase.rpc('email_subscriber_count' as string & keyof never),
         supabase
-          .from('email_campaigns' as any)
+          .from('email_campaigns' as string & keyof never)
           .select('id', { count: 'exact', head: true })
           .eq('status', 'sent'),
         supabase
-          .from('email_events' as any)
+          .from('email_events' as string & keyof never)
           .select('id', { count: 'exact', head: true })
           .eq('event_type', 'bounce'),
         supabase
-          .from('email_suppressions' as any)
+          .from('email_suppressions' as string & keyof never)
           .select('id', { count: 'exact', head: true }),
       ])
 
@@ -142,7 +142,7 @@ function useCampaigns() {
     queryKey: ['admin-email-campaigns'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_campaigns' as any)
+        .from('email_campaigns' as string & keyof never)
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100)
@@ -158,7 +158,7 @@ function useTemplates() {
     queryKey: ['admin-email-templates'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_templates' as any)
+        .from('email_templates' as string & keyof never)
         .select('*')
         .order('updated_at', { ascending: false })
       if (error) throw error
@@ -195,45 +195,45 @@ function useSubscribers(search: string, tagFilter: string | null) {
       const { data, error } = await query
       if (error) throw error
 
-      let profiles = (data ?? []) as any[]
+      let profiles = (data ?? []) as Record<string, unknown>[]
 
       // Load marketing_opt_in from profiles (added by migration 005, not in generated types)
       // The select('*') would get it but we need to be explicit - use a separate query
-      const profileIds = profiles.map((p: any) => p.id)
+      const profileIds = profiles.map((p: Record<string, unknown>) => p.id)
       const { data: optInData } = await supabase
-        .from('profiles' as any)
+        .from('profiles' as string & keyof never)
         .select('id, marketing_opt_in')
         .in('id', profileIds.length ? profileIds : ['__none__'])
       const optInMap = new Map<string, boolean>()
-      for (const row of (optInData ?? []) as any[]) {
+      for (const row of (optInData ?? []) as Record<string, unknown>[]) {
         optInMap.set(row.id, row.marketing_opt_in !== false)
       }
 
       // If tag filter, filter by profile_tags
       if (tagFilter) {
         const { data: taggedIds } = await supabase
-          .from('profile_tags' as any)
+          .from('profile_tags' as string & keyof never)
           .select('profile_id')
           .eq('tag_id', tagFilter)
-        const idSet = new Set((taggedIds ?? []).map((t: any) => t.profile_id))
-        profiles = profiles.filter((p: any) => idSet.has(p.id))
+        const idSet = new Set((taggedIds ?? []).map((t: Record<string, unknown>) => t.profile_id))
+        profiles = profiles.filter((p: Record<string, unknown>) => idSet.has(p.id))
       }
 
       // Load tags for each profile
-      const finalIds = profiles.map((p: any) => p.id)
+      const finalIds = profiles.map((p: Record<string, unknown>) => p.id)
       const { data: allTags } = await supabase
-        .from('profile_tags' as any)
+        .from('profile_tags' as string & keyof never)
         .select('profile_id, tag_id, email_tags(id, name, colour)')
         .in('profile_id', finalIds.length ? finalIds : ['__none__'])
 
       const tagMap = new Map<string, EmailTag[]>()
-      for (const pt of (allTags ?? []) as any[]) {
+      for (const pt of (allTags ?? []) as Record<string, unknown>[]) {
         const existing = tagMap.get(pt.profile_id) ?? []
         if (pt.email_tags) existing.push(pt.email_tags)
         tagMap.set(pt.profile_id, existing)
       }
 
-      return profiles.map((p: any) => ({
+      return profiles.map((p: Record<string, unknown>) => ({
         ...p,
         marketing_opt_in: optInMap.get(p.id) ?? true,
         tags: tagMap.get(p.id) ?? [],
@@ -248,7 +248,7 @@ function useTags() {
     queryKey: ['admin-email-tags'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_tags' as any)
+        .from('email_tags' as string & keyof never)
         .select('*')
         .order('name')
       if (error) throw error
@@ -263,7 +263,7 @@ function useCollectives() {
     queryKey: ['admin-collectives-list'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('collectives' as any)
+        .from('collectives' as string & keyof never)
         .select('id, name')
         .order('name')
       if (error) throw error
@@ -278,13 +278,13 @@ function useEmailBounces() {
     queryKey: ['admin-email-bounces'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_events' as any)
+        .from('email_events' as string & keyof never)
         .select('*')
         .eq('event_type', 'bounce')
         .order('created_at', { ascending: false })
         .limit(50)
       if (error) throw error
-      return (data ?? []) as any[]
+      return (data ?? []) as Record<string, unknown>[]
     },
     staleTime: 60 * 1000,
   })
@@ -295,13 +295,13 @@ function useEmailComplaints() {
     queryKey: ['admin-email-complaints'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_events' as any)
+        .from('email_events' as string & keyof never)
         .select('*')
         .eq('event_type', 'complaint')
         .order('created_at', { ascending: false })
         .limit(50)
       if (error) throw error
-      return (data ?? []) as any[]
+      return (data ?? []) as Record<string, unknown>[]
     },
     staleTime: 60 * 1000,
   })
@@ -525,18 +525,18 @@ function CampaignComposer({
 
       if (campaign) {
         const { error } = await supabase
-          .from('email_campaigns' as any)
-          .update(payload as any)
+          .from('email_campaigns' as string & keyof never)
+          .update(payload as Record<string, unknown>)
           .eq('id', campaign.id)
         if (error) throw error
       } else {
         const { data, error } = await supabase
-          .from('email_campaigns' as any)
-          .insert(payload as any)
+          .from('email_campaigns' as string & keyof never)
+          .insert(payload as Record<string, unknown>)
           .select('id')
           .single()
         if (error) throw error
-        campaignId = (data as any).id
+        campaignId = (data as Record<string, unknown>).id as string
       }
 
       if (andSend && campaignId) {
@@ -551,8 +551,8 @@ function CampaignComposer({
       } else {
         toast.success('Campaign saved as draft')
       }
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to save campaign')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save campaign')
     } finally {
       setSaving(false)
       queryClient.invalidateQueries({ queryKey: ['admin-email-campaigns'] })
@@ -560,22 +560,9 @@ function CampaignComposer({
     }
   }
 
-  const inputClasses = 'w-full rounded-xl bg-white px-4 py-3 text-sm text-primary-800 leading-relaxed placeholder:text-primary-400 focus:ring-2 focus:ring-primary-500 outline-none resize-y'
-
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onClose}
-          className="flex items-center justify-center min-w-11 min-h-11 rounded-lg bg-primary-100/70 text-primary-500 hover:bg-primary-200/70 transition-colors cursor-pointer"
-          aria-label="Back to campaigns"
-        >
-          <ArrowLeft size={16} />
-        </button>
-        <h2 className="font-heading text-lg font-bold text-primary-800">
-          {campaign ? 'Edit Campaign' : 'New Campaign'}
-        </h2>
-      </div>
+      <Header title="" back onBack={onClose} />
 
       {/* Step tabs */}
       <div className="flex gap-1 bg-white rounded-xl p-1">
@@ -584,7 +571,7 @@ function CampaignComposer({
             key={s}
             onClick={() => setStep(s)}
             className={cn(
-              'flex-1 min-h-11 flex items-center justify-center text-sm font-medium rounded-lg transition-[color,background-color,box-shadow] duration-150 capitalize cursor-pointer',
+              'flex-1 min-h-11 flex items-center justify-center text-sm font-medium rounded-lg transition-colors duration-150 capitalize cursor-pointer',
               step === s
                 ? 'bg-primary-50 shadow-sm text-primary-800'
                 : 'text-primary-400 hover:text-primary-600',
@@ -667,28 +654,26 @@ function CampaignComposer({
           )}
 
           {showHtmlEditor && (
-            <textarea
+            <Input
+              type="textarea"
               value={bodyHtml}
               onChange={(e) => setBodyHtml(e.target.value)}
               rows={14}
-              className="w-full rounded-xl bg-white px-4 py-3 text-xs text-primary-800 font-mono leading-relaxed placeholder:text-primary-400 focus:ring-2 focus:ring-primary-500 outline-none resize-y"
+              inputClassName="bg-surface-3 font-mono text-xs leading-relaxed"
             />
           )}
 
           {/* No template selected - show blank HTML area */}
           {!selectedTemplateId && !bodyHtml && (
-            <div>
-              <label className="block text-xs font-medium text-primary-400 mb-1.5">
-                Email Body (HTML)
-              </label>
-              <textarea
-                value={bodyHtml}
-                onChange={(e) => setBodyHtml(e.target.value)}
-                placeholder={'Select a template above, or write raw HTML here...'}
-                rows={10}
-                className="w-full rounded-xl bg-white px-4 py-3 text-sm text-primary-800 font-mono leading-relaxed placeholder:text-primary-400 focus:ring-2 focus:ring-primary-500 outline-none resize-y"
-              />
-            </div>
+            <Input
+              type="textarea"
+              label="Email Body (HTML)"
+              value={bodyHtml}
+              onChange={(e) => setBodyHtml(e.target.value)}
+              placeholder="Select a template above, or write raw HTML here..."
+              rows={10}
+              inputClassName="bg-surface-3 font-mono text-sm leading-relaxed"
+            />
           )}
 
           {/* Preview with field values applied */}
@@ -730,7 +715,7 @@ function CampaignComposer({
                         key={tag.id}
                         onClick={() => toggleTag(tag.id)}
                         className={cn(
-                          'inline-flex items-center rounded-full text-sm font-medium px-3.5 min-h-11 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+                          'inline-flex items-center rounded-full text-sm font-medium px-3.5 min-h-11 transition-colors duration-150 cursor-pointer',
                           selectedTagIds.includes(tag.id)
                             ? 'ring-2 ring-offset-1 shadow-sm'
                             : 'opacity-60 hover:opacity-100',
@@ -762,7 +747,7 @@ function CampaignComposer({
                         key={c.id}
                         onClick={() => toggleCollective(c.id)}
                         className={cn(
-                          'inline-flex items-center rounded-full text-sm font-medium px-3.5 min-h-11 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+                          'inline-flex items-center rounded-full text-sm font-medium px-3.5 min-h-11 transition-colors duration-150 cursor-pointer',
                           'bg-primary-100 text-primary-600',
                           selectedCollectiveIds.includes(c.id)
                             ? 'ring-2 ring-primary-500 ring-offset-1 shadow-sm'
@@ -969,42 +954,29 @@ function TemplateEditor({
     try {
       if (template) {
         const { error } = await supabase
-          .from('email_templates' as any)
-          .update(payload as any)
+          .from('email_templates' as string & keyof never)
+          .update(payload as Record<string, unknown>)
           .eq('id', template.id)
         if (error) throw error
       } else {
         const { error } = await supabase
-          .from('email_templates' as any)
-          .insert(payload as any)
+          .from('email_templates' as string & keyof never)
+          .insert(payload as Record<string, unknown>)
         if (error) throw error
       }
 
       toast.success(template ? 'Template updated' : 'Template created')
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to save template')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save template')
     } finally {
       setSaving(false)
       queryClient.invalidateQueries({ queryKey: ['admin-email-templates'] })
     }
   }
 
-  const inputClasses = 'w-full rounded-xl bg-white px-4 py-3 text-sm text-primary-800 leading-relaxed placeholder:text-primary-400 focus:ring-2 focus:ring-primary-500 outline-none resize-y'
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onClose}
-          className="flex items-center justify-center min-w-11 min-h-11 rounded-lg bg-primary-100/70 text-primary-500 hover:bg-primary-200/70 transition-colors cursor-pointer"
-          aria-label="Back to templates"
-        >
-          <ArrowLeft size={16} />
-        </button>
-        <h2 className="font-heading text-lg font-bold text-primary-800">
-          {template ? 'Edit Template' : 'New Template'}
-        </h2>
-      </div>
+      <Header title="" back onBack={onClose} />
 
       {/* Basics */}
       <div className="grid gap-3 sm:grid-cols-2">
@@ -1047,14 +1019,12 @@ function TemplateEditor({
         <p className="text-xs text-primary-400 leading-relaxed">
           Describe the email template you need. AI knows Co-Exist&apos;s brand, colours, logos, links and will create editable {'{{fields}}'} you can fill in each time you send.
         </p>
-        <textarea
+        <Input
+          type="textarea"
           value={aiPrompt}
           onChange={(e) => setAiPrompt(e.target.value)}
-          placeholder={
-            'e.g. An event announcement template with a hero image, event title, date, location, a short description, and a register button. Include a section for impact stats from the last event.'
-          }
+          placeholder="e.g. An event announcement template with a hero image, event title, date, location, a short description, and a register button. Include a section for impact stats from the last event."
           rows={3}
-          className={inputClasses}
         />
         <Button
           variant="primary"
@@ -1101,7 +1071,7 @@ function TemplateEditor({
             <button
               onClick={() => setActiveView('preview')}
               className={cn(
-                'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+                'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer',
                 activeView === 'preview' ? 'bg-primary-50 shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
               )}
             >
@@ -1110,7 +1080,7 @@ function TemplateEditor({
             <button
               onClick={() => setActiveView('html')}
               className={cn(
-                'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+                'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer',
                 activeView === 'html' ? 'bg-primary-50 shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
               )}
             >
@@ -1124,25 +1094,24 @@ function TemplateEditor({
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(bodyHtml) }}
             />
           ) : (
-            <textarea
+            <Input
+              type="textarea"
               value={bodyHtml}
               onChange={(e) => setBodyHtml(e.target.value)}
               rows={20}
-              className={cn(inputClasses, 'font-mono text-xs')}
+              inputClassName="bg-surface-3 font-mono text-xs leading-relaxed"
             />
           )}
 
           {/* Plain text */}
-          <div>
-            <label className="block text-xs font-medium text-primary-400 mb-1.5">Plain Text Fallback</label>
-            <textarea
-              value={bodyText}
-              onChange={(e) => setBodyText(e.target.value)}
-              placeholder="Auto-generated with the template"
-              rows={4}
-              className={inputClasses}
-            />
-          </div>
+          <Input
+            type="textarea"
+            label="Plain Text Fallback"
+            value={bodyText}
+            onChange={(e) => setBodyText(e.target.value)}
+            placeholder="Auto-generated with the template"
+            rows={4}
+          />
         </>
       )}
 
@@ -1215,20 +1184,20 @@ function TagManagerSheet({
 
     try {
       const { error } = await supabase
-        .from('email_tags' as any)
+        .from('email_tags' as string & keyof never)
         .insert({
           name: savedName.trim(),
           colour,
           description: optimisticTag.description,
-        } as any)
+        } as Record<string, unknown>)
       if (error) throw error
       toast.success(`Tag "${savedName}" created`)
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Rollback
       queryClient.setQueryData<EmailTag[]>(['admin-email-tags'], (old) =>
         (old ?? []).filter((t) => t.id !== tempId),
       )
-      toast.error(err?.message ?? 'Failed to create tag')
+      toast.error(err instanceof Error ? err.message : 'Failed to create tag')
     } finally {
       setSaving(false)
       queryClient.invalidateQueries({ queryKey: ['admin-email-tags'] })
@@ -1253,10 +1222,10 @@ function TagManagerSheet({
                 key={c}
                 onClick={() => setColour(c)}
                 className={cn(
-                  'w-8 h-8 rounded-full transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+                  'w-8 h-8 rounded-full transition-colors duration-150 cursor-pointer',
                   colour === c ? 'ring-2 ring-offset-2 scale-110' : 'hover:scale-105',
                 )}
-                style={{ backgroundColor: c, ['--tw-ring-color' as any]: c }}
+                style={{ backgroundColor: c, ['--tw-ring-color' as string]: c }}
                 aria-label={`Colour ${c}`}
               />
             ))}
@@ -1316,30 +1285,30 @@ function AssignTagsSheet({
     // Optimistic: update subscriber tags in cache immediately
     const prevSubscribers = queryClient.getQueryData(['admin-email-subscribers', '', null])
     const newTags = (allTags ?? []).filter((t) => selectedIds.has(t.id))
-    queryClient.setQueryData(['admin-email-subscribers', '', null], (old: any[]) =>
-      (old ?? []).map((sub: any) =>
+    queryClient.setQueryData(['admin-email-subscribers', '', null], (old: Record<string, unknown>[]) =>
+      (old ?? []).map((sub: Record<string, unknown>) =>
         sub.id === profileId ? { ...sub, tags: newTags } : sub,
       ),
     )
     onClose()
 
     try {
-      await supabase.from('profile_tags' as any).delete().eq('profile_id', profileId)
+      await supabase.from('profile_tags' as string & keyof never).delete().eq('profile_id', profileId)
 
       if (selectedIds.size > 0) {
         const rows = Array.from(selectedIds).map((tag_id) => ({
           profile_id: profileId,
           tag_id,
         }))
-        const { error } = await supabase.from('profile_tags' as any).insert(rows as any)
+        const { error } = await supabase.from('profile_tags' as string & keyof never).insert(rows as Record<string, unknown>[])
         if (error) throw error
       }
 
       toast.success(`Tags updated for ${profileName}`)
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Rollback
       if (prevSubscribers) queryClient.setQueryData(['admin-email-subscribers', '', null], prevSubscribers)
-      toast.error(err?.message ?? 'Failed to update tags')
+      toast.error(err instanceof Error ? err.message : 'Failed to update tags')
     } finally {
       setSaving(false)
       queryClient.invalidateQueries({ queryKey: ['admin-email-subscribers'] })
@@ -1356,7 +1325,7 @@ function AssignTagsSheet({
             key={tag.id}
             onClick={() => toggle(tag.id)}
             className={cn(
-              'inline-flex items-center rounded-full text-sm font-medium px-3.5 min-h-11 transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+              'inline-flex items-center rounded-full text-sm font-medium px-3.5 min-h-11 transition-colors duration-150 cursor-pointer',
               selectedIds.has(tag.id)
                 ? 'ring-2 ring-offset-1 shadow-sm'
                 : 'opacity-50 hover:opacity-100',
@@ -1471,7 +1440,7 @@ function CampaignsTab() {
 
   const deleteCampaign = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('email_campaigns' as any).delete().eq('id', id)
+      const { error } = await supabase.from('email_campaigns' as string & keyof never).delete().eq('id', id)
       if (error) throw error
     },
     onMutate: async (id) => {
@@ -1514,7 +1483,7 @@ function CampaignsTab() {
     )
     toast.success('Campaign duplicated')
 
-    const { error } = await supabase.from('email_campaigns' as any).insert({
+    const { error } = await supabase.from('email_campaigns' as string & keyof never).insert({
       name: `${c.name} (copy)`,
       subject: c.subject,
       body_html: c.body_html,
@@ -1524,7 +1493,7 @@ function CampaignsTab() {
       target_tag_ids: c.target_tag_ids,
       target_collective_ids: c.target_collective_ids,
       status: 'draft',
-    } as any)
+    } as Record<string, unknown>)
     if (error) {
       // Rollback
       queryClient.setQueryData<EmailCampaign[]>(['admin-email-campaigns'], (old) =>
@@ -1650,7 +1619,7 @@ function TemplatesTab() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('email_templates' as any).delete().eq('id', id)
+      const { error } = await supabase.from('email_templates' as string & keyof never).delete().eq('id', id)
       if (error) throw error
     },
     onMutate: async (id) => {
@@ -1764,24 +1733,24 @@ function SubscribersTab() {
   const handleSyncTags = async () => {
     setSyncing(true)
     try {
-      const { error } = await supabase.rpc('sync_auto_tags' as any)
+      const { error } = await supabase.rpc('sync_auto_tags' as string & keyof never)
       if (error) throw error
       toast.success('Auto-tags synced from interests, collectives, tiers, and activity')
       queryClient.invalidateQueries({ queryKey: ['admin-email-subscribers'] })
       queryClient.invalidateQueries({ queryKey: ['admin-email-tags'] })
-    } catch (err: any) {
-      toast.error(err?.message ?? 'Failed to sync tags')
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to sync tags')
     } finally {
       setSyncing(false)
     }
   }
 
   const optedIn = useMemo(
-    () => subscribers?.filter((s: any) => s.marketing_opt_in !== false) ?? [],
+    () => subscribers?.filter((s: Record<string, unknown>) => s.marketing_opt_in !== false) ?? [],
     [subscribers],
   )
   const optedOut = useMemo(
-    () => subscribers?.filter((s: any) => s.marketing_opt_in === false) ?? [],
+    () => subscribers?.filter((s: Record<string, unknown>) => s.marketing_opt_in === false) ?? [],
     [subscribers],
   )
 
@@ -1807,16 +1776,7 @@ function SubscribersTab() {
       </div>
 
       <div className="flex gap-2 mb-4">
-        <div className="flex-1 relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 pointer-events-none" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search subscribers..."
-            className="w-full h-9 pl-8 pr-3 rounded-xl bg-white text-sm text-primary-800 placeholder:text-primary-400 focus:ring-2 focus:ring-primary-500 outline-none"
-          />
-        </div>
+        <SearchBar value={search} onChange={setSearch} placeholder="Search subscribers..." compact className="flex-1" />
         {tags && tags.length > 0 && (
           <Dropdown
             options={[
@@ -1851,7 +1811,7 @@ function SubscribersTab() {
         />
       ) : (
         <StaggeredList className="space-y-1">
-          {subscribers.map((sub: any) => (
+          {subscribers.map((sub: Record<string, unknown>) => (
             <StaggeredItem key={sub.id} className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm">
               <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary-100 shrink-0">
                 {sub.avatar_url ? (
@@ -1932,8 +1892,8 @@ function TagsTab() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from('profile_tags' as any).delete().eq('tag_id', id)
-      const { error } = await supabase.from('email_tags' as any).delete().eq('id', id)
+      await supabase.from('profile_tags' as string & keyof never).delete().eq('tag_id', id)
+      const { error } = await supabase.from('email_tags' as string & keyof never).delete().eq('id', id)
       if (error) throw error
     },
     onMutate: async (id) => {
@@ -2028,7 +1988,7 @@ function DeliveryTab() {
         <button
           onClick={() => setSubTab('bounces')}
           className={cn(
-            'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+            'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer',
             subTab === 'bounces' ? 'bg-primary-50 shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
           )}
         >
@@ -2037,7 +1997,7 @@ function DeliveryTab() {
         <button
           onClick={() => setSubTab('complaints')}
           className={cn(
-            'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-[color,background-color,box-shadow] duration-150 cursor-pointer',
+            'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer',
             subTab === 'complaints' ? 'bg-primary-50 shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
           )}
         >
@@ -2053,7 +2013,7 @@ function DeliveryTab() {
             <EmptyState illustration="empty" title="No bounces" description="Email bounces from SendGrid will appear here" />
           ) : (
             <StaggeredList className="space-y-1">
-              {bounces.map((event: any) => (
+              {bounces.map((event: Record<string, unknown>) => (
                 <StaggeredItem key={event.id} className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-error-100 shrink-0">
                     <XCircle size={16} className="text-error-500" />
@@ -2080,7 +2040,7 @@ function DeliveryTab() {
             <EmptyState illustration="empty" title="No complaints" description="Spam complaints from SendGrid will appear here" />
           ) : (
             <StaggeredList className="space-y-1">
-              {complaints.map((event: any) => (
+              {complaints.map((event: Record<string, unknown>) => (
                 <StaggeredItem key={event.id} className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-warning-100 shrink-0">
                     <AlertTriangle size={16} className="text-warning-500" />

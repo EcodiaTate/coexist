@@ -94,12 +94,14 @@ function Confetti() {
 
 type CheckInState = 'idle' | 'scanning' | 'manual' | 'success' | 'error'
 
-type ErrorKind = 'not_registered' | 'already_checked_in' | 'invalid_qr' | 'generic'
+type ErrorKind = 'not_registered' | 'already_checked_in' | 'invalid_qr' | 'event_cancelled' | 'event_not_active' | 'generic'
 
 const ERROR_MESSAGES: Record<ErrorKind, string> = {
   not_registered: "You're not registered for this event. Register first, then try again.",
   already_checked_in: "You've already checked in to this event!",
   invalid_qr: 'This QR code is not valid for this event.',
+  event_cancelled: 'This event has been cancelled.',
+  event_not_active: 'Check-in is not available for this event right now.',
   generic: 'Something went wrong. Please try again.',
 }
 
@@ -140,6 +142,20 @@ export default function CheckInPage() {
     async (targetEventId: string) => {
       if (!user) return
 
+      // Block check-in for cancelled or completed events
+      if (event) {
+        if (event.status === 'cancelled') {
+          setErrorKind('event_cancelled')
+          setState('error')
+          return
+        }
+        if (event.status === 'draft') {
+          setErrorKind('event_not_active')
+          setState('error')
+          return
+        }
+      }
+
       // Check registration status first
       const { data: registration, error: regError } = await supabase
         .from('event_registrations')
@@ -176,19 +192,46 @@ export default function CheckInPage() {
             // Show celebration after a brief delay
             setTimeout(() => setShowCelebration(true), 600)
           },
-          onError: (err) => {
+          onError: () => {
             setErrorKind('generic')
             setState('error')
           },
         },
       )
     },
-    [user, checkInMutation],
+    [user, checkInMutation, event],
   )
 
   /* ---- Offline check-in ---- */
-  const handleOfflineCheckIn = useCallback(() => {
+  const handleOfflineCheckIn = useCallback(async () => {
     if (!eventId || !user) return
+
+    // Even offline, attempt a cached registration check.
+    // If we have no cached data, trust the user (the sync will validate server-side).
+    try {
+      const cached = await supabase
+        .from('event_registrations')
+        .select('status, checked_in_at')
+        .eq('event_id', eventId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+
+      if (cached.data) {
+        if (cached.data.status === 'attended' && cached.data.checked_in_at) {
+          setErrorKind('already_checked_in')
+          setState('error')
+          return
+        }
+        if (cached.data.status !== 'registered' && cached.data.status !== 'invited') {
+          setErrorKind('not_registered')
+          setState('error')
+          return
+        }
+      }
+    } catch {
+      // Query failed (truly offline / no cache) — proceed with queue
+    }
+
     queueOfflineCheckIn(eventId, user.id)
     setCheckedInOffline(true)
     setState('success')
@@ -282,16 +325,6 @@ export default function CheckInPage() {
       validateAndCheckIn(eventId)
     }
   }, [eventId, user, manualCode, isOffline, validateAndCheckIn, handleOfflineCheckIn])
-
-  /* ---- Self check-in (web fallback when scanning) ---- */
-  const handleSelfCheckIn = useCallback(() => {
-    if (!eventId || !user) return
-    if (isOffline) {
-      handleOfflineCheckIn()
-    } else {
-      validateAndCheckIn(eventId)
-    }
-  }, [eventId, user, isOffline, validateAndCheckIn, handleOfflineCheckIn])
 
   if (showLoading) {
     return (
@@ -440,7 +473,7 @@ export default function CheckInPage() {
               {ERROR_MESSAGES[errorKind]}
             </p>
             <div className="mt-6 w-full max-w-xs space-y-2">
-              {errorKind === 'already_checked_in' ? (
+              {errorKind === 'already_checked_in' || errorKind === 'event_cancelled' || errorKind === 'event_not_active' ? (
                 <Button variant="primary" fullWidth onClick={() => navigate(`/events/${event.id}`)}>
                   View Event
                 </Button>

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /* ------------------------------------------------------------------ */
 /*  Sentry Error Logging                                               */
 /*                                                                     */
@@ -36,7 +37,7 @@ export async function initSentry() {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore - optional dependency, may not be installed
     const mod = await import(/* @vite-ignore */ '@sentry/react')
-    Sentry = mod as any
+    Sentry = mod as typeof Sentry
 
     mod.init({
       dsn,

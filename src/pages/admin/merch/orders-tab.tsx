@@ -113,7 +113,7 @@ function formatDateTime(dateStr: string): string {
 /*  Order timeline                                                     */
 /* ------------------------------------------------------------------ */
 
-function OrderTimeline({ status, createdAt, updatedAt }: { status: OrderStatus; createdAt: string; updatedAt: string }) {
+function OrderTimeline({ status, updatedAt }: { status: OrderStatus; createdAt: string; updatedAt: string }) {
   const currentIdx = STATUS_FLOW.indexOf(status)
   const isFinal = status === 'cancelled' || status === 'refunded'
 
@@ -409,7 +409,7 @@ export default function OrdersTab() {
 
   const { toast } = useToast()
   const shouldReduceMotion = useReducedMotion()
-  const { data: orders, isLoading, isFetching } = useAdminOrders(
+  const { data: orders, isLoading } = useAdminOrders(
     statusFilter === 'all' ? undefined : statusFilter,
   )
   const showLoading = useDelayedLoading(isLoading)
@@ -488,7 +488,7 @@ export default function OrdersTab() {
     (order: OrderWithProfile) => {
       setSelectedOrder(order)
       setTrackingNumber(order.tracking_number ?? '')
-      setAdminNotes((order as any).admin_notes ?? '')
+      setAdminNotes((order as OrderWithProfile & { admin_notes?: string }).admin_notes ?? '')
     },
     [],
   )
@@ -566,7 +566,7 @@ export default function OrdersTab() {
                 type="button"
                 onClick={() => openOrder(order)}
                 className={cn(
-                  'w-full text-left p-5 bg-gradient-to-br border rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.08),0_1px_4px_rgba(61,77,51,0.03)] cursor-pointer hover:shadow-[0_6px_28px_-4px_rgba(61,77,51,0.14)] transition-[color,background-color,box-shadow,transform] duration-200 active:scale-[0.98]',
+                  'w-full text-left p-5 bg-gradient-to-br border rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.08),0_1px_4px_rgba(61,77,51,0.03)] cursor-pointer transition-[color,background-color,transform] duration-200 active:scale-[0.98]',
                   CARD_STATUS_GRADIENTS[order.status] ?? 'from-[#f0f4ea] to-[#e8ecdf] border-primary-200/20',
                 )}
               >
@@ -785,7 +785,7 @@ export default function OrdersTab() {
                 placeholder="Internal notes about this order..."
                 rows={2}
               />
-              {adminNotes !== ((selectedOrder as any).admin_notes ?? '') && (
+              {adminNotes !== ((selectedOrder as OrderWithProfile & { admin_notes?: string }).admin_notes ?? '') && (
                 <Button
                   variant="ghost"
                   size="sm"

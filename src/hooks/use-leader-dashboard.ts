@@ -10,13 +10,43 @@ import { supabase } from '@/lib/supabase'
 
 /* ── Dashboard overview ── */
 
+interface UpcomingEvent {
+  id: string
+  title: string
+  date_start: string
+  address: string | null
+  cover_image_url: string | null
+}
+
+interface RecentMember {
+  id: string
+  user_id: string
+  joined_at: string
+  profiles: { display_name: string | null; avatar_url: string | null } | null
+}
+
 export interface LeaderDashboardData {
   activeMembers: number
-  upcomingEvents: any[]
+  upcomingEvents: UpcomingEvent[]
   eventsThisMonth: number
   hoursThisMonth: number
-  recentMembers: any[]
+  recentMembers: RecentMember[]
   attendanceRate: number
+}
+
+interface ImpactRow {
+  hours_total: number
+  trees_planted: number
+  rubbish_kg: number
+  invasive_weeds_pulled: number
+  leaders_trained: number
+  events?: Record<string, unknown>
+}
+
+interface PastEventRow {
+  id: string
+  title?: string
+  date_start?: string
 }
 
 async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboardData> {
@@ -33,9 +63,10 @@ async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboa
     supabase
       .from('collective_members')
       .select('id', { count: 'exact', head: true })
-      .eq('collective_id', collectiveId),
+      .eq('collective_id', collectiveId)
+      .eq('status', 'active'),
     supabase
-      .from('events' as any)
+      .from('events' as never)
       .select('id, title, date_start, address, cover_image_url')
       .eq('collective_id', collectiveId)
       .gte('date_start', now.toISOString())
@@ -49,18 +80,19 @@ async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboa
     supabase
       .from('event_impact')
       .select('hours_total, events!inner(collective_id)')
-      .eq('events.collective_id' as any, collectiveId)
+      .eq('events.collective_id' as never, collectiveId)
       .gte('logged_at', startOfMonth),
     supabase
-      .from('collective_members' as any)
-      .select('id, user_id, created_at, profiles(display_name, avatar_url)')
+      .from('collective_members' as never)
+      .select('id, user_id, joined_at, profiles(display_name, avatar_url)')
       .eq('collective_id', collectiveId)
-      .order('created_at', { ascending: false })
+      .eq('status', 'active')
+      .order('joined_at', { ascending: false })
       .limit(5),
   ])
 
-  const totalHours = ((monthHoursRes.data ?? []) as any[]).reduce(
-    (sum: number, row: any) => sum + (row.hours_total ?? 0),
+  const totalHours = ((monthHoursRes.data ?? []) as unknown as ImpactRow[]).reduce(
+    (sum: number, row) => sum + (row.hours_total ?? 0),
     0,
   )
 
@@ -93,10 +125,10 @@ async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboa
 
   return {
     activeMembers: membersRes.count ?? 0,
-    upcomingEvents: (upcomingEventsRes.data ?? []) as any[],
+    upcomingEvents: (upcomingEventsRes.data ?? []) as unknown as UpcomingEvent[],
     eventsThisMonth: monthEventsRes.count ?? 0,
     hoursThisMonth: Math.round(totalHours),
-    recentMembers: (recentActivityRes.data ?? []) as any[],
+    recentMembers: (recentActivityRes.data ?? []) as unknown as RecentMember[],
     attendanceRate,
   }
 }
@@ -141,11 +173,12 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
     supabase
       .from('event_impact')
       .select('trees_planted, hours_total, rubbish_kg, invasive_weeds_pulled, leaders_trained, events!inner(collective_id)')
-      .eq('events.collective_id' as any, collectiveId),
+      .eq('events.collective_id' as never, collectiveId),
     supabase
       .from('collective_members')
       .select('id', { count: 'exact', head: true })
-      .eq('collective_id', collectiveId),
+      .eq('collective_id', collectiveId)
+      .eq('status', 'active'),
     supabase
       .from('events')
       .select('id', { count: 'exact', head: true })
@@ -159,12 +192,12 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
       .from('events')
       .select('id', { count: 'exact', head: true })
       .eq('collective_id', collectiveId)
-      .in('activity_type', ['shore_cleanup', 'marine_restoration'] as any)
+      .in('activity_type', ['shore_cleanup', 'marine_restoration'] as never)
       .lt('date_start', now.toISOString()),
   ])
 
-  const rows = (impactRes.data ?? []) as any[]
-  const eventIds = (pastEventsRes.data ?? []).map((e: any) => e.id)
+  const rows = (impactRes.data ?? []) as unknown as ImpactRow[]
+  const eventIds = (pastEventsRes.data ?? []).map((e: { id: string }) => e.id)
 
   let attendanceCount = 0
   let attendanceRate = 0
@@ -187,12 +220,12 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
 
   return {
     eventsAttended: attendanceCount,
-    volunteerHours: Math.round(rows.reduce((s: number, r: any) => s + (r.hours_total ?? 0), 0)),
-    treesPlanted: rows.reduce((s: number, r: any) => s + (r.trees_planted ?? 0), 0),
-    invasiveWeedsPulled: rows.reduce((s: number, r: any) => s + (r.invasive_weeds_pulled ?? 0), 0),
-    rubbishKg: Math.round(rows.reduce((s: number, r: any) => s + (r.rubbish_kg ?? 0), 0) * 10) / 10,
+    volunteerHours: Math.round(rows.reduce((s, r) => s + (r.hours_total ?? 0), 0)),
+    treesPlanted: rows.reduce((s, r) => s + (r.trees_planted ?? 0), 0),
+    invasiveWeedsPulled: rows.reduce((s, r) => s + (r.invasive_weeds_pulled ?? 0), 0),
+    rubbishKg: Math.round(rows.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0) * 10) / 10,
     cleanupSites: cleanupRes.count ?? 0,
-    leadersEmpowered: rows.reduce((s: number, r: any) => s + (r.leaders_trained ?? 0), 0),
+    leadersEmpowered: rows.reduce((s, r) => s + (r.leaders_trained ?? 0), 0),
     eventsLogged: rows.length,
     totalMembers: membersRes.count ?? 0,
     totalEvents: eventsRes.count ?? 0,
@@ -223,12 +256,12 @@ async function fetchEngagementScores(collectiveId: string) {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
   const { data: recentEvents } = await supabase
-    .from('events' as any)
+    .from('events' as never)
     .select('id')
     .eq('collective_id', collectiveId)
     .gte('date_start', thirtyDaysAgo)
 
-  const recentEventIds = (recentEvents ?? []).map((e: any) => e.id)
+  const recentEventIds = (recentEvents ?? []).map((e: { id: string }) => e.id)
 
   let activeUserIds = new Set<string>()
   if (recentEventIds.length > 0) {
@@ -245,6 +278,7 @@ async function fetchEngagementScores(collectiveId: string) {
     .from('collective_members')
     .select('user_id, profiles(display_name, avatar_url)')
     .eq('collective_id', collectiveId)
+    .eq('status', 'active')
 
   const members = allMembers ?? []
   const active = members.filter((m) => activeUserIds.has(m.user_id))
@@ -274,14 +308,14 @@ export function prefetchEngagementScores(queryClient: QueryClient, collectiveId:
 
 async function fetchPendingItems(collectiveId: string) {
   const { data: pastEvents } = await supabase
-    .from('events' as any)
+    .from('events' as never)
     .select('id, title, date_start')
     .eq('collective_id', collectiveId)
     .lt('date_start', new Date().toISOString())
     .order('date_start', { ascending: false })
     .limit(10)
 
-  const events = (pastEvents ?? []) as any[]
+  const events = (pastEvents ?? []) as unknown as PastEventRow[]
   if (!events.length) return []
 
   const { data: loggedEvents } = await supabase
@@ -289,13 +323,13 @@ async function fetchPendingItems(collectiveId: string) {
     .select('event_id')
     .in(
       'event_id',
-      events.map((e: any) => e.id),
+      events.map((e) => e.id),
     )
 
-  const loggedIds = new Set(((loggedEvents ?? []) as any[]).map((l: any) => l.event_id))
+  const loggedIds = new Set(((loggedEvents ?? []) as unknown as { event_id: string }[]).map((l) => l.event_id))
   return events
-    .filter((e: any) => !loggedIds.has(e.id))
-    .map((e: any) => ({
+    .filter((e) => !loggedIds.has(e.id))
+    .map((e) => ({
       id: e.id,
       type: 'impact_not_logged' as const,
       message: `Impact not logged for "${e.title}"`,
@@ -322,6 +356,12 @@ export function prefetchPendingItems(queryClient: QueryClient, collectiveId: str
 
 /* ── Calendar ── */
 
+interface CalendarEvent {
+  id: string
+  title: string
+  date_start: string
+}
+
 export function useEventCalendar(collectiveId: string | undefined, month: Date) {
   return useQuery({
     queryKey: ['leader-calendar', collectiveId, month.toISOString()],
@@ -332,13 +372,13 @@ export function useEventCalendar(collectiveId: string | undefined, month: Date) 
       const end = new Date(month.getFullYear(), month.getMonth() + 1, 0)
 
       const { data } = await supabase
-        .from('events' as any)
+        .from('events' as never)
         .select('id, title, date_start')
         .eq('collective_id', collectiveId)
         .gte('date_start', start.toISOString())
         .lte('date_start', end.toISOString())
 
-      return (data ?? []) as any[]
+      return (data ?? []) as unknown as CalendarEvent[]
     },
     enabled: !!collectiveId,
     staleTime: 5 * 60 * 1000,

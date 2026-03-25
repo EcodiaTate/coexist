@@ -80,6 +80,7 @@ export function useTimelineRule(templateId: string | undefined) {
     queryFn: async () => {
       if (!templateId) return null
       const { data, error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from('timeline_rules' as any)
         .select('*')
         .eq('template_id', templateId)
@@ -98,6 +99,7 @@ export function useUpsertTimelineRule() {
     mutationFn: async (input: TimelineRuleInput) => {
       const label = buildDisplayLabel(input)
       const { data, error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from('timeline_rules' as any)
         .upsert(
           {
@@ -129,6 +131,7 @@ export function useDeleteTimelineRule() {
   return useMutation({
     mutationFn: async (templateId: string) => {
       const { error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from('timeline_rules' as any)
         .delete()
         .eq('template_id', templateId)
@@ -159,6 +162,7 @@ export async function resolveAndGenerateDynamicInstances(
 
   // 1. Fetch all active templates that use dynamic timeline
   const { data: templates } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from('task_templates' as any)
     .select('*')
     .eq('is_active', true)
@@ -168,20 +172,21 @@ export async function resolveAndGenerateDynamicInstances(
   if (!templates?.length) return
 
   // 2. Fetch timeline rules for these templates
-  const templateIds = (templates as any[]).map((t) => t.id)
+  const templateIds = (templates as Record<string, unknown>[]).map((t) => t.id as string)
   const { data: rules } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .from('timeline_rules' as any)
     .select('*')
     .in('template_id', templateIds)
 
   if (!rules?.length) return
 
-  const ruleMap = new Map((rules as any[]).map((r) => [r.template_id, r]))
+  const ruleMap = new Map((rules as Record<string, unknown>[]).map((r) => [r.template_id as string, r]))
 
   // 3. For each template + collective combo, find matching events
   const now = new Date()
 
-  for (const template of templates as any[]) {
+  for (const template of templates as Record<string, unknown>[]) {
     const rule = ruleMap.get(template.id)
     if (!rule) continue
 
@@ -226,10 +231,14 @@ export async function resolveAndGenerateDynamicInstances(
         dueDate.setDate(dueDate.getDate() + rule.offset_days)
         dueDate.setHours(23, 59, 59, 999)
 
+        // Skip if due date is already in the past — no point creating overdue tasks
+        if (dueDate < now) continue
+
         const periodKey = `event:${event.id}`
 
-        // Upsert — deduplication by (template_id, collective_id, period_key)
+        // Use ignoreDuplicates to avoid overwriting completed/skipped instances
         await supabase
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           .from('task_instances' as any)
           .upsert(
             {
@@ -240,7 +249,7 @@ export async function resolveAndGenerateDynamicInstances(
               period_key: periodKey,
               status: 'pending',
             },
-            { onConflict: 'template_id,collective_id,period_key' },
+            { onConflict: 'template_id,collective_id,period_key', ignoreDuplicates: true },
           )
       }
     }

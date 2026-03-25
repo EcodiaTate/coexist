@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Check, X } from 'lucide-react'
+import { Input } from '@/components/input'
 import { cn } from '@/lib/cn'
 import type { DevQuizQuestion, DevQuizOption } from '@/hooks/use-admin-development'
 
@@ -99,7 +100,7 @@ export function QuizQuestionCard({
                 onClick={() => handleOptionClick(opt.id)}
                 disabled={disabled || submitted}
                 className={cn(
-                  'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium transition-all border-2',
+                  'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium transition-transform border-2',
                   state === 'default' && 'border-primary-200 bg-white text-primary-700 hover:border-primary-300 hover:bg-primary-50',
                   state === 'selected' && 'border-primary-500 bg-primary-50 text-primary-800',
                   state === 'correct' && 'border-moss-400 bg-moss-50 text-moss-800',
@@ -130,13 +131,7 @@ export function QuizQuestionCard({
 
       {/* Short answer */}
       {isText && (
-        <textarea
-          className="w-full min-h-[100px] rounded-xl border-2 border-primary-200 bg-white px-4 py-3 text-sm text-primary-800 placeholder:text-primary-400 focus:outline-none focus:ring-2 focus:ring-primary-300 resize-y"
-          value={textInput}
-          onChange={(e) => setTextInput(e.target.value)}
-          placeholder="Type your answer..."
-          disabled={disabled || submitted}
-        />
+        <Input type="textarea" value={textInput} onChange={(e) => setTextInput(e.target.value)} placeholder="Type your answer..." disabled={disabled || submitted} rows={4} />
       )}
 
       {/* Submit button */}
@@ -146,7 +141,7 @@ export function QuizQuestionCard({
           onClick={handleSubmit}
           disabled={!canSubmit || disabled}
           className={cn(
-            'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all',
+            'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-transform',
             canSubmit
               ? 'bg-primary-600 text-white hover:bg-primary-700 active:scale-[0.98]'
               : 'bg-primary-200 text-primary-400 cursor-not-allowed',

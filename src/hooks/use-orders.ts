@@ -34,6 +34,7 @@ export function useCreateMerchCheckout() {
           shipping_address: params.shippingAddress,
           promo_code_id: cart.promoCode?.id ?? null,
           subtotal_cents: cart.subtotalCents(),
+          member_discount_cents: cart.memberDiscountCents(),
           discount_cents: cart.discountCents(),
           shipping_cents: cart.shippingCents(),
           total_cents: cart.totalCents(),
@@ -142,6 +143,7 @@ export function useRequestReturn() {
     mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
       if (!user) throw new Error('Must be signed in')
       const { error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from('return_requests' as any)
         .insert({ order_id: orderId, reason, user_id: user.id })
       if (error) throw error
@@ -176,6 +178,7 @@ export function useMyReturns() {
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .from('return_requests' as any)
         .select('*, order:merch_orders(id, status, total, created_at)')
         .eq('user_id', user!.id)

@@ -56,6 +56,7 @@ const baseTabs: Tab[] = [
   },
 ]
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const MORE_TAB: Tab = {
   key: 'more',
   label: 'More',

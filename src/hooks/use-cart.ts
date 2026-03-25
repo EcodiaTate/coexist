@@ -112,12 +112,14 @@ export const useCart = create<CartState>()(
         if (!promo) return 0
         // Promo applies after member discount
         const subtotal = get().subtotalCents() - get().memberDiscountCents()
-        if (promo.min_order_cents && subtotal < promo.min_order_cents) return 0
+        // min_order_amount is in dollars (DB numeric), convert to cents for comparison
+        if (promo.min_order_amount && subtotal < Math.round(promo.min_order_amount * 100)) return 0
         switch (promo.type) {
           case 'percentage':
             return Math.round(subtotal * (promo.value / 100))
           case 'flat':
-            return Math.min(promo.value, subtotal)
+            // value is in dollars (DB numeric), convert to cents
+            return Math.min(Math.round(promo.value * 100), subtotal)
           case 'free_shipping':
             return 0
           default:
@@ -127,11 +129,12 @@ export const useCart = create<CartState>()(
 
       shippingCents: () => {
         const { shippingConfig, promoCode } = get()
-        const subtotal = get().subtotalCents()
         if (promoCode?.type === 'free_shipping') return 0
+        // Free-shipping threshold applies to the amount after discounts
+        const afterDiscounts = get().subtotalCents() - get().memberDiscountCents() - get().discountCents()
         if (
           shippingConfig.free_shipping_threshold_cents &&
-          subtotal >= shippingConfig.free_shipping_threshold_cents
+          afterDiscounts >= shippingConfig.free_shipping_threshold_cents
         )
           return 0
         return shippingConfig.flat_rate_cents

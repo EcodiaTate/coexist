@@ -8,7 +8,6 @@ import {
   Users,
   Megaphone,
   TreePine,
-  CheckCircle2,
   FileText,
   MapPin,
 } from 'lucide-react'
@@ -173,7 +172,7 @@ export default function LeadACollectivePage() {
       }
 
       const { error } = await (supabase
-        .from as any)('collective_applications')
+        .from as unknown as (table: string) => { insert: (data: Record<string, unknown>) => Promise<{ error: unknown }> })('collective_applications')
         .insert({
           first_name: firstName.trim(),
           last_name: lastName.trim(),
@@ -475,25 +474,15 @@ export default function LeadACollectivePage() {
           </div>
           <div className="p-5 space-y-4">
 
-          <div>
-            <label className="block text-[13px] font-medium text-primary-700 mb-1.5">
-              Why do you want to volunteer with Co-Exist's core team? <span className="text-error">*</span>
-            </label>
-            <textarea
-              value={whyVolunteer}
-              onChange={(e) => setWhyVolunteer(e.target.value)}
-              required
-              rows={4}
-              className={cn(
-                'w-full rounded-xl border border-primary-200/60 bg-primary-50',
-                'px-3.5 py-2.5 text-[15px] text-primary-900',
-                'placeholder:text-primary-300',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
-                'resize-none',
-              )}
-              placeholder="Tell us about your passion for conservation and community..."
-            />
-          </div>
+          <Input
+            type="textarea"
+            label="Why do you want to volunteer with Co-Exist's core team?"
+            value={whyVolunteer}
+            onChange={(e) => setWhyVolunteer(e.target.value)}
+            required
+            rows={4}
+            placeholder="Tell us about your passion for conservation and community..."
+          />
 
           {/* Roles */}
           <div className="rounded-xl bg-primary-50 border border-primary-200/40 p-4">
@@ -621,17 +610,12 @@ export default function LeadACollectivePage() {
           </div>
           <div className="p-5 space-y-4">
 
-          <textarea
+          <Input
+            type="textarea"
+            label="Additional Info"
             value={additionalInfo}
             onChange={(e) => setAdditionalInfo(e.target.value)}
             rows={3}
-            className={cn(
-              'w-full rounded-xl border border-primary-200/50 bg-white',
-              'px-3.5 py-2.5 text-[15px] text-primary-900',
-              'placeholder:text-primary-300',
-              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:border-transparent',
-              'resize-none',
-            )}
             placeholder="Anything else you'd like to share?"
           />
 

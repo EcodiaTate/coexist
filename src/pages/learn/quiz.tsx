@@ -9,9 +9,14 @@ import {
   RotateCcw,
   Check,
   X,
+  CircleDot,
+  Target,
 } from 'lucide-react'
+import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
+import { ProgressRing } from '@/components/development/progress-ring'
 import { useToast } from '@/components/toast'
 import { QuizQuestionCard } from '@/components/development/quiz-question-card'
 import { cn } from '@/lib/cn'
@@ -33,34 +38,67 @@ export default function LearnQuizPage() {
 
   const { data: quiz, isLoading: quizLoading } = useDevQuiz(quizId)
   const { data: questions = [], isLoading: questionsLoading } = useDevQuizQuestions(quizId)
-  const { data: attempts = [] } = useQuizAttempts(quizId)
+  const { data: _attempts = [] } = useQuizAttempts(quizId)
   const submitQuiz = useSubmitQuiz()
 
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState<Map<string, { selectedOptionIds: string[]; textResponse?: string }>>(new Map())
   const [showResults, setShowResults] = useState(false)
   const [results, setResults] = useState<{ score: number; passed: boolean; total: number; earned: number } | null>(null)
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null)
   const timerRef = useRef(0)
+  const autoSubmitRef = useRef(false)
 
-  // Timer
+  // Check if max attempts exceeded
+  const attempts = _attempts ?? []
+  const maxAttempts = quiz?.max_attempts ?? 0 // 0 = unlimited
+  const attemptsExhausted = maxAttempts > 0 && attempts.length >= maxAttempts
+  const previouslyPassed = attempts.some((a) => a.passed)
+
+  // Time tracking + time limit countdown
+  const limitSec = quiz?.time_limit_minutes ? quiz.time_limit_minutes * 60 : null
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initialising from derived prop, runs once
+    if (limitSec) setTimeRemaining(limitSec)
+  }, [limitSec])
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!document.hidden) timerRef.current += 1
+      if (!document.hidden) {
+        timerRef.current += 1
+        if (limitSec) {
+          setTimeRemaining((prev) => {
+            if (prev === null) return null
+            const next = prev - 1
+            if (next <= 0) autoSubmitRef.current = true
+            return Math.max(0, next)
+          })
+        }
+      }
     }, 1000)
     return () => clearInterval(interval)
-  }, [])
+  }, [limitSec])
 
-  // Randomize if needed
+  // Use a stable random seed for consistent shuffle across re-renders
+  const [shuffleSeed] = useState(() => Math.random())
   const orderedQuestions = useMemo(() => {
-    if (quiz?.randomize_questions) {
-      return [...questions].sort(() => Math.random() - 0.5)
+    if (quiz?.randomize_questions && questions.length > 1) {
+      // Fisher-Yates shuffle with seeded PRNG
+      const arr = [...questions]
+      let seed = shuffleSeed * 2147483647
+      const nextSeed = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646 }
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(nextSeed() * (i + 1))
+        ;[arr[i], arr[j]] = [arr[j], arr[i]]
+      }
+      return arr
     }
     return questions
-  }, [questions, quiz?.randomize_questions])
+  }, [questions, quiz?.randomize_questions, shuffleSeed])
 
   const currentQuestion = orderedQuestions[currentIndex]
   const isLastQuestion = currentIndex === orderedQuestions.length - 1
   const allAnswered = answers.size === orderedQuestions.length
+  const progressPct = orderedQuestions.length > 0 ? Math.round(((currentIndex + 1) / orderedQuestions.length) * 100) : 0
 
   const handleAnswer = useCallback(
     (selectedOptionIds: string[], textResponse?: string) => {
@@ -75,63 +113,34 @@ export default function LearnQuizPage() {
   )
 
   const handleNext = () => {
-    if (isLastQuestion && allAnswered) {
-      handleSubmit()
-    } else if (!isLastQuestion) {
-      setCurrentIndex((i) => i + 1)
-    }
+    if (isLastQuestion && allAnswered) handleSubmit()
+    else if (!isLastQuestion) setCurrentIndex((i) => i + 1)
   }
 
   const handleSubmit = useCallback(async () => {
     if (!quiz || !quizId) return
-
     const totalPoints = orderedQuestions.reduce((sum, q) => sum + (q.points ?? 1), 0)
     let earnedPoints = 0
-
     const responses = orderedQuestions.map((q) => {
       const answer = answers.get(q.id)
       const selectedIds = answer?.selectedOptionIds ?? []
       const options = q.options ?? []
-
       let isCorrect = false
       if (q.question_type === 'short_answer') {
-        // Short answer graded as always correct for now (admin reviews manually)
         isCorrect = true
       } else {
         const correctIds = new Set(options.filter((o) => o.is_correct).map((o) => o.id))
         const selectedSet = new Set(selectedIds)
-        isCorrect =
-          correctIds.size === selectedSet.size &&
-          [...correctIds].every((id) => selectedSet.has(id))
+        isCorrect = correctIds.size === selectedSet.size && [...correctIds].every((id) => selectedSet.has(id))
       }
-
       const pts = isCorrect ? (q.points ?? 1) : 0
       earnedPoints += pts
-
-      return {
-        question_id: q.id,
-        selected_option_ids: selectedIds,
-        text_response: answer?.textResponse,
-        is_correct: isCorrect,
-        points_earned: pts,
-      }
+      return { question_id: q.id, selected_option_ids: selectedIds, text_response: answer?.textResponse, is_correct: isCorrect, points_earned: pts }
     })
-
     const scorePct = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0
     const passed = scorePct >= (quiz.pass_score ?? 70)
-
     try {
-      await submitQuiz.mutateAsync({
-        quiz_id: quizId,
-        module_id: moduleId,
-        score_pct: scorePct,
-        points_earned: earnedPoints,
-        points_total: totalPoints,
-        passed,
-        time_spent_sec: timerRef.current,
-        responses,
-      })
-
+      await submitQuiz.mutateAsync({ quiz_id: quizId, module_id: moduleId, score_pct: scorePct, points_earned: earnedPoints, points_total: totalPoints, passed, time_spent_sec: timerRef.current, responses })
       setResults({ score: scorePct, passed, total: totalPoints, earned: earnedPoints })
       setShowResults(true)
     } catch {
@@ -139,182 +148,247 @@ export default function LearnQuizPage() {
     }
   }, [quiz, quizId, moduleId, orderedQuestions, answers, submitQuiz, toast])
 
+  // Auto-submit when time runs out
+  useEffect(() => {
+    if (autoSubmitRef.current && !showResults) {
+      autoSubmitRef.current = false
+      toast.warning('Time is up! Submitting your answers...')
+      handleSubmit()
+    }
+  }, [timeRemaining, showResults, handleSubmit, toast])
+
+  const formatTime = (sec: number) => {
+    const m = Math.floor(sec / 60)
+    const s = sec % 60
+    return `${m}:${s.toString().padStart(2, '0')}`
+  }
+
   const isLoading = quizLoading || questionsLoading
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6 pb-20">
-        <Skeleton className="h-8 w-48 rounded-xl" />
-        <Skeleton className="h-64 rounded-2xl" />
-      </div>
+      <Page header={<Header title="" back />}>
+        <div className="max-w-2xl mx-auto space-y-6 pb-20 pt-4">
+          <Skeleton className="h-10 w-48 rounded-xl" />
+          <Skeleton className="h-3 rounded-full" />
+          <Skeleton className="h-64 rounded-2xl" />
+        </div>
+      </Page>
     )
   }
 
   if (!quiz) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <p className="text-primary-500">Quiz not found</p>
-        <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mt-3">
-          Go Back
-        </Button>
-      </div>
+      <Page header={<Header title="" back />}>
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-100/60 mb-4">
+            <CircleDot size={24} strokeWidth={1.5} className="text-primary-400" />
+          </div>
+          <p className="text-[15px] font-bold text-primary-700">Quiz not found</p>
+        </div>
+      </Page>
     )
   }
 
-  // Results screen
+  /* ── Attempts exhausted screen ── */
+  if (attemptsExhausted && !showResults) {
+    const bestAttempt = attempts.reduce((best, a) => (a.score_pct > best.score_pct ? a : best), attempts[0])
+    return (
+      <Page header={<Header title="" back />}>
+        <div className="max-w-2xl mx-auto pb-20 pt-4 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-bark-100 mb-5">
+            <RotateCcw size={28} className="text-bark-500" />
+          </div>
+          <h2 className="font-heading text-xl font-bold text-primary-800 mb-2">
+            {previouslyPassed ? 'Quiz Passed' : 'No Attempts Remaining'}
+          </h2>
+          <p className="text-[13px] text-primary-500 mb-6">
+            {previouslyPassed
+              ? `You passed with ${bestAttempt.score_pct}%. Well done!`
+              : `You've used all ${maxAttempts} attempt${maxAttempts === 1 ? '' : 's'}. Your best score was ${bestAttempt.score_pct}%.`}
+          </p>
+          <Button variant="primary" size="md" onClick={() => moduleId ? navigate(`/learn/module/${moduleId}`) : navigate('/learn')}>
+            {previouslyPassed ? 'Continue' : 'Back to Learning'}
+          </Button>
+        </div>
+      </Page>
+    )
+  }
+
+  /* ── Results screen ── */
   if (showResults && results) {
     return (
-      <div className="max-w-2xl mx-auto pb-20">
+      <Page header={<Header title="" back />}>
+      <div className="max-w-2xl mx-auto pb-20 pt-4">
         <motion.div
           initial={rm ? {} : { opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="rounded-2xl bg-gradient-to-br from-white to-primary-50/40 border border-white/60 shadow-sm p-8 text-center"
+          className="text-center"
         >
-          <div
+          {/* Result icon */}
+          <motion.div
+            initial={rm ? {} : { scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.15, type: 'spring', stiffness: 300, damping: 15 }}
             className={cn(
-              'inline-flex items-center justify-center w-16 h-16 rounded-full mb-4',
-              results.passed ? 'bg-moss-100' : 'bg-bark-100',
+              'inline-flex items-center justify-center w-20 h-20 rounded-full mb-6',
+              results.passed
+                ? 'bg-gradient-to-br from-moss-100 to-moss-200'
+                : 'bg-gradient-to-br from-bark-100 to-bark-200',
             )}
           >
             {results.passed ? (
-              <Trophy size={28} className="text-moss-600" />
+              <Trophy size={36} className="text-moss-600" />
             ) : (
-              <RotateCcw size={28} className="text-bark-600" />
+              <RotateCcw size={36} className="text-bark-600" />
             )}
-          </div>
+          </motion.div>
 
           <h2 className="font-heading text-2xl font-bold text-primary-800 mb-1">
             {results.passed ? 'Congratulations!' : 'Keep Going!'}
           </h2>
-          <p className="text-sm text-primary-500 mb-6">
+          <p className="text-[13px] text-primary-500 mb-8">
             {results.passed
               ? 'You passed the quiz successfully'
               : `You need ${quiz.pass_score}% to pass. Try again!`}
           </p>
 
-          {/* Score */}
-          <div className="inline-flex items-center gap-4 px-6 py-4 rounded-2xl bg-white border border-primary-100 mb-6">
+          {/* Score card */}
+          <div className="inline-flex items-center gap-5 px-7 py-5 rounded-2xl bg-white border border-primary-100 shadow-sm mb-8">
             <div className="text-center">
-              <p className={cn('text-3xl font-bold tabular-nums', results.passed ? 'text-moss-600' : 'text-bark-600')}>
+              <p className={cn('text-4xl font-bold tabular-nums', results.passed ? 'text-moss-600' : 'text-bark-600')}>
                 {results.score}%
               </p>
-              <p className="text-xs text-primary-400 mt-0.5">Score</p>
+              <p className="text-[11px] text-primary-400 font-medium mt-1">Score</p>
             </div>
-            <div className="w-px h-10 bg-primary-200" />
+            <div className="w-px h-12 bg-primary-100" />
             <div className="text-center">
-              <p className="text-3xl font-bold text-primary-700 tabular-nums">
-                {results.earned}/{results.total}
+              <p className="text-4xl font-bold text-primary-700 tabular-nums">
+                {results.earned}<span className="text-primary-300">/{results.total}</span>
               </p>
-              <p className="text-xs text-primary-400 mt-0.5">Points</p>
+              <p className="text-[11px] text-primary-400 font-medium mt-1">Points</p>
             </div>
           </div>
 
           {/* Per-question breakdown */}
-          <div className="space-y-2 text-left mb-6 max-h-60 overflow-y-auto">
-            {orderedQuestions.map((q, i) => {
-              const answer = answers.get(q.id)
-              const selectedIds = new Set(answer?.selectedOptionIds ?? [])
-              const correctIds = new Set((q.options ?? []).filter((o) => o.is_correct).map((o) => o.id))
-              const isCorrect =
-                q.question_type === 'short_answer' ||
-                (correctIds.size === selectedIds.size && [...correctIds].every((id) => selectedIds.has(id)))
-
-              return (
-                <div key={q.id} className="flex items-start gap-2 py-2 border-b border-primary-100 last:border-0">
-                  <div
-                    className={cn(
-                      'flex items-center justify-center w-5 h-5 rounded-full shrink-0 mt-0.5',
-                      isCorrect ? 'bg-moss-100 text-moss-600' : 'bg-red-100 text-red-500',
-                    )}
-                  >
-                    {isCorrect ? <Check size={10} /> : <X size={10} />}
+          <div className="rounded-2xl bg-primary-50/40 border border-primary-100 p-4 mb-8 text-left max-h-72 overflow-y-auto">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-primary-400 mb-3">Question Breakdown</p>
+            <div className="space-y-1.5">
+              {orderedQuestions.map((q, i) => {
+                const answer = answers.get(q.id)
+                const selectedIds = new Set(answer?.selectedOptionIds ?? [])
+                const correctIds = new Set((q.options ?? []).filter((o) => o.is_correct).map((o) => o.id))
+                const isCorrect = q.question_type === 'short_answer' || (correctIds.size === selectedIds.size && [...correctIds].every((id) => selectedIds.has(id)))
+                return (
+                  <div key={q.id} className={cn('flex items-center gap-2.5 py-2.5 px-3 rounded-xl', isCorrect ? 'bg-moss-50/60' : 'bg-white')}>
+                    <div className={cn('flex items-center justify-center w-6 h-6 rounded-full shrink-0', isCorrect ? 'bg-moss-100 text-moss-600' : 'bg-error-100 text-error-500')}>
+                      {isCorrect ? <Check size={11} /> : <X size={11} />}
+                    </div>
+                    <p className="text-[13px] text-primary-700 flex-1 min-w-0 line-clamp-1">Q{i + 1}: {q.question_text}</p>
+                    <span className="text-[11px] text-primary-400 tabular-nums shrink-0 font-bold">
+                      {isCorrect ? q.points ?? 1 : 0}/{q.points ?? 1}
+                    </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-primary-700 line-clamp-1">
-                      Q{i + 1}: {q.question_text}
-                    </p>
-                  </div>
-                  <span className="text-xs text-primary-400 tabular-nums shrink-0">
-                    {isCorrect ? q.points ?? 1 : 0}/{q.points ?? 1}
-                  </span>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
 
           {/* Actions */}
           <div className="flex items-center justify-center gap-3">
-            {!results.passed && (
+            {!results.passed && !(maxAttempts > 0 && attempts.length >= maxAttempts) && (
               <Button
                 variant="secondary"
                 size="md"
                 icon={<RotateCcw size={14} />}
                 onClick={() => {
-                  setShowResults(false)
-                  setResults(null)
-                  setCurrentIndex(0)
-                  setAnswers(new Map())
-                  timerRef.current = 0
+                  setShowResults(false); setResults(null); setCurrentIndex(0); setAnswers(new Map()); timerRef.current = 0; autoSubmitRef.current = false
+                  if (quiz?.time_limit_minutes) setTimeRemaining(quiz.time_limit_minutes * 60)
                 }}
               >
-                Try Again
+                Try Again{maxAttempts > 0 ? ` (${maxAttempts - attempts.length} left)` : ''}
               </Button>
             )}
             <Button
               variant="primary"
               size="md"
-              onClick={() => {
-                if (moduleId) {
-                  navigate(`/learn/complete?type=module&id=${moduleId}`)
-                } else {
-                  navigate('/learn')
-                }
-              }}
+              onClick={() => moduleId ? navigate(`/learn/complete?type=module&id=${moduleId}`) : navigate('/learn')}
             >
               {results.passed ? 'Continue' : 'Back to Learning'}
             </Button>
           </div>
         </motion.div>
       </div>
+      </Page>
     )
   }
 
-  // Quiz questions
+  /* ── Quiz taking ── */
   return (
+    <Page header={<Header title="" back />}>
     <div className="max-w-2xl mx-auto pb-20">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="text-primary-500 hover:text-primary-700 transition-colors"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-primary-800">{quiz.title}</p>
-          <p className="text-xs text-primary-400">
-            Question {currentIndex + 1} of {orderedQuestions.length}
-          </p>
-        </div>
-        {quiz.time_limit_minutes && (
-          <div className="flex items-center gap-1 text-xs text-primary-500">
-            <Clock size={12} />
-            {quiz.time_limit_minutes}m
+      {/* ── Sticky header ── */}
+      <div className="sticky top-0 z-20 bg-white/95 border-b border-primary-100/60 -mx-4 px-4 py-3 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-bold text-primary-800 truncate">{quiz.title}</p>
+            <p className="text-[11px] text-primary-400 font-medium">
+              Question {currentIndex + 1} of {orderedQuestions.length}
+            </p>
           </div>
-        )}
+          <div className="flex items-center gap-2 shrink-0">
+            {timeRemaining !== null ? (
+              <span className={cn(
+                'flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg tabular-nums',
+                timeRemaining <= 60 ? 'text-error-600 bg-error-50 animate-pulse' : 'text-primary-400 bg-primary-50',
+              )}>
+                <Clock size={11} />
+                {formatTime(timeRemaining)}
+              </span>
+            ) : quiz.time_limit_minutes ? (
+              <span className="flex items-center gap-1 text-[11px] font-bold text-primary-400 bg-primary-50 px-2 py-1 rounded-lg">
+                <Clock size={11} />
+                {quiz.time_limit_minutes}m
+              </span>
+            ) : null}
+            <ProgressRing percent={progressPct} size={36} strokeWidth={3.5} />
+          </div>
+        </div>
+        {/* Progress bar */}
+        <div className="mt-2.5 h-1 rounded-full bg-primary-100 overflow-hidden">
+          <motion.div
+            className="h-full rounded-full bg-gradient-to-r from-primary-500 to-moss-500"
+            animate={{ width: `${progressPct}%` }}
+            transition={{ duration: 0.25 }}
+          />
+        </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="h-1.5 rounded-full bg-primary-100 overflow-hidden mb-8">
-        <motion.div
-          className="h-full rounded-full bg-primary-500"
-          animate={{ width: `${((currentIndex + 1) / orderedQuestions.length) * 100}%` }}
-          transition={{ duration: 0.25 }}
-        />
+      {/* ── Question dots ── */}
+      <div className="flex gap-1.5 mb-6 overflow-x-auto pb-1 scrollbar-none">
+        {orderedQuestions.map((q, i) => {
+          const answered = answers.has(q.id)
+          return (
+            <button
+              key={q.id}
+              type="button"
+              onClick={() => setCurrentIndex(i)}
+              className={cn(
+                'w-8 h-8 rounded-lg text-[11px] font-bold tabular-nums transition-colors shrink-0',
+                i === currentIndex
+                  ? 'bg-primary-600 text-white shadow-sm'
+                  : answered
+                    ? 'bg-moss-100 text-moss-700'
+                    : 'bg-primary-50 text-primary-400 hover:bg-primary-100',
+              )}
+            >
+              {i + 1}
+            </button>
+          )
+        })}
       </div>
 
-      {/* Question */}
+      {/* ── Question ── */}
       <AnimatePresence mode="wait">
         {currentQuestion && (
           <motion.div
@@ -324,17 +398,13 @@ export default function LearnQuizPage() {
             exit={rm ? {} : { opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
           >
-            <QuizQuestionCard
-              question={currentQuestion}
-              onAnswer={handleAnswer}
-              showFeedback
-            />
+            <QuizQuestionCard question={currentQuestion} onAnswer={handleAnswer} showFeedback />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Navigation */}
-      <div className="flex items-center justify-between mt-8">
+      {/* ── Navigation ── */}
+      <div className="flex items-center justify-between mt-8 gap-3">
         <Button
           variant="ghost"
           size="sm"
@@ -347,7 +417,7 @@ export default function LearnQuizPage() {
         <Button
           variant="primary"
           size="sm"
-          icon={<ArrowRight size={14} />}
+          icon={isLastQuestion && allAnswered ? <Target size={14} /> : <ArrowRight size={14} />}
           onClick={handleNext}
           disabled={!answers.has(currentQuestion?.id ?? '')}
           loading={submitQuiz.isPending}
@@ -356,5 +426,6 @@ export default function LearnQuizPage() {
         </Button>
       </div>
     </div>
+    </Page>
   )
 }

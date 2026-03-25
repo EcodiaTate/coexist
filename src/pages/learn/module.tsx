@@ -1,9 +1,12 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowLeft, CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Clock, BookOpen, Sparkles } from 'lucide-react'
+import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
+import { ProgressRing } from '@/components/development/progress-ring'
 import { useToast } from '@/components/toast'
 import { ContentBlockRenderer } from '@/components/development/content-block-renderer'
 import { cn } from '@/lib/cn'
@@ -26,30 +29,22 @@ export default function LearnModulePage() {
   const { data: progress } = useModuleProgress(moduleId)
   const upsertProgress = useUpsertModuleProgress()
 
-  // Track which blocks have been viewed
   const [viewedBlocks, setViewedBlocks] = useState<Set<string>>(new Set())
   const blockRefs = useRef<Map<string, HTMLDivElement>>(new Map())
   const timerRef = useRef<number>(0)
-  const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  // Start time tracking
+  // Time tracking
   useEffect(() => {
     timerRef.current = progress?.time_spent_sec ?? 0
-
     const interval = setInterval(() => {
-      if (!document.hidden) {
-        timerRef.current += 1
-      }
+      if (!document.hidden) timerRef.current += 1
     }, 1000)
-    timerIntervalRef.current = interval
-
     return () => clearInterval(interval)
   }, [progress?.time_spent_sec])
 
   // IntersectionObserver for block viewing
   useEffect(() => {
     if (blocks.length === 0) return
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -67,7 +62,6 @@ export default function LearnModulePage() {
       },
       { threshold: 0.5 },
     )
-
     blockRefs.current.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
   }, [blocks])
@@ -75,28 +69,39 @@ export default function LearnModulePage() {
   // Debounced progress save
   useEffect(() => {
     if (!moduleId || blocks.length === 0) return
-
     const saveInterval = setInterval(() => {
       const pct = Math.round((viewedBlocks.size / blocks.length) * 100)
+      // Find highest sort_order block that's been viewed (for resume position)
       const lastViewed = blocks.filter((b) => viewedBlocks.has(b.id))
-      const lastContentId = lastViewed.length > 0 ? lastViewed[lastViewed.length - 1].id : null
-
+      const lastBlock = lastViewed.length > 0 ? lastViewed[lastViewed.length - 1] : null
       upsertProgress.mutate({
         module_id: moduleId,
         status: pct >= 100 ? 'completed' : 'in_progress',
-        last_content_id: lastContentId,
+        last_content_id: lastBlock?.id ?? null,
+        last_sort_order: lastBlock?.sort_order ?? null,
         progress_pct: pct,
         time_spent_sec: timerRef.current,
       })
     }, 5000)
-
     return () => clearInterval(saveInterval)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- upsertProgress is a stable mutation object
   }, [moduleId, blocks, viewedBlocks])
 
-  // Resume scroll position
+  // Resume scroll — prefer sort_order (survives content re-save), fallback to content_id
   useEffect(() => {
-    if (progress?.last_content_id && blocks.length > 0) {
-      const el = blockRefs.current.get(progress.last_content_id)
+    if (blocks.length === 0 || !progress) return
+    let resumeBlock: typeof blocks[number] | undefined
+    if (progress.last_sort_order !== null && progress.last_sort_order !== undefined) {
+      // Find block at or nearest to the saved sort_order
+      resumeBlock = blocks.find((b) => b.sort_order === progress.last_sort_order)
+        ?? blocks.reduce((nearest, b) =>
+          Math.abs(b.sort_order - progress.last_sort_order!) < Math.abs(nearest.sort_order - progress.last_sort_order!)
+            ? b : nearest, blocks[0])
+    } else if (progress.last_content_id) {
+      resumeBlock = blocks.find((b) => b.id === progress.last_content_id)
+    }
+    if (resumeBlock) {
+      const el = blockRefs.current.get(resumeBlock.id)
       if (el) {
         setTimeout(() => {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -104,7 +109,8 @@ export default function LearnModulePage() {
         }, 300)
       }
     }
-  }, [progress?.last_content_id, blocks.length])
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- toast is stable, only run on resume position change
+  }, [progress?.last_sort_order, progress?.last_content_id, blocks.length])
 
   const handleComplete = useCallback(() => {
     if (!moduleId) return
@@ -122,97 +128,171 @@ export default function LearnModulePage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto space-y-6 pb-20">
-        <Skeleton className="h-8 w-48 rounded-xl" />
-        <Skeleton className="h-4 w-full rounded-xl" />
-        <Skeleton className="h-64 rounded-2xl" />
-        <Skeleton className="h-48 rounded-2xl" />
-      </div>
+      <Page noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent onBack={() => navigate('/learn')} />}>
+        <div className="max-w-3xl mx-auto space-y-6 pb-20 pt-20 px-5">
+          <Skeleton className="h-10 w-64 rounded-xl" />
+          <Skeleton className="h-3 rounded-full" />
+          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-48 rounded-2xl" />
+        </div>
+      </Page>
     )
   }
 
   if (!module) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <p className="text-primary-500">Module not found</p>
-        <Button variant="ghost" size="sm" onClick={() => navigate('/learn')} className="mt-3">
-          Back to My Learning
-        </Button>
-      </div>
+      <Page noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent onBack={() => navigate('/learn')} />}>
+        <div className="flex flex-col items-center justify-center py-32 px-5">
+          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-100/60 mb-4">
+            <BookOpen size={28} strokeWidth={1.5} className="text-primary-400" />
+          </div>
+          <p className="text-[15px] font-bold text-primary-700">Module not found</p>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/learn')} className="mt-3">
+            Back to My Learning
+          </Button>
+        </div>
+      </Page>
     )
   }
 
   return (
-    <div className="max-w-3xl mx-auto pb-24">
-      {/* Sticky header */}
-      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-md border-b border-primary-100 -mx-4 px-4 py-3 mb-6">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/learn')}
-            className="text-primary-500 hover:text-primary-700 transition-colors"
+    <Page noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent onBack={() => navigate('/learn')} />}>
+      <div className="min-h-full bg-gradient-to-b from-amber-50/40 via-white to-primary-50/20">
+        {/* ── Hero header ── */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-amber-600 via-amber-700 to-primary-800">
+          {/* Decorative shapes */}
+          <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/[0.05] pointer-events-none" />
+          <div className="absolute -left-10 bottom-0 w-40 h-40 rounded-full border border-white/[0.08] pointer-events-none" />
+          <div className="absolute right-[20%] bottom-4 w-14 h-14 rounded-full bg-white/[0.06] pointer-events-none" />
+
+          <div
+            className="relative z-10 px-5 sm:px-6 pt-14 pb-10"
+            style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}
           >
-            <ArrowLeft size={18} />
-          </button>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-primary-800 truncate">{module.title}</p>
-            <p className="text-xs text-primary-400">
-              Block {viewedBlocks.size} of {blocks.length}
-            </p>
+            {/* Module title + meta */}
+            <motion.div
+              initial={rm ? {} : { opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35 }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Module</span>
+                {module.estimated_minutes && (
+                  <span className="flex items-center gap-0.5 text-[10px] font-bold text-white/40">
+                    <Clock size={9} />
+                    {module.estimated_minutes} min
+                  </span>
+                )}
+              </div>
+              <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
+                {module.title}
+              </h1>
+              <p className="text-[12px] text-white/40 mt-1.5 capitalize">
+                {module.category.replace(/_/g, ' ')}
+              </p>
+            </motion.div>
+
+            {/* Progress bar in hero */}
+            <motion.div
+              initial={rm ? {} : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="mt-5 flex items-center gap-3"
+            >
+              <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-white/60 to-moss-300"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progressPct}%` }}
+                  transition={{ duration: 0.6, delay: 0.3 }}
+                />
+              </div>
+              <span className="text-[12px] font-bold text-white/70 tabular-nums shrink-0">
+                {viewedBlocks.size}/{blocks.length}
+              </span>
+            </motion.div>
+          </div>
+
+          {/* Wave divider */}
+          <div className="absolute bottom-0 left-0 right-0 z-20">
+            <svg viewBox="0 0 1440 70" preserveAspectRatio="none" className="w-full h-7 sm:h-10 block">
+              <path
+                d="M0,30 C120,28 200,22 320,26 C440,30 520,18 600,20 C680,22 720,14 760,16 L768,6 L774,4 L780,10 C820,18 920,28 1040,24 C1120,20 1200,26 1280,30 C1360,32 1400,28 1440,26 L1440,70 L0,70 Z"
+                className="fill-[#fdf8f0]"
+              />
+            </svg>
           </div>
         </div>
-        {/* Progress bar */}
-        <div className="mt-2 h-1 rounded-full bg-primary-100 overflow-hidden">
-          <motion.div
-            className="h-full rounded-full bg-primary-500"
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPct}%` }}
-            transition={{ duration: 0.3 }}
-          />
+
+        {/* ── Content area ── */}
+        <div className="max-w-3xl mx-auto px-5 sm:px-6 pb-32">
+          {/* Module description card */}
+          {module.description && (
+            <motion.div
+              initial={rm ? {} : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="rounded-2xl bg-gradient-to-br from-white via-white to-amber-50/60 shadow-sm p-5 mb-8 -mt-2"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-300/30">
+                  <BookOpen size={13} className="text-white" />
+                </div>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-amber-600/70">About this module</span>
+              </div>
+              <p className="text-[13px] text-primary-700 leading-relaxed">{module.description}</p>
+            </motion.div>
+          )}
+
+          {/* Content blocks */}
+          <div className="space-y-6">
+            {blocks.map((block, i) => (
+              <motion.div
+                key={block.id}
+                ref={(el) => { if (el) blockRefs.current.set(block.id, el) }}
+                data-block-id={block.id}
+                initial={rm ? {} : { opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: rm ? 0 : Math.min(i * 0.05, 0.4) }}
+                className="rounded-2xl bg-white shadow-sm p-5 sm:p-6"
+              >
+                <ContentBlockRenderer block={block} />
+              </motion.div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Content blocks */}
-      <div className="space-y-8">
-        {blocks.map((block, i) => (
+        {/* ── Sticky complete bar ── */}
+        {blocks.length > 0 && (
           <motion.div
-            key={block.id}
-            ref={(el) => {
-              if (el) blockRefs.current.set(block.id, el)
-            }}
-            data-block-id={block.id}
-            initial={rm ? {} : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: rm ? 0 : i * 0.05 }}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.25 }}
+            className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 border-t border-primary-100/50 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
           >
-            <ContentBlockRenderer block={block} />
+            <div className="max-w-3xl mx-auto flex items-center gap-3 px-5 sm:px-6 py-3">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <ProgressRing percent={progressPct} size={36} strokeWidth={3.5} />
+                <div className="min-w-0">
+                  <p className="text-[12px] font-bold text-primary-800 truncate">{module.title}</p>
+                  <p className="text-[10px] text-primary-400 font-medium">
+                    {viewedBlocks.size} of {blocks.length} blocks viewed
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="primary"
+                size="sm"
+                icon={progressPct >= 100 ? <CheckCircle2 size={15} /> : <Sparkles size={15} />}
+                onClick={handleComplete}
+                className={cn(progressPct < 100 && 'opacity-75')}
+              >
+                {progressPct >= 100 ? 'Complete' : `${progressPct}%`}
+              </Button>
+            </div>
           </motion.div>
-        ))}
+        )}
       </div>
-
-      {/* Complete button */}
-      {blocks.length > 0 && (
-        <motion.div
-          initial={rm ? {} : { opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="sticky bottom-4 mt-8"
-        >
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            icon={<CheckCircle2 size={18} />}
-            onClick={handleComplete}
-            className={cn(
-              'shadow-lg',
-              progressPct < 100 && 'opacity-80',
-            )}
-          >
-            {progressPct >= 100 ? 'Complete Module' : `Continue (${progressPct}%)`}
-          </Button>
-        </motion.div>
-      )}
-    </div>
+    </Page>
   )
 }

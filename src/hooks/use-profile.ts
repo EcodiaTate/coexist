@@ -80,19 +80,26 @@ export function useProfileStats(userId?: string) {
       let totalWildlifeSightings = 0
 
       if (eventIds.length > 0) {
-        const { data: impacts } = await supabase
-          .from('event_impact')
-          .select('trees_planted, hours_total, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings')
-          .in('event_id', eventIds)
+        // Batch in chunks to avoid URL length limits
+        type ImpactRow = { trees_planted: number | null; hours_total: number | null; rubbish_kg: number | null; area_restored_sqm: number | null; native_plants: number | null; wildlife_sightings: number | null }
+        const impactRows: ImpactRow[] = []
+        for (let i = 0; i < eventIds.length; i += 50) {
+          const chunk = eventIds.slice(i, i + 50)
+          const { data } = await supabase
+            .from('event_impact')
+            .select('trees_planted, hours_total, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings')
+            .in('event_id', chunk)
+          if (data) impactRows.push(...data)
+        }
 
-        if (impacts) {
-          for (const impact of impacts) {
-            totalTreesPlanted += impact.trees_planted
-            totalHours += impact.hours_total
-            totalRubbishKg += impact.rubbish_kg
-            totalAreaSqm += impact.area_restored_sqm
-            totalNativePlants += impact.native_plants
-            totalWildlifeSightings += impact.wildlife_sightings
+        if (impactRows.length > 0) {
+          for (const impact of impactRows) {
+            totalTreesPlanted += impact.trees_planted ?? 0
+            totalHours += impact.hours_total ?? 0
+            totalRubbishKg += impact.rubbish_kg ?? 0
+            totalAreaSqm += impact.area_restored_sqm ?? 0
+            totalNativePlants += impact.native_plants ?? 0
+            totalWildlifeSightings += impact.wildlife_sightings ?? 0
           }
         }
       }
@@ -181,7 +188,7 @@ export function useUpdateProfile() {
     onMutate: async (updates) => {
       await queryClient.cancelQueries({ queryKey: ['profile', user?.id] })
       const previous = queryClient.getQueryData(['profile', user?.id])
-      queryClient.setQueryData(['profile', user?.id], (old: any) => old ? { ...old, ...updates } : old)
+      queryClient.setQueryData(['profile', user?.id], (old: Record<string, unknown> | undefined) => old ? { ...old, ...updates } : old)
       return { previous }
     },
     onError: (_err, _, context) => {

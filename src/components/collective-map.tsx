@@ -768,7 +768,6 @@ export function CollectiveMap({ className }: CollectiveMapProps) {
             <div
               className={cn(
                 'flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5',
-                '[mask-image:linear-gradient(to_right,transparent,black_8px,black_calc(100%-8px),transparent)]',
               )}
             >
               {COLLECTIVES.map((c) => (

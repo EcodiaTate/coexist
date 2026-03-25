@@ -1,7 +1,7 @@
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Calendar, MapPin, Users, Clock, TreePine, ExternalLink, Download } from 'lucide-react'
+import { Calendar, MapPin, Users, TreePine, ExternalLink, Download } from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/cn'

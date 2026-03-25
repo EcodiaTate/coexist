@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Bell, Clock, User } from 'lucide-react'
+import { Bell, Clock } from 'lucide-react'
 import { CenteredDialog } from '@/components/centered-dialog'
 import { Button } from '@/components/button'
+import { Input } from '@/components/input'
 import { Avatar } from '@/components/avatar'
-import { cn } from '@/lib/cn'
 import type { BroadcastLogEntry } from '@/hooks/use-chat'
 
 interface BroadcastNotificationSheetProps {
@@ -105,33 +105,25 @@ export function BroadcastNotificationSheet({
 
         {/* Title */}
         <div className="mb-3">
-          <label htmlFor="broadcast-title" className="text-xs font-semibold text-primary-600 mb-1 block">
-            Notification Title
-          </label>
-          <input
-            id="broadcast-title"
-            type="text"
+          <Input
+            label="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Beach Cleanup This Saturday!"
             maxLength={100}
-            className="w-full rounded-xl bg-primary-50/50 px-3.5 py-2.5 text-sm text-primary-800 placeholder:text-primary-400 outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white min-h-11"
           />
         </div>
 
         {/* Body */}
         <div className="mb-4">
-          <label htmlFor="broadcast-body" className="text-xs font-semibold text-primary-600 mb-1 block">
-            Message
-          </label>
-          <textarea
-            id="broadcast-body"
+          <Input
+            type="textarea"
+            label="Message"
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Tell members what they need to know..."
             rows={3}
             maxLength={300}
-            className="w-full rounded-xl bg-primary-50/50 px-3.5 py-2.5 text-sm text-primary-800 placeholder:text-primary-400 outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white resize-none"
           />
           <p className="text-[11px] text-primary-400 mt-1 text-right">
             {body.length}/300

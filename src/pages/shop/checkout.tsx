@@ -36,7 +36,8 @@ function WaveDivider({ className = 'fill-surface-1' }: { className?: string }) {
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
-const AU_STATES = [
+ 
+const _AU_STATES = [
   { label: 'NSW', value: 'NSW' },
   { label: 'VIC', value: 'VIC' },
   { label: 'QLD', value: 'QLD' },
@@ -71,12 +72,15 @@ export default function CheckoutPage() {
 
   const items = useCart((s) => s.items)
   const subtotalCents = useCart((s) => s.subtotalCents())
+  const memberDiscountCents = useCart((s) => s.memberDiscountCents())
   const discountCents = useCart((s) => s.discountCents())
   const shippingCents = useCart((s) => s.shippingCents())
   const totalCents = useCart((s) => s.totalCents())
-  const clearCart = useCart((s) => s.clear)
+   
+  const _clearCart = useCart((s) => s.clear)
 
-  const { releaseAll } = useCartReservationSync(items)
+   
+  const { releaseAll: _releaseAll } = useCartReservationSync(items)
   const { reservations } = useMyReservations()
 
   const earliestExpiry = reservations.length > 0
@@ -266,7 +270,7 @@ export default function CheckoutPage() {
                       type="button"
                       onClick={() => handleSelectSaved(saved)}
                       className={cn(
-                        'w-full text-left p-3.5 min-h-11 rounded-xl cursor-pointer select-none active:scale-[0.98] transition-all duration-150',
+                        'w-full text-left p-3.5 min-h-11 rounded-xl cursor-pointer select-none active:scale-[0.98] transition-transform duration-150',
                         isSelected
                           ? 'ring-2 ring-primary-500 bg-gradient-to-br from-primary-100/50 to-surface-2 shadow-sm'
                           : 'bg-gradient-to-br from-surface-2 to-surface-3/40 ring-1 ring-primary-200/25 hover:ring-primary-300/40',
@@ -396,6 +400,15 @@ export default function CheckoutPage() {
                   <span>Subtotal</span>
                   <span className="tabular-nums font-medium">{formatPrice(subtotalCents)}</span>
                 </div>
+                {memberDiscountCents > 0 && (
+                  <div className="flex justify-between text-moss-700">
+                    <span className="flex items-center gap-1.5">
+                      <Tag size={12} />
+                      Member discount
+                    </span>
+                    <span className="tabular-nums font-medium">-{formatPrice(memberDiscountCents)}</span>
+                  </div>
+                )}
                 {discountCents > 0 && (
                   <div className="flex justify-between text-moss-700">
                     <span className="flex items-center gap-1.5">

@@ -1,10 +1,11 @@
-import { useState, useRef, useEffect, useCallback, Fragment } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, Fragment } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { ArrowDown, Lock, X, Reply, Search } from 'lucide-react'
 import { Header } from '@/components/header'
 import { ChatSwitcherDropdown } from '@/components/chat-switcher-dropdown'
 import { ChatBubble, PollCard, AnnouncementCard } from '@/components/chat-bubble'
+import { HtmlChatBubble } from '@/components/html-chat-bubble'
 import { MessageInput } from '@/components/message-input'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -45,11 +46,6 @@ import type { EventRegistration } from '@/types/database.types'
 /*  Channel type labels + icons                                        */
 /* ------------------------------------------------------------------ */
 
-const TYPE_LABELS: Record<string, string> = {
-  staff_collective: 'Staff',
-  staff_state: 'State Staff',
-  staff_national: 'National Staff',
-}
 
 /** Strip redundant words from channel name for cleaner display */
 function cleanChannelName(name: string): string {
@@ -60,11 +56,6 @@ function cleanChannelName(name: string): string {
     || name
 }
 
-const TYPE_COLORS: Record<string, string> = {
-  staff_collective: 'bg-primary-200 text-primary-800 font-bold',
-  staff_state: 'bg-info-200 text-info-800 font-bold',
-  staff_national: 'bg-plum-200 text-plum-800 font-bold',
-}
 
 /* ------------------------------------------------------------------ */
 /*  Date separator                                                     */
@@ -127,8 +118,8 @@ function InlinePoll({
       anonymous={poll.anonymous}
       creatorName={poll.profiles?.display_name ?? undefined}
       closesAt={poll.closes_at}
-      onVote={(optionId) => vote.mutate({ pollId, optionId, collectiveId: collectiveId ?? '' })}
-      onRemoveVote={(optionId) => removeVote.mutate({ pollId, optionId, collectiveId: collectiveId ?? '' })}
+      onVote={(optionId) => vote.mutate({ pollId, optionId, collectiveId: poll.collective_id ?? collectiveId ?? '' })}
+      onRemoveVote={(optionId) => removeVote.mutate({ pollId, optionId, collectiveId: poll.collective_id ?? collectiveId ?? '' })}
       sent={sent}
     />
   )
@@ -278,7 +269,6 @@ function InlineAnnouncement({
 
 export default function ChannelChatPage() {
   const { channelId } = useParams<{ channelId: string }>()
-  const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { user, isStaff, isAdmin, isSuperAdmin } = useAuth()
   const { toast } = useToast()
@@ -306,6 +296,11 @@ export default function ChannelChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const initialScrollDone = useRef(false)
+
+  // Reset scroll state when switching channels
+  useEffect(() => {
+    initialScrollDone.current = false
+  }, [channelId])
   const [showScrollDown, setShowScrollDown] = useState(false)
   const [replyTo, setReplyTo] = useState<ChannelMessageWithSender | null>(null)
   const [showPollSheet, setShowPollSheet] = useState(false)
@@ -313,40 +308,55 @@ export default function ChannelChatPage() {
   const [showBroadcastSheet, setShowBroadcastSheet] = useState(false)
   const [profileUserId, setProfileUserId] = useState<string | null>(null)
 
-  // Mark as read on mount and when new messages arrive
+  // Mark as read on mount and when new messages arrive (only if user is at bottom)
   useEffect(() => {
-    if (channelId && messages.length > 0) {
+    if (channelId && messages.length > 0 && !showScrollDown) {
       markRead.mutate({ channelId, collectiveId })
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channelId, messages.length])
+  }, [channelId, messages.length, showScrollDown])
 
-  // Instant scroll to bottom on first load, smooth on subsequent new messages
-  useEffect(() => {
-    if (!initialScrollDone.current) {
-      if (!isLoading && messages.length > 0) {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })
-        requestAnimationFrame(() => {
-          initialScrollDone.current = true
-        })
+  // Instant scroll to bottom BEFORE paint on first load (no visible jump)
+  useLayoutEffect(() => {
+    if (!initialScrollDone.current && !isLoading && messages.length > 0) {
+      const container = scrollRef.current
+      if (container) {
+        container.scrollTop = container.scrollHeight
       }
-    } else if (!showScrollDown) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+        }
+        initialScrollDone.current = true
+      })
+    }
+  }, [messages.length, isLoading])
+
+  // Smooth scroll on subsequent new messages (only after initial load)
+  useEffect(() => {
+    if (initialScrollDone.current && !showScrollDown) {
       messagesEndRef.current?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth' })
     }
-  }, [messages.length, isLoading, shouldReduceMotion, showScrollDown])
+  }, [messages.length, shouldReduceMotion, showScrollDown])
 
   // Track scroll position for "scroll to bottom" button
+  const scrollRafId = useRef(0)
+  useEffect(() => () => cancelAnimationFrame(scrollRafId.current), [])
   const handleScroll = useCallback(() => {
     if (!initialScrollDone.current) return
-    const el = scrollRef.current
-    if (!el) return
-    const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
-    setShowScrollDown(distFromBottom > 300)
+    cancelAnimationFrame(scrollRafId.current)
+    scrollRafId.current = requestAnimationFrame(() => {
+      const el = scrollRef.current
+      if (!el) return
+      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+      setShowScrollDown(distFromBottom > 300)
 
-    // Load more when scrolling near top
-    if (el.scrollTop < 200 && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage()
-    }
+      // Load more when scrolling near top
+      if (el.scrollTop < 200 && hasNextPage && !isFetchingNextPage) {
+        fetchNextPage()
+      }
+    })
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const handleSend = useCallback(
@@ -380,6 +390,16 @@ export default function ChannelChatPage() {
     }
   }, [channelId, collectiveId, pickFromGallery, chatUpload, sendMessage, toast])
 
+  const handleAttachHtml = useCallback(async (htmlContent: string) => {
+    if (!channelId) return
+    sendMessage.mutate({
+      channelId,
+      collectiveId: collectiveId ?? null,
+      content: htmlContent,
+      messageType: 'html',
+    })
+  }, [channelId, collectiveId, sendMessage])
+
   // Leader action handlers - create the record then send a channel message
   // (can't reuse useCreatePoll/useCreateAnnouncement because those send to the
   //  collective's public chat via useSendMessage, not to the staff channel)
@@ -403,6 +423,7 @@ export default function ChannelChatPage() {
         text,
       }))
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- chat_polls not in generated DB types yet
       const { data: poll, error } = await (supabase as any)
         .from('chat_polls')
         .insert({
@@ -419,8 +440,9 @@ export default function ChannelChatPage() {
       if (error) throw error
 
       // Send the poll message into the staff channel
-      await supabase
-        .from('chat_messages' as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- chat_messages extended columns not in generated DB types yet
+      await (supabase as any)
+        .from('chat_messages')
         .insert({
           channel_id: channelId,
           collective_id: collectiveId || null,
@@ -450,6 +472,7 @@ export default function ChannelChatPage() {
     toast.info('Posting announcement...')
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- chat_announcements not in generated DB types yet
       const { data: announcement, error } = await (supabase as any)
         .from('chat_announcements')
         .insert({
@@ -466,8 +489,9 @@ export default function ChannelChatPage() {
       if (error) throw error
 
       // Send the announcement message into the staff channel
-      await supabase
-        .from('chat_messages' as any)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- chat_messages extended columns not in generated DB types yet
+      await (supabase as any)
+        .from('chat_messages')
         .insert({
           channel_id: channelId,
           collective_id: collectiveId || null,
@@ -513,7 +537,6 @@ export default function ChannelChatPage() {
   }
 
   const channelName = channel ? cleanChannelName(channel.name) : 'Staff Chat'
-  const channelType = channel?.type ?? 'staff_collective'
 
   return (
     <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40">
@@ -528,7 +551,7 @@ export default function ChannelChatPage() {
               type="button"
               onClick={() => {/* TODO: channel search */}}
               aria-label="Search messages"
-              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
             >
               <Search size={20} />
             </button>
@@ -604,6 +627,21 @@ export default function ChannelChatPage() {
                           {msg.content}
                         </p>
                       </div>
+                    ) : messageType === 'html' ? (
+                      <HtmlChatBubble
+                        htmlContent={msg.content ?? ''}
+                        sent={isSent}
+                        timestamp={new Date(msg.created_at)}
+                        senderName={msg.profiles?.display_name ?? undefined}
+                        senderAvatar={msg.profiles?.avatar_url ?? undefined}
+                        senderId={msg.user_id ?? undefined}
+                        skipAnimation={msg._confirmed}
+                        onAvatarTap={(userId) => setProfileUserId(userId)}
+                        onSenderTap={(userId) => setProfileUserId(userId)}
+                        onLongPress={() => {
+                          if (!msg._optimistic) setReplyTo(msg)
+                        }}
+                      />
                     ) : (
                       <ChatBubble
                         message={msg.content ?? ''}
@@ -652,7 +690,7 @@ export default function ChannelChatPage() {
               setShowScrollDown(false)
             }}
             className={cn(
-              'absolute right-4 z-20 flex min-h-12 min-w-12 items-center justify-center rounded-full bg-white shadow-lg ring-2 ring-primary-200/60 text-primary-600 hover:bg-primary-50 active:scale-[0.93] transition-all duration-150 cursor-pointer select-none',
+              'absolute right-4 z-20 flex min-h-12 min-w-12 items-center justify-center rounded-full bg-white shadow-lg ring-2 ring-primary-200/60 text-primary-600 hover:bg-primary-50 active:scale-[0.93] transition-transform duration-150 cursor-pointer select-none',
               hasBottomTabs ? 'bottom-32' : 'bottom-20',
             )}
           >
@@ -683,7 +721,7 @@ export default function ChannelChatPage() {
                 type="button"
                 onClick={() => setReplyTo(null)}
                 aria-label="Cancel reply"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
               >
                 <X size={16} />
               </button>
@@ -707,6 +745,7 @@ export default function ChannelChatPage() {
       <MessageInput
         onSend={handleSend}
         onAttach={handleAttach}
+        onAttachHtml={handleAttachHtml}
         placeholder="Message staff..."
         disabled={sendMessage.isPending}
         padForTabBar={hasBottomTabs}

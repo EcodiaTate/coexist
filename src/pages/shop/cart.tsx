@@ -94,6 +94,7 @@ export default function CartPage() {
   const promoCode = useCart((s) => s.promoCode)
   const setPromoCode = useCart((s) => s.setPromoCode)
   const subtotalCents = useCart((s) => s.subtotalCents())
+  const memberDiscountCents = useCart((s) => s.memberDiscountCents())
   const discountCents = useCart((s) => s.discountCents())
   const shippingCents = useCart((s) => s.shippingCents())
   const totalCents = useCart((s) => s.totalCents())
@@ -146,7 +147,7 @@ export default function CartPage() {
     try {
       const result = await validatePromoCode(promoInput)
       if (result.valid && result.promo) {
-        setPromoCode(result.promo as any)
+        setPromoCode(result.promo as NonNullable<typeof promoCode>)
         toast.success('Promo code applied!')
         setPromoInput('')
       } else {
@@ -308,7 +309,7 @@ export default function CartPage() {
 
                 <div className="flex gap-3.5 p-3.5">
                   {/* Image */}
-                  <Link to={`/shop/product/${item.product.id}`} className="shrink-0 group">
+                  <Link to={`/shop/${item.product.slug}`} className="shrink-0 group">
                     <div className="relative rounded-xl overflow-hidden ring-1 ring-primary-900/[0.06]">
                       <img
                         src={item.product.images[0] ?? placeholderMerch}
@@ -334,7 +335,7 @@ export default function CartPage() {
                       <button
                         type="button"
                         onClick={() => handleRemove(item.variant.id)}
-                        className="flex items-center justify-center w-11 h-11 -mt-0.5 -mr-1 rounded-full text-primary-300 hover:text-error-500 hover:bg-error-50 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
+                        className="flex items-center justify-center w-11 h-11 -mt-0.5 -mr-1 rounded-full text-primary-300 hover:text-error-500 hover:bg-error-50 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
                         aria-label={`Remove ${item.product.name}`}
                       >
                         <X size={16} />
@@ -353,7 +354,7 @@ export default function CartPage() {
                         <button
                           type="button"
                           onClick={() => handleUpdateQuantity(item, item.quantity - 1)}
-                          className="flex items-center justify-center w-11 h-11 rounded-l-xl text-primary-600 hover:bg-primary-100/60 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
+                          className="flex items-center justify-center w-11 h-11 rounded-l-xl text-primary-600 hover:bg-primary-100/60 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
                           aria-label="Decrease quantity"
                         >
                           <Minus size={14} />
@@ -364,7 +365,7 @@ export default function CartPage() {
                         <button
                           type="button"
                           onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
-                          className="flex items-center justify-center w-11 h-11 rounded-r-xl text-primary-600 hover:bg-primary-100/60 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
+                          className="flex items-center justify-center w-11 h-11 rounded-r-xl text-primary-600 hover:bg-primary-100/60 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
                           aria-label="Increase quantity"
                         >
                           <Plus size={14} />
@@ -391,7 +392,7 @@ export default function CartPage() {
                 <button
                   type="button"
                   onClick={() => setPromoCode(null)}
-                  className="flex items-center justify-center w-11 h-11 rounded-full text-moss-400 hover:bg-moss-200/50 cursor-pointer select-none active:scale-[0.92] transition-all duration-150"
+                  className="flex items-center justify-center w-11 h-11 rounded-full text-moss-400 hover:bg-moss-200/50 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
                   aria-label="Remove promo code"
                 >
                   <X size={14} />
@@ -437,6 +438,15 @@ export default function CartPage() {
                   <span>Subtotal</span>
                   <span className="tabular-nums font-medium">{formatPrice(subtotalCents)}</span>
                 </div>
+                {memberDiscountCents > 0 && (
+                  <div className="flex justify-between text-moss-700">
+                    <span className="flex items-center gap-1.5">
+                      <Tag size={12} />
+                      Member discount
+                    </span>
+                    <span className="tabular-nums font-medium">-{formatPrice(memberDiscountCents)}</span>
+                  </div>
+                )}
                 {discountCents > 0 && (
                   <div className="flex justify-between text-moss-700">
                     <span className="flex items-center gap-1.5">

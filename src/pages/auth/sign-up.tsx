@@ -1,13 +1,15 @@
-import { useState, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useMemo, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowLeft, Leaf } from 'lucide-react'
+import { Leaf, UserPlus } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import { Header } from '@/components/header'
 import { OGMeta } from '@/components/og-meta'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Checkbox } from '@/components/checkbox'
 import { cn } from '@/lib/cn'
+import { supabase } from '@/lib/supabase'
 
 /* ------------------------------------------------------------------ */
 /*  Password strength                                                  */
@@ -51,6 +53,7 @@ const fadeUp = {
 
 export default function SignUpPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { signUp, signInWithGoogle, signInWithApple } = useAuth()
   const shouldReduceMotion = useReducedMotion()
 
@@ -61,6 +64,23 @@ export default function SignUpPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Referral code from URL
+  const refCode = searchParams.get('ref')?.trim().toUpperCase() || null
+  // Validate referral code on mount
+  const [refValid, setRefValid] = useState(false)
+
+  useEffect(() => {
+    if (!refCode) return
+    supabase
+      .from('referral_codes')
+      .select('code')
+      .eq('code', refCode)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setRefValid(true)
+      })
+  }, [refCode])
 
   const passwordStrength = useMemo(() => getPasswordStrength(password), [password])
   const isPasswordValid = password.length >= 8 && passwordStrength.score >= 2
@@ -84,10 +104,15 @@ export default function SignUpPage() {
 
     const { error: authError } = await signUp(email, password, displayName, dateOfBirth)
 
+    setIsSubmitting(false)
     if (authError) {
       setError(authError.message)
-      setIsSubmitting(false)
     } else {
+      // Store referral code so it can be accepted after email verification
+      // (user doesn't have an active session until they confirm their email)
+      if (refCode) {
+        try { localStorage.setItem('coexist_referral_code', refCode) } catch { /* storage may be unavailable */ }
+      }
       navigate('/verify-email', { state: { email } })
     }
   }
@@ -128,27 +153,20 @@ export default function SignUpPage() {
           className="flex-1 flex flex-col"
         >
           {/* Back button */}
-          <div
-            className="px-5 pt-3"
-            style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
-          >
-            <motion.button
-              type="button"
-              onClick={() => navigate('/welcome')}
-              whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
-              className={cn(
-                'flex items-center justify-center',
-                'w-10 h-10 rounded-full',
-                'bg-white/80',
-                'text-primary-700 shadow-xs',
-                'cursor-pointer select-none',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-              )}
-              aria-label="Go back"
+          <Header title="" back onBack={() => navigate('/welcome')} />
+
+          {/* Referral banner */}
+          {refValid && (
+            <motion.div
+              {...motionProps}
+              className="mx-5 mt-3 flex items-center gap-2.5 rounded-xl bg-moss-50/80 border border-moss-200/50 px-4 py-2.5"
             >
-              <ArrowLeft size={20} />
-            </motion.button>
-          </div>
+              <UserPlus size={16} className="text-moss-600 shrink-0" />
+              <p className="text-sm text-primary-700">
+                You've been invited to join the movement!
+              </p>
+            </motion.div>
+          )}
 
           {/* Hero */}
           <motion.div {...motionProps} className="px-6 pt-6 pb-1">
@@ -172,7 +190,7 @@ export default function SignUpPage() {
                   'h-[50px] rounded-2xl',
                   'bg-white/90 border border-primary-100/80',
                   'text-sm text-primary-800 font-semibold',
-                  'active:scale-[0.97] transition-all duration-150',
+                  'active:scale-[0.97] transition-transform duration-150',
                   'cursor-pointer',
                 )}
               >
@@ -193,7 +211,7 @@ export default function SignUpPage() {
                   'h-[50px] rounded-2xl',
                   'bg-white/90 border border-primary-100/80',
                   'text-sm text-primary-800 font-semibold',
-                  'active:scale-[0.97] transition-all duration-150',
+                  'active:scale-[0.97] transition-transform duration-150',
                   'cursor-pointer',
                 )}
               >

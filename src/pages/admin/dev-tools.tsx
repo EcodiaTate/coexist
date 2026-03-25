@@ -26,6 +26,7 @@ import { useToast } from '@/components/toast'
 import { Toggle } from '@/components/toggle'
 import { useAuth } from '@/hooks/use-auth'
 import { ACTIVITY_TYPE_OPTIONS, ACTIVITY_TYPE_LABELS } from '@/hooks/use-events'
+import { Dropdown } from '@/components/dropdown'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import type { NotificationType, NotificationPreferences } from '@/hooks/use-notifications'
@@ -70,7 +71,7 @@ function useSeedTestEvent() {
 
       if (membership) {
         collectiveId = membership.collective_id
-        collectiveName = (membership as any).collectives?.name ?? 'Test Collective'
+        collectiveName = (membership as unknown as Record<string, Record<string, unknown>>).collectives?.name as string ?? 'Test Collective'
       } else {
         collectiveId = 'c0000000-0000-0000-0000-000000000001'
         collectiveName = 'Byron Bay Collective'
@@ -106,7 +107,7 @@ function useSeedTestEvent() {
           created_by: user.id,
           title,
           description: `Dev test event for ${label}. This event is happening right now for testing day-of flows.`,
-          activity_type: activityType as any,
+          activity_type: activityType as string & keyof never,
           date_start: start.toISOString(),
           date_end: end.toISOString(),
           capacity: 30,
@@ -200,7 +201,7 @@ function useTestEvents() {
         const { data: membership } = await supabase
           .from('collective_members')
           .select('role')
-          .eq('collective_id', (evt as any).collectives?.id)
+          .eq('collective_id', (evt as unknown as Record<string, Record<string, unknown>>).collectives?.id)
           .eq('user_id', user.id)
           .maybeSingle()
 
@@ -210,8 +211,8 @@ function useTestEvents() {
           activity_type: evt.activity_type,
           date_start: evt.date_start,
           date_end: evt.date_end,
-          collective_name: (evt as any).collectives?.name ?? '',
-          collective_id: (evt as any).collectives?.id ?? '',
+          collective_name: (evt as unknown as Record<string, Record<string, unknown>>).collectives?.name ?? '',
+          collective_id: (evt as unknown as Record<string, Record<string, unknown>>).collectives?.id ?? '',
           registration_count: count ?? 0,
           user_role: membership?.role ?? null,
           user_status: userReg?.status ?? null,
@@ -336,7 +337,7 @@ function useNotifPrefs() {
       if (error) throw error
       return {
         ...DEFAULT_PREFERENCES,
-        ...(((data as any)?.notification_preferences as Partial<NotificationPreferences>) ?? {}),
+        ...(((data as Record<string, unknown>)?.notification_preferences as Partial<NotificationPreferences>) ?? {}),
       }
     },
     enabled: !!user,
@@ -356,7 +357,7 @@ function useUserCollectives() {
         .eq('user_id', user.id)
         .eq('status', 'active')
       if (error) throw error
-      return (data ?? []).map((m: any) => ({
+      return (data ?? []).map((m: Record<string, unknown>) => ({
         id: m.collective_id as string,
         name: (m.collectives?.name ?? 'Unknown') as string,
         role: m.role as string,
@@ -433,7 +434,7 @@ function usePushTestRunner() {
         .eq('id', user.id)
         .single()
       if (error) throw error
-      const p = (data as any)?.notification_preferences as Record<string, unknown> | null
+      const p = (data as Record<string, unknown>)?.notification_preferences as Record<string, unknown> | null
       if (!p || Object.keys(p).length === 0) return 'Defaults (no custom prefs). OK for new users.'
       const disabled = Object.entries(p).filter(([k, v]) => v === false && k !== 'quiet_hours_enabled')
       return `${Object.keys(p).length} prefs saved. ${disabled.length} type(s) disabled. TZ: ${(p.timezone as string) || 'auto'}`
@@ -565,12 +566,12 @@ function usePushTestRunner() {
           .select('notification_preferences' as string & keyof never)
           .eq('id', user.id)
           .single()
-        const orig = ((profile as any)?.notification_preferences ?? {}) as Record<string, unknown>
+        const orig = ((profile as Record<string, unknown>)?.notification_preferences ?? {}) as Record<string, unknown>
 
         // Disable event_reminder temporarily
         await supabase
           .from('profiles')
-          .update({ notification_preferences: { ...orig, event_reminder: false } } as any)
+          .update({ notification_preferences: { ...orig, event_reminder: false } } as Record<string, unknown>)
           .eq('id', user.id)
 
         await new Promise((r) => setTimeout(r, 300))
@@ -582,7 +583,7 @@ function usePushTestRunner() {
         // Restore immediately
         await supabase
           .from('profiles')
-          .update({ notification_preferences: orig } as any)
+          .update({ notification_preferences: orig } as Record<string, unknown>)
           .eq('id', user.id)
 
         if (error) throw error
@@ -599,7 +600,7 @@ function usePushTestRunner() {
           .select('notification_preferences' as string & keyof never)
           .eq('id', user.id)
           .single()
-        const orig = ((profile as any)?.notification_preferences ?? {}) as Record<string, unknown>
+        const orig = ((profile as Record<string, unknown>)?.notification_preferences ?? {}) as Record<string, unknown>
 
         const now = new Date()
         const h = now.getHours()
@@ -617,7 +618,7 @@ function usePushTestRunner() {
 
         await supabase
           .from('profiles')
-          .update({ notification_preferences: quietPrefs } as any)
+          .update({ notification_preferences: quietPrefs } as Record<string, unknown>)
           .eq('id', user.id)
 
         await new Promise((r) => setTimeout(r, 300))
@@ -628,7 +629,7 @@ function usePushTestRunner() {
 
         await supabase
           .from('profiles')
-          .update({ notification_preferences: orig } as any)
+          .update({ notification_preferences: orig } as Record<string, unknown>)
           .eq('id', user.id)
 
         if (error) throw error
@@ -703,7 +704,7 @@ function PushTestSuite() {
           </div>
         ) : (
           <div className="flex flex-wrap gap-1.5">
-            {tokens.map((t: any, i: number) => {
+            {tokens.map((t, i: number) => {
               const ageMins = Math.round((tokenNow - new Date(t.updated_at).getTime()) / 60_000)
               const stale = ageMins > 60 * 24 * 7
               return (
@@ -774,7 +775,7 @@ function PushTestSuite() {
                 type="button"
                 onClick={() => toggleType(type)}
                 className={cn(
-                  'px-2 py-0.5 rounded text-[11px] font-medium transition-[color,background-color,box-shadow,transform] duration-150 active:scale-[0.97] cursor-pointer',
+                  'px-2 py-0.5 rounded text-[11px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.97] cursor-pointer',
                   selectedTypes.includes(type) ? 'bg-primary-600 text-white' : 'bg-primary-50 text-primary-500',
                 )}
               >
@@ -785,19 +786,13 @@ function PushTestSuite() {
         </div>
 
         {collectives && collectives.length > 0 && (
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-primary-500">Collective Broadcast</p>
-            <select
-              value={collectiveId ?? ''}
-              onChange={(e) => setCollectiveId(e.target.value || undefined)}
-              className="w-full rounded-lg bg-primary-50/50 px-3 min-h-11 text-sm text-primary-800 outline-none"
-            >
-              <option value="">Skip</option>
-              {collectives.map((c) => (
-                <option key={c.id} value={c.id}>{c.name} ({c.role})</option>
-              ))}
-            </select>
-          </div>
+          <Dropdown
+            label="Collective Broadcast"
+            placeholder="Skip"
+            options={collectives.map((c) => ({ value: c.id, label: `${c.name} (${c.role})` }))}
+            value={collectiveId ?? ''}
+            onChange={(v) => setCollectiveId(v || undefined)}
+          />
         )}
 
         <div className="flex gap-4">
@@ -965,7 +960,7 @@ export default function DevToolsPage() {
                   type="button"
                   onClick={() => setSelectedActivity(opt.value)}
                   className={cn(
-                    'px-3.5 min-h-11 rounded-full text-sm font-medium transition-[color,background-color,box-shadow,transform] duration-150',
+                    'px-3.5 min-h-11 rounded-full text-sm font-medium transition-[color,background-color,transform] duration-150',
                     'cursor-pointer select-none active:scale-[0.97]',
                     selectedActivity === opt.value
                       ? 'bg-primary-600 text-white shadow-sm'

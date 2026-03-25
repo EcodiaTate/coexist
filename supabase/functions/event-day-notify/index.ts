@@ -1,4 +1,4 @@
-// @ts-nocheck - Deno Edge Function
+// Deno Edge Function
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -145,26 +145,27 @@ async function notifyAttendees(
 
   try {
     // Send push notification to all target users via the send-push function
+    const pushType = notifType === 'starting_soon' ? 'event_reminder' : 'event_updated'
     await supabase.functions.invoke('send-push', {
       body: {
         userIds: toNotify,
         title,
         body,
         data: {
-          type: 'event_reminder',
+          type: pushType,
           event_id: event.id,
         },
       },
     })
 
     // Also create in-app notifications
+    // Note: read_at defaults to null in the DB schema — do NOT pass a `read` column
     const notifications = toNotify.map((userId: string) => ({
       user_id: userId,
-      type: 'event_reminder',
+      type: pushType,
       title,
       body,
       data: { event_id: event.id },
-      read: false,
     }))
 
     await supabase.from('notifications').insert(notifications)

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { supabase, escapeIlike } from '@/lib/supabase'
 import { logAudit } from '@/lib/audit'
 import type {
   Database,
@@ -62,7 +62,7 @@ export function useAdminCollectives(filters: {
         .order('name')
 
       if (filters.search) {
-        query = query.ilike('name', `%${filters.search}%`)
+        query = query.ilike('name', `%${escapeIlike(filters.search)}%`)
       }
 
       if (filters.status === 'active') {
@@ -74,41 +74,51 @@ export function useAdminCollectives(filters: {
       const { data, error } = await query
       if (error) throw error
 
-      // Enrich with counts in parallel
-      const enriched = await Promise.all(
-        (data ?? []).map(async (c: any) => {
-          const [membersRes, eventsRes] = await Promise.all([
-            supabase
-              .from('collective_members')
-              .select('id', { count: 'exact', head: true })
-              .eq('collective_id', c.id)
-              .eq('status', 'active'),
-            supabase
-              .from('events')
-              .select('id', { count: 'exact', head: true })
-              .eq('collective_id', c.id),
-          ])
+      const collectives = data ?? []
+      if (collectives.length === 0) return []
 
-          const memberCount = membersRes.count ?? 0
-          const eventCount = eventsRes.count ?? 0
-          const health =
-            memberCount >= 10 && eventCount >= 3
-              ? 'healthy'
-              : memberCount >= 5
-                ? 'moderate'
-                : 'needs-attention'
+      const ids = collectives.map((c) => c.id)
 
-          return {
-            ...c,
-            memberCount,
-            eventCount,
-            health,
-            leaderName: c.profiles?.display_name ?? null,
-          } as AdminCollective
-        }),
-      )
+      // Batch-fetch member and event counts in two queries instead of 2N
+      const [membersRes, eventsRes] = await Promise.all([
+        supabase
+          .from('collective_members')
+          .select('collective_id')
+          .in('collective_id', ids)
+          .eq('status', 'active'),
+        supabase
+          .from('events')
+          .select('collective_id')
+          .in('collective_id', ids),
+      ])
 
-      return enriched
+      const memberCounts = new Map<string, number>()
+      for (const row of (membersRes.data ?? []) as { collective_id: string }[]) {
+        memberCounts.set(row.collective_id, (memberCounts.get(row.collective_id) ?? 0) + 1)
+      }
+      const eventCounts = new Map<string, number>()
+      for (const row of (eventsRes.data ?? []) as { collective_id: string }[]) {
+        eventCounts.set(row.collective_id, (eventCounts.get(row.collective_id) ?? 0) + 1)
+      }
+
+      return collectives.map((c) => {
+        const memberCount = memberCounts.get(c.id) ?? 0
+        const eventCount = eventCounts.get(c.id) ?? 0
+        const health =
+          memberCount >= 10 && eventCount >= 3
+            ? 'healthy'
+            : memberCount >= 5
+              ? 'moderate'
+              : 'needs-attention'
+
+        return {
+          ...c,
+          memberCount,
+          eventCount,
+          health,
+          leaderName: (c.profiles as { display_name: string } | null)?.display_name ?? null,
+        } as AdminCollective
+      })
     },
     staleTime: 2 * 60 * 1000,
   })
@@ -184,22 +194,25 @@ export function useAdminCollectiveEvents(collectiveId: string | undefined) {
 
       if (error) throw error
 
-      // Get registration counts
-      const enriched = await Promise.all(
-        (events ?? []).map(async (ev) => {
-          const { count } = await supabase
-            .from('event_registrations')
-            .select('id', { count: 'exact', head: true })
-            .eq('event_id', ev.id)
+      const eventList = events ?? []
+      if (eventList.length === 0) return []
 
-          return {
-            ...ev,
-            registrationCount: count ?? 0,
-          } as AdminCollectiveEvent
-        }),
-      )
+      // Batch-fetch registration counts in one query instead of N
+      const eventIds = eventList.map((ev) => ev.id)
+      const { data: regRows } = await supabase
+        .from('event_registrations')
+        .select('event_id')
+        .in('event_id', eventIds)
 
-      return enriched
+      const regCounts = new Map<string, number>()
+      for (const row of (regRows ?? []) as { event_id: string }[]) {
+        regCounts.set(row.event_id, (regCounts.get(row.event_id) ?? 0) + 1)
+      }
+
+      return eventList.map((ev) => ({
+        ...ev,
+        registrationCount: regCounts.get(ev.id) ?? 0,
+      } as AdminCollectiveEvent))
     },
     enabled: !!collectiveId,
     staleTime: 2 * 60 * 1000,
@@ -251,10 +264,21 @@ export function useCreateCollective() {
       state?: string
       leaderId?: string
     }) => {
-      const slug = input.name
+      let slug = input.name
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
+
+      // Check for slug collision and append a suffix if needed
+      const { data: existing } = await supabase
+        .from('collectives')
+        .select('slug')
+        .eq('slug', slug)
+        .maybeSingle()
+
+      if (existing) {
+        slug = `${slug}-${Date.now().toString(36)}`
+      }
 
       const { data, error } = await supabase
         .from('collectives')
@@ -265,7 +289,7 @@ export function useCreateCollective() {
           region: input.region || null,
           state: input.state || null,
           leader_id: input.leaderId || null,
-        } as any)
+        } as Record<string, unknown>)
         .select('id')
         .single()
 
@@ -311,6 +335,7 @@ export function useAdminUpdateCollective() {
         .update(updates)
         .eq('id', collectiveId)
       if (error) throw error
+      await logAudit({ action: 'collective_updated', target_type: 'collective', target_id: collectiveId, details: { fields: Object.keys(updates) } })
     },
     onSuccess: (_, { collectiveId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-collective-detail', collectiveId] })
@@ -367,12 +392,21 @@ export function useDeleteCollective() {
 
   return useMutation({
     mutationFn: async (collectiveId: string) => {
-      await logAudit({ action: 'collective_deleted', target_type: 'collective', target_id: collectiveId })
+      // Remove all members first to avoid orphaned rows if FK cascade is missing
+      const { error: memberErr } = await supabase
+        .from('collective_members')
+        .delete()
+        .eq('collective_id', collectiveId)
+      if (memberErr) throw memberErr
+
       const { error } = await supabase
         .from('collectives')
         .delete()
         .eq('id', collectiveId)
       if (error) throw error
+
+      // Log audit AFTER successful delete
+      await logAudit({ action: 'collective_deleted', target_type: 'collective', target_id: collectiveId })
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-collectives'] })
@@ -404,8 +438,16 @@ export function useAdminUpdateMemberRole() {
         .eq('user_id', userId)
       if (error) throw error
 
-      // If promoting to leader, also update the collectives.leader_id
+      // If promoting to leader, demote the old leader and update collectives.leader_id
       if (role === 'leader') {
+        // Demote any existing leaders in this collective to co_leader
+        await supabase
+          .from('collective_members')
+          .update({ role: 'co_leader' as CollectiveRole })
+          .eq('collective_id', collectiveId)
+          .eq('role', 'leader')
+          .neq('user_id', userId)
+
         await supabase
           .from('collectives')
           .update({ leader_id: userId })
@@ -465,6 +507,7 @@ export function useAdminRestoreMember() {
         .eq('collective_id', collectiveId)
         .eq('user_id', userId)
       if (error) throw error
+      await logAudit({ action: 'member_restored', target_type: 'collective_member', target_id: userId, details: { collective_id: collectiveId } })
     },
     onSuccess: (_, { collectiveId }) => {
       queryClient.invalidateQueries({ queryKey: ['admin-collective-members', collectiveId] })
@@ -521,7 +564,7 @@ export function useSearchUsers(query: string) {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, display_name, avatar_url, instagram_handle')
-        .or(`display_name.ilike.%${query}%,instagram_handle.ilike.%${query}%`)
+        .or(`display_name.ilike.%${escapeIlike(query)}%,instagram_handle.ilike.%${escapeIlike(query)}%`)
         .limit(10)
       if (error) throw error
       return data as Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'instagram_handle'>[]

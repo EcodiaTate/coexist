@@ -1,6 +1,6 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { motion, useReducedMotion, AnimatePresence, type Variants } from 'framer-motion'
-import { ArrowLeft, Pin, Megaphone, AlertTriangle, Image as ImageIcon } from 'lucide-react'
+import { Pin, Megaphone, AlertTriangle, Image as ImageIcon } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Avatar } from '@/components/avatar'
@@ -37,6 +37,7 @@ function formatDate(dateStr: string): string {
   const now = Date.now()
   const diff = Math.floor((now - date.getTime()) / 1000)
 
+  if (diff < 60) return 'Just now'
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
   return date.toLocaleDateString('en-AU', {
@@ -51,7 +52,7 @@ function formatDate(dateStr: string): string {
 /* ------------------------------------------------------------------ */
 
 function getImages(update: UpdateWithAuthor): string[] {
-  const urls = (update as any).image_urls as string[] | undefined
+  const urls = (update as unknown as { image_urls?: string[] }).image_urls
   if (urls && urls.length > 0) return urls
   if (update.image_url) return [update.image_url]
   return []
@@ -61,7 +62,8 @@ function getImages(update: UpdateWithAuthor): string[] {
 /*  Role label                                                         */
 /* ------------------------------------------------------------------ */
 
-function roleLabel(role: string | undefined) {
+ 
+function _roleLabel(role: string | undefined) {
   switch (role) {
     case 'super_admin': return 'Super Admin'
     case 'national_admin': return 'Admin'
@@ -151,31 +153,7 @@ function UpdateDetail({
     >
       {/* Back button – floats over splash image */}
       <div className="sticky top-0 z-20">
-        <div className={cn(
-          'flex items-center h-14 px-4 pt-[var(--safe-top)]',
-          splashImage
-            ? 'bg-transparent'
-            : 'bg-white border-b border-primary-100/50',
-        )}>
-          <button
-            type="button"
-            onClick={onClose}
-            className={cn(
-              'flex items-center justify-center w-11 h-11 -ml-1 rounded-full',
-              'cursor-pointer select-none transition-all duration-150 active:scale-[0.93]',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white',
-              splashImage
-                ? 'bg-black/30 text-white hover:bg-black/50'
-                : 'text-primary-700 hover:bg-primary-50',
-            )}
-            aria-label="Close"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          {!splashImage && (
-            <span className="ml-2 text-sm font-semibold text-primary-500">Update</span>
-          )}
-        </div>
+        <Header title="" back onBack={onClose} transparent={!!splashImage} />
       </div>
 
       {/* Splash / hero image – full bleed */}
@@ -283,7 +261,7 @@ function UpdateCard({
       onClick={handleTap}
       className={cn(
         'group rounded-2xl overflow-hidden cursor-pointer',
-        'transition-all duration-200 active:scale-[0.985]',
+        'transition-transform duration-200 active:scale-[0.985]',
         'bg-white',
         'border border-primary-100/80',
         'shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]',
@@ -365,11 +343,17 @@ function UpdateCard({
 
 export default function UpdatesPage() {
   const shouldReduceMotion = useReducedMotion()
-  const { pinned, regular, isLoading, refetch } = useUpdates()
+  const { pinned, regular, all, isLoading, refetch } = useUpdates()
   const showLoading = useDelayedLoading(isLoading)
   const markRead = useMarkUpdateRead()
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedUpdate, setSelectedUpdate] = useState<UpdateWithAuthor | null>(null)
+  const [selectedUpdateId, setSelectedUpdateId] = useState<string | null>(null)
+
+  // Derive selected update from live cache so it stays in sync after mark-as-read
+  const selectedUpdate = useMemo(
+    () => (selectedUpdateId ? (all ?? []).find((a) => a.id === selectedUpdateId) ?? null : null),
+    [selectedUpdateId, all],
+  )
 
   const isEmpty = !isLoading && pinned.length === 0 && regular.length === 0
 
@@ -459,7 +443,7 @@ export default function UpdatesPage() {
                         key={a.id}
                         update={a}
                         onRead={() => markRead.mutate(a.id)}
-                        onOpen={() => setSelectedUpdate(a)}
+                        onOpen={() => setSelectedUpdateId(a.id)}
                       />
                     ))}
                   </div>
@@ -484,7 +468,7 @@ export default function UpdatesPage() {
                         key={a.id}
                         update={a}
                         onRead={() => markRead.mutate(a.id)}
-                        onOpen={() => setSelectedUpdate(a)}
+                        onOpen={() => setSelectedUpdateId(a.id)}
                       />
                     ))}
                   </div>
@@ -508,7 +492,7 @@ export default function UpdatesPage() {
         {selectedUpdate && (
           <UpdateDetail
             update={selectedUpdate}
-            onClose={() => setSelectedUpdate(null)}
+            onClose={() => setSelectedUpdateId(null)}
           />
         )}
       </AnimatePresence>

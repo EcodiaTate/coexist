@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import DOMPurify from 'dompurify'
 import { Page } from '@/components/page'
+import { Header } from '@/components/header'
 import { OGMeta } from '@/components/og-meta'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Skeleton } from '@/components/skeleton'
@@ -30,7 +31,7 @@ export default function LegalPageShell({ slug, fallbackTitle, fallbackDescriptio
   const sanitisedHtml = page?.content ? DOMPurify.sanitize(page.content) : ''
 
   return (
-    <Page>
+    <Page swipeBack header={<Header title="" back />}>
       <OGMeta
         title={title}
         description={description}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Heart, Share2, ArrowRight, PartyPopper, Calendar, Users, Trophy } from 'lucide-react'
+import { Heart, Share2, PartyPopper, Calendar, Users, Trophy } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -67,7 +67,11 @@ export default function DonateThankYouPage() {
   const shouldReduceMotion = useReducedMotion()
   const [showConfetti, setShowConfetti] = useState(true)
 
-  const amount = Number(searchParams.get('amount') ?? 25)
+  const rawAmount = Number(searchParams.get('amount') ?? 25)
+  const amount = Number.isFinite(rawAmount) && rawAmount >= 1 && rawAmount <= 50000
+    ? rawAmount
+    : 25
+  const isRecurring = searchParams.get('recurring') === 'true'
   const impactMessage = getImpactMessage(amount)
 
   useEffect(() => {
@@ -76,7 +80,8 @@ export default function DonateThankYouPage() {
   }, [])
 
   const handleShare = async () => {
-    const text = `I just donated $${amount} to Co-Exist Australia! Every dollar goes to conservation. Join me: coexistaus.org/donate`
+    const recurringLabel = isRecurring ? ' monthly' : ''
+    const text = `I just donated $${amount}${recurringLabel} to Co-Exist Australia! Every dollar goes to conservation. Join me: coexistaus.org/donate`
     if (navigator.share) {
       try {
         await navigator.share({ text, url: 'https://coexistaus.org/donate' })
@@ -128,8 +133,18 @@ export default function DonateThankYouPage() {
             transition={{ delay: 0.4 }}
             className="mt-2 text-lg font-semibold text-primary-400"
           >
-            ${amount} donated
+            ${amount}{isRecurring ? '/mo' : ''} donated
           </motion.p>
+          {isRecurring && (
+            <motion.p
+              initial={shouldReduceMotion ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.45 }}
+              className="mt-1 text-xs text-primary-400"
+            >
+              Monthly donation — cancel anytime from your profile
+            </motion.p>
+          )}
 
           {/* Impact equivalency */}
           <motion.div

@@ -88,7 +88,7 @@ export function Slideshow({ images, captions = [], className }: SlideshowProps) 
                 type="button"
                 onClick={() => go(i)}
                 className={cn(
-                  'w-2 h-2 rounded-full transition-all',
+                  'w-2 h-2 rounded-full transition-[width,background-color]',
                   i === current
                     ? 'bg-primary-600 w-4'
                     : 'bg-primary-300 hover:bg-primary-400',

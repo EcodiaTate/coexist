@@ -1,3 +1,4 @@
+ 
 /**
  * generate-wallet-pass - Supabase Edge Function
  *
@@ -19,10 +20,10 @@
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { encode as base64Encode } from 'https://deno.land/std@0.177.0/encoding/base64.ts'
+import { encode as _base64Encode } from 'https://deno.land/std@0.177.0/encoding/base64.ts'
 import { decode as base64Decode } from 'https://deno.land/std@0.177.0/encoding/base64.ts'
 import { crypto } from 'https://deno.land/std@0.177.0/crypto/mod.ts'
-import { Buffer } from 'https://deno.land/std@0.177.0/io/buffer.ts'
+import { Buffer as _Buffer } from 'https://deno.land/std@0.177.0/io/buffer.ts'
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -156,7 +157,7 @@ async function generateApplePass(data: ApplePassData): Promise<Response> {
   const passTypeId = Deno.env.get('APPLE_PASS_TYPE_ID')
   const teamId = Deno.env.get('APPLE_TEAM_ID')
   const certBase64 = Deno.env.get('APPLE_PASS_CERT_BASE64')
-  const certPassword = Deno.env.get('APPLE_PASS_CERT_PASSWORD')
+  const _certPassword = Deno.env.get('APPLE_PASS_CERT_PASSWORD')
   const wwdrBase64 = Deno.env.get('APPLE_WWDR_CERT_BASE64')
 
   if (!passTypeId || !teamId || !certBase64 || !wwdrBase64) {
@@ -248,7 +249,7 @@ async function generateApplePass(data: ApplePassData): Promise<Response> {
   // Attempt full .pkpass generation if certs are available
   try {
     const passJsonStr = JSON.stringify(passJson)
-    const passJsonBytes = new TextEncoder().encode(passJsonStr)
+    const _passJsonBytes = new TextEncoder().encode(passJsonStr)
 
     // For the MVP, return the pass definition so the client can
     // use it with a native Capacitor plugin that handles signing locally,

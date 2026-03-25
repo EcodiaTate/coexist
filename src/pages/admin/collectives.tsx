@@ -17,8 +17,8 @@ import { useAdminHeader } from '@/components/admin-layout'
 import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
+import { Dropdown } from '@/components/dropdown'
 import { SearchBar } from '@/components/search-bar'
-import { Avatar } from '@/components/avatar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { Modal } from '@/components/modal'
@@ -42,9 +42,6 @@ const healthConfig = {
   'needs-attention': { color: 'bg-error-100 text-error-700', label: 'Needs Attention' },
 } as const
 
-const AUSTRALIAN_STATES = [
-  '', 'NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT',
-] as const
 
 type StatusFilter = 'all' | 'active' | 'archived'
 
@@ -96,47 +93,36 @@ function CreateCollectiveModal({
           required
           placeholder="e.g. Byron Bay Collective"
         />
-        <div>
-          <label className="block text-xs font-semibold text-primary-500 uppercase tracking-wider mb-1">
-            Description
-          </label>
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="What does this collective focus on?"
-            rows={3}
-            className={cn(
-              'w-full rounded-xl bg-primary-50/50 px-3 py-2.5 text-sm text-primary-800',
-              'placeholder:text-primary-400',
-              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-              'resize-none',
-            )}
-          />
-        </div>
+        <Input
+          type="textarea"
+          label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="What does this collective focus on?"
+          rows={3}
+        />
         <Input
           label="Region"
           value={region}
           onChange={(e) => setRegion(e.target.value)}
           placeholder="e.g. Byron Bay"
         />
-        <div>
-          <label className="block text-xs font-semibold text-primary-500 uppercase tracking-wider mb-1">
-            State
-          </label>
-          <select
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            className={cn(
-              'w-full rounded-xl bg-primary-50/50 px-3 min-h-12 text-sm text-primary-800',
-              'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-            )}
-          >
-            <option value="">Select state...</option>
-            {AUSTRALIAN_STATES.filter(Boolean).map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
+        <Dropdown
+          label="State"
+          placeholder="Select state..."
+          options={[
+            { value: 'NSW', label: 'NSW' },
+            { value: 'VIC', label: 'VIC' },
+            { value: 'QLD', label: 'QLD' },
+            { value: 'WA', label: 'WA' },
+            { value: 'SA', label: 'SA' },
+            { value: 'TAS', label: 'TAS' },
+            { value: 'ACT', label: 'ACT' },
+            { value: 'NT', label: 'NT' },
+          ]}
+          value={state}
+          onChange={setState}
+        />
         <Button
           variant="primary"
           fullWidth
@@ -290,7 +276,7 @@ export default function AdminCollectivesPage() {
                       className={cn(
                         'flex items-center gap-4 p-4 rounded-xl',
                         'bg-white shadow-sm',
-                        'hover:shadow-md active:scale-[0.99] transition-[color,background-color,box-shadow,transform] duration-150',
+                        'active:scale-[0.99] transition-[color,background-color,transform] duration-150',
                         !c.is_active && 'opacity-60',
                       )}
                     >

@@ -257,7 +257,8 @@ const CATEGORY_CARDS = [
 /*  Impact stats data                                                  */
 /* ------------------------------------------------------------------ */
 
-const IMPACT_STATS = [
+ 
+const _IMPACT_STATS = [
   {
     value: 35500,
     suffix: '+',
@@ -336,7 +337,7 @@ function FilterSection({
         onClick={() => setOpen(!open)}
         className={cn(
           'flex items-center gap-3 w-full py-4 min-h-11',
-          'text-left active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+          'text-left active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:rounded-lg',
         )}
         aria-expanded={open}
@@ -410,7 +411,7 @@ function ActivityTile({
       whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
       className={cn(
         'relative flex items-center gap-3 w-full px-3 py-3 min-h-11 rounded-xl',
-        'text-left active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+        'text-left active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
         selected
           ? `${meta.bg} ring-1.5 ${meta.ring}`
@@ -422,7 +423,7 @@ function ActivityTile({
       {/* Icon */}
       <span className={cn(
         'flex items-center justify-center w-10 h-10 rounded-xl shrink-0',
-        'transition-all duration-150',
+        'transition-colors duration-150',
         selected
           ? `bg-gradient-to-br ${meta.gradient} text-white shadow-sm`
           : `${meta.bg} ${meta.text}`,
@@ -442,7 +443,7 @@ function ActivityTile({
       {/* Checkmark */}
       <span className={cn(
         'flex items-center justify-center w-5 h-5 rounded-full shrink-0',
-        'transition-all duration-150',
+        'transition-colors duration-150',
         selected
           ? `${meta.bgSolid} text-white`
           : 'ring-1.5 ring-primary-200',
@@ -527,7 +528,7 @@ function DistanceSelector({
               type="button"
               onClick={() => onChange(tick)}
               className={cn(
-                'text-[11px] font-medium tabular-nums min-h-11 min-w-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                'text-[11px] font-medium tabular-nums min-h-11 min-w-11 flex items-center justify-center active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 rounded',
                 value === tick ? 'text-primary-700 font-semibold' : 'text-primary-300',
               )}
@@ -566,7 +567,7 @@ function StateSelector({
             whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
             className={cn(
               'flex items-center gap-3 w-full px-3 py-2.5 min-h-11 rounded-xl',
-              'text-left active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+              'text-left active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               isSelected
                 ? 'bg-primary-50 ring-1.5 ring-primary-300'
@@ -577,7 +578,7 @@ function StateSelector({
             {/* State abbreviation badge */}
             <span className={cn(
               'flex items-center justify-center w-9 h-9 rounded-lg shrink-0',
-              'text-xs font-bold transition-all duration-150',
+              'text-xs font-bold transition-colors duration-150',
               isSelected
                 ? 'bg-primary-600 text-white'
                 : 'bg-primary-50 text-primary-500',
@@ -648,7 +649,7 @@ function DateRangeSelector({
               }}
               className={cn(
                 'flex items-center gap-2 px-3 py-2.5 min-h-11 rounded-xl',
-                'text-sm font-medium text-left active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                'text-sm font-medium text-left active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 isActive
                   ? 'bg-primary-600 text-white shadow-sm'
@@ -681,9 +682,9 @@ function DateRangeSelector({
               }
               className={cn(
                 'w-full h-11 px-3 rounded-xl',
-                'text-sm bg-primary-50/50',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-                'transition-all duration-150',
+                'text-sm bg-surface-3',
+                'focus:outline-none focus:ring-2 focus:ring-primary-400',
+                'transition-colors duration-150',
                 dateFrom
                   ? 'text-primary-800'
                   : 'text-primary-400',
@@ -703,9 +704,9 @@ function DateRangeSelector({
               }
               className={cn(
                 'w-full h-11 px-3 rounded-xl',
-                'text-sm bg-primary-50/50',
-                'focus:outline-none focus:ring-2 focus:ring-primary-400 focus:bg-white',
-                'transition-all duration-150',
+                'text-sm bg-surface-3',
+                'focus:outline-none focus:ring-2 focus:ring-primary-400',
+                'transition-colors duration-150',
                 dateTo
                   ? 'text-primary-800'
                   : 'text-primary-400',
@@ -723,13 +724,15 @@ function DateRangeSelector({
 /*  Browse activity scroller (Instagram Stories style)                  */
 /* ------------------------------------------------------------------ */
 
-function ActivityScroller({
+ 
+function _ActivityScroller({
   selected,
   onToggle,
 }: {
   selected: string[]
   onToggle: (key: string) => void
 }) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const shouldReduceMotion = useReducedMotion()
 
   return (
@@ -750,7 +753,7 @@ function ActivityScroller({
             {/* Ring + icon */}
             <span className={cn(
               'flex items-center justify-center w-14 h-14 rounded-full',
-              'transition-all duration-200',
+              'transition-colors duration-200',
               isSelected
                 ? `bg-gradient-to-br ${meta.gradient} text-white shadow-md ring-2 ring-offset-2 ring-primary-400`
                 : `${meta.bg} ${meta.text} ring-1 ring-primary-100`,
@@ -984,7 +987,7 @@ export default function ExplorePage() {
             <button
               type="button"
               onClick={clearAllFilters}
-              className="text-xs font-medium text-primary-400 hover:text-primary-600 whitespace-nowrap min-h-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none ml-1"
+              className="text-xs font-medium text-primary-400 hover:text-primary-600 whitespace-nowrap min-h-11 flex items-center justify-center active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none ml-1"
             >
               Clear all
             </button>
@@ -1014,7 +1017,7 @@ export default function ExplorePage() {
                     <button
                       type="button"
                       onClick={clearRecentSearches}
-                      className="text-xs text-primary-400 font-medium hover:text-primary-600 min-h-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                      className="text-xs text-primary-400 font-medium hover:text-primary-600 min-h-11 flex items-center justify-center active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                     >
                       Clear
                     </button>
@@ -1028,7 +1031,7 @@ export default function ExplorePage() {
                         className={cn(
                           'flex items-center gap-3 w-full px-3 py-2.5 min-h-11 rounded-xl',
                           'text-sm text-primary-800 hover:bg-surface-3',
-                          'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none group',
+                          'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none group',
                         )}
                       >
                         <Clock size={14} className="text-primary-300 shrink-0" />
@@ -1041,7 +1044,7 @@ export default function ExplorePage() {
                             e.stopPropagation()
                             removeRecentSearch(term)
                           }}
-                          className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-200 hover:text-primary-400 shrink-0 opacity-0 group-hover:opacity-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                          className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-200 hover:text-primary-400 shrink-0 opacity-0 group-hover:opacity-100 active:scale-[0.97] transition-[transform,opacity] duration-150 cursor-pointer select-none"
                           aria-label={`Remove ${term}`}
                         >
                           <X size={14} />
@@ -1221,7 +1224,7 @@ export default function ExplorePage() {
                                 }
                                 className={cn(
                                   'flex items-center gap-3 w-full px-3 py-2.5 min-h-11 rounded-xl',
-                                  'hover:bg-surface-3 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                                  'hover:bg-surface-3 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                                 )}
                               >
                                 <Avatar
@@ -1281,7 +1284,7 @@ export default function ExplorePage() {
                         whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
                         className={cn(
                           'relative flex items-center justify-center min-h-11 min-w-11 rounded-xl shrink-0',
-                          'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                          'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                           activeFilterCount > 0
                             ? 'bg-primary-50 text-primary-600 shadow-sm'
                             : 'bg-primary-50/60 text-primary-400',
@@ -1302,7 +1305,7 @@ export default function ExplorePage() {
                           onClick={() => setViewMode('map')}
                           className={cn(
                             'flex items-center justify-center min-h-11 min-w-11',
-                            'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                            'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                             viewMode === 'map'
                               ? 'bg-primary-600 text-white'
                               : 'bg-surface-0 text-primary-400 hover:bg-surface-3',
@@ -1317,7 +1320,7 @@ export default function ExplorePage() {
                           onClick={() => setViewMode('list')}
                           className={cn(
                             'flex items-center justify-center min-h-11 min-w-11',
-                            'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                            'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                             viewMode === 'list'
                               ? 'bg-primary-600 text-white'
                               : 'bg-surface-0 text-primary-400 hover:bg-surface-3',
@@ -1448,7 +1451,7 @@ export default function ExplorePage() {
                               whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
                               className={cn(
                                 'relative flex items-center justify-center min-h-11 min-w-11 rounded-xl shrink-0',
-                                'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                                'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                                 'bg-white/15 text-white/80 border border-white/20',
                                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
                               )}
@@ -1469,7 +1472,7 @@ export default function ExplorePage() {
                                 onClick={() => setViewMode('map')}
                                 className={cn(
                                   'flex items-center justify-center min-h-11 min-w-11',
-                                  'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                                  'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                                   viewMode === 'map'
                                     ? 'bg-white text-primary-700'
                                     : 'bg-white/10 text-white/60',
@@ -1484,7 +1487,7 @@ export default function ExplorePage() {
                                 onClick={() => setViewMode('list')}
                                 className={cn(
                                   'flex items-center justify-center min-h-11 min-w-11',
-                                  'active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                                  'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                                   viewMode === 'list'
                                     ? 'bg-white text-primary-700'
                                     : 'bg-white/10 text-white/60',
@@ -1567,7 +1570,7 @@ export default function ExplorePage() {
                         <button
                           type="button"
                           onClick={() => navigate('/events')}
-                          className="flex items-center gap-1 text-xs font-semibold text-primary-500 min-h-11 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                          className="flex items-center gap-1 text-xs font-semibold text-primary-500 min-h-11 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                         >
                           View all <ArrowRight size={12} />
                         </button>
@@ -1723,7 +1726,7 @@ export default function ExplorePage() {
                         <button
                           type="button"
                           onClick={() => navigate('/collectives')}
-                          className="flex items-center gap-1 text-xs font-semibold text-primary-500 min-h-11 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+                          className="flex items-center gap-1 text-xs font-semibold text-primary-500 min-h-11 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                         >
                           View all <ArrowRight size={12} />
                         </button>
@@ -1856,7 +1859,7 @@ export default function ExplorePage() {
                 setDraftFilters(cleared)
               }}
               className={cn(
-                'text-sm font-medium min-h-11 flex items-center justify-center active:scale-[0.97] transition-all duration-150 cursor-pointer select-none',
+                'text-sm font-medium min-h-11 flex items-center justify-center active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                 draftFilterCount > 0
                   ? 'text-primary-600 hover:text-primary-800'
                   : 'text-primary-300',

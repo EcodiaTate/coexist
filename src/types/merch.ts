@@ -38,24 +38,8 @@ export interface Product {
   status: ProductStatus
   base_price_cents: number
   variants: ProductVariant[]
-  avg_rating: number | null
-  review_count: number
   created_at: string
   updated_at: string
-}
-
-export interface ProductReview {
-  id: string
-  product_id: string
-  user_id: string
-  rating: number
-  text: string | null
-  status: 'pending' | 'approved' | 'removed'
-  created_at: string
-  profiles?: {
-    display_name: string | null
-    avatar_url: string | null
-  }
 }
 
 export interface CartItem {
@@ -68,11 +52,14 @@ export interface PromoCode {
   id: string
   code: string
   type: PromoType
+  /** For percentage: the percent (e.g. 10 = 10%). For flat: dollar amount (e.g. 10 = $10). */
   value: number
-  min_order_cents: number | null
+  /** Minimum order in dollars (DB: min_order_amount numeric). Null = no minimum. */
+  min_order_amount: number | null
   max_uses: number | null
-  uses: number
-  expires_at: string | null
+  uses_count: number
+  valid_from: string | null
+  valid_to: string | null
   is_active: boolean
   created_at: string
 }
@@ -104,6 +91,8 @@ export interface Order {
   stripe_payment_intent_id: string | null
   created_at: string
   updated_at: string
+  /** Client-side only — set optimistically when a return is requested */
+  return_requested?: boolean
 }
 
 export interface OrderItem {

@@ -76,8 +76,23 @@ export function Dropdown({
   useLayoutEffect(() => {
     if (!open || isMobile || !triggerRef.current) return
 
+    let rafId = 0
     const updatePosition = () => {
-      if (!triggerRef.current) return
+      cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() => {
+        if (!triggerRef.current) return
+        const rect = triggerRef.current.getBoundingClientRect()
+        setPopoverStyle({
+          position: 'fixed',
+          top: rect.bottom + 4,
+          left: rect.left,
+          width: rect.width,
+        })
+      })
+    }
+
+    // Initial position (synchronous to avoid flash)
+    if (triggerRef.current) {
       const rect = triggerRef.current.getBoundingClientRect()
       setPopoverStyle({
         position: 'fixed',
@@ -86,8 +101,6 @@ export function Dropdown({
         width: rect.width,
       })
     }
-
-    updatePosition()
 
     // Listen on all scrollable ancestors + window resize so the popover
     // repositions when a modal or parent container scrolls.
@@ -107,6 +120,7 @@ export function Dropdown({
     window.addEventListener('resize', updatePosition, { passive: true })
 
     return () => {
+      cancelAnimationFrame(rafId)
       for (const parent of scrollParents) {
         parent.removeEventListener('scroll', updatePosition)
       }
@@ -164,10 +178,10 @@ export function Dropdown({
       aria-describedby={error ? errorId : undefined}
       aria-label={!label ? placeholder : undefined}
       className={cn(
-        'flex items-center justify-between w-full h-11 rounded-full bg-white px-4',
+        'flex items-center justify-between w-full h-11 rounded-full bg-surface-3 px-4',
         'text-[16px] sm:text-sm leading-normal text-left',
         'cursor-pointer select-none',
-        'transition-all duration-150',
+        'transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         error
