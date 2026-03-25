@@ -30,8 +30,8 @@ function useCharitySettings() {
 
       // Convert array of key-value pairs to object
       const settings: Record<string, string> = {}
-      for (const row of (data ?? []) as Record<string, unknown>[]) {
-        settings[row.key as string] = row.value
+      for (const row of data ?? []) {
+        settings[row.key] = row.value
       }
       return settings
     },

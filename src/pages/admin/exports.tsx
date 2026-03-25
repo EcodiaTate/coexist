@@ -317,7 +317,7 @@ export default function AdminExportsPage() {
         let query = supabase
           .from('merch_orders')
           .select('id, total_cents, gst_cents, status, created_at')
-          .eq('status', 'completed')
+          .eq('status', 'delivered')
           .order('created_at', { ascending: false })
           .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('created_at', dateStart)

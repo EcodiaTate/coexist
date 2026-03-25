@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import type { TablesInsert } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -138,26 +139,17 @@ export function useUpsertModuleProgress() {
       if (!user) throw new Error('Not authenticated')
 
       const now = new Date().toISOString()
-      const row: Record<string, unknown> = {
+      const row: TablesInsert<'dev_user_module_progress'> = {
         user_id: user.id,
         module_id: input.module_id,
         status: input.status ?? 'in_progress',
+        started_at: now,
       }
 
       // Only set fields that were explicitly provided — avoid clobbering with defaults
       if (input.last_content_id !== undefined) row.last_content_id = input.last_content_id
-      if (input.last_sort_order !== undefined) row.last_sort_order = input.last_sort_order
       if (input.progress_pct !== undefined) row.progress_pct = input.progress_pct
       if (input.time_spent_sec !== undefined) row.time_spent_sec = input.time_spent_sec
-
-      // Only set started_at on the very first upsert (insert path) — never overwrite
-      // Supabase upsert with onConflict will use this on insert but the DB trigger
-      // won't overwrite if we omit it on the update path. We set it unconditionally
-      // and rely on a COALESCE in the DB or only set on initial insert.
-      // Safest: always include started_at but use the existing row's value on update.
-      // Since Supabase .upsert replaces the full row, we must include it.
-      // We'll set it only when status transitions to in_progress for the first time.
-      row.started_at = now // Will be ignored on conflict — see below
 
       if (input.status === 'completed') {
         row.completed_at = now
@@ -174,11 +166,15 @@ export function useUpsertModuleProgress() {
 
       if (existing) {
         // Update — preserve started_at, only set completed_at on completion
-        const updateRow: Record<string, unknown> = { ...row }
-        delete updateRow.user_id
-        delete updateRow.module_id
-        delete updateRow.started_at // never overwrite
-        if (input.status !== 'completed') delete updateRow.completed_at
+        const updateRow: TablesInsert<'dev_user_module_progress'> = {
+          user_id: user.id,
+          module_id: input.module_id,
+          status: input.status ?? 'in_progress',
+        }
+        if (input.last_content_id !== undefined) updateRow.last_content_id = input.last_content_id
+        if (input.progress_pct !== undefined) updateRow.progress_pct = input.progress_pct
+        if (input.time_spent_sec !== undefined) updateRow.time_spent_sec = input.time_spent_sec
+        if (input.status === 'completed') updateRow.completed_at = now
 
         const { data, error } = await supabase
           .from('dev_user_module_progress')
@@ -227,7 +223,7 @@ export function useUpsertSectionProgress() {
       if (!user) throw new Error('Not authenticated')
 
       const now = new Date().toISOString()
-      const row: Record<string, unknown> = {
+      const row: TablesInsert<'dev_user_section_progress'> = {
         user_id: user.id,
         section_id: input.section_id,
         status: input.status,

@@ -2,8 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import type {
+  Database,
   Tables,
 } from '@/types/database.types'
+
+type ActivityType = Database['public']['Enums']['activity_type']
 
 type Event = Tables<'events'>
 type Collective = Tables<'collectives'>
@@ -391,7 +394,7 @@ export function useRecentUpdates() {
 }
 
 /** Activity type labels for chips */
-export const ACTIVITY_TYPE_LABELS: Record<string, string> = {
+export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   shore_cleanup: 'Shore Cleanup',
   tree_planting: 'Tree Planting',
   land_regeneration: 'Land Regeneration',

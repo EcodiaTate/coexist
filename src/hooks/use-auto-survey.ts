@@ -15,6 +15,7 @@ export interface PendingSurvey {
 }
 
 export interface AutoSurveyConfig {
+  [key: string]: boolean | number
   enabled: boolean
   delay_hours: number
   default_questions_enabled: boolean

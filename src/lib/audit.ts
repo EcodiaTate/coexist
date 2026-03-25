@@ -1,10 +1,12 @@
 import { supabase } from '@/lib/supabase'
 
+import type { Json } from '@/types/database.types'
+
 interface AuditEntry {
   action: string
   target_type?: string
   target_id?: string | null
-  details?: Record<string, unknown>
+  details?: Record<string, Json | undefined>
 }
 
 /**

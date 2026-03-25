@@ -183,7 +183,7 @@ export function useAuthProvider(): AuthContextValue {
         .eq('user_id', userId)
         .maybeSingle()
       if (error) return null
-      return data?.permissions ?? null
+      return (data?.permissions ?? null) as Record<string, boolean> | null
     } catch {
       return null
     }
@@ -276,7 +276,8 @@ export function useAuthProvider(): AuthContextValue {
     if (profileData?.is_suspended) {
       try {
         const { data: suspCheck } = await supabase.rpc('check_user_suspended', { uid: userId })
-        if (suspCheck && !suspCheck.suspended) {
+        const suspResult = suspCheck as { suspended?: boolean } | null
+        if (suspResult && !suspResult.suspended) {
           // Server cleared the expired suspension - refresh profile data
           profileData.is_suspended = false
           profileData.suspended_reason = null

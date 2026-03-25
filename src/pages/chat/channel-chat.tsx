@@ -7,6 +7,8 @@ import { ChatSwitcherDropdown } from '@/components/chat-switcher-dropdown'
 import { ChatBubble, PollCard, AnnouncementCard } from '@/components/chat-bubble'
 import { HtmlChatBubble } from '@/components/html-chat-bubble'
 import { MessageInput } from '@/components/message-input'
+import { MessageActionsSheet } from '@/components/message-actions-sheet'
+import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { UploadProgress } from '@/components/upload-progress'
@@ -26,6 +28,8 @@ import {
     useSendChannelMessage,
     useMarkChannelRead,
     useMyStaffChannels,
+    useDeleteChannelMessage,
+    usePinChannelMessage,
     type ChannelMessageWithSender,
 } from '@/hooks/use-staff-channels'
 import {
@@ -39,6 +43,7 @@ import {
 } from '@/hooks/use-chat'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import type { Json } from '@/types/database.types'
 import { useEventDetail, type EventDetailData } from '@/hooks/use-events'
 import type { Tables } from '@/types/database.types'
 
@@ -294,6 +299,8 @@ export default function ChannelChatPage() {
   const collectiveId = channel?.collective_id
   const { data: broadcastLog = [] } = useBroadcastLog(isLeaderOrAbove && collectiveId ? collectiveId : undefined)
   const sendBroadcast = useSendBroadcastNotification()
+  const deleteMessage = useDeleteChannelMessage()
+  const pinMessage = usePinChannelMessage()
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -305,6 +312,9 @@ export default function ChannelChatPage() {
   }, [channelId])
   const [showScrollDown, setShowScrollDown] = useState(false)
   const [replyTo, setReplyTo] = useState<ChannelMessageWithSender | null>(null)
+  const [selectedMessage, setSelectedMessage] = useState<ChannelMessageWithSender | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<ChannelMessageWithSender | null>(null)
   const [showPollSheet, setShowPollSheet] = useState(false)
   const [showAnnouncementSheet, setShowAnnouncementSheet] = useState(false)
   const [showBroadcastSheet, setShowBroadcastSheet] = useState(false)
@@ -402,6 +412,56 @@ export default function ChannelChatPage() {
     })
   }, [channelId, collectiveId, sendMessage])
 
+  // Message action handlers
+  const handleMessageLongPress = useCallback((msg: ChannelMessageWithSender) => {
+    if (msg._optimistic || msg.is_deleted) return
+    setSelectedMessage(msg)
+  }, [])
+
+  const handleReply = useCallback(() => {
+    if (selectedMessage) {
+      setReplyTo(selectedMessage)
+      setSelectedMessage(null)
+    }
+  }, [selectedMessage])
+
+  const handleDelete = useCallback(() => {
+    if (!selectedMessage) return
+    setDeleteTarget(selectedMessage)
+    setSelectedMessage(null)
+    setShowDeleteConfirm(true)
+  }, [selectedMessage])
+
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget || !channelId) return
+    try {
+      await deleteMessage.mutateAsync({
+        messageId: deleteTarget.id,
+        channelId,
+      })
+      toast.info('Message removed')
+    } catch {
+      toast.error('Failed to delete message')
+    }
+    setShowDeleteConfirm(false)
+    setDeleteTarget(null)
+  }, [deleteTarget, channelId, deleteMessage, toast])
+
+  const handlePin = useCallback(async () => {
+    if (!selectedMessage || !channelId) return
+    try {
+      await pinMessage.mutateAsync({
+        messageId: selectedMessage.id,
+        channelId,
+        pinned: !selectedMessage.is_pinned,
+      })
+      toast.success(selectedMessage.is_pinned ? 'Message unpinned' : 'Message pinned')
+    } catch {
+      toast.error('Failed to update pin')
+    }
+    setSelectedMessage(null)
+  }, [selectedMessage, channelId, pinMessage, toast])
+
   // Leader action handlers - create the record then send a channel message
   // (can't reuse useCreatePoll/useCreateAnnouncement because those send to the
   //  collective's public chat via useSendMessage, not to the staff channel)
@@ -464,7 +524,7 @@ export default function ChannelChatPage() {
     type: 'announcement' | 'event_invite' | 'rsvp'
     title: string
     body?: string
-    metadata?: Record<string, unknown>
+    metadata?: Json
   }) => {
     if (!channelId || !user) return
     setShowAnnouncementSheet(false)
@@ -542,6 +602,7 @@ export default function ChannelChatPage() {
       <Header
         title={channelName}
         back
+        showTitle
         rightActions={
           <div className="flex items-center gap-1">
             <ChatSwitcherDropdown currentChannelId={channelId} />
@@ -608,7 +669,13 @@ export default function ChannelChatPage() {
                     </div>
                   )}
 
-                  <div className="py-1">
+                  <div
+                    className="py-1"
+                    onContextMenu={(e) => {
+                      e.preventDefault()
+                      handleMessageLongPress(msg)
+                    }}
+                  >
                     {isDeleted ? (
                       <div className={cn('flex py-1', isSent ? 'justify-end' : 'justify-start')}>
                         <p className="text-xs italic text-primary-400 font-medium px-3.5 py-2.5 rounded-2xl bg-white/70 ring-1 ring-primary-200/50 shadow-sm">
@@ -636,9 +703,7 @@ export default function ChannelChatPage() {
                         skipAnimation={msg._confirmed}
                         onAvatarTap={(userId) => setProfileUserId(userId)}
                         onSenderTap={(userId) => setProfileUserId(userId)}
-                        onLongPress={() => {
-                          if (!msg._optimistic) setReplyTo(msg)
-                        }}
+                        onLongPress={() => handleMessageLongPress(msg)}
                       />
                     ) : (
                       <ChatBubble
@@ -652,9 +717,7 @@ export default function ChannelChatPage() {
                         skipAnimation={msg._confirmed}
                         onAvatarTap={(userId) => setProfileUserId(userId)}
                         onSenderTap={(userId) => setProfileUserId(userId)}
-                        onLongPress={() => {
-                          if (!msg._optimistic) setReplyTo(msg)
-                        }}
+                        onLongPress={() => handleMessageLongPress(msg)}
                         replyTo={
                           msg.reply_message
                             ? {
@@ -777,6 +840,28 @@ export default function ChannelChatPage() {
         loading={sendBroadcast.isPending}
         recentBroadcasts={broadcastLog}
         collectiveName={channel?.name}
+      />
+
+      {/* Message actions sheet */}
+      <MessageActionsSheet
+        message={selectedMessage}
+        isModerator={isLeaderOrAbove}
+        isOwnMessage={selectedMessage?.user_id === user?.id}
+        onClose={() => setSelectedMessage(null)}
+        onReply={handleReply}
+        onDelete={handleDelete}
+        onPin={handlePin}
+      />
+
+      {/* Delete message confirmation */}
+      <ConfirmationSheet
+        open={showDeleteConfirm}
+        onClose={() => { setShowDeleteConfirm(false); setDeleteTarget(null) }}
+        onConfirm={confirmDelete}
+        title="Delete this message?"
+        description="This message will be permanently removed for everyone in the chat."
+        confirmLabel="Delete Message"
+        variant="danger"
       />
 
       {/* Profile modal */}

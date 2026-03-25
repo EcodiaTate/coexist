@@ -11,6 +11,8 @@ interface HeaderProps {
   rightActions?: ReactNode
   /** Render with no background — back button gets a glass pill for contrast on images */
   transparent?: boolean
+  /** Display the title text in the header center zone */
+  showTitle?: boolean
   className?: string
 }
 
@@ -20,6 +22,7 @@ export function Header({
   onBack,
   rightActions,
   transparent = false,
+  showTitle = false,
   className,
 }: HeaderProps) {
   const navigate = useNavigate()
@@ -74,8 +77,17 @@ export function Header({
           )}
         </div>
 
-        {/* Center zone: spacer */}
-        <div className="flex-1 min-w-0" />
+        {/* Center zone: title or spacer */}
+        <div className="flex-1 min-w-0">
+          {showTitle && (
+            <p className={cn(
+              'text-sm font-bold truncate pl-2',
+              transparent ? 'text-white' : 'text-primary-900',
+            )}>
+              {title}
+            </p>
+          )}
+        </div>
 
         {/* Right zone: actions */}
         <div className="flex items-center shrink-0 gap-1 justify-end">

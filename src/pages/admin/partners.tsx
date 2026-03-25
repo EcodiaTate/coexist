@@ -169,9 +169,11 @@ export default function AdminPartnersPage() {
   /* ---- Create offer (optimistic) ---- */
   const createOfferMutation = useMutation({
     mutationFn: async (form: typeof offerForm) => {
+      const org = organisations?.find((o) => o.id === form.organisation_id)
       const { data, error } = await supabase
         .from('partner_offers')
         .insert({
+          partner_name: org?.name ?? form.title,
           title: form.title,
           description: form.description,
           organisation_id: form.organisation_id || null,

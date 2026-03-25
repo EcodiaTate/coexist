@@ -356,6 +356,88 @@ export function useSendChannelMessage() {
 }
 
 /* ------------------------------------------------------------------ */
+/*  useDeleteChannelMessage — soft delete (own or moderator)           */
+/* ------------------------------------------------------------------ */
+
+export function useDeleteChannelMessage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ messageId }: { messageId: string; channelId: string }) => {
+      const { error } = await supabase
+        .from('chat_messages')
+        .update({ is_deleted: true })
+        .eq('id', messageId)
+      if (error) throw error
+    },
+    onMutate: async ({ messageId, channelId }) => {
+      await queryClient.cancelQueries({ queryKey: ['channel-messages', channelId] })
+      const previous = queryClient.getQueryData(['channel-messages', channelId])
+      queryClient.setQueryData<{ pages: ChannelMessageWithSender[][]; pageParams: unknown[] }>(
+        ['channel-messages', channelId],
+        (old) => {
+          if (!old) return old
+          return {
+            ...old,
+            pages: old.pages.map((page) =>
+              page.map((msg) => (msg.id === messageId ? { ...msg, is_deleted: true } : msg)),
+            ),
+          }
+        },
+      )
+      return { previous }
+    },
+    onError: (_err, { channelId }, context) => {
+      if (context?.previous) queryClient.setQueryData(['channel-messages', channelId], context.previous)
+    },
+    onSettled: (_data, _err, { channelId }) => {
+      queryClient.invalidateQueries({ queryKey: ['channel-messages', channelId] })
+    },
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  usePinChannelMessage — pin / unpin (moderator)                     */
+/* ------------------------------------------------------------------ */
+
+export function usePinChannelMessage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ messageId, pinned }: { messageId: string; channelId: string; pinned: boolean }) => {
+      const { error } = await supabase
+        .from('chat_messages')
+        .update({ is_pinned: pinned })
+        .eq('id', messageId)
+      if (error) throw error
+    },
+    onMutate: async ({ messageId, channelId, pinned }) => {
+      await queryClient.cancelQueries({ queryKey: ['channel-messages', channelId] })
+      const previous = queryClient.getQueryData(['channel-messages', channelId])
+      queryClient.setQueryData<{ pages: ChannelMessageWithSender[][]; pageParams: unknown[] }>(
+        ['channel-messages', channelId],
+        (old) => {
+          if (!old) return old
+          return {
+            ...old,
+            pages: old.pages.map((page) =>
+              page.map((msg) => (msg.id === messageId ? { ...msg, is_pinned: pinned } : msg)),
+            ),
+          }
+        },
+      )
+      return { previous }
+    },
+    onError: (_err, { channelId }, context) => {
+      if (context?.previous) queryClient.setQueryData(['channel-messages', channelId], context.previous)
+    },
+    onSettled: (_data, _err, { channelId }) => {
+      queryClient.invalidateQueries({ queryKey: ['channel-messages', channelId] })
+    },
+  })
+}
+
+/* ------------------------------------------------------------------ */
 /*  useChannelUnreadCounts — unread counts per channel                 */
 /* ------------------------------------------------------------------ */
 
