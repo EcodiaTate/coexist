@@ -102,11 +102,6 @@ function EventsHero({ rm }: { rm: boolean }) {
           </span>
         </div>
 
-        {/* Safe area spacer */}
-        <div
-          className="absolute top-0 left-0 right-0 z-40"
-          style={{ paddingTop: 'var(--safe-top, 0px)' }}
-        />
       </div>
 
       {/* Wave transition */}

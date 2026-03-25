@@ -109,7 +109,7 @@ function TrendChart({
   barColor: string
 }) {
   const shouldReduceMotion = useReducedMotion()
-  const values = data.map((d) => d[dataKey] as number)
+  const values = data.map((d) => d[dataKey as keyof TrendMonth] as number)
   const max = Math.max(...values, 1)
   const mean = values.reduce((a, b) => a + b, 0) / values.length || 1
   const scale = max > 0 ? Math.max(max, mean * 1.65) : 1
@@ -136,7 +136,7 @@ function TrendChart({
 
       <div className="flex items-end gap-1.5 sm:gap-2 h-28 sm:h-36">
         {data.map((d, i) => {
-          const val = d[dataKey] as number
+          const val = d[dataKey as keyof TrendMonth] as number
           const height = val > 0 ? Math.max((val / scale) * 100, 6) : 0
           return (
             <div key={d.month} className="flex-1 flex flex-col items-center gap-1.5">
@@ -382,7 +382,7 @@ export default function AdminDashboardPage() {
           {/* Hero text */}
           <motion.div
             className="relative z-[2] flex flex-col items-center text-center px-6"
-            style={{ paddingTop: 'calc(var(--safe-top, 0px) + 2.5rem)', paddingBottom: '7rem' }}
+            style={{ paddingTop: '2.5rem', paddingBottom: '7rem' }}
             initial={rm ? {} : { opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, ease: 'easeOut' }}

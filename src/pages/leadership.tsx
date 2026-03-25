@@ -94,7 +94,7 @@ export default function LeadershipPage() {
 
         <div
           className="relative z-10 px-6 pt-14 pb-16 text-center"
-          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}
+          style={{ paddingTop: '3.5rem' }}
         >
           <motion.div
             initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.8 }}

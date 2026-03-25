@@ -167,7 +167,7 @@ export default function LearnModulePage() {
 
           <div
             className="relative z-10 px-5 sm:px-6 pt-14 pb-10"
-            style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}
+            style={{ paddingTop: '3.5rem' }}
           >
             {/* Module title + meta */}
             <motion.div

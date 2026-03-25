@@ -542,7 +542,7 @@ button, a, [role="button"], [role="tab"], nav {
 /* Full-collapse sticky overlay header — cancels the header's full height
    (h-14 + safe-top) so the hero sits flush at the viewport top. */
 .collapse-header {
-  margin-bottom: calc(-3.5rem - var(--safe-top, 0px));
+  margin-bottom: -3.5rem;
 }
 
 /* Native-style section padding utility */

@@ -43,7 +43,6 @@ import {
 } from '@/hooks/use-chat'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import type { Json } from '@/types/database.types'
 import { useEventDetail, type EventDetailData } from '@/hooks/use-events'
 import type { Tables } from '@/types/database.types'
 
@@ -524,7 +523,7 @@ export default function ChannelChatPage() {
     type: 'announcement' | 'event_invite' | 'rsvp'
     title: string
     body?: string
-    metadata?: Json
+    metadata?: Record<string, unknown>
   }) => {
     if (!channelId || !user) return
     setShowAnnouncementSheet(false)

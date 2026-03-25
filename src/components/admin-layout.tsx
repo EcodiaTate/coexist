@@ -414,9 +414,7 @@ export function AdminLayout() {
                   'before:absolute before:inset-x-0 before:bottom-full before:h-[200px] before:bg-inherit',
                 )}
                 style={{
-                  paddingTop: cfg.tall
-                    ? 'calc(var(--safe-top, 0px) + 3.5rem)'
-                    : 'calc(var(--safe-top, 0px) + 2rem)',
+                  paddingTop: cfg.tall ? '3.5rem' : '2rem',
                 }}
               >
                 {/* Decorative shapes - unique formation per page */}

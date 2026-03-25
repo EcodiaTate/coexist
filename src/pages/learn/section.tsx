@@ -113,7 +113,7 @@ export default function LearnSectionPage() {
 
         <div
           className="relative z-10 px-6 pt-14 pb-14"
-          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 3.5rem)' }}
+          style={{ paddingTop: '3.5rem' }}
         >
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">

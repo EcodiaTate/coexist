@@ -9,7 +9,7 @@ export interface ActionableMessage {
   id: string
   content: string | null
   user_id: string | null
-  is_pinned: boolean
+  is_pinned: boolean | null
   is_deleted: boolean
   created_at: string
   message_type?: string

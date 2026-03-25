@@ -146,8 +146,8 @@ export default function MorePage() {
     <Page
       header={
         <header
-          className="sticky top-0 z-40 px-5 pt-2 pb-3"
-          style={{ paddingTop: 'calc(var(--safe-top, 0px) + 0.5rem)' }}
+          className="sticky z-40 px-5 pt-2 pb-3"
+          style={{ top: 'var(--safe-top)' }}
           aria-label="More page header"
         >
           <h1 className="font-heading text-2xl font-bold text-primary-900">

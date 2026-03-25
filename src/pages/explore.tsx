@@ -1390,7 +1390,7 @@ export default function ExplorePage() {
                           <TreePine size={48} strokeWidth={1} />
                         </div>
 
-                        <div className="relative px-6 lg:px-10" style={{ paddingTop: 'calc(var(--safe-top) + 2rem)' }}>
+                        <div className="relative px-6 lg:px-10" style={{ paddingTop: '2rem' }}>
                           <motion.div
                             initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}

@@ -1,5 +1,4 @@
 import { useState, useCallback, useMemo, useEffect, useRef, type ReactNode } from 'react'
-import { createPortal } from 'react-dom'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -745,8 +744,8 @@ export default function ShopPage() {
         </div>
       </PullToRefresh>
 
-      {/* Floating cart button - portalled to body so it stays fixed above bottom tabs on mobile */}
-      {isOnShopPage && createPortal(
+      {/* Floating cart button */}
+      {isOnShopPage && (
         <button
           type="button"
           onClick={() => navigate('/shop/cart')}
@@ -766,8 +765,7 @@ export default function ShopPage() {
               {cartCount}
             </span>
           )}
-        </button>,
-        document.body,
+        </button>
       )}
     </Page>
   )

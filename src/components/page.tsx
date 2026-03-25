@@ -103,7 +103,7 @@ export function Page({
 
         <div
           className="relative"
-          style={hasInlineHeader ? { paddingTop: 'calc(3.5rem + var(--safe-top))' } : undefined}
+          style={hasInlineHeader ? { paddingTop: '3.5rem' } : undefined}
         >
           {children}
         </div>
