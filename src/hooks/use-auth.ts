@@ -178,12 +178,12 @@ export function useAuthProvider(): AuthContextValue {
   const fetchPermissionOverrides = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('staff_roles' as never)
+        .from('staff_roles')
         .select('permissions')
         .eq('user_id', userId)
         .maybeSingle()
       if (error) return null
-      return (data as { permissions?: Record<string, boolean> } | null)?.permissions ?? null
+      return data?.permissions ?? null
     } catch {
       return null
     }
@@ -235,7 +235,7 @@ export function useAuthProvider(): AuthContextValue {
       if (retried) {
         console.log('[auth] Profile found on retry')
         setProfile(retried)
-        setCollectiveRoles(roles)
+        setCollectiveRoles(roles as CollectiveMembership[])
         setPermissionOverrides(permOverrides)
         persistProfile(retried)
         if (retried.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
@@ -261,7 +261,7 @@ export function useAuthProvider(): AuthContextValue {
         if (created) {
           console.log('[auth] Profile created successfully')
           setProfile(created)
-          setCollectiveRoles(roles)
+          setCollectiveRoles(roles as CollectiveMembership[])
           setPermissionOverrides(permOverrides)
           persistProfile(created)
           if (created.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
@@ -275,8 +275,8 @@ export function useAuthProvider(): AuthContextValue {
     // Check suspension server-side (the RPC handles expiry clearance securely)
     if (profileData?.is_suspended) {
       try {
-        const { data: suspCheck } = await supabase.rpc('check_user_suspended' as never, { uid: userId })
-        if (suspCheck && !(suspCheck as unknown as { suspended: boolean }).suspended) {
+        const { data: suspCheck } = await supabase.rpc('check_user_suspended', { uid: userId })
+        if (suspCheck && !suspCheck.suspended) {
           // Server cleared the expired suspension - refresh profile data
           profileData.is_suspended = false
           profileData.suspended_reason = null
@@ -289,19 +289,19 @@ export function useAuthProvider(): AuthContextValue {
 
     // Check if account is pending deletion and user logged back in (recovery)
     // Use server-side RPC to handle this securely instead of direct client update
-    if ((profileData as unknown as { deletion_status?: string })?.deletion_status === 'pending_deletion') {
+    if (profileData?.deletion_status === 'pending_deletion') {
       try {
-        await supabase.rpc('recover_pending_deletion' as never, { uid: userId })
-        ;(profileData as unknown as Record<string, unknown>).deletion_status = 'active'
-        ;(profileData as unknown as Record<string, unknown>).deleted_at = null
-        ;(profileData as unknown as Record<string, unknown>).deletion_requested_at = null
+        await supabase.rpc('recover_pending_deletion', { uid: userId })
+        profileData.deletion_status = 'active'
+        profileData.deleted_at = null
+        profileData.deletion_requested_at = null
       } catch {
         // If RPC doesn't exist yet, the account stays pending - server wins
       }
     }
 
     setProfile(profileData)
-    setCollectiveRoles(roles)
+    setCollectiveRoles(roles as CollectiveMembership[])
     setPermissionOverrides(permOverrides)
     persistProfile(profileData)
     if (profileData?.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
@@ -510,7 +510,7 @@ export function useAuthProvider(): AuthContextValue {
       try {
         await SocialLogin.initialize({ google: { webClientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID } })
         const result = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } })
-        const idToken = (result?.result as Record<string, unknown>)?.idToken as string | undefined
+        const idToken = (result?.result as unknown as Record<string, unknown>)?.idToken as string | undefined
         if (!idToken) return { error: { message: 'No ID token received from Google', status: 400 } as unknown as AuthError }
         const { error } = await supabase.auth.signInWithIdToken({ provider: 'google', token: idToken })
         return { error }
@@ -535,7 +535,7 @@ export function useAuthProvider(): AuthContextValue {
       try {
         await SocialLogin.initialize({ apple: {} })
         const result = await SocialLogin.login({ provider: 'apple', options: { scopes: ['email', 'name'] } })
-        const idToken = (result?.result as Record<string, unknown>)?.idToken as string | undefined
+        const idToken = (result?.result as unknown as Record<string, unknown>)?.idToken as string | undefined
         if (!idToken) return { error: { message: 'No ID token received from Apple', status: 400 } as unknown as AuthError }
         const { error } = await supabase.auth.signInWithIdToken({ provider: 'apple', token: idToken })
         return { error }

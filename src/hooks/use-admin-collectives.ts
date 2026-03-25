@@ -291,7 +291,7 @@ export function useCreateCollective() {
           region: input.region || null,
           state: input.state || null,
           leader_id: input.leaderId || null,
-        } as Record<string, unknown>)
+        })
         .select('id')
         .single()
 
@@ -594,7 +594,7 @@ export function exportAdminMembersCSV(
         m.status,
         p?.instagram_handle ?? '',
         `"${p?.location ?? ''}"`,
-        new Date(m.joined_at).toLocaleDateString(),
+        new Date(m.joined_at ?? '').toLocaleDateString(),
       ].join(',')
     })
     .join('\n')

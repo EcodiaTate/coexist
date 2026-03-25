@@ -73,7 +73,7 @@ export function useMyTasks() {
       cutoff.setDate(cutoff.getDate() - 30)
 
       const { data, error } = await supabase
-        .from('task_instances' as never)
+        .from('task_instances')
         .select(`
           *,
           task_templates(*),
@@ -107,7 +107,7 @@ export function useMyTasks() {
           collective: row.collectives,
           event: row.events,
           completer: row.profiles ?? null,
-        })) as MyTask[]
+        })) as unknown as MyTask[]
     },
     enabled: !!user && staffCollectiveIds.length > 0,
     staleTime: 30 * 1000,
@@ -130,7 +130,7 @@ export function useCollectiveTasks(collectiveId: string | undefined) {
       cutoff.setDate(cutoff.getDate() - 30)
 
       const { data, error } = await supabase
-        .from('task_instances' as never)
+        .from('task_instances')
         .select(`
           *,
           task_templates(*),
@@ -150,7 +150,7 @@ export function useCollectiveTasks(collectiveId: string | undefined) {
         collective: row.collectives,
         event: row.events,
         completer: row.profiles ?? null,
-      })) as MyTask[]
+      })) as unknown as MyTask[]
     },
     enabled: !!user && !!collectiveId,
     staleTime: 30 * 1000,
@@ -176,7 +176,7 @@ export function useCompleteTask() {
       if (!user) throw new Error('Not authenticated')
 
       const { error } = await supabase
-        .from('task_instances' as never)
+        .from('task_instances')
         .update({
           status: 'completed',
           completed_at: new Date().toISOString(),
@@ -231,7 +231,7 @@ export function useSkipTask() {
   return useMutation({
     mutationFn: async (instanceId: string) => {
       const { error } = await supabase
-        .from('task_instances' as never)
+        .from('task_instances')
         .update({ status: 'skipped' })
         .eq('id', instanceId)
 
@@ -287,7 +287,7 @@ export function useGenerateTaskInstances() {
 
       // Fetch ALL active templates (including event_relative)
       const { data: templates } = await supabase
-        .from('task_templates' as never)
+        .from('task_templates')
         .select('*')
         .eq('is_active', true)
 
@@ -335,7 +335,7 @@ export function useGenerateTaskInstances() {
           const dueDate = getDueDate(template as unknown as TaskTemplate, periodKey)
           // INSERT ... ON CONFLICT DO NOTHING: only creates if no row exists for this period
           await supabase
-            .from('task_instances' as never)
+            .from('task_instances')
             .upsert(
               {
                 template_id: template.id,
@@ -355,7 +355,7 @@ export function useGenerateTaskInstances() {
         const indivTemplateIds = individualRecurring.map((t) => t.id)
 
         const { data: existingIndiv } = await supabase
-          .from('task_instances' as never)
+          .from('task_instances')
           .select('template_id, collective_id, period_key')
           .in('template_id', indivTemplateIds)
           .eq('assigned_user_id', user.id)
@@ -381,7 +381,7 @@ export function useGenerateTaskInstances() {
 
             const dueDate = getDueDate(template as unknown as TaskTemplate, basePeriodKey)
             await supabase
-              .from('task_instances' as never)
+              .from('task_instances')
               .insert({
                 template_id: template.id,
                 collective_id: collectiveId,
@@ -399,7 +399,7 @@ export function useGenerateTaskInstances() {
         const onceTemplateIds = onceTemplates.map((t) => t.id)
 
         const { data: existingOnce } = await supabase
-          .from('task_instances' as never)
+          .from('task_instances')
           .select('template_id, collective_id')
           .in('template_id', onceTemplateIds)
           .eq('assigned_user_id', user.id)
@@ -423,7 +423,7 @@ export function useGenerateTaskInstances() {
             dueDate.setHours(23, 59, 59, 999)
 
             await supabase
-              .from('task_instances' as never)
+              .from('task_instances')
               .insert({
                 template_id: template.id,
                 collective_id: collectiveId,
@@ -469,7 +469,7 @@ export function useGenerateTaskInstances() {
 
             // Use ignoreDuplicates to avoid overwriting completed/skipped instances
             await supabase
-              .from('task_instances' as never)
+              .from('task_instances')
               .upsert(
                 {
                   template_id: template.id,

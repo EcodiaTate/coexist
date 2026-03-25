@@ -96,12 +96,11 @@ function useAppImagesAdmin() {
   return useQuery({
     queryKey: ['app-images'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('app_images' as string & keyof never)
+      const { data, error } = await supabase.from('app_images')
         .select('*')
       if (error) throw error
       const map: Record<string, { url: string; label: string }> = {}
-      for (const row of (data ?? []) as Record<string, unknown>[]) {
+      for (const row of (data ?? []) as { key: string; url: string; label: string }[]) {
         map[row.key] = { url: row.url, label: row.label }
       }
       return map
@@ -130,9 +129,8 @@ function ImageSlotCard({
 
   const updateMutation = useMutation({
     mutationFn: async (url: string) => {
-      const { error } = await supabase
-        .from('app_images' as string & keyof never)
-        .upsert({ key: slot.key, url, label: slot.label } as Record<string, unknown>, { onConflict: 'key' })
+      const { error } = await supabase.from('app_images')
+        .upsert({ key: slot.key, url, label: slot.label }, { onConflict: 'key' })
       if (error) throw error
     },
     onSuccess: () => {

@@ -217,7 +217,7 @@ function CollectiveChatRow({
     cover_image_url: string | null
     region: string | null
     state: string | null
-    member_count: number
+    member_count: number | null
   }
   collectiveId: string
   unread: number
@@ -372,10 +372,10 @@ export default function ChatListPage() {
 
     // Fallback: pick primary collective by highest role, then earliest join
     const sorted = [...myCollectives].sort((a, b) => {
-      const rankA = ROLE_RANK[a.role] ?? 0
-      const rankB = ROLE_RANK[b.role] ?? 0
+      const rankA = ROLE_RANK[a.role!] ?? 0
+      const rankB = ROLE_RANK[b.role!] ?? 0
       if (rankB !== rankA) return rankB - rankA
-      return new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime()
+      return new Date(a.joined_at!).getTime() - new Date(b.joined_at!).getTime()
     })
 
     const primaryId = sorted[0]?.collective_id

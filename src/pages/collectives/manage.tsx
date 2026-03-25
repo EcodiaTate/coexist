@@ -266,7 +266,7 @@ function RoleAssignSheet({
           Change Role
         </h3>
         <p className="text-sm text-primary-400">
-          {member.profiles?.display_name ?? 'Member'} is currently <strong>{ROLE_LABELS[member.role]}</strong>
+          {member.profiles?.display_name ?? 'Member'} is currently <strong>{ROLE_LABELS[member.role!]}</strong>
         </p>
 
         <div className="space-y-2">
@@ -499,7 +499,7 @@ export default function CollectiveManagePage() {
           {/* Member list */}
           <motion.div variants={shouldReduceMotion ? undefined : listStagger} initial="hidden" animate="visible" className="space-y-1">
             {filteredMembers.map((member) => {
-              const Icon = ROLE_ICONS[member.role]
+              const Icon = ROLE_ICONS[member.role!]
               const isCurrentUser = member.user_id === user?.id
 
               return (
@@ -538,16 +538,16 @@ export default function CollectiveManagePage() {
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span className={cn(
                         'inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[11px] font-semibold',
-                        ROLE_COLORS[member.role],
+                        ROLE_COLORS[member.role!],
                       )}>
                         <Icon size={10} />
-                        {ROLE_LABELS[member.role]}
+                        {ROLE_LABELS[member.role!]}
                       </span>
                     </div>
                   </button>
 
                   {/* Actions: not for self, and only for members ranked below you */}
-                  {!isCurrentUser && ROLE_RANK[member.role] < (myRole ? ROLE_RANK[myRole] : -1) && (
+                  {!isCurrentUser && ROLE_RANK[member.role!] < (myRole ? ROLE_RANK[myRole] : -1) && (
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
@@ -620,9 +620,9 @@ export default function CollectiveManagePage() {
             <div className="flex items-center gap-2 mt-2">
               <span className={cn(
                 'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
-                ROLE_COLORS[selectedUser.role],
+                ROLE_COLORS[selectedUser.role!],
               )}>
-                {ROLE_LABELS[selectedUser.role]}
+                {ROLE_LABELS[selectedUser.role!]}
               </span>
               {selectedUser.profiles?.location && (
                 <span className="text-xs text-primary-400">{selectedUser.profiles.location}</span>

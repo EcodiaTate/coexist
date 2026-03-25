@@ -84,7 +84,7 @@ export default function ContactPage() {
 
     setSending(true)
     try {
-      const { error } = await (supabase as unknown as { from: (table: string) => { insert: (data: Record<string, unknown>) => Promise<{ error: unknown }> } })
+      const { error } = await supabase
         .from('contact_submissions')
         .insert({
           name: name.trim(),

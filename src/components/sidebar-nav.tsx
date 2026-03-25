@@ -103,9 +103,9 @@ export function SidebarNav({ className }: SidebarNavProps) {
                 <p className="font-heading text-[13px] font-semibold text-primary-800 truncate">
                   {profile?.display_name}
                 </p>
-                {(profile as Record<string, unknown>)?.collective_name && (
+                {Boolean((profile as Record<string, unknown>)?.collective_name) && (
                   <p className="text-[11px] text-primary-400 truncate">
-                    {String((profile as Record<string, unknown>).collective_name)}
+                    {String((profile as Record<string, unknown>)?.collective_name ?? '')}
                   </p>
                 )}
               </div>

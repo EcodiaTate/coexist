@@ -66,7 +66,7 @@ function useAdminUsers(search: string, roleFilter: string) {
   return useQuery({
     queryKey: ['admin-users', search, roleFilter],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_list_users' as string & keyof never, {
+      const { data, error } = await supabase.rpc('admin_list_users', {
         search_term: search,
         role_filter: roleFilter || 'all',
         result_limit: 50,
@@ -146,7 +146,7 @@ function UserSettingsSheet({
   open,
   onClose,
 }: {
-  user: Record<string, unknown>
+  user: any
   open: boolean
   onClose: () => void
 }) {
@@ -265,7 +265,7 @@ function UserSettingsSheet({
     },
     onSuccess: () => toast.success('Role updated'),
     onError: (_err, _vars, ctx) => {
-      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as unknown as string[], data))
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
       toast.error('Failed to update role')
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
@@ -293,7 +293,7 @@ function UserSettingsSheet({
     },
     onSuccess: () => toast.success('User suspended'),
     onError: (_err, _vars, ctx) => {
-      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as unknown as string[], data))
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
       toast.error('Failed to suspend user')
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
@@ -316,7 +316,7 @@ function UserSettingsSheet({
     },
     onSuccess: () => toast.success('User unsuspended'),
     onError: (_err, _vars, ctx) => {
-      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as unknown as string[], data))
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
       toast.error('Failed to unsuspend user')
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
@@ -341,7 +341,7 @@ function UserSettingsSheet({
     },
     onSuccess: () => toast.success('User deleted'),
     onError: (_err, _vars, ctx) => {
-      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key as unknown as string[], data))
+      ctx?.previous?.forEach(([key, data]) => queryClient.setQueryData(key, data))
       toast.error('Failed to delete user')
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
@@ -813,7 +813,7 @@ function UserSettingsSheet({
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [settingsUser, setSettingsUser] = useState<Record<string, unknown> | null>(null)
+  const [settingsUser, setSettingsUser] = useState<any>(null)
   const [profileUserId, setProfileUserId] = useState<string | null>(null)
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
 
@@ -895,7 +895,7 @@ export default function AdminUsersPage() {
         />
       ) : (
         <StaggeredList className="space-y-1.5">
-          {users.map((user) => (
+          {users.map((user: any) => (
             <StaggeredItem
               key={user.id}
               className={cn(

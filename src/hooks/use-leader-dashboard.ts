@@ -66,7 +66,7 @@ async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboa
       .eq('collective_id', collectiveId)
       .eq('status', 'active'),
     supabase
-      .from('events' as never)
+      .from('events')
       .select('id, title, date_start, address, cover_image_url')
       .eq('collective_id', collectiveId)
       .gte('date_start', now.toISOString())
@@ -80,10 +80,10 @@ async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboa
     supabase
       .from('event_impact')
       .select('hours_total, events!inner(collective_id)')
-      .eq('events.collective_id' as never, collectiveId)
+      .eq('events.collective_id', collectiveId)
       .gte('logged_at', startOfMonth),
     supabase
-      .from('collective_members' as never)
+      .from('collective_members')
       .select('id, user_id, joined_at, profiles(display_name, avatar_url)')
       .eq('collective_id', collectiveId)
       .eq('status', 'active')
@@ -173,7 +173,7 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
     supabase
       .from('event_impact')
       .select('trees_planted, hours_total, rubbish_kg, invasive_weeds_pulled, leaders_trained, events!inner(collective_id)')
-      .eq('events.collective_id' as never, collectiveId),
+      .eq('events.collective_id', collectiveId),
     supabase
       .from('collective_members')
       .select('id', { count: 'exact', head: true })
@@ -192,7 +192,7 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
       .from('events')
       .select('id', { count: 'exact', head: true })
       .eq('collective_id', collectiveId)
-      .in('activity_type', ['shore_cleanup', 'marine_restoration'] as never)
+      .in('activity_type', ['shore_cleanup', 'marine_restoration'])
       .lt('date_start', now.toISOString()),
   ])
 
@@ -256,7 +256,7 @@ async function fetchEngagementScores(collectiveId: string) {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
 
   const { data: recentEvents } = await supabase
-    .from('events' as never)
+    .from('events')
     .select('id')
     .eq('collective_id', collectiveId)
     .gte('date_start', thirtyDaysAgo)
@@ -308,7 +308,7 @@ export function prefetchEngagementScores(queryClient: QueryClient, collectiveId:
 
 async function fetchPendingItems(collectiveId: string) {
   const { data: pastEvents } = await supabase
-    .from('events' as never)
+    .from('events')
     .select('id, title, date_start')
     .eq('collective_id', collectiveId)
     .lt('date_start', new Date().toISOString())
@@ -372,7 +372,7 @@ export function useEventCalendar(collectiveId: string | undefined, month: Date) 
       const end = new Date(month.getFullYear(), month.getMonth() + 1, 0)
 
       const { data } = await supabase
-        .from('events' as never)
+        .from('events')
         .select('id, title, date_start')
         .eq('collective_id', collectiveId)
         .gte('date_start', start.toISOString())

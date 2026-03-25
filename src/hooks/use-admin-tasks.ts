@@ -175,7 +175,7 @@ export function useAdminTaskTemplates(filters?: {
     queryKey: ['admin-task-templates', filters],
     queryFn: async () => {
       let query = supabase
-        .from('task_templates' as never)
+        .from('task_templates')
         .select('*, collectives(id, name)')
         .order('sort_order')
         .order('created_at', { ascending: false })
@@ -199,7 +199,7 @@ export function useAdminTaskTemplates(filters?: {
       return (data ?? []).map((row: TemplateRow) => ({
         ...row,
         collective: row.collectives,
-      })) as TaskTemplate[]
+      })) as unknown as TaskTemplate[]
     },
     staleTime: 30 * 1000,
   })
@@ -228,7 +228,7 @@ export function useAdminCreateTemplate() {
       if (!user) throw new Error('Not authenticated')
 
       const { data, error } = await supabase
-        .from('task_templates' as never)
+        .from('task_templates')
         .insert({
           ...input,
           collective_id: input.collective_id || null,
@@ -238,7 +238,7 @@ export function useAdminCreateTemplate() {
         .single()
       if (error) throw error
       const row = data as TemplateRow
-      return { ...row, collective: row.collectives } as TaskTemplate
+      return { ...row, collective: row.collectives } as unknown as TaskTemplate
     },
     onSuccess: (created) => {
       // Immediately prepend the new template into all matching query caches
@@ -260,14 +260,14 @@ export function useAdminUpdateTemplate() {
       ...updates
     }: Partial<TaskTemplate> & { id: string }) => {
       const { data, error } = await supabase
-        .from('task_templates' as never)
+        .from('task_templates')
         .update(updates)
         .eq('id', id)
         .select('*, collectives(id, name)')
         .single()
       if (error) throw error
       const row = data as TemplateRow
-      return { ...row, collective: row.collectives } as TaskTemplate
+      return { ...row, collective: row.collectives } as unknown as TaskTemplate
     },
     onSuccess: (updated) => {
       // Instantly replace the updated template in cache
@@ -285,7 +285,7 @@ export function useAdminToggleTemplate() {
   return useMutation({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
       const { error } = await supabase
-        .from('task_templates' as never)
+        .from('task_templates')
         .update({ is_active })
         .eq('id', id)
       if (error) throw error
@@ -301,7 +301,7 @@ export function useAdminDeleteTemplate() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('task_templates' as never)
+        .from('task_templates')
         .delete()
         .eq('id', id)
       if (error) throw error
@@ -332,7 +332,7 @@ export function useAdminKpiDashboard(filters?: {
     queryKey: ['admin-kpi-dashboard', filters],
     queryFn: async () => {
       let query = supabase
-        .from('task_instances' as never)
+        .from('task_instances')
         .select('id, collective_id, status, due_date, completed_at, completed_by, template_id, collectives(id, name)')
         .limit(5000)
 

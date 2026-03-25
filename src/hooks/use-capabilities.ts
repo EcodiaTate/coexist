@@ -29,8 +29,7 @@ export function useCapabilities(): UseCapabilitiesReturn {
     queryFn: async () => {
       if (!user) return null
       const { data } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('staff_roles' as any)
+        .from('staff_roles')
         .select('permissions')
         .eq('user_id', user.id)
         .maybeSingle()
@@ -78,8 +77,7 @@ export function useUserCapabilities(userId: string | undefined) {
 
       // Fetch staff overrides
       const { data: staffRole } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('staff_roles' as any)
+        .from('staff_roles')
         .select('permissions')
         .eq('user_id', userId)
         .maybeSingle()

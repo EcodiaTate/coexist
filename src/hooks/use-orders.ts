@@ -143,8 +143,7 @@ export function useRequestReturn() {
     mutationFn: async ({ orderId, reason }: { orderId: string; reason: string }) => {
       if (!user) throw new Error('Must be signed in')
       const { error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('return_requests' as any)
+        .from('return_requests')
         .insert({ order_id: orderId, reason, user_id: user.id })
       if (error) throw error
     },
@@ -178,8 +177,7 @@ export function useMyReturns() {
     enabled: !!user,
     queryFn: async () => {
       const { data, error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('return_requests' as any)
+        .from('return_requests')
         .select('*, order:merch_orders(id, status, total, created_at)')
         .eq('user_id', user!.id)
         .order('created_at', { ascending: false })

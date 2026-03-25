@@ -95,7 +95,7 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
   }
 
   const memberSince = profile
-    ? new Date(profile.created_at).toLocaleDateString('en-AU', {
+    ? new Date(profile.created_at ?? '').toLocaleDateString('en-AU', {
         month: 'long',
         year: 'numeric',
       })

@@ -46,8 +46,7 @@ function useSurveyQuestions(activityType: string | undefined) {
     queryKey: ['post-event-survey-template', activityType],
     queryFn: async () => {
       if (!activityType) return []
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- survey tables not in generated DB types yet
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('post_event_survey_templates')
         .select('*')
         .eq('activity_type', activityType)
@@ -85,8 +84,7 @@ function useExistingResponse(eventId: string | undefined) {
     queryKey: ['post-event-survey-response', eventId, user?.id],
     queryFn: async () => {
       if (!eventId || !user) return null
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- survey tables not in generated DB types yet
-      const { data } = await (supabase as any)
+      const { data } = await supabase
         .from('post_event_survey_responses')
         .select('*')
         .eq('event_id', eventId)
@@ -105,8 +103,7 @@ function useSubmitSurvey() {
   return useMutation({
     mutationFn: async ({ eventId, answers }: { eventId: string; answers: Record<string, unknown> }) => {
       if (!user) throw new Error('Not authenticated')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- survey tables not in generated DB types yet
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('post_event_survey_responses')
         .upsert(
           {

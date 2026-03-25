@@ -86,7 +86,7 @@ export function useProductStock(productId: string | undefined) {
       if (error) throw error
       const map = new Map<string, number>()
       for (const row of data ?? []) {
-        map.set(row.variant_key, row.stock_count)
+        map.set(row.variant_key, row.stock_count ?? 0)
       }
       return map
     },
@@ -107,8 +107,7 @@ export function useShippingConfig() {
     queryKey: ['shipping-config'],
     queryFn: async () => {
       const { data, error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('shipping_config' as any)
+        .from('shipping_config')
         .select('*')
       if (error) throw error
 
@@ -116,7 +115,7 @@ export function useShippingConfig() {
         flat_rate_cents: 995,
         free_shipping_threshold_cents: null,
       }
-      for (const row of (data ?? []) as { key: string; value: string | null }[]) {
+      for (const row of data ?? []) {
         if (row.key === 'flat_rate_cents') config.flat_rate_cents = parseInt(row.value) || 995
         if (row.key === 'free_shipping_threshold_cents') {
           config.free_shipping_threshold_cents = row.value ? parseInt(row.value) || null : null
@@ -161,7 +160,7 @@ export async function validatePromoCode(code: string) {
     valid_from: data.valid_from ?? null,
     valid_to: data.valid_to ?? null,
     is_active: data.is_active ?? true,
-    created_at: data.created_at,
+    created_at: data.created_at!,
   }
 
   return { valid: true, promo }

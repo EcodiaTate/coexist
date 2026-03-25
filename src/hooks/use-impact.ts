@@ -70,7 +70,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       let cleanupQuery = supabase
         .from('events')
         .select('id, address')
-        .in('activity_type', ['shore_cleanup', 'marine_restoration'] as never)
+        .in('activity_type', ['shore_cleanup', 'marine_restoration'])
         .lt('date_start', new Date().toISOString())
       if (timeRange === 'current-year') {
         cleanupQuery = cleanupQuery.gte('date_start', yearStart)
@@ -80,7 +80,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       const leadersQuery = supabase
         .from('collective_members')
         .select('user_id')
-        .in('role', ['assist_leader', 'co_leader', 'leader'] as never)
+        .in('role', ['assist_leader', 'co_leader', 'leader'])
 
       const [impactRes, eventsRes, membersRes, collectivesRes, cleanupRes, leadersRes] = await Promise.all([
         impactQuery,
@@ -143,7 +143,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
       let impactQuery = supabase
         .from('event_impact')
         .select('trees_planted, hours_total, rubbish_kg, invasive_weeds_pulled, leaders_trained, event_id, events!inner(collective_id)')
-        .eq('events.collective_id' as never, collectiveId)
+        .eq('events.collective_id', collectiveId)
       if (timeRange === 'current-year') {
         impactQuery = impactQuery.gte('logged_at', yearStart)
       }
@@ -152,7 +152,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
         .from('events')
         .select('id, address')
         .eq('collective_id', collectiveId)
-        .in('activity_type', ['shore_cleanup', 'marine_restoration'] as never)
+        .in('activity_type', ['shore_cleanup', 'marine_restoration'])
         .lt('date_start', new Date().toISOString())
       if (timeRange === 'current-year') {
         cleanupQuery = cleanupQuery.gte('date_start', yearStart)
@@ -171,7 +171,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
         .from('collective_members')
         .select('user_id')
         .eq('collective_id', collectiveId)
-        .in('role', ['assist_leader', 'co_leader', 'leader'] as never)
+        .in('role', ['assist_leader', 'co_leader', 'leader'])
 
       const [impactRes, cleanupRes, eventsRes, leadersRes] = await Promise.all([impactQuery, cleanupQuery, eventsQuery, leadersQuery])
 
@@ -186,7 +186,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
         const { count } = await supabase
           .from('event_registrations')
           .select('id', { count: 'exact', head: true })
-          .in('event_id', chunk as never)
+          .in('event_id', chunk)
           .eq('status', 'attended')
         attendanceCount += count ?? 0
       }
@@ -271,7 +271,7 @@ export function useImpactStats(userId?: string) {
             .from('events')
             .select('id, address')
             .in('id', chunk)
-            .in('activity_type', ['shore_cleanup', 'marine_restoration'] as never)
+            .in('activity_type', ['shore_cleanup', 'marine_restoration'])
           if (data) rows.push(...data)
         }
         return rows
@@ -288,7 +288,7 @@ export function useImpactStats(userId?: string) {
           .from('collective_members')
           .select('user_id')
           .eq('user_id', id)
-          .in('role', ['assist_leader', 'co_leader', 'leader'] as never),
+          .in('role', ['assist_leader', 'co_leader', 'leader']),
       ])
       let totalHours = 0
       let totalTrees = 0
@@ -363,7 +363,7 @@ export function useMonthlyActivity(userId?: string) {
 
       const monthCounts = new Map<string, number>()
       for (const reg of registrations) {
-        const date = new Date(reg.registered_at)
+        const date = new Date(reg.registered_at!)
         const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
         monthCounts.set(key, (monthCounts.get(key) ?? 0) + 1)
       }
@@ -455,7 +455,7 @@ export function useStreak(userId?: string) {
       const months = new Set<string>()
 
       for (const reg of registrations) {
-        const date = new Date(reg.registered_at)
+        const date = new Date(reg.registered_at!)
         // ISO week
         const startOfYear = new Date(date.getFullYear(), 0, 1)
         const dayOfYear = Math.floor((date.getTime() - startOfYear.getTime()) / 86400000)

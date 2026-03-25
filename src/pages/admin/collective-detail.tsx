@@ -222,7 +222,7 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
   const { data: events = [] } = useAdminCollectiveEvents(collectiveId)
 
   const leaders = members.filter((m) =>
-    ['leader', 'co_leader', 'assist_leader'].includes(m.role),
+    ['leader', 'co_leader', 'assist_leader'].includes(m.role!),
   )
 
   const recentEvents = events.slice(0, 5)
@@ -355,8 +355,8 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {leaders.map((m, i) => {
-              const Icon = ROLE_ICONS[m.role]
-              const accent = ROLE_CARD_ACCENTS[m.role]
+              const Icon = ROLE_ICONS[m.role ?? 'member']
+              const accent = ROLE_CARD_ACCENTS[m.role ?? 'member']
               return (
                 <motion.div
                   key={m.id}
@@ -388,11 +388,11 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
                       <span
                         className={cn(
                           'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold mt-1.5',
-                          ROLE_COLORS[m.role],
+                          ROLE_COLORS[m.role ?? 'member'],
                         )}
                       >
                         <Icon size={10} />
-                        {ROLE_LABELS[m.role]}
+                        {ROLE_LABELS[m.role ?? 'member']}
                       </span>
                     </div>
                   </div>
@@ -624,7 +624,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
       ) : (
         <div className="space-y-1.5">
           {filteredMembers.map((member) => {
-            const Icon = ROLE_ICONS[member.role]
+            const Icon = ROLE_ICONS[member.role ?? 'member']
             const isInactive = member.status !== 'active'
 
             return (
@@ -651,11 +651,11 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                     <span
                       className={cn(
                         'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
-                        ROLE_COLORS[member.role],
+                        ROLE_COLORS[member.role ?? 'member'],
                       )}
                     >
                       <Icon size={10} />
-                      {ROLE_LABELS[member.role]}
+                      {ROLE_LABELS[member.role ?? 'member']}
                     </span>
                     {member.profiles?.instagram_handle && (
                       <span className="text-[11px] text-primary-400 truncate">
@@ -718,7 +718,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
               </h3>
               <p className="text-sm text-primary-500 mt-1">
                 {roleAssignMember.profiles?.display_name ?? 'Member'} is currently{' '}
-                <strong className="text-primary-700">{ROLE_LABELS[roleAssignMember.role]}</strong>
+                <strong className="text-primary-700">{ROLE_LABELS[roleAssignMember.role ?? 'member']}</strong>
               </p>
             </div>
 
@@ -1041,7 +1041,7 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
     try {
       await archiveCollective.mutateAsync({
         collectiveId,
-        archive: detail.is_active,
+        archive: detail.is_active ?? false,
       })
       toast.success(detail.is_active ? 'Collective archived' : 'Collective restored')
     } catch {

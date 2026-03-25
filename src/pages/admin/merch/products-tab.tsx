@@ -302,7 +302,7 @@ function ProductFormSheet({
         // Update variants as full JSONB replace
         await supabase
           .from('merch_products')
-          .update({ variants: variantsToSave as unknown as Record<string, unknown> })
+          .update({ variants: variantsToSave })
           .eq('id', product.id)
       } else {
         const created = await createProduct.mutateAsync({
@@ -318,7 +318,7 @@ function ProductFormSheet({
         if (newId && variantsToSave.length > 0) {
           await supabase
             .from('merch_products')
-            .update({ variants: variantsToSave.map((v) => ({ ...v, product_id: newId })) as unknown as Record<string, unknown> })
+            .update({ variants: variantsToSave.map((v) => ({ ...v, product_id: newId })) })
             .eq('id', newId)
         }
       }

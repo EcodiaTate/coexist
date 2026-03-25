@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useReducedMotion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import {
   Plus,
   Trash2,
@@ -119,7 +119,7 @@ export default function CreateSurveyPage() {
         questions: JSON.stringify(questions),
         auto_send_after_event: autoSendAfterEvent,
         status: 'active',
-      } as Record<string, unknown>)
+      })
       if (error) throw error
     },
     onSuccess: () => {

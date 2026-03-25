@@ -137,7 +137,7 @@ export default function AdminSurveysPage() {
   const exportResultsCSV = () => {
     if (!results?.length) return
     const headers = ['Response ID', 'User ID', 'Answers', 'Submitted At']
-    const rows = results.map((r) => [r.id, r.user_id, JSON.stringify(r.answers), r.created_at])
+    const rows = results.map((r) => [r.id, r.user_id, JSON.stringify(r.answers), r.submitted_at])
     const csv = [headers, ...rows].map((row) => row.join(',')).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
@@ -210,7 +210,7 @@ export default function AdminSurveysPage() {
                     </div>
                     <p className="text-xs text-primary-400 mt-0.5">
                       Created{' '}
-                      {new Date(survey.created_at).toLocaleDateString('en-AU', {
+                      {new Date(survey.created_at!).toLocaleDateString('en-AU', {
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric',

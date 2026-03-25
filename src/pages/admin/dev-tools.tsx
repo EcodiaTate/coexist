@@ -71,7 +71,7 @@ function useSeedTestEvent() {
 
       if (membership) {
         collectiveId = membership.collective_id
-        collectiveName = (membership as unknown as Record<string, Record<string, unknown>>).collectives?.name as string ?? 'Test Collective'
+        collectiveName = membership.collectives?.name ?? 'Test Collective'
       } else {
         collectiveId = 'c0000000-0000-0000-0000-000000000001'
         collectiveName = 'Byron Bay Collective'
@@ -107,7 +107,7 @@ function useSeedTestEvent() {
           created_by: user.id,
           title,
           description: `Dev test event for ${label}. This event is happening right now for testing day-of flows.`,
-          activity_type: activityType as string & keyof never,
+          activity_type: activityType,
           date_start: start.toISOString(),
           date_end: end.toISOString(),
           capacity: 30,
@@ -201,7 +201,7 @@ function useTestEvents() {
         const { data: membership } = await supabase
           .from('collective_members')
           .select('role')
-          .eq('collective_id', (evt as unknown as Record<string, Record<string, unknown>>).collectives?.id)
+          .eq('collective_id', evt.collectives?.id as string)
           .eq('user_id', user.id)
           .maybeSingle()
 
@@ -211,8 +211,8 @@ function useTestEvents() {
           activity_type: evt.activity_type,
           date_start: evt.date_start,
           date_end: evt.date_end,
-          collective_name: (evt as unknown as Record<string, Record<string, unknown>>).collectives?.name ?? '',
-          collective_id: (evt as unknown as Record<string, Record<string, unknown>>).collectives?.id ?? '',
+          collective_name: evt.collectives?.name ?? '',
+          collective_id: evt.collectives?.id ?? '',
           registration_count: count ?? 0,
           user_role: membership?.role ?? null,
           user_status: userReg?.status ?? null,
@@ -298,6 +298,10 @@ const TYPE_META: Record<NotificationType, string> = {
   chat_mention: 'Chat @Mention',
   chat_messages: 'Chat Message',
   survey_request: 'Survey Request',
+  chat_reply: 'Chat Reply',
+  chat_image: 'Chat Image',
+  chat_poll: 'Chat Poll',
+  chat_announcement: 'Chat Announcement',
 }
 
 const ALL_TYPES = Object.keys(TYPE_META) as NotificationType[]
@@ -331,13 +335,13 @@ function useNotifPrefs() {
       if (!user) return DEFAULT_PREFERENCES
       const { data, error } = await supabase
         .from('profiles')
-        .select('notification_preferences' as string & keyof never)
+        .select('notification_preferences')
         .eq('id', user.id)
         .single()
       if (error) throw error
       return {
         ...DEFAULT_PREFERENCES,
-        ...(((data as Record<string, unknown>)?.notification_preferences as Partial<NotificationPreferences>) ?? {}),
+        ...((data?.notification_preferences as Partial<NotificationPreferences>) ?? {}),
       }
     },
     enabled: !!user,
@@ -357,10 +361,10 @@ function useUserCollectives() {
         .eq('user_id', user.id)
         .eq('status', 'active')
       if (error) throw error
-      return (data ?? []).map((m: Record<string, unknown>) => ({
-        id: m.collective_id as string,
-        name: (m.collectives?.name ?? 'Unknown') as string,
-        role: m.role as string,
+      return (data ?? []).map((m) => ({
+        id: m.collective_id,
+        name: m.collectives?.name ?? 'Unknown',
+        role: m.role,
       }))
     },
     enabled: !!user,
@@ -430,11 +434,11 @@ function usePushTestRunner() {
     await push(runSingleTest('prefs', 'Preferences Stored', 'infra', async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('notification_preferences' as string & keyof never)
+        .select('notification_preferences')
         .eq('id', user.id)
         .single()
       if (error) throw error
-      const p = (data as Record<string, unknown>)?.notification_preferences as Record<string, unknown> | null
+      const p = data?.notification_preferences as Record<string, unknown> | null
       if (!p || Object.keys(p).length === 0) return 'Defaults (no custom prefs). OK for new users.'
       const disabled = Object.entries(p).filter(([k, v]) => v === false && k !== 'quiet_hours_enabled')
       return `${Object.keys(p).length} prefs saved. ${disabled.length} type(s) disabled. TZ: ${(p.timezone as string) || 'auto'}`
@@ -563,15 +567,15 @@ function usePushTestRunner() {
       await push(runSingleTest('opt-out', 'Preference Opt-Out Blocks Delivery', 'filtering', async () => {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('notification_preferences' as string & keyof never)
+          .select('notification_preferences')
           .eq('id', user.id)
           .single()
-        const orig = ((profile as Record<string, unknown>)?.notification_preferences ?? {}) as Record<string, unknown>
+        const orig = (profile?.notification_preferences ?? {}) as Record<string, unknown>
 
         // Disable event_reminder temporarily
         await supabase
           .from('profiles')
-          .update({ notification_preferences: { ...orig, event_reminder: false } } as Record<string, unknown>)
+          .update({ notification_preferences: { ...orig, event_reminder: false } })
           .eq('id', user.id)
 
         await new Promise((r) => setTimeout(r, 300))
@@ -583,7 +587,7 @@ function usePushTestRunner() {
         // Restore immediately
         await supabase
           .from('profiles')
-          .update({ notification_preferences: orig } as Record<string, unknown>)
+          .update({ notification_preferences: orig })
           .eq('id', user.id)
 
         if (error) throw error
@@ -597,10 +601,10 @@ function usePushTestRunner() {
       await push(runSingleTest('quiet', 'Quiet Hours Blocks Delivery', 'filtering', async () => {
         const { data: profile } = await supabase
           .from('profiles')
-          .select('notification_preferences' as string & keyof never)
+          .select('notification_preferences')
           .eq('id', user.id)
           .single()
-        const orig = ((profile as Record<string, unknown>)?.notification_preferences ?? {}) as Record<string, unknown>
+        const orig = (profile?.notification_preferences ?? {}) as Record<string, unknown>
 
         const now = new Date()
         const h = now.getHours()
@@ -618,7 +622,7 @@ function usePushTestRunner() {
 
         await supabase
           .from('profiles')
-          .update({ notification_preferences: quietPrefs } as Record<string, unknown>)
+          .update({ notification_preferences: quietPrefs })
           .eq('id', user.id)
 
         await new Promise((r) => setTimeout(r, 300))
@@ -629,7 +633,7 @@ function usePushTestRunner() {
 
         await supabase
           .from('profiles')
-          .update({ notification_preferences: orig } as Record<string, unknown>)
+          .update({ notification_preferences: orig })
           .eq('id', user.id)
 
         if (error) throw error

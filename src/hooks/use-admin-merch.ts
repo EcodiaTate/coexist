@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { supabase } from '@/lib/supabase'
 import type {
   Product,
+  ProductStatus,
   ProductVariant,
   Order,
   OrderStatus,
@@ -35,7 +36,7 @@ function fromDbProduct(row: Record<string, unknown>): Product {
     description: (row.description as string) ?? '',
     images: (row.images as string[]) ?? [],
     category: (row.category as string) ?? null,
-    status: (row.status as string) ?? 'active',
+    status: ((row.status as string) ?? 'active') as ProductStatus,
     base_price_cents: (row.base_price_cents as number) ?? (row.price != null ? Math.round(Number(row.price) * 100) : 0),
     variants: Array.isArray(row.variants) ? row.variants : [],
     created_at: row.created_at as string,
@@ -91,7 +92,7 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: async (product: Omit<Product, 'id' | 'variants' | 'created_at' | 'updated_at'>) => {
       const row = toDbProduct(product as Record<string, unknown>)
-      const { data, error } = await supabase.from('merch_products').insert(row as never).select().single()
+      const { data, error } = await supabase.from('merch_products').insert(row).select().single()
       if (error) throw error
       return data
     },
@@ -106,7 +107,7 @@ export function useUpdateProduct() {
       const row = toDbProduct(updates as Record<string, unknown>)
       const { data, error } = await supabase
         .from('merch_products')
-        .update(row as never)
+        .update(row)
         .eq('id', id)
         .select()
       if (error) throw error
@@ -158,14 +159,14 @@ export function useAdjustStock() {
       adjustment: number
     }) => {
       if (adjustment > 0) {
-        const { error } = await (supabase as unknown as { rpc: (fn: string, params: Record<string, unknown>) => Promise<{ error: unknown }> }).rpc('increment_stock', {
+        const { error } = await supabase.rpc('increment_stock', {
           p_product_id: productId,
           p_variant_key: variantKey,
           p_quantity: adjustment,
         })
         if (error) throw error
       } else if (adjustment < 0) {
-        const { error } = await (supabase as unknown as { rpc: (fn: string, params: Record<string, unknown>) => Promise<{ error: unknown }> }).rpc('decrement_stock', {
+        const { error } = await supabase.rpc('decrement_stock', {
           p_product_id: productId,
           p_variant_key: variantKey,
           p_quantity: Math.abs(adjustment),
@@ -337,7 +338,7 @@ export function useUpsertVariant() {
 
       const { error } = await supabase
         .from('merch_products')
-        .update({ variants: updated as unknown as never })
+        .update({ variants: updated })
         .eq('id', productId)
       if (error) throw error
     },
@@ -355,7 +356,7 @@ export function useUpdateOrderNotes() {
     mutationFn: async ({ orderId, notes }: { orderId: string; notes: string }) => {
       const { error } = await supabase
         .from('merch_orders')
-        .update({ admin_notes: notes, updated_at: new Date().toISOString() } as never)
+        .update({ admin_notes: notes, updated_at: new Date().toISOString() })
         .eq('id', orderId)
       if (error) throw error
     },
@@ -386,7 +387,7 @@ export function useUpsertPromoCode() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (promo: Partial<PromoCode> & { code: string }) => {
-      const { error } = await supabase.from('promo_codes').upsert(promo as never)
+      const { error } = await supabase.from('promo_codes').upsert(promo)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-promo-codes'] }),
@@ -402,7 +403,7 @@ export function useAdminReturns() {
     queryKey: ['admin-returns'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('return_requests' as never)
+        .from('return_requests')
         .select('*, order:merch_orders(id, status, total_cents), profiles(display_name, avatar_url)')
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -424,11 +425,11 @@ export function useUpdateReturnStatus() {
       adminNotes?: string
     }) => {
       const { error } = await supabase
-        .from('return_requests' as never)
+        .from('return_requests')
         .update({
           status,
           reviewed_at: new Date().toISOString(),
-        } as never)
+        })
         .eq('id', returnId)
       if (error) throw error
 
@@ -458,7 +459,7 @@ export function useUpdateShippingConfig() {
       ]
       for (const entry of entries) {
         const { error } = await supabase
-          .from('shipping_config' as never)
+          .from('shipping_config')
           .upsert(entry, { onConflict: 'key' })
         if (error) throw error
       }

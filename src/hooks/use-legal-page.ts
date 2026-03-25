@@ -18,8 +18,7 @@ export function useLegalPage(slug: string) {
     queryKey: ['legal-page', slug],
     queryFn: async () => {
       const { data, error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('legal_pages' as any)
+        .from('legal_pages')
         .select('*')
         .eq('slug', slug)
         .eq('is_published', true)
@@ -37,8 +36,7 @@ export function useAllLegalPages() {
     queryKey: ['legal-pages-admin'],
     queryFn: async () => {
       const { data, error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('legal_pages' as any)
+        .from('legal_pages')
         .select('*')
         .order('title')
       if (error) throw error
@@ -62,8 +60,7 @@ export function useSaveLegalPage() {
     }) => {
       const { data: { user } } = await supabase.auth.getUser()
       const { error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('legal_pages' as any)
+        .from('legal_pages')
         .upsert(
           { ...page, updated_by: user?.id ?? null },
           { onConflict: 'slug' },

@@ -18,6 +18,17 @@ import { Avatar } from '@/components/avatar'
 import { cn } from '@/lib/cn'
 import { supabase, escapeIlike } from '@/lib/supabase'
 
+interface AuditLogEntry {
+  id: string
+  action: string
+  details: string | { message?: string; [k: string]: unknown } | null
+  target_type: string | null
+  target_id: string | null
+  created_at: string
+  user_id: string | null
+  profiles: { display_name: string; avatar_url: string | null } | null
+}
+
 const actionTypeOptions = [
   { value: 'all', label: 'All Actions' },
   { value: 'user_suspended', label: 'User Suspended' },
@@ -60,8 +71,7 @@ function useAuditLog(search: string, actionFilter: string, page: number) {
   return useQuery({
     queryKey: ['admin-audit-log', search, actionFilter, page],
     queryFn: async () => {
-      let query = supabase
-        .from('audit_log' as string & keyof never)
+      let query = supabase.from('audit_log')
         .select('*, profiles!audit_log_user_id_fkey(display_name, avatar_url)', {
           count: 'exact',
         })
@@ -78,7 +88,7 @@ function useAuditLog(search: string, actionFilter: string, page: number) {
 
       const { data, error, count } = await query
       if (error) throw error
-      return { logs: data ?? [], total: count ?? 0 }
+      return { logs: (data ?? []) as AuditLogEntry[], total: count ?? 0 }
     },
     staleTime: 30 * 1000,
   })
@@ -146,8 +156,7 @@ export default function AdminAuditLogPage() {
         ) : (
           <>
             <StaggeredList className="space-y-1">
-              {data.logs.map((_log) => {
-                const log = _log as Record<string, unknown>
+              {data.logs.map((log) => {
                 const profile = log.profiles
                 const colorClass =
                   actionColors[log.action] ?? actionColors.default

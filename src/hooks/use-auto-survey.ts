@@ -80,13 +80,13 @@ export function usePendingSurveys() {
 
       // Check which events the user has already responded to
       const eventIds = completedEvents.map((e) => e.id)
-      const { data: existingResponses } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data: existingResponses } = await supabase
         .from('post_event_survey_responses')
         .select('event_id')
         .eq('user_id', user.id)
         .in('event_id', eventIds)
 
-      const respondedIds = new Set((existingResponses ?? []).map((r: { event_id: string }) => r.event_id))
+      const respondedIds = new Set((existingResponses ?? []).map((r) => r.event_id))
 
       return completedEvents
         .filter((e) => !respondedIds.has(e.id))
@@ -110,7 +110,7 @@ export function useAutoSurveyConfig() {
   return useQuery({
     queryKey: ['auto-survey-config'],
     queryFn: async () => {
-      const { data, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data, error } = await supabase
         .from('app_settings')
         .select('value')
         .eq('key', 'auto_survey_config')
@@ -140,10 +140,10 @@ export function useUpdateAutoSurveyConfig() {
 
   return useMutation({
     mutationFn: async (config: AutoSurveyConfig) => {
-      const { error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { error } = await supabase
         .from('app_settings')
         .upsert(
-          { key: 'auto_survey_config', value: config as unknown },
+          { key: 'auto_survey_config', value: config },
           { onConflict: 'key' },
         )
       if (error) throw error
@@ -162,7 +162,7 @@ export function useTriggerSurveyNotifications() {
   return useMutation({
     mutationFn: async ({ eventId, eventTitle }: { eventId: string; eventTitle: string }) => {
       // Check if auto-surveys are enabled
-      const { data: config } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data: config } = await supabase
         .from('app_settings')
         .select('value')
         .eq('key', 'auto_survey_config')
@@ -183,13 +183,13 @@ export function useTriggerSurveyNotifications() {
 
       // Check who already has a survey response
       const userIds = attendees.map((a) => a.user_id)
-      const { data: existingResponses } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data: existingResponses } = await supabase
         .from('post_event_survey_responses')
         .select('user_id')
         .eq('event_id', eventId)
         .in('user_id', userIds)
 
-      const respondedIds = new Set((existingResponses ?? []).map((r: { user_id: string }) => r.user_id))
+      const respondedIds = new Set((existingResponses ?? []).map((r) => r.user_id))
       const pendingUsers = userIds.filter((id) => !respondedIds.has(id))
 
       if (!pendingUsers.length) return { sent: 0 }

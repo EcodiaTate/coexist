@@ -112,17 +112,17 @@ function useEmailMarketingStats() {
     queryKey: ['admin-email-marketing-stats'],
     queryFn: async () => {
       const [subscribersRes, campaignsRes, bouncesRes, suppressedRes] = await Promise.all([
-        supabase.rpc('email_subscriber_count' as string & keyof never),
+        supabase.rpc('email_subscriber_count'),
         supabase
-          .from('email_campaigns' as string & keyof never)
+          .from('email_campaigns')
           .select('id', { count: 'exact', head: true })
           .eq('status', 'sent'),
         supabase
-          .from('email_events' as string & keyof never)
+          .from('email_events')
           .select('id', { count: 'exact', head: true })
           .eq('event_type', 'bounce'),
         supabase
-          .from('email_suppressions' as string & keyof never)
+          .from('email_suppressions')
           .select('id', { count: 'exact', head: true }),
       ])
 
@@ -142,7 +142,7 @@ function useCampaigns() {
     queryKey: ['admin-email-campaigns'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_campaigns' as string & keyof never)
+        .from('email_campaigns')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100)
@@ -158,7 +158,7 @@ function useTemplates() {
     queryKey: ['admin-email-templates'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_templates' as string & keyof never)
+        .from('email_templates')
         .select('*')
         .order('updated_at', { ascending: false })
       if (error) throw error
@@ -195,45 +195,45 @@ function useSubscribers(search: string, tagFilter: string | null) {
       const { data, error } = await query
       if (error) throw error
 
-      let profiles = (data ?? []) as Record<string, unknown>[]
+      let profiles = data ?? []
 
       // Load marketing_opt_in from profiles (added by migration 005, not in generated types)
       // The select('*') would get it but we need to be explicit - use a separate query
-      const profileIds = profiles.map((p: Record<string, unknown>) => p.id)
+      const profileIds = profiles.map((p: any) => p.id)
       const { data: optInData } = await supabase
-        .from('profiles' as string & keyof never)
+        .from('profiles')
         .select('id, marketing_opt_in')
         .in('id', profileIds.length ? profileIds : ['__none__'])
       const optInMap = new Map<string, boolean>()
-      for (const row of (optInData ?? []) as Record<string, unknown>[]) {
+      for (const row of optInData ?? []) {
         optInMap.set(row.id, row.marketing_opt_in !== false)
       }
 
       // If tag filter, filter by profile_tags
       if (tagFilter) {
         const { data: taggedIds } = await supabase
-          .from('profile_tags' as string & keyof never)
+          .from('profile_tags')
           .select('profile_id')
           .eq('tag_id', tagFilter)
-        const idSet = new Set((taggedIds ?? []).map((t: Record<string, unknown>) => t.profile_id))
-        profiles = profiles.filter((p: Record<string, unknown>) => idSet.has(p.id))
+        const idSet = new Set((taggedIds ?? []).map((t) => t.profile_id))
+        profiles = profiles.filter((p: any) => idSet.has(p.id))
       }
 
       // Load tags for each profile
-      const finalIds = profiles.map((p: Record<string, unknown>) => p.id)
+      const finalIds = profiles.map((p: any) => p.id)
       const { data: allTags } = await supabase
-        .from('profile_tags' as string & keyof never)
+        .from('profile_tags')
         .select('profile_id, tag_id, email_tags(id, name, colour)')
         .in('profile_id', finalIds.length ? finalIds : ['__none__'])
 
       const tagMap = new Map<string, EmailTag[]>()
-      for (const pt of (allTags ?? []) as Record<string, unknown>[]) {
+      for (const pt of allTags ?? []) {
         const existing = tagMap.get(pt.profile_id) ?? []
         if (pt.email_tags) existing.push(pt.email_tags)
         tagMap.set(pt.profile_id, existing)
       }
 
-      return profiles.map((p: Record<string, unknown>) => ({
+      return profiles.map((p: any) => ({
         ...p,
         marketing_opt_in: optInMap.get(p.id) ?? true,
         tags: tagMap.get(p.id) ?? [],
@@ -248,7 +248,7 @@ function useTags() {
     queryKey: ['admin-email-tags'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_tags' as string & keyof never)
+        .from('email_tags')
         .select('*')
         .order('name')
       if (error) throw error
@@ -263,7 +263,7 @@ function useCollectives() {
     queryKey: ['admin-collectives-list'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('collectives' as string & keyof never)
+        .from('collectives')
         .select('id, name')
         .order('name')
       if (error) throw error
@@ -278,13 +278,13 @@ function useEmailBounces() {
     queryKey: ['admin-email-bounces'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_events' as string & keyof never)
+        .from('email_events')
         .select('*')
         .eq('event_type', 'bounce')
         .order('created_at', { ascending: false })
         .limit(50)
       if (error) throw error
-      return (data ?? []) as Record<string, unknown>[]
+      return data ?? []
     },
     staleTime: 60 * 1000,
   })
@@ -295,13 +295,13 @@ function useEmailComplaints() {
     queryKey: ['admin-email-complaints'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('email_events' as string & keyof never)
+        .from('email_events')
         .select('*')
         .eq('event_type', 'complaint')
         .order('created_at', { ascending: false })
         .limit(50)
       if (error) throw error
-      return (data ?? []) as Record<string, unknown>[]
+      return data ?? []
     },
     staleTime: 60 * 1000,
   })
@@ -525,18 +525,18 @@ function CampaignComposer({
 
       if (campaign) {
         const { error } = await supabase
-          .from('email_campaigns' as string & keyof never)
-          .update(payload as Record<string, unknown>)
+          .from('email_campaigns')
+          .update(payload)
           .eq('id', campaign.id)
         if (error) throw error
       } else {
         const { data, error } = await supabase
-          .from('email_campaigns' as string & keyof never)
-          .insert(payload as Record<string, unknown>)
+          .from('email_campaigns')
+          .insert(payload)
           .select('id')
           .single()
         if (error) throw error
-        campaignId = (data as Record<string, unknown>).id as string
+        campaignId = data.id as string
       }
 
       if (andSend && campaignId) {
@@ -954,14 +954,14 @@ function TemplateEditor({
     try {
       if (template) {
         const { error } = await supabase
-          .from('email_templates' as string & keyof never)
-          .update(payload as Record<string, unknown>)
+          .from('email_templates')
+          .update(payload)
           .eq('id', template.id)
         if (error) throw error
       } else {
         const { error } = await supabase
-          .from('email_templates' as string & keyof never)
-          .insert(payload as Record<string, unknown>)
+          .from('email_templates')
+          .insert(payload)
         if (error) throw error
       }
 
@@ -1184,12 +1184,12 @@ function TagManagerSheet({
 
     try {
       const { error } = await supabase
-        .from('email_tags' as string & keyof never)
+        .from('email_tags')
         .insert({
           name: savedName.trim(),
           colour,
           description: optimisticTag.description,
-        } as Record<string, unknown>)
+        })
       if (error) throw error
       toast.success(`Tag "${savedName}" created`)
     } catch (err: unknown) {
@@ -1286,21 +1286,21 @@ function AssignTagsSheet({
     const prevSubscribers = queryClient.getQueryData(['admin-email-subscribers', '', null])
     const newTags = (allTags ?? []).filter((t) => selectedIds.has(t.id))
     queryClient.setQueryData(['admin-email-subscribers', '', null], (old: Record<string, unknown>[]) =>
-      (old ?? []).map((sub: Record<string, unknown>) =>
+      (old ?? []).map((sub: any) =>
         sub.id === profileId ? { ...sub, tags: newTags } : sub,
       ),
     )
     onClose()
 
     try {
-      await supabase.from('profile_tags' as string & keyof never).delete().eq('profile_id', profileId)
+      await supabase.from('profile_tags').delete().eq('profile_id', profileId)
 
       if (selectedIds.size > 0) {
         const rows = Array.from(selectedIds).map((tag_id) => ({
           profile_id: profileId,
           tag_id,
         }))
-        const { error } = await supabase.from('profile_tags' as string & keyof never).insert(rows as Record<string, unknown>[])
+        const { error } = await supabase.from('profile_tags').insert(rows)
         if (error) throw error
       }
 
@@ -1440,7 +1440,7 @@ function CampaignsTab() {
 
   const deleteCampaign = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('email_campaigns' as string & keyof never).delete().eq('id', id)
+      const { error } = await supabase.from('email_campaigns').delete().eq('id', id)
       if (error) throw error
     },
     onMutate: async (id) => {
@@ -1483,7 +1483,7 @@ function CampaignsTab() {
     )
     toast.success('Campaign duplicated')
 
-    const { error } = await supabase.from('email_campaigns' as string & keyof never).insert({
+    const { error } = await supabase.from('email_campaigns').insert({
       name: `${c.name} (copy)`,
       subject: c.subject,
       body_html: c.body_html,
@@ -1493,7 +1493,7 @@ function CampaignsTab() {
       target_tag_ids: c.target_tag_ids,
       target_collective_ids: c.target_collective_ids,
       status: 'draft',
-    } as Record<string, unknown>)
+    })
     if (error) {
       // Rollback
       queryClient.setQueryData<EmailCampaign[]>(['admin-email-campaigns'], (old) =>
@@ -1619,7 +1619,7 @@ function TemplatesTab() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('email_templates' as string & keyof never).delete().eq('id', id)
+      const { error } = await supabase.from('email_templates').delete().eq('id', id)
       if (error) throw error
     },
     onMutate: async (id) => {
@@ -1733,7 +1733,7 @@ function SubscribersTab() {
   const handleSyncTags = async () => {
     setSyncing(true)
     try {
-      const { error } = await supabase.rpc('sync_auto_tags' as string & keyof never)
+      const { error } = await supabase.rpc('sync_auto_tags')
       if (error) throw error
       toast.success('Auto-tags synced from interests, collectives, tiers, and activity')
       queryClient.invalidateQueries({ queryKey: ['admin-email-subscribers'] })
@@ -1811,7 +1811,7 @@ function SubscribersTab() {
         />
       ) : (
         <StaggeredList className="space-y-1">
-          {subscribers.map((sub: Record<string, unknown>) => (
+          {subscribers.map((sub: any) => (
             <StaggeredItem key={sub.id} className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm">
               <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary-100 shrink-0">
                 {sub.avatar_url ? (
@@ -1892,8 +1892,8 @@ function TagsTab() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await supabase.from('profile_tags' as string & keyof never).delete().eq('tag_id', id)
-      const { error } = await supabase.from('email_tags' as string & keyof never).delete().eq('id', id)
+      await supabase.from('profile_tags').delete().eq('tag_id', id)
+      const { error } = await supabase.from('email_tags').delete().eq('id', id)
       if (error) throw error
     },
     onMutate: async (id) => {
@@ -2013,7 +2013,7 @@ function DeliveryTab() {
             <EmptyState illustration="empty" title="No bounces" description="Email bounces from SendGrid will appear here" />
           ) : (
             <StaggeredList className="space-y-1">
-              {bounces.map((event: Record<string, unknown>) => (
+              {bounces.map((event: any) => (
                 <StaggeredItem key={event.id} className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-error-100 shrink-0">
                     <XCircle size={16} className="text-error-500" />
@@ -2040,7 +2040,7 @@ function DeliveryTab() {
             <EmptyState illustration="empty" title="No complaints" description="Spam complaints from SendGrid will appear here" />
           ) : (
             <StaggeredList className="space-y-1">
-              {complaints.map((event: Record<string, unknown>) => (
+              {complaints.map((event: any) => (
                 <StaggeredItem key={event.id} className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-warning-100 shrink-0">
                     <AlertTriangle size={16} className="text-warning-500" />

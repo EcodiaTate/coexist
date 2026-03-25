@@ -183,7 +183,7 @@ function InlineAnnouncement({
               } as EventRegistration,
             }
           } else if (response === 'not_going') {
-            const wasRegistered = old.user_registration && ['registered', 'invited', 'waitlisted'].includes(old.user_registration.status)
+            const wasRegistered = old.user_registration && ['registered', 'invited', 'waitlisted'].includes(old.user_registration.status!)
             return {
               ...old,
               registration_count: Math.max(0, old.registration_count - (wasRegistered ? 1 : 0)),
@@ -425,8 +425,7 @@ export default function ChannelChatPage() {
         text,
       }))
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- chat_polls not in generated DB types yet
-      const { data: poll, error } = await (supabase as any)
+      const { data: poll, error } = await supabase
         .from('chat_polls')
         .insert({
           collective_id: collectiveId || null,
@@ -442,8 +441,7 @@ export default function ChannelChatPage() {
       if (error) throw error
 
       // Send the poll message into the staff channel
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- chat_messages extended columns not in generated DB types yet
-      await (supabase as any)
+      await supabase
         .from('chat_messages')
         .insert({
           channel_id: channelId,
@@ -474,8 +472,7 @@ export default function ChannelChatPage() {
     toast.info('Posting announcement...')
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- chat_announcements not in generated DB types yet
-      const { data: announcement, error } = await (supabase as any)
+      const { data: announcement, error } = await supabase
         .from('chat_announcements')
         .insert({
           collective_id: collectiveId || null,
@@ -491,8 +488,7 @@ export default function ChannelChatPage() {
       if (error) throw error
 
       // Send the announcement message into the staff channel
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- chat_messages extended columns not in generated DB types yet
-      await (supabase as any)
+      await supabase
         .from('chat_messages')
         .insert({
           channel_id: channelId,

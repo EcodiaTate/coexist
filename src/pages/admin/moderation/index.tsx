@@ -167,7 +167,7 @@ function ReportCard({
               </span>
             </div>
             <span className="text-xs text-primary-400">
-              {formatDate(report.created_at)}
+              {formatDate(report.created_at!)}
             </span>
           </div>
         </div>

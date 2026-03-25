@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import type { Database } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -79,9 +80,7 @@ export function useTimelineRule(templateId: string | undefined) {
     queryKey: ['timeline-rule', templateId],
     queryFn: async () => {
       if (!templateId) return null
-      const { data, error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('timeline_rules' as any)
+      const { data, error } = await supabase.from('timeline_rules')
         .select('*')
         .eq('template_id', templateId)
         .maybeSingle()
@@ -98,9 +97,7 @@ export function useUpsertTimelineRule() {
   return useMutation({
     mutationFn: async (input: TimelineRuleInput) => {
       const label = buildDisplayLabel(input)
-      const { data, error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('timeline_rules' as any)
+      const { data, error } = await supabase.from('timeline_rules')
         .upsert(
           {
             template_id: input.template_id,
@@ -117,7 +114,7 @@ export function useUpsertTimelineRule() {
         .select('*')
         .single()
       if (error) throw error
-      return data as unknown as TimelineRule
+      return data as TimelineRule
     },
     onSuccess: (rule) => {
       queryClient.setQueryData(['timeline-rule', rule.template_id], rule)
@@ -130,9 +127,7 @@ export function useDeleteTimelineRule() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (templateId: string) => {
-      const { error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('timeline_rules' as any)
+      const { error } = await supabase.from('timeline_rules')
         .delete()
         .eq('template_id', templateId)
       if (error) throw error
@@ -161,9 +156,7 @@ export async function resolveAndGenerateDynamicInstances(
   if (staffCollectiveIds.length === 0) return
 
   // 1. Fetch all active templates that use dynamic timeline
-  const { data: templates } = await supabase
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .from('task_templates' as any)
+  const { data: templates } = await supabase.from('task_templates')
     .select('*')
     .eq('is_active', true)
     .eq('schedule_type', 'event_relative')
@@ -172,26 +165,25 @@ export async function resolveAndGenerateDynamicInstances(
   if (!templates?.length) return
 
   // 2. Fetch timeline rules for these templates
-  const templateIds = (templates as Record<string, unknown>[]).map((t) => t.id as string)
-  const { data: rules } = await supabase
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .from('timeline_rules' as any)
+  type TemplateRow = { id: string; collective_id: string | null; [k: string]: unknown }
+  const templateIds = (templates as TemplateRow[]).map((t) => t.id)
+  const { data: rules } = await supabase.from('timeline_rules')
     .select('*')
     .in('template_id', templateIds)
 
   if (!rules?.length) return
 
-  const ruleMap = new Map((rules as Record<string, unknown>[]).map((r) => [r.template_id as string, r]))
+  const ruleMap = new Map((rules as TimelineRule[]).map((r) => [r.template_id, r]))
 
   // 3. For each template + collective combo, find matching events
   const now = new Date()
 
-  for (const template of templates as Record<string, unknown>[]) {
-    const rule = ruleMap.get(template.id)
+  for (const template of templates as TemplateRow[]) {
+    const rule = ruleMap.get(template.id as string)
     if (!rule) continue
 
     const targetCollectives = template.collective_id
-      ? [template.collective_id].filter((id: string) => staffCollectiveIds.includes(id))
+      ? [template.collective_id].filter((id): id is string => typeof id === 'string' && staffCollectiveIds.includes(id))
       : staffCollectiveIds
 
     for (const collectiveId of targetCollectives) {
@@ -210,7 +202,7 @@ export async function resolveAndGenerateDynamicInstances(
 
       // Apply anchor-specific filters
       if (rule.anchor === 'next_event_of_type' && rule.activity_type_filter) {
-        eventQuery = eventQuery.eq('activity_type', rule.activity_type_filter)
+        eventQuery = eventQuery.eq('activity_type', rule.activity_type_filter as Database['public']['Enums']['activity_type'])
       }
       if (rule.anchor === 'event_series' && rule.series_id_filter) {
         eventQuery = eventQuery.eq('series_id', rule.series_id_filter)
@@ -237,9 +229,7 @@ export async function resolveAndGenerateDynamicInstances(
         const periodKey = `event:${event.id}`
 
         // Use ignoreDuplicates to avoid overwriting completed/skipped instances
-        await supabase
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .from('task_instances' as any)
+        await supabase.from('task_instances')
           .upsert(
             {
               template_id: template.id,

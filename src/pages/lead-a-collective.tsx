@@ -171,8 +171,8 @@ export default function LeadACollectivePage() {
         }
       }
 
-      const { error } = await (supabase
-        .from as unknown as (table: string) => { insert: (data: Record<string, unknown>) => Promise<{ error: unknown }> })('collective_applications')
+      const { error } = await supabase
+        .from('collective_applications')
         .insert({
           first_name: firstName.trim(),
           last_name: lastName.trim(),
