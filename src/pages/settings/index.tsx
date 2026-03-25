@@ -989,7 +989,7 @@ export default function SettingsPage() {
 
   if (!user || !profile) {
     return (
-      <Page noBackground stickyOverlay={<Header title="Settings" back className="collapse-header" />}>
+      <Page noBackground stickyOverlay={<Header title="Settings" back transparent className="collapse-header" />}>
         <div style={{ paddingTop: '3.5rem' }}>
           <SettingsSkeleton />
         </div>
@@ -998,7 +998,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <Page noBackground stickyOverlay={<Header title="Settings" back className="collapse-header" />}>
+    <Page noBackground stickyOverlay={<Header title="Settings" back transparent className="collapse-header" />}>
       {/* Background + content container */}
       <div className="relative" style={{ paddingTop: '3.5rem' }}>
         {/* Gradient background */}

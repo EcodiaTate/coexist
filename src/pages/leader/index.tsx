@@ -30,6 +30,8 @@ import {
     Copy,
     Check,
     ClipboardCheck,
+    BookOpen,
+    Leaf,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -63,6 +65,8 @@ import {
     usePendingItems,
     useEventCalendar,
 } from '@/hooks/use-leader-dashboard'
+import { useMyModuleProgress } from '@/hooks/use-development-progress'
+import { useMyTargetedContent } from '@/hooks/use-development-assignments'
 
 function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -556,6 +560,17 @@ export default function LeaderDashboardPage() {
   const { data: pendingItems = [] } = usePendingItems(collectiveId)
   const { data: unreadUpdateCount = 0 } = useUnreadUpdateCount()
 
+  // Development progress — find in-progress module for "Continue Learning" quick action
+  const { data: moduleProgress = [] } = useMyModuleProgress()
+  const { data: devContent } = useMyTargetedContent()
+  const continueModule = useMemo(() => {
+    const inProgress = moduleProgress.find((mp) => mp.status === 'in_progress')
+    if (!inProgress || !devContent?.modules) return null
+    const mod = devContent.modules.find((m) => m.id === inProgress.module_id)
+    if (!mod) return null
+    return { id: mod.id, title: mod.title }
+  }, [moduleProgress, devContent])
+
   // Tasks integration
   const { data: tasks } = useMyTasks()
   const generateMutation = useGenerateTaskInstances()
@@ -649,8 +664,25 @@ export default function LeaderDashboardPage() {
       text: 'text-white',
       badge: 0,
     }] : []),
+    ...(pendingItems.length > 0 ? [{
+      label: 'Log Impact',
+      icon: <Leaf size={18} />,
+      to: `/events/${pendingItems[0].id}/impact`,
+      bg: 'bg-gradient-to-br from-moss-500 to-moss-700',
+      text: 'text-white',
+      badge: pendingItems.length > 1 ? pendingItems.length : 0,
+    }] : []),
+    ...(continueModule ? [{
+      label: 'Continue Learning',
+      icon: <BookOpen size={18} />,
+      to: `/learn/module/${continueModule.id}`,
+      bg: 'bg-gradient-to-br from-plum-500 to-plum-700',
+      text: 'text-white',
+      badge: 0,
+    }] : []),
     { label: 'Chat', icon: <MessageCircle size={18} />, to: `/chat/${collectiveId}`, bg: 'bg-primary-600', text: 'text-white', badge: 0 },
     { label: 'Updates', icon: <Megaphone size={18} />, to: '/updates', bg: 'bg-primary-400', text: 'text-white', badge: unreadUpdateCount },
+    { label: 'Invite', icon: <UserPlus size={18} />, to: `/collectives/${collectiveSlug}/manage`, bg: 'bg-bark-600', text: 'text-white', badge: 0 },
   ]
 
   // Build impact cards from stats
@@ -766,7 +798,7 @@ export default function LeaderDashboardPage() {
           {/* ── Quick actions ── */}
           <motion.div variants={rm ? undefined : fadeUp}>
             <SectionHeader>Quick Actions</SectionHeader>
-            <div className={cn('grid gap-2', quickActions.length >= 4 ? 'grid-cols-4' : quickActions.length === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
+            <div className={cn('grid gap-2', quickActions.length <= 2 ? 'grid-cols-2' : quickActions.length === 3 ? 'grid-cols-3' : 'grid-cols-4')}>
               {quickActions.map((action) => (
                 <Link
                   key={action.label}
