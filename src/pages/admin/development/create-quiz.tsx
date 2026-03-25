@@ -86,7 +86,7 @@ export default function AdminCreateQuizPage() {
         <QuestionBuilder questions={questions} onChange={setQuestions} />
       </motion.div>
 
-      <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-6 sm:-mx-8 -mb-10 sm:-mb-12 px-6 sm:px-8 py-3 bg-white/95 border-t border-primary-100/60 flex items-center justify-between gap-3">
+      <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-6 -mb-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-t border-primary-100/60 flex items-center justify-between gap-3">
         <p className="text-[11px] font-semibold text-primary-400">
           {questions.length} question{questions.length !== 1 ? 's' : ''} · {questions.reduce((sum, q) => sum + (q.points ?? 1), 0)} total points
         </p>
