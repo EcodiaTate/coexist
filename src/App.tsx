@@ -39,6 +39,8 @@ const SignUpPage = lazy(() => import('@/pages/auth/sign-up'))
 const LoginPage = lazy(() => import('@/pages/auth/login'))
 const ForgotPasswordPage = lazy(() => import('@/pages/auth/forgot-password'))
 const EmailVerificationPage = lazy(() => import('@/pages/auth/email-verification'))
+const AuthCallbackPage = lazy(() => import('@/pages/auth/auth-callback'))
+const ResetPasswordPage = lazy(() => import('@/pages/auth/reset-password'))
 const SuspendedAccountPage = lazy(() => import('@/pages/auth/suspended-account'))
 const AcceptTermsPage = lazy(() => import('@/pages/auth/accept-terms'))
 
@@ -264,6 +266,22 @@ function App() {
           element={
             <AppShell bare>
               <EmailVerificationPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/auth/callback"
+          element={
+            <AppShell bare>
+              <AuthCallbackPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <AppShell bare>
+              <ResetPasswordPage />
             </AppShell>
           }
         />

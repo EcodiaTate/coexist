@@ -350,7 +350,7 @@ function UserSettingsSheet({
   const resetPasswordMutation = useMutation({
     mutationFn: async (email: string) => {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${import.meta.env.VITE_APP_URL || window.location.origin}/reset-password`,
       })
       if (error) throw error
     },

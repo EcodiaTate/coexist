@@ -7,7 +7,6 @@ function isTextInput(el: Element | null): el is HTMLInputElement | HTMLTextAreaE
   if (el instanceof HTMLTextAreaElement) return true
   if (el instanceof HTMLInputElement) {
     const type = el.type
-    // Only scroll for text-like inputs, not checkboxes/radios/files/hidden
     return (
       type === 'text' ||
       type === 'email' ||
@@ -21,6 +20,7 @@ function isTextInput(el: Element | null): el is HTMLInputElement | HTMLTextAreaE
       type === 'time'
     )
   }
+  if (el instanceof HTMLSelectElement) return true
   if (el.getAttribute('contenteditable') === 'true') return true
   return false
 }
@@ -28,7 +28,15 @@ function isTextInput(el: Element | null): el is HTMLInputElement | HTMLTextAreaE
 function scrollFocusedIntoView() {
   const el = document.activeElement
   if (!isTextInput(el)) return
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+  // Use setTimeout to let the WebView body resize settle before scrolling.
+  // requestAnimationFrame alone fires before Capacitor's body resize completes.
+  setTimeout(() => {
+    // Re-check — focus may have moved during the delay
+    const current = document.activeElement
+    if (!isTextInput(current)) return
+    current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, 250)
 }
 
 /**
@@ -43,18 +51,27 @@ export function useKeyboard() {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return
 
+    let keyboardVisible = false
+
     // When keyboard appears, scroll the focused element into view
     const onKeyboardShow = () => {
-      setTimeout(scrollFocusedIntoView, 120)
+      keyboardVisible = true
+      scrollFocusedIntoView()
     }
 
-    const showListener = Keyboard.addListener('keyboardWillShow', onKeyboardShow)
-    const didShowListener = Keyboard.addListener('keyboardDidShow', onKeyboardShow)
+    const onKeyboardHide = () => {
+      keyboardVisible = false
+    }
 
-    // Also handle focus changes (e.g. tapping a different input while keyboard is open)
+    // Use keyboardDidShow for the scroll — by this point the body
+    // resize has completed and scrollIntoView targets the right position.
+    const showListener = Keyboard.addListener('keyboardDidShow', onKeyboardShow)
+    const hideListener = Keyboard.addListener('keyboardDidHide', onKeyboardHide)
+
+    // Handle focus changes (e.g. tapping a different input while keyboard is open)
     const onFocusIn = (e: FocusEvent) => {
+      if (!keyboardVisible) return
       if (!isTextInput(e.target as Element)) return
-      // Delay to allow keyboard + layout to settle
       setTimeout(() => {
         ;(e.target as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' })
       }, 150)
@@ -64,7 +81,7 @@ export function useKeyboard() {
 
     return () => {
       showListener.then((h) => h.remove())
-      didShowListener.then((h) => h.remove())
+      hideListener.then((h) => h.remove())
       document.removeEventListener('focusin', onFocusIn)
     }
   }, [])

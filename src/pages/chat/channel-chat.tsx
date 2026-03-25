@@ -584,7 +584,7 @@ export default function ChannelChatPage() {
 
   if (!channelId) {
     return (
-      <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40">
+      <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
         <Header title="Staff Chat" back />
         <div className="flex-1 flex items-center justify-center">
           <EmptyState illustration="empty" title="Channel not found" description="This channel may have been removed." />
@@ -596,7 +596,7 @@ export default function ChannelChatPage() {
   const channelName = channel ? cleanChannelName(channel.name) : 'Staff Chat'
 
   return (
-    <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40">
+    <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
       {/* Header */}
       <Header
         title={channelName}

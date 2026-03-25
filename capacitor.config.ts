@@ -26,6 +26,16 @@ const config: CapacitorConfig = {
     // Preferences (key-value storage)
     Preferences: {},
 
+    // Social Login (Google + Apple)
+    SocialLogin: {
+      providers: {
+        google: true,
+        apple: true,
+        facebook: false,
+        twitter: false,
+      },
+    },
+
     // Splash Screen
     SplashScreen: {
       launchShowDuration: 2000,

@@ -480,7 +480,10 @@ export function useAuthProvider(): AuthContextValue {
     const { error, data } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { display_name: displayName, date_of_birth: dateOfBirth } },
+      options: {
+        data: { display_name: displayName, date_of_birth: dateOfBirth },
+        emailRedirectTo: `${import.meta.env.VITE_APP_URL || window.location.origin}/auth/callback`,
+      },
     })
 
     // Send welcome email on successful signup
@@ -525,7 +528,7 @@ export function useAuthProvider(): AuthContextValue {
     // Web: use Supabase OAuth redirect
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${import.meta.env.VITE_APP_URL || window.location.origin}/auth/callback` },
     })
     return { error }
   }, [])
@@ -550,7 +553,7 @@ export function useAuthProvider(): AuthContextValue {
     // Web: use Supabase OAuth redirect
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'apple',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${import.meta.env.VITE_APP_URL || window.location.origin}/auth/callback` },
     })
     return { error }
   }, [])
@@ -558,7 +561,7 @@ export function useAuthProvider(): AuthContextValue {
   const signInWithMagicLink = useCallback(async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: window.location.origin },
+      options: { emailRedirectTo: `${import.meta.env.VITE_APP_URL || window.location.origin}/auth/callback` },
     })
     return { error }
   }, [])
@@ -577,7 +580,7 @@ export function useAuthProvider(): AuthContextValue {
 
   const resetPassword = useCallback(async (email: string) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${import.meta.env.VITE_APP_URL || window.location.origin}/reset-password`,
     })
     return { error }
   }, [])
