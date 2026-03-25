@@ -33,7 +33,7 @@ import { useAuth } from '@/hooks/use-auth'
 import type { ImpactField } from '@/hooks/use-events'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
-import type { Database } from '@/types/database.types'
+import type { Database, Json } from '@/types/database.types'
 import {
   Page,
   Header,
@@ -280,7 +280,7 @@ export default function LogImpactPage() {
   // 48h edit window enforcement
   const { isEditWindowExpired, hoursRemaining: editHoursRemaining } = useMemo(() => {
     if (!existingImpact) return { isEditWindowExpired: false, hoursRemaining: 48 }
-    const loggedAt = new Date(existingImpact.logged_at).getTime()
+    const loggedAt = new Date(existingImpact.logged_at ?? Date.now()).getTime()
     const hoursSince = (Date.now() - loggedAt) / (1000 * 60 * 60)
     return {
       isEditWindowExpired: hoursSince >= 48,
@@ -411,7 +411,7 @@ export default function LogImpactPage() {
         before_photos: beforePhotos.length > 0 ? beforePhotos : undefined,
         after_photos: afterPhotos.length > 0 ? afterPhotos : undefined,
         drawn_area: drawnArea ?? undefined,
-      } as unknown as Record<string, unknown>,
+      } as unknown as Json,
     })
 
     setSubmitted(true)
@@ -724,7 +724,7 @@ export default function LogImpactPage() {
               zoom={15}
               aria-label="Draw the area you worked on"
               className="aspect-[16/10] rounded-lg"
-              onChange={(geojson: Record<string, unknown> | null) => setDrawnArea(geojson)}
+              onAreaChange={(geojson) => setDrawnArea(geojson as Record<string, unknown> | null)}
             />
           </Suspense>
         </motion.div>
