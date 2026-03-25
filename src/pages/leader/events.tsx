@@ -248,7 +248,7 @@ export default function LeaderEventsPage() {
                         <p className="font-heading text-sm font-bold text-primary-800 truncate">
                           {event.title}
                         </p>
-                        {event.status && event.status !== 'live' && (
+                        {event.status && event.status !== 'published' && (
                           <span className={cn(
                             'text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase shrink-0',
                             statusStyles[event.status] ?? statusStyles.draft,

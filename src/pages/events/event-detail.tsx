@@ -1179,10 +1179,10 @@ export default function EventDetailPage() {
                   icon={<Leaf size={18} />}
                 />
               )}
-              {event.impact.wildlife_sightings > 0 && (
+              {(event.impact.wildlife_sightings ?? 0) > 0 && (
                 <StatCard
                   label="Wildlife Sightings"
-                  value={event.impact.wildlife_sightings}
+                  value={event.impact.wildlife_sightings ?? 0}
                   icon={<Eye size={18} />}
                 />
               )}
