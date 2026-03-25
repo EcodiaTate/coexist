@@ -29,6 +29,7 @@ import { ACTIVITY_TYPE_OPTIONS, ACTIVITY_TYPE_LABELS } from '@/hooks/use-events'
 import { Dropdown } from '@/components/dropdown'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
+import type { Database, Json } from '@/types/database.types'
 import type { NotificationType, NotificationPreferences } from '@/hooks/use-notifications'
 import { DEFAULT_PREFERENCES } from '@/hooks/use-notifications'
 
@@ -55,7 +56,7 @@ function useSeedTestEvent() {
   const { toast } = useToast()
 
   return useMutation({
-    mutationFn: async (activityType: string) => {
+    mutationFn: async (activityType: Database['public']['Enums']['activity_type']) => {
       if (!user) throw new Error('Not authenticated')
 
       const { data: membership } = await supabase
@@ -570,7 +571,7 @@ function usePushTestRunner() {
           .select('notification_preferences')
           .eq('id', user.id)
           .single()
-        const orig = (profile?.notification_preferences ?? {}) as Record<string, unknown>
+        const orig = (profile?.notification_preferences ?? {}) as { [key: string]: Json | undefined }
 
         // Disable event_reminder temporarily
         await supabase
@@ -604,7 +605,7 @@ function usePushTestRunner() {
           .select('notification_preferences')
           .eq('id', user.id)
           .single()
-        const orig = (profile?.notification_preferences ?? {}) as Record<string, unknown>
+        const orig = (profile?.notification_preferences ?? {}) as { [key: string]: Json | undefined }
 
         const now = new Date()
         const h = now.getHours()
@@ -903,7 +904,7 @@ export default function DevToolsPage() {
   const seedEvent = useSeedTestEvent()
   const cleanup = useCleanupTests()
 
-  const [selectedActivity, setSelectedActivity] = useState('shore_cleanup')
+  const [selectedActivity, setSelectedActivity] = useState<Database['public']['Enums']['activity_type']>('shore_cleanup')
 
   const { stagger, fadeUp } = adminVariants(!!shouldReduceMotion)
 

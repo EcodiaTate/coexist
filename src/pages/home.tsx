@@ -729,17 +729,17 @@ function ImpactStat({
 
   return (
     <motion.div
-      className="flex items-center gap-3.5"
+      className="flex flex-col items-center text-center gap-2"
       variants={rm ? undefined : statFadeUp}
       initial="hidden"
       animate={inView ? 'show' : 'hidden'}
       custom={index}
     >
-      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm', color)}>
+      <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm', color)}>
         <span className="text-white">{icon}</span>
       </div>
       <div className="min-w-0">
-        <span className="font-heading text-[22px] font-extrabold text-white tabular-nums leading-none block">
+        <span className="font-heading text-lg font-extrabold text-white tabular-nums leading-none block">
           {formatted}
         </span>
         <span className="text-[10px] text-white/70 font-semibold uppercase tracking-wider leading-tight mt-1 block">
@@ -773,10 +773,10 @@ function HomeImpactSection({
   const inView = useInView(sectionRef, { once: true, margin: '-60px' })
 
   return (
-    <motion.div variants={rm ? undefined : fadeUp} className="-mx-6">
+    <motion.div variants={rm ? undefined : fadeUp} className="-mx-6 overflow-hidden">
       <div ref={sectionRef} className="relative overflow-hidden" style={{ backgroundColor: '#869d61' }}>
 
-        <div className="relative px-7 pt-16 pb-20">
+        <div className="relative px-5 sm:px-7 pt-14 pb-16 sm:pt-16 sm:pb-20">
           {/* Header */}
           <motion.div
             className="flex items-center justify-between mb-1.5"
@@ -797,7 +797,7 @@ function HomeImpactSection({
           </motion.div>
 
           {/* Toggles */}
-          <div className="flex items-center justify-between gap-2 mb-8">
+          <div className="flex flex-wrap items-center gap-2 mb-8">
             <div className="flex rounded-full bg-black/15 p-0.5">
               <button
                 type="button"
@@ -881,7 +881,7 @@ function HomeImpactSection({
                   <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
                     Community Events
                   </span>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <ImpactStat inView={inView} index={0} value={totalEvents} label="Events" icon={<Calendar size={16} />} color="bg-warning-500" />
                     <ImpactStat inView={inView} index={1} value={data.eventsAttended} label="Attendances" icon={<Users size={16} />} color="bg-warning-600" />
                     <ImpactStat inView={inView} index={2} value={data.volunteerHours} label="Vol. Hours" icon={<Clock size={16} />} color="bg-warning-700" />

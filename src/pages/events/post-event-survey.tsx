@@ -21,6 +21,7 @@ import {
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
+import type { Json } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -101,7 +102,7 @@ function useSubmitSurvey() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ eventId, answers }: { eventId: string; answers: Record<string, unknown> }) => {
+    mutationFn: async ({ eventId, answers }: { eventId: string; answers: Json }) => {
       if (!user) throw new Error('Not authenticated')
       const { error } = await supabase
         .from('post_event_survey_responses')
@@ -220,18 +221,18 @@ export default function PostEventSurveyPage() {
   const { data: attendance, isLoading: attendanceLoading } = useAttendanceCheck(eventId)
   const submitMutation = useSubmitSurvey()
 
-  const [userAnswers, setUserAnswers] = useState<Record<string, unknown>>({})
+  const [userAnswers, setUserAnswers] = useState<Record<string, Json | undefined>>({})
   const [submitted, setSubmitted] = useState(false)
 
   // Pre-fill from existing response, user edits override
   const existingAnswers = useMemo(() => {
     const resp = existingResponse as Record<string, unknown> | null | undefined
-    return (resp?.answers as Record<string, unknown>) ?? {}
+    return (resp?.answers as Record<string, Json | undefined>) ?? {}
   }, [existingResponse])
 
-  const answers: Record<string, unknown> = Object.keys(userAnswers).length > 0 ? userAnswers : existingAnswers
+  const answers: Record<string, Json | undefined> = Object.keys(userAnswers).length > 0 ? userAnswers : existingAnswers
 
-  const setAnswer = useCallback((key: string, value: unknown) => {
+  const setAnswer = useCallback((key: string, value: Json) => {
     setUserAnswers((prev) => ({ ...prev, [key]: value }))
   }, [])
 

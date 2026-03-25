@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import type { Database } from '@/types/database.types'
+import type { Database, TablesInsert } from '@/types/database.types'
+
+type ActivityType = Database['public']['Enums']['activity_type']
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -97,20 +99,18 @@ export function useUpsertTimelineRule() {
   return useMutation({
     mutationFn: async (input: TimelineRuleInput) => {
       const label = buildDisplayLabel(input)
+      const row: TablesInsert<'timeline_rules'> = {
+        template_id: input.template_id,
+        anchor: input.anchor,
+        activity_type_filter: (input.activity_type_filter || null) as ActivityType | null,
+        series_id_filter: input.series_id_filter || null,
+        offset_days: input.offset_days,
+        lookahead_days: input.lookahead_days ?? 60,
+        match_all_events: input.match_all_events ?? false,
+        display_label: label,
+      }
       const { data, error } = await supabase.from('timeline_rules')
-        .upsert(
-          {
-            template_id: input.template_id,
-            anchor: input.anchor,
-            activity_type_filter: input.activity_type_filter || null,
-            series_id_filter: input.series_id_filter || null,
-            offset_days: input.offset_days,
-            lookahead_days: input.lookahead_days ?? 60,
-            match_all_events: input.match_all_events ?? false,
-            display_label: label,
-          },
-          { onConflict: 'template_id' },
-        )
+        .upsert(row, { onConflict: 'template_id' })
         .select('*')
         .single()
       if (error) throw error

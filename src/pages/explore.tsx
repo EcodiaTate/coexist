@@ -31,6 +31,9 @@ import {
     useSearch,
     type SearchFilters,
 } from '@/hooks/use-search'
+import type { Database } from '@/types/database.types'
+
+type ActivityType = Database['public']['Enums']['activity_type']
 import { useNearbyEvents, useNearbyCollectives, useUserLocation, AU_STATES } from '@/hooks/use-nearby'
 import { useNationalImpact } from '@/hooks/use-impact'
 import { ACTIVITY_TYPE_LABELS } from '@/hooks/use-home-feed'
@@ -218,7 +221,7 @@ const fadeUp = {
 /*  Category cards data                                                */
 /* ------------------------------------------------------------------ */
 
-const CATEGORY_CARDS = [
+const CATEGORY_CARDS: { key: ActivityType; label: string; description: string; icon: ReactNode; decorIcon: ReactNode; gradient: string }[] = [
   {
     key: 'shore_cleanup',
     label: 'Shore Cleanup',
@@ -306,7 +309,7 @@ function formatEventDate(iso: string): string {
   })
 }
 
-function formatActivityType(type: string): string {
+function formatActivityType(type: ActivityType): string {
   return ACTIVITY_TYPE_LABELS[type] ?? type.replace(/_/g, ' ')
 }
 
@@ -729,15 +732,15 @@ function _ActivityScroller({
   selected,
   onToggle,
 }: {
-  selected: string[]
-  onToggle: (key: string) => void
+  selected: ActivityType[]
+  onToggle: (key: ActivityType) => void
 }) {
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const shouldReduceMotion = useReducedMotion()
 
   return (
     <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
-      {Object.entries(ACTIVITY_TYPE_LABELS).map(([key, label]) => {
+      {(Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, string][]).map(([key, label]) => {
         const meta = ACTIVITY_META[key] ?? ACTIVITY_META.other
         const isSelected = selected.includes(key)
         return (
@@ -793,7 +796,7 @@ export default function ExplorePage() {
   // Filters
   const [filters, setFilters] = useState<SearchFilters>({
     activityTypes: searchParams.get('activity')
-      ? [searchParams.get('activity')!]
+      ? [searchParams.get('activity')! as ActivityType]
       : [],
     dateFrom: null,
     dateTo: null,
@@ -844,7 +847,7 @@ export default function ExplorePage() {
 
   // Filter actions
   const toggleActivityFilter = useCallback(
-    (type: string) => {
+    (type: ActivityType) => {
       setFilters((f) => ({
         ...f,
         activityTypes: f.activityTypes.includes(type)
@@ -856,7 +859,7 @@ export default function ExplorePage() {
   )
 
   const toggleDraftActivityFilter = useCallback(
-    (type: string) => {
+    (type: ActivityType) => {
       setDraftFilters((f) => ({
         ...f,
         activityTypes: f.activityTypes.includes(type)
@@ -1924,7 +1927,7 @@ export default function ExplorePage() {
               subtitle={draftActivitySummary}
             >
               <div className="space-y-2">
-                {Object.entries(ACTIVITY_TYPE_LABELS).map(([key, label]) => (
+                {(Object.entries(ACTIVITY_TYPE_LABELS) as [ActivityType, string][]).map(([key, label]) => (
                   <ActivityTile
                     key={key}
                     activityKey={key}

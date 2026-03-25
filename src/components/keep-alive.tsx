@@ -68,9 +68,32 @@ export function KeepAlive() {
 
   const { offsetX, swiping, animating } = useSwipeBack({ enabled: true })
 
-  // ---- Save scroll from the page we're leaving & synchronous cache update ----
-  // Wrapped in useLayoutEffect to avoid refs-during-render lint errors while
-  // still running synchronously before the browser paints the new route.
+  // ---- Synchronous cache update (during render) ----
+  // Cache must be populated before JSX is returned so the new page is
+  // included in the render output. Updating refs in effects caused a
+  // blank-frame bug: the render would iterate a stale cache (new path
+  // not yet added) → every cached page hidden → blank screen.
+  // eslint-disable-next-line react-hooks/refs
+  if (outlet && lastProcessedRef.current !== path) {
+    const cache = cacheRef.current
+    lastProcessedRef.current = path
+
+    const existingIdx = cache.findIndex((c) => c.path === path)
+    if (existingIdx >= 0) {
+      const entry = cache[existingIdx]
+      cache.splice(existingIdx, 1)
+      cache.push(entry)
+    } else {
+      frozenLocationsRef.current.set(path, { ...location })
+      if (cache.length >= MAX_CACHED) {
+        const evicted = cache.shift()
+        if (evicted) frozenLocationsRef.current.delete(evicted.path)
+      }
+      cache.push({ path, element: outlet as ReactElement, savedScroll: 0 })
+    }
+  }
+
+  // ---- Save scroll from the page we're leaving (post-render) ----
   useEffect(() => {
     const prevPath = prevPathRef.current
     if (prevPath && prevPath !== path) {
@@ -81,25 +104,6 @@ export function KeepAlive() {
       }
     }
     prevPathRef.current = path
-
-    if (outlet && lastProcessedRef.current !== path) {
-      const cache = cacheRef.current
-      lastProcessedRef.current = path
-
-      const existingIdx = cache.findIndex((c) => c.path === path)
-      if (existingIdx >= 0) {
-        const entry = cache[existingIdx]
-        cache.splice(existingIdx, 1)
-        cache.push(entry)
-      } else {
-        frozenLocationsRef.current.set(path, { ...location })
-        if (cache.length >= MAX_CACHED) {
-          const evicted = cache.shift()
-          if (evicted) frozenLocationsRef.current.delete(evicted.path)
-        }
-        cache.push({ path, element: outlet as ReactElement, savedScroll: 0 })
-      }
-    }
   })
 
   // ---- Restore scroll on the active page after it becomes visible ----

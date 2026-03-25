@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
   Plus,
@@ -13,6 +13,7 @@ import {
   Pencil,
   CheckCircle2,
   ChevronRight,
+  ChevronDown,
   TrendingUp,
 } from 'lucide-react'
 import { SearchBar } from '@/components/search-bar'
@@ -28,6 +29,7 @@ import {
   useDeleteSection,
   useDeleteQuiz,
   useDevStats,
+  useAllSectionModules,
   type DevModule,
   type DevSection,
   type DevQuiz,
@@ -110,77 +112,47 @@ function SectionHeader({
 /*  Row components                                                     */
 /* ------------------------------------------------------------------ */
 
-function ModuleRow({ module, onDelete }: { module: DevModule; onDelete: () => void }) {
+function ModuleRow({ module, onDelete, compact }: { module: DevModule; onDelete: () => void; compact?: boolean }) {
   return (
     <motion.div
       whileTap={{ scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow"
+      className={cn(
+        'group flex items-center gap-3 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow',
+        compact ? 'p-2.5 ml-6 border border-primary-100/60' : 'p-3.5',
+      )}
     >
-      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shrink-0">
-        <BookOpen size={17} className="text-white" />
+      <div className={cn(
+        'flex items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shrink-0',
+        compact ? 'w-8 h-8' : 'w-10 h-10',
+      )}>
+        <BookOpen size={compact ? 14 : 17} className="text-white" />
       </div>
       <Link to={`/admin/development/modules/${module.id}`} className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[13px] font-bold text-primary-800 truncate">{module.title}</span>
+          <span className={cn('font-bold text-primary-800 truncate', compact ? 'text-[12px]' : 'text-[13px]')}>{module.title}</span>
           <StatusBadge status={module.status} />
         </div>
-        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-primary-400 font-medium">
-          <CategoryBadge category={module.category} />
-          <span className="flex items-center gap-0.5"><Clock size={10} />{module.estimated_minutes}m</span>
-        </div>
+        {!compact && (
+          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-primary-400 font-medium">
+            <CategoryBadge category={module.category} />
+            <span className="flex items-center gap-0.5"><Clock size={10} />{module.estimated_minutes}m</span>
+          </div>
+        )}
       </Link>
       <div className="flex items-center gap-1 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
         <Link
           to={`/admin/development/modules/${module.id}/edit`}
-          className="flex items-center justify-center w-10 h-10 rounded-xl text-amber-500 hover:text-amber-700 hover:bg-amber-50 transition-colors"
+          className={cn('flex items-center justify-center rounded-xl text-amber-500 hover:text-amber-700 hover:bg-amber-50 transition-colors', compact ? 'w-8 h-8' : 'w-10 h-10')}
         >
-          <Pencil size={16} />
+          <Pencil size={compact ? 14 : 16} />
         </Link>
         <button
           type="button"
           onClick={onDelete}
-          className="flex items-center justify-center w-10 h-10 rounded-xl text-error-400 hover:text-error-600 hover:bg-error-50 transition-colors"
+          className={cn('flex items-center justify-center rounded-xl text-error-400 hover:text-error-600 hover:bg-error-50 transition-colors', compact ? 'w-8 h-8' : 'w-10 h-10')}
         >
-          <Trash2 size={16} />
-        </button>
-      </div>
-    </motion.div>
-  )
-}
-
-function SectionRow({ section, onDelete }: { section: DevSection; onDelete: () => void }) {
-  return (
-    <motion.div
-      whileTap={{ scale: 0.985 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow"
-    >
-      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-secondary-400 to-secondary-600 shadow-sm shrink-0">
-        <Layers size={17} className="text-white" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[13px] font-bold text-primary-800 truncate">{section.title}</span>
-          <StatusBadge status={section.status} />
-        </div>
-        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-primary-400 font-medium">
-          <CategoryBadge category={section.category} />
-        </div>
-      </div>
-      <div className="flex items-center gap-1 shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-        <Link
-          to={`/admin/development/sections/${section.id}/edit`}
-          className="flex items-center justify-center w-10 h-10 rounded-xl text-secondary-500 hover:text-secondary-700 hover:bg-secondary-50 transition-colors"
-        >
-          <Pencil size={16} />
-        </Link>
-        <button
-          type="button"
-          onClick={onDelete}
-          className="flex items-center justify-center w-10 h-10 rounded-xl text-error-400 hover:text-error-600 hover:bg-error-50 transition-colors"
-        >
-          <Trash2 size={16} />
+          <Trash2 size={compact ? 14 : 16} />
         </button>
       </div>
     </motion.div>
@@ -230,6 +202,117 @@ function QuizRow({ quiz, onDelete }: { quiz: DevQuiz; onDelete: () => void }) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Section card with nested modules                                   */
+/* ------------------------------------------------------------------ */
+
+const VISIBLE_MODULES = 3
+
+function SectionCard({
+  section,
+  modules,
+  onDeleteSection,
+  onDeleteModule,
+}: {
+  section: DevSection
+  modules: DevModule[]
+  onDeleteSection: () => void
+  onDeleteModule: (id: string) => void
+}) {
+  const [expanded, setExpanded] = useState(false)
+  const hasMore = modules.length > VISIBLE_MODULES
+  const visible = expanded ? modules : modules.slice(0, VISIBLE_MODULES)
+
+  return (
+    <div className="space-y-1.5">
+      {/* Section row */}
+      <motion.div
+        whileTap={{ scale: 0.985 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+        className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow"
+      >
+        <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-secondary-400 to-secondary-600 shadow-sm shrink-0">
+          <Layers size={17} className="text-white" />
+        </div>
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="flex-1 min-w-0 text-left"
+        >
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[13px] font-bold text-primary-800 truncate">{section.title}</span>
+            <StatusBadge status={section.status} />
+          </div>
+          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-primary-400 font-medium">
+            <CategoryBadge category={section.category} />
+            <span className="flex items-center gap-0.5">
+              <BookOpen size={10} />
+              {modules.length} module{modules.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          {modules.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              className="flex items-center justify-center w-10 h-10 rounded-xl text-primary-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+            >
+              <motion.div
+                animate={{ rotate: expanded ? 180 : 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              >
+                <ChevronDown size={16} />
+              </motion.div>
+            </button>
+          )}
+          <div className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center gap-1">
+            <Link
+              to={`/admin/development/sections/${section.id}/edit`}
+              className="flex items-center justify-center w-10 h-10 rounded-xl text-secondary-500 hover:text-secondary-700 hover:bg-secondary-50 transition-colors"
+            >
+              <Pencil size={16} />
+            </Link>
+            <button
+              type="button"
+              onClick={onDeleteSection}
+              className="flex items-center justify-center w-10 h-10 rounded-xl text-error-400 hover:text-error-600 hover:bg-error-50 transition-colors"
+            >
+              <Trash2 size={16} />
+            </button>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Nested modules */}
+      <AnimatePresence initial={false}>
+        {(expanded || modules.length <= VISIBLE_MODULES) && modules.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="space-y-1.5 overflow-hidden"
+          >
+            {visible.map((m) => (
+              <ModuleRow key={m.id} module={m} onDelete={() => onDeleteModule(m.id)} compact />
+            ))}
+            {hasMore && !expanded && (
+              <button
+                type="button"
+                onClick={() => setExpanded(true)}
+                className="ml-6 text-[11px] font-semibold text-primary-400 hover:text-primary-600 transition-colors py-1"
+              >
+                + {modules.length - VISIBLE_MODULES} more module{modules.length - VISIBLE_MODULES !== 1 ? 's' : ''}
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Empty row                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -260,6 +343,7 @@ export default function AdminDevelopmentPage() {
   const { data: modules, isLoading: modulesLoading } = useDevModules()
   const { data: sections, isLoading: sectionsLoading } = useDevSections()
   const { data: quizzes, isLoading: quizzesLoading } = useDevQuizzes()
+  const { data: sectionModules, isLoading: smLoading } = useAllSectionModules()
   const { data: stats } = useDevStats()
   const deleteModule = useDeleteModule()
   const deleteSection = useDeleteSection()
@@ -268,7 +352,7 @@ export default function AdminDevelopmentPage() {
   const [search, setSearch] = useState('')
   const q = search.toLowerCase()
 
-  const isLoading = modulesLoading || sectionsLoading || quizzesLoading
+  const isLoading = modulesLoading || sectionsLoading || quizzesLoading || smLoading
 
   /* ── Hero stats ── */
   useAdminHeader('Development', {
@@ -300,10 +384,47 @@ export default function AdminDevelopmentPage() {
     ),
   })
 
+  /* ── Build section → modules map ── */
+  const { sectionModuleMap, assignedModuleIds } = useMemo(() => {
+    const map = new Map<string, DevModule[]>()
+    const assigned = new Set<string>()
+    for (const sm of sectionModules ?? []) {
+      if (!sm.module) continue
+      assigned.add(sm.module_id)
+      const list = map.get(sm.section_id) ?? []
+      list.push(sm.module as DevModule)
+      map.set(sm.section_id, list)
+    }
+    return { sectionModuleMap: map, assignedModuleIds: assigned }
+  }, [sectionModules])
+
   /* ── Filtered lists ── */
-  const filteredModules = useMemo(() => (modules ?? []).filter((m) => !q || m.title.toLowerCase().includes(q)), [modules, q])
-  const filteredSections = useMemo(() => (sections ?? []).filter((s) => !q || s.title.toLowerCase().includes(q)), [sections, q])
+  const filteredSections = useMemo(() => {
+    const allSections = sections ?? []
+    if (!q) return allSections
+    return allSections.filter((s) => {
+      // Match on section title or any of its modules' titles
+      if (s.title.toLowerCase().includes(q)) return true
+      const mods = sectionModuleMap.get(s.id) ?? []
+      return mods.some((m) => m.title.toLowerCase().includes(q))
+    })
+  }, [sections, q, sectionModuleMap])
+
+  const unassignedModules = useMemo(() => {
+    const all = modules ?? []
+    const unassigned = all.filter((m) => !assignedModuleIds.has(m.id))
+    if (!q) return unassigned
+    return unassigned.filter((m) => m.title.toLowerCase().includes(q))
+  }, [modules, q, assignedModuleIds])
+
   const filteredQuizzes = useMemo(() => (quizzes ?? []).filter((qz) => !q || qz.title.toLowerCase().includes(q)), [quizzes, q])
+
+  /* ── Filtered modules within a section (for search) ── */
+  const getFilteredModules = (sectionId: string) => {
+    const mods = sectionModuleMap.get(sectionId) ?? []
+    if (!q) return mods
+    return mods.filter((m) => m.title.toLowerCase().includes(q))
+  }
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-7">
@@ -312,38 +433,7 @@ export default function AdminDevelopmentPage() {
         <SearchBar value={search} onChange={setSearch} placeholder="Search modules, sections, quizzes..." compact />
       </motion.div>
 
-      {/* ── Modules ── */}
-      <motion.section variants={fadeUp} className="space-y-3">
-        <SectionHeader
-          icon={<BookOpen size={17} className="text-white" />}
-          iconBg="bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm"
-          label="Modules"
-          count={filteredModules.length}
-          newTo="/admin/development/modules/new"
-          newLabel="New"
-        />
-        {isLoading ? (
-          <div className="space-y-2">
-            <Skeleton className="h-[68px] rounded-2xl" />
-            <Skeleton className="h-[68px] rounded-2xl" />
-          </div>
-        ) : filteredModules.length === 0 ? (
-          <EmptyRow
-            icon={<BookOpen size={20} strokeWidth={1.5} />}
-            label="No modules yet"
-            to="/admin/development/modules/new"
-            cta="Create your first learning module"
-          />
-        ) : (
-          <div className="space-y-2">
-            {filteredModules.map((m) => (
-              <ModuleRow key={m.id} module={m} onDelete={() => deleteModule.mutate(m.id)} />
-            ))}
-          </div>
-        )}
-      </motion.section>
-
-      {/* ── Sections ── */}
+      {/* ── Sections (with nested modules) ── */}
       <motion.section variants={fadeUp} className="space-y-3">
         <SectionHeader
           icon={<Layers size={17} className="text-white" />}
@@ -366,13 +456,38 @@ export default function AdminDevelopmentPage() {
             cta="Organise modules into learning pathways"
           />
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {filteredSections.map((s) => (
-              <SectionRow key={s.id} section={s} onDelete={() => deleteSection.mutate(s.id)} />
+              <SectionCard
+                key={s.id}
+                section={s}
+                modules={getFilteredModules(s.id)}
+                onDeleteSection={() => deleteSection.mutate(s.id)}
+                onDeleteModule={(id) => deleteModule.mutate(id)}
+              />
             ))}
           </div>
         )}
       </motion.section>
+
+      {/* ── Unassigned Modules ── */}
+      {!isLoading && unassignedModules.length > 0 && (
+        <motion.section variants={fadeUp} className="space-y-3">
+          <SectionHeader
+            icon={<BookOpen size={17} className="text-white" />}
+            iconBg="bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm"
+            label="Unassigned Modules"
+            count={unassignedModules.length}
+            newTo="/admin/development/modules/new"
+            newLabel="New"
+          />
+          <div className="space-y-2">
+            {unassignedModules.map((m) => (
+              <ModuleRow key={m.id} module={m} onDelete={() => deleteModule.mutate(m.id)} />
+            ))}
+          </div>
+        </motion.section>
+      )}
 
       {/* ── Quizzes ── */}
       <motion.section variants={fadeUp} className="space-y-3">

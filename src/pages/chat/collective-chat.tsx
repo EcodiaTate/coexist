@@ -15,7 +15,6 @@ import {
   X,
   Reply,
   Pencil,
-  Trash2,
   ArrowDown,
   ChevronDown,
   Users,
@@ -28,6 +27,7 @@ import { ChatBubble, PollCard, AnnouncementCard } from '@/components/chat-bubble
 import { HtmlChatBubble } from '@/components/html-chat-bubble'
 import { MessageInput } from '@/components/message-input'
 import { BottomSheet } from '@/components/bottom-sheet'
+import { MessageActionsSheet } from '@/components/message-actions-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -113,87 +113,6 @@ function dateHeader(dateStr: string): string {
   return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-function canEdit(createdAt: string): boolean {
-  return Date.now() - new Date(createdAt).getTime() < 15 * 60 * 1000
-}
-
-/* ------------------------------------------------------------------ */
-/*  Message actions sheet                                              */
-/* ------------------------------------------------------------------ */
-
-interface MessageActionsProps {
-  message: ChatMessageWithSender | null
-  isModerator: boolean
-  isOwnMessage: boolean
-  onClose: () => void
-  onReply: () => void
-  onEdit: () => void
-  onDelete: () => void
-  onPin: () => void
-}
-
-function MessageActionsSheet({
-  message,
-  isModerator,
-  isOwnMessage,
-  onClose,
-  onReply,
-  onEdit,
-  onDelete,
-  onPin,
-}: MessageActionsProps) {
-  if (!message) return null
-
-  return (
-    <BottomSheet open={!!message} onClose={onClose}>
-      <div className="space-y-1 pb-2">
-        <button
-          type="button"
-          onClick={onReply}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
-        >
-          <Reply size={18} className="text-primary-400" />
-          Reply
-        </button>
-
-        {isOwnMessage && message.content && canEdit(message.created_at!) && (
-          <button
-            type="button"
-            onClick={onEdit}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
-          >
-            <Pencil size={18} className="text-primary-400" />
-            Edit message
-          </button>
-        )}
-
-        {/* Moderator actions: pin */}
-        {isModerator && (
-          <button
-            type="button"
-            onClick={onPin}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
-          >
-            <Pin size={18} className="text-primary-400" />
-            {message.is_pinned ? 'Unpin message' : 'Pin message'}
-          </button>
-        )}
-
-        {/* Delete: own message (anyone) or any message (moderator) */}
-        {(isOwnMessage || isModerator) && (
-          <button
-            type="button"
-            onClick={onDelete}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-error-600 hover:bg-error-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
-          >
-            <Trash2 size={18} />
-            Delete message
-          </button>
-        )}
-      </div>
-    </BottomSheet>
-  )
-}
 
 /* ------------------------------------------------------------------ */
 /*  Pinned messages bar                                                */
@@ -1045,6 +964,7 @@ export default function CollectiveChatPage() {
         <Header
           title={collective?.name ?? 'Chat'}
           back
+          showTitle
           rightActions={
             <div className="flex items-center gap-1">
               <ChatSwitcherDropdown currentCollectiveId={collectiveId} />

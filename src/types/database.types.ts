@@ -107,6 +107,21 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          key: string
+          value: Json | null
+        }
+        Insert: {
+          key: string
+          value?: Json | null
+        }
+        Update: {
+          key?: string
+          value?: Json | null
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -4240,6 +4255,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      contact_submissions: {
+        Row: {
+          id: string
+          name: string
+          email: string
+          message: string
+          user_id: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          email: string
+          message: string
+          user_id?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          email?: string
+          message?: string
+          user_id?: string | null
+          created_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {

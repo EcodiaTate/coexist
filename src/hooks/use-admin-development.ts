@@ -156,6 +156,7 @@ const keys = {
   sections: ['dev-sections'] as const,
   section: (id: string) => ['dev-sections', id] as const,
   sectionModules: (id: string) => ['dev-section-modules', id] as const,
+  allSectionModules: ['dev-section-modules-all'] as const,
   quizzes: ['dev-quizzes'] as const,
   quiz: (id: string) => ['dev-quizzes', id] as const,
   quizQuestions: (id: string) => ['dev-quiz-questions', id] as const,
@@ -387,6 +388,21 @@ export function useDevSectionModules(sectionId: string | undefined) {
       return data as DevSectionModule[]
     },
     enabled: !!sectionId,
+  })
+}
+
+export function useAllSectionModules() {
+  return useQuery({
+    queryKey: keys.allSectionModules,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('dev_section_modules')
+        .select('*, module:dev_modules(*)')
+        .order('sort_order')
+      if (error) throw error
+      return data as DevSectionModule[]
+    },
+    staleTime: 2 * 60 * 1000,
   })
 }
 

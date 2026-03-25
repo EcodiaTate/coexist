@@ -107,7 +107,7 @@ export function useAvailableStock(productId: string | undefined) {
     if (!productId) return
     const { data, error } = await supabase.rpc('get_product_available_stock', {
       p_product_id: productId,
-      p_exclude_user_id: user?.id ?? null,
+      p_exclude_user_id: user?.id ?? undefined,
     })
 
     startTransition(() => {

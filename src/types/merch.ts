@@ -17,6 +17,7 @@ export type ReturnStatus = 'requested' | 'approved' | 'denied' | 'refunded'
 export type PromoType = 'percentage' | 'flat' | 'free_shipping'
 
 export interface ProductVariant {
+  [key: string]: string | number | boolean | null
   id: string
   product_id: string
   size: string | null

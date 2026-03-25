@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
-import type { Tables } from '@/types/database.types'
+import type { Tables, Json } from '@/types/database.types'
 
 type ChatMessage = Tables<'chat_messages'>
 type Profile = Tables<'profiles'>
@@ -11,11 +11,11 @@ type Profile = Tables<'profiles'>
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-export interface ChatMessageWithSender extends ChatMessage {
+export interface ChatMessageWithSender extends Omit<ChatMessage, 'message_type'> {
   profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url'> | null
   reply_message: Pick<ChatMessage, 'id' | 'content' | 'user_id'> | null
   sender_role?: string
-  message_type?: 'text' | 'image' | 'voice' | 'video' | 'poll' | 'announcement' | 'system' | 'html'
+  message_type?: 'text' | 'image' | 'voice' | 'video' | 'poll' | 'announcement' | 'system' | 'html' | null
   /** Client-only: optimistic message not yet confirmed by server */
   _optimistic?: boolean
   _optimisticId?: string
@@ -926,7 +926,7 @@ export function useCreateAnnouncement() {
       type: 'announcement' | 'event_invite' | 'rsvp' | 'checklist'
       title: string
       body?: string
-      metadata?: Record<string, unknown>
+      metadata?: Record<string, Json | undefined>
       expiresAt?: string
     }) => {
       if (!user) throw new Error('Not authenticated')
@@ -939,7 +939,7 @@ export function useCreateAnnouncement() {
           type,
           title,
           body: body ?? null,
-          metadata,
+          metadata: metadata ?? {},
           expires_at: expiresAt ?? null,
         })
         .select()
@@ -1096,7 +1096,7 @@ export function useSendBroadcastNotification() {
       title: string
       body: string
       type?: string
-      metadata?: Record<string, unknown>
+      metadata?: Record<string, Json | undefined>
     }) => {
       if (!user) throw new Error('Not authenticated')
 

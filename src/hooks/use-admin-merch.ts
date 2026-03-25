@@ -7,8 +7,10 @@ import type {
   Order,
   OrderStatus,
   PromoCode,
+  PromoType,
   ReturnRequest,
 } from '@/types/merch'
+import type { TablesInsert, TablesUpdate, Json } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
 /*  Products (admin - includes archived & draft)                       */
@@ -67,19 +69,21 @@ export function useAdminProducts() {
  *  Migration 012 added slug, category, status, base_price_cents directly
  *  to the table, so most fields pass through as-is. We also sync the
  *  legacy `price` (numeric dollars) and `is_active` columns. */
-function toDbProduct(product: Record<string, unknown>) {
-  const mapped: Record<string, unknown> = {}
-  if ('name' in product) mapped.name = product.name
-  if ('slug' in product) mapped.slug = product.slug
-  if ('description' in product) mapped.description = product.description
-  if ('category' in product) mapped.category = product.category
-  if ('images' in product) mapped.images = product.images
-  if ('base_price_cents' in product) {
+function toDbProduct(product: Partial<Product>): TablesInsert<'merch_products'> {
+  const mapped: TablesInsert<'merch_products'> = {
+    name: product.name ?? '',
+    price: product.base_price_cents != null ? product.base_price_cents / 100 : 0,
+  }
+  if (product.slug != null) mapped.slug = product.slug
+  if (product.description != null) mapped.description = product.description
+  if (product.category != null) mapped.category = product.category
+  if (product.images != null) mapped.images = product.images
+  if (product.base_price_cents != null) {
     mapped.base_price_cents = product.base_price_cents
     // Keep legacy price column in sync (numeric dollars)
-    mapped.price = Number(product.base_price_cents) / 100
+    mapped.price = product.base_price_cents / 100
   }
-  if ('status' in product) {
+  if (product.status != null) {
     mapped.status = product.status
     // Keep legacy is_active column in sync
     mapped.is_active = product.status === 'active'
@@ -91,7 +95,7 @@ export function useCreateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (product: Omit<Product, 'id' | 'variants' | 'created_at' | 'updated_at'>) => {
-      const row = toDbProduct(product as Record<string, unknown>)
+      const row = toDbProduct(product)
       const { data, error } = await supabase.from('merch_products').insert(row).select().single()
       if (error) throw error
       return data
@@ -104,7 +108,7 @@ export function useUpdateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ id, ...updates }: Partial<Product> & { id: string }) => {
-      const row = toDbProduct(updates as Record<string, unknown>)
+      const row = toDbProduct(updates)
       const { data, error } = await supabase
         .from('merch_products')
         .update(row)
@@ -386,8 +390,19 @@ export function useAdminPromoCodes() {
 export function useUpsertPromoCode() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: async (promo: Partial<PromoCode> & { code: string }) => {
-      const { error } = await supabase.from('promo_codes').upsert(promo)
+    mutationFn: async (promo: Partial<PromoCode> & { code: string; type: PromoType; value: number }) => {
+      const row: TablesInsert<'promo_codes'> = {
+        code: promo.code,
+        type: promo.type,
+        value: promo.value,
+        ...(promo.id != null && { id: promo.id }),
+        ...(promo.is_active != null && { is_active: promo.is_active }),
+        ...(promo.max_uses != null && { max_uses: promo.max_uses }),
+        ...(promo.min_order_amount != null && { min_order_amount: promo.min_order_amount }),
+        ...(promo.valid_from != null && { valid_from: promo.valid_from }),
+        ...(promo.valid_to != null && { valid_to: promo.valid_to }),
+      }
+      const { error } = await supabase.from('promo_codes').upsert(row)
       if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-promo-codes'] }),

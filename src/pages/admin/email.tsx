@@ -223,7 +223,7 @@ function useSubscribers(search: string, tagFilter: string | null) {
       const finalIds = profiles.map((p: any) => p.id)
       const { data: allTags } = await supabase
         .from('profile_tags')
-        .select('profile_id, tag_id, email_tags(id, name, colour)')
+        .select('profile_id, tag_id, email_tags(id, name, colour, description, created_at)')
         .in('profile_id', finalIds.length ? finalIds : ['__none__'])
 
       const tagMap = new Map<string, EmailTag[]>()

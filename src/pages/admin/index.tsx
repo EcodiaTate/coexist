@@ -23,6 +23,7 @@ import { Link } from 'react-router-dom'
 import {
     useAdminOverview,
     useTrendData,
+    type TrendMonth,
     type DateRange,
     dateRangeOptions,
 } from '@/hooks/use-admin-dashboard'
@@ -100,7 +101,7 @@ function TrendChart({
   color,
   barColor,
 }: {
-  data: Record<string, unknown>[]
+  data: TrendMonth[]
   dataKey: string
   label: string
   icon: React.ReactNode
