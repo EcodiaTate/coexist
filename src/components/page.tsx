@@ -10,6 +10,10 @@ interface PageProps {
   stickyOverlay?: ReactNode
   /** Optional sticky bottom CTA */
   footer?: ReactNode
+  /** Remove horizontal padding from footer (edge-to-edge) */
+  fullWidthFooter?: boolean
+  /** Remove horizontal padding from the entire page (content + footer go edge-to-edge) */
+  fullBleed?: boolean
   /** Page content */
   children: ReactNode
   /** Additional class names */
@@ -24,6 +28,8 @@ export function Page({
   header,
   stickyOverlay,
   footer,
+  fullWidthFooter = false,
+  fullBleed = false,
   children,
   className,
   noBackground = false,
@@ -55,10 +61,10 @@ export function Page({
           isDesktopNav ? 'overflow-clip' : 'overflow-y-auto overflow-x-hidden overscroll-none',
           // Base gradient painted on element itself so first paint has colour (no flash)
           !noBackground && 'bg-gradient-to-b from-primary-50/50 via-white to-moss-50/20',
-          // Side padding for all page content
-          'px-4 lg:px-6',
+          // Side padding for all page content (skip when fullBleed)
+          fullBleed ? 'px-0' : 'px-4 lg:px-6',
           // Small gap between sidebar and page content on desktop
-          isDesktopNav && 'pl-4',
+          !fullBleed && isDesktopNav && 'pl-4',
           // Pad bottom: tab bar height + safe area (content bleeds behind drag handle)
           hasBottomTabs
             ? 'pb-[calc(3.5rem+var(--safe-bottom))]'
@@ -69,7 +75,7 @@ export function Page({
         {/* Atmospheric background - sticky so it stays viewport-pinned while
             content scrolls over it. Negative margin collapses it out of flow. */}
         {!noBackground && (
-          <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 -mx-4 lg:-mx-6 overflow-hidden" aria-hidden="true">
+          <div className={cn("pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 overflow-hidden", fullBleed ? 'mx-0' : '-mx-4 lg:-mx-6')} aria-hidden="true">
             <div className="absolute inset-0 bg-gradient-to-b from-primary-50/50 via-white to-moss-50/20" />
             {/* Large soft ring - top right */}
             <div className="absolute -top-20 -right-20 w-[340px] h-[340px] rounded-full border-2 border-moss-200/25" />
@@ -105,15 +111,15 @@ export function Page({
         <div
           className={cn(
             'sticky bottom-0 z-30',
-            'bg-surface-0',
-            'border-t border-primary-100',
-            'shadow-[0_-4px_16px_-2px_rgba(0,0,0,0.08)]',
-            'px-4 py-3',
+            fullBleed
+              ? ''
+              : 'bg-surface-0 border-t border-primary-100 shadow-[0_-4px_16px_-2px_rgba(0,0,0,0.08)]',
+            (fullWidthFooter || fullBleed) ? 'px-0 py-0' : 'px-4 py-3',
           )}
           style={{
             paddingBottom: hasBottomTabs
-              ? 'calc(3.5rem + var(--safe-bottom) + 1rem)'
-              : 'calc(var(--safe-bottom) + 1rem)',
+              ? `calc(3.5rem + var(--safe-bottom)${fullBleed ? '' : ' + 1rem'})`
+              : `calc(var(--safe-bottom)${fullBleed ? '' : ' + 1rem'})`,
           }}
         >
           {footer}

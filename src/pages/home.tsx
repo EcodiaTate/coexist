@@ -109,10 +109,11 @@ function HScroll({
 }) {
   return (
     <div className="relative -mx-6">
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-4 bg-gradient-to-r from-white/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-white/60 to-transparent" />
       <div
         className={cn(
-          'flex gap-3 overflow-x-auto px-6 pb-1',
+          'flex gap-3 overflow-x-auto pl-8 pr-6 pb-1',
           'scrollbar-none snap-x snap-proximity',
           'scroll-smooth',
           className,

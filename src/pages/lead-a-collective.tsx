@@ -99,20 +99,20 @@ export default function LeadACollectivePage() {
   const { profile } = useAuth()
   const toast = useToast()
 
-  // Form state
-  const [firstName, setFirstName] = useState(profile?.display_name?.split(' ')[0] ?? '')
-  const [lastName, setLastName] = useState(profile?.display_name?.split(' ').slice(1).join(' ') ?? '')
-  const [email, setEmail] = useState('')
-  const [newsOptIn, setNewsOptIn] = useState(false)
-  const [dob, setDob] = useState('')
-  const [phone, setPhone] = useState('')
+  // Form state – autofill from profile where possible
+  const [firstName, setFirstName] = useState(profile?.first_name ?? profile?.display_name?.split(' ')[0] ?? '')
+  const [lastName, setLastName] = useState(profile?.last_name ?? profile?.display_name?.split(' ').slice(1).join(' ') ?? '')
+  const [email, setEmail] = useState(profile?.email ?? '')
+  const [newsOptIn, setNewsOptIn] = useState(profile?.marketing_opt_in ?? false)
+  const [dob, setDob] = useState(profile?.date_of_birth ?? '')
+  const [phone, setPhone] = useState(profile?.phone ?? '')
 
   // Address
   const [addressLine1, setAddressLine1] = useState('')
   const [addressLine2, setAddressLine2] = useState('')
   const [suburb, setSuburb] = useState('')
   const [state, setState] = useState('')
-  const [postcode, setPostcode] = useState('')
+  const [postcode, setPostcode] = useState(profile?.postcode ?? '')
 
   // Application content
   const [whyVolunteer, setWhyVolunteer] = useState('')
@@ -122,7 +122,7 @@ export default function LeadACollectivePage() {
   const [skills, setSkills] = useState<string[]>([])
   const [resumeFile, setResumeFile] = useState<File | null>(null)
   const [additionalInfo, setAdditionalInfo] = useState('')
-  const [howHeard, setHowHeard] = useState('')
+  const [howHeard, setHowHeard] = useState(profile?.collective_discovery ?? '')
 
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)

@@ -73,7 +73,7 @@ async function fetchAdminEventsData(): Promise<AdminEventsData> {
     registrationCount: regCounts.get(event.id) ?? 0,
   } as AdminEvent))
 
-  const upcoming = enriched.filter((e) => e.date_start >= now)
+  const upcoming = enriched.filter((e) => e.date_start >= now && e.status !== 'cancelled')
   const past = enriched.filter((e) => e.date_start < now)
 
   const totalRegistrations = enriched.reduce((sum, e) => sum + e.registrationCount, 0)

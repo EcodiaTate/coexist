@@ -12,6 +12,7 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
+import { Dropdown } from '@/components/dropdown'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
@@ -62,6 +63,16 @@ const CONTACT_INFO = [
   },
 ]
 
+const SUBJECT_OPTIONS = [
+  { value: 'general', label: 'General Enquiry' },
+  { value: 'collectives', label: 'Collectives & Events' },
+  { value: 'partnerships', label: 'Partnerships & Sponsorship' },
+  { value: 'media', label: 'Media & Press' },
+  { value: 'feedback', label: 'Feedback & Suggestions' },
+  { value: 'technical', label: 'App / Technical Issue' },
+  { value: 'other', label: 'Other' },
+]
+
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
@@ -71,8 +82,13 @@ export default function ContactPage() {
   const { profile } = useAuth()
   const toast = useToast()
 
-  const [name, setName] = useState(profile?.display_name ?? '')
-  const [email, setEmail] = useState('')
+  const [name, setName] = useState(
+    profile?.first_name && profile?.last_name
+      ? `${profile.first_name} ${profile.last_name}`
+      : profile?.display_name ?? ''
+  )
+  const [email, setEmail] = useState(profile?.email ?? '')
+  const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
 
@@ -89,6 +105,7 @@ export default function ContactPage() {
         .insert({
           name: name.trim(),
           email: email.trim(),
+          subject: subject || null,
           message: message.trim(),
           user_id: profile?.id ?? null,
         })
@@ -96,6 +113,7 @@ export default function ContactPage() {
       if (error) throw error
 
       toast.toast.success('Message sent! We\'ll get back to you soon.')
+      setSubject('')
       setMessage('')
     } catch {
       toast.toast.error('Something went wrong. Please try emailing us directly.')
@@ -141,6 +159,14 @@ export default function ContactPage() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
             required
+          />
+
+          <Dropdown
+            label="Subject"
+            options={SUBJECT_OPTIONS}
+            value={subject}
+            onChange={setSubject}
+            placeholder="What's this about?"
           />
 
           <Input

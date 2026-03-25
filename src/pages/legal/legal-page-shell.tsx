@@ -6,6 +6,7 @@ import { OGMeta } from '@/components/og-meta'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Skeleton } from '@/components/skeleton'
 import { useLegalPage } from '@/hooks/use-legal-page'
+import { EcodiaAttribution } from '@/components/ecodia-attribution'
 
 interface LegalPageShellProps {
   slug: string
@@ -31,7 +32,7 @@ export default function LegalPageShell({ slug, fallbackTitle, fallbackDescriptio
   const sanitisedHtml = page?.content ? DOMPurify.sanitize(page.content) : ''
 
   return (
-    <Page swipeBack header={<Header title="" back />}>
+    <Page swipeBack header={<Header title="" back transparent />}>
       <OGMeta
         title={title}
         description={description}
@@ -95,6 +96,10 @@ export default function LegalPageShell({ slug, fallbackTitle, fallbackDescriptio
             })}
           </p>
         )}
+
+        <div className="flex justify-center pt-2">
+          <EcodiaAttribution />
+        </div>
       </motion.div>
     </Page>
   )

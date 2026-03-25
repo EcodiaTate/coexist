@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, createContext, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
@@ -136,6 +136,8 @@ const STEPS = [
     gradient: 'from-primary-500/20 via-sprout-400/10 to-transparent',
     accentColor: 'text-primary-600',
     accentBg: 'bg-primary-500',
+    cardBorder: 'border-l-primary-400',
+    cardGlow: 'bg-primary-50/40',
   },
   {
     title: 'Date & Time',
@@ -144,6 +146,8 @@ const STEPS = [
     gradient: 'from-sky-400/15 via-primary-400/10 to-transparent',
     accentColor: 'text-sky-600',
     accentBg: 'bg-sky-500',
+    cardBorder: 'border-l-sky-400',
+    cardGlow: 'bg-sky-50/40',
   },
   {
     title: 'Location',
@@ -152,6 +156,8 @@ const STEPS = [
     gradient: 'from-sprout-400/20 via-moss-400/10 to-transparent',
     accentColor: 'text-sprout-600',
     accentBg: 'bg-sprout-500',
+    cardBorder: 'border-l-sprout-400',
+    cardGlow: 'bg-sprout-50/40',
   },
   {
     title: 'Details',
@@ -160,6 +166,8 @@ const STEPS = [
     gradient: 'from-bark-400/15 via-primary-400/10 to-transparent',
     accentColor: 'text-bark-600',
     accentBg: 'bg-bark-500',
+    cardBorder: 'border-l-bark-400',
+    cardGlow: 'bg-bark-50/40',
   },
   {
     title: 'Cover Image',
@@ -168,6 +176,8 @@ const STEPS = [
     gradient: 'from-coral-400/15 via-plum-400/10 to-transparent',
     accentColor: 'text-coral-600',
     accentBg: 'bg-coral-500',
+    cardBorder: 'border-l-coral-400',
+    cardGlow: 'bg-coral-50/40',
   },
   {
     title: 'Visibility',
@@ -176,6 +186,8 @@ const STEPS = [
     gradient: 'from-plum-400/15 via-primary-400/10 to-transparent',
     accentColor: 'text-plum-600',
     accentBg: 'bg-plum-500',
+    cardBorder: 'border-l-plum-400',
+    cardGlow: 'bg-plum-50/40',
   },
   {
     title: 'Invite',
@@ -184,6 +196,8 @@ const STEPS = [
     gradient: 'from-moss-400/15 via-sky-400/10 to-transparent',
     accentColor: 'text-moss-600',
     accentBg: 'bg-moss-500',
+    cardBorder: 'border-l-moss-400',
+    cardGlow: 'bg-moss-50/40',
   },
   {
     title: 'Partner',
@@ -192,6 +206,8 @@ const STEPS = [
     gradient: 'from-bark-400/15 via-primary-400/10 to-transparent',
     accentColor: 'text-bark-600',
     accentBg: 'bg-bark-500',
+    cardBorder: 'border-l-bark-400',
+    cardGlow: 'bg-bark-50/40',
   },
   {
     title: 'Review',
@@ -200,6 +216,8 @@ const STEPS = [
     gradient: 'from-success-400/20 via-sprout-400/10 to-transparent',
     accentColor: 'text-success-600',
     accentBg: 'bg-success-500',
+    cardBorder: 'border-l-success-400',
+    cardGlow: 'bg-success-50/40',
   },
 ]
 
@@ -223,6 +241,12 @@ const activityIcons: Record<string, React.ReactNode> = {
 /*  Shared sub-components                                              */
 /* ------------------------------------------------------------------ */
 
+/* Step color context — lets StepCard auto-pick the current step's accent */
+const StepColorCtx = createContext<{ cardBorder: string; cardGlow: string }>({
+  cardBorder: 'border-l-primary-300',
+  cardGlow: 'bg-surface-0',
+})
+
 /** Styled card wrapper used inside each step */
 function StepCard({
   children,
@@ -231,11 +255,15 @@ function StepCard({
   children: React.ReactNode
   className?: string
 }) {
+  const { cardBorder, cardGlow } = useContext(StepColorCtx)
   return (
     <div
       className={cn(
-        'rounded-2xl bg-surface-0 shadow-sm',
+        'rounded-2xl shadow-sm',
         'border border-primary-100/60',
+        'border-l-[3px]',
+        cardBorder,
+        cardGlow,
         'p-5',
         className,
       )}
@@ -317,9 +345,6 @@ function StepBasics({
           onChange={(e) => onChange({ description: e.target.value })}
           rows={5}
         />
-        <p className="text-caption text-primary-300 mt-2">
-          Tip: Mention what impact this event will have
-        </p>
       </StepCard>
     </div>
   )
@@ -1049,16 +1074,16 @@ function ProgressStepper({
   totalSteps: number
 }) {
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       {Array.from({ length: totalSteps }).map((_, i) => (
-        <div key={i} className="flex-1 h-1.5 rounded-full overflow-hidden bg-primary-100">
+        <div key={i} className="flex-1 h-2 rounded-full overflow-hidden bg-primary-100/80">
           <motion.div
             className={cn(
               'h-full rounded-full',
               i < currentStep
-                ? 'bg-primary-500'
+                ? STEPS[i].accentBg
                 : i === currentStep
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-400'
+                  ? cn(STEPS[i].accentBg, 'opacity-80')
                   : '',
             )}
             initial={false}
@@ -1255,12 +1280,18 @@ export default function CreateEventPage() {
   return (
     <Page
       swipeBack
+      fullBleed
       header={
-        <Header title="Create Event" back onBack={goBack} />
+        <Header title="Create Event" back transparent onBack={goBack} />
       }
       footer={
-        <div className="space-y-2">
-          <div className="flex gap-2">
+        <div className={cn(
+          'py-3 space-y-2',
+          isLastStep
+            ? 'bg-gradient-to-r from-success-50 via-sprout-50/50 to-moss-50'
+            : 'bg-gradient-to-r from-primary-50/60 via-surface-0 to-moss-50/40',
+        )}>
+          <div className="flex gap-2 px-4">
             {!isFirstStep && (
               <Button
                 variant="ghost"
@@ -1292,20 +1323,22 @@ export default function CreateEventPage() {
             </Button>
           </div>
           {isLastStep && (
-            <Button
-              variant="ghost"
-              fullWidth
-              onClick={() => handlePublish(true)}
-              loading={createEvent.isPending && saveAsDraft}
-            >
-              Save as Draft
-            </Button>
+            <div className="px-4">
+              <Button
+                variant="ghost"
+                fullWidth
+                onClick={() => handlePublish(true)}
+                loading={createEvent.isPending && saveAsDraft}
+              >
+                Save as Draft
+              </Button>
+            </div>
           )}
         </div>
       }
     >
       {/* ---- Gradient hero header area ---- */}
-      <div className="pt-3 pb-1">
+      <div className="pt-3 pb-1 px-4">
         {/* Progress bar */}
         <ProgressStepper currentStep={step} totalSteps={STEPS.length} />
 
@@ -1347,20 +1380,22 @@ export default function CreateEventPage() {
       </div>
 
       {/* ---- Step content with slide animation ---- */}
-      <div className="pt-4 pb-8 min-h-[400px]">
-        <AnimatePresence mode="wait" custom={direction}>
-          <motion.div
-            key={step}
-            custom={direction}
-            variants={shouldReduceMotion ? undefined : slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-          >
-            {stepComponents[step]}
-          </motion.div>
-        </AnimatePresence>
+      <div className="pt-4 pb-4 min-h-[400px] px-4">
+        <StepColorCtx.Provider value={{ cardBorder: currentStep.cardBorder, cardGlow: currentStep.cardGlow }}>
+          <AnimatePresence mode="wait" custom={direction}>
+            <motion.div
+              key={step}
+              custom={direction}
+              variants={shouldReduceMotion ? undefined : slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+            >
+              {stepComponents[step]}
+            </motion.div>
+          </AnimatePresence>
+        </StepColorCtx.Provider>
       </div>
     </Page>
   )

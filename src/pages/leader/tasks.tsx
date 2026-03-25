@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-    CheckCircle, Clock,
+    ArrowLeft, CheckCircle, Clock,
     AlertTriangle, ChevronRight,
     Calendar, FileText,
     SkipForward, Flame, Sparkles, Users,
@@ -342,7 +343,10 @@ function CollectiveGroup({
 /*  Page                                                               */
 /* ------------------------------------------------------------------ */
 
+const backButtonCn = 'absolute top-[var(--safe-top,0px)] left-4 mt-3 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-black/40 text-white cursor-pointer'
+
 export default function LeaderTasksPage() {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
@@ -371,6 +375,7 @@ export default function LeaderTasksPage() {
     return (
       <div className="relative min-h-dvh overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
+        <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
         <div className="relative z-10 px-6 pt-14 space-y-5 pb-20">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <Skeleton className="h-20 rounded-2xl" />
@@ -387,6 +392,7 @@ export default function LeaderTasksPage() {
     return (
       <div className="relative min-h-dvh overflow-x-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
+        <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
         <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full border border-amber-200/35 animate-[gentleSpin_50s_linear_infinite]" />
         <div className="absolute top-32 -left-8 w-24 h-24 rounded-full bg-amber-100/25 animate-[floatDown_6s_ease-in-out_infinite]" />
 
@@ -412,6 +418,7 @@ export default function LeaderTasksPage() {
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
+      <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
 
       {/* ── Decorative geometric shapes - "stepping stones" formation ── */}
       <div className="absolute -right-14 top-[15%] w-52 h-52 rounded-full border border-amber-200/30 animate-[gentleSpin_55s_linear_infinite]" />

@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
+    ArrowLeft,
     CalendarDays,
-    Plus,
     MapPin,
     Users,
     Clock,
@@ -72,6 +72,8 @@ const FILTERS = [
   { id: 'all', label: 'All' },
 ] as const
 
+const backButtonCn = 'absolute top-[var(--safe-top,0px)] left-4 mt-3 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-black/40 text-white cursor-pointer'
+
 export default function LeaderEventsPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
@@ -92,6 +94,7 @@ export default function LeaderEventsPage() {
         {/* Decorative shapes */}
         <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-moss-200/40" />
         <div className="absolute -left-20 bottom-[10%] w-[280px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/25 to-transparent opacity-30" />
+        <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
         <div className="relative z-10 px-6 pt-14 space-y-6">
           <div className="flex flex-col items-center gap-2 pb-2">
             <div className="h-3 w-16 rounded-full bg-moss-200/40 animate-pulse" />
@@ -117,6 +120,7 @@ export default function LeaderEventsPage() {
     <div className="relative min-h-dvh overflow-x-hidden">
       {/* ── Bright airy background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-moss-50 via-white to-primary-50/30" />
+      <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
 
       {/* ── Decorative geometric shapes - "morning canopy" formation ── */}
       <div className="absolute -left-12 -top-12 w-[300px] h-[300px] rounded-full border-2 border-moss-200/35 animate-[breathe_22s_ease-in-out_infinite]" />
@@ -163,18 +167,6 @@ export default function LeaderEventsPage() {
               <span className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider mt-0.5">{s.label}</span>
             </div>
           ))}
-        </motion.div>
-
-        {/* ── Create event CTA ── */}
-        <motion.div variants={rm ? undefined : fadeUp}>
-          <button
-            type="button"
-            onClick={() => navigate('/leader/events/create')}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-moss-500 to-moss-600 py-3.5 text-sm font-bold text-white shadow-md shadow-moss-500/20 active:scale-[0.98] transition-transform duration-150 cursor-pointer"
-          >
-            <Plus size={18} strokeWidth={2.5} />
-            Create New Event
-          </button>
         </motion.div>
 
         {/* ── Filter bar ── */}

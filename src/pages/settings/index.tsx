@@ -29,6 +29,7 @@ import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { Skeleton } from '@/components/skeleton'
 import { cn } from '@/lib/cn'
+import { EcodiaAttribution } from '@/components/ecodia-attribution'
 import { useAuth } from '@/hooks/use-auth'
 import { usePlatform } from '@/hooks/use-platform'
 import { useToast } from '@/components/toast'
@@ -44,6 +45,8 @@ import type { NotificationPreferences } from '@/hooks/use-notifications'
 import { DEFAULT_PREFERENCES } from '@/hooks/use-notifications'
 import { usePush } from '@/hooks/use-push'
 import { supabase } from '@/lib/supabase'
+import { useLegalPage } from '@/hooks/use-legal-page'
+import DOMPurify from 'dompurify'
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -559,6 +562,14 @@ function ChangeEmailSheet({
 /* ------------------------------------------------------------------ */
 
 function AboutSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { isWeb } = usePlatform()
+  const { data: legalPage, isLoading } = useLegalPage('about')
+
+  // On web/desktop, show admin-configured content from legal_pages table
+  const showDynamic = isWeb && legalPage?.content
+  // Sanitise with DOMPurify to prevent stored XSS (defence-in-depth, only staff can author)
+  const sanitisedHtml = showDynamic ? DOMPurify.sanitize(legalPage.content) : ''
+
   return (
     <BottomSheet open={open} onClose={onClose} snapPoints={[0.7]}>
       <div className="text-center">
@@ -569,15 +580,31 @@ function AboutSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
           {APP_NAME}
         </h2>
         <p className="text-sm text-primary-400 font-medium mt-1">{TAGLINE}</p>
-        <p className="mt-4 text-sm text-primary-400 leading-relaxed px-2">
-          Co-Exist is a national youth-led environmental nonprofit that runs conservation
-          events through local groups called Collectives. We believe in the power of young
-          people to protect and restore Australia&apos;s natural environment.
-        </p>
-        <p className="mt-3 text-sm text-primary-400 leading-relaxed px-2">
-          5,500+ volunteers &middot; 13 collectives &middot; 35,500+ native plants &middot;
-          4,900+ kg litter removed
-        </p>
+
+        {isWeb && isLoading && (
+          <div className="mt-4 space-y-2">
+            <Skeleton variant="text" count={3} />
+          </div>
+        )}
+
+        {sanitisedHtml ? (
+          <div
+            className="mt-4 legal-content max-w-none text-sm text-primary-700 leading-relaxed text-left"
+            dangerouslySetInnerHTML={{ __html: sanitisedHtml }}
+          />
+        ) : (
+          <>
+            <p className="mt-4 text-sm text-primary-400 leading-relaxed px-2">
+              Co-Exist is a national youth-led environmental nonprofit that runs conservation
+              events through local groups called Collectives. We believe in the power of young
+              people to protect and restore Australia&apos;s natural environment.
+            </p>
+            <p className="mt-3 text-sm text-primary-400 leading-relaxed px-2">
+              5,500+ volunteers &middot; 13 collectives &middot; 35,500+ native plants &middot;
+              4,900+ kg litter removed
+            </p>
+          </>
+        )}
 
         <div className="mt-5 flex justify-center gap-3">
           <a
@@ -618,6 +645,10 @@ function AboutSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
             peoples have to Country. Sovereignty was never ceded.
           </p>
         </div>
+
+        <div className="mt-5 flex justify-center">
+          <EcodiaAttribution />
+        </div>
       </div>
     </BottomSheet>
   )
@@ -628,42 +659,61 @@ function AboutSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
 /* ------------------------------------------------------------------ */
 
 function TermsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { isWeb } = usePlatform()
+  const { data: legalPage, isLoading } = useLegalPage('terms')
+  const showDynamic = isWeb && legalPage?.content
+  const sanitisedHtml = showDynamic ? DOMPurify.sanitize(legalPage.content) : ''
+
   return (
     <BottomSheet open={open} onClose={onClose} snapPoints={[0.85]}>
       <h2 className="font-heading text-lg font-semibold text-primary-800 mb-1">
         Terms of Service
       </h2>
       <p className="text-xs text-primary-400 mb-4">Version {TOS_VERSION}</p>
-      <div className="prose prose-sm text-primary-800 space-y-3 text-sm leading-relaxed">
-        <p>
-          Welcome to Co-Exist. By using our app, you agree to these terms. Co-Exist is a
-          registered Australian charity (ACNC) providing a platform for youth conservation activities.
-        </p>
-        <h4 className="font-semibold text-primary-800 text-sm">1. Eligibility</h4>
-        <p>You must be at least 18 years old to create an account. Users under 18 may attend events
-          with parental/guardian consent through an approved Collective leader.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">2. Your Account</h4>
-        <p>You are responsible for your account credentials and all activity under your account.
-          Notify us immediately of any unauthorised use.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">3. Acceptable Use</h4>
-        <p>You agree to use Co-Exist respectfully. Harassment, hate speech, spam, or sharing of
-          inappropriate content will result in account suspension.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">4. Content</h4>
-        <p>You retain ownership of content you post. By posting, you grant Co-Exist a non-exclusive
-          licence to use it for promotional and operational purposes.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">5. Events & Safety</h4>
-        <p>Co-Exist events involve outdoor conservation activities. Participants assume inherent risks
-          and should follow all safety instructions from Collective leaders.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">6. Donations</h4>
-        <p>Donations are processed via Stripe. Co-Exist is a registered charity. Tax-deductible status
-          depends on current DGR registration.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">7. Termination</h4>
-        <p>We may suspend or terminate accounts that violate these terms. You may delete your account
-          at any time through Settings.</p>
-        <p className="text-xs text-primary-400 mt-4">
-          Last updated: March 2026. Contact: {CONTACT_EMAIL}
-        </p>
-      </div>
+
+      {isWeb && isLoading && (
+        <div className="space-y-2">
+          <Skeleton variant="text" count={5} />
+        </div>
+      )}
+
+      {sanitisedHtml ? (
+        <div
+          className="legal-content max-w-none text-sm text-primary-700 leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: sanitisedHtml }}
+        />
+      ) : (
+        <div className="prose prose-sm text-primary-800 space-y-3 text-sm leading-relaxed">
+          <p>
+            Welcome to Co-Exist. By using our app, you agree to these terms. Co-Exist is a
+            registered Australian charity (ACNC) providing a platform for youth conservation activities.
+          </p>
+          <h4 className="font-semibold text-primary-800 text-sm">1. Eligibility</h4>
+          <p>You must be at least 18 years old to create an account. Users under 18 may attend events
+            with parental/guardian consent through an approved Collective leader.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">2. Your Account</h4>
+          <p>You are responsible for your account credentials and all activity under your account.
+            Notify us immediately of any unauthorised use.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">3. Acceptable Use</h4>
+          <p>You agree to use Co-Exist respectfully. Harassment, hate speech, spam, or sharing of
+            inappropriate content will result in account suspension.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">4. Content</h4>
+          <p>You retain ownership of content you post. By posting, you grant Co-Exist a non-exclusive
+            licence to use it for promotional and operational purposes.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">5. Events & Safety</h4>
+          <p>Co-Exist events involve outdoor conservation activities. Participants assume inherent risks
+            and should follow all safety instructions from Collective leaders.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">6. Donations</h4>
+          <p>Donations are processed via Stripe. Co-Exist is a registered charity. Tax-deductible status
+            depends on current DGR registration.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">7. Termination</h4>
+          <p>We may suspend or terminate accounts that violate these terms. You may delete your account
+            at any time through Settings.</p>
+          <p className="text-xs text-primary-400 mt-4">
+            Last updated: March 2026. Contact: {CONTACT_EMAIL}
+          </p>
+        </div>
+      )}
     </BottomSheet>
   )
 }
@@ -673,40 +723,59 @@ function TermsSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
 /* ------------------------------------------------------------------ */
 
 function PrivacySheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { isWeb } = usePlatform()
+  const { data: legalPage, isLoading } = useLegalPage('privacy')
+  const showDynamic = isWeb && legalPage?.content
+  const sanitisedHtml = showDynamic ? DOMPurify.sanitize(legalPage.content) : ''
+
   return (
     <BottomSheet open={open} onClose={onClose} snapPoints={[0.85]}>
       <h2 className="font-heading text-lg font-semibold text-primary-800 mb-1">
         Privacy Policy
       </h2>
       <p className="text-xs text-primary-400 mb-4">Version {PRIVACY_VERSION}</p>
-      <div className="prose prose-sm text-primary-800 space-y-3 text-sm leading-relaxed">
-        <p>
-          Co-Exist Australia (&ldquo;we&rdquo;, &ldquo;us&rdquo;) collects and processes personal
-          information in accordance with the Australian Privacy Act 1988 and GDPR where applicable.
-        </p>
-        <h4 className="font-semibold text-primary-800 text-sm">What We Collect</h4>
-        <p>Name, email, location (optional), profile photo, event participation history, impact
-          data, and device information for push notifications.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">How We Use It</h4>
-        <p>To operate the app, facilitate events, track conservation impact, send notifications,
-          process donations, and improve our services.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">Third Parties</h4>
-        <p>We use Supabase (database), Stripe (payments), SendGrid (email), and Firebase Cloud
-          Messaging (push notifications). We do not sell your data.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">Your Rights</h4>
-        <p>You can access, correct, export, or delete your personal data at any time through the
-          app settings. Deletion requests are processed within 30 days.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">Data Retention</h4>
-        <p>Account data is retained while your account is active. After deletion, data enters a
-          30-day grace period before permanent removal. Anonymised impact data is retained for
-          charity reporting.</p>
-        <h4 className="font-semibold text-primary-800 text-sm">Children</h4>
-        <p>Co-Exist does not knowingly collect information from children under 13. If we become
-          aware of data collected from a child under 13, we will delete it promptly.</p>
-        <p className="text-xs text-primary-400 mt-4">
-          Contact our privacy team: {CONTACT_EMAIL}
-        </p>
-      </div>
+
+      {isWeb && isLoading && (
+        <div className="space-y-2">
+          <Skeleton variant="text" count={5} />
+        </div>
+      )}
+
+      {sanitisedHtml ? (
+        <div
+          className="legal-content max-w-none text-sm text-primary-700 leading-relaxed"
+          dangerouslySetInnerHTML={{ __html: sanitisedHtml }}
+        />
+      ) : (
+        <div className="prose prose-sm text-primary-800 space-y-3 text-sm leading-relaxed">
+          <p>
+            Co-Exist Australia (&ldquo;we&rdquo;, &ldquo;us&rdquo;) collects and processes personal
+            information in accordance with the Australian Privacy Act 1988 and GDPR where applicable.
+          </p>
+          <h4 className="font-semibold text-primary-800 text-sm">What We Collect</h4>
+          <p>Name, email, location (optional), profile photo, event participation history, impact
+            data, and device information for push notifications.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">How We Use It</h4>
+          <p>To operate the app, facilitate events, track conservation impact, send notifications,
+            process donations, and improve our services.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">Third Parties</h4>
+          <p>We use Supabase (database), Stripe (payments), SendGrid (email), and Firebase Cloud
+            Messaging (push notifications). We do not sell your data.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">Your Rights</h4>
+          <p>You can access, correct, export, or delete your personal data at any time through the
+            app settings. Deletion requests are processed within 30 days.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">Data Retention</h4>
+          <p>Account data is retained while your account is active. After deletion, data enters a
+            30-day grace period before permanent removal. Anonymised impact data is retained for
+            charity reporting.</p>
+          <h4 className="font-semibold text-primary-800 text-sm">Children</h4>
+          <p>Co-Exist does not knowingly collect information from children under 13. If we become
+            aware of data collected from a child under 13, we will delete it promptly.</p>
+          <p className="text-xs text-primary-400 mt-4">
+            Contact our privacy team: {CONTACT_EMAIL}
+          </p>
+        </div>
+      )}
     </BottomSheet>
   )
 }
@@ -1187,10 +1256,11 @@ export default function SettingsPage() {
             </motion.div>
 
             {/* ---- App Info ---- */}
-            <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-6 text-center">
+            <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-6 flex flex-col items-center gap-1.5">
               <p className="text-xs text-primary-400">
                 {APP_NAME} v{APP_VERSION}
               </p>
+              <EcodiaAttribution />
             </motion.div>
 
             {/* ---- Logout ---- */}
