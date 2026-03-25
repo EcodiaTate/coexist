@@ -3,11 +3,13 @@ import { supabase, escapeIlike } from '@/lib/supabase'
 import { logAudit } from '@/lib/audit'
 import type {
   Database,
-  Collective,
-  CollectiveMember,
-  Profile,
+  Tables,
   TablesUpdate,
 } from '@/types/database.types'
+
+type Collective = Tables<'collectives'>
+type CollectiveMember = Tables<'collective_members'>
+type Profile = Tables<'profiles'>
 
 type CollectiveRole = Database['public']['Enums']['collective_role']
 

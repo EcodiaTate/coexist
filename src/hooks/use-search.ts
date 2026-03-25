@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import type { Event, Collective, Profile } from '@/types/database.types'
+import type { Tables } from '@/types/database.types'
+
+type Event = Tables<'events'>
+type Collective = Tables<'collectives'>
+type Profile = Tables<'profiles'>
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

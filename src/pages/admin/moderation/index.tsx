@@ -24,7 +24,10 @@ import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { logAudit } from '@/lib/audit'
 import { useAuth } from '@/hooks/use-auth'
-import type { ContentReport, Profile, Enums } from '@/types/database.types'
+import type { Tables, Enums } from '@/types/database.types'
+
+type ContentReport = Tables<'content_reports'>
+type Profile = Tables<'profiles'>
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

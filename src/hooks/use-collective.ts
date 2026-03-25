@@ -3,11 +3,13 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import type {
   Database,
-  Collective,
-  CollectiveMember,
-  Profile,
+  Tables,
   TablesUpdate,
 } from '@/types/database.types'
+
+type Collective = Tables<'collectives'>
+type CollectiveMember = Tables<'collective_members'>
+type Profile = Tables<'profiles'>
 
 type CollectiveRole = Database['public']['Enums']['collective_role']
 

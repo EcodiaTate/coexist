@@ -35,7 +35,9 @@ import {
   AUSTRALIAN_STATES,
 } from '@/hooks/use-admin-contacts'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import type { EmergencyContact } from '@/types/database.types'
+import type { Tables } from '@/types/database.types'
+
+type EmergencyContact = Tables<'emergency_contacts'>
 
 /* ------------------------------------------------------------------ */
 /*  Category icons                                                     */

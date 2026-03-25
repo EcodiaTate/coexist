@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, escapeIlike } from '@/lib/supabase'
 import { logAudit } from '@/lib/audit'
-import type { EmergencyContact, TablesInsert, TablesUpdate } from '@/types/database.types'
+import type { Tables, TablesInsert, TablesUpdate } from '@/types/database.types'
+
+type EmergencyContact = Tables<'emergency_contacts'>
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

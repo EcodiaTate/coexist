@@ -15,7 +15,9 @@ import {
     getNotificationMeta,
 } from '@/hooks/use-notifications'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import type { Notification } from '@/types/database.types'
+import type { Tables } from '@/types/database.types'
+
+type Notification = Tables<'notifications'>
 
 /* ------------------------------------------------------------------ */
 /*  Animations                                                         */
