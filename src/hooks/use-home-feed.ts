@@ -2,12 +2,14 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import type {
-  Event,
-  Collective,
-  GlobalAnnouncement,
-  Challenge,
-  Profile,
+  Tables,
 } from '@/types/database.types'
+
+type Event = Tables<'events'>
+type Collective = Tables<'collectives'>
+type GlobalAnnouncement = Tables<'global_announcements'>
+type Challenge = Tables<'challenges'>
+type Profile = Tables<'profiles'>
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
