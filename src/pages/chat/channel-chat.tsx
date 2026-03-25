@@ -44,7 +44,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useEventDetail, type EventDetailData } from '@/hooks/use-events'
-import type { Tables } from '@/types/database.types'
+import type { Tables, Json } from '@/types/database.types'
 
 type EventRegistration = Tables<'event_registrations'>
 
@@ -539,7 +539,7 @@ export default function ChannelChatPage() {
           type: data.type,
           title: data.title,
           body: data.body ?? null,
-          metadata: data.metadata ?? {},
+          metadata: (data.metadata ?? {}) as Json,
         })
         .select()
         .single()

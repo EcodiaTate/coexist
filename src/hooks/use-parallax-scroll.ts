@@ -88,38 +88,26 @@ export function useParallaxEngine() {
     }
   }, [])
 
-  // Set up scroll listeners + rAF loop
+  // Set up scroll listeners + continuous rAF loop for mobile
+  // Mobile WebKit (iOS Safari + Capacitor) throttles scroll events during
+  // momentum scrolling, so event-driven updates stall. Instead we run a
+  // continuous rAF loop that polls scroll position every frame – guarantees
+  // smooth parallax on all platforms including mobile momentum scroll.
   useEffect(() => {
-    const el = containerRef.current
-
     // Seed initial position
     tick()
 
-    let ticking = false
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true
-        rafRef.current = requestAnimationFrame(() => {
-          tick()
-          ticking = false
-        })
-      }
+    let running = true
+    const loop = () => {
+      if (!running) return
+      tick()
+      rafRef.current = requestAnimationFrame(loop)
     }
-
-    // Listen on both – whichever is scrolling will fire
-    window.addEventListener('scroll', onScroll, { passive: true })
-    el?.addEventListener('scroll', onScroll, { passive: true })
-
-    // Also listen for touchmove as a fallback for iOS momentum scroll gaps
-    window.addEventListener('touchmove', onScroll, { passive: true })
-    el?.addEventListener('touchmove', onScroll, { passive: true })
+    rafRef.current = requestAnimationFrame(loop)
 
     return () => {
+      running = false
       cancelAnimationFrame(rafRef.current)
-      window.removeEventListener('scroll', onScroll)
-      el?.removeEventListener('scroll', onScroll)
-      window.removeEventListener('touchmove', onScroll)
-      el?.removeEventListener('touchmove', onScroll)
     }
   }, [tick])
 
