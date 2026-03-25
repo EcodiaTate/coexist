@@ -2,7 +2,10 @@ import { useEffect, useCallback, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
-import type { ChatMessage, Profile } from '@/types/database.types'
+import type { Tables } from '@/types/database.types'
+
+type ChatMessage = Tables<'chat_messages'>
+type Profile = Tables<'profiles'>
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { supabase } from '@/lib/supabase'
+import type { Tables } from '@/types/database.types'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/cn'
 import { Button } from '@/components/button'
@@ -82,7 +83,7 @@ export default function OnboardingPage() {
 
       const { error: profileError } = await supabase
         .from('profiles')
-        .upsert(profilePayload as Record<string, unknown>, { onConflict: 'id' })
+        .upsert(profilePayload as Tables<'profiles'>, { onConflict: 'id' })
 
       if (profileError) {
         console.error('[onboarding] Failed to save profile:', profileError)

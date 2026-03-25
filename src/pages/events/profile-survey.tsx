@@ -10,7 +10,9 @@ import { Chip } from '@/components/chip'
 import { useToast } from '@/components/toast'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile, useUpdateProfile } from '@/hooks/use-profile'
-import type { Profile } from '@/types/database.types'
+import type { Tables } from '@/types/database.types'
+
+type Profile = Tables<'profiles'>
 
 const DISCOVERY_OPTIONS = [
   'Social media',

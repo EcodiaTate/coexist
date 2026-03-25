@@ -2,14 +2,16 @@ import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tansta
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import type {
-  Event,
-  EventRegistration,
-  EventImpact,
-  Collective,
-  Profile,
   Database,
+  Tables,
   TablesInsert,
 } from '@/types/database.types'
+
+type Event = Tables<'events'>
+type EventRegistration = Tables<'event_registrations'>
+type EventImpact = Tables<'event_impact'>
+type Collective = Tables<'collectives'>
+type Profile = Tables<'profiles'>
 import type { MyUpcomingEvent } from '@/hooks/use-home-feed'
 
 /* ------------------------------------------------------------------ */

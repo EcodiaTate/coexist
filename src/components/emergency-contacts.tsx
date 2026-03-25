@@ -14,7 +14,9 @@ import {
 import { cn } from '@/lib/cn'
 import { SearchBar } from '@/components/search-bar'
 import { useEmergencyContacts } from '@/hooks/use-admin-contacts'
-import type { EmergencyContact } from '@/types/database.types'
+import type { Tables } from '@/types/database.types'
+
+type EmergencyContact = Tables<'emergency_contacts'>
 
 /* ------------------------------------------------------------------ */
 /*  Category visual config                                              */

@@ -67,7 +67,9 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useInviteCollaborator, useEventDetail, type EventDetailData } from '@/hooks/use-events'
-import type { EventRegistration } from '@/types/database.types'
+import type { Tables } from '@/types/database.types'
+
+type EventRegistration = Tables<'event_registrations'>
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useTyping } from '@/hooks/use-typing'
