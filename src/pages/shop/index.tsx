@@ -638,7 +638,7 @@ export default function ShopPage() {
   }, [queryClient])
 
   return (
-    <Page className="!px-0 bg-[#f0f4ec]" stickyOverlay={<Header title="" back transparent />}>
+    <Page className="!px-0 bg-[#f0f4ec]" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
       <PullToRefresh onRefresh={handleRefresh} background={<ShopBackground rm={rm} />}>
         <div className="relative min-h-dvh">
           {/* Main content */}

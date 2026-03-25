@@ -136,7 +136,7 @@ function EventDetailSkeleton() {
     <Page swipeBack header={<Header title="" back />}>
       <div>
         {/* Hero shimmer */}
-        <div className="relative -mx-4 lg:-mx-6" style={{}}>
+        <div className="relative -mx-4 lg:-mx-6">
           <div className="w-full overflow-hidden animate-pulse" style={{ aspectRatio: '3/4', maxHeight: '56vh' }}>
             <div className="absolute inset-0 bg-gradient-to-br from-primary-200/40 via-moss-200/30 to-sprout-200/40" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
@@ -582,7 +582,7 @@ export default function EventDetailPage() {
             />
 
             {/* Activity badge on image */}
-            <div className="absolute top-3 right-3" style={{}}>
+            <div className="absolute top-3 right-3">
               <Badge
                 variant="activity"
                 activity={activityToBadge[event.activity_type] ?? 'workshop'}
