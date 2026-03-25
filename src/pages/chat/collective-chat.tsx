@@ -954,7 +954,7 @@ export default function CollectiveChatPage() {
     )
   }
   return (
-    <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40">
+    <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
       {/* Header */}
       <motion.div
         variants={shouldReduceMotion ? undefined : fadeUp}
