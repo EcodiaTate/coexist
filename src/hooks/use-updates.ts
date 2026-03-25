@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import type {
-  GlobalAnnouncement,
-  Profile,
+  Tables,
   Enums,
 } from '@/types/database.types'
+
+type GlobalAnnouncement = Tables<'global_announcements'>
+type Profile = Tables<'profiles'>
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
