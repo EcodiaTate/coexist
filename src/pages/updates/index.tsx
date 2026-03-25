@@ -208,7 +208,7 @@ function UpdateDetail({
               {update.author?.display_name ?? 'Co-Exist Team'}
             </span>
             <p className="text-xs text-primary-400 mt-0.5">
-              {formatDate(update.created_at)}
+              {formatDate(update.created_at ?? '')}
             </p>
           </div>
         </div>
@@ -319,7 +319,7 @@ function UpdateCard({
               {update.author?.display_name ?? 'Co-Exist Team'}
             </span>
             <span className="text-[10px] text-primary-300 shrink-0">
-              {formatDate(update.created_at)}
+              {formatDate(update.created_at ?? '')}
             </span>
             {images.length > 1 && (
               <span className="inline-flex items-center gap-0.5 text-[10px] text-primary-300 shrink-0 ml-auto">

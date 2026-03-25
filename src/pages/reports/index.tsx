@@ -30,6 +30,15 @@ import { supabase } from '@/lib/supabase'
 
 type ReportType = 'collective' | 'national' | 'event' | 'annual' | 'donor'
 
+interface ReportHistoryEntry {
+  id: string
+  report_type: string
+  scope: string
+  date_range: string
+  format: string
+  created_at: string
+}
+
 const reportTypes: { value: ReportType; label: string; description: string }[] = [
   { value: 'collective', label: 'Collective Impact', description: 'Per-collective report with all impact metrics' },
   { value: 'national', label: 'National Impact', description: 'All collectives aggregated for board/grants' },
@@ -106,7 +115,7 @@ function useReportHistory() {
     queryKey: ['report-history'],
     queryFn: async () => {
       // report_history table not yet created  return empty until migration is run
-      return [] as Record<string, unknown>[]
+      return [] as ReportHistoryEntry[]
     },
     staleTime: 60 * 1000,
   })
