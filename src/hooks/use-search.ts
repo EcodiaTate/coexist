@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import type { Tables } from '@/types/database.types'
+import type { Tables, Database } from '@/types/database.types'
+
+type ActivityType = Database['public']['Enums']['activity_type']
 
 type Event = Tables<'events'>
 type Collective = Tables<'collectives'>
@@ -33,7 +35,7 @@ export type ProfileSearchResult = Pick<
 >
 
 export interface SearchFilters {
-  activityTypes: string[]
+  activityTypes: ActivityType[]
   dateFrom: string | null
   dateTo: string | null
   distanceKm: number

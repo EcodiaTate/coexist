@@ -194,8 +194,7 @@ export function useAdminUpdateCapabilities() {
       permissions: Record<string, boolean>
     }) => {
       const { error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('staff_roles' as any)
+        .from('staff_roles')
         .upsert(
           { user_id: userId, permissions },
           { onConflict: 'user_id' },
@@ -240,8 +239,7 @@ export function useUserResolvedCapabilities(userId: string | undefined) {
 
       const [profileRes, staffRes] = await Promise.all([
         supabase.from('profiles').select('role').eq('id', userId).single(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        supabase.from('staff_roles' as any).select('permissions').eq('user_id', userId).maybeSingle(),
+        supabase.from('staff_roles').select('permissions').eq('user_id', userId).maybeSingle(),
       ])
 
       const role = (profileRes.data?.role ?? 'participant') as UserRole

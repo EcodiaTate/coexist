@@ -605,7 +605,7 @@ export function exportMembersCSV(members: CollectiveMemberWithProfile[]) {
       m.role,
       p?.instagram_handle ?? '',
       `"${p?.location ?? ''}"`,
-      new Date(m.joined_at).toLocaleDateString(),
+      new Date(m.joined_at!).toLocaleDateString(),
     ].join(',')
   }).join('\n')
 

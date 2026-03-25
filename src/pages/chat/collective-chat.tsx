@@ -156,7 +156,7 @@ function MessageActionsSheet({
           Reply
         </button>
 
-        {isOwnMessage && message.content && canEdit(message.created_at) && (
+        {isOwnMessage && message.content && canEdit(message.created_at!) && (
           <button
             type="button"
             onClick={onEdit}
@@ -351,7 +351,7 @@ function ChatSearchOverlay({
                     {msg.profiles?.display_name}
                   </span>
                   <span className="text-[11px] font-medium text-primary-400 ml-auto">
-                    {relativeTime(msg.created_at)}
+                    {relativeTime(msg.created_at!)}
                   </span>
                 </div>
                 <p className="text-sm text-primary-600 leading-relaxed">{msg.content}</p>
@@ -459,7 +459,7 @@ function InlineAnnouncement({
               } as EventRegistration,
             }
           } else if (response === 'not_going') {
-            const wasRegistered = old.user_registration && ['registered', 'invited', 'waitlisted'].includes(old.user_registration.status)
+            const wasRegistered = old.user_registration && ['registered', 'invited', 'waitlisted'].includes(old.user_registration.status!)
             return {
               ...old,
               registration_count: Math.max(0, old.registration_count - (wasRegistered ? 1 : 0)),
@@ -589,7 +589,7 @@ function ManageMembersSheet({
 
   // Filter: can remove members ranked strictly below you, never yourself
   const removableMembers = members.filter(
-    (m) => m.user_id !== user?.id && (MANAGE_ROLE_RANK[m.role] ?? 0) < myRank,
+    (m) => m.user_id !== user?.id && (MANAGE_ROLE_RANK[m.role!] ?? 0) < myRank,
   )
 
   return (
@@ -621,7 +621,7 @@ function ManageMembersSheet({
                     </span>
                     {m.role !== 'member' && (
                       <span className="text-[11px] font-semibold text-primary-500 capitalize">
-                        {m.role.replace('_', ' ')}
+                        {m.role!.replace('_', ' ')}
                       </span>
                     )}
                   </div>
@@ -749,10 +749,10 @@ export default function CollectiveChatPage() {
     let currentDate = ''
 
     for (const msg of allMessages) {
-      const d = new Date(msg.created_at).toDateString()
+      const d = new Date(msg.created_at!).toDateString()
       if (d !== currentDate) {
         currentDate = d
-        groups.push({ date: msg.created_at, messages: [msg] })
+        groups.push({ date: msg.created_at!, messages: [msg] })
       } else {
         groups[groups.length - 1].messages.push(msg)
       }
@@ -1157,7 +1157,7 @@ export default function CollectiveChatPage() {
                       <HtmlChatBubble
                         htmlContent={msg.content ?? ''}
                         sent={isSent}
-                        timestamp={new Date(msg.created_at)}
+                        timestamp={new Date(msg.created_at!)}
                         senderName={msg.profiles?.display_name ?? undefined}
                         senderAvatar={msg.profiles?.avatar_url ?? undefined}
                         senderId={msg.user_id ?? undefined}
@@ -1179,7 +1179,7 @@ export default function CollectiveChatPage() {
                         <ChatBubble
                           message={msg.content ?? ''}
                           sent={isSent}
-                          timestamp={new Date(msg.created_at)}
+                          timestamp={new Date(msg.created_at!)}
                           senderName={msg.profiles?.display_name ?? undefined}
                           senderAvatar={msg.profiles?.avatar_url ?? undefined}
                           senderId={msg.user_id ?? undefined}

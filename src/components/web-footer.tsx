@@ -7,7 +7,11 @@ import {
   FACEBOOK_URL,
 } from '@/lib/constants'
 
-const footerLinks = [
+const footerLinks: Array<
+  | { label: string; to: string }
+  | { label: string; onClick: () => void }
+  | { label: string; href: string }
+> = [
   { label: 'About', to: '/about' },
   { label: 'Privacy', to: '/privacy' },
   { label: 'Terms', to: '/terms' },

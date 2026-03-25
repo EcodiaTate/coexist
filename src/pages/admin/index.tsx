@@ -100,7 +100,7 @@ function TrendChart({
   color,
   barColor,
 }: {
-  data: { month: string; [key: string]: unknown }[]
+  data: Record<string, unknown>[]
   dataKey: string
   label: string
   icon: React.ReactNode

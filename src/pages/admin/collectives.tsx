@@ -174,7 +174,7 @@ export default function AdminCollectivesPage() {
     try {
       await archiveMutation.mutateAsync({
         collectiveId: archiveTarget.id,
-        archive: isCurrentlyActive,
+        archive: isCurrentlyActive ?? false,
       })
       toast.success(isCurrentlyActive ? 'Collective archived' : 'Collective restored')
     } catch {

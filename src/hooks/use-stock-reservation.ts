@@ -49,8 +49,7 @@ export function useReserveStock() {
     async (productId: string, variantKey: string, quantity: number): Promise<ReservationResult> => {
       if (!user) return { success: false, error: 'not_authenticated' }
 
-      const { data, error } = await // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabase.rpc as any)('reserve_stock', {
+      const { data, error } = await supabase.rpc('reserve_stock', {
         p_user_id: user.id,
         p_product_id: productId,
         p_variant_key: variantKey,
@@ -72,8 +71,7 @@ export function useReserveStock() {
   const release = useCallback(
     async (variantKey: string) => {
       if (!user) return
-      await // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabase.rpc as any)('release_reservation', {
+      await supabase.rpc('release_reservation', {
         p_user_id: user.id,
         p_variant_key: variantKey,
       })
@@ -85,8 +83,7 @@ export function useReserveStock() {
 
   const releaseAll = useCallback(async () => {
     if (!user) return
-    await // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabase.rpc as any)('release_all_reservations', {
+    await supabase.rpc('release_all_reservations', {
       p_user_id: user.id,
     })
     queryClient.invalidateQueries({ queryKey: ['product-stock'] })
@@ -108,8 +105,7 @@ export function useAvailableStock(productId: string | undefined) {
 
   const fetchStock = useCallback(async () => {
     if (!productId) return
-    const { data, error } = await // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabase.rpc as any)('get_product_available_stock', {
+    const { data, error } = await supabase.rpc('get_product_available_stock', {
       p_product_id: productId,
       p_exclude_user_id: user?.id ?? null,
     })
@@ -193,8 +189,8 @@ export function useMyReservations() {
 
   const fetchReservations = useCallback(async () => {
     if (!user) return
-    const { data } = await // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabase.from as any)('cart_reservations')
+    const { data } = await supabase
+      .from('cart_reservations')
       .select('id, variant_key, product_id, quantity, expires_at')
       .eq('user_id', user.id)
       .gt('expires_at', new Date().toISOString())

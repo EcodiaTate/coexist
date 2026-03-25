@@ -55,7 +55,7 @@ export function useMyStaffChannels() {
       if (!user) return []
 
       const { data, error } = await supabase
-        .from('chat_channel_members' as never)
+        .from('chat_channel_members')
         .select('channel_id, chat_channels(id, type, collective_id, state, name, created_at)')
         .eq('user_id', user.id)
 
@@ -91,7 +91,7 @@ export function useChannelMessages(channelId: string | undefined) {
       if (!channelId) return []
 
       let q = supabase
-        .from('chat_messages' as never)
+        .from('chat_messages')
         .select(`
           *,
           profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)
@@ -116,7 +116,7 @@ export function useChannelMessages(channelId: string | undefined) {
 
       if (replyIds.length > 0) {
         const { data: replies } = await supabase
-          .from('chat_messages' as never)
+          .from('chat_messages')
           .select('id, content, user_id')
           .in('id', replyIds)
 
@@ -160,7 +160,7 @@ export function useChannelMessages(channelId: string | undefined) {
 
           // Fetch full message with profile
           const { data } = await supabase
-            .from('chat_messages' as never)
+            .from('chat_messages')
             .select(`*, profiles!chat_messages_user_id_fkey(id, display_name, avatar_url)`)
             .eq('id', newMsg.id)
             .single()
@@ -265,7 +265,7 @@ export function useSendChannelMessage() {
       if (!user) throw new Error('Not authenticated')
 
       const { error } = await supabase
-        .from('chat_messages' as never)
+        .from('chat_messages')
         .insert({
           channel_id: channelId,
           collective_id: collectiveId || null,
@@ -323,7 +323,7 @@ export function useSendChannelMessage() {
           : variables.content?.slice(0, 200) ?? 'Sent a message'
 
         supabase
-          .from('chat_channel_members' as never)
+          .from('chat_channel_members')
           .select('user_id')
           .eq('channel_id', variables.channelId)
           .then(({ data: members }) => {
@@ -369,7 +369,7 @@ export function useChannelUnreadCounts() {
 
       // Get user's channel memberships with collective_id
       const { data: memberships } = await supabase
-        .from('chat_channel_members' as never)
+        .from('chat_channel_members')
         .select('channel_id, chat_channels(collective_id)')
         .eq('user_id', user.id)
 
@@ -384,7 +384,7 @@ export function useChannelUnreadCounts() {
       // Get read receipts by collective_id (that's the unique key on chat_read_receipts)
       const collectiveIds = [...new Set(channelToCollective.values())]
       const { data: receipts } = await supabase
-        .from('chat_read_receipts' as never)
+        .from('chat_read_receipts')
         .select('collective_id, last_read_at')
         .eq('user_id', user.id)
         .in('collective_id', collectiveIds)
@@ -399,7 +399,7 @@ export function useChannelUnreadCounts() {
         [...channelToCollective.entries()].map(async ([chId, collectiveId]) => {
           const lastRead = receiptMap.get(collectiveId)
           let q = supabase
-            .from('chat_messages' as never)
+            .from('chat_messages')
             .select('id', { count: 'exact', head: true })
             .eq('channel_id', chId)
             .eq('is_deleted', false)
@@ -442,7 +442,7 @@ export function useMarkChannelRead() {
       const readKey = collectiveId || channelId
 
       await supabase
-        .from('chat_read_receipts' as never)
+        .from('chat_read_receipts')
         .upsert({
           collective_id: readKey,
           user_id: user.id,

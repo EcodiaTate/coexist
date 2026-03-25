@@ -126,7 +126,7 @@ export default function AdminPartnersPage() {
     mutationFn: async (form: typeof orgForm) => {
       const { data, error } = await supabase
         .from('organisations')
-        .insert(form as Record<string, unknown>)
+        .insert(form)
         .select()
         .single()
       if (error) throw error
@@ -177,7 +177,7 @@ export default function AdminPartnersPage() {
           organisation_id: form.organisation_id || null,
           category: form.category,
           terms_and_conditions: form.terms,
-        } as Record<string, unknown>)
+        })
         .select('*, organisations(name, logo_url)')
         .single()
       if (error) throw error
@@ -409,9 +409,9 @@ export default function AdminPartnersPage() {
                       <h3 className="font-heading text-sm font-semibold text-primary-800">
                         {offer.title}
                       </h3>
-                      {(offer as unknown as Record<string, Record<string, unknown>>).organisations?.name && (
+                      {offer.organisations?.name && (
                         <p className="text-xs text-primary-400 mt-0.5">
-                          by {(offer as unknown as Record<string, Record<string, unknown>>).organisations.name as string}
+                          by {offer.organisations.name}
                         </p>
                       )}
                     </div>

@@ -304,7 +304,7 @@ export default function CollectiveDetailPage() {
                       {leader.profiles?.display_name ?? 'Unknown'}
                     </p>
                     <p className="text-[11px] text-primary-400 font-semibold capitalize">
-                      {leader.role.replace('_', ' ')}
+                      {leader.role!.replace('_', ' ')}
                     </p>
                   </div>
                 </Link>

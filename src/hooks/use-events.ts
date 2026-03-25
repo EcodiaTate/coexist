@@ -1051,7 +1051,7 @@ export function useDuplicateEvent() {
 
 async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
   // Check if auto-surveys are enabled
-  const { data: config } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+  const { data: config } = await supabase
     .from('app_settings')
     .select('value')
     .eq('key', 'auto_survey_config')
@@ -1072,7 +1072,7 @@ async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
   // Check who already has a survey response or existing survey notification
   const userIds = attendees.map((a) => a.user_id)
   const [{ data: existingResponses }, { data: existingNotifications }] = await Promise.all([
-    (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+    supabase
       .from('post_event_survey_responses')
       .select('user_id')
       .eq('event_id', eventId)
@@ -1085,7 +1085,7 @@ async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
   ])
 
   const excludedIds = new Set([
-    ...(existingResponses ?? []).map((r: { user_id: string }) => r.user_id),
+    ...(existingResponses ?? []).map((r) => r.user_id),
     ...(existingNotifications ?? []).map((n) => n.user_id),
   ])
   const pendingUsers = userIds.filter((id) => !excludedIds.has(id))
@@ -1223,7 +1223,7 @@ export function useInviteCollective() {
         // ── Remind flow: 24h cooldown, post rich announcement to chat ──
 
         const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-        const { data: recentReminders } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+        const { data: recentReminders } = await supabase
           .from('chat_messages')
           .select('created_at')
           .eq('collective_id', collectiveId)
@@ -1235,7 +1235,7 @@ export function useInviteCollective() {
         }
 
         // Create a rich announcement in the chat
-        const { data: announcement, error: annErr } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+        const { data: announcement, error: annErr } = await supabase
           .from('chat_announcements')
           .insert({
             collective_id: collectiveId,
@@ -1256,7 +1256,7 @@ export function useInviteCollective() {
           content: announcement.title,
           message_type: 'announcement',
           announcement_id: announcement.id,
-        } as never)
+        })
 
         return { reminded: true }
       }
@@ -1274,7 +1274,7 @@ export function useInviteCollective() {
       if (inviteErr) throw inviteErr
 
       // Create a rich announcement in the chat
-      const { data: announcement, error: annErr } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data: announcement, error: annErr } = await supabase
         .from('chat_announcements')
         .insert({
           collective_id: collectiveId,
@@ -1295,7 +1295,7 @@ export function useInviteCollective() {
           content: announcement.title,
           message_type: 'announcement',
           announcement_id: announcement.id,
-        } as never).then(undefined, console.error)
+        }).then(undefined, console.error)
       }
 
       // Get all collective members
@@ -1575,7 +1575,7 @@ export function useInviteCollaborator() {
         p_event_id: eventId,
         p_collective_id: collectiveId,
         p_host_collective_id: hostCollectiveId,
-        p_message: message ?? null,
+        p_message: message ?? undefined,
       })
       if (error) throw error
       return data

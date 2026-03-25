@@ -18,8 +18,7 @@ export function useDonationProjects() {
     queryKey: ['donation-projects'],
     queryFn: async () => {
       const { data, error } = await supabase
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .from('donation_projects' as any)
+        .from('donation_projects')
         .select('*')
         .eq('is_active', true)
         .order('name')

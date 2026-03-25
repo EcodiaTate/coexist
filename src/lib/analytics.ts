@@ -99,7 +99,6 @@ function createPostHogAdapter(): AnalyticsAdapter {
         return
       }
       // Dynamic import to avoid bundling if not used
-      // @ts-expect-error posthog-js is an optional dependency
       import('posthog-js').then((mod) => {
         posthog = mod.default as NonNullable<typeof posthog>
         posthog!.init(key, {

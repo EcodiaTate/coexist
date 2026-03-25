@@ -16,8 +16,6 @@ export interface ChatMessageWithSender extends ChatMessage {
   reply_message: Pick<ChatMessage, 'id' | 'content' | 'user_id'> | null
   sender_role?: string
   message_type?: 'text' | 'image' | 'voice' | 'video' | 'poll' | 'announcement' | 'system' | 'html'
-  poll_id?: string | null
-  announcement_id?: string | null
   /** Client-only: optimistic message not yet confirmed by server */
   _optimistic?: boolean
   _optimisticId?: string
@@ -345,6 +343,7 @@ export function useSendMessage() {
       const optimisticMessage: ChatMessageWithSender = {
         id: optimisticId,
         collective_id: input.collectiveId,
+        channel_id: null,
         user_id: user.id,
         content: input.content ?? null,
         image_url: input.imageUrl ?? null,
@@ -354,6 +353,7 @@ export function useSendMessage() {
         is_pinned: false,
         is_deleted: false,
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         message_type: (input.messageType ?? 'text') as ChatMessageWithSender['message_type'],
         poll_id: input.pollId ?? null,
         announcement_id: input.announcementId ?? null,
@@ -738,7 +738,7 @@ export function useCreatePoll() {
         text,
       }))
 
-      const { data: poll, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data: poll, error } = await supabase
         .from('chat_polls')
         .insert({
           collective_id: collectiveId,
@@ -778,7 +778,7 @@ export function usePollVote() {
     mutationFn: async ({ pollId, optionId, collectiveId }: { pollId: string; optionId: string; collectiveId: string }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { error } = await supabase
         .from('chat_poll_votes')
         .upsert({
           poll_id: pollId,
@@ -821,7 +821,7 @@ export function useRemovePollVote() {
     mutationFn: async ({ pollId, optionId, collectiveId }: { pollId: string; optionId: string; collectiveId: string }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { error } = await supabase
         .from('chat_poll_votes')
         .delete()
         .eq('poll_id', pollId)
@@ -863,7 +863,7 @@ export function usePollDetail(pollId: string | undefined) {
     queryFn: async () => {
       if (!pollId) throw new Error('No poll ID')
 
-      const { data: poll, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data: poll, error } = await supabase
         .from('chat_polls')
         .select(`
           *,
@@ -875,7 +875,7 @@ export function usePollDetail(pollId: string | undefined) {
       if (error) throw error
 
       // Get vote counts
-      const { data: votes } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data: votes } = await supabase
         .from('chat_poll_votes')
         .select('option_id, user_id')
         .eq('poll_id', pollId)
@@ -884,7 +884,7 @@ export function usePollDetail(pollId: string | undefined) {
       const userVotes: string[] = []
       const totalVoters = new Set<string>()
 
-      for (const v of votes ?? []) {
+      for (const v of (votes ?? [])) {
         voteCounts[v.option_id] = (voteCounts[v.option_id] ?? 0) + 1
         totalVoters.add(v.user_id)
         if (v.user_id === user?.id) {
@@ -931,7 +931,7 @@ export function useCreateAnnouncement() {
     }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { data: announcement, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data: announcement, error } = await supabase
         .from('chat_announcements')
         .insert({
           collective_id: collectiveId,
@@ -969,7 +969,7 @@ export function useAnnouncementDetail(announcementId: string | undefined) {
     queryFn: async () => {
       if (!announcementId) throw new Error('No announcement ID')
 
-      const { data, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data, error } = await supabase
         .from('chat_announcements')
         .select(`
           *,
@@ -981,7 +981,7 @@ export function useAnnouncementDetail(announcementId: string | undefined) {
       if (error) throw error
 
       // Get responses
-      const { data: responses } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data: responses } = await supabase
         .from('chat_announcement_responses')
         .select('*')
         .eq('announcement_id', announcementId)
@@ -1008,13 +1008,13 @@ export function useRespondToAnnouncement() {
       if (!user) throw new Error('Not authenticated')
 
       // Remove existing response first (single-choice)
-      await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      await supabase
         .from('chat_announcement_responses')
         .delete()
         .eq('announcement_id', announcementId)
         .eq('user_id', user.id)
 
-      const { error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { error } = await supabase
         .from('chat_announcement_responses')
         .insert({
           announcement_id: announcementId,
@@ -1062,7 +1062,7 @@ export function useBroadcastLog(collectiveId: string | undefined) {
     queryFn: async () => {
       if (!collectiveId) throw new Error('No collective ID')
 
-      const { data, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data, error } = await supabase
         .from('chat_broadcast_log')
         .select(`
           *,
@@ -1139,7 +1139,7 @@ export function useSendBroadcastNotification() {
       }
 
       // Log the broadcast for dedup visibility
-      const { error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { error } = await supabase
         .from('chat_broadcast_log')
         .insert({
           collective_id: collectiveId,
@@ -1211,7 +1211,7 @@ export async function exportChatLog(
   const header = 'Timestamp,Sender,Message\n'
   const rows = (data ?? []).map((m) => {
     const name = (m.profiles as { display_name: string | null } | null)?.display_name ?? 'Unknown'
-    const time = new Date(m.created_at).toLocaleString()
+    const time = new Date(m.created_at!).toLocaleString()
     const content = (m.content ?? '').replace(/"/g, '""')
     return `"${time}","${name}","${content}"`
   }).join('\n')

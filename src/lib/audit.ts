@@ -16,8 +16,7 @@ export async function logAudit(entry: AuditEntry): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- table not in generated types
-    await supabase.from('audit_log' as any).insert({
+    await supabase.from('audit_log').insert({
       user_id: user.id,
       action: entry.action,
       target_type: entry.target_type ?? null,

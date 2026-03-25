@@ -327,7 +327,7 @@ function TemplateModal({
   const [attachmentLabel, setAttachmentLabel] = useState(template?.attachment_label ?? '')
 
   // Dynamic timeline state
-  const [useDynamicTimeline, setUseDynamicTimeline] = useState((template as unknown as Record<string, unknown>)?.use_dynamic_timeline ?? false)
+  const [useDynamicTimeline, setUseDynamicTimeline] = useState(!!(template?.use_dynamic_timeline))
   const [tlAnchor, setTlAnchor] = useState<TimelineAnchor>('next_event')
   const [tlActivityTypeFilter, setTlActivityTypeFilter] = useState('')
   const [tlOffsetDays, setTlOffsetDays] = useState('-3')
@@ -700,7 +700,7 @@ function KpiDashboard() {
 
   const collectiveOptions = useMemo(() => [
     { value: '', label: 'All Collectives' },
-    ...(collectives ?? []).map((c: Record<string, unknown>) => ({ value: c.id, label: c.name })),
+    ...(collectives ?? []).map((c: any) => ({ value: c.id as string, label: c.name as string })),
   ], [collectives])
 
   return (
@@ -830,7 +830,7 @@ export default function AdminWorkflowsPage() {
   // Extend scope options with per-collective options
   const fullScopeOptions = useMemo(() => [
     ...scopeOptions,
-    ...(collectives ?? []).map((c: Record<string, unknown>) => ({ value: c.id, label: c.name })),
+    ...(collectives ?? []).map((c: any) => ({ value: c.id as string, label: c.name as string })),
   ], [collectives])
 
   const heroActions = useMemo(() =>
@@ -955,7 +955,7 @@ export default function AdminWorkflowsPage() {
                               <ScheduleIcon size={12} />
                               {formatSchedule(template)}
                             </span>
-                            {(template as unknown as Record<string, unknown>).use_dynamic_timeline && (
+                            {template.use_dynamic_timeline && (
                               <>
                                 <span className="text-primary-200">·</span>
                                 <span className="flex items-center gap-1 text-moss-600 font-medium">

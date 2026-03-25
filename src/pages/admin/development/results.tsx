@@ -59,8 +59,8 @@ export default function AdminDevelopmentResultsPage() {
   const learnerStats = useMemo(() => {
     if (!analytics) return []
     const userMap = new Map<string, { completed: number; total: number; scores: number[]; lastActive: string }>()
-    for (const p of analytics.progress) { const e = userMap.get(p.user_id) ?? { completed: 0, total: 0, scores: [], lastActive: '' }; e.total++; if (p.status === 'completed') e.completed++; if (p.updated_at > e.lastActive) e.lastActive = p.updated_at; userMap.set(p.user_id, e) }
-    for (const a of analytics.attempts) { const e = userMap.get(a.user_id); if (e) e.scores.push(a.score_pct) }
+    for (const p of analytics.progress) { const e = userMap.get(p.user_id as string) ?? { completed: 0, total: 0, scores: [], lastActive: '' }; e.total++; if (p.status === 'completed') e.completed++; if ((p.updated_at as string) > e.lastActive) e.lastActive = p.updated_at as string; userMap.set(p.user_id as string, e) }
+    for (const a of analytics.attempts) { const e = userMap.get(a.user_id as string); if (e) e.scores.push(a.score_pct as number) }
     const profileMap = analytics.profileMap as Map<string, { display_name: string; avatar_url: string | null }> | undefined
     return Array.from(userMap.entries()).map(([userId, s]) => {
       const profile = profileMap?.get(userId)

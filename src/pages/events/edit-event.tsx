@@ -90,7 +90,7 @@ export default function EditEventPage() {
         }
         setCapacity(event.capacity ? String(event.capacity) : '')
         setCoverImageUrl(event.cover_image_url ?? '')
-        setIsPublic(event.is_public)
+        setIsPublic(event.is_public ?? true)
         setInitialized(true)
       })
     }

@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import type { Tables } from '@/types/database.types'
+import type { Tables, Database } from '@/types/database.types'
+
+type ActivityType = Database['public']['Enums']['activity_type']
 
 type Event = Tables<'events'>
 type Collective = Tables<'collectives'>
@@ -25,7 +27,7 @@ interface EventWithCollective extends Event {
 export function useNearbyEvents(
   location: Location | null,
   radiusKm: number = 50,
-  activityTypes?: string[],
+  activityTypes?: ActivityType[],
 ) {
   return useQuery({
     queryKey: ['nearby', 'events', location, radiusKm, activityTypes],

@@ -151,8 +151,8 @@ function useApplications() {
   return useQuery({
     queryKey: ['admin-applications'],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('collective_applications')
+      const { data, error } = await supabase
+        .from('collective_applications')
         .select('*')
         .order('created_at', { ascending: false })
       if (error) throw error
@@ -166,8 +166,8 @@ function useNotificationRecipients() {
   return useQuery({
     queryKey: ['admin-application-recipients'],
     queryFn: async () => {
-      const { data, error } = await (supabase
-        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('notification_recipients')
+      const { data, error } = await supabase
+        .from('notification_recipients')
         .select('*, profile:profiles!notification_recipients_user_id_fkey(display_name)')
         .eq('event_type', 'collective_application')
       if (error) throw error
@@ -492,8 +492,8 @@ function NotificationSettingsTab() {
 
   const addRecipient = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await (supabase
-        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('notification_recipients')
+      const { error } = await supabase
+        .from('notification_recipients')
         .insert({ event_type: 'collective_application', user_id: userId })
       if (error) throw error
     },
@@ -507,8 +507,8 @@ function NotificationSettingsTab() {
 
   const removeRecipient = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase
-        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('notification_recipients')
+      const { error } = await supabase
+        .from('notification_recipients')
         .delete()
         .eq('id', id)
       if (error) throw error
@@ -522,8 +522,8 @@ function NotificationSettingsTab() {
 
   const toggleNotifType = useMutation({
     mutationFn: async ({ id, field, value }: { id: string; field: 'notify_email' | 'notify_push'; value: boolean }) => {
-      const { error } = await (supabase
-        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('notification_recipients')
+      const { error } = await supabase
+        .from('notification_recipients')
         .update({ [field]: value })
         .eq('id', id)
       if (error) throw error
@@ -677,8 +677,8 @@ export default function AdminApplicationsPage() {
   const updateStatus = useMutation({
     mutationFn: async ({ id, status, notes }: { id: string; status: string; notes?: string }) => {
       const { data: { user } } = await supabase.auth.getUser()
-      const { error } = await (supabase
-        .from as unknown as (table: string) => ReturnType<typeof supabase.from>)('collective_applications')
+      const { error } = await supabase
+        .from('collective_applications')
         .update({
           status,
           notes: notes || null,
