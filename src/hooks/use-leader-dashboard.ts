@@ -70,6 +70,8 @@ async function fetchLeaderDashboard(collectiveId: string): Promise<LeaderDashboa
       .select('id, title, date_start, address, cover_image_url')
       .eq('collective_id', collectiveId)
       .gte('date_start', now.toISOString())
+      .neq('status', 'cancelled')
+      .neq('status', 'draft')
       .order('date_start', { ascending: true })
       .limit(5),
     supabase
@@ -312,6 +314,8 @@ async function fetchPendingItems(collectiveId: string) {
     .select('id, title, date_start')
     .eq('collective_id', collectiveId)
     .lt('date_start', new Date().toISOString())
+    .neq('status', 'cancelled')
+    .neq('status', 'draft')
     .order('date_start', { ascending: false })
     .limit(10)
 

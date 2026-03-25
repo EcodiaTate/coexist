@@ -34,9 +34,9 @@ async function fetchLeaderCollectiveEvents(collectiveId: string, filter: string)
     .order('date_start', { ascending: filter === 'upcoming' })
 
   if (filter === 'upcoming') {
-    q = q.gte('date_start', now).neq('status', 'draft')
+    q = q.gte('date_start', now).neq('status', 'draft').neq('status', 'cancelled')
   } else if (filter === 'past') {
-    q = q.lt('date_start', now).neq('status', 'draft')
+    q = q.lt('date_start', now).neq('status', 'draft').neq('status', 'cancelled')
   } else if (filter === 'draft') {
     q = q.eq('status', 'draft')
   }
