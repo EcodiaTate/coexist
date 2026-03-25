@@ -11,7 +11,7 @@ export interface ActionableMessage {
   user_id: string | null
   is_pinned: boolean | null
   is_deleted: boolean | null
-  created_at: string
+  created_at: string | null
   message_type?: string
   _optimistic?: boolean
 }
@@ -59,7 +59,7 @@ export function MessageActionsSheet({
           Reply
         </button>
 
-        {onEdit && isOwnMessage && message.content && canEdit(message.created_at) && (
+        {onEdit && isOwnMessage && message.content && message.created_at && canEdit(message.created_at) && (
           <button
             type="button"
             onClick={onEdit}

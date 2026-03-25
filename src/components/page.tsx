@@ -90,9 +90,9 @@ export function Page({
           </div>
         )}
 
-        {/* Header rendered as sticky overlay inside the scroll container.
-            -mb-14 collapses layout space so it floats over content.
-            stickyOverlay pages supply their own (usually transparent). */}
+        {/* stickyOverlay: hero pages supply their own header (usually transparent + collapse-header).
+            hasInlineHeader: standard pages render Header directly here — it takes natural space
+            and sticks at the top of the scroll container. */}
         {stickyOverlay}
         {hasInlineHeader && header}
 
