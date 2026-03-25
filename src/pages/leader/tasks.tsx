@@ -98,26 +98,39 @@ function TaskCard({ task }: { task: MyTask }) {
 
   const isShared = (task.template?.assignment_mode ?? 'collective') === 'collective' && !task.assigned_user_id
 
+  const cardBg = isCompleted
+    ? 'bg-moss-50/60'
+    : isSkipped
+    ? 'bg-primary-50/50'
+    : urgency === 'overdue'
+    ? 'bg-gradient-to-br from-error-50 to-rose-100/80 shadow-md'
+    : urgency === 'today'
+    ? 'bg-gradient-to-br from-warning-50 to-amber-100/70 shadow-sm'
+    : urgency === 'tomorrow'
+    ? 'bg-gradient-to-br from-amber-50/80 to-yellow-100/50 shadow-sm'
+    : urgency === 'soon'
+    ? 'bg-gradient-to-br from-moss-50 to-emerald-100/40 shadow-sm'
+    : 'bg-gradient-to-br from-white to-primary-50/60 shadow-sm'
+
   return (
     <motion.div
       layout={!shouldReduceMotion ? 'position' : false}
       className={cn(
-        'rounded-2xl overflow-hidden transition-opacity duration-200',
-        isCompleted && 'opacity-50',
-        isSkipped && 'opacity-40',
-        !isCompleted && !isSkipped && 'bg-white shadow-sm',
-        isOverdue && !isCompleted && 'bg-white shadow-md ring-1 ring-error-200/60',
+        'rounded-2xl overflow-hidden transition-all duration-200',
+        isCompleted && 'opacity-60',
+        isSkipped && 'opacity-45',
+        cardBg,
       )}
     >
       <div className="flex items-stretch">
         {!isCompleted && !isSkipped && (
           <div className={cn(
-            'w-1 shrink-0 rounded-l-2xl',
+            'w-1.5 shrink-0 rounded-l-2xl',
             urgency === 'overdue' && 'bg-error-500',
             urgency === 'today' && 'bg-warning-500',
             urgency === 'tomorrow' && 'bg-amber-400',
             urgency === 'soon' && 'bg-moss-400',
-            urgency === 'normal' && 'bg-primary-200',
+            urgency === 'normal' && 'bg-primary-300',
           )} />
         )}
 
@@ -125,25 +138,28 @@ function TaskCard({ task }: { task: MyTask }) {
           type="button"
           onClick={() => !isCompleted && !isSkipped && setExpanded(!expanded)}
           className={cn(
-            'flex-1 flex items-start gap-3 p-4 text-left cursor-pointer min-w-0 active:scale-[0.99] transition-transform duration-150',
+            'flex-1 flex items-start gap-3 p-4 text-left cursor-pointer min-w-0 active:scale-[0.98] transition-transform duration-150',
             (isCompleted || isSkipped) && 'p-3',
           )}
         >
           <div className="mt-0.5 shrink-0">
             {isCompleted ? (
-              <div className="w-5 h-5 rounded-full bg-success-500 flex items-center justify-center">
-                <CheckCircle size={12} className="text-white" />
+              <div className="w-6 h-6 rounded-full bg-success-500 flex items-center justify-center shadow-sm">
+                <CheckCircle size={13} className="text-white" />
               </div>
             ) : isSkipped ? (
-              <div className="w-5 h-5 rounded-full bg-primary-200 flex items-center justify-center">
-                <SkipForward size={10} className="text-primary-400" />
+              <div className="w-6 h-6 rounded-full bg-primary-200 flex items-center justify-center">
+                <SkipForward size={11} className="text-primary-400" />
               </div>
             ) : isOverdue ? (
-              <div className="w-5 h-5 rounded-full bg-error-100 flex items-center justify-center animate-pulse">
-                <AlertTriangle size={11} className="text-error-500" />
+              <div className="w-6 h-6 rounded-full bg-error-100 flex items-center justify-center animate-pulse shadow-sm">
+                <AlertTriangle size={12} className="text-error-500" />
               </div>
             ) : (
-              <div className="w-5 h-5 rounded-full border-2 border-primary-200 group-hover:border-moss-400 transition-colors" />
+              <div className={cn(
+                'w-6 h-6 rounded-full border-2 transition-colors',
+                urgency === 'today' ? 'border-warning-300' : urgency === 'tomorrow' ? 'border-amber-300' : urgency === 'soon' ? 'border-moss-300' : 'border-primary-200',
+              )} />
             )}
           </div>
 
@@ -155,7 +171,7 @@ function TaskCard({ task }: { task: MyTask }) {
               {task.template?.title ?? 'Task'}
             </p>
 
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
               {task.template?.category && (
                 <span className={cn('text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide', CATEGORY_COLORS[task.template.category])}>
                   {task.template.category.replace('_', ' ')}
@@ -164,14 +180,14 @@ function TaskCard({ task }: { task: MyTask }) {
 
               {!isCompleted && !isSkipped && (
                 isShared
-                  ? <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-primary-50 text-primary-500 flex items-center gap-0.5"><Users size={9} /> Shared</span>
-                  : <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-moss-50 text-moss-600">You</span>
+                  ? <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-primary-100/80 text-primary-500 flex items-center gap-0.5"><Users size={9} /> Shared</span>
+                  : <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-moss-100/80 text-moss-600">You</span>
               )}
 
               {!isCompleted && !isSkipped && (
                 <span className={cn(
                   'text-[11px] font-medium flex items-center gap-1',
-                  urgency === 'overdue' ? 'text-error-600' : urgency === 'today' ? 'text-warning-700' : 'text-primary-400',
+                  urgency === 'overdue' ? 'text-error-600 font-semibold' : urgency === 'today' ? 'text-warning-700 font-semibold' : 'text-primary-400',
                 )}>
                   <Clock size={10} />
                   {formattedDue}
@@ -182,7 +198,7 @@ function TaskCard({ task }: { task: MyTask }) {
               )}
 
               {task.event && !isCompleted && !isSkipped && (
-                <span className="text-[11px] text-primary-300 flex items-center gap-1">
+                <span className="text-[11px] text-primary-400 flex items-center gap-1">
                   <Calendar size={10} />
                   {task.event.title}
                 </span>
@@ -202,7 +218,9 @@ function TaskCard({ task }: { task: MyTask }) {
                 animate={{ rotate: expanded ? 90 : 0 }}
                 transition={{ duration: 0.15 }}
               >
-                <ChevronRight size={16} className="text-primary-300" />
+                <ChevronRight size={16} className={cn(
+                  urgency === 'overdue' ? 'text-error-400' : urgency === 'today' ? 'text-warning-400' : 'text-primary-300',
+                )} />
               </motion.div>
             </div>
           )}
@@ -472,10 +490,10 @@ export default function LeaderTasksPage() {
           variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
         >
-          <div className="rounded-2xl bg-white shadow-sm p-4 flex flex-col items-center justify-center text-center">
+          <div className="rounded-2xl bg-gradient-to-br from-moss-50 to-emerald-100/50 p-4 flex flex-col items-center justify-center text-center">
             <div className="relative w-12 h-12 mb-2">
               <svg viewBox="0 0 36 36" className="w-12 h-12 -rotate-90">
-                <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-primary-100" />
+                <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-moss-200/60" />
                 <motion.circle
                   cx="18" cy="18" r="15" fill="none" strokeWidth="3" strokeLinecap="round"
                   className="text-moss-500"
@@ -485,18 +503,18 @@ export default function LeaderTasksPage() {
                   transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
                 />
               </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-primary-700">
+              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-moss-700">
                 {progressPct}%
               </span>
             </div>
-            <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Done</p>
+            <p className="text-[11px] font-semibold text-moss-500 uppercase tracking-wider">Done</p>
           </div>
 
           <div className={cn(
             'rounded-2xl p-4 flex flex-col items-center justify-center text-center',
             totalOverdue > 0
-              ? 'bg-gradient-to-br from-error-50 to-error-100/60 shadow-sm'
-              : 'bg-white shadow-sm',
+              ? 'bg-gradient-to-br from-error-50 to-rose-100/70'
+              : 'bg-gradient-to-br from-primary-50 to-primary-100/40',
           )}>
             <p className={cn(
               'font-heading text-2xl font-extrabold tabular-nums leading-none',
@@ -504,14 +522,17 @@ export default function LeaderTasksPage() {
             )}>
               {totalOverdue}
             </p>
-            <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider mt-1.5">Overdue</p>
+            <p className={cn(
+              'text-[11px] font-semibold uppercase tracking-wider mt-1.5',
+              totalOverdue > 0 ? 'text-error-400' : 'text-primary-300',
+            )}>Overdue</p>
           </div>
 
           <div className={cn(
             'rounded-2xl p-4 flex flex-col items-center justify-center text-center',
             streak >= 3
-              ? 'bg-gradient-to-br from-amber-50 to-warning-100/60 shadow-sm'
-              : 'bg-white shadow-sm',
+              ? 'bg-gradient-to-br from-amber-50 to-orange-100/60'
+              : 'bg-gradient-to-br from-amber-50/60 to-amber-100/30',
           )}>
             <div className="flex items-center gap-0.5">
               {streak >= 3 && <Flame size={16} className="text-amber-500" />}
@@ -522,7 +543,10 @@ export default function LeaderTasksPage() {
                 {streak}
               </p>
             </div>
-            <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider mt-1.5">Streak</p>
+            <p className={cn(
+              'text-[11px] font-semibold uppercase tracking-wider mt-1.5',
+              streak >= 3 ? 'text-amber-500' : 'text-primary-300',
+            )}>Streak</p>
           </div>
         </motion.div>
 
