@@ -1,6 +1,7 @@
 import { useState, useEffect, startTransition } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { APP_NAME, TAGLINE } from '@/lib/constants'
+import { EcodiaAttribution } from '@/components/ecodia-attribution'
 import { useAuth } from '@/hooks/use-auth'
 
 interface SplashProps {
@@ -71,6 +72,17 @@ export default function SplashPage({ onReady }: SplashProps) {
               <span className="block w-1.5 h-1.5 rounded-full bg-primary-400" />
               <span className="block w-1.5 h-1.5 rounded-full bg-primary-500" />
             </motion.div>
+          </motion.div>
+
+          {/* Builder attribution */}
+          <motion.div
+            className="absolute bottom-8 left-0 right-0 flex justify-center"
+            style={{ bottom: 'max(2rem, env(safe-area-inset-bottom, 0px))' }}
+            initial={shouldReduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4, delay: 1.1 }}
+          >
+            <EcodiaAttribution />
           </motion.div>
         </motion.div>
       )}

@@ -4261,6 +4261,7 @@ export type Database = {
           id: string
           name: string
           email: string
+          subject: string | null
           message: string
           user_id: string | null
           created_at: string
@@ -4269,6 +4270,7 @@ export type Database = {
           id?: string
           name: string
           email: string
+          subject?: string | null
           message: string
           user_id?: string | null
           created_at?: string
@@ -4277,6 +4279,7 @@ export type Database = {
           id?: string
           name?: string
           email?: string
+          subject?: string | null
           message?: string
           user_id?: string | null
           created_at?: string

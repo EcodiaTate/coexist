@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
@@ -12,6 +12,7 @@ import {
   Flame,
   Pencil,
   ClipboardList,
+  Plus,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
@@ -422,6 +423,7 @@ function PastEventRow({ event, index }: { event: AdminEvent; index: number }) {
 /* ------------------------------------------------------------------ */
 
 export default function AdminEventsPage() {
+  const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('upcoming')
 
@@ -514,6 +516,19 @@ export default function AdminEventsPage() {
   return (
     <div>
         <motion.div className="space-y-6" variants={stagger} initial="hidden" animate="visible">
+          {/* ── Create Event CTA ── */}
+          <motion.div variants={fadeUp}>
+            <button
+              type="button"
+              onClick={() => navigate('/admin/events/create')}
+              className="w-full flex items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white shadow-lg shadow-[#869d61]/25 active:scale-[0.98] transition-transform duration-150 cursor-pointer"
+              style={{ backgroundColor: '#869d61' }}
+            >
+              <Plus size={20} strokeWidth={2.5} />
+              Create New Event
+            </button>
+          </motion.div>
+
           {/* ── Hottest event spotlight ── */}
           {stats?.hottestEvent && stats.hottestEvent.registrationCount > 0 && (
             <motion.div variants={fadeUp}><HottestEventSpotlight event={stats.hottestEvent} /></motion.div>

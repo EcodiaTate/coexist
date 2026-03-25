@@ -388,7 +388,6 @@ function App() {
           <Route path="/leader" element={<RequireLeaderAccess><LeaderLayoutRoute /></RequireLeaderAccess>}>
             <Route index element={<LeaderDashboardPage />} />
             <Route path="events" element={<LeaderEventsPage />} />
-            <Route path="events/create" element={<CreateEventPage />} />
             <Route path="tasks" element={<LeaderTasksPage />} />
             <Route path="reports" element={<LeaderReportsPage />} />
           </Route>
@@ -403,6 +402,7 @@ function App() {
             <Route path="create/updates" element={<RequireRole minRole="national_admin"><CreateUpdatePage /></RequireRole>} />
             <Route path="workflows" element={<RequireCapability cap="manage_workflows"><AdminWorkflowsPage /></RequireCapability>} />
             <Route path="events" element={<RequireCapability cap="manage_events"><AdminEventsPage /></RequireCapability>} />
+            <Route path="events/create" element={<RequireCapability cap="manage_events"><CreateEventPage /></RequireCapability>} />
             <Route path="surveys" element={<RequireCapability cap="manage_surveys"><AdminSurveysPage /></RequireCapability>} />
             <Route path="applications" element={<RequireCapability cap="manage_users"><AdminApplicationsPage /></RequireCapability>} />
             <Route path="surveys/create" element={<RequireCapability cap="manage_surveys"><AdminCreateSurveyPage /></RequireCapability>} />

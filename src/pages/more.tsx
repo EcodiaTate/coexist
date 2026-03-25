@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Avatar } from '@/components/avatar'
+import { EcodiaAttribution } from '@/components/ecodia-attribution'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 interface MenuLink {
@@ -220,6 +221,7 @@ export default function MorePage() {
           <p className="text-[11px] font-medium text-primary-400/50 tracking-wide">
             Explore. Connect. Protect.
           </p>
+          <EcodiaAttribution className="mt-1" />
         </motion.div>
       </motion.div>
     </Page>

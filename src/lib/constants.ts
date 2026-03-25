@@ -6,6 +6,7 @@ export const CONTACT_EMAIL = 'hello@coexistaus.org'
 export const WEBSITE_URL = 'https://www.coexistaus.org'
 export const INSTAGRAM_URL = 'https://www.instagram.com/coexistaus'
 export const FACEBOOK_URL = 'https://www.facebook.com/coexistaus'
+export const ECODIA_CODE_URL = 'https://code.ecodia.au'
 
 export const CURRENT_TOS_VERSION = '1.0'
 
