@@ -81,7 +81,7 @@ export default function ViewProfilePage() {
     visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
   }
 
-  const memberSince = new Date(profile.created_at).toLocaleDateString('en-AU', {
+  const memberSince = new Date(profile.created_at ?? Date.now()).toLocaleDateString('en-AU', {
     month: 'long',
     year: 'numeric',
   })
