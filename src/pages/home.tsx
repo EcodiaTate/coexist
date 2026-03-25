@@ -620,7 +620,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
                   <Badge variant="default" size="sm">Urgent</Badge>
                 )}
                 <span className="text-[10px] text-white/40 ml-auto">
-                  {relativeTime(item.created_at)}
+                  {relativeTime(item.created_at ?? '')}
                 </span>
               </div>
 

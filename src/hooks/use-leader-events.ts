@@ -1,5 +1,20 @@
 import { useQuery, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import type { Tables } from '@/types/database.types'
+
+type Event = Tables<'events'>
+
+export interface LeaderEvent {
+  id: string
+  title: string
+  date_start: Event['date_start']
+  date_end: Event['date_end']
+  address: Event['address']
+  cover_image_url: Event['cover_image_url']
+  activity_type: Event['activity_type']
+  status: Event['status']
+  event_registrations: { count: number }[]
+}
 
 /* ------------------------------------------------------------------ */
 /*  Leader events page hooks                                           */
@@ -27,7 +42,7 @@ async function fetchLeaderCollectiveEvents(collectiveId: string, filter: string)
   }
 
   const { data } = await q.limit(50)
-  return (data ?? []) as Record<string, unknown>[]
+  return (data ?? []) as LeaderEvent[]
 }
 
 export function useLeaderCollectiveEvents(collectiveId: string | undefined, filter: string) {

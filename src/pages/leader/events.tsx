@@ -216,7 +216,7 @@ export default function LeaderEventsPage() {
           </motion.div>
         ) : (
           <div className="space-y-3">
-            {events.map((event: Record<string, unknown>, idx: number) => {
+            {events.map((event, idx) => {
               const regCount = event.event_registrations?.[0]?.count ?? 0
 
               return (
