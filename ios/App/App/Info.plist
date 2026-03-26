@@ -22,6 +22,8 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+  <key>GIDClientID</key>
+  <string>528428779228-m36045vgo2dibu9uhkakj4u7o6832srb.apps.googleusercontent.com</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -71,7 +73,7 @@
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Co-Exist uses the microphone for recording audio during wildlife surveys.</string>
 
-	<!-- URL Schemes (deep links) -->
+	<!-- URL Schemes (deep links + Google Sign-In) -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -80,6 +82,14 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>coexist</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.googleusercontent.apps.528428779228-m36045vgo2dibu9uhkakj4u7o6832srb</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.528428779228-m36045vgo2dibu9uhkakj4u7o6832srb</string>
 			</array>
 		</dict>
 	</array>
