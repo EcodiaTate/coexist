@@ -554,8 +554,7 @@ export default function LogImpactPage() {
         </Button>
       }
     >
-      {/* @ts-expect-error framer-motion v12 types children as unknown */}
-      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="pt-4 pb-8 space-y-6">
+      <div className="pt-4 pb-8 space-y-6">
         {/* Event header */}
         <div>
           <h2 className="font-heading text-lg font-bold text-primary-800">
@@ -815,7 +814,7 @@ export default function LogImpactPage() {
           rows={4}
         />
         </motion.div>
-      </motion.div>
+      </div>
     </Page>
   )
 }
