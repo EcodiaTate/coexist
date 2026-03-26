@@ -10,8 +10,9 @@ import {
   Calendar,
   SkipForward,
   Users,
+  ClipboardList,
 } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -20,8 +21,11 @@ import { Input } from '@/components/input'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
+import { TaskSurveyModal } from '@/components/task-survey-modal'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/use-auth'
 import {
   useMyTasks,
   useCompleteTask,
@@ -39,10 +43,38 @@ import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 function TaskCard({ task }: { task: MyTask }) {
   const [expanded, setExpanded] = useState(false)
   const [notes, setNotes] = useState('')
+  const [showSurvey, setShowSurvey] = useState(false)
   const { toast } = useToast()
+  const { user } = useAuth()
   const completeMutation = useCompleteTask()
   const skipMutation = useSkipTask()
   const shouldReduceMotion = useReducedMotion()
+
+  const hasSurvey = !!task.template?.survey_id
+
+  const surveySubmitMutation = useMutation({
+    mutationFn: async (answers: Record<string, unknown>) => {
+      if (!user || !task.template?.survey_id) return
+      // Save survey response
+      await supabase.from('survey_responses').insert({
+        survey_id: task.template.survey_id,
+        user_id: user.id,
+        answers,
+      })
+      // Complete the task
+      await completeMutation.mutateAsync({
+        instanceId: task.id,
+        notes: notes || undefined,
+      })
+    },
+    onSuccess: () => {
+      toast.success('Survey submitted & task completed!')
+      setShowSurvey(false)
+      setExpanded(false)
+      setNotes('')
+    },
+    onError: () => toast.error('Failed to submit survey'),
+  })
 
   const now = new Date()
   const dueDate = new Date(task.due_date)
@@ -179,27 +211,39 @@ function TaskCard({ task }: { task: MyTask }) {
                 onChange={(e) => setNotes(e.target.value)}
                 compact
               />
+              {hasSurvey && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-plum-50 border border-plum-100 mb-1">
+                  <ClipboardList size={14} className="text-plum-500 shrink-0" />
+                  <p className="text-[11px] text-plum-600">
+                    This task includes a survey that must be completed
+                  </p>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Button
                   variant="primary"
                   size="sm"
-                  icon={<CheckCircle size={14} />}
+                  icon={hasSurvey ? <ClipboardList size={14} /> : <CheckCircle size={14} />}
                   loading={completeMutation.isPending}
                   onClick={() => {
-                    completeMutation.mutate(
-                      { instanceId: task.id, notes: notes || undefined },
-                      {
-                        onSuccess: () => {
-                          toast.success('Task completed!')
-                          setExpanded(false)
-                          setNotes('')
+                    if (hasSurvey) {
+                      setShowSurvey(true)
+                    } else {
+                      completeMutation.mutate(
+                        { instanceId: task.id, notes: notes || undefined },
+                        {
+                          onSuccess: () => {
+                            toast.success('Task completed!')
+                            setExpanded(false)
+                            setNotes('')
+                          },
+                          onError: () => toast.error('Failed to complete task'),
                         },
-                        onError: () => toast.error('Failed to complete task'),
-                      },
-                    )
+                      )
+                    }
                   }}
                 >
-                  Complete
+                  {hasSurvey ? 'Complete & Fill Survey' : 'Complete'}
                 </Button>
                 <Button
                   variant="ghost"
@@ -223,6 +267,18 @@ function TaskCard({ task }: { task: MyTask }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Survey modal */}
+      {showSurvey && task.template?.survey_id && (
+        <TaskSurveyModal
+          open={showSurvey}
+          onClose={() => setShowSurvey(false)}
+          surveyId={task.template.survey_id}
+          collectiveId={task.collective_id}
+          onSubmit={(answers) => surveySubmitMutation.mutate(answers)}
+          submitting={surveySubmitMutation.isPending}
+        />
+      )}
     </motion.div>
   )
 }

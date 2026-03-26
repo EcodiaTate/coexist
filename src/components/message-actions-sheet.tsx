@@ -2,7 +2,7 @@ import { Reply, Pencil, Pin, Trash2 } from 'lucide-react'
 import { BottomSheet } from '@/components/bottom-sheet'
 
 /* ------------------------------------------------------------------ */
-/*  Shared message shape — works for both collective & channel msgs    */
+/*  Shared message shape  works for both collective & channel msgs    */
 /* ------------------------------------------------------------------ */
 
 export interface ActionableMessage {

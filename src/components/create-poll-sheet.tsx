@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Plus, Trash2, BarChart3 } from 'lucide-react'
-import { CenteredDialog } from '@/components/centered-dialog'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Checkbox } from '@/components/checkbox'
@@ -51,7 +51,7 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
   }
 
   return (
-    <CenteredDialog open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={onClose}>
       <div className="pb-4">
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-4">
@@ -138,6 +138,6 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
           Post Poll
         </Button>
       </div>
-    </CenteredDialog>
+    </BottomSheet>
   )
 }

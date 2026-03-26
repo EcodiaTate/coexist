@@ -142,7 +142,7 @@ export default function DonateThankYouPage() {
               transition={{ delay: 0.45 }}
               className="mt-1 text-xs text-primary-400"
             >
-              Monthly donation — cancel anytime from your profile
+              Monthly donation  cancel anytime from your profile
             </motion.p>
           )}
 

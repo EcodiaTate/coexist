@@ -91,8 +91,8 @@ interface LeaderHeroCfg { hue: string; defaultSubtitle: string; f: number; w: nu
 const PAGE_HERO_CONFIG: Record<string, LeaderHeroCfg> = {
   'Dashboard':      { hue: 'from-moss-600 via-moss-700 to-primary-900',    defaultSubtitle: 'Your collective at a glance',              f: 0, w: 0 },
   'Events':         { hue: 'from-moss-600 via-primary-700 to-primary-900', defaultSubtitle: 'Manage and create conservation events',     f: 1, w: 1 },
-  'Tasks':          { hue: 'from-bark-600 via-bark-700 to-primary-900',    defaultSubtitle: 'Stay on top of your responsibilities',      f: 2, w: 2 },
-  'Reports':        { hue: 'from-primary-700 via-primary-800 to-moss-900', defaultSubtitle: 'Generate impact and activity reports',       f: 3, w: 3 },
+  'Tasks':          { hue: 'from-bark-600 via-bark-700 to-primary-900',    defaultSubtitle: 'Tasks and personal to-dos',                  f: 2, w: 2 },
+  'Reports':        { hue: 'from-primary-700 via-primary-800 to-moss-900', defaultSubtitle: 'Generate impact and activity reports',       f: 4, w: 4 },
   'Create Event':   { hue: 'from-moss-500 via-moss-600 to-primary-800',   defaultSubtitle: 'Plan a new conservation activity',           f: 0, w: 1 },
 }
 
@@ -240,7 +240,7 @@ export function LeaderLayout() {
   // Strip trailing "Collective" - e.g. "Byron Bay Collective" → "Byron Bay"
   const _collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
 
-  // Scroll content to top on route change — instant to avoid fighting
+  // Scroll content to top on route change  instant to avoid fighting
   // with page transition animations
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' })

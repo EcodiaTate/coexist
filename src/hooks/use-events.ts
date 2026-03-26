@@ -106,18 +106,24 @@ export const IMPACT_FIELDS_BY_ACTIVITY: Record<ActivityType, ImpactField[]> = {
     { key: 'wildlife_sightings', label: 'Wildlife Sightings', unit: 'sightings', icon: 'eye' },
   ],
   camp_out: [],
-  retreat: [
-    { key: 'leaders_trained', label: 'Leaders Trained', unit: 'leaders', icon: 'users' },
-  ],
+  retreat: [],
   film_screening: [],
   marine_restoration: [
     { key: 'area_restored_sqm', label: 'Area Restored', unit: 'sqm', icon: 'area' },
     { key: 'rubbish_kg', label: 'Rubbish Collected', unit: 'kg', icon: 'trash' },
   ],
-  workshop: [
-    { key: 'leaders_trained', label: 'Leaders Trained', unit: 'leaders', icon: 'users' },
-  ],
+  workshop: [],
 }
+
+/**
+ * Re-export canonical metric definitions from the single source of truth.
+ * All consumers should prefer importing from '@/lib/impact-metrics' directly.
+ */
+export {
+  IMPACT_METRIC_DEFS as IMPACT_METRICS,
+  VALID_IMPACT_METRICS,
+  SURVEY_LINKABLE_METRICS,
+} from '@/lib/impact-metrics'
 
 /* ------------------------------------------------------------------ */
 /*  Date helpers                                                       */

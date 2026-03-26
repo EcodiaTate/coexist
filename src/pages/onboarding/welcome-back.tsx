@@ -24,7 +24,7 @@ export default function WelcomeBackPage() {
   const { user, profile, markOnboardingComplete } = useAuth()
   const shouldReduceMotion = useReducedMotion()
 
-  // Mark onboarding done on mount — this page is for returning users
+  // Mark onboarding done on mount  this page is for returning users
   // whose profile already has onboarding_completed but the local flag was lost
   useEffect(() => { markOnboardingComplete() }, [markOnboardingComplete])
 

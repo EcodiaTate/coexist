@@ -1,5 +1,6 @@
 import { useQuery, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 
 /* ------------------------------------------------------------------ */
 /*  Leader dashboard data hooks                                        */
@@ -36,11 +37,8 @@ export interface LeaderDashboardData {
 
 interface ImpactRow {
   hours_total: number
-  trees_planted: number
-  rubbish_kg: number
-  invasive_weeds_pulled: number
-  leaders_trained: number
   events?: Record<string, unknown>
+  [key: string]: unknown
 }
 
 interface PastEventRow {
@@ -171,10 +169,10 @@ export interface CollectiveFullStats {
 async function fetchCollectiveFullStats(collectiveId: string): Promise<CollectiveFullStats | null> {
   const now = new Date()
 
-  const [impactRes, membersRes, eventsRes, pastEventsRes, cleanupRes] = await Promise.all([
+  const [impactRes, membersRes, eventsRes, pastEventsRes, cleanupRes, leadersRes] = await Promise.all([
     supabase
       .from('event_impact')
-      .select('trees_planted, hours_total, rubbish_kg, invasive_weeds_pulled, leaders_trained, events!inner(collective_id)')
+      .select(`${IMPACT_SELECT_COLUMNS}, events!inner(collective_id)`)
       .eq('events.collective_id', collectiveId),
     supabase
       .from('collective_members')
@@ -196,6 +194,11 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
       .eq('collective_id', collectiveId)
       .in('activity_type', ['shore_cleanup', 'marine_restoration'])
       .lt('date_start', now.toISOString()),
+    supabase
+      .from('collective_members')
+      .select('user_id')
+      .eq('collective_id', collectiveId)
+      .in('role', ['assist_leader', 'co_leader', 'leader']),
   ])
 
   const rows = (impactRes.data ?? []) as unknown as ImpactRow[]
@@ -220,14 +223,16 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
     }
   }
 
+  const uniqueLeaders = new Set((leadersRes.data ?? []).map((r: { user_id: string }) => r.user_id))
+
   return {
     eventsAttended: attendanceCount,
-    volunteerHours: Math.round(rows.reduce((s, r) => s + (r.hours_total ?? 0), 0)),
-    treesPlanted: rows.reduce((s, r) => s + (r.trees_planted ?? 0), 0),
-    invasiveWeedsPulled: rows.reduce((s, r) => s + (r.invasive_weeds_pulled ?? 0), 0),
-    rubbishKg: Math.round(rows.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0) * 10) / 10,
+    volunteerHours: Math.round(sumMetric(rows as Record<string, unknown>[], 'hours_total')),
+    treesPlanted: sumMetric(rows as Record<string, unknown>[], 'trees_planted'),
+    invasiveWeedsPulled: sumMetric(rows as Record<string, unknown>[], 'invasive_weeds_pulled'),
+    rubbishKg: Math.round(sumMetric(rows as Record<string, unknown>[], 'rubbish_kg') * 10) / 10,
     cleanupSites: cleanupRes.count ?? 0,
-    leadersEmpowered: rows.reduce((s, r) => s + (r.leaders_trained ?? 0), 0),
+    leadersEmpowered: uniqueLeaders.size,
     eventsLogged: rows.length,
     totalMembers: membersRes.count ?? 0,
     totalEvents: eventsRes.count ?? 0,

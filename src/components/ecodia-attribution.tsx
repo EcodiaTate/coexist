@@ -7,7 +7,7 @@ interface EcodiaAttributionProps {
 
 /**
  * Small "Built by Ecodia Code" attribution link.
- * Binary black/white pill — each half inverts independently on hover.
+ * Binary black/white pill  each half inverts independently on hover.
  * Matches the web footer design at a smaller scale.
  */
 export function EcodiaAttribution({ className }: EcodiaAttributionProps) {

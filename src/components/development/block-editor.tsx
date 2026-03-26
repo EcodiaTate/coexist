@@ -1,37 +1,37 @@
 import { useState, useCallback, useRef, useMemo } from 'react'
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
+    DndContext,
+    closestCenter,
+    KeyboardSensor,
+    PointerSensor,
+    useSensor,
+    useSensors,
+    type DragEndEvent,
 } from '@dnd-kit/core'
 import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
+    arrayMove,
+    SortableContext,
+    sortableKeyboardCoordinates,
+    useSortable,
+    verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import {
-  GripVertical,
-  FileText,
-  Video,
-  FileDown,
-  Images,
-  CircleDot,
-  Trash2,
-  Pencil,
-  Plus,
-  Type,
-  X,
-  Upload,
-  Link as LinkIcon,
-  Check,
-  Presentation,
+    GripVertical,
+    FileText,
+    Video,
+    FileDown,
+    Images,
+    CircleDot,
+    Trash2,
+    Pencil,
+    Plus,
+    Type,
+    X,
+    Upload,
+    Link as LinkIcon,
+    Check,
+    Presentation,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/button'
@@ -224,7 +224,7 @@ function QuizPicker({
         <div className="text-center py-6 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/30">
           <CircleDot size={24} className="text-primary-300 mx-auto mb-1" />
           <p className="text-xs text-primary-500">
-            {quizzes.length === 0 ? 'No quizzes yet — create one first' : 'No matching quizzes'}
+            {quizzes.length === 0 ? 'No quizzes yet  create one first' : 'No matching quizzes'}
           </p>
         </div>
       ) : (
@@ -357,7 +357,7 @@ function getBlockPreview(block: ContentBlockInput): string {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Block edit form — real uploads, proper UX                          */
+/*  Block edit form  real uploads, proper UX                          */
 /* ------------------------------------------------------------------ */
 
 function BlockEditForm({
@@ -593,7 +593,7 @@ function BlockEditForm({
           <DropZone
             accept="image/jpeg,image/png,image/webp,image/gif"
             label={slides.length > 0 ? 'Add more slides' : 'Drop images or tap to browse'}
-            hint="JPEG, PNG, WebP, or GIF — select multiple"
+            hint="JPEG, PNG, WebP, or GIF  select multiple"
             onFiles={handleImageFiles}
             uploading={imageUpload.uploading}
             progress={imageUpload.progress}
@@ -752,7 +752,7 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
         </motion.div>
       )}
 
-      {/* Add block picker — full-width cards for better touch targets */}
+      {/* Add block picker  full-width cards for better touch targets */}
       {(blocks.length > 0 || showTypePicker) && (
         <div className="pt-1">
           {showTypePicker ? (

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { IMPACT_SELECT_COLUMNS } from '@/lib/impact-metrics'
 import type { Database } from '@/types/database.types'
 
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
@@ -81,25 +82,24 @@ export function useProfileStats(userId?: string) {
 
       if (eventIds.length > 0) {
         // Batch in chunks to avoid URL length limits
-        type ImpactRow = { trees_planted: number | null; hours_total: number | null; rubbish_kg: number | null; area_restored_sqm: number | null; native_plants: number | null; wildlife_sightings: number | null }
-        const impactRows: ImpactRow[] = []
+        const impactRows: Record<string, unknown>[] = []
         for (let i = 0; i < eventIds.length; i += 50) {
           const chunk = eventIds.slice(i, i + 50)
           const { data } = await supabase
             .from('event_impact')
-            .select('trees_planted, hours_total, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings')
+            .select(IMPACT_SELECT_COLUMNS)
             .in('event_id', chunk)
-          if (data) impactRows.push(...data)
+          if (data) impactRows.push(...(data as Record<string, unknown>[]))
         }
 
         if (impactRows.length > 0) {
           for (const impact of impactRows) {
-            totalTreesPlanted += impact.trees_planted ?? 0
-            totalHours += impact.hours_total ?? 0
-            totalRubbishKg += impact.rubbish_kg ?? 0
-            totalAreaSqm += impact.area_restored_sqm ?? 0
-            totalNativePlants += impact.native_plants ?? 0
-            totalWildlifeSightings += impact.wildlife_sightings ?? 0
+            totalTreesPlanted += Number(impact.trees_planted) || 0
+            totalHours += Number(impact.hours_total) || 0
+            totalRubbishKg += Number(impact.rubbish_kg) || 0
+            totalAreaSqm += Number(impact.area_restored_sqm) || 0
+            totalNativePlants += Number(impact.native_plants) || 0
+            totalWildlifeSightings += Number(impact.wildlife_sightings) || 0
           }
         }
       }

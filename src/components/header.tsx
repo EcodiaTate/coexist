@@ -9,7 +9,7 @@ interface HeaderProps {
   back?: boolean
   onBack?: () => void
   rightActions?: ReactNode
-  /** Render with no background — back button gets a glass pill for contrast on images */
+  /** Render with no background  back button gets a glass pill for contrast on images */
   transparent?: boolean
   /** Display the title text in the header center zone */
   showTitle?: boolean

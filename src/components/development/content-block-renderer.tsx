@@ -48,7 +48,7 @@ export function ContentBlockRenderer({ block, className }: ContentBlockRendererP
         />
       )}
 
-      {/* Quiz block — rendered separately by the parent page */}
+      {/* Quiz block  rendered separately by the parent page */}
       {block.content_type === 'quiz' && (
         <div className="rounded-xl bg-moss-50 border border-moss-200 p-4 text-center">
           <p className="text-sm font-semibold text-moss-700">Quiz section</p>

@@ -13,6 +13,7 @@ import {
   Shield,
   Users,
   MapPin,
+  X,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
@@ -22,7 +23,7 @@ import { Dropdown } from '@/components/dropdown'
 import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
-import { Modal } from '@/components/modal'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
@@ -139,7 +140,18 @@ function ContactFormModal({
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? 'Edit Contact' : 'Add Contact'}>
+    <BottomSheet open={open} onClose={onClose}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-heading text-lg font-semibold text-primary-800">{isEdit ? 'Edit Contact' : 'Add Contact'}</h2>
+        <button
+          onClick={onClose}
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          aria-label="Close"
+        >
+          <X size={20} />
+        </button>
+      </div>
       <div className="space-y-4">
         {/* Category */}
         <Dropdown
@@ -251,7 +263,7 @@ function ContactFormModal({
           {isEdit ? 'Save Changes' : 'Add Contact'}
         </Button>
       </div>
-    </Modal>
+    </BottomSheet>
   )
 }
 

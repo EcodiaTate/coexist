@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import { Layers, Save, Send, Plus, Trash2, GripVertical, Clock, Check } from 'lucide-react'
-import { Header } from '@/components/header'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -92,8 +91,6 @@ export default function AdminEditSectionPage() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="max-w-3xl mx-auto space-y-6">
-      <Header title="" back onBack={() => navigate('/admin/development')} />
-
       <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2.5 mb-1">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-secondary-500 to-secondary-700 shadow-lg shadow-secondary-600/20"><Layers size={16} className="text-white" /></div>

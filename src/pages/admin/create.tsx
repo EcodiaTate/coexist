@@ -218,7 +218,7 @@ export default function AdminCreatePage() {
             icon={<Megaphone size={18} className="text-white" />}
             label="New Update"
             description="Post to all members"
-            to="/admin/create/updates"
+            to="/admin/updates"
             bg="bg-gradient-to-br from-secondary-500 to-secondary-700"
             cardBg="bg-gradient-to-br from-secondary-50 to-secondary-100/80"
             reducedMotion={rm}
@@ -228,7 +228,7 @@ export default function AdminCreatePage() {
             icon={<Plus size={18} className="text-white" />}
             label="New Task"
             description="Assign a task to leaders"
-            to="/admin/workflows"
+            to="/admin/tasks"
             bg="bg-gradient-to-br from-primary-600 to-primary-700"
             cardBg="bg-gradient-to-br from-primary-50 to-primary-100/80"
             reducedMotion={rm}
@@ -296,7 +296,7 @@ export default function AdminCreatePage() {
               icon={<ClipboardCheck size={20} className="text-white" />}
               title="Tasks"
               description="Assign tasks to collective leaders with deadlines and KPI tracking"
-              to="/admin/workflows"
+              to="/admin/tasks"
               accentColor="bg-gradient-to-br from-primary-600 to-primary-700"
               cardBg="bg-gradient-to-br from-primary-50 via-primary-50/60 to-primary-100/50"
               actionBg="bg-primary-200/50 text-primary-700 hover:bg-primary-200/80"
@@ -305,8 +305,8 @@ export default function AdminCreatePage() {
                 { label: 'Active', value: activeTemplates },
               ]}
               actions={[
-                { label: 'View All', icon: <ClipboardCheck size={12} />, to: '/admin/workflows' },
-                { label: 'KPIs', icon: <BarChart3 size={12} />, to: '/admin/workflows' },
+                { label: 'View All', icon: <ClipboardCheck size={12} />, to: '/admin/tasks' },
+                { label: 'KPIs', icon: <BarChart3 size={12} />, to: '/admin/tasks' },
               ]}
               reducedMotion={rm}
               delay={0}

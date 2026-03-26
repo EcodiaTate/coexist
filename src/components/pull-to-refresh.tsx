@@ -11,7 +11,7 @@ interface PullToRefreshProps {
 }
 
 /**
- * Pull-to-refresh is disabled app-wide — this component is now a
+ * Pull-to-refresh is disabled app-wide  this component is now a
  * passthrough wrapper that preserves the layout (background + children)
  * without any touch gesture handling.
  */

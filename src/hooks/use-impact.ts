@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -18,7 +19,12 @@ function chunks<T>(arr: T[], size = 50): T[][] {
 /*  Canonical impact metrics                                           */
 /* ------------------------------------------------------------------ */
 
-/** The canonical Co-Exist impact metrics */
+/**
+ * Canonical Co-Exist dashboard impact shape.
+ * "leadersEmpowered" is derived from collective_members roles,
+ * NOT from event_impact — it increments when a user gets a
+ * leadership role, not from survey/logging.
+ */
 export interface CanonicalImpact {
   /* Community Events */
   eventsAttended: number
@@ -53,7 +59,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
 
       let impactQuery = supabase
         .from('event_impact')
-        .select('trees_planted, hours_total, rubbish_kg, invasive_weeds_pulled, leaders_trained, event_id')
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id`)
       if (timeRange === 'current-year') {
         impactQuery = impactQuery.gte('logged_at', yearStart)
       }
@@ -91,8 +97,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         leadersQuery,
       ])
 
-      const logs = (impactRes.data ?? []) as unknown as Record<string, number>[]
-      const sum = (key: string) => logs.reduce((s, r) => s + (r[key] ?? 0), 0)
+      const logs = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
 
       // Count ALL event attendances nationally (not just events with impact logs)
       let attendanceQuery = supabase
@@ -114,11 +119,11 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
 
       return {
         eventsAttended: attendanceCount ?? 0,
-        volunteerHours: Math.round(sum('hours_total')),
+        volunteerHours: Math.round(sumMetric(logs, 'hours_total')),
         eventsHeld: eventsRes.count ?? 0,
-        treesPlanted: sum('trees_planted'),
-        invasiveWeedsPulled: sum('invasive_weeds_pulled'),
-        rubbishCollectedTonnes: Math.round((sum('rubbish_kg') / 1000) * 100) / 100,
+        treesPlanted: sumMetric(logs, 'trees_planted'),
+        invasiveWeedsPulled: sumMetric(logs, 'invasive_weeds_pulled'),
+        rubbishCollectedTonnes: Math.round((sumMetric(logs, 'rubbish_kg') / 1000) * 100) / 100,
         cleanupSites: cleanupAddresses.size,
         collectivesCount: collectivesRes.count ?? 0,
         leadersEmpowered: uniqueLeaders.size,
@@ -142,7 +147,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
 
       let impactQuery = supabase
         .from('event_impact')
-        .select('trees_planted, hours_total, rubbish_kg, invasive_weeds_pulled, leaders_trained, event_id, events!inner(collective_id)')
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id)`)
         .eq('events.collective_id', collectiveId)
       if (timeRange === 'current-year') {
         impactQuery = impactQuery.gte('logged_at', yearStart)
@@ -176,7 +181,6 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
       const [impactRes, cleanupRes, eventsRes, leadersRes] = await Promise.all([impactQuery, cleanupQuery, eventsQuery, leadersQuery])
 
       const rows = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
-      const sum = (key: string) => rows.reduce((s: number, r) => s + (Number(r[key]) || 0), 0)
 
       // Count ALL event attendances for this collective's events (not just those with impact)
       const allEventIds = (eventsRes.data ?? []).map((e) => e.id)
@@ -198,11 +202,11 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
 
       return {
         eventsAttended: attendanceCount,
-        volunteerHours: Math.round(sum('hours_total')),
+        volunteerHours: Math.round(sumMetric(rows, 'hours_total')),
         eventsHeld: eventsRes.count ?? 0,
-        treesPlanted: sum('trees_planted'),
-        invasiveWeedsPulled: sum('invasive_weeds_pulled'),
-        rubbishCollectedTonnes: Math.round((sum('rubbish_kg') / 1000) * 100) / 100,
+        treesPlanted: sumMetric(rows, 'trees_planted'),
+        invasiveWeedsPulled: sumMetric(rows, 'invasive_weeds_pulled'),
+        rubbishCollectedTonnes: Math.round((sumMetric(rows, 'rubbish_kg') / 1000) * 100) / 100,
         cleanupSites: cleanupAddresses.size,
         collectivesCount: 1,
         leadersEmpowered: uniqueLeaders.size,
@@ -257,7 +261,7 @@ export function useImpactStats(userId?: string) {
         for (const chunk of chunks(eventIds)) {
           const { data } = await supabase
             .from('event_impact')
-            .select('trees_planted, hours_total, rubbish_kg, invasive_weeds_pulled')
+            .select(IMPACT_SELECT_COLUMNS)
             .in('event_id', chunk)
           if (data) rows.push(...(data as unknown as Record<string, number | null>[]))
         }

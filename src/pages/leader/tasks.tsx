@@ -1,30 +1,127 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-    ArrowLeft, CheckCircle, Clock,
-    AlertTriangle, ChevronRight,
-    Calendar, FileText,
-    SkipForward, Flame, Sparkles, Users,
+  ArrowLeft, CheckCircle, Clock,
+  AlertTriangle, ChevronRight, ChevronLeft,
+  Calendar as CalendarIcon, FileText,
+  SkipForward, Flame, Sparkles, Users,
+  ClipboardList,
+  Plus, Pencil, Eye, Trash2, List,
+  Circle, CheckCircle2, GripVertical, Flag,
 } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader } from '@/components/leader-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { Skeleton } from '@/components/skeleton'
 import { PullToRefresh } from '@/components/pull-to-refresh'
+import { TaskSurveyModal } from '@/components/task-survey-modal'
+import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/use-auth'
 import {
-    useMyTasks,
-    useCompleteTask,
-    useSkipTask,
-    useGenerateTaskInstances,
-    useGroupedTasks,
-    type MyTask,
+  useMyTasks,
+  useCompleteTask,
+  useSkipTask,
+  useGenerateTaskInstances,
+  useGroupedTasks,
+  type MyTask,
 } from '@/hooks/use-tasks'
 import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
+import {
+  useLeaderTodos,
+  useCreateTodo,
+  useUpdateTodo,
+  useToggleTodo,
+  useDeleteTodo,
+  PRIORITY_CONFIG,
+  type LeaderTodo,
+  type TodoPriority,
+} from '@/hooks/use-leader-todos'
+
+/* ------------------------------------------------------------------ */
+/*  Shared constants                                                   */
+/* ------------------------------------------------------------------ */
+
+type ActiveTab = 'tasks' | 'todos'
+
+const PRIORITY_OPTIONS = [
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'urgent', label: 'Urgent' },
+]
+
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+const backButtonCn = 'absolute top-[var(--safe-top,0px)] left-4 mt-3 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-black/40 text-white cursor-pointer'
+
+/* ------------------------------------------------------------------ */
+/*  Todo helpers                                                       */
+/* ------------------------------------------------------------------ */
+
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr + 'T00:00:00')
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const date = new Date(d.getFullYear(), d.getMonth(), d.getDate())
+  const diff = Math.round((date.getTime() - today.getTime()) / 86400000)
+
+  if (diff === 0) return 'Today'
+  if (diff === 1) return 'Tomorrow'
+  if (diff === -1) return 'Yesterday'
+
+  return d.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
+function formatTime(timeStr: string): string {
+  const [h, m] = timeStr.split(':').map(Number)
+  const ampm = h >= 12 ? 'pm' : 'am'
+  const h12 = h % 12 || 12
+  return m > 0 ? `${h12}:${String(m).padStart(2, '0')}${ampm}` : `${h12}${ampm}`
+}
+
+function isTodoOverdue(todo: LeaderTodo): boolean {
+  if (todo.status !== 'pending' || !todo.due_date) return false
+  const due = new Date(todo.due_date + 'T' + (todo.due_time ?? '23:59') + ':00')
+  return due < new Date()
+}
+
+function isTodoDueToday(todo: LeaderTodo): boolean {
+  if (!todo.due_date) return false
+  const now = new Date()
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  return todo.due_date === today
+}
+
+function getMonthDays(year: number, month: number): Date[] {
+  const days: Date[] = []
+  const firstDay = new Date(year, month, 1)
+  const startDate = new Date(firstDay)
+  const dayOfWeek = startDate.getDay()
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+  startDate.setDate(startDate.getDate() + mondayOffset)
+
+  for (let i = 0; i < 42; i++) {
+    days.push(new Date(startDate))
+    startDate.setDate(startDate.getDate() + 1)
+  }
+  return days
+}
+
+function toDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+/* ================================================================== */
+/*  TASKS TAB — Org-assigned task cards                                */
+/* ================================================================== */
 
 /* ------------------------------------------------------------------ */
 /*  Task card                                                          */
@@ -33,10 +130,36 @@ import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 function TaskCard({ task }: { task: MyTask }) {
   const [expanded, setExpanded] = useState(false)
   const [notes, setNotes] = useState('')
+  const [showSurvey, setShowSurvey] = useState(false)
   const { toast } = useToast()
+  const { user } = useAuth()
   const completeMutation = useCompleteTask()
   const skipMutation = useSkipTask()
   const shouldReduceMotion = useReducedMotion()
+
+  const hasSurvey = !!task.template?.survey_id
+
+  const surveySubmitMutation = useMutation({
+    mutationFn: async (answers: Record<string, unknown>) => {
+      if (!user || !task.template?.survey_id) return
+      await supabase.from('survey_responses').insert({
+        survey_id: task.template.survey_id,
+        user_id: user.id,
+        answers,
+      })
+      await completeMutation.mutateAsync({
+        instanceId: task.id,
+        notes: notes || undefined,
+      })
+    },
+    onSuccess: () => {
+      toast.success('Survey submitted & task completed!')
+      setShowSurvey(false)
+      setExpanded(false)
+      setNotes('')
+    },
+    onError: () => toast.error('Failed to submit survey'),
+  })
 
   const now = new Date()
   const dueDate = new Date(task.due_date)
@@ -156,7 +279,7 @@ function TaskCard({ task }: { task: MyTask }) {
 
               {task.event && !isCompleted && !isSkipped && (
                 <span className="text-[11px] text-primary-400 flex items-center gap-1">
-                  <Calendar size={10} />
+                  <CalendarIcon size={10} />
                   {task.event.title}
                 </span>
               )}
@@ -219,27 +342,39 @@ function TaskCard({ task }: { task: MyTask }) {
                 onChange={(e) => setNotes(e.target.value)}
                 compact
               />
+              {hasSurvey && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-plum-50 border border-plum-100 mb-1">
+                  <ClipboardList size={14} className="text-plum-500 shrink-0" />
+                  <p className="text-[11px] text-plum-600">
+                    This task includes a survey that must be completed
+                  </p>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Button
                   variant="primary"
                   size="sm"
-                  icon={<CheckCircle size={14} />}
+                  icon={hasSurvey ? <ClipboardList size={14} /> : <CheckCircle size={14} />}
                   loading={completeMutation.isPending}
                   onClick={() => {
-                    completeMutation.mutate(
-                      { instanceId: task.id, notes: notes || undefined },
-                      {
-                        onSuccess: () => {
-                          toast.success('Task completed!')
-                          setExpanded(false)
-                          setNotes('')
+                    if (hasSurvey) {
+                      setShowSurvey(true)
+                    } else {
+                      completeMutation.mutate(
+                        { instanceId: task.id, notes: notes || undefined },
+                        {
+                          onSuccess: () => {
+                            toast.success('Task completed!')
+                            setExpanded(false)
+                            setNotes('')
+                          },
+                          onError: () => toast.error('Failed to complete task'),
                         },
-                        onError: () => toast.error('Failed to complete task'),
-                      },
-                    )
+                      )
+                    }
                   }}
                 >
-                  Done
+                  {hasSurvey ? 'Complete & Fill Survey' : 'Done'}
                 </Button>
                 <Button
                   variant="ghost"
@@ -263,6 +398,18 @@ function TaskCard({ task }: { task: MyTask }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Survey modal */}
+      {showSurvey && task.template?.survey_id && (
+        <TaskSurveyModal
+          open={showSurvey}
+          onClose={() => setShowSurvey(false)}
+          surveyId={task.template.survey_id}
+          collectiveId={task.collective_id}
+          onSubmit={(answers) => surveySubmitMutation.mutate(answers)}
+          submitting={surveySubmitMutation.isPending}
+        />
+      )}
     </motion.div>
   )
 }
@@ -340,22 +487,15 @@ function CollectiveGroup({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Page                                                               */
+/*  Tasks tab content                                                  */
 /* ------------------------------------------------------------------ */
 
-const backButtonCn = 'absolute top-[var(--safe-top,0px)] left-4 mt-3 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-black/40 text-white cursor-pointer'
-
-export default function LeaderTasksPage() {
-  const navigate = useNavigate()
+function TasksTabContent({ rm }: { rm: boolean }) {
   const queryClient = useQueryClient()
-  const shouldReduceMotion = useReducedMotion()
-  const rm = !!shouldReduceMotion
   const { data: tasks, isLoading } = useMyTasks()
   const showLoading = useDelayedLoading(isLoading)
   const generateMutation = useGenerateTaskInstances()
   const groups = useGroupedTasks(tasks)
-
-  useLeaderHeader('Tasks', { fullBleed: true })
 
   useEffect(() => {
     generateMutation.mutate()
@@ -373,41 +513,30 @@ export default function LeaderTasksPage() {
 
   if (showLoading) {
     return (
-      <div className="relative min-h-dvh overflow-x-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
-        <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
-        <div className="relative z-10 px-6 pt-14 space-y-5 pb-20">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            <Skeleton className="h-20 rounded-2xl" />
-            <Skeleton className="h-20 rounded-2xl" />
-            <Skeleton className="h-20 rounded-2xl" />
-          </div>
-          <Skeleton variant="list-item" count={5} />
+      <div className="space-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <Skeleton className="h-20 rounded-2xl" />
+          <Skeleton className="h-20 rounded-2xl" />
+          <Skeleton className="h-20 rounded-2xl" />
         </div>
+        <Skeleton variant="list-item" count={5} />
       </div>
     )
   }
 
   if (!groups.length) {
     return (
-      <div className="relative min-h-dvh overflow-x-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
-        <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
-        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full border border-amber-200/35 animate-[gentleSpin_50s_linear_infinite]" />
-        <div className="absolute top-32 -left-8 w-24 h-24 rounded-full bg-amber-100/25 animate-[floatDown_6s_ease-in-out_infinite]" />
-
-        <div className="relative z-10 flex flex-col items-center justify-center py-16 px-6">
-          <motion.div
-            initial={rm ? undefined : { scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 25, mass: 0.8 }}
-            className="w-20 h-20 rounded-3xl bg-gradient-to-br from-moss-100 to-moss-200 flex items-center justify-center mb-5"
-          >
-            <Sparkles size={36} className="text-moss-500" />
-          </motion.div>
-          <p className="font-heading text-xl font-bold text-primary-800 mb-1">All caught up!</p>
-          <p className="text-sm text-primary-400">No tasks right now. Enjoy the moment.</p>
-        </div>
+      <div className="flex flex-col items-center justify-center py-12">
+        <motion.div
+          initial={rm ? undefined : { scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 25, mass: 0.8 }}
+          className="w-20 h-20 rounded-3xl bg-gradient-to-br from-moss-100 to-moss-200 flex items-center justify-center mb-5"
+        >
+          <Sparkles size={36} className="text-moss-500" />
+        </motion.div>
+        <p className="font-heading text-xl font-bold text-primary-800 mb-1">All caught up!</p>
+        <p className="text-sm text-primary-400">No tasks right now. Enjoy the moment.</p>
       </div>
     )
   }
@@ -416,21 +545,818 @@ export default function LeaderTasksPage() {
   const progressPct = total > 0 ? Math.round((totalCompleted / total) * 100) : 0
 
   return (
+    <div className="space-y-5">
+      {/* Momentum dashboard */}
+      <motion.div
+        variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
+        className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+      >
+        <div className="rounded-2xl bg-gradient-to-br from-moss-50 to-emerald-100/50 p-4 flex flex-col items-center justify-center text-center">
+          <div className="relative w-12 h-12 mb-2">
+            <svg viewBox="0 0 36 36" className="w-12 h-12 -rotate-90">
+              <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-moss-200/60" />
+              <motion.circle
+                cx="18" cy="18" r="15" fill="none" strokeWidth="3" strokeLinecap="round"
+                className="text-moss-500"
+                strokeDasharray={`${progressPct * 0.942} 100`}
+                initial={{ strokeDasharray: '0 100' }}
+                animate={{ strokeDasharray: `${progressPct * 0.942} 100` }}
+                transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
+              />
+            </svg>
+            <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-moss-700">
+              {progressPct}%
+            </span>
+          </div>
+          <p className="text-[11px] font-semibold text-moss-500 uppercase tracking-wider">Done</p>
+        </div>
+
+        <div className={cn(
+          'rounded-2xl p-4 flex flex-col items-center justify-center text-center',
+          totalOverdue > 0
+            ? 'bg-gradient-to-br from-error-50 to-rose-100/70'
+            : 'bg-gradient-to-br from-primary-50 to-primary-100/40',
+        )}>
+          <p className={cn(
+            'font-heading text-2xl font-extrabold tabular-nums leading-none',
+            totalOverdue > 0 ? 'text-error-600' : 'text-primary-300',
+          )}>
+            {totalOverdue}
+          </p>
+          <p className={cn(
+            'text-[11px] font-semibold uppercase tracking-wider mt-1.5',
+            totalOverdue > 0 ? 'text-error-400' : 'text-primary-300',
+          )}>Overdue</p>
+        </div>
+      </motion.div>
+
+      {/* Task groups */}
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="space-y-6">
+          {groups.map((group) => (
+            <motion.div
+              key={group.collective_id}
+              variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
+            >
+              <CollectiveGroup
+                name={group.collective_name}
+                tasks={group.tasks}
+                pendingCount={group.pendingCount}
+                overdueCount={group.overdueCount}
+              />
+            </motion.div>
+          ))}
+        </div>
+      </PullToRefresh>
+    </div>
+  )
+}
+
+/* ================================================================== */
+/*  TODOS TAB — Personal to-do items                                   */
+/* ================================================================== */
+
+/* ------------------------------------------------------------------ */
+/*  Create / Edit Modal                                                */
+/* ------------------------------------------------------------------ */
+
+function TodoModal({
+  open,
+  onClose,
+  todo,
+}: {
+  open: boolean
+  onClose: () => void
+  todo?: LeaderTodo | null
+}) {
+  const { toast } = useToast()
+  const createMutation = useCreateTodo()
+  const updateMutation = useUpdateTodo()
+
+  const [title, setTitle] = useState(todo?.title ?? '')
+  const [description, setDescription] = useState(todo?.description ?? '')
+  const [dueDate, setDueDate] = useState(todo?.due_date ?? '')
+  const [dueTime, setDueTime] = useState(todo?.due_time?.slice(0, 5) ?? '')
+  const [priority, setPriority] = useState<TodoPriority>(todo?.priority ?? 'medium')
+
+  const isEdit = !!todo
+
+  const handleSave = () => {
+    const input = {
+      title: title.trim(),
+      description: description.trim() || undefined,
+      due_date: dueDate || null,
+      due_time: dueTime ? dueTime + ':00' : null,
+      priority,
+    }
+
+    if (isEdit) {
+      updateMutation.mutate(
+        { id: todo.id, ...input },
+        {
+          onSuccess: () => { toast.success('Updated'); onClose() },
+          onError: () => toast.error('Failed to update'),
+        },
+      )
+    } else {
+      createMutation.mutate(
+        input,
+        {
+          onSuccess: () => { toast.success('Added to your list'); onClose() },
+          onError: () => toast.error('Failed to create'),
+        },
+      )
+    }
+  }
+
+  return (
+    <BottomSheet open={open} onClose={onClose}>
+      <div className="px-5 pt-2 pb-6 space-y-4">
+        <h2 className="font-heading text-lg font-bold text-primary-900">{isEdit ? 'Edit To-Do' : 'New To-Do'}</h2>
+        <Input
+          label="What do you need to do?"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="e.g. Finalise event volunteer list"
+          required
+        />
+        <Input
+          label="Notes"
+          type="textarea"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Any extra details..."
+        />
+        <div className="grid grid-cols-2 gap-3">
+          <Input
+            label="Due date"
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+          />
+          <div>
+            <label className="text-sm font-medium text-primary-800 mb-1.5 block">Time</label>
+            <input
+              type="time"
+              value={dueTime}
+              onChange={(e) => setDueTime(e.target.value)}
+              className="w-full h-11 px-3 rounded-xl border border-primary-200 bg-white text-sm text-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-colors"
+            />
+          </div>
+        </div>
+
+        {/* Priority selector */}
+        <div>
+          <p className="text-sm font-medium text-primary-800 mb-2">Priority</p>
+          <div className="flex gap-1.5">
+            {PRIORITY_OPTIONS.map((opt) => {
+              const cfg = PRIORITY_CONFIG[opt.value as TodoPriority]
+              const active = priority === opt.value
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setPriority(opt.value as TodoPriority)}
+                  className={cn(
+                    'flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-sm cursor-pointer transition-all duration-150',
+                    active
+                      ? 'bg-primary-100 border border-primary-200 font-medium shadow-sm'
+                      : 'bg-white border border-primary-100/40 hover:bg-primary-50 text-primary-500',
+                  )}
+                >
+                  <div className={cn('w-2 h-2 rounded-full', cfg.dot)} />
+                  <span className={active ? cfg.color : undefined}>{opt.label}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <Button
+          variant="primary"
+          fullWidth
+          onClick={handleSave}
+          loading={createMutation.isPending || updateMutation.isPending}
+          disabled={!title.trim()}
+        >
+          {isEdit ? 'Save Changes' : 'Add To-Do'}
+        </Button>
+      </div>
+    </BottomSheet>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Todo Item Card                                                     */
+/* ------------------------------------------------------------------ */
+
+function TodoItem({
+  todo,
+  editMode,
+  onEdit,
+  onDelete,
+}: {
+  todo: LeaderTodo
+  editMode: boolean
+  onEdit: (todo: LeaderTodo) => void
+  onDelete: (id: string) => void
+}) {
+  const toggleMutation = useToggleTodo()
+  const { toast } = useToast()
+  const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
+  const completed = todo.status === 'completed'
+  const overdue = isTodoOverdue(todo)
+  const today = isTodoDueToday(todo)
+  const cfg = PRIORITY_CONFIG[todo.priority]
+
+  return (
+    <motion.div
+      layout={!rm}
+      initial={rm ? undefined : { opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={rm ? undefined : { opacity: 0, x: -20, transition: { duration: 0.15 } }}
+      className={cn(
+        'group relative flex items-start gap-3 px-4 py-3.5 rounded-2xl transition-colors duration-150',
+        completed
+          ? 'bg-moss-50/40'
+          : overdue
+            ? 'bg-gradient-to-r from-error-50/80 to-rose-50/60 shadow-sm'
+            : today
+              ? 'bg-gradient-to-r from-warning-50/60 to-amber-50/40 shadow-sm'
+              : 'bg-white shadow-sm',
+      )}
+    >
+      {/* Edit mode grip */}
+      {editMode && (
+        <div className="flex items-center self-center text-primary-300 cursor-grab">
+          <GripVertical size={16} />
+        </div>
+      )}
+
+      {/* Checkbox */}
+      <button
+        type="button"
+        onClick={() => {
+          toggleMutation.mutate(
+            { id: todo.id, completed: !completed },
+            {
+              onError: () => toast.error('Failed to update'),
+            },
+          )
+        }}
+        className={cn(
+          'mt-0.5 shrink-0 cursor-pointer transition-all duration-200',
+          completed ? 'text-moss-500' : overdue ? 'text-error-400 hover:text-error-500' : 'text-primary-300 hover:text-primary-500',
+        )}
+      >
+        {completed ? (
+          <CheckCircle2 size={22} strokeWidth={2} />
+        ) : (
+          <Circle size={22} strokeWidth={1.5} />
+        )}
+      </button>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <p className={cn(
+          'text-sm font-medium leading-snug transition-all duration-200',
+          completed ? 'text-primary-400 line-through' : 'text-primary-800',
+        )}>
+          {todo.title}
+        </p>
+        {todo.description && !completed && (
+          <p className="text-xs text-primary-400 line-clamp-2 mt-0.5">{todo.description}</p>
+        )}
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          {/* Priority indicator */}
+          {todo.priority !== 'medium' && (
+            <span className={cn('flex items-center gap-1 text-[11px] font-medium', cfg.color)}>
+              <Flag size={10} />
+              {cfg.label}
+            </span>
+          )}
+          {/* Due info */}
+          {todo.due_date && !completed && (
+            <span className={cn(
+              'flex items-center gap-1 text-[11px] font-medium',
+              overdue ? 'text-error-600' : today ? 'text-warning-600' : 'text-primary-400',
+            )}>
+              {overdue ? <Flame size={10} /> : <Clock size={10} />}
+              {formatDate(todo.due_date)}
+              {todo.due_time && ` at ${formatTime(todo.due_time)}`}
+            </span>
+          )}
+          {todo.source_template_id && (
+            <span className="text-[11px] text-primary-300 italic">from task</span>
+          )}
+        </div>
+      </div>
+
+      {/* Actions */}
+      {editMode && (
+        <div className="flex items-center gap-0.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => onEdit(todo)}
+            className="p-2 rounded-xl text-primary-400 hover:bg-primary-100 hover:text-primary-600 cursor-pointer transition-colors"
+            title="Edit"
+          >
+            <Pencil size={14} />
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(todo.id)}
+            className="p-2 rounded-xl text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer transition-colors"
+            title="Delete"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Calendar View                                                      */
+/* ------------------------------------------------------------------ */
+
+function CalendarView({
+  todos,
+  editMode,
+  onEdit,
+  onDelete,
+  onDateClick,
+}: {
+  todos: LeaderTodo[]
+  editMode: boolean
+  onEdit: (todo: LeaderTodo) => void
+  onDelete: (id: string) => void
+  onDateClick: (date: string) => void
+}) {
+  const [calMonth, setCalMonth] = useState(() => new Date().getMonth())
+  const [calYear, setCalYear] = useState(() => new Date().getFullYear())
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
+
+  const days = useMemo(() => getMonthDays(calYear, calMonth), [calYear, calMonth])
+  const todayKey = toDateKey(new Date())
+
+  const todosByDate = useMemo(() => {
+    const map = new Map<string, LeaderTodo[]>()
+    for (const todo of todos) {
+      if (!todo.due_date) continue
+      const key = todo.due_date
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(todo)
+    }
+    return map
+  }, [todos])
+
+  const prevMonth = () => {
+    if (calMonth === 0) { setCalMonth(11); setCalYear(calYear - 1) }
+    else setCalMonth(calMonth - 1)
+  }
+
+  const nextMonth = () => {
+    if (calMonth === 11) { setCalMonth(0); setCalYear(calYear + 1) }
+    else setCalMonth(calMonth + 1)
+  }
+
+  const selectedTodos = selectedDate ? (todosByDate.get(selectedDate) ?? []) : []
+
+  return (
+    <div className="space-y-4">
+      {/* Month header */}
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={prevMonth}
+          className="p-2 rounded-xl hover:bg-primary-100 cursor-pointer transition-colors text-primary-500"
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <h3 className="text-sm font-bold text-primary-800">
+          {MONTHS[calMonth]} {calYear}
+        </h3>
+        <button
+          type="button"
+          onClick={nextMonth}
+          className="p-2 rounded-xl hover:bg-primary-100 cursor-pointer transition-colors text-primary-500"
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+
+      {/* Day headers */}
+      <div className="grid grid-cols-7 gap-px">
+        {DAYS.map((d) => (
+          <div key={d} className="text-center text-[11px] font-semibold text-primary-400 uppercase tracking-wider py-1">
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Day cells */}
+      <div className="grid grid-cols-7 gap-1">
+        {days.map((day, i) => {
+          const key = toDateKey(day)
+          const isCurrentMonth = day.getMonth() === calMonth
+          const isToday = key === todayKey
+          const isSelected = key === selectedDate
+          const dayTodos = todosByDate.get(key) ?? []
+          const hasTodos = dayTodos.length > 0
+          const hasOverdue = dayTodos.some(isTodoOverdue)
+          const allDone = hasTodos && dayTodos.every((t) => t.status === 'completed')
+
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => {
+                setSelectedDate(isSelected ? null : key)
+                if (!isSelected) onDateClick(key)
+              }}
+              className={cn(
+                'relative flex flex-col items-center justify-center py-2 rounded-xl cursor-pointer transition-all duration-150',
+                !isCurrentMonth && 'opacity-30',
+                isSelected
+                  ? 'bg-primary-700 text-white shadow-md'
+                  : isToday
+                    ? 'bg-primary-100 text-primary-800 font-bold'
+                    : 'hover:bg-primary-50 text-primary-700',
+              )}
+            >
+              <span className={cn('text-sm tabular-nums', isSelected ? 'font-bold' : 'font-medium')}>
+                {day.getDate()}
+              </span>
+              {hasTodos && (
+                <div className="flex gap-0.5 mt-0.5">
+                  {hasOverdue && !isSelected ? (
+                    <div className="w-1.5 h-1.5 rounded-full bg-error-500" />
+                  ) : allDone && !isSelected ? (
+                    <div className="w-1.5 h-1.5 rounded-full bg-moss-500" />
+                  ) : (
+                    <div className={cn('w-1.5 h-1.5 rounded-full', isSelected ? 'bg-white/70' : 'bg-primary-400')} />
+                  )}
+                  {dayTodos.length > 1 && (
+                    <div className={cn('w-1.5 h-1.5 rounded-full', isSelected ? 'bg-white/50' : 'bg-primary-300')} />
+                  )}
+                </div>
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Selected date todos */}
+      <AnimatePresence mode="wait">
+        {selectedDate && (
+          <motion.div
+            key={selectedDate}
+            initial={rm ? undefined : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={rm ? undefined : { opacity: 0, y: -4 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-2"
+          >
+            <div className="flex items-center gap-2 px-1 pt-2">
+              <p className="text-xs font-bold text-primary-700 uppercase tracking-wider">
+                {formatDate(selectedDate)}
+              </p>
+              <div className="flex-1 h-px bg-primary-100" />
+              <span className="text-[11px] text-primary-400">{selectedTodos.length} item{selectedTodos.length !== 1 ? 's' : ''}</span>
+            </div>
+
+            {selectedTodos.length === 0 ? (
+              <div className="text-center py-6">
+                <p className="text-sm text-primary-400">Nothing scheduled</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {selectedTodos.map((todo) => (
+                  <TodoItem key={todo.id} todo={todo} editMode={editMode} onEdit={onEdit} onDelete={onDelete} />
+                ))}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Todos tab content                                                  */
+/* ------------------------------------------------------------------ */
+
+function TodosTabContent({ rm }: { rm: boolean }) {
+  const { toast } = useToast()
+
+  const [view, setView] = useState<'list' | 'calendar'>('list')
+  const [editMode, setEditMode] = useState(false)
+  const [showCreate, setShowCreate] = useState(false)
+  const [editTodo, setEditTodo] = useState<LeaderTodo | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [showCompleted, setShowCompleted] = useState(false)
+
+  const { data: todos, isLoading } = useLeaderTodos()
+  const showLoading = useDelayedLoading(isLoading)
+  const deleteMutation = useDeleteTodo()
+
+  const pendingTodos = useMemo(
+    () => (todos ?? []).filter((t) => t.status === 'pending').sort((a, b) => {
+      const aOverdue = isTodoOverdue(a)
+      const bOverdue = isTodoOverdue(b)
+      if (aOverdue && !bOverdue) return -1
+      if (!aOverdue && bOverdue) return 1
+
+      const priorityRank: Record<string, number> = { urgent: 0, high: 1, medium: 2, low: 3 }
+      if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date) || (priorityRank[a.priority] - priorityRank[b.priority])
+      if (a.due_date && !b.due_date) return -1
+      if (!a.due_date && b.due_date) return 1
+      return priorityRank[a.priority] - priorityRank[b.priority]
+    }),
+    [todos],
+  )
+
+  const completedTodos = useMemo(
+    () => (todos ?? []).filter((t) => t.status === 'completed').sort((a, b) => {
+      if (!a.completed_at || !b.completed_at) return 0
+      return b.completed_at.localeCompare(a.completed_at)
+    }),
+    [todos],
+  )
+
+  const overdueCount = useMemo(() => pendingTodos.filter(isTodoOverdue).length, [pendingTodos])
+
+  const handleDateClick = useCallback((date: string) => {
+    void date
+  }, [])
+
+  if (showLoading) {
+    return (
+      <div className="space-y-5">
+        <div className="grid grid-cols-2 gap-3">
+          <Skeleton className="h-20 rounded-2xl" />
+          <Skeleton className="h-20 rounded-2xl" />
+        </div>
+        <Skeleton variant="list-item" count={5} />
+      </div>
+    )
+  }
+
+  return (
+    <>
+      {/* Quick stats */}
+      <motion.div
+        variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
+        className="grid grid-cols-3 gap-2"
+      >
+        <div className="rounded-2xl bg-white/80 backdrop-blur-sm p-3 text-center shadow-sm">
+          <p className="font-heading text-xl font-extrabold text-primary-800 tabular-nums">{pendingTodos.length}</p>
+          <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">To do</p>
+        </div>
+        <div className={cn(
+          'rounded-2xl p-3 text-center shadow-sm',
+          overdueCount > 0 ? 'bg-error-50/80' : 'bg-white/80 backdrop-blur-sm',
+        )}>
+          <p className={cn(
+            'font-heading text-xl font-extrabold tabular-nums',
+            overdueCount > 0 ? 'text-error-600' : 'text-primary-300',
+          )}>{overdueCount}</p>
+          <p className={cn(
+            'text-[11px] font-semibold uppercase tracking-wider',
+            overdueCount > 0 ? 'text-error-400' : 'text-primary-300',
+          )}>Overdue</p>
+        </div>
+        <div className="rounded-2xl bg-moss-50/80 p-3 text-center shadow-sm">
+          <p className="font-heading text-xl font-extrabold text-moss-600 tabular-nums">{completedTodos.length}</p>
+          <p className="text-[11px] font-semibold text-moss-500 uppercase tracking-wider">Done</p>
+        </div>
+      </motion.div>
+
+      {/* Toolbar: View toggle + Edit/View mode + Add */}
+      <motion.div
+        variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
+        className="flex items-center gap-2"
+      >
+        {/* View toggle */}
+        <div className="flex bg-primary-100/60 rounded-xl p-0.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setView('list')}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all duration-150',
+              view === 'list'
+                ? 'bg-white text-primary-800 shadow-sm'
+                : 'text-primary-500 hover:text-primary-700',
+            )}
+          >
+            <List size={14} />
+            List
+          </button>
+          <button
+            type="button"
+            onClick={() => setView('calendar')}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium cursor-pointer transition-all duration-150',
+              view === 'calendar'
+                ? 'bg-white text-primary-800 shadow-sm'
+                : 'text-primary-500 hover:text-primary-700',
+            )}
+          >
+            <CalendarIcon size={14} />
+            Calendar
+          </button>
+        </div>
+
+        <div className="flex-1" />
+
+        {/* Edit/View mode toggle */}
+        <button
+          type="button"
+          onClick={() => setEditMode(!editMode)}
+          className={cn(
+            'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium cursor-pointer transition-all duration-150',
+            editMode
+              ? 'bg-primary-700 text-white shadow-sm'
+              : 'bg-white text-primary-600 shadow-sm hover:bg-primary-50',
+          )}
+        >
+          {editMode ? <Eye size={14} /> : <Pencil size={14} />}
+          {editMode ? 'View' : 'Edit'}
+        </button>
+
+        {/* Add button */}
+        <button
+          type="button"
+          onClick={() => setShowCreate(true)}
+          className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary-700 text-white shadow-md hover:bg-primary-800 cursor-pointer transition-colors"
+        >
+          <Plus size={18} />
+        </button>
+      </motion.div>
+
+      {/* Content */}
+      <motion.div
+        variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
+      >
+        {view === 'list' ? (
+          <div className="space-y-4">
+            {/* Empty state */}
+            {pendingTodos.length === 0 && completedTodos.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-12">
+                <motion.div
+                  initial={rm ? undefined : { scale: 0.85, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 350, damping: 25, mass: 0.8 }}
+                  className="w-20 h-20 rounded-3xl bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center mb-5"
+                >
+                  <Sparkles size={36} className="text-sky-500" />
+                </motion.div>
+                <p className="font-heading text-xl font-bold text-primary-800 mb-1">Fresh start</p>
+                <p className="text-sm text-primary-400 mb-4">Add your first to-do to stay organised</p>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<Plus size={14} />}
+                  onClick={() => setShowCreate(true)}
+                >
+                  Add To-Do
+                </Button>
+              </div>
+            )}
+
+            {/* Pending todos */}
+            {pendingTodos.length > 0 && (
+              <div className="space-y-1.5">
+                <AnimatePresence mode="popLayout">
+                  {pendingTodos.map((todo) => (
+                    <TodoItem
+                      key={todo.id}
+                      todo={todo}
+                      editMode={editMode}
+                      onEdit={setEditTodo}
+                      onDelete={setDeleteTarget}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+            )}
+
+            {/* Completed section */}
+            {completedTodos.length > 0 && (
+              <div>
+                <button
+                  type="button"
+                  onClick={() => setShowCompleted(!showCompleted)}
+                  className="flex items-center gap-1.5 text-[11px] text-primary-400 cursor-pointer select-none py-1 px-1 hover:text-primary-600 active:scale-[0.97] transition-[colors,transform] duration-150"
+                >
+                  <motion.div animate={{ rotate: showCompleted ? 90 : 0 }} transition={{ duration: 0.15 }}>
+                    <ChevronRight size={12} />
+                  </motion.div>
+                  {completedTodos.length} completed
+                </button>
+                <AnimatePresence>
+                  {showCompleted && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-1.5 overflow-hidden mt-1.5"
+                    >
+                      {completedTodos.map((todo) => (
+                        <TodoItem
+                          key={todo.id}
+                          todo={todo}
+                          editMode={editMode}
+                          onEdit={setEditTodo}
+                          onDelete={setDeleteTarget}
+                        />
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
+        ) : (
+          <CalendarView
+            todos={todos ?? []}
+            editMode={editMode}
+            onEdit={setEditTodo}
+            onDelete={setDeleteTarget}
+            onDateClick={handleDateClick}
+          />
+        )}
+      </motion.div>
+
+      {/* Create modal */}
+      {showCreate && (
+        <TodoModal
+          open={showCreate}
+          onClose={() => setShowCreate(false)}
+        />
+      )}
+
+      {/* Edit modal */}
+      {editTodo && (
+        <TodoModal
+          open={!!editTodo}
+          onClose={() => setEditTodo(null)}
+          todo={editTodo}
+        />
+      )}
+
+      {/* Delete confirmation */}
+      <ConfirmationSheet
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) {
+            deleteMutation.mutate(deleteTarget, {
+              onSuccess: () => { toast.success('Removed'); setDeleteTarget(null) },
+              onError: () => toast.error('Failed to delete'),
+            })
+          }
+        }}
+        title="Delete To-Do"
+        description="This will permanently remove this item from your list."
+        confirmLabel="Delete"
+        variant="danger"
+      />
+    </>
+  )
+}
+
+/* ================================================================== */
+/*  UNIFIED PAGE                                                       */
+/* ================================================================== */
+
+export default function LeaderTasksPage() {
+  const navigate = useNavigate()
+  const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
+  const [activeTab, setActiveTab] = useState<ActiveTab>('tasks')
+
+  useLeaderHeader('Tasks', { fullBleed: true })
+
+  return (
     <div className="relative min-h-dvh overflow-x-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-amber-50/60 via-white to-moss-50/20" />
+      {/* Background — blends both page palettes */}
+      <div className="absolute inset-0 bg-gradient-to-b from-amber-50/50 via-white to-moss-50/15" />
       <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
 
-      {/* ── Decorative geometric shapes - "stepping stones" formation ── */}
-      <div className="absolute -right-14 top-[15%] w-52 h-52 rounded-full border border-amber-200/30 animate-[gentleSpin_55s_linear_infinite]" />
-      <div className="absolute -right-6 top-[20%] w-36 h-36 rounded-full border border-amber-200/20 animate-[gentleSpin_45s_linear_infinite] [animation-direction:reverse]" />
-      <div className="absolute -left-16 -bottom-16 w-48 h-48 rounded-full border border-amber-200/25 animate-[gentleSpin_50s_linear_infinite]" />
-      <div className="absolute left-[30%] top-8 w-20 h-20 rounded-full bg-amber-100/25" />
-      <div className="absolute right-[25%] top-[45%] w-14 h-14 rounded-full border border-moss-200/30" />
-      <div className="absolute left-[55%] bottom-[25%] w-10 h-10 rounded-full bg-moss-100/20" />
-      {/* Floating dots */}
-      <div className="absolute left-[18%] top-[22%] w-2 h-2 rounded-full bg-amber-300/30 animate-[float_4.5s_ease-in-out_infinite]" />
-      <div className="absolute right-[20%] top-[60%] w-1.5 h-1.5 rounded-full bg-moss-300/25 animate-[floatDown_5.5s_ease-in-out_1.5s_infinite]" />
-      <div className="absolute left-[42%] top-[35%] w-2.5 h-2.5 rounded-full bg-amber-300/20 animate-[float_6s_ease-in-out_2.5s_infinite]" />
+      {/* Decorative elements */}
+      <div className="absolute -right-14 top-[15%] w-52 h-52 rounded-full border border-amber-200/25 animate-[gentleSpin_55s_linear_infinite]" />
+      <div className="absolute -right-6 top-[20%] w-36 h-36 rounded-full border border-amber-200/15 animate-[gentleSpin_45s_linear_infinite] [animation-direction:reverse]" />
+      <div className="absolute -left-16 -bottom-16 w-48 h-48 rounded-full border border-amber-200/20 animate-[gentleSpin_50s_linear_infinite]" />
+      <div className="absolute left-[15%] top-[22%] w-2 h-2 rounded-full bg-amber-300/25 animate-[float_4.5s_ease-in-out_infinite]" />
+      <div className="absolute right-[20%] top-[55%] w-1.5 h-1.5 rounded-full bg-moss-300/20 animate-[floatDown_5.5s_ease-in-out_1.5s_infinite]" />
 
       <motion.div
         className="relative z-10 px-6 pt-14 space-y-5 pb-20"
@@ -438,77 +1364,75 @@ export default function LeaderTasksPage() {
         initial="hidden"
         animate="visible"
       >
+        {/* Title */}
         <motion.div
           className="text-center pb-1"
           variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
         >
           <p className="text-xs font-semibold uppercase tracking-widest text-amber-500/80 mb-1">Stay on track</p>
-          <h1 className="font-heading text-2xl font-extrabold text-primary-900">Tasks</h1>
+          <h1 className="font-heading text-2xl font-extrabold text-primary-900">Tasks & To-Dos</h1>
         </motion.div>
 
-        {/* Momentum dashboard */}
+        {/* ── Segmented toggle ── */}
         <motion.div
+          className="flex justify-center"
           variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
-          className="grid grid-cols-1 sm:grid-cols-2 gap-3"
         >
-          <div className="rounded-2xl bg-gradient-to-br from-moss-50 to-emerald-100/50 p-4 flex flex-col items-center justify-center text-center">
-            <div className="relative w-12 h-12 mb-2">
-              <svg viewBox="0 0 36 36" className="w-12 h-12 -rotate-90">
-                <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-moss-200/60" />
-                <motion.circle
-                  cx="18" cy="18" r="15" fill="none" strokeWidth="3" strokeLinecap="round"
-                  className="text-moss-500"
-                  strokeDasharray={`${progressPct * 0.942} 100`}
-                  initial={{ strokeDasharray: '0 100' }}
-                  animate={{ strokeDasharray: `${progressPct * 0.942} 100` }}
-                  transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
-                />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-moss-700">
-                {progressPct}%
-              </span>
-            </div>
-            <p className="text-[11px] font-semibold text-moss-500 uppercase tracking-wider">Done</p>
+          <div className="flex bg-primary-100/60 rounded-xl p-0.5">
+            <button
+              type="button"
+              onClick={() => setActiveTab('tasks')}
+              className={cn(
+                'flex items-center gap-1.5 px-5 h-11 rounded-lg text-sm font-medium cursor-pointer transition-all duration-150',
+                activeTab === 'tasks'
+                  ? 'bg-white text-primary-800 shadow-sm'
+                  : 'text-primary-500 hover:text-primary-700',
+              )}
+            >
+              <ClipboardList size={15} />
+              Tasks
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('todos')}
+              className={cn(
+                'flex items-center gap-1.5 px-5 h-11 rounded-lg text-sm font-medium cursor-pointer transition-all duration-150',
+                activeTab === 'todos'
+                  ? 'bg-white text-primary-800 shadow-sm'
+                  : 'text-primary-500 hover:text-primary-700',
+              )}
+            >
+              <CheckCircle2 size={15} />
+              My Todos
+            </button>
           </div>
-
-          <div className={cn(
-            'rounded-2xl p-4 flex flex-col items-center justify-center text-center',
-            totalOverdue > 0
-              ? 'bg-gradient-to-br from-error-50 to-rose-100/70'
-              : 'bg-gradient-to-br from-primary-50 to-primary-100/40',
-          )}>
-            <p className={cn(
-              'font-heading text-2xl font-extrabold tabular-nums leading-none',
-              totalOverdue > 0 ? 'text-error-600' : 'text-primary-300',
-            )}>
-              {totalOverdue}
-            </p>
-            <p className={cn(
-              'text-[11px] font-semibold uppercase tracking-wider mt-1.5',
-              totalOverdue > 0 ? 'text-error-400' : 'text-primary-300',
-            )}>Overdue</p>
-          </div>
-
         </motion.div>
 
-        {/* Task groups */}
-        <PullToRefresh onRefresh={handleRefresh}>
-          <div className="space-y-6">
-            {groups.map((group) => (
-              <motion.div
-                key={group.collective_id}
-                variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
-              >
-                <CollectiveGroup
-                  name={group.collective_name}
-                  tasks={group.tasks}
-                  pendingCount={group.pendingCount}
-                  overdueCount={group.overdueCount}
-                />
-              </motion.div>
-            ))}
-          </div>
-        </PullToRefresh>
+        {/* ── Tab content ── */}
+        <AnimatePresence mode="wait">
+          {activeTab === 'tasks' ? (
+            <motion.div
+              key="tasks"
+              initial={rm ? undefined : { opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={rm ? undefined : { opacity: 0, x: 12 }}
+              transition={{ duration: 0.2 }}
+            >
+              <TasksTabContent rm={rm} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="todos"
+              initial={rm ? undefined : { opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={rm ? undefined : { opacity: 0, x: -12 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-5"
+            >
+              <TodosTabContent rm={rm} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </div>
   )

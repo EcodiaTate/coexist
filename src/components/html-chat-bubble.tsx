@@ -43,7 +43,7 @@ function stripScripts(html: string): string {
 
 /**
  * Chat bubble that renders a full HTML document inside a sandboxed iframe.
- * This preserves the document's own CSS, layout, fonts — everything renders
+ * This preserves the document's own CSS, layout, fonts  everything renders
  * exactly as the original file. Scripts are stripped and the iframe sandbox
  * blocks execution as defence-in-depth.
  */
@@ -71,7 +71,7 @@ export function HtmlChatBubble({
     ? ROLE_COLORS[roleBadge] ?? { bg: 'bg-primary-100', text: 'text-primary-600' }
     : null
 
-  // Strip scripts — iframe sandbox already blocks them but defence-in-depth
+  // Strip scripts  iframe sandbox already blocks them but defence-in-depth
   const safeHtml = stripScripts(htmlContent)
 
   const toggleExpand = useCallback(() => {
@@ -110,7 +110,7 @@ export function HtmlChatBubble({
           })
         }
       } catch {
-        // Cross-origin — fall back to default height
+        // Cross-origin  fall back to default height
       }
     }
 
@@ -148,7 +148,7 @@ export function HtmlChatBubble({
           </button>
         </div>
 
-        {/* Full-viewport iframe — user can pinch-zoom natively */}
+        {/* Full-viewport iframe  user can pinch-zoom natively */}
         <iframe
           srcDoc={safeHtml}
           sandbox="allow-same-origin"
@@ -261,7 +261,7 @@ export function HtmlChatBubble({
             </button>
           </div>
 
-          {/* Sandboxed iframe — renders the full HTML document faithfully */}
+          {/* Sandboxed iframe  renders the full HTML document faithfully */}
           <iframe
             ref={inlineIframeRef}
             srcDoc={safeHtml}

@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import { CircleDot, Save, Settings } from 'lucide-react'
-import { Header } from '@/components/header'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -66,8 +65,6 @@ export default function AdminEditQuizPage() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="max-w-3xl mx-auto space-y-6">
-      <Header title="" back onBack={() => navigate('/admin/development')} />
-
       <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2.5 mb-1">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-moss-500 to-moss-700 shadow-lg shadow-moss-600/20"><Settings size={16} className="text-white" /></div>

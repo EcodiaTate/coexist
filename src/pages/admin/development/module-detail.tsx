@@ -2,7 +2,6 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import { Pencil, Clock, Users, BookOpen, CheckCircle2, Layers, Eye } from 'lucide-react'
-import { Header } from '@/components/header'
 import { useAdminHeader } from '@/components/admin-layout'
 import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
@@ -58,8 +57,6 @@ export default function AdminModuleDetailPage() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="max-w-3xl mx-auto space-y-6">
-      <Header title="" back onBack={() => navigate('/admin/development')} />
-
       <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6">
         <div className="flex items-start gap-4">
           {module.thumbnail_url ? (

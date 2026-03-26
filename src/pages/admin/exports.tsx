@@ -232,7 +232,7 @@ export default function AdminExportsPage() {
       } else if (exportId === 'impact-csv') {
         let query = supabase
           .from('event_impact')
-          .select('event_id, trees_planted, hours_total, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings, invasive_weeds_pulled, leaders_trained, logged_at, events(title)')
+          .select('event_id, trees_planted, hours_total, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings, invasive_weeds_pulled, coastline_cleaned_m, logged_at, events(title)')
           .order('logged_at', { ascending: false })
           .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('logged_at', dateStart)
@@ -240,12 +240,12 @@ export default function AdminExportsPage() {
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
-          ['Event', 'Trees', 'Hours', 'Rubbish (kg)', 'Area Restored (m2)', 'Native Plants', 'Wildlife Sightings', 'Invasive Weeds Pulled', 'Leaders Trained', 'Date'],
+          ['Event', 'Trees', 'Hours', 'Rubbish (kg)', 'Area Restored (m2)', 'Native Plants', 'Wildlife Sightings', 'Invasive Weeds Pulled', 'Coastline Cleaned (m)', 'Date'],
           (data ?? []).map((r) => [
             r.events?.title ?? r.event_id, r.trees_planted ?? 0,
             r.hours_total ?? 0, r.rubbish_kg ?? 0,
             r.area_restored_sqm ?? 0, r.native_plants ?? 0, r.wildlife_sightings ?? 0,
-            r.invasive_weeds_pulled ?? 0, r.leaders_trained ?? 0, r.logged_at,
+            r.invasive_weeds_pulled ?? 0, r.coastline_cleaned_m ?? 0, r.logged_at,
           ]),
         )
       } else if (exportId === 'survey') {

@@ -12,6 +12,7 @@ import {
   Receipt,
   Gift,
   Trophy,
+  X,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -19,7 +20,7 @@ import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
-import { Modal } from '@/components/modal'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
@@ -483,12 +484,18 @@ export default function AdminPartnersPage() {
       )}
 
       {/* Create org modal */}
-      <Modal
-        open={showCreateOrg}
-        onClose={() => setShowCreateOrg(false)}
-        title="Add Organisation"
-        size="lg"
-      >
+      <BottomSheet open={showCreateOrg} onClose={() => setShowCreateOrg(false)}>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-heading text-lg font-semibold text-primary-800">Add Organisation</h2>
+          <button
+            onClick={() => setShowCreateOrg(false)}
+            className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+            aria-label="Close"
+          >
+            <X size={20} />
+          </button>
+        </div>
         <div className="space-y-4">
           <Input
             label="Organisation Name"
@@ -543,15 +550,21 @@ export default function AdminPartnersPage() {
             Add Organisation
           </Button>
         </div>
-      </Modal>
+      </BottomSheet>
 
       {/* Create offer modal */}
-      <Modal
-        open={showCreateOffer}
-        onClose={() => setShowCreateOffer(false)}
-        title="Add Partner Offer"
-        size="lg"
-      >
+      <BottomSheet open={showCreateOffer} onClose={() => setShowCreateOffer(false)}>
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-heading text-lg font-semibold text-primary-800">Add Partner Offer</h2>
+          <button
+            onClick={() => setShowCreateOffer(false)}
+            className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+            aria-label="Close"
+          >
+            <X size={20} />
+          </button>
+        </div>
         <div className="space-y-4">
           <Input
             label="Offer Title"
@@ -608,7 +621,7 @@ export default function AdminPartnersPage() {
             Add Offer
           </Button>
         </div>
-      </Modal>
+      </BottomSheet>
 
       <ConfirmationSheet
         open={!!deleteTarget}

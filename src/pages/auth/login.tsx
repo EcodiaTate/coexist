@@ -43,7 +43,7 @@ export default function LoginPage() {
     if (authError) {
       setError(authError.message)
     }
-    // Always reset — on success, onAuthStateChange handles navigation;
+    // Always reset  on success, onAuthStateChange handles navigation;
     // if that's slow the user can retry rather than staring at a spinner.
     setIsSubmitting(false)
   }

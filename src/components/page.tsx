@@ -5,7 +5,7 @@ import { useLayout } from '@/hooks/use-layout'
 interface PageProps {
   /** Optional header component (e.g. <Header />) */
   header?: ReactNode
-  /** Sticky header rendered inside the scroll container — floats over content
+  /** Sticky header rendered inside the scroll container  floats over content
    *  (use for full-bleed hero pages where header must overlay the hero) */
   stickyOverlay?: ReactNode
   /** Optional sticky bottom CTA */
@@ -97,7 +97,7 @@ export function Page({
         )}
 
         {/* stickyOverlay: hero pages supply their own header (usually transparent + collapse-header).
-            hasInlineHeader: standard pages render Header directly here — it takes natural space
+            hasInlineHeader: standard pages render Header directly here  it takes natural space
             and sticks at the top of the scroll container. */}
         {stickyOverlay}
         {hasInlineHeader && header}

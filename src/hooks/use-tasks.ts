@@ -260,6 +260,7 @@ interface TemplateRow {
   id: string
   schedule_type: string
   assignment_mode?: string
+  assigned_to_user_id?: string | null
   assignee_role?: string
   collective_id: string | null
   use_dynamic_timeline?: boolean
@@ -296,7 +297,11 @@ export function useGenerateTaskInstances() {
       const typedTemplates = templates as unknown as TemplateRow[]
 
       // Split templates by type
-      const onceTemplates = typedTemplates.filter((t) => t.schedule_type === 'once')
+      const onceTemplates = typedTemplates.filter(
+        (t) => t.schedule_type === 'once' &&
+          // Skip assigned-mode once templates not meant for this user
+          (t.assignment_mode !== 'assigned' || t.assigned_to_user_id === user.id),
+      )
       const collectiveRecurring = typedTemplates.filter(
         (t) =>
           (t.schedule_type === 'weekly' || t.schedule_type === 'monthly') &&
@@ -307,9 +312,17 @@ export function useGenerateTaskInstances() {
           (t.schedule_type === 'weekly' || t.schedule_type === 'monthly') &&
           t.assignment_mode === 'individual',
       )
+      // Assigned mode: only generate for the specific assigned user
+      const assignedRecurring = typedTemplates.filter(
+        (t) =>
+          (t.schedule_type === 'weekly' || t.schedule_type === 'monthly') &&
+          t.assignment_mode === 'assigned' &&
+          t.assigned_to_user_id === user.id,
+      )
       // Non-dynamic event_relative templates (legacy fixed-offset)
       const legacyEventRelative = typedTemplates.filter(
-        (t) => t.schedule_type === 'event_relative' && !t.use_dynamic_timeline,
+        (t) => t.schedule_type === 'event_relative' && !t.use_dynamic_timeline &&
+          (t.assignment_mode !== 'assigned' || t.assigned_to_user_id === user.id),
       )
       // Dynamic event_relative handled by resolveAndGenerateDynamicInstances
 
@@ -378,6 +391,49 @@ export function useGenerateTaskInstances() {
           for (const collectiveId of targetCollectives) {
             const key = `${template.id}:${collectiveId}:${periodKey}`
             if (existingIndivKeys.has(key)) continue
+
+            const dueDate = getDueDate(template as unknown as TaskTemplate, basePeriodKey)
+            await supabase
+              .from('task_instances')
+              .insert({
+                template_id: template.id,
+                collective_id: collectiveId,
+                due_date: dueDate,
+                period_key: periodKey,
+                assigned_user_id: user.id,
+                status: 'pending',
+              })
+          }
+        }
+      }
+
+      // --- Handle assigned recurring templates (weekly/monthly for a specific user) ---
+      if (assignedRecurring.length > 0) {
+        const assignedTemplateIds = assignedRecurring.map((t) => t.id)
+
+        const { data: existingAssigned } = await supabase
+          .from('task_instances')
+          .select('template_id, collective_id, period_key')
+          .in('template_id', assignedTemplateIds)
+          .eq('assigned_user_id', user.id)
+
+        const existingAssignedKeys = new Set(
+          (existingAssigned ?? []).map(
+            (r: { template_id: string; collective_id: string; period_key: string }) =>
+              `${r.template_id}:${r.collective_id}:${r.period_key}`,
+          ),
+        )
+
+        for (const template of assignedRecurring) {
+          const basePeriodKey = getCurrentPeriodKey(template.schedule_type)
+          if (!basePeriodKey) continue
+
+          const periodKey = `${basePeriodKey}:assigned:${user.id}`
+          const targetCollectives = getTargetCollectives(template)
+
+          for (const collectiveId of targetCollectives) {
+            const key = `${template.id}:${collectiveId}:${periodKey}`
+            if (existingAssignedKeys.has(key)) continue
 
             const dueDate = getDueDate(template as unknown as TaskTemplate, basePeriodKey)
             await supabase

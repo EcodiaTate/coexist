@@ -34,7 +34,7 @@ export default function AuthCallbackPage() {
         setState('success')
 
         // If the user is on web (not inside the native app), check
-        // if this is a recovery flow — redirect to reset-password page.
+        // if this is a recovery flow  redirect to reset-password page.
         if (event === 'PASSWORD_RECOVERY') {
           setTimeout(() => navigate('/reset-password', { replace: true }), 1500)
           return
@@ -48,7 +48,7 @@ export default function AuthCallbackPage() {
       }
     })
 
-    // Safety timeout — if nothing happens after 30s, something went wrong.
+    // Safety timeout  if nothing happens after 30s, something went wrong.
     const timeout = setTimeout(() => {
       setState((prev) => {
         if (prev === 'processing') {

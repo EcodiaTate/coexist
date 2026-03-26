@@ -9,6 +9,7 @@ import {
   Target,
   Trash2,
   Zap,
+  X,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -16,7 +17,7 @@ import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
-import { Modal } from '@/components/modal'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { StaggeredList, StaggeredItem } from '@/components/scroll-reveal'
@@ -251,12 +252,18 @@ export default function AdminChallengesPage() {
           </motion.div>
 
           {/* Create modal */}
-          <Modal
-            open={showCreate}
-            onClose={() => setShowCreate(false)}
-            title="Create National Challenge"
-            size="lg"
-          >
+          <BottomSheet open={showCreate} onClose={() => setShowCreate(false)}>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-heading text-lg font-semibold text-primary-800">Create National Challenge</h2>
+              <button
+                onClick={() => setShowCreate(false)}
+                className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+                aria-label="Close"
+              >
+                <X size={20} />
+              </button>
+            </div>
             <div className="space-y-4">
               <Input
                 label="Challenge Title"
@@ -322,7 +329,7 @@ export default function AdminChallengesPage() {
                 Create Challenge
               </Button>
             </div>
-          </Modal>
+          </BottomSheet>
 
           <ConfirmationSheet
             open={!!deleteTarget}

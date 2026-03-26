@@ -39,42 +39,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      announcement_reads: {
-        Row: {
-          announcement_id: string
-          id: string
-          read_at: string | null
-          user_id: string
-        }
-        Insert: {
-          announcement_id: string
-          id?: string
-          read_at?: string | null
-          user_id: string
-        }
-        Update: {
-          announcement_id?: string
-          id?: string
-          read_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "announcement_reads_announcement_id_fkey"
-            columns: ["announcement_id"]
-            isOneToOne: false
-            referencedRelation: "global_announcements"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "announcement_reads_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       app_images: {
         Row: {
           key: string
@@ -106,21 +70,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      app_settings: {
-        Row: {
-          key: string
-          value: Json | null
-        }
-        Insert: {
-          key: string
-          value?: Json | null
-        }
-        Update: {
-          key?: string
-          value?: Json | null
-        }
-        Relationships: []
       }
       audit_log: {
         Row: {
@@ -1087,6 +1036,44 @@ export type Database = {
           },
         ]
       }
+      contact_submissions: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          subject: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          subject?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          subject?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contact_submissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       content_reports: {
         Row: {
           content_id: string
@@ -1727,6 +1714,7 @@ export type Database = {
           completed_at: string | null
           id: string
           last_content_id: string | null
+          last_sort_order: number | null
           module_id: string
           progress_pct: number
           started_at: string | null
@@ -1739,6 +1727,7 @@ export type Database = {
           completed_at?: string | null
           id?: string
           last_content_id?: string | null
+          last_sort_order?: number | null
           module_id: string
           progress_pct?: number
           started_at?: string | null
@@ -1751,6 +1740,7 @@ export type Database = {
           completed_at?: string | null
           id?: string
           last_content_id?: string | null
+          last_sort_order?: number | null
           module_id?: string
           progress_pct?: number
           started_at?: string | null
@@ -2613,72 +2603,6 @@ export type Database = {
           },
         ]
       }
-      global_announcements: {
-        Row: {
-          author_id: string | null
-          content: string
-          created_at: string | null
-          id: string
-          image_url: string | null
-          image_urls: string[] | null
-          is_pinned: boolean | null
-          priority: Database["public"]["Enums"]["announcement_priority"] | null
-          target_audience:
-            | Database["public"]["Enums"]["announcement_target"]
-            | null
-          target_collective_id: string | null
-          title: string
-          updated_at: string | null
-        }
-        Insert: {
-          author_id?: string | null
-          content: string
-          created_at?: string | null
-          id?: string
-          image_url?: string | null
-          image_urls?: string[] | null
-          is_pinned?: boolean | null
-          priority?: Database["public"]["Enums"]["announcement_priority"] | null
-          target_audience?:
-            | Database["public"]["Enums"]["announcement_target"]
-            | null
-          target_collective_id?: string | null
-          title: string
-          updated_at?: string | null
-        }
-        Update: {
-          author_id?: string | null
-          content?: string
-          created_at?: string | null
-          id?: string
-          image_url?: string | null
-          image_urls?: string[] | null
-          is_pinned?: boolean | null
-          priority?: Database["public"]["Enums"]["announcement_priority"] | null
-          target_audience?:
-            | Database["public"]["Enums"]["announcement_target"]
-            | null
-          target_collective_id?: string | null
-          title?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "global_announcements_author_id_fkey"
-            columns: ["author_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "global_announcements_target_collective_id_fkey"
-            columns: ["target_collective_id"]
-            isOneToOne: false
-            referencedRelation: "collectives"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       impact_areas: {
         Row: {
           area_sqm: number | null
@@ -2770,35 +2694,6 @@ export type Database = {
             foreignKeyName: "invites_inviter_id_fkey"
             columns: ["inviter_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      referral_codes: {
-        Row: {
-          id: string
-          user_id: string
-          code: string
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          code: string
-          created_at?: string | null
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          code?: string
-          created_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "referral_codes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -3488,6 +3383,8 @@ export type Database = {
           activity_type: string
           created_at: string | null
           id: string
+          impact_metric: string | null
+          impact_unit: string | null
           is_required: boolean | null
           options: Json | null
           question_key: string
@@ -3500,6 +3397,8 @@ export type Database = {
           activity_type: string
           created_at?: string | null
           id?: string
+          impact_metric?: string | null
+          impact_unit?: string | null
           is_required?: boolean | null
           options?: Json | null
           question_key: string
@@ -3512,6 +3411,8 @@ export type Database = {
           activity_type?: string
           created_at?: string | null
           id?: string
+          impact_metric?: string | null
+          impact_unit?: string | null
           is_required?: boolean | null
           options?: Json | null
           question_key?: string
@@ -3685,7 +3586,15 @@ export type Database = {
           tos_accepted_version?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       promo_codes: {
         Row: {
@@ -3803,6 +3712,35 @@ export type Database = {
             foreignKeyName: "recurring_donations_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -3944,6 +3882,7 @@ export type Database = {
       survey_responses: {
         Row: {
           answers: Json
+          event_id: string | null
           id: string
           submitted_at: string | null
           survey_id: string
@@ -3951,6 +3890,7 @@ export type Database = {
         }
         Insert: {
           answers?: Json
+          event_id?: string | null
           id?: string
           submitted_at?: string | null
           survey_id: string
@@ -3958,6 +3898,7 @@ export type Database = {
         }
         Update: {
           answers?: Json
+          event_id?: string | null
           id?: string
           submitted_at?: string | null
           survey_id?: string
@@ -3982,6 +3923,7 @@ export type Database = {
       }
       surveys: {
         Row: {
+          activity_type: string | null
           auto_send_after_event: boolean | null
           created_at: string | null
           created_by: string | null
@@ -3993,6 +3935,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          activity_type?: string | null
           auto_send_after_event?: boolean | null
           created_at?: string | null
           created_by?: string | null
@@ -4004,6 +3947,7 @@ export type Database = {
           title: string
         }
         Update: {
+          activity_type?: string | null
           auto_send_after_event?: boolean | null
           created_at?: string | null
           created_by?: string | null
@@ -4130,6 +4074,7 @@ export type Database = {
           is_active: boolean
           schedule_type: string
           sort_order: number
+          survey_id: string | null
           title: string
           updated_at: string
           use_dynamic_timeline: boolean
@@ -4151,6 +4096,7 @@ export type Database = {
           is_active?: boolean
           schedule_type: string
           sort_order?: number
+          survey_id?: string | null
           title: string
           updated_at?: string
           use_dynamic_timeline?: boolean
@@ -4172,6 +4118,7 @@ export type Database = {
           is_active?: boolean
           schedule_type?: string
           sort_order?: number
+          survey_id?: string | null
           title?: string
           updated_at?: string
           use_dynamic_timeline?: boolean
@@ -4189,6 +4136,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_templates_survey_id_fkey"
+            columns: ["survey_id"]
+            isOneToOne: false
+            referencedRelation: "surveys"
             referencedColumns: ["id"]
           },
         ]
@@ -4256,35 +4210,101 @@ export type Database = {
           },
         ]
       }
-      contact_submissions: {
+      update_reads: {
         Row: {
           id: string
-          name: string
-          email: string
-          subject: string | null
-          message: string
-          user_id: string | null
-          created_at: string
+          read_at: string | null
+          update_id: string
+          user_id: string
         }
         Insert: {
           id?: string
-          name: string
-          email: string
-          subject?: string | null
-          message: string
-          user_id?: string | null
-          created_at?: string
+          read_at?: string | null
+          update_id: string
+          user_id: string
         }
         Update: {
           id?: string
-          name?: string
-          email?: string
-          subject?: string | null
-          message?: string
-          user_id?: string | null
-          created_at?: string
+          read_at?: string | null
+          update_id?: string
+          user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "update_reads_update_id_fkey"
+            columns: ["update_id"]
+            isOneToOne: false
+            referencedRelation: "updates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "update_reads_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      updates: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          image_url: string | null
+          image_urls: string[] | null
+          is_pinned: boolean | null
+          priority: Database["public"]["Enums"]["update_priority"] | null
+          target_audience: Database["public"]["Enums"]["update_target"] | null
+          target_collective_id: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          image_urls?: string[] | null
+          is_pinned?: boolean | null
+          priority?: Database["public"]["Enums"]["update_priority"] | null
+          target_audience?: Database["public"]["Enums"]["update_target"] | null
+          target_collective_id?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          image_urls?: string[] | null
+          is_pinned?: boolean | null
+          priority?: Database["public"]["Enums"]["update_priority"] | null
+          target_audience?: Database["public"]["Enums"]["update_target"] | null
+          target_collective_id?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "updates_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "updates_target_collective_id_fkey"
+            columns: ["target_collective_id"]
+            isOneToOne: false
+            referencedRelation: "collectives"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -4421,6 +4441,7 @@ export type Database = {
         Returns: unknown
       }
       _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      accept_referral: { Args: { referral_code: string }; Returns: undefined }
       addauth: { Args: { "": string }; Returns: boolean }
       addgeometrycolumn:
         | {
@@ -4664,7 +4685,6 @@ export type Database = {
           total_trees: number
         }[]
       }
-      accept_referral: { Args: { referral_code: string }; Returns: undefined }
       get_collective_stats: { Args: { p_collective_id: string }; Returns: Json }
       get_leaderboard: {
         Args: { p_collective_id: string; p_period?: string }
@@ -5414,8 +5434,6 @@ export type Database = {
         | "film_screening"
         | "marine_restoration"
         | "workshop"
-      announcement_priority: "normal" | "urgent"
-      announcement_target: "all" | "leaders" | "collective_specific"
       collective_role: "member" | "assist_leader" | "co_leader" | "leader"
       dev_assignment_scope: "collective" | "individual"
       dev_category: "learning" | "leadership_development" | "onboarding"
@@ -5444,6 +5462,8 @@ export type Database = {
         | "invited"
       report_status: "pending" | "approved" | "removed" | "dismissed"
       timeline_anchor: "next_event" | "next_event_of_type" | "event_series"
+      update_priority: "normal" | "urgent"
+      update_target: "all" | "leaders" | "collective_specific"
       user_role:
         | "participant"
         | "national_staff"
@@ -5598,8 +5618,6 @@ export const Constants = {
         "marine_restoration",
         "workshop",
       ],
-      announcement_priority: ["normal", "urgent"],
-      announcement_target: ["all", "leaders", "collective_specific"],
       collective_role: ["member", "assist_leader", "co_leader", "leader"],
       dev_assignment_scope: ["collective", "individual"],
       dev_category: ["learning", "leadership_development", "onboarding"],
@@ -5631,6 +5649,8 @@ export const Constants = {
       ],
       report_status: ["pending", "approved", "removed", "dismissed"],
       timeline_anchor: ["next_event", "next_event_of_type", "event_series"],
+      update_priority: ["normal", "urgent"],
+      update_target: ["all", "leaders", "collective_specific"],
       user_role: [
         "participant",
         "national_staff",

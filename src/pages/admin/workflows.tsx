@@ -26,12 +26,14 @@ import {
   Sparkles,
   Users,
   User,
+  UserCheck,
+  ClipboardList,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { SearchBar } from '@/components/search-bar'
 import { Dropdown } from '@/components/dropdown'
-import { Modal } from '@/components/modal'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { Input } from '@/components/input'
 import { Toggle } from '@/components/toggle'
 import { Skeleton } from '@/components/skeleton'
@@ -76,6 +78,37 @@ function useAllCollectives() {
         .select('id, name, slug, state')
         .eq('is_active', true)
         .order('name')
+      if (error) throw error
+      return data ?? []
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+function useAssignableStaff() {
+  return useQuery({
+    queryKey: ['admin-assignable-staff'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, display_name, avatar_url, role')
+        .neq('role', 'participant')
+        .order('display_name')
+      if (error) throw error
+      return data ?? []
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+function useAllSurveys() {
+  return useQuery({
+    queryKey: ['admin-all-surveys-simple'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('surveys')
+        .select('id, title')
+        .order('title')
       if (error) throw error
       return data ?? []
     },
@@ -298,11 +331,15 @@ function TemplateModal({
   onClose,
   template,
   collectives,
+  surveys,
+  staffUsers,
 }: {
   open: boolean
   onClose: () => void
   template?: TaskTemplate | null
   collectives: { id: string; name: string; state: string | null }[]
+  surveys: { id: string; title: string }[]
+  staffUsers: { id: string; display_name: string; avatar_url: string | null; role: string }[]
 }) {
   const { toast } = useToast()
   const createMutation = useAdminCreateTemplate()
@@ -320,11 +357,13 @@ function TemplateModal({
   const [dayOfMonth, setDayOfMonth] = useState(String(template?.day_of_month ?? 1))
   const [eventOffsetDays, setEventOffsetDays] = useState(String(template?.event_offset_days ?? -3))
   const [assigneeRole, setAssigneeRole] = useState(template?.assignee_role ?? 'assist_leader')
-  const [assignmentMode, setAssignmentMode] = useState<'collective' | 'individual'>(template?.assignment_mode ?? 'collective')
+  const [assignmentMode, setAssignmentMode] = useState<'collective' | 'individual' | 'assigned'>(template?.assignment_mode ?? 'collective')
+  const [assignedToUserId, setAssignedToUserId] = useState(template?.assigned_to_user_id ?? '')
   const [collectiveId, setCollectiveId] = useState(template?.collective_id ?? '')
   const [sortOrder, setSortOrder] = useState(String(template?.sort_order ?? 0))
   const [attachmentUrl, setAttachmentUrl] = useState(template?.attachment_url ?? '')
   const [attachmentLabel, setAttachmentLabel] = useState(template?.attachment_label ?? '')
+  const [surveyId, setSurveyId] = useState(template?.survey_id ?? '')
 
   // Dynamic timeline state
   const [useDynamicTimeline, setUseDynamicTimeline] = useState(!!(template?.use_dynamic_timeline))
@@ -384,10 +423,12 @@ function TemplateModal({
       event_offset_days: scheduleType === 'event_relative' ? parseInt(isDynamic ? tlOffsetDays : eventOffsetDays) : null,
       assignee_role: assigneeRole,
       assignment_mode: assignmentMode,
+      assigned_to_user_id: assignmentMode === 'assigned' ? (assignedToUserId || null) : null,
       sort_order: parseInt(sortOrder) || 0,
       attachment_url: attachmentUrl.trim() || null,
       attachment_label: attachmentLabel.trim() || null,
       use_dynamic_timeline: isDynamic,
+      survey_id: surveyId || null,
     }
 
     const saveTimelineRule = (templateId: string) => {
@@ -434,12 +475,18 @@ function TemplateModal({
   }
 
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title={isEdit ? 'Edit Template' : 'Create Task Template'}
-      size="lg"
-    >
+    <BottomSheet open={open} onClose={onClose}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-heading text-lg font-semibold text-primary-800">{isEdit ? 'Edit Template' : 'Create Task Template'}</h2>
+        <button
+          onClick={onClose}
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          aria-label="Close"
+        >
+          <X size={20} />
+        </button>
+      </div>
       <div className="space-y-4">
         <Input
           label="Title"
@@ -516,7 +563,46 @@ function TemplateModal({
                 <p className="text-[11px] text-primary-400">Each person completes it</p>
               </div>
             </button>
+            <button
+              type="button"
+              onClick={() => setAssignmentMode('assigned')}
+              className={cn(
+                'flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-left',
+                assignmentMode === 'assigned'
+                  ? 'bg-primary-100 border border-primary-200'
+                  : 'bg-white border border-primary-100/40 hover:bg-primary-50',
+              )}
+            >
+              <UserCheck size={16} className={assignmentMode === 'assigned' ? 'text-primary-700' : 'text-primary-400'} />
+              <div>
+                <p className={cn('text-sm font-medium', assignmentMode === 'assigned' ? 'text-primary-700' : 'text-primary-500')}>
+                  Assigned
+                </p>
+                <p className="text-[11px] text-primary-400">One specific person</p>
+              </div>
+            </button>
           </div>
+
+          {/* User picker for assigned mode */}
+          {assignmentMode === 'assigned' && (
+            <div className="mt-3">
+              <Dropdown
+                options={staffUsers.map((u) => ({
+                  value: u.id,
+                  label: `${u.display_name} (${u.role.replace('_', ' ')})`,
+                }))}
+                value={assignedToUserId}
+                onChange={setAssignedToUserId}
+                label="Assign to"
+                placeholder="Select a staff member..."
+              />
+              {!assignedToUserId && (
+                <p className="text-[11px] text-warning-600 mt-1">
+                  Please select a user to assign this task to
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Schedule */}
@@ -607,6 +693,28 @@ function TemplateModal({
           </div>
         )}
 
+        {/* Survey (optional) */}
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-primary-800 flex items-center gap-1.5">
+            <ClipboardList size={14} className="text-primary-400" />
+            Survey (optional)
+          </p>
+          <Dropdown
+            options={[
+              { value: '', label: 'No survey' },
+              ...surveys.map((s) => ({ value: s.id, label: s.title })),
+            ]}
+            value={surveyId}
+            onChange={setSurveyId}
+            placeholder="Attach a survey..."
+          />
+          {surveyId && (
+            <p className="text-[11px] text-primary-400 px-1">
+              Staff will be prompted to complete this survey when marking the task as done
+            </p>
+          )}
+        </div>
+
         {/* Attachment (optional) */}
         <div className="space-y-2">
           <p className="text-sm font-medium text-primary-800 flex items-center gap-1.5">
@@ -673,7 +781,7 @@ function TemplateModal({
           {isEdit ? 'Save Changes' : 'Create Template'}
         </Button>
       </div>
-    </Modal>
+    </BottomSheet>
   )
 }
 
@@ -815,6 +923,8 @@ export default function AdminWorkflowsPage() {
 
   const { toast } = useToast()
   const { data: collectives } = useAllCollectives()
+  const { data: surveys } = useAllSurveys()
+  const { data: staffUsers } = useAssignableStaff()
   const { data: templates, isLoading } = useAdminTaskTemplates({
     scope: scopeFilter,
     scheduleType: scheduleFilter || undefined,
@@ -970,6 +1080,8 @@ export default function AdminWorkflowsPage() {
                             <span className="flex items-center gap-1">
                               {(template.assignment_mode ?? 'collective') === 'collective'
                                 ? <><Users size={10} /> Collective</>
+                                : (template.assignment_mode === 'assigned')
+                                ? <><UserCheck size={10} /> Assigned</>
                                 : <><User size={10} /> Individual</>}
                             </span>
                             <span className="text-primary-200">·</span>
@@ -980,6 +1092,15 @@ export default function AdminWorkflowsPage() {
                                 <span className="flex items-center gap-1 text-primary-500">
                                   <Paperclip size={10} />
                                   {template.attachment_label || 'Attachment'}
+                                </span>
+                              </>
+                            )}
+                            {template.survey_id && (
+                              <>
+                                <span className="text-primary-200">·</span>
+                                <span className="flex items-center gap-1 text-plum-600 font-medium">
+                                  <ClipboardList size={10} />
+                                  {template.survey?.title || 'Survey'}
                                 </span>
                               </>
                             )}
@@ -1037,6 +1158,8 @@ export default function AdminWorkflowsPage() {
           open={showCreate}
           onClose={() => setShowCreate(false)}
           collectives={collectives ?? []}
+          surveys={surveys ?? []}
+          staffUsers={staffUsers ?? []}
         />
       )}
 
@@ -1047,6 +1170,8 @@ export default function AdminWorkflowsPage() {
           onClose={() => setEditTemplate(null)}
           template={editTemplate}
           collectives={collectives ?? []}
+          surveys={surveys ?? []}
+          staffUsers={staffUsers ?? []}
         />
       )}
 

@@ -16,12 +16,15 @@ export interface TaskTemplate {
   day_of_month: number | null
   event_offset_days: number | null
   assignee_role: string
-  assignment_mode: 'collective' | 'individual'
+  assignment_mode: 'collective' | 'individual' | 'assigned'
+  assigned_to_user_id: string | null
   sort_order: number
   is_active: boolean
   attachment_url: string | null
   attachment_label: string | null
   use_dynamic_timeline: boolean
+  survey_id: string | null
+  survey?: { id: string; title: string } | null
   created_by: string
   created_at: string
   updated_at: string
@@ -69,6 +72,7 @@ interface KpiInstanceRow {
 
 interface TemplateRow extends Record<string, unknown> {
   collectives: unknown
+  surveys: unknown
 }
 
 /* ------------------------------------------------------------------ */
@@ -176,7 +180,7 @@ export function useAdminTaskTemplates(filters?: {
     queryFn: async () => {
       let query = supabase
         .from('task_templates')
-        .select('*, collectives(id, name)')
+        .select('*, collectives(id, name), surveys(id, title)')
         .order('sort_order')
         .order('created_at', { ascending: false })
 
@@ -199,6 +203,7 @@ export function useAdminTaskTemplates(filters?: {
       return (data ?? []).map((row: TemplateRow) => ({
         ...row,
         collective: row.collectives,
+        survey: row.surveys,
       })) as unknown as TaskTemplate[]
     },
     staleTime: 30 * 1000,
@@ -218,11 +223,13 @@ export function useAdminCreateTemplate() {
       day_of_month?: number | null
       event_offset_days?: number | null
       assignee_role: string
-      assignment_mode?: 'collective' | 'individual'
+      assignment_mode?: 'collective' | 'individual' | 'assigned'
+      assigned_to_user_id?: string | null
       sort_order?: number
       attachment_url?: string | null
       attachment_label?: string | null
       use_dynamic_timeline?: boolean
+      survey_id?: string | null
     }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
@@ -234,7 +241,7 @@ export function useAdminCreateTemplate() {
           collective_id: input.collective_id || null,
           created_by: user.id,
         })
-        .select('*, collectives(id, name)')
+        .select('*, collectives(id, name), surveys(id, title)')
         .single()
       if (error) throw error
       const row = data as TemplateRow
@@ -263,7 +270,7 @@ export function useAdminUpdateTemplate() {
         .from('task_templates')
         .update(updates)
         .eq('id', id)
-        .select('*, collectives(id, name)')
+        .select('*, collectives(id, name), surveys(id, title)')
         .single()
       if (error) throw error
       const row = data as TemplateRow

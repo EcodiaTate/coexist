@@ -229,7 +229,7 @@ export default function CheckInPage() {
         }
       }
     } catch {
-      // Query failed (truly offline / no cache) — proceed with queue
+      // Query failed (truly offline / no cache)  proceed with queue
     }
 
     queueOfflineCheckIn(eventId, user.id)

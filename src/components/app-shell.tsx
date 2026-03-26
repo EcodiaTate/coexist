@@ -21,7 +21,7 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, bare = false }: AppShellProps) {
-  // Scroll focused inputs into view when native keyboard opens —
+  // Scroll focused inputs into view when native keyboard opens
   // must run in BOTH bare and full shells so auth/onboarding pages work too.
   useKeyboard()
 
@@ -99,11 +99,11 @@ function AppShellInner({ children }: { children: ReactNode }) {
   // re-registers on app resume. Runs once for all authenticated users.
   usePushRegistration()
 
-  // Role-aware chunk prefetch — downloads the user's top 5 pages first,
+  // Role-aware chunk prefetch  downloads the user's top 5 pages first,
   // then remaining common pages, so nav targets are instant.
   useRolePrefetch()
 
-  // Role-aware data prefetch — warms TanStack Query cache with the
+  // Role-aware data prefetch  warms TanStack Query cache with the
   // actual Supabase data each page needs, so first navigation renders
   // the final state with zero loading spinners.
   useDataPrefetch()

@@ -1,15 +1,15 @@
 import { useState, useMemo } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Phone,
-  ChevronDown,
-  Siren,
-  Shield,
-  Waves,
-  Bug,
-  TreePine,
-  Users,
-  Loader2,
+    Phone,
+    ChevronDown,
+    Siren,
+    Shield,
+    Waves,
+    Bug,
+    TreePine,
+    Users,
+    Loader2,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { SearchBar } from '@/components/search-bar'
@@ -306,7 +306,7 @@ export function EmergencyContacts({ eventState }: EmergencyContactsProps) {
           </h3>
           <p className="text-[11px] text-primary-400">
             {eventState
-              ? `Showing contacts for ${eventState} — tap any number to call`
+              ? `Showing contacts for ${eventState}  tap any number to call`
               : 'Tap any number to call instantly'}
           </p>
         </div>
@@ -315,7 +315,7 @@ export function EmergencyContacts({ eventState }: EmergencyContactsProps) {
       {/* Search */}
       <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search contacts..." compact />
 
-      {/* Emergency banner — always visible, quick access to 000 */}
+      {/* Emergency banner  always visible, quick access to 000 */}
       <a
         href="tel:000"
         className={cn(

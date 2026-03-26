@@ -1,14 +1,14 @@
 import {
-  type ReactElement,
-  type ReactNode,
-  useRef,
-  useEffect,
-  useMemo,
+    type ReactElement,
+    type ReactNode,
+    useRef,
+    useEffect,
+    useMemo,
 } from 'react'
 import {
-  useLocation,
-  useOutlet,
-  UNSAFE_LocationContext as LocationContext,
+    useLocation,
+    useOutlet,
+    UNSAFE_LocationContext as LocationContext,
 } from 'react-router'
 import { useSwipeBack } from '@/hooks/use-swipe-back'
 
@@ -29,7 +29,7 @@ function getScrollEl(wrapper: HTMLDivElement | null): HTMLElement | null {
 /**
  * Freezes the React Router location context for its children.
  * This prevents cached pages from re-rendering when the global
- * route changes — they keep seeing the location from when they
+ * route changes  they keep seeing the location from when they
  * were first created.
  */
 function FrozenRouter({ location, children }: { location: ReturnType<typeof useLocation>; children: ReactNode }) {
@@ -63,7 +63,7 @@ export function KeepAlive() {
   const wrappersRef = useRef<Map<string, HTMLDivElement>>(new Map())
   const prevPathRef = useRef<string | null>(null)
   const swipeRestoredRef = useRef<string | null>(null)
-  // Frozen location per cached page — so back-nav doesn't re-render page contents
+  // Frozen location per cached page  so back-nav doesn't re-render page contents
   const frozenLocationsRef = useRef<Map<string, ReturnType<typeof useLocation>>>(new Map())
 
   const { offsetX, swiping, animating } = useSwipeBack({ enabled: true })

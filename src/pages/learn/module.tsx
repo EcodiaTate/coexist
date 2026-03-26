@@ -87,7 +87,7 @@ export default function LearnModulePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- upsertProgress is a stable mutation object
   }, [moduleId, blocks, viewedBlocks])
 
-  // Resume scroll — prefer sort_order (survives content re-save), fallback to content_id
+  // Resume scroll  prefer sort_order (survives content re-save), fallback to content_id
   useEffect(() => {
     if (blocks.length === 0 || !progress) return
     let resumeBlock: typeof blocks[number] | undefined

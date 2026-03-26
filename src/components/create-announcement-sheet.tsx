@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, startTransition } from 'react'
 import { Megaphone, CalendarPlus, ChevronDown, Users2, Check, MapPin, Calendar } from 'lucide-react'
-import { CenteredDialog } from '@/components/centered-dialog'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { SearchBar } from '@/components/search-bar'
@@ -334,7 +334,7 @@ export function CreateAnnouncementSheet({
   ]
 
   return (
-    <CenteredDialog open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={onClose}>
       <div className="pb-4 max-h-[80vh] overflow-y-auto overscroll-contain">
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-4">
@@ -466,6 +466,6 @@ export function CreateAnnouncementSheet({
               : 'Post Announcement'}
         </Button>
       </div>
-    </CenteredDialog>
+    </BottomSheet>
   )
 }

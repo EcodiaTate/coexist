@@ -13,7 +13,6 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useAdminHeader } from '@/components/admin-layout'
-import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -197,8 +196,6 @@ export default function AdminCreateSectionPage() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="max-w-3xl mx-auto space-y-6">
-      <Header title="" back onBack={() => navigate('/admin/development')} />
-
       {/* Details */}
       <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2.5 mb-1">
