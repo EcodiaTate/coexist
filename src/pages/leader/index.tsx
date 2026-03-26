@@ -190,7 +190,7 @@ function TaskCard({ task }: { task: MyTask }) {
       await supabase.from('survey_responses').insert({
         survey_id: task.template.survey_id,
         user_id: user.id,
-        answers,
+        answers: answers as unknown as import('@/types/database.types').Json,
       })
       await completeMutation.mutateAsync({
         instanceId: task.id,

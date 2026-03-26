@@ -339,7 +339,7 @@ function TemplateModal({
   template?: TaskTemplate | null
   collectives: { id: string; name: string; state: string | null }[]
   surveys: { id: string; title: string }[]
-  staffUsers: { id: string; display_name: string; avatar_url: string | null; role: string }[]
+  staffUsers: { id: string; display_name: string | null; avatar_url: string | null; role: string | null }[]
 }) {
   const { toast } = useToast()
   const createMutation = useAdminCreateTemplate()
@@ -589,7 +589,7 @@ function TemplateModal({
               <Dropdown
                 options={staffUsers.map((u) => ({
                   value: u.id,
-                  label: `${u.display_name} (${u.role.replace('_', ' ')})`,
+                  label: `${u.display_name ?? 'Unknown'} (${(u.role ?? 'staff').replace('_', ' ')})`,
                 }))}
                 value={assignedToUserId}
                 onChange={setAssignedToUserId}

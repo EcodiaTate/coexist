@@ -33,7 +33,7 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { ACTIVITY_TYPE_OPTIONS } from '@/hooks/use-events'
-import { SURVEY_LINKABLE_METRICS } from '@/lib/impact-metrics'
+import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -405,6 +405,7 @@ function QuestionEditor({
   const [expanded, setExpanded] = useState(false)
   const hasOptions = HAS_OPTIONS.includes(question.type)
   const hasScale = HAS_SCALE.includes(question.type)
+  const { surveyLinkableMetrics } = useImpactMetricDefs()
 
   const update = (partial: Partial<SurveyQuestion>) =>
     onChange({ ...question, ...partial })
@@ -811,7 +812,7 @@ function QuestionEditor({
                     label="Impact Metric (optional)"
                     options={[
                       { value: '', label: 'None — not linked to impact stats' },
-                      ...SURVEY_LINKABLE_METRICS.map((m) => ({ value: m.key, label: m.label })),
+                      ...surveyLinkableMetrics.map((m) => ({ value: m.key, label: m.label })),
                     ]}
                     value={question.impact_metric ?? ''}
                     onChange={(v) => update({ impact_metric: v || undefined })}

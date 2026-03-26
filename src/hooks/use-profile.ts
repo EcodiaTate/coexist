@@ -89,7 +89,7 @@ export function useProfileStats(userId?: string) {
             .from('event_impact')
             .select(IMPACT_SELECT_COLUMNS)
             .in('event_id', chunk)
-          if (data) impactRows.push(...(data as Record<string, unknown>[]))
+          if (data) impactRows.push(...(data as unknown as Record<string, unknown>[]))
         }
 
         if (impactRows.length > 0) {

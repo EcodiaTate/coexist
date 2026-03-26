@@ -18,6 +18,7 @@ import {
   Home,
   Shield,
   Phone,
+  BarChart3,
 } from 'lucide-react'
 import { createElement } from 'react'
 import type { NavCategory, NavItem } from './types'
@@ -75,6 +76,7 @@ export const adminNavCategories: NavCategory[] = [
     dotColor: 'bg-amber-500',
     items: [
       { label: 'Charity', path: '/admin/charity', icon: icon(Heart), capability: 'manage_charity' },
+      { label: 'Impact Metrics', path: '/admin/impact-metrics', icon: icon(BarChart3), capability: 'manage_system' },
       { label: 'Branding', path: '/admin/branding', icon: icon(Image), capability: 'manage_system' },
       { label: 'Legal Pages', path: '/admin/legal-pages', icon: icon(FileText), capability: 'manage_system' },
       { label: 'System', path: '/admin/system', icon: icon(Settings), capability: 'manage_system' },

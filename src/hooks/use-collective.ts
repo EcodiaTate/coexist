@@ -240,7 +240,7 @@ export function useCollectiveStats(collectiveId: string | undefined) {
           .in('event_id', eventIds)
 
         if (impacts) {
-          for (const i of impacts as Record<string, unknown>[]) {
+          for (const i of impacts as unknown as Record<string, unknown>[]) {
             totalTreesPlanted += Number(i.trees_planted) || 0
             totalRubbishKg += Number(i.rubbish_kg) || 0
             totalHours += Number(i.hours_total) || 0

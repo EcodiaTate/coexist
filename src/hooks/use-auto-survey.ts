@@ -122,7 +122,7 @@ export function useAutoSurveyConfig() {
   return useQuery({
     queryKey: ['auto-survey-config'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('app_settings')
         .select('value')
         .eq('key', 'auto_survey_config')
@@ -152,7 +152,7 @@ export function useUpdateAutoSurveyConfig() {
 
   return useMutation({
     mutationFn: async (config: AutoSurveyConfig) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('app_settings')
         .upsert(
           { key: 'auto_survey_config', value: config },
@@ -174,7 +174,7 @@ export function useTriggerSurveyNotifications() {
   return useMutation({
     mutationFn: async ({ eventId, eventTitle }: { eventId: string; eventTitle: string }) => {
       // Check if auto-surveys are enabled
-      const { data: config } = await supabase
+      const { data: config } = await (supabase as any)
         .from('app_settings')
         .select('value')
         .eq('key', 'auto_survey_config')

@@ -1057,7 +1057,7 @@ export function useDuplicateEvent() {
 
 async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
   // Check if auto-surveys are enabled
-  const { data: config } = await supabase
+  const { data: config } = await (supabase as any)
     .from('app_settings')
     .select('value')
     .eq('key', 'auto_survey_config')

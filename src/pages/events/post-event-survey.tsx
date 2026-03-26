@@ -9,7 +9,8 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
 import { useEventDetail, ACTIVITY_TYPE_LABELS, isPastEvent } from '@/hooks/use-events'
-import { VALID_IMPACT_METRICS } from '@/lib/impact-metrics'
+import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
+import { isBuiltinMetric } from '@/lib/impact-metrics'
 import {
   Page,
   Header,
@@ -93,7 +94,7 @@ function useEventSurvey(eventId: string | undefined, activityType: string | unde
           id: (q.id as string) || crypto.randomUUID(),
           question_key: (q.id as string) || crypto.randomUUID(),
           question_text: (q.text as string) || '',
-          question_type: (q.type as string) || 'free_text',
+          question_type: ((q.type as string) || 'free_text') as SurveyQuestion['question_type'],
           unit: (q.placeholder as string) || null,
           options: Array.isArray(q.options) ? (q.options as string[]) : null,
           is_required: (q.required as boolean) ?? false,
@@ -149,6 +150,7 @@ function useExistingResponse(surveyId: string | undefined, eventId: string | und
 function useSubmitSurvey() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { validKeys } = useImpactMetricDefs()
 
   return useMutation({
     mutationFn: async ({
@@ -178,7 +180,7 @@ function useSubmitSurvey() {
       if (error) throw error
 
       // --- Sync impact-tagged answers into event_impact ---
-      await syncSurveyImpact(eventId, questions, answers as Record<string, Json>, user.id)
+      await syncSurveyImpact(eventId, questions, answers as Record<string, Json>, user.id, validKeys)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['survey-response', variables.surveyId] })
@@ -196,26 +198,34 @@ function useSubmitSurvey() {
 /**
  * Sync impact-tagged survey answers into event_impact.
  * Reads impact_metric directly from the questions array — no extra DB query.
+ * Built-in metrics go to their columns; custom metrics go to custom_metrics jsonb.
  */
 async function syncSurveyImpact(
   eventId: string,
   questions: SurveyQuestion[],
   answers: Record<string, Json>,
   userId: string,
+  validKeys: Set<string>,
 ) {
   // Build partial impact payload from impact-tagged questions
-  const impactUpdates: Record<string, number> = {}
+  const builtinUpdates: Record<string, number> = {}
+  const customUpdates: Record<string, number> = {}
+
   for (const q of questions) {
-    if (!q.impact_metric || !VALID_IMPACT_METRICS.has(q.impact_metric)) continue
+    if (!q.impact_metric || !validKeys.has(q.impact_metric)) continue
 
     const raw = answers[q.question_key]
     const value = typeof raw === 'number' ? raw : parseFloat(String(raw ?? ''))
     if (!isNaN(value) && value >= 0) {
-      impactUpdates[q.impact_metric] = value
+      if (isBuiltinMetric(q.impact_metric)) {
+        builtinUpdates[q.impact_metric] = value
+      } else {
+        customUpdates[q.impact_metric] = value
+      }
     }
   }
 
-  if (Object.keys(impactUpdates).length === 0) return
+  if (Object.keys(builtinUpdates).length === 0 && Object.keys(customUpdates).length === 0) return
 
   // Fetch existing event_impact row to merge (preserve fields not in this survey)
   const { data: existing } = await supabase
@@ -225,15 +235,18 @@ async function syncSurveyImpact(
     .maybeSingle()
 
   const { id: _id, ...existingFields } = existing ?? ({} as Record<string, unknown>)
+  const existingCustom = (existing?.custom_metrics as Record<string, unknown>) ?? {}
+
   const merged = {
     ...existingFields,
     event_id: eventId,
     logged_by: existing?.logged_by ?? userId,
     custom_metrics: {
-      ...((existing?.custom_metrics as Record<string, unknown>) ?? {}),
+      ...existingCustom,
+      ...customUpdates,
       survey_synced: true,
     },
-    ...impactUpdates,
+    ...builtinUpdates,
   }
 
   await supabase
