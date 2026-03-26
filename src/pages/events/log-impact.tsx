@@ -563,11 +563,11 @@ export default function LogImpactPage() {
           <p className="text-caption text-primary-400 mt-0.5">
             {ACTIVITY_TYPE_LABELS[event.activity_type]} · {checkedInCount} checked in / {event.registration_count} registered
           </p>
-          {event.date_end && (
+          {event.date_end ? (
             <p className="text-caption text-primary-400 mt-0.5">
               Duration: {getEventDuration(event.date_start, event.date_end)}
             </p>
-          )}
+          ) : null}
         </div>
 
         {existingImpact && (existingImpact.custom_metrics as Record<string, unknown> | null)?.survey_synced && (
