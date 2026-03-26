@@ -61,10 +61,10 @@ export function useDataPrefetch() {
       queryKey: ['updates', userId],
       queryFn: async () => {
         const { data, error } = await supabase
-          .from('global_announcements')
+          .from('updates')
           .select(`
             *,
-            author:profiles!global_announcements_author_id_fkey(id, display_name, avatar_url, role)
+            author:profiles!updates_author_id_fkey(id, display_name, avatar_url, role)
           `)
           .order('is_pinned', { ascending: false })
           .order('created_at', { ascending: false })
@@ -72,10 +72,10 @@ export function useDataPrefetch() {
         if (error) throw error
 
         const { data: reads } = await supabase
-          .from('announcement_reads')
-          .select('announcement_id')
+          .from('update_reads')
+          .select('update_id')
           .eq('user_id', userId)
-        const readIds = new Set((reads ?? []).map((r) => r.announcement_id))
+        const readIds = new Set((reads ?? []).map((r) => r.update_id))
 
         return (data ?? []).map((a) => ({
           ...a,

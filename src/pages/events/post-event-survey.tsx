@@ -9,6 +9,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
 import { useEventDetail, ACTIVITY_TYPE_LABELS, isPastEvent } from '@/hooks/use-events'
+import { VALID_IMPACT_METRICS } from '@/lib/impact-metrics'
 import {
   Page,
   Header,
@@ -34,28 +35,75 @@ interface SurveyQuestion {
   question_type: 'number' | 'rating' | 'free_text' | 'yes_no' | 'multiple_choice'
   unit: string | null
   options: string[] | null
-  sort_order: number
   is_required: boolean
+  impact_metric: string | null
+}
+
+interface SurveyData {
+  surveyId: string
+  questions: SurveyQuestion[]
 }
 
 /* ------------------------------------------------------------------ */
 /*  Hooks                                                              */
 /* ------------------------------------------------------------------ */
 
-function useSurveyQuestions(activityType: string | undefined) {
+/**
+ * Load the survey for this event from the unified `surveys` table.
+ * Priority: direct event link (surveys.event_id) → auto-send by activity type.
+ * Normalizes builder JSONB questions into the rendering format.
+ */
+function useEventSurvey(eventId: string | undefined, activityType: string | undefined) {
   return useQuery({
-    queryKey: ['post-event-survey-template', activityType],
-    queryFn: async () => {
-      if (!activityType) return []
-      const { data, error } = await supabase
-        .from('post_event_survey_templates')
-        .select('*')
-        .eq('activity_type', activityType)
-        .order('sort_order')
-      if (error) throw error
-      return (data ?? []) as SurveyQuestion[]
+    queryKey: ['event-survey', eventId, activityType],
+    queryFn: async (): Promise<SurveyData | null> => {
+      if (!eventId) return null
+
+      // 1. Check for a survey directly linked to this event
+      const { data: direct } = await supabase
+        .from('surveys')
+        .select('id, questions')
+        .eq('event_id', eventId)
+        .eq('status', 'active')
+        .maybeSingle()
+
+      // 2. Fallback: auto-send survey for this activity type
+      const survey = direct ?? (activityType
+        ? (await supabase
+            .from('surveys')
+            .select('id, questions')
+            .eq('activity_type', activityType)
+            .eq('auto_send_after_event', true)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          ).data
+        : null)
+
+      if (!survey) return null
+
+      // 3. Parse and normalize questions from builder JSONB format
+      const raw = typeof survey.questions === 'string'
+        ? JSON.parse(survey.questions)
+        : survey.questions
+
+      const questions: SurveyQuestion[] = (Array.isArray(raw) ? raw : []).map(
+        (q: Record<string, unknown>) => ({
+          id: (q.id as string) || crypto.randomUUID(),
+          question_key: (q.id as string) || crypto.randomUUID(),
+          question_text: (q.text as string) || '',
+          question_type: (q.type as string) || 'free_text',
+          unit: (q.placeholder as string) || null,
+          options: Array.isArray(q.options) ? (q.options as string[]) : null,
+          is_required: (q.required as boolean) ?? false,
+          impact_metric: (q.impact_metric as string) || null,
+        }),
+      )
+
+      return { surveyId: survey.id, questions }
     },
-    enabled: !!activityType,
+    enabled: !!eventId,
     staleTime: 10 * 60 * 1000,
   })
 }
@@ -79,21 +127,22 @@ function useAttendanceCheck(eventId: string | undefined) {
   })
 }
 
-function useExistingResponse(eventId: string | undefined) {
+function useExistingResponse(surveyId: string | undefined, eventId: string | undefined) {
   const { user } = useAuth()
   return useQuery({
-    queryKey: ['post-event-survey-response', eventId, user?.id],
+    queryKey: ['survey-response', surveyId, eventId, user?.id],
     queryFn: async () => {
-      if (!eventId || !user) return null
+      if (!surveyId || !eventId || !user) return null
       const { data } = await supabase
-        .from('post_event_survey_responses')
+        .from('survey_responses')
         .select('*')
+        .eq('survey_id', surveyId)
         .eq('event_id', eventId)
         .eq('user_id', user.id)
         .maybeSingle()
       return data
     },
-    enabled: !!eventId && !!user,
+    enabled: !!surveyId && !!eventId && !!user,
   })
 }
 
@@ -102,24 +151,94 @@ function useSubmitSurvey() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ eventId, answers }: { eventId: string; answers: Json }) => {
+    mutationFn: async ({
+      surveyId,
+      eventId,
+      answers,
+      questions,
+    }: {
+      surveyId: string
+      eventId: string
+      answers: Json
+      questions: SurveyQuestion[]
+    }) => {
       if (!user) throw new Error('Not authenticated')
+
       const { error } = await supabase
-        .from('post_event_survey_responses')
+        .from('survey_responses')
         .upsert(
           {
+            survey_id: surveyId,
             event_id: eventId,
             user_id: user.id,
             answers,
           },
-          { onConflict: 'event_id,user_id' },
+          { onConflict: 'survey_responses_unique_response' },
         )
       if (error) throw error
+
+      // --- Sync impact-tagged answers into event_impact ---
+      await syncSurveyImpact(eventId, questions, answers as Record<string, Json>, user.id)
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['post-event-survey-response', variables.eventId] })
+      queryClient.invalidateQueries({ queryKey: ['survey-response', variables.surveyId] })
+      queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
+      // Invalidate impact caches so dashboards pick up new data
+      queryClient.invalidateQueries({ queryKey: ['event-impact', variables.eventId] })
+      queryClient.invalidateQueries({ queryKey: ['national-impact'] })
+      queryClient.invalidateQueries({ queryKey: ['collective-impact'] })
+      queryClient.invalidateQueries({ queryKey: ['impact-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['home.impact-stats'] })
     },
   })
+}
+
+/**
+ * Sync impact-tagged survey answers into event_impact.
+ * Reads impact_metric directly from the questions array — no extra DB query.
+ */
+async function syncSurveyImpact(
+  eventId: string,
+  questions: SurveyQuestion[],
+  answers: Record<string, Json>,
+  userId: string,
+) {
+  // Build partial impact payload from impact-tagged questions
+  const impactUpdates: Record<string, number> = {}
+  for (const q of questions) {
+    if (!q.impact_metric || !VALID_IMPACT_METRICS.has(q.impact_metric)) continue
+
+    const raw = answers[q.question_key]
+    const value = typeof raw === 'number' ? raw : parseFloat(String(raw ?? ''))
+    if (!isNaN(value) && value >= 0) {
+      impactUpdates[q.impact_metric] = value
+    }
+  }
+
+  if (Object.keys(impactUpdates).length === 0) return
+
+  // Fetch existing event_impact row to merge (preserve fields not in this survey)
+  const { data: existing } = await supabase
+    .from('event_impact')
+    .select('*')
+    .eq('event_id', eventId)
+    .maybeSingle()
+
+  const { id: _id, ...existingFields } = existing ?? ({} as Record<string, unknown>)
+  const merged = {
+    ...existingFields,
+    event_id: eventId,
+    logged_by: existing?.logged_by ?? userId,
+    custom_metrics: {
+      ...((existing?.custom_metrics as Record<string, unknown>) ?? {}),
+      survey_synced: true,
+    },
+    ...impactUpdates,
+  }
+
+  await supabase
+    .from('event_impact')
+    .upsert(merged, { onConflict: 'event_id' })
 }
 
 /* ------------------------------------------------------------------ */
@@ -216,8 +335,10 @@ export default function PostEventSurveyPage() {
   const shouldReduceMotion = useReducedMotion()
 
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
-  const { data: questions, isLoading: questionsLoading } = useSurveyQuestions(event?.activity_type)
-  const { data: existingResponse } = useExistingResponse(eventId)
+  const { data: surveyData, isLoading: surveyLoading } = useEventSurvey(eventId, event?.activity_type)
+  const questions = surveyData?.questions ?? null
+  const surveyId = surveyData?.surveyId
+  const { data: existingResponse } = useExistingResponse(surveyId, eventId)
   const { data: attendance, isLoading: attendanceLoading } = useAttendanceCheck(eventId)
   const submitMutation = useSubmitSurvey()
 
@@ -237,7 +358,7 @@ export default function PostEventSurveyPage() {
   }, [])
 
   const requiredKeys = useMemo(
-    () => (questions ?? []).filter((q) => q.is_required).map((q) => q.question_key),
+    () => (questions ?? []).filter((q: SurveyQuestion) => q.is_required).map((q: SurveyQuestion) => q.question_key),
     [questions],
   )
 
@@ -247,10 +368,10 @@ export default function PostEventSurveyPage() {
   })
 
   const handleSubmit = useCallback(async () => {
-    if (!eventId || !canSubmit) return
-    await submitMutation.mutateAsync({ eventId, answers })
+    if (!eventId || !surveyId || !canSubmit || !questions) return
+    await submitMutation.mutateAsync({ surveyId, eventId, answers, questions })
     setSubmitted(true)
-  }, [eventId, canSubmit, answers, submitMutation])
+  }, [eventId, surveyId, canSubmit, answers, submitMutation, questions])
 
   // Compute survey window expiry once (stable across renders)
   const surveyWindowExpired = useMemo(() => {
@@ -260,7 +381,7 @@ export default function PostEventSurveyPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- recompute when event changes
   }, [event?.date_end, event?.date_start])
 
-  const isLoading = eventLoading || questionsLoading || attendanceLoading
+  const isLoading = eventLoading || surveyLoading || attendanceLoading
   const showLoading = useDelayedLoading(isLoading)
 
   if (showLoading) {

@@ -1,12 +1,13 @@
 import { type ReactNode, useState, useEffect, useRef, createContext, useContext, useCallback, useMemo, Suspense } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
 
 import {
     LayoutDashboard,
     Users,
     CalendarDays,
     MapPin,
-    ClipboardList, FileText,
+    ClipboardList, ClipboardCheck, FileText,
     Settings,
     Download,
     Heart,
@@ -15,8 +16,10 @@ import {
     ShoppingBag,
     MoreHorizontal,
     Handshake,
-    Sparkles,
+    Mail,
+    Megaphone,
     Phone,
+    ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
@@ -103,6 +106,7 @@ const PAGE_HERO_CONFIG: Record<string, HeroCfg> = {
   'Content Moderation':  { hue: 'from-primary-900 via-primary-950 to-neutral-900',  defaultSubtitle: 'Review flagged content and manage reports',      f: 9, w: 1, tall: true },
   'Legal Pages':         { hue: 'from-primary-800 via-primary-900 to-neutral-900',  defaultSubtitle: 'Terms, privacy, and legal documentation',        f: 10, w: 2, tall: true },
   'Edit Legal Page':     { hue: 'from-primary-800 via-primary-900 to-neutral-900',  defaultSubtitle: 'Edit page content and settings',                 f: 10, w: 2, tall: true },
+  'Updates':             { hue: 'from-secondary-700 via-primary-800 to-primary-950', defaultSubtitle: 'Manage and publish updates for participants',   f: 2, w: 3, tall: true },
   'New Update':          { hue: 'from-secondary-700 via-primary-800 to-primary-950', defaultSubtitle: 'Compose and publish a blog-post update',        f: 2, w: 3, tall: true },
   'Development':         { hue: 'from-amber-700 via-amber-800 to-primary-950',     defaultSubtitle: 'Learning modules, pathways, and certifications', f: 3, w: 4, tall: true },
   'Create Module':       { hue: 'from-amber-600 via-amber-700 to-primary-900',     defaultSubtitle: 'Build a new learning module',                    f: 4, w: 0, tall: true },
@@ -281,9 +285,12 @@ const _adminNavCategories: AdminNavCategory[] = [
     ],
   },
   {
-    label: '',
+    label: 'Create',
     items: [
-      { label: 'Create', path: '/admin/create', icon: <Sparkles size={17} strokeWidth={1.5} /> },
+      { label: 'Tasks', path: '/admin/tasks', icon: <ClipboardCheck size={17} strokeWidth={1.5} /> },
+      { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_surveys' },
+      { label: 'Email', path: '/admin/email', icon: <Mail size={17} strokeWidth={1.5} />, capability: 'manage_email' },
+      { label: 'Updates', path: '/admin/updates', icon: <Megaphone size={17} strokeWidth={1.5} /> },
     ],
   },
   {
@@ -365,14 +372,42 @@ function AdminBottomTabs() {
 /*  AdminLayout  route-level layout, renders <Outlet />              */
 /* ------------------------------------------------------------------ */
 
+/** Pages that are top-level admin destinations (no back button needed). */
+const TOP_LEVEL_ADMIN_PATHS = new Set([
+  '/admin',
+  '/admin/users',
+  '/admin/applications',
+  '/admin/collectives',
+  '/admin/events',
+  '/admin/partners',
+  '/admin/shop',
+  '/admin/contacts',
+  '/admin/tasks',
+  '/admin/surveys',
+  '/admin/email',
+  '/admin/updates',
+  '/admin/development',
+  '/admin/charity',
+  '/admin/branding',
+  '/admin/legal-pages',
+  '/admin/system',
+  '/admin/reports',
+  '/admin/exports',
+  '/admin/audit-log',
+  '/admin/dev-tools',
+])
+
 export function AdminLayout() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const shouldReduceMotion = useReducedMotion()
   const { navMode } = useLayout()
   const showBottomTabs = navMode === 'bottom-tabs'
+  const showBackButton = !TOP_LEVEL_ADMIN_PATHS.has(location.pathname)
   const [header, setHeaderState] = useState<AdminHeaderState>({ title: '' })
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Scroll content to top on route change — instant to avoid fighting
+  // Scroll content to top on route change  instant to avoid fighting
   // with page transition animations
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' })
@@ -423,6 +458,27 @@ export function AdminLayout() {
                 ))}
 
                 <div className="relative z-10">
+                  {/* Back button - dark circle, consistent across all sub-pages */}
+                  {showBackButton && (
+                    <motion.button
+                      type="button"
+                      onClick={() => navigate(-1)}
+                      whileTap={shouldReduceMotion ? undefined : { scale: 0.9 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      className={cn(
+                        'flex items-center justify-center',
+                        'w-11 h-11 rounded-full mb-3',
+                        'bg-black/40 text-white hover:bg-black/50',
+                        'cursor-pointer select-none',
+                        'transition-colors duration-150',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
+                      )}
+                      aria-label="Go back"
+                    >
+                      <ArrowLeft size={22} />
+                    </motion.button>
+                  )}
+
                   <div className="flex items-end justify-between gap-4 flex-wrap">
                     <div>
                       <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white tracking-tight">

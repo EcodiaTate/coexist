@@ -37,6 +37,7 @@ export interface InputProps {
   maxLength?: number
   max?: string
   min?: string
+  step?: string
 }
 
 export const Input = forwardRef<
@@ -63,6 +64,10 @@ export const Input = forwardRef<
     className,
     inputClassName,
     'aria-label': ariaLabel,
+    maxLength,
+    max,
+    min,
+    step,
   },
   ref,
 ) {
@@ -191,6 +196,7 @@ export const Input = forwardRef<
             aria-label={ariaLabel}
             aria-invalid={!!error}
             aria-describedby={describedBy}
+            maxLength={maxLength}
             className={cn(sharedClasses, 'resize-y min-h-[100px]')}
           />
         ) : (
@@ -211,6 +217,10 @@ export const Input = forwardRef<
             aria-label={ariaLabel}
             aria-invalid={!!error}
             aria-describedby={describedBy}
+            maxLength={maxLength}
+            max={max}
+            min={min}
+            step={step}
             className={sharedClasses}
           />
         )}

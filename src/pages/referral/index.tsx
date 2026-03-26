@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Share2,
-  Copy,
-  Users,
-  Gift,
-  CheckCircle,
-  Clock,
+    Share2,
+    Copy,
+    Users,
+    Gift,
+    CheckCircle,
+    Clock,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -97,7 +97,7 @@ export default function ReferralPage() {
         await handleCopy()
       }
     } catch (err) {
-      // User cancelled the share dialog — not an error
+      // User cancelled the share dialog  not an error
       if (err instanceof Error && err.name === 'AbortError') return
       toast.error('Could not share link')
     }

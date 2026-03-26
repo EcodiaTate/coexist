@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 import { useQuery } from '@tanstack/react-query'
+import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 import {
     Heart, Users, Sparkles, ChevronRight, Repeat,
     TreePine, Leaf, Waves, MapPin, Zap,
@@ -37,9 +38,7 @@ function useDonateNationalStats() {
     queryKey: ['national-impact'],
     queryFn: async () => {
       const [impactRes, eventsRes, membersRes, collectivesRes] = await Promise.all([
-        supabase.from('event_impact').select(
-          'trees_planted, hours_total, rubbish_kg, native_plants, wildlife_sightings',
-        ),
+        supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS),
         supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
@@ -47,9 +46,9 @@ function useDonateNationalStats() {
 
       const logs = (impactRes.data ?? []) as Record<string, unknown>[]
       return {
-        totalTrees: logs.reduce((s: number, r: Record<string, unknown>) => s + ((r.trees_planted as number) ?? 0), 0),
-        totalRubbishKg: Math.round(logs.reduce((s: number, r: Record<string, unknown>) => s + ((r.rubbish_kg as number) ?? 0), 0)),
-        totalNativePlants: logs.reduce((s: number, r: Record<string, unknown>) => s + ((r.native_plants as number) ?? 0), 0),
+        totalTrees: sumMetric(logs, 'trees_planted'),
+        totalRubbishKg: Math.round(sumMetric(logs, 'rubbish_kg')),
+        totalNativePlants: sumMetric(logs, 'native_plants'),
         totalEvents: eventsRes.count ?? 0,
         totalMembers: membersRes.count ?? 0,
         totalCollectives: collectivesRes.count ?? 0,
@@ -692,7 +691,7 @@ export default function DonatePage() {
                     <div className="flex-1 min-w-0">
                       <Toggle
                         label="Make it monthly"
-                        description={frequency === 'monthly' ? `$${effectiveAmount || 0}/mo — cancel anytime` : undefined}
+                        description={frequency === 'monthly' ? `$${effectiveAmount || 0}/mo  cancel anytime` : undefined}
                         checked={frequency === 'monthly'}
                         onChange={(v) => setFrequency(v ? 'monthly' : 'one_time')}
                         size="sm"

@@ -1,19 +1,19 @@
 import {
-  useState,
-  useRef,
-  useCallback,
-  useEffect,
+    useState,
+    useRef,
+    useCallback,
+    useEffect,
 } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  SendHorizontal,
-  Paperclip,
-  Plus,
-  BarChart3,
-  Megaphone,
-  Bell,
-  X,
-  FileCode2,
+    SendHorizontal,
+    Paperclip,
+    Plus,
+    BarChart3,
+    Megaphone,
+    Bell,
+    X,
+    FileCode2,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { containsProfanity } from '@/lib/profanity'
@@ -21,7 +21,7 @@ import { containsProfanity } from '@/lib/profanity'
 interface MessageInputProps {
   onSend: (message: string) => void
   onAttach?: () => void
-  /** Called when user picks an .html file — receives the file's text content */
+  /** Called when user picks an .html file  receives the file's text content */
   onAttachHtml?: (htmlContent: string) => void
   onTyping?: () => void
   placeholder?: string

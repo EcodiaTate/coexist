@@ -59,8 +59,7 @@ const CollectiveManagePage = lazy(() => import('@/pages/collectives/manage'))
 
 // Chat
 const ChatListPage = lazy(() => import('@/pages/chat/index'))
-const CollectiveChatPage = lazy(() => import('@/pages/chat/collective-chat'))
-const ChannelChatPage = lazy(() => import('@/pages/chat/channel-chat'))
+const ChatRoomPage = lazy(() => import('@/pages/chat/chat-room'))
 
 // Tasks (staff)
 const TasksPage = lazy(() => import('@/pages/tasks/index'))
@@ -91,7 +90,7 @@ const NotificationsPage = lazy(() => import('@/pages/notifications/index'))
 
 // Updates
 const UpdatesPage = lazy(() => import('@/pages/updates/index'))
-const CreateUpdatePage = lazy(() => import('@/pages/updates/create'))
+const AdminUpdatesPage = lazy(() => import('@/pages/admin/updates'))
 
 // Donations
 const DonatePage = lazy(() => import('@/pages/donate/index'))
@@ -182,7 +181,7 @@ const MapPage = lazy(() => import('@/pages/map'))
 /* ------------------------------------------------------------------ */
 
 function PageFallback() {
-  // Minimal shimmer that matches the page background — prevents
+  // Minimal shimmer that matches the page background  prevents
   // jarring blank flashes while lazy chunks download.
   // The opacity animation is CSS-only (no JS) for zero overhead.
   return (
@@ -197,7 +196,7 @@ function PageFallback() {
 /*  Bare routes (no app shell chrome)                                  */
 /* ------------------------------------------------------------------ */
 
-/** Bare routes (no app shell chrome) — kept for reference */
+/** Bare routes (no app shell chrome)  kept for reference */
 // const _bareRoutes = [
 //   '/welcome', '/signup', '/login', '/forgot-password', '/verify-email',
 //   '/suspended', '/accept-terms', '/onboarding', '/leader-welcome', '/welcome-back',
@@ -224,7 +223,7 @@ function App() {
   return (
     <>
     {showSplash && <SplashPage onReady={handleSplashReady} />}
-{/* Scroll management handled by Page component — saves position per
+{/* Scroll management handled by Page component  saves position per
          history entry and restores on back-nav, scrolls to top for new routes */}
     <Suspense fallback={<PageFallback />}>
       <Routes>
@@ -367,8 +366,8 @@ function App() {
           <Route path="/collectives/:slug/manage" element={<PageTransition><CollectiveManagePage /></PageTransition>} />
           <Route path="/tasks" element={<PageTransition><TasksPage /></PageTransition>} />
           <Route path="/chat" element={<PageTransition><ChatListPage /></PageTransition>} />
-          <Route path="/chat/channel/:channelId" element={<PageTransition><ChannelChatPage /></PageTransition>} />
-          <Route path="/chat/:collectiveId" element={<PageTransition><CollectiveChatPage /></PageTransition>} />
+          <Route path="/chat/channel/:channelId" element={<PageTransition><ChatRoomPage /></PageTransition>} />
+          <Route path="/chat/:collectiveId" element={<PageTransition><ChatRoomPage /></PageTransition>} />
           <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
           <Route path="/profile/edit" element={<PageTransition><EditProfilePage /></PageTransition>} />
           <Route path="/profile/:userId" element={<PageTransition><ViewProfilePage /></PageTransition>} />
@@ -417,13 +416,14 @@ function App() {
             <Route path="collectives/:collectiveId" element={<RequireCapability cap="manage_collectives"><AdminCollectiveDetailPage /></RequireCapability>} />
             <Route path="users" element={<RequireCapability cap="manage_users"><AdminUsersPage /></RequireCapability>} />
             <Route path="create" element={<AdminCreatePage />} />
-            <Route path="create/updates" element={<RequireRole minRole="national_admin"><CreateUpdatePage /></RequireRole>} />
-            <Route path="workflows" element={<RequireCapability cap="manage_workflows"><AdminWorkflowsPage /></RequireCapability>} />
+            <Route path="updates" element={<RequireRole minRole="national_admin"><AdminUpdatesPage /></RequireRole>} />
+            <Route path="tasks" element={<RequireCapability cap="manage_workflows"><AdminWorkflowsPage /></RequireCapability>} />
             <Route path="events" element={<RequireCapability cap="manage_events"><AdminEventsPage /></RequireCapability>} />
             <Route path="events/create" element={<RequireCapability cap="manage_events"><CreateEventPage /></RequireCapability>} />
             <Route path="surveys" element={<RequireCapability cap="manage_surveys"><AdminSurveysPage /></RequireCapability>} />
             <Route path="applications" element={<RequireCapability cap="manage_users"><AdminApplicationsPage /></RequireCapability>} />
             <Route path="surveys/create" element={<RequireCapability cap="manage_surveys"><AdminCreateSurveyPage /></RequireCapability>} />
+            <Route path="surveys/:id/edit" element={<RequireCapability cap="manage_surveys"><AdminCreateSurveyPage /></RequireCapability>} />
             <Route path="reports" element={<RequireCapability cap="view_reports"><ReportsPage /></RequireCapability>} />
             <Route path="national-impact" element={<RequireCapability cap="view_reports"><NationalImpactPage /></RequireCapability>} />
             <Route path="email" element={<RequireCapability cap="manage_email"><AdminEmailPage /></RequireCapability>} />
@@ -551,7 +551,7 @@ function App() {
   )
 }
 
-/** Temporary placeholder for unbuilt pages — kept for reference */
+/** Temporary placeholder for unbuilt pages  kept for reference */
 // function _PlaceholderPage({ title }: { title: string }) {
 //   return (
 //     <div className="flex flex-col items-center justify-center flex-1 p-6">

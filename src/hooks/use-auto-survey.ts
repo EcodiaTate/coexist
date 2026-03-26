@@ -79,18 +79,29 @@ export function usePendingSurveys() {
 
       if (!completedEvents.length) return []
 
-      // Check which events the user has already responded to
+      // Check which events the user has already responded to (unified survey_responses table)
       const eventIds = completedEvents.map((e) => e.id)
       const { data: existingResponses } = await supabase
-        .from('post_event_survey_responses')
+        .from('survey_responses')
         .select('event_id')
         .eq('user_id', user.id)
+        .not('event_id', 'is', null)
         .in('event_id', eventIds)
 
       const respondedIds = new Set((existingResponses ?? []).map((r) => r.event_id))
 
+      // Only show pending for activity types that have an active auto-send survey
+      const activityTypes = [...new Set(completedEvents.map((e) => e.activity_type))]
+      const { data: autoSendSurveys } = await supabase
+        .from('surveys')
+        .select('activity_type')
+        .in('activity_type', activityTypes)
+        .eq('auto_send_after_event', true)
+        .eq('status', 'active')
+      const surveyedTypes = new Set((autoSendSurveys ?? []).map((s) => s.activity_type))
+
       return completedEvents
-        .filter((e) => !respondedIds.has(e.id))
+        .filter((e) => !respondedIds.has(e.id) && surveyedTypes.has(e.activity_type))
         .map((e) => ({
           event_id: e.id,
           event_title: e.title,
@@ -182,10 +193,10 @@ export function useTriggerSurveyNotifications() {
       if (error) throw error
       if (!attendees?.length) return { sent: 0 }
 
-      // Check who already has a survey response
+      // Check who already has a survey response (unified survey_responses table)
       const userIds = attendees.map((a) => a.user_id)
       const { data: existingResponses } = await supabase
-        .from('post_event_survey_responses')
+        .from('survey_responses')
         .select('user_id')
         .eq('event_id', eventId)
         .in('user_id', userIds)

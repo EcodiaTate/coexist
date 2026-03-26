@@ -19,6 +19,7 @@ import {
   ChevronDown,
   Users,
   UserMinus,
+  Lock,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -39,9 +40,13 @@ import { CreateAnnouncementSheet } from '@/components/create-announcement-sheet'
 import { BroadcastNotificationSheet } from '@/components/broadcast-notification-sheet'
 import { ChatSwitcherDropdown } from '@/components/chat-switcher-dropdown'
 import { ProfileModal } from '@/components/profile-modal'
+import { OfflineIndicator } from '@/components/offline-indicator'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { useCamera } from '@/hooks/use-camera'
+import { useImageUpload } from '@/hooks/use-image-upload'
+import { useLayout } from '@/hooks/use-layout'
 import { useCollective, useCollectiveMembers, useRemoveMember } from '@/hooks/use-collective'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import {
@@ -64,29 +69,50 @@ import {
   useSendBroadcastNotification,
   type ChatMessageWithSender,
 } from '@/hooks/use-chat'
+import {
+  useChannelMessages,
+  useSendChannelMessage,
+  useMarkChannelRead,
+  useMyStaffChannels,
+  useDeleteChannelMessage,
+  usePinChannelMessage,
+  type ChannelMessageWithSender,
+} from '@/hooks/use-staff-channels'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useInviteCollaborator, useEventDetail, type EventDetailData } from '@/hooks/use-events'
-import type { Tables, Json } from '@/types/database.types'
-
-type EventRegistration = Tables<'event_registrations'>
-import { useCamera } from '@/hooks/use-camera'
-import { useImageUpload } from '@/hooks/use-image-upload'
 import { useTyping } from '@/hooks/use-typing'
 import { useChatSearch } from '@/hooks/use-chat-search'
 import { useOffline } from '@/hooks/use-offline'
-import { useLayout } from '@/hooks/use-layout'
-import { OfflineIndicator } from '@/components/offline-indicator'
 import {
   queueOfflineAction,
   saveChatDraft,
   getChatDraft,
   removeChatDraft,
 } from '@/lib/offline-sync'
+import type { Tables, Json } from '@/types/database.types'
+
+type EventRegistration = Tables<'event_registrations'>
+
+/** Union message type used throughout the chat room */
+type AnyMessage = ChatMessageWithSender | ChannelMessageWithSender
 
 /* ------------------------------------------------------------------ */
-/*  Relative time                                                      */
+/*  Chat mode                                                          */
 /* ------------------------------------------------------------------ */
+
+type ChatMode = 'collective' | 'channel'
+
+/* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+function cleanChannelName(name: string): string {
+  return name
+    .replace(/\bCollective\b\s*/i, '')
+    .replace(/\bStaff\b\s*/i, '')
+    .trim() || name
+}
 
 function relativeTime(dateStr: string): string {
   const now = Date.now()
@@ -113,9 +139,8 @@ function dateHeader(dateStr: string): string {
   return d.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })
 }
 
-
 /* ------------------------------------------------------------------ */
-/*  Pinned messages bar                                                */
+/*  Pinned messages bar (collective mode only)                         */
 /* ------------------------------------------------------------------ */
 
 function PinnedMessageBar({
@@ -135,7 +160,6 @@ function PinnedMessageBar({
 
   return (
     <div className="bg-surface-1 shadow-md">
-      {/* Main pinned bar */}
       <div className="flex w-full items-center gap-2.5 px-4 py-2.5 min-h-11">
         <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100 shrink-0">
           <Pin size={13} className="text-primary-600" />
@@ -145,7 +169,6 @@ function PinnedMessageBar({
           {latest.content ?? 'Image'}
         </p>
 
-        {/* Expand button for multiple */}
         {hasMultiple && (
           <button
             type="button"
@@ -158,7 +181,6 @@ function PinnedMessageBar({
           </button>
         )}
 
-        {/* Unpin button for staff (single message or collapsed view) */}
         {isStaff && !expanded && (
           <button
             type="button"
@@ -171,7 +193,6 @@ function PinnedMessageBar({
         )}
       </div>
 
-      {/* Expanded list of all pinned messages */}
       <AnimatePresence>
         {expanded && (
           <motion.div
@@ -215,7 +236,7 @@ function PinnedMessageBar({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Search overlay                                                     */
+/*  Search overlay (collective mode only)                              */
 /* ------------------------------------------------------------------ */
 
 function ChatSearchOverlay({
@@ -293,7 +314,7 @@ function InlinePoll({
   sent,
 }: {
   pollId: string
-  collectiveId: string
+  collectiveId?: string | null
   sent: boolean
 }) {
   const { data: poll } = usePollDetail(pollId)
@@ -314,8 +335,8 @@ function InlinePoll({
       anonymous={poll.anonymous}
       creatorName={poll.profiles?.display_name ?? undefined}
       closesAt={poll.closes_at}
-      onVote={(optionId) => vote.mutate({ pollId, optionId, collectiveId })}
-      onRemoveVote={(optionId) => removeVote.mutate({ pollId, optionId, collectiveId })}
+      onVote={(optionId) => vote.mutate({ pollId, optionId, collectiveId: poll.collective_id ?? collectiveId ?? '' })}
+      onRemoveVote={(optionId) => removeVote.mutate({ pollId, optionId, collectiveId: poll.collective_id ?? collectiveId ?? '' })}
       sent={sent}
     />
   )
@@ -338,7 +359,6 @@ function InlineAnnouncement({
   const navigate = useNavigate()
   const { toast } = useToast()
 
-  // Derive event info before any early returns so hooks are always called in the same order
   const eventId = (announcement?.metadata as Record<string, unknown> | undefined)?.event_id as string | undefined
   const isEventType = announcement?.type === 'event_invite' || announcement?.type === 'rsvp'
   const { data: eventDetail } = useEventDetail(isEventType && eventId ? eventId : undefined)
@@ -349,15 +369,11 @@ function InlineAnnouncement({
   const userResponse = announcement.responses?.find((r) => r.user_id === user?.id)?.response ?? null
 
   const handleRespond = async (response: string) => {
-    // Save chat announcement response
     respond.mutate({ announcementId, response })
 
-    // If this announcement links to an event, handle the actual RSVP
     if (isEventType && eventId) {
-      // Cancel any in-flight refetches so they don't overwrite our optimistic update
       await queryClient.cancelQueries({ queryKey: ['event', eventId] })
 
-      // Optimistically update the event detail cache so the event page reflects it instantly
       const prevEvent = queryClient.getQueryData<EventDetailData>(['event', eventId, user?.id])
       if (prevEvent) {
         queryClient.setQueryData<EventDetailData>(['event', eventId, user?.id], (old) => {
@@ -391,7 +407,6 @@ function InlineAnnouncement({
 
       try {
         if (response === 'going') {
-          // Register or re-register
           const { error } = await supabase
             .from('event_registrations')
             .upsert(
@@ -401,7 +416,6 @@ function InlineAnnouncement({
           if (error) throw error
           toast.success("You're registered!")
         } else if (response === 'not_going') {
-          // Cancel registration
           await supabase
             .from('event_registrations')
             .update({ status: 'cancelled' as const })
@@ -409,26 +423,23 @@ function InlineAnnouncement({
             .eq('user_id', user!.id)
           toast.info('RSVP removed')
         } else if (response === 'maybe') {
-          // Try the RPC for scheduling a reminder, fall back gracefully
           try {
             await supabase.rpc('handle_announcement_rsvp', {
               p_event_id: eventId,
               p_response: 'maybe',
             })
           } catch {
-            // RPC might not exist yet - that's ok
+            // RPC might not exist yet
           }
           toast.info("We'll remind you closer to the date")
         }
       } catch {
-        // Rollback optimistic update
         if (prevEvent) {
           queryClient.setQueryData(['event', eventId, user?.id], prevEvent)
         }
         toast.error('Failed to update your RSVP')
       }
 
-      // Refetch to get authoritative state
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
@@ -466,7 +477,7 @@ function InlineAnnouncement({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Member management sheet (leader moderation)                        */
+/*  Member management sheet (collective mode only)                     */
 /* ------------------------------------------------------------------ */
 
 const MANAGE_ROLE_RANK: Record<string, number> = {
@@ -506,7 +517,6 @@ function ManageMembersSheet({
   const isGlobalStaff = isStaff || isAdmin || isSuperAdmin
   const myRank = isGlobalStaff ? 99 : (myCollectiveRole ? MANAGE_ROLE_RANK[myCollectiveRole] ?? -1 : -1)
 
-  // Filter: can remove members ranked strictly below you, never yourself
   const removableMembers = members.filter(
     (m) => m.user_id !== user?.id && (MANAGE_ROLE_RANK[m.role!] ?? 0) < myRank,
   )
@@ -582,96 +592,86 @@ const fadeUp = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Main chat page                                                     */
+/*  Main unified chat room                                             */
 /* ------------------------------------------------------------------ */
 
-export default function CollectiveChatPage() {
-  const { collectiveId } = useParams<{ collectiveId: string }>()
+export default function ChatRoomPage() {
+  const { collectiveId: rawCollectiveId, channelId } = useParams<{
+    collectiveId?: string
+    channelId?: string
+  }>()
+
+  const mode: ChatMode = channelId ? 'channel' : 'collective'
+  const isChannel = mode === 'channel'
+  const isCollective = mode === 'collective'
+  const collectiveId = rawCollectiveId
+
   const { toast } = useToast()
   const { user, isStaff, isAdmin, isSuperAdmin } = useAuth()
   const shouldReduceMotion = useReducedMotion()
-
-  const { data: collective } = useCollective(collectiveId)
-  const { isAssistLeader, isCoLeader, isLeader } = useCollectiveRole(collectiveId)
-  const { data: memberRoles = new Map() } = useCollectiveMemberRoles(collectiveId)
-
-  // Superadmin/staff get all leader powers in every collective
-  const isLeaderOrAbove = isAssistLeader || isCoLeader || isLeader || isStaff || isAdmin || isSuperAdmin
-
-  const {
-    data: messagesData,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useChatMessages(collectiveId)
-  const showLoading = useDelayedLoading(isLoading)
-
-  const { data: pinnedMessages = [] } = usePinnedMessages(collectiveId)
-  const markRead = useMarkChatRead(collectiveId)
-  const sendMessage = useSendMessage()
-  const editMessage = useEditMessage()
-  const deleteMessage = useDeleteMessage()
-  const pinMessage = usePinMessage()
-  const { pickFromGallery } = useCamera()
-  const chatUpload = useImageUpload({ bucket: 'chat-images' })
-
-  const { typingText, sendTyping, stopTyping } = useTyping(collectiveId)
-  const { isOffline } = useOffline()
   const { navMode } = useLayout()
   const hasBottomTabs = navMode === 'bottom-tabs'
 
-  // Leader features
+  /* ---- Collective-specific hooks ---- */
+  const { data: collective } = useCollective(isCollective ? collectiveId : undefined)
+  const { isAssistLeader, isCoLeader, isLeader } = useCollectiveRole(isCollective ? collectiveId : undefined)
+  const { data: memberRoles = new Map() } = useCollectiveMemberRoles(isCollective ? collectiveId : undefined)
+  const { data: pinnedMessages = [] } = usePinnedMessages(isCollective ? collectiveId : undefined)
+  const collectiveMarkRead = useMarkChatRead(isCollective ? collectiveId : undefined)
+  const collectiveSend = useSendMessage()
+  const editMessage = useEditMessage()
+  const collectiveDelete = useDeleteMessage()
+  const collectivePin = usePinMessage()
   const createPoll = useCreatePoll()
   const createAnnouncement = useCreateAnnouncement()
-  const { data: broadcastLog = [] } = useBroadcastLog(isLeaderOrAbove ? collectiveId : undefined)
-  const sendBroadcast = useSendBroadcastNotification()
   const inviteCollaborator = useInviteCollaborator()
+  const { typingText, sendTyping, stopTyping } = useTyping(isCollective ? collectiveId : undefined)
+  const { isOffline } = useOffline()
 
-  // Restore draft on mount
-  const savedDraft = collectiveId ? getChatDraft(collectiveId) : null
+  /* ---- Channel-specific hooks ---- */
+  const { data: channels } = useMyStaffChannels()
+  const channel = isChannel ? channels?.find((c) => c.id === channelId) : undefined
+  const channelMarkRead = useMarkChannelRead()
+  const channelSend = useSendChannelMessage()
+  const channelDelete = useDeleteChannelMessage()
+  const channelPin = usePinChannelMessage()
 
-  // State
-  const [replyTo, setReplyTo] = useState<ChatMessageWithSender | null>(null)
-  const [editingMessage, setEditingMessage] = useState<ChatMessageWithSender | null>(null)
-  const [editText, setEditText] = useState('')
-  const [selectedMessage, setSelectedMessage] = useState<ChatMessageWithSender | null>(null)
-  const [showSearch, setShowSearch] = useState(false)
-  const [showScrollDown, setShowScrollDown] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<ChatMessageWithSender | null>(null)
-  const [showPollSheet, setShowPollSheet] = useState(false)
-  const [showAnnouncementSheet, setShowAnnouncementSheet] = useState(false)
-  const [announcementType, setAnnouncementType] = useState<'announcement' | 'event_invite' | 'rsvp'>('announcement')
-  const [showBroadcastSheet, setShowBroadcastSheet] = useState(false)
-  const [showManageMembers, setShowManageMembers] = useState(false)
-  const [profileUserId, setProfileUserId] = useState<string | null>(null)
+  /* ---- Shared leader check ---- */
+  const isLeaderOrAbove = isCollective
+    ? (isAssistLeader || isCoLeader || isLeader || isStaff || isAdmin || isSuperAdmin)
+    : (isStaff || isAdmin || isSuperAdmin)
 
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const initialScrollDone = useRef(false)
+  const effectiveCollectiveId = isCollective ? collectiveId : (channel?.collective_id ?? undefined)
 
-  // Reset scroll state when switching chats
-  useEffect(() => {
-    initialScrollDone.current = false
-  }, [collectiveId])
+  /* ---- Messages ---- */
+  const collectiveMessages = useChatMessages(isCollective ? collectiveId : undefined)
+  const channelMessages = useChannelMessages(isChannel ? channelId : undefined)
 
-  // Flatten pages (already newest-first, reverse for display)
-  const allMessages = useMemo(() => {
-    if (!messagesData?.pages) return []
-    return messagesData.pages.flat().reverse()
-  }, [messagesData])
+  const isLoading = isCollective ? collectiveMessages.isLoading : channelMessages.isLoading
+  const showLoading = useDelayedLoading(isLoading)
+  const hasNextPage = isCollective ? collectiveMessages.hasNextPage : channelMessages.hasNextPage
+  const isFetchingNextPage = isCollective ? collectiveMessages.isFetchingNextPage : channelMessages.isFetchingNextPage
+  const fetchNextPage = isCollective ? collectiveMessages.fetchNextPage : channelMessages.fetchNextPage
 
-  // Group by date
+  // Flatten and normalise messages for display
+  const allMessages: AnyMessage[] = useMemo(() => {
+    if (isCollective) {
+      if (!collectiveMessages.data?.pages) return []
+      return collectiveMessages.data.pages.flat().reverse()
+    }
+    return channelMessages.messages ?? []
+  }, [isCollective, collectiveMessages.data, channelMessages.messages])
+
+  // Group by date (used for rendering)
   const messageGroups = useMemo(() => {
-    const groups: { date: string; messages: ChatMessageWithSender[] }[] = []
+    const groups: { date: string; messages: AnyMessage[] }[] = []
     let currentDate = ''
-
     for (const msg of allMessages) {
-      const d = new Date(msg.created_at!).toDateString()
+      const createdAt = 'created_at' in msg ? msg.created_at : ''
+      const d = new Date(createdAt!).toDateString()
       if (d !== currentDate) {
         currentDate = d
-        groups.push({ date: msg.created_at!, messages: [msg] })
+        groups.push({ date: createdAt!, messages: [msg] })
       } else {
         groups[groups.length - 1].messages.push(msg)
       }
@@ -679,17 +679,68 @@ export default function CollectiveChatPage() {
     return groups
   }, [allMessages])
 
-  // Instant scroll to bottom BEFORE paint on first load (no visible jump)
+  /* ---- Broadcast log ---- */
+  const broadcastCollectiveId = isLeaderOrAbove ? effectiveCollectiveId : undefined
+  const { data: broadcastLog = [] } = useBroadcastLog(broadcastCollectiveId)
+  const sendBroadcast = useSendBroadcastNotification()
+
+  /* ---- Camera / upload ---- */
+  const { pickFromGallery } = useCamera()
+  const chatUpload = useImageUpload({ bucket: 'chat-images' })
+
+  /* ---- Draft (collective only) ---- */
+  const savedDraft = isCollective && collectiveId ? getChatDraft(collectiveId) : null
+
+  /* ---- State ---- */
+  const [replyTo, setReplyTo] = useState<AnyMessage | null>(null)
+  const [editingMessage, setEditingMessage] = useState<ChatMessageWithSender | null>(null)
+  const [editText, setEditText] = useState('')
+  const [selectedMessage, setSelectedMessage] = useState<AnyMessage | null>(null)
+  const [showSearch, setShowSearch] = useState(false)
+  const [showScrollDown, setShowScrollDown] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<AnyMessage | null>(null)
+  const [showPollSheet, setShowPollSheet] = useState(false)
+  const [showAnnouncementSheet, setShowAnnouncementSheet] = useState(false)
+  const [announcementType, setAnnouncementType] = useState<'announcement' | 'event_invite' | 'rsvp'>('announcement')
+  const [showBroadcastSheet, setShowBroadcastSheet] = useState(false)
+  const [showManageMembers, setShowManageMembers] = useState(false)
+  const [profileUserId, setProfileUserId] = useState<string | null>(null)
+  const [creatingPoll, setCreatingPoll] = useState(false)
+  const [creatingAnnouncement, setCreatingAnnouncement] = useState(false)
+
+  /* ---- Refs ---- */
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const initialScrollDone = useRef(false)
+
+  // Reset scroll on room switch
+  const roomKey = channelId ?? collectiveId
+  useEffect(() => {
+    initialScrollDone.current = false
+  }, [roomKey])
+
+  /* ---- Mark read ---- */
+  useEffect(() => {
+    if (allMessages.length > 0 && !showScrollDown) {
+      if (isCollective) {
+        collectiveMarkRead()
+      } else if (channelId) {
+        channelMarkRead.mutate({ channelId, collectiveId: channel?.collective_id })
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomKey, allMessages.length, showScrollDown])
+
+  /* ---- Scroll: instant on first load ---- */
   useLayoutEffect(() => {
     if (!initialScrollDone.current && allMessages.length > 0) {
       const container = scrollContainerRef.current
       if (container) {
         container.scrollTop = container.scrollHeight
       }
-      // Also position the sentinel in case layout shifts slightly after paint
       messagesEndRef.current?.scrollIntoView({ behavior: 'auto' })
       requestAnimationFrame(() => {
-        // Double-check after paint - ensures we're truly at the bottom
         if (scrollContainerRef.current) {
           scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight
         }
@@ -698,21 +749,14 @@ export default function CollectiveChatPage() {
     }
   }, [allMessages.length])
 
-  // Smooth scroll on subsequent new messages (only after initial load)
+  /* ---- Scroll: smooth on new messages ---- */
   useEffect(() => {
     if (initialScrollDone.current && !showScrollDown) {
       messagesEndRef.current?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth' })
     }
   }, [allMessages.length, shouldReduceMotion, showScrollDown])
 
-  // Mark as read on mount + when user is at bottom and new messages arrive
-  useEffect(() => {
-    if (!showScrollDown) {
-      markRead()
-    }
-  }, [markRead, allMessages.length, showScrollDown])
-
-  // Scroll detection for "scroll to bottom" button + infinite scroll
+  /* ---- Scroll tracking ---- */
   const scrollRafId = useRef(0)
   useEffect(() => () => cancelAnimationFrame(scrollRafId.current), [])
   const handleScroll = useCallback(() => {
@@ -721,193 +765,315 @@ export default function CollectiveChatPage() {
     scrollRafId.current = requestAnimationFrame(() => {
       const container = scrollContainerRef.current
       if (!container) return
+      const distFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
+      setShowScrollDown(distFromBottom > (isCollective ? 200 : 300))
 
-      const { scrollTop, scrollHeight, clientHeight } = container
-      const distanceFromBottom = scrollHeight - scrollTop - clientHeight
-      setShowScrollDown(distanceFromBottom > 200)
-
-      if (scrollTop < 200 && hasNextPage && !isFetchingNextPage) {
+      if (container.scrollTop < 200 && hasNextPage && !isFetchingNextPage) {
         fetchNextPage()
       }
     })
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
-
-  // Handlers
-  const handleSend = async (text: string) => {
-    if (!collectiveId || !user) return
-    stopTyping()
-
-    if (editingMessage) {
-      if (isOffline) {
-        toast.warning('Cannot edit messages while offline')
-        return
-      }
-      await editMessage.mutateAsync({
-        messageId: editingMessage.id,
-        content: text,
-        collectiveId,
-      })
-      setEditingMessage(null)
-      setEditText('')
-      return
-    }
-
-    removeChatDraft(collectiveId)
-
-    if (isOffline) {
-      queueOfflineAction('chat-message', {
-        collectiveId,
-        userId: user.id,
-        content: text,
-        replyToId: replyTo?.id,
-      })
-      toast.info('Message queued - will send when back online')
-      setReplyTo(null)
-      return
-    }
-
-    try {
-      await sendMessage.mutateAsync({
-        collectiveId,
-        content: text,
-        replyToId: replyTo?.id,
-      })
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Message failed to send'
-      toast.error(msg)
-    }
-    setReplyTo(null)
-  }
-
-  const handleAttach = async () => {
-    if (!collectiveId) return
-    const result = await pickFromGallery()
-    if (!result) return
-
-    try {
-      const uploaded = await chatUpload.upload(result.blob)
-      await sendMessage.mutateAsync({
-        collectiveId,
-        imageUrl: uploaded.url,
-        messageType: 'image',
-      })
-    } catch {
-      toast.error('Failed to upload image')
-    }
-  }
-
-  const handleAttachHtml = async (htmlContent: string) => {
-    if (!collectiveId) return
-    try {
-      await sendMessage.mutateAsync({
-        collectiveId,
-        content: htmlContent,
-        messageType: 'html',
-      })
-    } catch {
-      toast.error('Failed to send HTML content')
-    }
-  }
-
-  const handleMessageLongPress = (msg: ChatMessageWithSender) => {
-    if (msg._optimistic) return
-    setSelectedMessage(msg)
-  }
-
-  const handleReply = () => {
-    if (selectedMessage) {
-      setReplyTo(selectedMessage)
-      setSelectedMessage(null)
-    }
-  }
-
-  const handleEdit = () => {
-    if (selectedMessage) {
-      setEditingMessage(selectedMessage)
-      setEditText(selectedMessage.content ?? '')
-      setSelectedMessage(null)
-    }
-  }
-
-  const handleDelete = () => {
-    if (!selectedMessage) return
-    setDeleteTarget(selectedMessage)
-    setSelectedMessage(null)
-    setShowDeleteConfirm(true)
-  }
-
-  const confirmDelete = async () => {
-    if (!deleteTarget || !collectiveId) return
-    try {
-      await deleteMessage.mutateAsync({
-        messageId: deleteTarget.id,
-        collectiveId,
-      })
-      toast.info('Message removed')
-    } catch {
-      toast.error('Failed to delete message')
-    }
-    setShowDeleteConfirm(false)
-    setDeleteTarget(null)
-  }
-
-  const handlePin = async () => {
-    if (!selectedMessage || !collectiveId) return
-    try {
-      await pinMessage.mutateAsync({
-        messageId: selectedMessage.id,
-        collectiveId,
-        pinned: !selectedMessage.is_pinned,
-      })
-      toast.success(selectedMessage.is_pinned ? 'Message unpinned' : 'Message pinned')
-    } catch {
-      toast.error('Failed to update pin')
-    }
-    setSelectedMessage(null)
-  }
+  }, [isCollective, hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth' })
     setShowScrollDown(false)
   }
 
-  // Leader action handlers - close dialog immediately, run mutation in background
-  const handleCreatePoll = (data: {
+  /* ---- Send message ---- */
+  const handleSend = useCallback(async (text: string) => {
+    if (!user) return
+
+    if (isCollective) {
+      if (!collectiveId) return
+      if (isCollective) stopTyping()
+
+      if (editingMessage) {
+        if (isOffline) {
+          toast.warning('Cannot edit messages while offline')
+          return
+        }
+        await editMessage.mutateAsync({
+          messageId: editingMessage.id,
+          content: text,
+          collectiveId,
+        })
+        setEditingMessage(null)
+        setEditText('')
+        return
+      }
+
+      removeChatDraft(collectiveId)
+
+      if (isOffline) {
+        queueOfflineAction('chat-message', {
+          collectiveId,
+          userId: user.id,
+          content: text,
+          replyToId: replyTo?.id,
+        })
+        toast.info('Message queued - will send when back online')
+        setReplyTo(null)
+        return
+      }
+
+      try {
+        await collectiveSend.mutateAsync({
+          collectiveId,
+          content: text,
+          replyToId: replyTo?.id,
+        })
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Message failed to send'
+        toast.error(msg)
+      }
+      setReplyTo(null)
+    } else {
+      if (!channelId || !text.trim()) return
+      channelSend.mutate({
+        channelId,
+        collectiveId: channel?.collective_id ?? null,
+        content: text.trim(),
+        replyToId: replyTo?.id,
+      })
+      setReplyTo(null)
+    }
+  }, [user, isCollective, collectiveId, channelId, channel, editingMessage, isOffline, replyTo, stopTyping, editMessage, collectiveSend, channelSend, toast])
+
+  /* ---- Attach image ---- */
+  const handleAttach = useCallback(async () => {
+    const result = await pickFromGallery()
+    if (!result) return
+    try {
+      const uploaded = await chatUpload.upload(result.blob)
+      if (isCollective && collectiveId) {
+        await collectiveSend.mutateAsync({
+          collectiveId,
+          imageUrl: uploaded.url,
+          messageType: 'image',
+        })
+      } else if (channelId) {
+        channelSend.mutate({
+          channelId,
+          collectiveId: channel?.collective_id ?? null,
+          content: '',
+          imageUrl: uploaded.url,
+        })
+      }
+    } catch {
+      toast.error('Failed to upload image')
+    }
+  }, [isCollective, collectiveId, channelId, channel, pickFromGallery, chatUpload, collectiveSend, channelSend, toast])
+
+  /* ---- Attach HTML ---- */
+  const handleAttachHtml = useCallback(async (htmlContent: string) => {
+    if (isCollective && collectiveId) {
+      try {
+        await collectiveSend.mutateAsync({
+          collectiveId,
+          content: htmlContent,
+          messageType: 'html',
+        })
+      } catch {
+        toast.error('Failed to send HTML content')
+      }
+    } else if (channelId) {
+      channelSend.mutate({
+        channelId,
+        collectiveId: channel?.collective_id ?? null,
+        content: htmlContent,
+        messageType: 'html',
+      })
+    }
+  }, [isCollective, collectiveId, channelId, channel, collectiveSend, channelSend, toast])
+
+  /* ---- Message actions ---- */
+  const handleMessageLongPress = useCallback((msg: AnyMessage) => {
+    if (msg._optimistic || msg.is_deleted) return
+    setSelectedMessage(msg)
+  }, [])
+
+  const handleReply = useCallback(() => {
+    if (selectedMessage) {
+      setReplyTo(selectedMessage)
+      setSelectedMessage(null)
+    }
+  }, [selectedMessage])
+
+  const handleEdit = useCallback(() => {
+    if (selectedMessage && isCollective) {
+      setEditingMessage(selectedMessage as ChatMessageWithSender)
+      setEditText(selectedMessage.content ?? '')
+      setSelectedMessage(null)
+    }
+  }, [selectedMessage, isCollective])
+
+  const handleDelete = useCallback(() => {
+    if (!selectedMessage) return
+    setDeleteTarget(selectedMessage)
+    setSelectedMessage(null)
+    setShowDeleteConfirm(true)
+  }, [selectedMessage])
+
+  const confirmDelete = useCallback(async () => {
+    if (!deleteTarget) return
+    try {
+      if (isCollective && collectiveId) {
+        await collectiveDelete.mutateAsync({
+          messageId: deleteTarget.id,
+          collectiveId,
+        })
+      } else if (channelId) {
+        await channelDelete.mutateAsync({
+          messageId: deleteTarget.id,
+          channelId,
+        })
+      }
+      toast.info('Message removed')
+    } catch {
+      toast.error('Failed to delete message')
+    }
+    setShowDeleteConfirm(false)
+    setDeleteTarget(null)
+  }, [deleteTarget, isCollective, collectiveId, channelId, collectiveDelete, channelDelete, toast])
+
+  const handlePin = useCallback(async () => {
+    if (!selectedMessage) return
+    try {
+      if (isCollective && collectiveId) {
+        await collectivePin.mutateAsync({
+          messageId: selectedMessage.id,
+          collectiveId,
+          pinned: !selectedMessage.is_pinned,
+        })
+      } else if (channelId) {
+        await channelPin.mutateAsync({
+          messageId: selectedMessage.id,
+          channelId,
+          pinned: !selectedMessage.is_pinned,
+        })
+      }
+      toast.success(selectedMessage.is_pinned ? 'Message unpinned' : 'Message pinned')
+    } catch {
+      toast.error('Failed to update pin')
+    }
+    setSelectedMessage(null)
+  }, [selectedMessage, isCollective, collectiveId, channelId, collectivePin, channelPin, toast])
+
+  /* ---- Poll creation ---- */
+  const handleCreatePoll = async (data: {
     question: string
     options: string[]
     allowMultiple: boolean
     anonymous: boolean
   }) => {
-    if (!collectiveId) return
-    setShowPollSheet(false)
-    toast.info('Creating poll...')
-    createPoll.mutate(
-      { collectiveId, ...data },
-      {
-        onSuccess: () => toast.success('Poll posted!'),
-        onError: () => toast.error('Failed to create poll'),
-      },
-    )
+    if (isCollective && collectiveId) {
+      setShowPollSheet(false)
+      toast.info('Creating poll...')
+      createPoll.mutate(
+        { collectiveId, ...data },
+        {
+          onSuccess: () => toast.success('Poll posted!'),
+          onError: () => toast.error('Failed to create poll'),
+        },
+      )
+    } else if (channelId && user) {
+      setShowPollSheet(false)
+      setCreatingPoll(true)
+      toast.info('Creating poll...')
+      try {
+        const pollOptions = data.options.map((text, i) => ({
+          id: `opt-${Date.now()}-${i}`,
+          text,
+        }))
+        const { data: poll, error } = await supabase
+          .from('chat_polls')
+          .insert({
+            collective_id: channel?.collective_id || null,
+            created_by: user.id,
+            question: data.question,
+            options: pollOptions,
+            allow_multiple: data.allowMultiple,
+            anonymous: data.anonymous,
+          })
+          .select()
+          .single()
+        if (error) throw error
+
+        await supabase
+          .from('chat_messages')
+          .insert({
+            channel_id: channelId,
+            collective_id: channel?.collective_id || null,
+            user_id: user.id,
+            content: data.question,
+            message_type: 'poll',
+            poll_id: poll.id,
+          })
+        toast.success('Poll posted!')
+      } catch {
+        toast.error('Failed to create poll')
+      } finally {
+        setCreatingPoll(false)
+      }
+    }
   }
 
-  const handleCreateAnnouncement = (data: {
+  /* ---- Announcement creation ---- */
+  const handleCreateAnnouncement = async (data: {
     type: 'announcement' | 'event_invite' | 'rsvp'
     title: string
     body?: string
     metadata?: Record<string, unknown>
   }) => {
-    if (!collectiveId) return
-    setShowAnnouncementSheet(false)
-    toast.info('Posting announcement...')
-    createAnnouncement.mutate(
-      { collectiveId, ...data, metadata: data.metadata as Record<string, Json | undefined> | undefined },
-      {
-        onSuccess: () => toast.success('Announcement posted!'),
-        onError: () => toast.error('Failed to create announcement'),
-      },
-    )
+    if (isCollective && collectiveId) {
+      setShowAnnouncementSheet(false)
+      toast.info('Posting announcement...')
+      createAnnouncement.mutate(
+        { collectiveId, ...data, metadata: data.metadata as Record<string, Json | undefined> | undefined },
+        {
+          onSuccess: () => toast.success('Announcement posted!'),
+          onError: () => toast.error('Failed to create announcement'),
+        },
+      )
+    } else if (channelId && user) {
+      setShowAnnouncementSheet(false)
+      setCreatingAnnouncement(true)
+      toast.info('Posting announcement...')
+      try {
+        const { data: announcement, error } = await supabase
+          .from('chat_announcements')
+          .insert({
+            collective_id: channel?.collective_id || null,
+            created_by: user.id,
+            type: data.type,
+            title: data.title,
+            body: data.body ?? null,
+            metadata: (data.metadata ?? {}) as Json,
+          })
+          .select()
+          .single()
+        if (error) throw error
+
+        await supabase
+          .from('chat_messages')
+          .insert({
+            channel_id: channelId,
+            collective_id: channel?.collective_id || null,
+            user_id: user.id,
+            content: data.title,
+            message_type: 'announcement',
+            announcement_id: announcement.id,
+          })
+        toast.success('Announcement posted!')
+      } catch {
+        toast.error('Failed to create announcement')
+      } finally {
+        setCreatingAnnouncement(false)
+      }
+    }
   }
 
+  /* ---- Invite collectives (collective only) ---- */
   const handleInviteCollectives = (data: {
     eventId: string
     collectiveIds: string[]
@@ -916,7 +1082,6 @@ export default function CollectiveChatPage() {
     if (!collectiveId) return
     const count = data.collectiveIds.length
     toast.info(`Inviting ${count} collective${count !== 1 ? 's' : ''} to collaborate...`)
-    // Fire all invitations in parallel
     Promise.all(
       data.collectiveIds.map((targetId) =>
         inviteCollaborator.mutateAsync({
@@ -931,12 +1096,17 @@ export default function CollectiveChatPage() {
       .catch(() => toast.error('Some invites failed to send'))
   }
 
+  /* ---- Broadcast ---- */
   const handleBroadcast = (data: { title: string; body: string }) => {
-    if (!collectiveId) return
+    const bcCollectiveId = effectiveCollectiveId
+    if (!bcCollectiveId) {
+      toast.error('Broadcast notifications require a collective')
+      return
+    }
     setShowBroadcastSheet(false)
     toast.info('Sending notification...')
     sendBroadcast.mutate(
-      { collectiveId, ...data },
+      { collectiveId: bcCollectiveId, ...data },
       {
         onSuccess: (result) => toast.success(`Notification sent to ${result?.sent ?? 0} members`),
         onError: () => toast.error('Failed to send notification'),
@@ -944,7 +1114,25 @@ export default function CollectiveChatPage() {
     )
   }
 
-  if (showLoading) {
+  /* ---- Title ---- */
+  const title = isCollective
+    ? (collective?.name ?? 'Chat')
+    : (channel ? cleanChannelName(channel.name) : 'Staff Chat')
+
+  /* ---- Not found guard ---- */
+  if (isChannel && !channelId) {
+    return (
+      <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
+        <Header title="Staff Chat" back />
+        <div className="flex-1 flex items-center justify-center">
+          <EmptyState illustration="empty" title="Channel not found" description="This channel may have been removed." />
+        </div>
+      </div>
+    )
+  }
+
+  /* ---- Loading (collective uses Page wrapper) ---- */
+  if (isCollective && showLoading) {
     return (
       <Page swipeBack header={<Header title="Chat" back />}>
         <div className="py-4">
@@ -953,22 +1141,131 @@ export default function CollectiveChatPage() {
       </Page>
     )
   }
+
+  /* ---- Render message item ---- */
+  const renderMessage = (msg: AnyMessage, isSent: boolean) => {
+    const isDeleted = msg.is_deleted
+    const messageType = msg.message_type ?? 'text'
+    const msgCollectiveId = msg.collective_id ?? effectiveCollectiveId
+    const roleBadge = isCollective && msg.user_id ? memberRoles.get(msg.user_id) : undefined
+
+    if (isDeleted) {
+      return (
+        <div className={cn('flex py-1', isSent ? 'justify-end' : 'justify-start')}>
+          <p className="text-xs italic text-primary-400 font-medium px-3.5 py-2.5 rounded-2xl bg-white/70 ring-1 ring-primary-200/50 shadow-sm">
+            Message removed
+          </p>
+        </div>
+      )
+    }
+
+    if (messageType === 'poll' && msg.poll_id) {
+      return <InlinePoll pollId={msg.poll_id} collectiveId={msgCollectiveId} sent={isSent} />
+    }
+
+    if (messageType === 'announcement' && msg.announcement_id) {
+      return <InlineAnnouncement announcementId={msg.announcement_id} sent={isSent} />
+    }
+
+    if (messageType === 'system') {
+      return (
+        <div className="flex justify-center py-3">
+          <p className="text-xs text-primary-500 italic font-medium bg-white/80 px-4 py-2 rounded-full shadow-sm ring-1 ring-primary-200/40">
+            {msg.content}
+          </p>
+        </div>
+      )
+    }
+
+    if (messageType === 'html') {
+      return (
+        <HtmlChatBubble
+          htmlContent={msg.content ?? ''}
+          sent={isSent}
+          timestamp={new Date(msg.created_at!)}
+          senderName={msg.profiles?.display_name ?? undefined}
+          senderAvatar={msg.profiles?.avatar_url ?? undefined}
+          senderId={msg.user_id ?? undefined}
+          roleBadge={roleBadge}
+          skipAnimation={msg._confirmed}
+          onAvatarTap={(userId) => setProfileUserId(userId)}
+          onSenderTap={(userId) => setProfileUserId(userId)}
+          onLongPress={() => handleMessageLongPress(msg)}
+        />
+      )
+    }
+
+    // Default: text / image
+    const bubble = (
+      <ChatBubble
+        message={msg.content ?? ''}
+        sent={isSent}
+        timestamp={new Date(msg.created_at!)}
+        senderName={msg.profiles?.display_name ?? undefined}
+        senderAvatar={msg.profiles?.avatar_url ?? undefined}
+        senderId={msg.user_id ?? undefined}
+        photo={msg.image_url ?? undefined}
+        roleBadge={roleBadge}
+        skipAnimation={msg._confirmed}
+        onAvatarTap={(userId) => setProfileUserId(userId)}
+        onSenderTap={(userId) => setProfileUserId(userId)}
+        onLongPress={() => handleMessageLongPress(msg)}
+        replyTo={
+          msg.reply_message
+            ? {
+                message: msg.reply_message.content ?? '',
+                senderName: allMessages.find((m) => m.id === msg.reply_message!.id)?.profiles?.display_name ?? 'Someone',
+              }
+            : undefined
+        }
+      />
+    )
+
+    if (isCollective) {
+      return (
+        <div
+          role="button"
+          tabIndex={0}
+          aria-label={`Message options for ${msg.profiles?.display_name}`}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleMessageLongPress(msg)
+          }}
+        >
+          {bubble}
+          {(msg as unknown as { updated_at?: string }).updated_at && (msg as unknown as { updated_at?: string }).updated_at !== msg.created_at && (
+            <p className={cn(
+              'text-[11px] text-primary-400 mt-0.5',
+              isSent ? 'text-right pr-2' : 'pl-10',
+            )}>
+              (edited)
+            </p>
+          )}
+        </div>
+      )
+    }
+
+    return bubble
+  }
+
   return (
     <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
       {/* Header */}
       <motion.div
-        variants={shouldReduceMotion ? undefined : fadeUp}
-        initial="hidden"
-        animate="visible"
+        variants={isCollective && !shouldReduceMotion ? fadeUp : undefined}
+        initial={isCollective ? 'hidden' : undefined}
+        animate={isCollective ? 'visible' : undefined}
       >
         <Header
-          title={collective?.name ?? 'Chat'}
+          title={title}
           back
           showTitle
           rightActions={
             <div className="flex items-center gap-1">
-              <ChatSwitcherDropdown currentCollectiveId={collectiveId} />
-              {isLeaderOrAbove && (
+              <ChatSwitcherDropdown
+                currentCollectiveId={isCollective ? collectiveId : undefined}
+                currentChannelId={isChannel ? channelId : undefined}
+              />
+              {isCollective && isLeaderOrAbove && (
                 <button
                   type="button"
                   onClick={() => setShowManageMembers(true)}
@@ -980,7 +1277,7 @@ export default function CollectiveChatPage() {
               )}
               <button
                 type="button"
-                onClick={() => setShowSearch(true)}
+                onClick={() => isCollective ? setShowSearch(true) : undefined}
                 aria-label="Search messages"
                 className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
               >
@@ -991,19 +1288,21 @@ export default function CollectiveChatPage() {
         />
       </motion.div>
 
-      {/* Pinned messages */}
-      <PinnedMessageBar
-        messages={pinnedMessages as ChatMessageWithSender[]}
-        isStaff={isLeaderOrAbove}
-        onUnpin={async (messageId) => {
-          try {
-            await pinMessage.mutateAsync({ messageId, collectiveId: collectiveId!, pinned: false })
-            toast.success('Message unpinned')
-          } catch {
-            toast.error('Failed to unpin')
-          }
-        }}
-      />
+      {/* Pinned messages (collective only) */}
+      {isCollective && (
+        <PinnedMessageBar
+          messages={pinnedMessages as ChatMessageWithSender[]}
+          isStaff={isLeaderOrAbove}
+          onUnpin={async (messageId) => {
+            try {
+              await collectivePin.mutateAsync({ messageId, collectiveId: collectiveId!, pinned: false })
+              toast.success('Message unpinned')
+            } catch {
+              toast.error('Failed to unpin')
+            }
+          }}
+        />
+      )}
 
       {/* Messages area */}
       <div
@@ -1011,159 +1310,107 @@ export default function CollectiveChatPage() {
         onScroll={handleScroll}
         className="flex-1 min-h-0 overflow-y-auto overscroll-contain scroll-smooth px-3 py-2"
         role="log"
-        aria-label="Chat messages"
+        aria-label={isChannel ? 'Staff chat messages' : 'Chat messages'}
         aria-live="polite"
       >
-        {/* Load more indicator */}
-        {isFetchingNextPage && (
-          <div className="flex justify-center py-3">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-200 border-t-primary-600" />
+        {showLoading ? (
+          <div className="space-y-4 py-4">
+            <Skeleton variant="list-item" count={8} />
           </div>
-        )}
-
-        {allMessages.length === 0 ? (
-          <EmptyState
-            illustration="empty"
-            title="Start the conversation"
-            description="Be the first to say hello to your collective!"
-          />
-        ) : (
-          messageGroups.map((group) => (
-            <Fragment key={group.date}>
-              {/* Date separator */}
-              <div className="flex items-center justify-center py-5">
-                <motion.span
-                  initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="rounded-full bg-white px-4 py-1.5 text-[11px] font-bold text-primary-600 shadow-md ring-1 ring-primary-200/60"
-                >
-                  {dateHeader(group.date)}
-                </motion.span>
+        ) : allMessages.length === 0 ? (
+          isChannel ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center py-12">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-200/40">
+                  <Lock size={24} strokeWidth={2.5} className="text-white" />
+                </div>
+                <p className="text-base font-bold text-primary-900">Staff-only chat</p>
+                <p className="text-sm text-primary-500 mt-1.5">
+                  Messages here are only visible to staff members
+                </p>
               </div>
+            </div>
+          ) : (
+            <EmptyState
+              illustration="empty"
+              title="Start the conversation"
+              description="Be the first to say hello to your collective!"
+            />
+          )
+        ) : (
+          <>
+            {/* Load more indicator */}
+            {isFetchingNextPage && (
+              <div className="flex justify-center py-3">
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-200 border-t-primary-600" />
+              </div>
+            )}
 
-              {/* Messages */}
-              {group.messages.map((msg) => {
-                const isSent = msg.user_id === user?.id
-                const isDeleted = msg.is_deleted
-                const roleBadge = msg.user_id ? memberRoles.get(msg.user_id) : undefined
-                const messageType = msg.message_type ?? 'text'
-
-                return (
-                  <div
-                    key={msg.id}
-                    className="py-1"
-                    onContextMenu={(e) => {
-                      e.preventDefault()
-                      handleMessageLongPress(msg)
-                    }}
+            {messageGroups.map((group) => (
+              <Fragment key={group.date}>
+                {/* Date separator */}
+                <div className="flex items-center justify-center py-5">
+                  <motion.span
+                    initial={isCollective && !shouldReduceMotion ? { opacity: 0, scale: 0.9 } : false}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="rounded-full bg-white px-4 py-1.5 text-[11px] font-bold text-primary-600 shadow-md ring-1 ring-primary-200/60"
                   >
-                    {isDeleted ? (
-                      <div className={cn('flex py-1', isSent ? 'justify-end' : 'justify-start')}>
-                        <p className="text-xs italic text-primary-400 font-medium px-3.5 py-2.5 rounded-2xl bg-white/70 ring-1 ring-primary-200/50 shadow-sm">
-                          Message removed
-                        </p>
-                      </div>
-                    ) : messageType === 'poll' && msg.poll_id ? (
-                      <InlinePoll pollId={msg.poll_id} collectiveId={collectiveId!} sent={isSent} />
-                    ) : messageType === 'announcement' && msg.announcement_id ? (
-                      <InlineAnnouncement announcementId={msg.announcement_id} sent={isSent} />
-                    ) : messageType === 'system' ? (
-                      <div className="flex justify-center py-3">
-                        <p className="text-xs text-primary-500 italic font-medium bg-white/80 px-4 py-2 rounded-full shadow-sm ring-1 ring-primary-200/40">
-                          {msg.content}
-                        </p>
-                      </div>
-                    ) : messageType === 'html' ? (
-                      <HtmlChatBubble
-                        htmlContent={msg.content ?? ''}
-                        sent={isSent}
-                        timestamp={new Date(msg.created_at!)}
-                        senderName={msg.profiles?.display_name ?? undefined}
-                        senderAvatar={msg.profiles?.avatar_url ?? undefined}
-                        senderId={msg.user_id ?? undefined}
-                        roleBadge={roleBadge}
-                        skipAnimation={msg._confirmed}
-                        onAvatarTap={(userId) => setProfileUserId(userId)}
-                        onSenderTap={(userId) => setProfileUserId(userId)}
-                        onLongPress={() => handleMessageLongPress(msg)}
-                      />
-                    ) : (
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`Message options for ${msg.profiles?.display_name}`}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') handleMessageLongPress(msg)
-                        }}
-                      >
-                        <ChatBubble
-                          message={msg.content ?? ''}
-                          sent={isSent}
-                          timestamp={new Date(msg.created_at!)}
-                          senderName={msg.profiles?.display_name ?? undefined}
-                          senderAvatar={msg.profiles?.avatar_url ?? undefined}
-                          senderId={msg.user_id ?? undefined}
-                          photo={msg.image_url ?? undefined}
-                          roleBadge={roleBadge}
-                          skipAnimation={msg._confirmed}
-                          onAvatarTap={(userId) => setProfileUserId(userId)}
-                          onSenderTap={(userId) => setProfileUserId(userId)}
-                          onLongPress={() => handleMessageLongPress(msg)}
-                          replyTo={
-                            msg.reply_message
-                              ? {
-                                  message: msg.reply_message.content ?? '',
-                                  senderName: allMessages.find((m) => m.id === msg.reply_message!.id)?.profiles?.display_name ?? 'Someone',
-                                }
-                              : undefined
-                          }
-                        />
+                    {dateHeader(group.date)}
+                  </motion.span>
+                </div>
 
-                        {(msg as unknown as { updated_at?: string }).updated_at && (msg as unknown as { updated_at?: string }).updated_at !== msg.created_at && (
-                          <p className={cn(
-                            'text-[11px] text-primary-400 mt-0.5',
-                            isSent ? 'text-right pr-2' : 'pl-10',
-                          )}>
-                            (edited)
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )
-              })}
-            </Fragment>
-          ))
+                {/* Messages */}
+                {group.messages.map((msg) => {
+                  const isSent = msg.user_id === user?.id
+
+                  return (
+                    <div
+                      key={msg.id}
+                      className="py-1"
+                      onContextMenu={(e) => {
+                        e.preventDefault()
+                        handleMessageLongPress(msg)
+                      }}
+                    >
+                      {renderMessage(msg, isSent)}
+                    </div>
+                  )
+                })}
+              </Fragment>
+            ))}
+
+            <div ref={messagesEndRef} />
+          </>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Typing indicator */}
-      <AnimatePresence>
-        {typingText && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.15 }}
-            className="px-4 pb-1.5 bg-white/90"
-          >
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1">
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="h-2 w-2 rounded-full bg-primary-500 animate-bounce"
-                    style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.6s' }}
-                  />
-                ))}
+      {/* Typing indicator (collective only) */}
+      {isCollective && (
+        <AnimatePresence>
+          {typingText && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.15 }}
+              className="px-4 pb-1.5 bg-white/90"
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="h-2 w-2 rounded-full bg-primary-500 animate-bounce"
+                      style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.6s' }}
+                    />
+                  ))}
+                </div>
+                <p className="text-xs text-primary-600 italic font-medium">{typingText}</p>
               </div>
-              <p className="text-xs text-primary-600 italic font-medium">{typingText}</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Reply bar */}
       <AnimatePresence>
@@ -1180,7 +1427,7 @@ export default function CollectiveChatPage() {
                 <Reply size={14} className="text-primary-600 shrink-0" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-primary-600">{replyTo.profiles?.display_name}</p>
+                <p className="text-xs font-bold text-primary-600">{replyTo.profiles?.display_name ?? 'Unknown'}</p>
                 <p className="text-xs text-primary-500 truncate">{replyTo.content ?? 'Image'}</p>
               </div>
               <button
@@ -1196,33 +1443,35 @@ export default function CollectiveChatPage() {
         )}
       </AnimatePresence>
 
-      {/* Edit bar */}
-      <AnimatePresence>
-        {editingMessage && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.15 }}
-            className="bg-warning-100 px-4 py-2.5 shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
-          >
-            <div className="flex items-center gap-2.5">
-              <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-warning-200">
-                <Pencil size={14} className="text-warning-700 shrink-0" />
+      {/* Edit bar (collective only) */}
+      {isCollective && (
+        <AnimatePresence>
+          {editingMessage && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.15 }}
+              className="bg-warning-100 px-4 py-2.5 shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-warning-200">
+                  <Pencil size={14} className="text-warning-700 shrink-0" />
+                </div>
+                <p className="text-xs font-bold text-warning-800 flex-1">Editing message</p>
+                <button
+                  type="button"
+                  onClick={() => { setEditingMessage(null); setEditText('') }}
+                  aria-label="Cancel edit"
+                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+                >
+                  <X size={16} />
+                </button>
               </div>
-              <p className="text-xs font-bold text-warning-800 flex-1">Editing message</p>
-              <button
-                type="button"
-                onClick={() => { setEditingMessage(null); setEditText('') }}
-                aria-label="Cancel edit"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
-              >
-                <X size={16} />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Scroll to bottom button */}
       <AnimatePresence>
@@ -1255,37 +1504,46 @@ export default function CollectiveChatPage() {
         </div>
       )}
 
-      {/* Offline indicator */}
-      {isOffline && (
+      {/* Offline indicator (collective only) */}
+      {isCollective && isOffline && (
         <div className="px-4 py-1.5">
           <OfflineIndicator
-            dataUpdatedAt={messagesData?.pages?.[0]?.[0]?.created_at ? new Date(messagesData.pages[0][0].created_at).getTime() : undefined}
+            dataUpdatedAt={collectiveMessages.data?.pages?.[0]?.[0]?.created_at ? new Date(collectiveMessages.data.pages[0][0].created_at).getTime() : undefined}
           />
         </div>
       )}
 
       {/* Message input */}
       <motion.div
-        variants={shouldReduceMotion ? undefined : fadeUp}
-        initial="hidden"
-        animate="visible"
+        variants={isCollective && !shouldReduceMotion ? fadeUp : undefined}
+        initial={isCollective ? 'hidden' : undefined}
+        animate={isCollective ? 'visible' : undefined}
       >
         <MessageInput
           onSend={handleSend}
           onAttach={isOffline ? undefined : handleAttach}
-          onAttachHtml={isOffline ? undefined : handleAttachHtml}
-          onTyping={sendTyping}
+          onAttachHtml={
+            (isCollective ? (isOffline || !isLeaderOrAbove) : !isLeaderOrAbove)
+              ? undefined
+              : handleAttachHtml
+          }
+          onTyping={isCollective ? sendTyping : undefined}
           placeholder={
             editingMessage
               ? 'Edit message...'
-              : isOffline
+              : isOffline && isCollective
                 ? 'Type a message (will send when online)...'
-                : 'Type a message...'
+                : isChannel
+                  ? 'Message staff...'
+                  : 'Type a message...'
           }
           initialValue={editingMessage ? editText : (savedDraft?.content ?? '')}
-          onValueChange={(text) => {
-            if (collectiveId && !editingMessage) saveChatDraft(collectiveId, text, replyTo?.id)
-          }}
+          onValueChange={
+            isCollective && collectiveId && !editingMessage
+              ? (text) => saveChatDraft(collectiveId, text, replyTo?.id)
+              : undefined
+          }
+          disabled={isChannel ? channelSend.isPending : undefined}
           padForTabBar={hasBottomTabs}
           isLeader={isLeaderOrAbove}
           onCreatePoll={() => setShowPollSheet(true)}
@@ -1304,7 +1562,7 @@ export default function CollectiveChatPage() {
         isOwnMessage={selectedMessage?.user_id === user?.id}
         onClose={() => setSelectedMessage(null)}
         onReply={handleReply}
-        onEdit={handleEdit}
+        onEdit={isCollective ? handleEdit : undefined}
         onDelete={handleDelete}
         onPin={handlePin}
       />
@@ -1325,7 +1583,7 @@ export default function CollectiveChatPage() {
         open={showPollSheet}
         onClose={() => setShowPollSheet(false)}
         onSubmit={handleCreatePoll}
-        loading={createPoll.isPending}
+        loading={isCollective ? createPoll.isPending : creatingPoll}
       />
 
       {/* Announcement creation sheet */}
@@ -1333,10 +1591,10 @@ export default function CollectiveChatPage() {
         open={showAnnouncementSheet}
         onClose={() => setShowAnnouncementSheet(false)}
         onSubmit={handleCreateAnnouncement}
-        onInviteCollectives={handleInviteCollectives}
-        loading={createAnnouncement.isPending}
+        onInviteCollectives={isCollective ? handleInviteCollectives : undefined}
+        loading={isCollective ? createAnnouncement.isPending : creatingAnnouncement}
         defaultType={announcementType}
-        collectiveId={collectiveId}
+        collectiveId={isCollective ? collectiveId : undefined}
       />
 
       {/* Broadcast notification sheet */}
@@ -1346,11 +1604,11 @@ export default function CollectiveChatPage() {
         onSend={handleBroadcast}
         loading={sendBroadcast.isPending}
         recentBroadcasts={broadcastLog}
-        collectiveName={collective?.name}
+        collectiveName={isCollective ? collective?.name : channel?.name}
       />
 
-      {/* Member management sheet (leader moderation) */}
-      {isLeaderOrAbove && (
+      {/* Member management sheet (collective only) */}
+      {isCollective && isLeaderOrAbove && (
         <ManageMembersSheet
           open={showManageMembers}
           onClose={() => setShowManageMembers(false)}
@@ -1358,21 +1616,23 @@ export default function CollectiveChatPage() {
         />
       )}
 
-      {/* Search overlay */}
-      <AnimatePresence>
-        {showSearch && collectiveId && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <ChatSearchOverlay
-              collectiveId={collectiveId}
-              onClose={() => setShowSearch(false)}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Search overlay (collective only) */}
+      {isCollective && (
+        <AnimatePresence>
+          {showSearch && collectiveId && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <ChatSearchOverlay
+                collectiveId={collectiveId}
+                onClose={() => setShowSearch(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Profile modal */}
       <ProfileModal userId={profileUserId} open={!!profileUserId} onClose={() => setProfileUserId(null)} />

@@ -59,6 +59,62 @@ function getImages(update: UpdateWithAuthor): string[] {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Render content with clickable links                                */
+/* ------------------------------------------------------------------ */
+
+const LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<]+)/g
+
+function RichContent({ text, className }: { text: string; className?: string }) {
+  const parts: React.ReactNode[] = []
+  let lastIndex = 0
+  let match: RegExpExecArray | null
+  let key = 0
+
+  while ((match = LINK_RE.exec(text)) !== null) {
+    // Text before match
+    if (match.index > lastIndex) {
+      parts.push(text.slice(lastIndex, match.index))
+    }
+
+    if (match[1] && match[2]) {
+      // Markdown link [label](url)
+      parts.push(
+        <a
+          key={key++}
+          href={match[2]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary-600 font-semibold underline underline-offset-2 decoration-primary-300 hover:decoration-primary-500 hover:text-primary-700 transition-colors"
+        >
+          {match[1]}
+        </a>,
+      )
+    } else if (match[3]) {
+      // Bare URL
+      parts.push(
+        <a
+          key={key++}
+          href={match[3]}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary-600 font-semibold underline underline-offset-2 decoration-primary-300 hover:decoration-primary-500 hover:text-primary-700 transition-colors break-all"
+        >
+          {match[3]}
+        </a>,
+      )
+    }
+
+    lastIndex = match.index + match[0].length
+  }
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex))
+  }
+
+  return <div className={className}>{parts}</div>
+}
+
+/* ------------------------------------------------------------------ */
 /*  Role label                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -212,9 +268,10 @@ function UpdateDetail({
         </div>
 
         {/* Content */}
-        <div className="text-[15px] lg:text-base text-primary-700 leading-[1.8] whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
-          {update.content}
-        </div>
+        <RichContent
+          text={update.content}
+          className="text-[15px] lg:text-base text-primary-700 leading-[1.8] whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
+        />
 
         {/* Additional images (after content, below the splash) */}
         {extraImages.length > 0 && (

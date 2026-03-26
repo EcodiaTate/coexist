@@ -7,14 +7,14 @@ import type {
   Enums,
 } from '@/types/database.types'
 
-type GlobalAnnouncement = Tables<'global_announcements'>
+export type Update = Tables<'updates'>
 type Profile = Tables<'profiles'>
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-export interface UpdateWithAuthor extends GlobalAnnouncement {
+export interface UpdateWithAuthor extends Update {
   author: Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'role'> | null
   is_read: boolean
 }
@@ -77,10 +77,10 @@ export function useUpdates() {
     queryKey: ['updates', user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('global_announcements')
+        .from('updates')
         .select(`
           *,
-          author:profiles!global_announcements_author_id_fkey(id, display_name, avatar_url, role)
+          author:profiles!updates_author_id_fkey(id, display_name, avatar_url, role)
         `)
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
@@ -92,11 +92,11 @@ export function useUpdates() {
       let readIds = new Set<string>()
       if (user) {
         const { data: reads } = await supabase
-          .from('announcement_reads')
-          .select('announcement_id')
+          .from('update_reads')
+          .select('update_id')
           .eq('user_id', user.id)
 
-        readIds = new Set((reads ?? []).map((r) => r.announcement_id))
+        readIds = new Set((reads ?? []).map((r) => r.update_id))
       }
 
       return (data ?? []).map((a) => ({
@@ -110,13 +110,13 @@ export function useUpdates() {
   // Realtime for new, updated, and deleted announcements
   useEffect(() => {
     const channel = supabase
-      .channel('global_announcements')
+      .channel('updates')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'global_announcements',
+          table: 'updates',
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ['updates'] })
@@ -163,7 +163,7 @@ export function useUnreadUpdateCount() {
 
       // Fetch all announcement IDs (lightweight — id + audience fields only)
       const { data: announcements } = await supabase
-        .from('global_announcements')
+        .from('updates')
         .select('id, target_audience, target_collective_id')
 
       if (!announcements || announcements.length === 0) return 0
@@ -190,11 +190,11 @@ export function useUnreadUpdateCount() {
 
       // Fetch user's reads
       const { data: reads } = await supabase
-        .from('announcement_reads')
-        .select('announcement_id')
+        .from('update_reads')
+        .select('update_id')
         .eq('user_id', user.id)
 
-      const readIds = new Set((reads ?? []).map((r) => r.announcement_id))
+      const readIds = new Set((reads ?? []).map((r) => r.update_id))
 
       // Count visible announcements that haven't been read
       // Also ignore reads for deleted announcements (readId not in visibleIds)
@@ -223,10 +223,10 @@ export function useMarkUpdateRead() {
       if (!user) return
 
       const { error } = await supabase
-        .from('announcement_reads')
+        .from('update_reads')
         .upsert(
-          { announcement_id: updateId, user_id: user.id },
-          { onConflict: 'announcement_id,user_id' },
+          { update_id: updateId, user_id: user.id },
+          { onConflict: 'update_id,user_id' },
         )
 
       if (error) throw error
@@ -266,8 +266,8 @@ interface CreateUpdateParams {
   title: string
   content: string
   imageUrls?: string[]
-  priority: Enums<'announcement_priority'>
-  targetAudience: Enums<'announcement_target'>
+  priority: Enums<'update_priority'>
+  targetAudience: Enums<'update_target'>
   targetCollectiveId?: string
   isPinned?: boolean
 }
@@ -282,7 +282,7 @@ export function useCreateUpdate() {
 
       const urls = params.imageUrls ?? []
       const { data, error } = await supabase
-        .from('global_announcements')
+        .from('updates')
         .insert({
           author_id: user.id,
           title: params.title,
@@ -345,6 +345,144 @@ export function useCreateUpdate() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['updates'] })
+      queryClient.invalidateQueries({ queryKey: ['updates-unread'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'latest-update'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'recent-updates'] })
+    },
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Admin: list all updates (no audience filter, includes collective)  */
+/* ------------------------------------------------------------------ */
+
+export interface AdminUpdate extends Update {
+  author: Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'role'> | null
+  collective: { id: string; name: string } | null
+  read_count: number
+}
+
+export function useAdminUpdates() {
+  return useQuery({
+    queryKey: ['admin-updates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('updates')
+        .select(`
+          *,
+          author:profiles!updates_author_id_fkey(id, display_name, avatar_url, role),
+          collective:collectives!updates_target_collective_id_fkey(id, name)
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      // Fetch read counts for all updates in one query
+      const { data: readCounts } = await supabase
+        .from('update_reads')
+        .select('update_id')
+
+      const countMap = new Map<string, number>()
+      for (const r of readCounts ?? []) {
+        countMap.set(r.update_id, (countMap.get(r.update_id) ?? 0) + 1)
+      }
+
+      return (data ?? []).map((u) => ({
+        ...u,
+        read_count: countMap.get(u.id) ?? 0,
+      })) as AdminUpdate[]
+    },
+    staleTime: 60 * 1000,
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Update an existing update (admin)                                  */
+/* ------------------------------------------------------------------ */
+
+interface UpdateUpdateParams {
+  id: string
+  title?: string
+  content?: string
+  imageUrls?: string[]
+  priority?: Enums<'update_priority'>
+  targetAudience?: Enums<'update_target'>
+  targetCollectiveId?: string | null
+  isPinned?: boolean
+}
+
+export function useUpdateUpdate() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (params: UpdateUpdateParams) => {
+      const { id, ...rest } = params
+      const payload: Record<string, unknown> = {}
+      if (rest.title !== undefined) payload.title = rest.title
+      if (rest.content !== undefined) payload.content = rest.content
+      if (rest.imageUrls !== undefined) {
+        payload.image_urls = rest.imageUrls
+        payload.image_url = rest.imageUrls[0] ?? null
+      }
+      if (rest.priority !== undefined) payload.priority = rest.priority
+      if (rest.targetAudience !== undefined) payload.target_audience = rest.targetAudience
+      if (rest.targetCollectiveId !== undefined) payload.target_collective_id = rest.targetCollectiveId
+      if (rest.isPinned !== undefined) payload.is_pinned = rest.isPinned
+      payload.updated_at = new Date().toISOString()
+
+      const { data, error } = await supabase
+        .from('updates')
+        .update(payload)
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return data
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['updates'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-updates'] })
+      queryClient.invalidateQueries({ queryKey: ['updates-unread'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'latest-update'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'recent-updates'] })
+    },
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Delete an update (admin)                                           */
+/* ------------------------------------------------------------------ */
+
+export function useDeleteUpdate() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      // Delete read records first (FK constraint)
+      await supabase.from('update_reads').delete().eq('update_id', id)
+
+      const { error } = await supabase
+        .from('updates')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+    },
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['admin-updates'] })
+      const previous = queryClient.getQueryData<AdminUpdate[]>(['admin-updates'])
+      queryClient.setQueryData<AdminUpdate[]>(['admin-updates'], (old) =>
+        old ? old.filter((u) => u.id !== id) : old,
+      )
+      return { previous }
+    },
+    onError: (_err, _, context) => {
+      if (context?.previous) queryClient.setQueryData(['admin-updates'], context.previous)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['updates'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-updates'] })
       queryClient.invalidateQueries({ queryKey: ['updates-unread'] })
       queryClient.invalidateQueries({ queryKey: ['home', 'latest-update'] })
       queryClient.invalidateQueries({ queryKey: ['home', 'recent-updates'] })

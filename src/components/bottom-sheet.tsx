@@ -35,7 +35,7 @@ function useIsDesktop() {
 }
 
 /* ====================================================================== */
-/*  Mobile bottom sheet — no framer, pure CSS transitions + touch events  */
+/*  Mobile bottom sheet  no framer, pure CSS transitions + touch events  */
 /* ====================================================================== */
 
 function MobileSheet({
@@ -71,7 +71,7 @@ function MobileSheet({
     } else if (mounted) {
       // Animate out
       setVisible(false)
-      // Fallback unmount — transitionend can be unreliable (e.g. if already at final position)
+      // Fallback unmount  transitionend can be unreliable (e.g. if already at final position)
       const timer = setTimeout(() => setMounted(false), 350)
       return () => clearTimeout(timer)
     }
@@ -207,7 +207,7 @@ function MobileSheet({
         }}
         onTransitionEnd={onTransitionEnd}
       >
-        {/* Grab handle — touch target for dragging */}
+        {/* Grab handle  touch target for dragging */}
         <div
           className="flex justify-center py-3 cursor-grab active:cursor-grabbing select-none shrink-0"
           style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 0.75rem)', touchAction: 'none' }}
@@ -239,7 +239,7 @@ function MobileSheet({
 }
 
 /* ====================================================================== */
-/*  Main export — desktop uses framer centred modal, mobile uses above    */
+/*  Main export  desktop uses framer centred modal, mobile uses above    */
 /* ====================================================================== */
 
 export function BottomSheet({

@@ -9,7 +9,7 @@ import { Input } from '@/components/input'
 import { Header } from '@/components/header'
 
 /**
- * Password reset form — the user lands here after clicking the
+ * Password reset form  the user lands here after clicking the
  * reset link in their email. Supabase has already established a
  * PASSWORD_RECOVERY session via the hash fragment by the time this
  * page renders (handled by auth-callback or onAuthStateChange).

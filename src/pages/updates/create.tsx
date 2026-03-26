@@ -20,7 +20,7 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useCreateUpdate } from '@/hooks/use-updates'
-import { useMyCollectives } from '@/hooks/use-collective'
+import { useMyCollectives, useCollectives } from '@/hooks/use-collective'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useAdminHeader } from '@/components/admin-layout'
 import type { Enums } from '@/types/database.types'
@@ -30,22 +30,16 @@ import type { Enums } from '@/types/database.types'
 /* ------------------------------------------------------------------ */
 
 const audienceOptions: {
-  value: Enums<'announcement_target'>
+  value: Enums<'update_target'>
   label: string
   description: string
   icon: typeof Globe
 }[] = [
   {
     value: 'all',
-    label: 'All Users',
-    description: 'Every Co-Exist member',
+    label: 'Everyone',
+    description: 'All participants nationally',
     icon: Globe,
-  },
-  {
-    value: 'leaders',
-    label: 'Leaders Only',
-    description: 'Collective leaders, co-leaders, and assist-leaders',
-    icon: Shield,
   },
   {
     value: 'collective_specific',
@@ -66,14 +60,15 @@ export default function CreateUpdatePage() {
   const createUpdate = useCreateUpdate()
   const annUpload = useImageUpload({ bucket: 'announcements' })
   const { data: myCollectives } = useMyCollectives()
+  const { data: allCollectives } = useCollectives()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
 
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
-  const [priority, setPriority] = useState<Enums<'announcement_priority'>>('normal')
-  const [targetAudience, setTargetAudience] = useState<Enums<'announcement_target'>>('all')
+  const [priority, setPriority] = useState<Enums<'update_priority'>>('normal')
+  const [targetAudience, setTargetAudience] = useState<Enums<'update_target'>>('all')
   const [selectedCollectiveId, setSelectedCollectiveId] = useState<string | null>(null)
   const [isPinned, setIsPinned] = useState(false)
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
@@ -218,7 +213,7 @@ export default function CreateUpdatePage() {
               </div>
               <div>
                 <h3 className="text-[15px] font-bold text-white tracking-tight">Images</h3>
-                <p className="text-xs text-white/60">{selectedFiles.length}/10 selected — photos, infographics, flyers</p>
+                <p className="text-xs text-white/60">{selectedFiles.length}/10 selected  photos, infographics, flyers</p>
               </div>
             </div>
           </div>
@@ -412,15 +407,16 @@ export default function CreateUpdatePage() {
                   <label className="block text-xs font-bold text-primary-500 uppercase tracking-wider">
                     Select collective
                   </label>
-                  {(myCollectives ?? []).map((m) => {
-                    const collective = m.collectives as unknown as { name: string; cover_image_url?: string | null; region?: string | null; state?: string | null } | null
-                    if (!collective) return null
-                    const isSelected = selectedCollectiveId === m.collective_id
+                  {(isAdmin ? (allCollectives ?? []).map(c => ({ id: c.id, name: c.name, cover_image_url: c.cover_image_url, region: c.region, state: c.state })) : (myCollectives ?? []).map(m => {
+                    const c = m.collectives as unknown as { name: string; cover_image_url?: string | null; region?: string | null; state?: string | null } | null
+                    return c ? { id: m.collective_id, name: c.name, cover_image_url: c.cover_image_url, region: c.region, state: c.state } : null
+                  }).filter(Boolean) as { id: string; name: string; cover_image_url?: string | null; region?: string | null; state?: string | null }[]).map((collective) => {
+                    const isSelected = selectedCollectiveId === collective.id
                     return (
                       <button
-                        key={m.collective_id}
+                        key={collective.id}
                         type="button"
-                        onClick={() => setSelectedCollectiveId(m.collective_id)}
+                        onClick={() => setSelectedCollectiveId(collective.id)}
                         className={cn(
                           'flex items-center gap-3 w-full px-4 py-3 rounded-xl text-left',
                           'transition-colors duration-150 cursor-pointer select-none',

@@ -108,7 +108,7 @@ export default function OnboardingPage() {
 
         if (memberError) {
           console.error('[onboarding] Failed to join collective:', memberError)
-          // Non-fatal — don't block onboarding completion
+          // Non-fatal  don't block onboarding completion
         }
       }
 

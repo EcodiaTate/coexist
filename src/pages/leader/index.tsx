@@ -30,10 +30,15 @@ import {
     Copy,
     Check,
     ClipboardCheck,
+    ClipboardList,
     BookOpen,
     Leaf,
+    ListTodo,
+    Circle,
+    Calendar,
+    ArrowRight,
 } from 'lucide-react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { EmptyState } from '@/components/empty-state'
 import { Avatar } from '@/components/avatar'
@@ -46,7 +51,9 @@ import { useLeaderHeader, useLeaderContext, useIsLeaderLayout } from '@/componen
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { PullToRefresh } from '@/components/pull-to-refresh'
+import { TaskSurveyModal } from '@/components/task-survey-modal'
 import { useToast } from '@/components/toast'
+import { supabase } from '@/lib/supabase'
 import { APP_NAME } from '@/lib/constants'
 import { useUnreadUpdateCount } from '@/hooks/use-updates'
 import {
@@ -58,6 +65,12 @@ import {
     type MyTask,
 } from '@/hooks/use-tasks'
 import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
+import {
+    useLeaderTodos,
+    useToggleTodo,
+    PRIORITY_CONFIG,
+    type LeaderTodo,
+} from '@/hooks/use-leader-todos'
 import {
     useLeaderDashboard,
     useCollectiveFullStats,
@@ -162,10 +175,36 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
 function TaskCard({ task }: { task: MyTask }) {
   const [expanded, setExpanded] = useState(false)
   const [notes, setNotes] = useState('')
+  const [showSurvey, setShowSurvey] = useState(false)
   const { toast } = useToast()
+  const { user } = useAuth()
   const completeMutation = useCompleteTask()
   const skipMutation = useSkipTask()
   const shouldReduceMotion = useReducedMotion()
+
+  const hasSurvey = !!task.template?.survey_id
+
+  const surveySubmitMutation = useMutation({
+    mutationFn: async (answers: Record<string, unknown>) => {
+      if (!user || !task.template?.survey_id) return
+      await supabase.from('survey_responses').insert({
+        survey_id: task.template.survey_id,
+        user_id: user.id,
+        answers,
+      })
+      await completeMutation.mutateAsync({
+        instanceId: task.id,
+        notes: notes || undefined,
+      })
+    },
+    onSuccess: () => {
+      toast.success('Survey submitted & task completed!')
+      setShowSurvey(false)
+      setExpanded(false)
+      setNotes('')
+    },
+    onError: () => toast.error('Failed to submit survey'),
+  })
 
   const now = new Date()
   const dueDate = new Date(task.due_date)
@@ -315,27 +354,39 @@ function TaskCard({ task }: { task: MyTask }) {
                 onChange={(e) => setNotes(e.target.value)}
                 compact
               />
+              {hasSurvey && (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-plum-50 border border-plum-100 mb-1">
+                  <ClipboardList size={14} className="text-plum-500 shrink-0" />
+                  <p className="text-[11px] text-plum-600">
+                    This task includes a survey that must be completed
+                  </p>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Button
                   variant="primary"
                   size="sm"
-                  icon={<CheckCircle size={14} />}
+                  icon={hasSurvey ? <ClipboardList size={14} /> : <CheckCircle size={14} />}
                   loading={completeMutation.isPending}
                   onClick={() => {
-                    completeMutation.mutate(
-                      { instanceId: task.id, notes: notes || undefined },
-                      {
-                        onSuccess: () => {
-                          toast.success('Task completed!')
-                          setExpanded(false)
-                          setNotes('')
+                    if (hasSurvey) {
+                      setShowSurvey(true)
+                    } else {
+                      completeMutation.mutate(
+                        { instanceId: task.id, notes: notes || undefined },
+                        {
+                          onSuccess: () => {
+                            toast.success('Task completed!')
+                            setExpanded(false)
+                            setNotes('')
+                          },
+                          onError: () => toast.error('Failed to complete task'),
                         },
-                        onError: () => toast.error('Failed to complete task'),
-                      },
-                    )
+                      )
+                    }
                   }}
                 >
-                  Done
+                  {hasSurvey ? 'Complete & Fill Survey' : 'Done'}
                 </Button>
                 <Button
                   variant="ghost"
@@ -359,6 +410,18 @@ function TaskCard({ task }: { task: MyTask }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Survey modal */}
+      {showSurvey && task.template?.survey_id && (
+        <TaskSurveyModal
+          open={showSurvey}
+          onClose={() => setShowSurvey(false)}
+          surveyId={task.template.survey_id}
+          collectiveId={task.collective_id}
+          onSubmit={(answers) => surveySubmitMutation.mutate(answers)}
+          submitting={surveySubmitMutation.isPending}
+        />
+      )}
     </motion.div>
   )
 }
@@ -514,6 +577,326 @@ function InviteAction({ collectiveSlug, collectiveId, collectiveName }: { collec
 }
 
 /* ------------------------------------------------------------------ */
+/*  Upcoming Todos Widget                                              */
+/* ------------------------------------------------------------------ */
+
+type TodoTimeGroup = 'overdue' | 'today' | 'tomorrow' | 'this_week' | 'later' | 'no_date'
+
+const TIME_GROUP_CONFIG: Record<TodoTimeGroup, { label: string; color: string; dotColor: string; icon: React.ReactNode }> = {
+  overdue:   { label: 'Overdue',    color: 'text-error-600',   dotColor: 'bg-error-500',   icon: <Flame size={11} /> },
+  today:     { label: 'Today',      color: 'text-warning-700', dotColor: 'bg-warning-500',  icon: <Clock size={11} /> },
+  tomorrow:  { label: 'Tomorrow',   color: 'text-amber-600',   dotColor: 'bg-amber-400',   icon: <Calendar size={11} /> },
+  this_week: { label: 'This Week',  color: 'text-moss-600',    dotColor: 'bg-moss-400',    icon: <CalendarDays size={11} /> },
+  later:     { label: 'Later',      color: 'text-primary-500', dotColor: 'bg-primary-300',  icon: <CalendarDays size={11} /> },
+  no_date:   { label: 'No Due Date',color: 'text-primary-400', dotColor: 'bg-primary-200',  icon: <Circle size={11} /> },
+}
+
+function getTimeGroup(todo: LeaderTodo): TodoTimeGroup {
+  if (!todo.due_date) return 'no_date'
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const tomorrow = new Date(today)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  const endOfWeek = new Date(today)
+  endOfWeek.setDate(endOfWeek.getDate() + (7 - endOfWeek.getDay()))
+
+  const due = new Date(todo.due_date + 'T00:00:00')
+
+  if (due < today) return 'overdue'
+  if (due.getTime() === today.getTime()) return 'today'
+  if (due.getTime() === tomorrow.getTime()) return 'tomorrow'
+  if (due <= endOfWeek) return 'this_week'
+  return 'later'
+}
+
+function TodoItem({ todo, reducedMotion }: { todo: LeaderTodo; reducedMotion: boolean }) {
+  const toggleMutation = useToggleTodo()
+  const { toast } = useToast()
+  const group = getTimeGroup(todo)
+  const config = TIME_GROUP_CONFIG[group]
+  const priorityCfg = PRIORITY_CONFIG[todo.priority]
+
+  const formattedDue = todo.due_date
+    ? new Date(todo.due_date + 'T00:00:00').toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
+    : null
+
+  return (
+    <motion.div
+      layout={!reducedMotion ? 'position' : false}
+      initial={reducedMotion ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={reducedMotion ? undefined : { opacity: 0, x: -40, transition: { duration: 0.2 } }}
+      className="group flex items-start gap-3 px-4 py-3 hover:bg-primary-25/50 active:bg-primary-50/50 transition-colors duration-100"
+    >
+      {/* Checkbox */}
+      <button
+        type="button"
+        onClick={() => {
+          toggleMutation.mutate(
+            { id: todo.id, completed: true },
+            {
+              onSuccess: () => toast.success('Done!'),
+              onError: () => toast.error('Could not complete todo'),
+            },
+          )
+        }}
+        className="mt-0.5 shrink-0 flex items-center justify-center w-5 h-5 rounded-full border-2 border-primary-200 hover:border-primary-400 active:scale-90 transition-all duration-150 cursor-pointer"
+        aria-label={`Complete "${todo.title}"`}
+      >
+        {toggleMutation.isPending && (
+          <div className="w-2.5 h-2.5 rounded-full bg-primary-300 animate-pulse" />
+        )}
+      </button>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-primary-800 leading-snug line-clamp-2">
+          {todo.title}
+        </p>
+
+        {/* Meta row */}
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          {/* Priority badge (skip medium — it's the default) */}
+          {todo.priority !== 'medium' && (
+            <span className={cn(
+              'inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md',
+              todo.priority === 'urgent' && 'bg-error-50 text-error-600',
+              todo.priority === 'high' && 'bg-warning-50 text-warning-600',
+              todo.priority === 'low' && 'bg-primary-50 text-primary-400',
+            )}>
+              <span className={cn('w-1.5 h-1.5 rounded-full', priorityCfg.dot)} />
+              {priorityCfg.label}
+            </span>
+          )}
+
+          {/* Due date */}
+          {formattedDue && (
+            <span className={cn('inline-flex items-center gap-1 text-[11px] font-medium', config.color)}>
+              {config.icon}
+              {group === 'overdue' ? formattedDue : group === 'today' ? 'Today' : group === 'tomorrow' ? 'Tomorrow' : formattedDue}
+              {todo.due_time && (
+                <span className="text-primary-300 ml-0.5">
+                  {todo.due_time.slice(0, 5)}
+                </span>
+              )}
+            </span>
+          )}
+
+          {/* Source template indicator */}
+          {todo.source_template_id && (
+            <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md bg-plum-50 text-plum-500 uppercase tracking-wide">
+              Task
+            </span>
+          )}
+        </div>
+
+        {/* Description snippet */}
+        {todo.description && (
+          <p className="text-[11px] text-primary-400 mt-1 line-clamp-1 leading-relaxed">
+            {todo.description}
+          </p>
+        )}
+      </div>
+
+      {/* Urgency strip */}
+      <div className={cn('w-1 self-stretch rounded-full shrink-0 -mr-1', config.dotColor, 'opacity-60')} />
+    </motion.div>
+  )
+}
+
+function UpcomingTodosWidget() {
+  const navigate = useNavigate()
+  const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
+  const { data: todos = [], isLoading } = useLeaderTodos({ status: 'pending' })
+
+  // Group todos by time
+  const grouped = useMemo(() => {
+    const groups: Record<TodoTimeGroup, LeaderTodo[]> = {
+      overdue: [], today: [], tomorrow: [], this_week: [], later: [], no_date: [],
+    }
+    for (const todo of todos) {
+      groups[getTimeGroup(todo)].push(todo)
+    }
+    // Sort within each group: urgent first, then by due_date
+    const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 }
+    for (const key of Object.keys(groups) as TodoTimeGroup[]) {
+      groups[key].sort((a, b) => {
+        const pa = priorityOrder[a.priority] ?? 2
+        const pb = priorityOrder[b.priority] ?? 2
+        if (pa !== pb) return pa - pb
+        if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date)
+        return 0
+      })
+    }
+    return groups
+  }, [todos])
+
+  const totalCount = todos.length
+  const overdueCount = grouped.overdue.length
+  const todayCount = grouped.today.length
+
+  // Show at most 8 items total, prioritising overdue → today → tomorrow → this_week → later → no_date
+  const visibleTodos = useMemo(() => {
+    const order: TodoTimeGroup[] = ['overdue', 'today', 'tomorrow', 'this_week', 'later', 'no_date']
+    const items: { group: TodoTimeGroup; todo: LeaderTodo }[] = []
+    for (const g of order) {
+      for (const todo of grouped[g]) {
+        items.push({ group: g, todo })
+      }
+    }
+    return items.slice(0, 8)
+  }, [grouped])
+
+  // Track which groups appear in the visible list for section headers
+  const visibleGroups = useMemo(() => {
+    const seen = new Set<TodoTimeGroup>()
+    const result: { group: TodoTimeGroup; startIdx: number }[] = []
+    visibleTodos.forEach((item, idx) => {
+      if (!seen.has(item.group)) {
+        seen.add(item.group)
+        result.push({ group: item.group, startIdx: idx })
+      }
+    })
+    return result
+  }, [visibleTodos])
+
+  if (isLoading) {
+    return (
+      <div className="rounded-2xl bg-white shadow-sm border border-primary-100/40 overflow-hidden">
+        <div className="px-4 py-3 border-b border-primary-50">
+          <div className="h-4 w-32 bg-primary-50 rounded-lg animate-pulse" />
+        </div>
+        <div className="divide-y divide-primary-50/60">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-start gap-3 px-4 py-3">
+              <div className="w-5 h-5 rounded-full bg-primary-50 animate-pulse shrink-0 mt-0.5" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 w-3/4 bg-primary-50 rounded animate-pulse" />
+                <div className="h-2.5 w-1/2 bg-primary-50/60 rounded animate-pulse" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (totalCount === 0) {
+    return (
+      <div className="rounded-2xl bg-gradient-to-br from-primary-50/60 to-moss-50/40 shadow-sm border border-primary-100/40 p-6 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-100 to-moss-100 flex items-center justify-center mx-auto mb-3">
+          <ListTodo size={22} className="text-primary-400" />
+        </div>
+        <p className="text-sm font-semibold text-primary-600 mb-1">All caught up</p>
+        <p className="text-xs text-primary-400 mb-3">No pending todos right now</p>
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<Plus size={14} />}
+          onClick={() => navigate('/leader/tasks')}
+        >
+          Add a Todo
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="rounded-2xl bg-white shadow-sm border border-primary-100/40 overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-primary-50/80">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-moss-600 flex items-center justify-center shadow-sm">
+            <ListTodo size={15} className="text-white" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-primary-800">Your Todos</h3>
+            <p className="text-[11px] text-primary-400 font-medium">
+              {totalCount} pending
+              {overdueCount > 0 && (
+                <span className="text-error-500 font-bold ml-1">
+                  · {overdueCount} overdue
+                </span>
+              )}
+              {todayCount > 0 && overdueCount === 0 && (
+                <span className="text-warning-600 font-bold ml-1">
+                  · {todayCount} due today
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+
+        {/* Circular progress ring */}
+        <div className="relative w-10 h-10 shrink-0">
+          <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
+            <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" strokeWidth="3" className="text-primary-50" />
+            <motion.circle
+              cx="18" cy="18" r="14" fill="none" strokeWidth="3" strokeLinecap="round"
+              className={overdueCount > 0 ? 'text-error-400' : 'text-moss-500'}
+              strokeDasharray={`${87.96}`}
+              initial={{ strokeDashoffset: 87.96 }}
+              animate={{ strokeDashoffset: totalCount > 0 ? 87.96 * (1 - Math.min(overdueCount + todayCount, totalCount) / totalCount) : 87.96 }}
+              transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
+            />
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary-700 tabular-nums">
+            {totalCount}
+          </span>
+        </div>
+      </div>
+
+      {/* Todo list */}
+      <div className="divide-y divide-primary-50/60">
+        <AnimatePresence mode="popLayout">
+          {visibleTodos.map((item, idx) => {
+            const groupInfo = visibleGroups.find((g) => g.startIdx === idx)
+            return (
+              <div key={item.todo.id}>
+                {/* Group header */}
+                {groupInfo && (
+                  <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+                    <span className={cn('w-1.5 h-1.5 rounded-full', TIME_GROUP_CONFIG[groupInfo.group].dotColor)} />
+                    <span className={cn('text-[10px] font-bold uppercase tracking-widest', TIME_GROUP_CONFIG[groupInfo.group].color)}>
+                      {TIME_GROUP_CONFIG[groupInfo.group].label}
+                    </span>
+                    <span className="text-[10px] font-semibold text-primary-300 tabular-nums">
+                      {grouped[groupInfo.group].length}
+                    </span>
+                  </div>
+                )}
+                <TodoItem todo={item.todo} reducedMotion={rm} />
+              </div>
+            )
+          })}
+        </AnimatePresence>
+      </div>
+
+      {/* Footer */}
+      {totalCount > 8 && (
+        <div className="px-4 py-2 border-t border-primary-50/80 bg-primary-25/30">
+          <p className="text-[11px] text-primary-400 text-center font-medium">
+            +{totalCount - 8} more todos
+          </p>
+        </div>
+      )}
+
+      {/* View all link */}
+      <Link
+        to="/leader/tasks"
+        className="flex items-center justify-center gap-1.5 px-4 py-3 border-t border-primary-50/80 bg-primary-25/20 hover:bg-primary-50/40 active:scale-[0.99] transition-all duration-150 group"
+      >
+        <span className="text-xs font-semibold text-primary-500 group-hover:text-primary-700 transition-colors">
+          View all tasks & todos
+        </span>
+        <ArrowRight size={13} className="text-primary-400 group-hover:translate-x-0.5 transition-transform" />
+      </Link>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Leader Dashboard Page                                              */
 /* ------------------------------------------------------------------ */
 
@@ -560,7 +943,7 @@ export default function LeaderDashboardPage() {
   const { data: pendingItems = [] } = usePendingItems(collectiveId)
   const { data: unreadUpdateCount = 0 } = useUnreadUpdateCount()
 
-  // Development progress — find in-progress module for "Continue Learning" quick action
+  // Development progress  find in-progress module for "Continue Learning" quick action
   const { data: moduleProgress = [] } = useMyModuleProgress()
   const { data: devContent } = useMyTargetedContent()
   const continueModule = useMemo(() => {
@@ -857,6 +1240,11 @@ export default function LeaderDashboardPage() {
               </div>
             </motion.div>
           )}
+
+          {/* ── Upcoming Todos Widget ── */}
+          <motion.div variants={rm ? undefined : fadeUp}>
+            <UpcomingTodosWidget />
+          </motion.div>
 
           {/* ── Tasks (inline) ── */}
           {pendingTasks.length > 0 && (

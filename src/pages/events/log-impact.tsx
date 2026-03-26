@@ -17,7 +17,6 @@ import {
   Save,
   Calendar,
   Sprout,
-  Users,
   ClipboardList,
 } from 'lucide-react'
 import {
@@ -63,7 +62,6 @@ const fieldIcons: Record<string, React.ReactNode> = {
   eye: <Eye size={18} className="text-warning-500" />,
   area: <Ruler size={18} className="text-plum-500" />,
   weed: <Sprout size={18} className="text-moss-600" />,
-  users: <Users size={18} className="text-bark-600" />,
 }
 
 /* ------------------------------------------------------------------ */
@@ -299,7 +297,6 @@ export default function LogImpactPage() {
     native_plants: '0',
     wildlife_sightings: '0',
     invasive_weeds_pulled: '0',
-    leaders_trained: '0',
   })
   const [eventDurationHours, setEventDurationHours] = useState('')
   const [notes, setNotes] = useState('')
@@ -346,7 +343,6 @@ export default function LogImpactPage() {
           native_plants: String(existingImpact.native_plants),
           wildlife_sightings: String(existingImpact.wildlife_sightings),
           invasive_weeds_pulled: String(existingImpact.invasive_weeds_pulled),
-          leaders_trained: String(existingImpact.leaders_trained),
         })
         setNotes(existingImpact.notes ?? '')
         // Restore species and photos from custom_metrics
@@ -404,7 +400,6 @@ export default function LogImpactPage() {
       native_plants: parseFloat(formValues.native_plants) || 0,
       wildlife_sightings: parseFloat(formValues.wildlife_sightings) || 0,
       invasive_weeds_pulled: parseFloat(formValues.invasive_weeds_pulled) || 0,
-      leaders_trained: parseFloat(formValues.leaders_trained) || 0,
       notes: notes || null,
       custom_metrics: {
         species: species.length > 0 ? species : undefined,

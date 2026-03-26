@@ -13,6 +13,7 @@ import {
     Leaf,
     Check,
     ArrowLeft,
+    X,
 } from 'lucide-react'
 import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
@@ -21,7 +22,7 @@ import { Button } from '@/components/button'
 import { Card } from '@/components/card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
-import { Modal } from '@/components/modal'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { useToast } from '@/components/toast'
 import { useProduct, useRelatedProducts } from '@/hooks/use-merch'
 import { useCart } from '@/hooks/use-cart'
@@ -304,7 +305,18 @@ function AddedToCartModal({
   const navigate = useNavigate()
 
   return (
-    <Modal open={open} onClose={onClose} title="Added to cart!" size="md">
+    <BottomSheet open={open} onClose={onClose}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-heading text-lg font-semibold text-primary-800">Added to cart!</h2>
+        <button
+          onClick={onClose}
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          aria-label="Close"
+        >
+          <X size={20} />
+        </button>
+      </div>
       <div className="space-y-5">
         {/* Recommendations */}
         {related && related.length > 0 && (
@@ -369,7 +381,7 @@ function AddedToCartModal({
           </Button>
         </div>
       </div>
-    </Modal>
+    </BottomSheet>
   )
 }
 

@@ -2,172 +2,30 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-    Camera,
-    Keyboard,
-    CheckCircle2, XCircle,
-    WifiOff,
-    Sparkles,
-    User,
-    AlertTriangle,
-    QrCode,
-    ChevronLeft
+  Camera,
+  CheckCircle2, XCircle,
+  WifiOff,
+  Sparkles,
 } from 'lucide-react'
-import jsQR from 'jsqr'
-import { Capacitor } from '@capacitor/core'
 import { useAuth } from '@/hooks/use-auth'
-import { useProfile, useUpdateProfile } from '@/hooks/use-profile'
+import { useProfile } from '@/hooks/use-profile'
 import { useCheckIn } from '@/hooks/use-events'
 import { useOffline } from '@/hooks/use-offline'
 import { queueOfflineCheckIn } from '@/lib/offline-sync'
 import { supabase } from '@/lib/supabase'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/button'
-import { Input } from '@/components/input'
 import { Celebration } from '@/components/celebration'
+import { Confetti } from '@/components/confetti'
 import { WhatsNext } from '@/components/whats-next'
-import { cn } from '@/lib/cn'
-
-/* ------------------------------------------------------------------ */
-/*  Confetti                                                           */
-/* ------------------------------------------------------------------ */
-
-const CONFETTI_COLORS = [
-  'bg-primary-400', 'bg-primary-500', 'bg-secondary-400',
-  'bg-accent-400', 'bg-success-400', 'bg-warning-400',
-]
-
-function Confetti() {
-  const rm = useReducedMotion()
-  const [particles] = useState(() => Array.from({ length: 40 }, (_, i) => ({
-    left: Math.random() * 100,
-    delay: Math.random() * 0.5,
-    size: 6 + Math.random() * 8,
-    rotation: Math.random() * 360,
-    direction: Math.random() > 0.5 ? 1 : -1,
-    xDrift: (Math.random() - 0.5) * 200,
-    duration: 1.5 + Math.random(),
-    color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
-  })))
-  if (rm) return null
-  return (
-    <div className="fixed inset-0 pointer-events-none z-50" aria-hidden="true">
-      {particles.map((p, i) => (
-        <motion.div
-          key={i}
-          className={cn('absolute rounded-sm', p.color)}
-          style={{ width: p.size, height: p.size * 0.6, left: `${p.left}%`, top: -20, rotate: p.rotation }}
-          initial={{ y: -20, opacity: 1 }}
-          animate={{ y: window.innerHeight + 50, opacity: [1, 1, 0], rotate: p.rotation + 360 * p.direction, x: p.xDrift }}
-          transition={{ duration: p.duration, delay: p.delay, ease: 'easeIn' }}
-        />
-      ))}
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Web QR Scanner (getUserMedia + jsQR)                               */
-/* ------------------------------------------------------------------ */
-
-function WebQrScanner({ onScan, onError }: { onScan: (value: string) => void; onError: () => void }) {
-  const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const streamRef = useRef<MediaStream | null>(null)
-  const rafRef = useRef<number>(0)
-  const [cameraReady, setCameraReady] = useState(false)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function startCamera() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
-        })
-        if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return }
-        streamRef.current = stream
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
-          videoRef.current.setAttribute('playsinline', 'true')
-          await videoRef.current.play()
-          setCameraReady(true)
-        }
-      } catch {
-        if (!cancelled) onError()
-      }
-    }
-
-    startCamera()
-
-    return () => {
-      cancelled = true
-      cancelAnimationFrame(rafRef.current)
-      streamRef.current?.getTracks().forEach((t) => t.stop())
-    }
-  }, [onError])
-
-  // Scan loop
-  useEffect(() => {
-    if (!cameraReady) return
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    if (!video || !canvas) return
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })
-    if (!ctx) return
-
-    function tick() {
-      if (!video || video.readyState !== video.HAVE_ENOUGH_DATA) {
-        rafRef.current = requestAnimationFrame(tick)
-        return
-      }
-      canvas!.width = video.videoWidth
-      canvas!.height = video.videoHeight
-      ctx!.drawImage(video, 0, 0, canvas!.width, canvas!.height)
-      const imageData = ctx!.getImageData(0, 0, canvas!.width, canvas!.height)
-      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' })
-      if (code?.data) {
-        onScan(code.data)
-        return // Stop scanning once we find a code
-      }
-      rafRef.current = requestAnimationFrame(tick)
-    }
-
-    rafRef.current = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafRef.current)
-  }, [cameraReady, onScan])
-
-  return (
-    <div className="relative w-full aspect-square max-w-[280px] mx-auto rounded-2xl overflow-hidden bg-black">
-      <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" muted playsInline />
-      <canvas ref={canvasRef} className="hidden" />
-      {/* Scan overlay */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-[70%] aspect-square border-2 border-white/60 rounded-xl relative">
-          <motion.div
-            className="absolute left-2 right-2 h-0.5 bg-primary-400 rounded-full"
-            animate={{ top: ['10%', '90%', '10%'] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </div>
-      </div>
-      {!cameraReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-          <div className="text-center">
-            <Camera size={32} className="text-white/40 mx-auto mb-2" />
-            <p className="text-sm text-white/60">Opening camera...</p>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+import { QrScanner } from '@/components/qr-scanner'
+import { ProfileDetails, CheckInModeView } from '@/components/check-in-form'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
 /* ------------------------------------------------------------------ */
 
-type Step = 'details' | 'checkin' | 'success' | 'error'
-type CheckInMode = 'idle' | 'scanning' | 'manual'
+type Step = 'details' | 'checkin' | 'scanning' | 'success' | 'error'
 type ErrorKind = 'not_registered' | 'already_checked_in' | 'invalid_qr' | 'generic'
 
 const ERROR_MESSAGES: Record<ErrorKind, string> = {
@@ -192,7 +50,7 @@ interface CheckInSheetProps {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Component                                                          */
+/*  Orchestrator                                                       */
 /* ------------------------------------------------------------------ */
 
 export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveName, autoScan = false }: CheckInSheetProps) {
@@ -201,86 +59,29 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
   const rm = useReducedMotion()
   const { isOffline } = useOffline()
   const { data: profileData } = useProfile()
-  const updateProfile = useUpdateProfile()
   const checkInMutation = useCheckIn()
 
-  // Determine step based on profile completeness
   const needsDetails = profileData && !profileData.profile_details_completed
   const [step, setStep] = useState<Step>('checkin')
-  const [mode, setMode] = useState<CheckInMode>('idle')
-  const [manualCode, setManualCode] = useState('')
   const [errorKind, setErrorKind] = useState<ErrorKind>('generic')
   const [showCelebration, setShowCelebration] = useState(false)
   const [checkedInOffline, setCheckedInOffline] = useState(false)
   const [nativeScannerActive, setNativeScannerActive] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
   const autoScanTriggered = useRef(false)
-
-  // Profile form state
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [age, setAge] = useState('')
-  const [gender, setGender] = useState('')
-  const [email, setEmail] = useState('')
-  const [emergencyName, setEmergencyName] = useState('')
-  const [emergencyPhone, setEmergencyPhone] = useState('')
-  const [emergencyRelationship, setEmergencyRelationship] = useState('')
 
   // Reset state when sheet opens
   useEffect(() => {
     if (open) {
       setStep(needsDetails ? 'details' : 'checkin')
-      setMode('idle')
-      setManualCode('')
       setShowCelebration(false)
       setCheckedInOffline(false)
       setNativeScannerActive(false)
       autoScanTriggered.current = false
-      // Pre-fill from existing profile
-      if (profileData) {
-        setFirstName(profileData.first_name ?? '')
-        setLastName(profileData.last_name ?? '')
-        setAge(profileData.age != null ? String(profileData.age) : '')
-        setGender(profileData.gender ?? '')
-        setEmail(profileData.email ?? '')
-        setEmergencyName(profileData.emergency_contact_name ?? '')
-        setEmergencyPhone(profileData.emergency_contact_phone ?? '')
-        setEmergencyRelationship(profileData.emergency_contact_relationship ?? '')
-      }
     } else {
-      // Cleanup: ensure scanner-active class is removed if sheet closes
       document.body.classList.remove('scanner-active')
       setNativeScannerActive(false)
     }
-  }, [open, needsDetails, profileData])
-
-  // Focus manual input
-  useEffect(() => {
-    if (mode === 'manual') requestAnimationFrame(() => inputRef.current?.focus())
-  }, [mode])
-
-
-  /* ---- Profile details validation ---- */
-  const detailsValid = firstName.trim() && lastName.trim() && emergencyName.trim() && emergencyPhone.trim()
-
-  const handleSaveDetails = useCallback(async () => {
-    try {
-      await updateProfile.mutateAsync({
-        first_name: firstName || null,
-        last_name: lastName || null,
-        age: age ? parseInt(age, 10) : null,
-        gender: gender || null,
-        email: email || null,
-        emergency_contact_name: emergencyName || null,
-        emergency_contact_phone: emergencyPhone || null,
-        emergency_contact_relationship: emergencyRelationship || null,
-        profile_details_completed: true,
-      })
-      setStep('checkin')
-    } catch {
-      // Stay on details step
-    }
-  }, [firstName, lastName, age, gender, email, emergencyName, emergencyPhone, emergencyRelationship, updateProfile])
+  }, [open, needsDetails])
 
   /* ---- Check-in logic ---- */
   const validateAndCheckIn = useCallback(
@@ -335,126 +136,59 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
     setTimeout(() => setShowCelebration(true), 600)
   }, [eventId, user])
 
-  const isNative = Capacitor.isNativePlatform()
+  const handleCheckIn = useCallback((scannedEventId: string) => {
+    if (isOffline) handleOfflineCheckIn()
+    else validateAndCheckIn(scannedEventId)
+  }, [isOffline, validateAndCheckIn, handleOfflineCheckIn])
 
-  const handleScanStart = useCallback(async () => {
-    setMode('scanning')
+  /* ---- Scan handlers ---- */
+  const handleStartScan = useCallback(() => {
+    setStep('scanning')
+  }, [])
 
-    try {
-      if (isNative) {
-        // Native: use Capacitor ML Kit BarcodeScanner
-        const { BarcodeScanner, BarcodeFormat } = await import('@capacitor-mlkit/barcode-scanning')
+  const handleScanResult = useCallback((scannedEventId: string) => {
+    handleCheckIn(scannedEventId)
+  }, [handleCheckIn])
 
-        // Check if we already have permission before prompting
-        const permStatus = await BarcodeScanner.checkPermissions()
-        let camPerm = permStatus.camera
+  const handleInvalidQr = useCallback(() => {
+    setErrorKind('invalid_qr')
+    setStep('error')
+  }, [])
 
-        // Request permission if not yet granted
-        if (camPerm !== 'granted' && camPerm !== 'limited') {
-          const result = await BarcodeScanner.requestPermissions()
-          camPerm = result.camera
-        }
+  const handleCameraError = useCallback(() => {
+    // Camera unavailable — step back to checkin (user can use manual entry)
+    setStep('checkin')
+  }, [])
 
-        if (camPerm !== 'granted' && camPerm !== 'limited') {
-          setErrorKind('generic')
-          setStep('error')
-          return
-        }
+  const handleScanCancel = useCallback(() => {
+    setStep('checkin')
+  }, [])
 
-        // Make the WebView transparent so the native camera shows through
-        setNativeScannerActive(true)
-        document.body.classList.add('scanner-active')
-
-        const { barcodes } = await BarcodeScanner.scan({ formats: [BarcodeFormat.QrCode] })
-
-        // Restore WebView visibility
-        document.body.classList.remove('scanner-active')
-        setNativeScannerActive(false)
-
-        if (barcodes.length > 0 && barcodes[0].rawValue) {
-          const match = barcodes[0].rawValue.match(/^coexist:\/\/event\/(.+)$/)
-          if (match) {
-            const scannedEventId = match[1]
-            if (scannedEventId !== eventId) {
-              setErrorKind('invalid_qr')
-              setStep('error')
-              return
-            }
-            if (isOffline) handleOfflineCheckIn()
-            else await validateAndCheckIn(scannedEventId)
-          } else {
-            setErrorKind('invalid_qr')
-            setStep('error')
-          }
-        } else {
-          setMode('idle')
-        }
-      } else {
-        // Web: use browser getUserMedia + jsQR for camera scanning
-        // (stays in 'scanning' mode - the UI renders the <video> camera view)
-      }
-    } catch {
-      document.body.classList.remove('scanner-active')
-      setNativeScannerActive(false)
-      setMode('idle')
-    }
-  }, [eventId, isNative, isOffline, validateAndCheckIn, handleOfflineCheckIn])
-
-  // Auto-start scanning when sheet opens with autoScan prop
-  // (only if profile details are already complete — step will be 'checkin')
-  useEffect(() => {
-    if (open && autoScan && step === 'checkin' && mode === 'idle' && !autoScanTriggered.current) {
-      autoScanTriggered.current = true
-      // Small delay to let the sheet animate open
-      const timer = setTimeout(() => handleScanStart(), 350)
-      return () => clearTimeout(timer)
-    }
-  }, [open, autoScan, step, mode, handleScanStart])
-
-  const handleManualSubmit = useCallback(() => {
-    if (!eventId || !user || !manualCode.trim()) return
+  /* ---- Manual code handler ---- */
+  const handleManualSubmit = useCallback((code: string) => {
+    if (!eventId || !user) return
     const expected = eventId.replace(/-/g, '').slice(0, 6).toUpperCase()
-    if (manualCode.trim().toUpperCase() !== expected) {
+    if (code !== expected) {
       setErrorKind('invalid_qr')
       setStep('error')
       return
     }
-    if (isOffline) handleOfflineCheckIn()
-    else validateAndCheckIn(eventId)
-  }, [eventId, user, manualCode, isOffline, validateAndCheckIn, handleOfflineCheckIn])
+    handleCheckIn(eventId)
+  }, [eventId, user, handleCheckIn])
 
-  const handleWebQrScan = useCallback((value: string) => {
-    const match = value.match(/^coexist:\/\/event\/(.+)$/)
-    if (match) {
-      const scannedEventId = match[1]
-      if (scannedEventId !== eventId) {
-        setErrorKind('invalid_qr')
-        setStep('error')
-        return
-      }
-      if (isOffline) handleOfflineCheckIn()
-      else validateAndCheckIn(scannedEventId)
-    } else {
-      setErrorKind('invalid_qr')
-      setStep('error')
+  /* ---- Auto-scan ---- */
+  useEffect(() => {
+    if (open && autoScan && step === 'checkin' && !autoScanTriggered.current) {
+      autoScanTriggered.current = true
+      const timer = setTimeout(() => setStep('scanning'), 350)
+      return () => clearTimeout(timer)
     }
-  }, [eventId, isOffline, validateAndCheckIn, handleOfflineCheckIn])
-
-  const handleWebCameraError = useCallback(() => {
-    // Camera not available - fall back to manual mode
-    setMode('manual')
-  }, [])
+  }, [open, autoScan, step])
 
   const handleClose = useCallback(() => {
-    if (step === 'success') {
-      // Let query caches refresh before closing
-      onClose()
-    } else {
-      onClose()
-    }
-  }, [step, onClose])
+    onClose()
+  }, [onClose])
 
-  /* ---- Single snap point so the sheet never jumps between steps ---- */
   const snapPoints = [0.92]
 
   return (
@@ -462,340 +196,53 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
       <BottomSheet open={open && !nativeScannerActive} onClose={handleClose} snapPoints={snapPoints}>
         <div className="h-[70vh] overflow-y-auto relative">
         <AnimatePresence mode="wait">
-          {/* ══════════════════════════════════════════════════════════ */}
-          {/*  STEP: Profile Details (blocks check-in)                  */}
-          {/* ══════════════════════════════════════════════════════════ */}
+          {/* Profile details (blocks check-in) */}
           {step === 'details' && (
-            <motion.div
-              key="details"
-              initial={rm ? undefined : { opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={rm ? { opacity: 0 } : { opacity: 0, y: -12 }}
-              transition={rm ? { duration: 0 } : { duration: 0.25, ease: 'easeInOut' }}
-              className="pb-4"
-            >
-              <div className="text-center mb-5">
-                <div className="w-12 h-12 rounded-full bg-warning-100 flex items-center justify-center mx-auto mb-3">
-                  <AlertTriangle size={22} className="text-warning-600" />
-                </div>
-                <h3 className="font-heading text-lg font-bold text-primary-800">
-                  Safety details required
-                </h3>
-                <p className="text-sm text-primary-400 mt-1 max-w-xs mx-auto">
-                  We need a few details before you can check in. Your emergency info is only visible to event leaders.
-                </p>
-              </div>
-
-              <div className="space-y-4 max-h-[55vh] overflow-y-auto px-0.5 -mx-0.5">
-                {/* Personal */}
-                <div>
-                  <div className="flex items-center gap-2 mb-2.5">
-                    <User size={14} className="text-primary-500" />
-                    <h4 className="text-[11px] font-bold text-primary-500 uppercase tracking-wider">Your Details</h4>
-                  </div>
-                  <div className="space-y-2.5">
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <Input
-                        label="First Name *"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        placeholder="First name"
-                        maxLength={50}
-                        className="[&_input]:bg-surface-3"
-                      />
-                      <Input
-                        label="Last Name *"
-                        value={lastName}
-                        onChange={(e) => setLastName(e.target.value)}
-                        placeholder="Last name"
-                        maxLength={50}
-                        className="[&_input]:bg-surface-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <Input
-                        label="Age"
-                        value={age}
-                        onChange={(e) => setAge(e.target.value.replace(/\D/g, ''))}
-                        placeholder="Age"
-                        type="number"
-                        maxLength={3}
-                        className="[&_input]:bg-surface-3"
-                      />
-                      <Input
-                        label="Gender"
-                        value={gender}
-                        onChange={(e) => setGender(e.target.value)}
-                        placeholder="e.g. Female"
-                        maxLength={30}
-                        className="[&_input]:bg-surface-3"
-                      />
-                    </div>
-                    <Input
-                      label="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
-                      type="email"
-                      maxLength={100}
-                      className="[&_input]:bg-surface-3"
-                    />
-                  </div>
-                </div>
-
-                {/* Emergency */}
-                <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <AlertTriangle size={14} className="text-warning-600" />
-                    <h4 className="text-[11px] font-bold text-primary-500 uppercase tracking-wider">Emergency Contact *</h4>
-                  </div>
-                  <p className="text-[11px] text-primary-400 mb-2.5">Only visible to event leaders for safety.</p>
-                  <div className="space-y-2.5">
-                    <Input
-                      label="Contact Name *"
-                      value={emergencyName}
-                      onChange={(e) => setEmergencyName(e.target.value)}
-                      placeholder="Full name"
-                      maxLength={100}
-                      className="[&_input]:bg-surface-3"
-                    />
-                    <Input
-                      label="Contact Phone *"
-                      value={emergencyPhone}
-                      onChange={(e) => setEmergencyPhone(e.target.value)}
-                      placeholder="0400 000 000"
-                      type="tel"
-                      maxLength={20}
-                      className="[&_input]:bg-surface-3"
-                    />
-                    <Input
-                      label="Relationship"
-                      value={emergencyRelationship}
-                      onChange={(e) => setEmergencyRelationship(e.target.value)}
-                      placeholder="e.g. Parent, Partner"
-                      maxLength={50}
-                      className="[&_input]:bg-surface-3"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-5 space-y-2">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  disabled={!detailsValid}
-                  loading={updateProfile.isPending}
-                  onClick={handleSaveDetails}
-                >
-                  Save & Continue to Check In
-                </Button>
-                {!detailsValid && (
-                  <p className="text-[11px] text-center text-primary-400">
-                    Fill in starred (*) fields to continue
-                  </p>
-                )}
-              </div>
-            </motion.div>
+            <ProfileDetails onComplete={() => setStep('checkin')} />
           )}
 
-          {/* ══════════════════════════════════════════════════════════ */}
-          {/*  STEP: Check-in (scan / manual / self)                    */}
-          {/* ══════════════════════════════════════════════════════════ */}
+          {/* Check-in mode selector (idle / manual) */}
           {step === 'checkin' && (
+            <CheckInModeView
+              eventTitle={eventTitle}
+              collectiveName={collectiveName}
+              isPending={checkInMutation.isPending}
+              onStartScan={handleStartScan}
+              onManualSubmit={handleManualSubmit}
+            />
+          )}
+
+          {/* QR scanning */}
+          {step === 'scanning' && (
             <motion.div
-              key="checkin"
-              initial={rm ? undefined : { opacity: 0, y: 12 }}
+              key="scanning"
+              initial={rm ? undefined : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={rm ? { opacity: 0 } : { opacity: 0, y: -12 }}
-              transition={rm ? { duration: 0 } : { duration: 0.25, ease: 'easeInOut' }}
-              className="pb-2"
+              exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
+              transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
+              className="flex flex-col items-center py-4 text-center"
             >
-              <AnimatePresence mode="wait" initial={false}>
-              {mode === 'scanning' ? (
-                <motion.div
-                  key="scanning"
-                  initial={rm ? undefined : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
-                  transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
-                  className="flex flex-col items-center py-4 text-center"
-                >
-                  {isNative ? (
-                    /* Native: Capacitor handles the camera overlay */
-                    <div className="relative w-52 h-52 rounded-2xl bg-primary-50/60 shadow-sm flex items-center justify-center mb-5">
-                      <Camera size={44} className="text-primary-300" />
-                      <motion.div
-                        className="absolute left-4 right-4 h-0.5 bg-primary-500 rounded-full"
-                        animate={{ top: ['20%', '80%', '20%'] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                      />
-                      <p className="absolute bottom-3 text-[11px] text-primary-400">
-                        Point camera at event QR code
-                      </p>
-                    </div>
-                  ) : (
-                    /* Web: live camera feed with jsQR scanning */
-                    <>
-                      <p className="text-sm font-semibold text-primary-700 mb-3">
-                        Point your camera at the QR code
-                      </p>
-                      <WebQrScanner onScan={handleWebQrScan} onError={handleWebCameraError} />
-                    </>
-                  )}
-                  <div className="w-full space-y-2 mt-4">
-                    <Button variant="secondary" fullWidth onClick={() => setMode('manual')}>
-                      Enter Code Instead
-                    </Button>
-                    <Button variant="ghost" fullWidth onClick={() => setMode('idle')}>
-                      Cancel
-                    </Button>
-                  </div>
-                </motion.div>
-              ) : mode === 'manual' ? (
-                <motion.div
-                  key="manual"
-                  initial={rm ? undefined : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
-                  transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
-                  className="h-[70vh] flex flex-col"
-                >
-                  <button
-                    type="button"
-                    onClick={() => { setMode('idle'); setManualCode('') }}
-                    className="flex items-center gap-1 text-caption font-semibold text-primary-400 mb-4 min-h-11 cursor-pointer select-none active:scale-[0.97] transition-[colors,transform] duration-150"
-                  >
-                    <ChevronLeft size={16} />
-                    Back
-                  </button>
-                  <div className="flex-1 flex flex-col items-center justify-center space-y-3 w-full px-4">
-                    <Input
-                      ref={inputRef as React.Ref<HTMLInputElement>}
-                      label="Check-in Code"
-                      placeholder="Enter the 6-character code"
-                      value={manualCode}
-                      onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                      autoComplete="off"
-                      maxLength={6}
-                      className="text-center text-lg tracking-[0.3em] font-heading font-bold [&_input]:bg-surface-3"
-                    />
-                    <Button
-                      variant="primary"
-                      fullWidth
-                      loading={checkInMutation.isPending}
-                      disabled={manualCode.trim().length < 6}
-                      onClick={handleManualSubmit}
-                    >
-                      Check In
-                    </Button>
-                  </div>
-                </motion.div>
-              ) : (
-                /* ---- Idle: main check-in menu ---- */
-                <motion.div
-                  key="idle"
-                  initial={rm ? undefined : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={rm ? { opacity: 0 } : { opacity: 0, y: -4 }}
-                  transition={rm ? { duration: 0 } : { duration: 0.2, ease: 'easeOut' }}
-                  className="py-2"
-                >
-                  <div className="text-center mb-5">
-                    <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
-                      <QrCode size={26} className="text-primary-500" />
-                    </div>
-                    <h3 className="font-heading text-lg font-bold text-primary-800">
-                      Check In
-                    </h3>
-                    <p className="text-sm text-primary-400 mt-1">
-                      {eventTitle}
-                    </p>
-                    {collectiveName && (
-                      <p className="text-caption text-primary-300 mt-0.5">{collectiveName}</p>
-                    )}
-                  </div>
-
-                  {isOffline && (
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-warning-50 text-warning-700 text-sm font-medium mb-4">
-                      <WifiOff size={16} />
-                      You're offline. Check-in will be queued and synced later.
-                    </div>
-                  )}
-
-                  {isNative ? (
-                    /* ---- Native: camera scan is primary ---- */
-                    <>
-                      <Button
-                        variant="primary"
-                        size="lg"
-                        fullWidth
-                        icon={<Camera size={20} />}
-                        onClick={handleScanStart}
-                        className="mb-3"
-                        loading={checkInMutation.isPending}
-                      >
-                        Scan QR Code
-                      </Button>
-
-                      <div className="flex items-center gap-3 my-4">
-                        <div className="flex-1 h-px bg-primary-100" />
-                        <span className="text-caption text-primary-400 uppercase tracking-wider">or</span>
-                        <div className="flex-1 h-px bg-primary-100" />
-                      </div>
-
-                      <Button
-                        variant="secondary"
-                        size="lg"
-                        fullWidth
-                        icon={<Keyboard size={20} />}
-                        onClick={() => setMode('manual')}
-                      >
-                        Enter Code Manually
-                      </Button>
-                    </>
-                  ) : (
-                    /* ---- Web: camera scan + manual code ---- */
-                    <>
-                      <Button
-                        variant="primary"
-                        size="lg"
-                        fullWidth
-                        icon={<Camera size={20} />}
-                        onClick={handleScanStart}
-                        className="mb-3"
-                        loading={checkInMutation.isPending}
-                      >
-                        Scan QR Code
-                      </Button>
-
-                      <div className="flex items-center gap-3 my-4">
-                        <div className="flex-1 h-px bg-primary-100" />
-                        <span className="text-caption text-primary-400 uppercase tracking-wider">or</span>
-                        <div className="flex-1 h-px bg-primary-100" />
-                      </div>
-
-                      <Button
-                        variant="secondary"
-                        size="lg"
-                        fullWidth
-                        icon={<Keyboard size={20} />}
-                        onClick={() => setMode('manual')}
-                      >
-                        Enter Code Manually
-                      </Button>
-                    </>
-                  )}
-                </motion.div>
-              )}
-              </AnimatePresence>
+              <QrScanner
+                eventId={eventId}
+                isOffline={isOffline}
+                onScan={handleScanResult}
+                onInvalidQr={handleInvalidQr}
+                onCameraError={handleCameraError}
+                onCancel={handleScanCancel}
+                onNativeScannerActive={setNativeScannerActive}
+              />
+              <div className="w-full space-y-2 mt-4">
+                <Button variant="secondary" fullWidth onClick={() => setStep('checkin')}>
+                  Enter Code Instead
+                </Button>
+                <Button variant="ghost" fullWidth onClick={() => setStep('checkin')}>
+                  Cancel
+                </Button>
+              </div>
             </motion.div>
           )}
 
-          {/* ══════════════════════════════════════════════════════════ */}
-          {/*  STEP: Success                                            */}
-          {/* ══════════════════════════════════════════════════════════ */}
+          {/* Success */}
           {step === 'success' && (
             <motion.div
               key="success"
@@ -804,7 +251,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
               transition={rm ? { duration: 0 } : { duration: 0.35, type: 'spring', stiffness: 300 }}
               className="flex flex-col items-center py-6 text-center"
             >
-              <Confetti />
+              <Confetti active count={40} duration={2500} />
 
               <motion.div
                 initial={rm ? undefined : { scale: 0 }}
@@ -873,9 +320,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
             </motion.div>
           )}
 
-          {/* ══════════════════════════════════════════════════════════ */}
-          {/*  STEP: Error                                              */}
-          {/* ══════════════════════════════════════════════════════════ */}
+          {/* Error */}
           {step === 'error' && (
             <motion.div
               key="error"
@@ -900,7 +345,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                     View Event
                   </Button>
                 ) : (
-                  <Button variant="primary" fullWidth onClick={() => { setStep('checkin'); setMode('idle'); setManualCode('') }}>
+                  <Button variant="primary" fullWidth onClick={() => setStep('checkin')}>
                     Try Again
                   </Button>
                 )}

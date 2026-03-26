@@ -54,7 +54,7 @@ export function PdfViewer({ url, fileName, fileSizeBytes, className }: PdfViewer
         </div>
       )}
 
-      {/* Presentation/doc — show a branded card with download */}
+      {/* Presentation/doc  show a branded card with download */}
       {!canPreview && (
         <div className="flex flex-col items-center justify-center py-10 px-6 bg-gradient-to-br from-bark-50 to-primary-50">
           <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-sm mb-3">

@@ -25,9 +25,9 @@ import {
     Camera,
     ImagePlus,
     Trash2,
+    X,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
-import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { SearchBar } from '@/components/search-bar'
@@ -35,7 +35,7 @@ import { Dropdown } from '@/components/dropdown'
 import { Avatar } from '@/components/avatar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
-import { Modal } from '@/components/modal'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
@@ -817,7 +817,18 @@ function AddMemberModal({
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Add Member">
+    <BottomSheet open={open} onClose={onClose}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-heading text-lg font-semibold text-primary-800">Add Member</h2>
+        <button
+          onClick={onClose}
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          aria-label="Close"
+        >
+          <X size={20} />
+        </button>
+      </div>
       <div className="space-y-4">
         <Input
           label="Search users"
@@ -875,7 +886,7 @@ function AddMemberModal({
           </div>
         )}
       </div>
-    </Modal>
+    </BottomSheet>
   )
 }
 
@@ -1320,8 +1331,6 @@ export default function AdminCollectiveDetailPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <Header title="" back onBack={() => navigate('/admin/collectives')} />
-
       {/* ── Tab bar - rich pill style ── */}
       <motion.div
         initial={rm ? {} : { opacity: 0, y: 8 }}

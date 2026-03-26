@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Bell, Clock } from 'lucide-react'
-import { CenteredDialog } from '@/components/centered-dialog'
+import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Avatar } from '@/components/avatar'
@@ -56,7 +56,7 @@ export function BroadcastNotificationSheet({
   )
 
   return (
-    <CenteredDialog open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={onClose}>
       <div className="pb-4">
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-4">
@@ -148,6 +148,6 @@ export function BroadcastNotificationSheet({
           Send Push Notification
         </Button>
       </div>
-    </CenteredDialog>
+    </BottomSheet>
   )
 }

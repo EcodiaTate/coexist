@@ -29,7 +29,7 @@ const DISCOVERY_OPTIONS = [
  * Collects essential information that helps leaders run safe events.
  *
  * Wrapper handles loading state so the form only mounts once profile data
- * is available — useState initializers see the real values.
+ * is available  useState initializers see the real values.
  */
 export default function ProfileSurveyPage() {
   useAuth()

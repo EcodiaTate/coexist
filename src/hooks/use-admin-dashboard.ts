@@ -1,5 +1,6 @@
 import { useQuery, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 
 /* ------------------------------------------------------------------ */
 /*  Admin dashboard data hooks                                         */
@@ -66,7 +67,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
     supabase.from('collectives').select('id', { count: 'exact', head: true }),
     supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
     (() => {
-      let q = supabase.from('event_impact').select('trees_planted, hours_total, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings')
+      let q = supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS)
       if (rangeStart) q = q.gte('logged_at', rangeStart)
       return q
     })(),
@@ -85,18 +86,17 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
       : Promise.resolve({ count: 0 }),
   ])
 
-  interface ImpactRow { trees_planted: number; hours_total: number; rubbish_kg: number; area_restored_sqm: number; native_plants: number; wildlife_sightings: number }
-  const impact = (totalImpactRes.data ?? []) as ImpactRow[]
+  const impact = (totalImpactRes.data ?? []) as Record<string, unknown>[]
   return {
     totalMembers: totalMembersRes.count ?? 0,
     totalCollectives: totalCollectivesRes.count ?? 0,
     totalEvents: totalEventsRes.count ?? 0,
-    totalTrees: impact.reduce((s, r) => s + (r.trees_planted ?? 0), 0),
-    totalHours: Math.round(impact.reduce((s, r) => s + (r.hours_total ?? 0), 0)),
-    totalRubbish: Math.round(impact.reduce((s, r) => s + (r.rubbish_kg ?? 0), 0)),
-    totalArea: Math.round(impact.reduce((s, r) => s + (r.area_restored_sqm ?? 0), 0)),
-    totalNativePlants: impact.reduce((s, r) => s + (r.native_plants ?? 0), 0),
-    totalWildlife: impact.reduce((s, r) => s + (r.wildlife_sightings ?? 0), 0),
+    totalTrees: sumMetric(impact, 'trees_planted'),
+    totalHours: Math.round(sumMetric(impact, 'hours_total')),
+    totalRubbish: Math.round(sumMetric(impact, 'rubbish_kg')),
+    totalArea: Math.round(sumMetric(impact, 'area_restored_sqm')),
+    totalNativePlants: sumMetric(impact, 'native_plants'),
+    totalWildlife: sumMetric(impact, 'wildlife_sightings'),
     periodMembers: periodMembersRes.count ?? 0,
     periodEvents: periodEventsRes.count ?? 0,
   }

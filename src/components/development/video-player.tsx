@@ -32,7 +32,7 @@ export function VideoPlayer({ url, provider, className }: VideoPlayerProps) {
     return null
   }, [url, provider])
 
-  // Direct upload — use native <video>
+  // Direct upload  use native <video>
   if (provider === 'upload' || (!embedUrl && !url.includes('youtu') && !url.includes('vimeo'))) {
     return (
       <div className={cn('rounded-xl overflow-hidden bg-primary-900', className)}>

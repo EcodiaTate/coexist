@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { IMPACT_SELECT_COLUMNS } from '@/lib/impact-metrics'
 import type {
   Database,
   Tables,
@@ -235,17 +236,17 @@ export function useCollectiveStats(collectiveId: string | undefined) {
       if (eventIds.length > 0) {
         const { data: impacts } = await supabase
           .from('event_impact')
-          .select('trees_planted, rubbish_kg, hours_total, area_restored_sqm, native_plants, wildlife_sightings')
+          .select(IMPACT_SELECT_COLUMNS)
           .in('event_id', eventIds)
 
         if (impacts) {
-          for (const i of impacts) {
-            totalTreesPlanted += i.trees_planted ?? 0
-            totalRubbishKg += i.rubbish_kg ?? 0
-            totalHours += i.hours_total ?? 0
-            totalAreaRestored += i.area_restored_sqm ?? 0
-            totalNativePlants += i.native_plants ?? 0
-            totalWildlifeSightings += i.wildlife_sightings ?? 0
+          for (const i of impacts as Record<string, unknown>[]) {
+            totalTreesPlanted += Number(i.trees_planted) || 0
+            totalRubbishKg += Number(i.rubbish_kg) || 0
+            totalHours += Number(i.hours_total) || 0
+            totalAreaRestored += Number(i.area_restored_sqm) || 0
+            totalNativePlants += Number(i.native_plants) || 0
+            totalWildlifeSightings += Number(i.wildlife_sightings) || 0
           }
         }
       }

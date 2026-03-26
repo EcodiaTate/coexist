@@ -357,7 +357,7 @@ function UserSettingsSheet({
     onMutate: () => {
       toast.success('Password reset email sent')
     },
-    onError: () => toast.error('Failed to send reset email — check Supabase SMTP config'),
+    onError: () => toast.error('Failed to send reset email  check Supabase SMTP config'),
   })
 
   if (!user) return null
@@ -916,7 +916,7 @@ export default function AdminUsersPage() {
                 aria-label={`Select ${user.display_name}`}
               />
 
-              {/* Avatar + info — tappable to open profile */}
+              {/* Avatar + info  tappable to open profile */}
               <button
                 type="button"
                 onClick={() => setProfileUserId(user.id)}

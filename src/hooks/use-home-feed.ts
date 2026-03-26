@@ -10,7 +10,7 @@ type ActivityType = Database['public']['Enums']['activity_type']
 
 type Event = Tables<'events'>
 type Collective = Tables<'collectives'>
-type GlobalAnnouncement = Tables<'global_announcements'>
+type Update = Tables<'updates'>
 type Challenge = Tables<'challenges'>
 type Profile = Tables<'profiles'>
 
@@ -27,7 +27,7 @@ export interface ImpactStats {
   native_plants: number
   wildlife_sightings: number
   invasive_weeds_pulled: number
-  leaders_trained: number
+  coastline_cleaned_m: number
 }
 
 export interface CollectiveWithNextEvent extends Collective {
@@ -73,14 +73,14 @@ export function useLatestUpdate() {
     queryKey: ['home', 'latest-update'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('global_announcements')
+        .from('updates')
         .select('*')
         .or('is_pinned.eq.true,priority.eq.urgent')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle()
       if (error) throw error
-      return data as GlobalAnnouncement | null
+      return data as Update | null
     },
     staleTime: 2 * 60 * 1000,
   })
@@ -209,7 +209,7 @@ export function useImpactStats() {
         native_plants: 0,
         wildlife_sightings: 0,
         invasive_weeds_pulled: 0,
-        leaders_trained: 0,
+        coastline_cleaned_m: 0,
       }) as unknown as ImpactStats
     },
     enabled: !!user,
@@ -376,16 +376,16 @@ export function useRecentUpdates() {
     queryKey: ['home', 'recent-updates'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('global_announcements')
+        .from('updates')
         .select(`
           *,
-          author:profiles!global_announcements_author_id_fkey(id, display_name, avatar_url, role)
+          author:profiles!updates_author_id_fkey(id, display_name, avatar_url, role)
         `)
         .order('is_pinned', { ascending: false })
         .order('created_at', { ascending: false })
         .limit(10)
       if (error) throw error
-      return (data ?? []) as (GlobalAnnouncement & {
+      return (data ?? []) as (Update & {
         author: Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'role'> | null
       })[]
     },

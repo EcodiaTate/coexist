@@ -1,9 +1,7 @@
 import { useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import { Users, BookOpen, CircleDot, Download, CheckCircle2, Target, TrendingUp } from 'lucide-react'
-import { Header } from '@/components/header'
 import { useAdminHeader } from '@/components/admin-layout'
 import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Button } from '@/components/button'
@@ -29,8 +27,6 @@ export default function AdminDevelopmentResultsPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const { stagger, fadeUp } = adminVariants(rm)
-  const navigate = useNavigate()
-
   const { data: analytics, isLoading } = useDevAnalytics()
   const { data: modules = [] } = useDevModules()
   const { data: quizzes = [] } = useDevQuizzes()
@@ -70,8 +66,6 @@ export default function AdminDevelopmentResultsPage() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="space-y-8">
-      <Header title="" back onBack={() => navigate('/admin/development')} />
-
       {isLoading ? <div className="space-y-3"><Skeleton className="h-16 rounded-2xl" /><Skeleton className="h-16 rounded-2xl" /><Skeleton className="h-16 rounded-2xl" /></div> : (
         <>
           <motion.section variants={fadeUp} className="space-y-3">
@@ -111,7 +105,7 @@ export default function AdminDevelopmentResultsPage() {
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-[11px] font-bold text-white shrink-0 shadow-md">{l.displayName.slice(0, 2).toUpperCase()}</div>
                   )}
                   <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-primary-800 truncate">{l.displayName}</p><p className="text-[11px] text-primary-400">Last active: {l.lastActive ? new Date(l.lastActive).toLocaleDateString() : 'N/A'}</p></div>
-                  <div className="flex items-center gap-3 sm:gap-4 text-center shrink-0"><div><p className="text-sm font-bold text-primary-700 tabular-nums">{l.modulesCompleted}/{l.modulesTotal}</p><p className="text-[9px] text-primary-400 font-medium">Modules</p></div><div><p className="text-sm font-bold text-sky-600 tabular-nums">{l.avgQuizScore ?? '—'}%</p><p className="text-[9px] text-primary-400 font-medium">Quiz Avg</p></div></div>
+                  <div className="flex items-center gap-3 sm:gap-4 text-center shrink-0"><div><p className="text-sm font-bold text-primary-700 tabular-nums">{l.modulesCompleted}/{l.modulesTotal}</p><p className="text-[9px] text-primary-400 font-medium">Modules</p></div><div><p className="text-sm font-bold text-sky-600 tabular-nums">{l.avgQuizScore ?? ''}%</p><p className="text-[9px] text-primary-400 font-medium">Quiz Avg</p></div></div>
                 </div>
               ))}</div>
             )}
