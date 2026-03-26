@@ -2,124 +2,95 @@ import { useState, useCallback, useMemo, createContext, useContext } from 'react
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  ChevronLeft,
-  ChevronRight,
-  Type,
-  Calendar,
-  MapPin,
-  Settings2,
-  Image,
-  Eye,
-  Users,
-  Building2,
-  CheckCircle2,
-  TreePine,
-  Waves,
-  Sprout,
-  Footprints,
-  BookOpen,
-  Droplets,
-  Flower2,
-  Repeat,
-  Accessibility,
-  Mountain,
-  Backpack,
-  Sparkles,
-  Check,
-  Clock,
-  EyeOff,
-  Send,
-  Camera,
-  Upload,
-  HelpCircle,
+    ChevronLeft,
+    ChevronRight,
+    Type,
+    Calendar,
+    MapPin,
+    Settings2,
+    Image,
+    Eye,
+    Users,
+    Building2,
+    CheckCircle2,
+    TreePine,
+    Waves,
+    Sprout,
+    Footprints,
+    BookOpen,
+    Droplets,
+    Flower2,
+    Repeat,
+    Accessibility,
+    Mountain,
+    Backpack,
+    Sparkles,
+    Check,
+    Clock,
+    EyeOff,
+    Send,
+    Upload,
+    HelpCircle,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import {
-  useCreateEvent,
-  useInviteCollective,
-  ACTIVITY_TYPE_OPTIONS,
+    useCreateEvent,
+    useInviteCollective,
+    ACTIVITY_TYPE_OPTIONS,
 } from '@/hooks/use-events'
 import { supabase } from '@/lib/supabase'
-import { useCamera } from '@/hooks/use-camera'
-import { useImageUpload } from '@/hooks/use-image-upload'
+import { useEventForm } from '@/hooks/use-event-form'
+import type { EventFormFields, ActivityType } from '@/hooks/use-event-form'
+import {
+    BasicsFields,
+    DateTimeFields,
+    LocationFields,
+    CoverImageFields,
+} from './components/event-form-fields'
 import type { Database } from '@/types/database.types'
 import {
-  Page,
-  Header,
-  Button,
-  Input,
-  Dropdown,
-  DatePicker,
-  Toggle,
-  Card,
-  MapView,
-  UploadProgress,
+    Page,
+    Header,
+    Button,
+    Input,
+    Dropdown,
+    Toggle,
+    Card,
+    MapView,
+    UploadProgress,
 } from '@/components'
 import { useToast } from '@/components/toast'
 import type { MapCenter } from '@/components'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
-/*  Types                                                              */
+/*  Create-only form data (extends shared fields)                      */
 /* ------------------------------------------------------------------ */
 
-type ActivityType = Database['public']['Enums']['activity_type']
-
-interface EventFormData {
-  // Step 1: Basics
-  title: string
-  activity_type: ActivityType | ''
-  description: string
-  // Step 2: Date & Time
-  date_start: Date | null
-  date_end: Date | null
+interface CreateExtraFields {
   is_recurring: boolean
   recurring_type: 'weekly' | 'fortnightly' | 'monthly'
   recurring_count: number
-  // Step 3: Location
-  address: string
-  location_lat: number | null
-  location_lng: number | null
-  // Step 4: Details
-  capacity: string
   what_to_bring: string
   meeting_point: string
   wheelchair_access: boolean
   terrain: string
   difficulty: 'easy' | 'moderate' | 'challenging'
   what_to_wear: string
-  // Step 5: Cover Image
-  cover_image_url: string
-  // Step 6: Visibility
-  is_public: boolean
-  // Step 7: Invite
   invite_collective: boolean
-  // Step 8: Partner
   partner_name: string
-  // Step 9: Review - no fields
 }
 
-const INITIAL_DATA: EventFormData = {
-  title: '',
-  activity_type: '',
-  description: '',
-  date_start: null,
-  date_end: null,
+const INITIAL_EXTRA: CreateExtraFields = {
   is_recurring: false,
   recurring_type: 'weekly',
   recurring_count: 4,
-  address: '',
-  location_lat: null,
-  location_lng: null,
-  capacity: '',
   what_to_bring: '',
   meeting_point: '',
   wheelchair_access: false,
   terrain: '',
   difficulty: 'easy',
   what_to_wear: '',
-  cover_image_url: '',
-  is_public: true,
   invite_collective: false,
   partner_name: '',
 }
@@ -241,7 +212,7 @@ const activityIcons: Record<string, React.ReactNode> = {
 /*  Shared sub-components                                              */
 /* ------------------------------------------------------------------ */
 
-/* Step color context — lets StepCard auto-pick the current step's accent */
+/* Step color context  lets StepCard auto-pick the current step's accent */
 const StepColorCtx = createContext<{ cardBorder: string; cardGlow: string }>({
   cardBorder: 'border-l-primary-300',
   cardGlow: 'bg-surface-0',
@@ -302,11 +273,11 @@ function SectionLabel({
 /* ------------------------------------------------------------------ */
 
 function StepBasics({
-  data,
+  fields,
   onChange,
 }: {
-  data: EventFormData
-  onChange: (updates: Partial<EventFormData>) => void
+  fields: EventFormFields
+  onChange: (updates: Partial<EventFormFields>) => void
 }) {
   return (
     <div className="space-y-4">
@@ -316,7 +287,7 @@ function StepBasics({
           <Input
             label="Event Title"
             placeholder="e.g. Byron Bay Dune Planting Day"
-            value={data.title}
+            value={fields.title}
             onChange={(e) => onChange({ title: e.target.value })}
             required
           />
@@ -324,7 +295,7 @@ function StepBasics({
           <Dropdown
             label="Activity Type"
             placeholder="Select activity type"
-            value={data.activity_type || undefined}
+            value={fields.activity_type || undefined}
             onChange={(v) => onChange({ activity_type: v as ActivityType })}
             options={ACTIVITY_TYPE_OPTIONS.map((o) => ({
               value: o.value,
@@ -341,7 +312,7 @@ function StepBasics({
           type="textarea"
           label="Description"
           placeholder="Tell people what this event is about, what you'll be doing, and why it matters..."
-          value={data.description}
+          value={fields.description}
           onChange={(e) => onChange({ description: e.target.value })}
           rows={5}
         />
@@ -351,32 +322,22 @@ function StepBasics({
 }
 
 function StepDateTime({
-  data,
+  fields,
   onChange,
+  extra,
+  onExtraChange,
 }: {
-  data: EventFormData
-  onChange: (updates: Partial<EventFormData>) => void
+  fields: EventFormFields
+  onChange: (updates: Partial<EventFormFields>) => void
+  extra: CreateExtraFields
+  onExtraChange: (updates: Partial<CreateExtraFields>) => void
 }) {
   return (
     <div className="space-y-4">
       <StepCard>
         <SectionLabel icon={<Clock size={14} />}>Schedule</SectionLabel>
         <div className="space-y-5">
-          <DatePicker
-            label="Start Date & Time"
-            value={data.date_start}
-            onChange={(d) => onChange({ date_start: d })}
-            mode="datetime"
-            min={new Date()}
-          />
-
-          <DatePicker
-            label="End Date & Time"
-            value={data.date_end}
-            onChange={(d) => onChange({ date_end: d })}
-            mode="datetime"
-            min={data.date_start ?? new Date()}
-          />
+          <DateTimeFields fields={fields} onChange={onChange} minStart={new Date()} />
         </div>
       </StepCard>
 
@@ -385,12 +346,12 @@ function StepDateTime({
         <Toggle
           label="Recurring Event"
           description="Create a series of events on a schedule"
-          checked={data.is_recurring}
-          onChange={(checked) => onChange({ is_recurring: checked })}
+          checked={extra.is_recurring}
+          onChange={(checked) => onExtraChange({ is_recurring: checked })}
         />
 
         <AnimatePresence>
-          {data.is_recurring && (
+          {extra.is_recurring && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
@@ -400,9 +361,9 @@ function StepDateTime({
               <div className="mt-4 space-y-4 pl-4 border-l-2 border-sky-200">
                 <Dropdown
                   label="Frequency"
-                  value={data.recurring_type}
+                  value={extra.recurring_type}
                   onChange={(v) =>
-                    onChange({
+                    onExtraChange({
                       recurring_type: v as 'weekly' | 'fortnightly' | 'monthly',
                     })
                   }
@@ -428,15 +389,15 @@ function StepDateTime({
                 <Input
                   label="Number of Events"
                   placeholder="4"
-                  value={String(data.recurring_count)}
+                  value={String(extra.recurring_count)}
                   onChange={(e) =>
-                    onChange({ recurring_count: parseInt(e.target.value) || 1 })
+                    onExtraChange({ recurring_count: parseInt(e.target.value) || 1 })
                   }
                 />
 
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-sky-50 text-sky-700 text-caption">
                   <Calendar size={14} />
-                  This will create {data.recurring_count} linked events
+                  This will create {extra.recurring_count} linked events
                 </div>
               </div>
             </motion.div>
@@ -448,11 +409,15 @@ function StepDateTime({
 }
 
 function StepLocation({
-  data,
+  fields,
   onChange,
+  extra,
+  onExtraChange,
 }: {
-  data: EventFormData
-  onChange: (updates: Partial<EventFormData>) => void
+  fields: EventFormFields
+  onChange: (updates: Partial<EventFormFields>) => void
+  extra: CreateExtraFields
+  onExtraChange: (updates: Partial<CreateExtraFields>) => void
 }) {
   return (
     <div className="space-y-4">
@@ -461,7 +426,7 @@ function StepLocation({
         <Input
           label="Address"
           placeholder="Search for an address..."
-          value={data.address}
+          value={fields.address}
           onChange={(e) => onChange({ address: e.target.value })}
           icon={<MapPin size={18} />}
         />
@@ -471,8 +436,8 @@ function StepLocation({
       <div className="rounded-2xl overflow-hidden shadow-md border border-primary-100/40">
         <MapView
           center={
-            data.location_lat != null && data.location_lng != null
-              ? { lat: data.location_lat, lng: data.location_lng }
+            fields.location_lat != null && fields.location_lng != null
+              ? { lat: fields.location_lat, lng: fields.location_lng }
               : { lat: -33.8688, lng: 151.2093 }
           }
           zoom={13}
@@ -494,8 +459,8 @@ function StepLocation({
         <Input
           label="Meeting Point Notes"
           placeholder="e.g. Meet at the car park near the northern entrance"
-          value={data.meeting_point}
-          onChange={(e) => onChange({ meeting_point: e.target.value })}
+          value={extra.meeting_point}
+          onChange={(e) => onExtraChange({ meeting_point: e.target.value })}
         />
       </StepCard>
     </div>
@@ -503,11 +468,15 @@ function StepLocation({
 }
 
 function StepDetails({
-  data,
+  fields,
   onChange,
+  extra,
+  onExtraChange,
 }: {
-  data: EventFormData
-  onChange: (updates: Partial<EventFormData>) => void
+  fields: EventFormFields
+  onChange: (updates: Partial<EventFormFields>) => void
+  extra: CreateExtraFields
+  onExtraChange: (updates: Partial<CreateExtraFields>) => void
 }) {
   return (
     <div className="space-y-4">
@@ -516,7 +485,7 @@ function StepDetails({
         <Input
           label="Max Participants"
           placeholder="Leave empty for unlimited"
-          value={data.capacity}
+          value={fields.capacity}
           onChange={(e) => onChange({ capacity: e.target.value })}
         />
       </StepCard>
@@ -528,8 +497,8 @@ function StepDetails({
             type="textarea"
             label="What to Bring"
             placeholder="e.g. Water bottle, sunscreen, closed-toe shoes, gloves (we provide)"
-            value={data.what_to_bring}
-            onChange={(e) => onChange({ what_to_bring: e.target.value })}
+            value={extra.what_to_bring}
+            onChange={(e) => onExtraChange({ what_to_bring: e.target.value })}
             rows={3}
           />
 
@@ -537,8 +506,8 @@ function StepDetails({
             type="textarea"
             label="What to Wear"
             placeholder="e.g. Long pants, hat, old clothes you don't mind getting dirty"
-            value={data.what_to_wear}
-            onChange={(e) => onChange({ what_to_wear: e.target.value })}
+            value={extra.what_to_wear}
+            onChange={(e) => onExtraChange({ what_to_wear: e.target.value })}
             rows={2}
           />
         </div>
@@ -552,22 +521,22 @@ function StepDetails({
           <Toggle
             label="Wheelchair Accessible"
             description="The venue and route are wheelchair accessible"
-            checked={data.wheelchair_access}
-            onChange={(checked) => onChange({ wheelchair_access: checked })}
+            checked={extra.wheelchair_access}
+            onChange={(checked) => onExtraChange({ wheelchair_access: checked })}
           />
 
           <Input
             label="Terrain Type"
             placeholder="e.g. Beach sand, bushland trail, flat parkland"
-            value={data.terrain}
-            onChange={(e) => onChange({ terrain: e.target.value })}
+            value={extra.terrain}
+            onChange={(e) => onExtraChange({ terrain: e.target.value })}
           />
 
           <Dropdown
             label="Difficulty"
-            value={data.difficulty}
+            value={extra.difficulty}
             onChange={(v) =>
-              onChange({ difficulty: v as 'easy' | 'moderate' | 'challenging' })
+              onExtraChange({ difficulty: v as 'easy' | 'moderate' | 'challenging' })
             }
             options={[
               {
@@ -600,58 +569,46 @@ function StepDetails({
 }
 
 function StepCoverImage({
-  data,
-  onChange,
+  coverImageUrl,
+  onUploadGallery,
+  onUploadCamera,
+  onRemove,
+  uploading,
+  cameraLoading,
+  uploadProgress,
+  uploadError,
 }: {
-  data: EventFormData
-  onChange: (updates: Partial<EventFormData>) => void
+  coverImageUrl: string
+  onUploadGallery: () => void
+  onUploadCamera: () => void
+  onRemove: () => void
+  uploading: boolean
+  cameraLoading: boolean
+  uploadProgress: number | null
+  uploadError: string | null
 }) {
-  const { capture, pickFromGallery, loading: cameraLoading } = useCamera()
-  const {
-    upload,
-    progress,
-    uploading,
-    error: uploadError,
-  } = useImageUpload({
-    bucket: 'event-images',
-    pathPrefix: 'covers',
-  })
-
-  const handleUpload = async (source: 'camera' | 'gallery') => {
-    const result =
-      source === 'camera' ? await capture() : await pickFromGallery()
-    if (!result) return
-
-    try {
-      const uploaded = await upload(result.blob)
-      onChange({ cover_image_url: uploaded.url })
-    } catch {
-      // error state handled by hook
-    }
-  }
-
   return (
     <div className="space-y-4">
       {/* Upload area */}
       <div className="relative rounded-2xl overflow-hidden shadow-md">
         <button
           type="button"
-          onClick={() => handleUpload('gallery')}
+          onClick={onUploadGallery}
           disabled={cameraLoading || uploading}
           className={cn(
             'w-full min-h-11 cursor-pointer select-none',
             'active:scale-[0.98] transition-transform duration-200',
             'flex flex-col items-center justify-center',
             'disabled:opacity-50 disabled:cursor-not-allowed',
-            data.cover_image_url
+            coverImageUrl
               ? 'p-0'
               : 'py-20 bg-gradient-to-br from-surface-2 via-surface-1 to-primary-50',
           )}
           aria-label="Upload cover image"
         >
-          {data.cover_image_url ? (
+          {coverImageUrl ? (
             <img
-              src={data.cover_image_url}
+              src={coverImageUrl}
               alt="Cover preview"
               className="w-full object-cover"
               style={{ aspectRatio: '16/9' }}
@@ -671,14 +628,14 @@ function StepCoverImage({
           )}
         </button>
         <UploadProgress
-          progress={progress}
+          progress={uploadProgress}
           uploading={uploading}
           variant="overlay"
         />
       </div>
 
       <UploadProgress
-        progress={progress}
+        progress={uploadProgress}
         uploading={uploading}
         error={uploadError}
         variant="bar"
@@ -686,12 +643,12 @@ function StepCoverImage({
 
       {/* Action buttons */}
       <div className="flex gap-2">
-        {data.cover_image_url ? (
+        {coverImageUrl ? (
           <>
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => handleUpload('gallery')}
+              onClick={onUploadGallery}
               disabled={cameraLoading || uploading}
             >
               Replace
@@ -699,14 +656,14 @@ function StepCoverImage({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onChange({ cover_image_url: '' })}
+              onClick={onRemove}
             >
               Remove
             </Button>
           </>
         ) : (
           <StepCard className="w-full flex items-center gap-3 !p-3.5">
-            <Camera size={18} className="text-primary-400 shrink-0" />
+            <span className="text-primary-400 shrink-0"><Image size={18} /></span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-primary-700">
                 Take a photo instead
@@ -718,7 +675,7 @@ function StepCoverImage({
             <Button
               variant="secondary"
               size="sm"
-              onClick={() => handleUpload('camera')}
+              onClick={onUploadCamera}
               disabled={cameraLoading || uploading}
               className="shrink-0"
             >
@@ -732,11 +689,11 @@ function StepCoverImage({
 }
 
 function StepVisibility({
-  data,
+  fields,
   onChange,
 }: {
-  data: EventFormData
-  onChange: (updates: Partial<EventFormData>) => void
+  fields: EventFormFields
+  onChange: (updates: Partial<EventFormFields>) => void
 }) {
   return (
     <div className="space-y-3">
@@ -752,7 +709,7 @@ function StepVisibility({
           'w-full min-h-11 flex items-center gap-4 p-4 rounded-2xl cursor-pointer select-none text-left',
           'active:scale-[0.97] transition-transform duration-200',
           'border',
-          data.is_public
+          fields.is_public
             ? 'border-primary-400 shadow-md bg-gradient-to-r from-primary-50 to-sprout-50 ring-1 ring-primary-300/50'
             : 'border-primary-100 bg-surface-0 hover:bg-surface-1',
         )}
@@ -760,7 +717,7 @@ function StepVisibility({
         <div
           className={cn(
             'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors',
-            data.is_public
+            fields.is_public
               ? 'bg-primary-500 text-white'
               : 'bg-surface-2 text-primary-400',
           )}
@@ -773,7 +730,7 @@ function StepVisibility({
             Anyone can find and register for this event
           </p>
         </div>
-        {data.is_public && (
+        {fields.is_public && (
           <div className="w-6 h-6 rounded-full bg-primary-500 flex items-center justify-center shrink-0">
             <Check size={14} className="text-white" />
           </div>
@@ -788,7 +745,7 @@ function StepVisibility({
           'w-full min-h-11 flex items-center gap-4 p-4 rounded-2xl cursor-pointer select-none text-left',
           'active:scale-[0.97] transition-transform duration-200',
           'border',
-          !data.is_public
+          !fields.is_public
             ? 'border-plum-400 shadow-md bg-gradient-to-r from-plum-50 to-primary-50 ring-1 ring-plum-300/50'
             : 'border-primary-100 bg-surface-0 hover:bg-surface-1',
         )}
@@ -796,7 +753,7 @@ function StepVisibility({
         <div
           className={cn(
             'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors',
-            !data.is_public
+            !fields.is_public
               ? 'bg-plum-500 text-white'
               : 'bg-surface-2 text-primary-400',
           )}
@@ -811,7 +768,7 @@ function StepVisibility({
             Only members of your collective can see and register
           </p>
         </div>
-        {!data.is_public && (
+        {!fields.is_public && (
           <div className="w-6 h-6 rounded-full bg-plum-500 flex items-center justify-center shrink-0">
             <Check size={14} className="text-white" />
           </div>
@@ -822,11 +779,11 @@ function StepVisibility({
 }
 
 function StepInvite({
-  data,
-  onChange,
+  extra,
+  onExtraChange,
 }: {
-  data: EventFormData
-  onChange: (updates: Partial<EventFormData>) => void
+  extra: CreateExtraFields
+  onExtraChange: (updates: Partial<CreateExtraFields>) => void
 }) {
   return (
     <div className="space-y-4">
@@ -840,13 +797,13 @@ function StepInvite({
         <Toggle
           label="Invite All Collective Members"
           description="Send invites to every member when this event is published"
-          checked={data.invite_collective}
-          onChange={(checked) => onChange({ invite_collective: checked })}
+          checked={extra.invite_collective}
+          onChange={(checked) => onExtraChange({ invite_collective: checked })}
         />
       </StepCard>
 
       <AnimatePresence>
-        {data.invite_collective && (
+        {extra.invite_collective && (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -868,11 +825,11 @@ function StepInvite({
 }
 
 function StepPartner({
-  data,
-  onChange,
+  extra,
+  onExtraChange,
 }: {
-  data: EventFormData
-  onChange: (updates: Partial<EventFormData>) => void
+  extra: CreateExtraFields
+  onExtraChange: (updates: Partial<CreateExtraFields>) => void
 }) {
   return (
     <div className="space-y-4">
@@ -888,12 +845,12 @@ function StepPartner({
         <Input
           label="Partner Organisation (optional)"
           placeholder="e.g. Byron Shire Council, Patagonia"
-          value={data.partner_name}
-          onChange={(e) => onChange({ partner_name: e.target.value })}
+          value={extra.partner_name}
+          onChange={(e) => onExtraChange({ partner_name: e.target.value })}
         />
       </StepCard>
 
-      {!data.partner_name && (
+      {!extra.partner_name && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-surface-2/60 text-primary-400">
           <HelpCircle size={16} className="shrink-0 text-primary-300" />
           <p className="text-caption italic">
@@ -905,36 +862,36 @@ function StepPartner({
   )
 }
 
-function StepReview({ data }: { data: EventFormData }) {
+function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateExtraFields }) {
   const activityLabel =
-    ACTIVITY_TYPE_OPTIONS.find((o) => o.value === data.activity_type)?.label ??
-    data.activity_type
+    ACTIVITY_TYPE_OPTIONS.find((o) => o.value === fields.activity_type)?.label ??
+    fields.activity_type
 
   return (
     <div className="space-y-4">
       {/* Preview card */}
       <div className="rounded-2xl overflow-hidden shadow-md border border-primary-100/40">
         <Card variant="event">
-          {data.cover_image_url && (
+          {fields.cover_image_url && (
             <Card.Image
-              src={data.cover_image_url}
-              alt={data.title || 'Event cover'}
+              src={fields.cover_image_url}
+              alt={fields.title || 'Event cover'}
             />
           )}
           <Card.Content>
-            <Card.Title>{data.title || 'Untitled Event'}</Card.Title>
+            <Card.Title>{fields.title || 'Untitled Event'}</Card.Title>
             <Card.Meta>
-              {data.date_start
+              {fields.date_start
                 ? new Intl.DateTimeFormat('en-AU', {
                     weekday: 'short',
                     day: 'numeric',
                     month: 'short',
                     hour: 'numeric',
                     minute: '2-digit',
-                  }).format(data.date_start)
+                  }).format(fields.date_start)
                 : 'No date set'}
             </Card.Meta>
-            {data.address && <Card.Meta>{data.address}</Card.Meta>}
+            {fields.address && <Card.Meta>{fields.address}</Card.Meta>}
           </Card.Content>
         </Card>
       </div>
@@ -949,7 +906,7 @@ function StepReview({ data }: { data: EventFormData }) {
         <div className="px-5 py-2 divide-y divide-primary-50">
           <SummaryRow
             icon={
-              activityIcons[data.activity_type] || <HelpCircle size={15} />
+              activityIcons[fields.activity_type] || <HelpCircle size={15} />
             }
             label="Activity"
             value={activityLabel}
@@ -958,65 +915,65 @@ function StepReview({ data }: { data: EventFormData }) {
             icon={<Calendar size={15} />}
             label="Date"
             value={
-              data.date_start
+              fields.date_start
                 ? new Intl.DateTimeFormat('en-AU', {
                     dateStyle: 'full',
                     timeStyle: 'short',
-                  }).format(data.date_start)
+                  }).format(fields.date_start)
                 : '-'
             }
           />
-          {data.date_end && (
+          {fields.date_end && (
             <SummaryRow
               icon={<Clock size={15} />}
               label="Ends"
               value={new Intl.DateTimeFormat('en-AU', {
                 timeStyle: 'short',
-              }).format(data.date_end)}
+              }).format(fields.date_end)}
             />
           )}
           <SummaryRow
             icon={<MapPin size={15} />}
             label="Location"
-            value={data.address || '-'}
+            value={fields.address || '-'}
           />
           <SummaryRow
             icon={<Users size={15} />}
             label="Capacity"
-            value={data.capacity || 'Unlimited'}
+            value={fields.capacity || 'Unlimited'}
           />
           <SummaryRow
-            icon={data.is_public ? <Eye size={15} /> : <EyeOff size={15} />}
+            icon={fields.is_public ? <Eye size={15} /> : <EyeOff size={15} />}
             label="Visibility"
-            value={data.is_public ? 'Public' : 'Collective Only'}
+            value={fields.is_public ? 'Public' : 'Collective Only'}
           />
           <SummaryRow
             icon={<Mountain size={15} />}
             label="Difficulty"
             value={
-              data.difficulty.charAt(0).toUpperCase() +
-              data.difficulty.slice(1)
+              extra.difficulty.charAt(0).toUpperCase() +
+              extra.difficulty.slice(1)
             }
           />
-          {data.is_recurring && (
+          {extra.is_recurring && (
             <SummaryRow
               icon={<Repeat size={15} />}
               label="Recurring"
-              value={`${data.recurring_type}, ${data.recurring_count} events`}
+              value={`${extra.recurring_type}, ${extra.recurring_count} events`}
             />
           )}
-          {data.invite_collective && (
+          {extra.invite_collective && (
             <SummaryRow
               icon={<Send size={15} />}
               label="Invites"
               value="All collective members"
             />
           )}
-          {data.partner_name && (
+          {extra.partner_name && (
             <SummaryRow
               icon={<Building2 size={15} />}
               label="Partner"
-              value={data.partner_name}
+              value={extra.partner_name}
             />
           )}
         </div>
@@ -1109,8 +1066,10 @@ export default function CreateEventPage() {
 
   const [step, setStep] = useState(0)
   const [direction, setDirection] = useState(1) // 1 = forward, -1 = back
-  const [data, setData] = useState<EventFormData>(INITIAL_DATA)
+  const [extra, setExtra] = useState<CreateExtraFields>(INITIAL_EXTRA)
   const [saveAsDraft] = useState(false)
+
+  const form = useEventForm({ mode: 'create' })
 
   const createEvent = useCreateEvent()
   const inviteCollective = useInviteCollective()
@@ -1119,20 +1078,20 @@ export default function CreateEventPage() {
   const isLastStep = step === STEPS.length - 1
   const isFirstStep = step === 0
 
-  const updateData = useCallback((updates: Partial<EventFormData>) => {
-    setData((prev) => ({ ...prev, ...updates }))
+  const updateExtra = useCallback((updates: Partial<CreateExtraFields>) => {
+    setExtra((prev) => ({ ...prev, ...updates }))
   }, [])
 
   const canProceed = useMemo(() => {
     switch (step) {
       case 0:
-        return data.title.trim().length > 0 && data.activity_type !== ''
+        return form.isBasicsValid
       case 1:
-        return data.date_start !== null
+        return form.isDateValid
       default:
         return true
     }
-  }, [step, data])
+  }, [step, form.isBasicsValid, form.isDateValid])
 
   // We need the user's collective - use the first one they're a leader of
   const handlePublish = useCallback(
@@ -1143,9 +1102,9 @@ export default function CreateEventPage() {
 
       // Validate date_end > date_start if both set
       if (
-        data.date_start &&
-        data.date_end &&
-        data.date_end <= data.date_start
+        form.fields.date_start &&
+        form.fields.date_end &&
+        form.fields.date_end <= form.fields.date_start
       ) {
         toastApi.error('End date must be after start date')
         return
@@ -1168,32 +1127,24 @@ export default function CreateEventPage() {
           return
         }
 
-        const capacityNum = data.capacity ? parseInt(data.capacity, 10) : null
-
-        // Build PostGIS-compatible location point from map pin coordinates
-        const locationPoint =
-          data.location_lat != null && data.location_lng != null
-            ? `POINT(${data.location_lng} ${data.location_lat})`
-            : null
-
         const event = await createEvent.mutateAsync({
           collective_id: collectiveId,
-          title: data.title,
-          description: data.description || null,
+          title: form.fields.title,
+          description: form.fields.description || null,
           activity_type:
-            data.activity_type as Database['public']['Enums']['activity_type'],
-          date_start: data.date_start!.toISOString(),
-          date_end: data.date_end?.toISOString() ?? null,
-          address: data.address || null,
-          location_point: locationPoint,
-          capacity: capacityNum && capacityNum > 0 ? capacityNum : null,
-          cover_image_url: data.cover_image_url || null,
-          is_public: data.is_public,
+            form.fields.activity_type as Database['public']['Enums']['activity_type'],
+          date_start: form.fields.date_start!.toISOString(),
+          date_end: form.fields.date_end?.toISOString() ?? null,
+          address: form.fields.address || null,
+          location_point: form.buildLocationPoint(),
+          capacity: form.parsedCapacity(),
+          cover_image_url: form.fields.cover_image_url || null,
+          is_public: form.fields.is_public,
           status: isDraft ? 'draft' : 'published',
         })
 
         // Auto-invite collective if selected
-        if (data.invite_collective && !isDraft) {
+        if (extra.invite_collective && !isDraft) {
           await inviteCollective.mutateAsync({
             eventId: event.id,
             collectiveId,
@@ -1202,20 +1153,20 @@ export default function CreateEventPage() {
 
         // Auto-post event as rich card to collective chat
         if (!isDraft) {
-          const dateStr = data.date_start
+          const dateStr = form.fields.date_start
             ? new Intl.DateTimeFormat('en-AU', {
                 dateStyle: 'medium',
                 timeStyle: 'short',
-              }).format(data.date_start)
+              }).format(form.fields.date_start)
             : ''
-          const chatContent = `New event created!\n\n**${data.title}**\n${dateStr}${data.address ? `\n${data.address}` : ''}\n\nTap to view and register → /events/${event.id}`
+          const chatContent = `New event created!\n\n**${form.fields.title}**\n${dateStr}${form.fields.address ? `\n${form.fields.address}` : ''}\n\nTap to view and register → /events/${event.id}`
           try {
             await supabase.from('chat_messages').insert({
               collective_id: collectiveId,
               user_id: user.id,
               content: chatContent,
               message_type: 'event_card',
-              metadata: { event_id: event.id, event_title: data.title },
+              metadata: { event_id: event.id, event_title: form.fields.title },
             })
           } catch {
             // Non-critical
@@ -1230,7 +1181,7 @@ export default function CreateEventPage() {
         )
       }
     },
-    [user, data, saveAsDraft, createEvent, inviteCollective, navigate, toastApi],
+    [user, form, extra, saveAsDraft, createEvent, inviteCollective, navigate, toastApi],
   )
 
   const goNext = useCallback(() => {
@@ -1264,15 +1215,24 @@ export default function CreateEventPage() {
   }
 
   const stepComponents = [
-    <StepBasics data={data} onChange={updateData} />,
-    <StepDateTime data={data} onChange={updateData} />,
-    <StepLocation data={data} onChange={updateData} />,
-    <StepDetails data={data} onChange={updateData} />,
-    <StepCoverImage data={data} onChange={updateData} />,
-    <StepVisibility data={data} onChange={updateData} />,
-    <StepInvite data={data} onChange={updateData} />,
-    <StepPartner data={data} onChange={updateData} />,
-    <StepReview data={data} />,
+    <StepBasics fields={form.fields} onChange={form.updateFields} />,
+    <StepDateTime fields={form.fields} onChange={form.updateFields} extra={extra} onExtraChange={updateExtra} />,
+    <StepLocation fields={form.fields} onChange={form.updateFields} extra={extra} onExtraChange={updateExtra} />,
+    <StepDetails fields={form.fields} onChange={form.updateFields} extra={extra} onExtraChange={updateExtra} />,
+    <StepCoverImage
+      coverImageUrl={form.fields.cover_image_url}
+      onUploadGallery={form.handleUploadFromGallery}
+      onUploadCamera={form.handleUploadFromCamera}
+      onRemove={form.removeCoverImage}
+      uploading={form.uploading}
+      cameraLoading={form.cameraLoading}
+      uploadProgress={form.uploadProgress}
+      uploadError={form.uploadError}
+    />,
+    <StepVisibility fields={form.fields} onChange={form.updateFields} />,
+    <StepInvite extra={extra} onExtraChange={updateExtra} />,
+    <StepPartner extra={extra} onExtraChange={updateExtra} />,
+    <StepReview fields={form.fields} extra={extra} />,
   ]
 
   const currentStep = STEPS[step]
