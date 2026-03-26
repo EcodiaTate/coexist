@@ -8,6 +8,27 @@ import { resolveCapabilities } from '@/lib/capabilities'
 import { CURRENT_TOS_VERSION } from '@/lib/constants'
 import type { Database } from '@/types/database.types'
 
+/* ------------------------------------------------------------------ */
+/*  One-time SocialLogin initialization (native only)                  */
+/* ------------------------------------------------------------------ */
+
+let socialLoginReady: Promise<void> | null = null
+
+function ensureSocialLogin(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return Promise.resolve()
+  if (!socialLoginReady) {
+    socialLoginReady = SocialLogin.initialize({
+      google: { webClientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID },
+      apple: {},
+    }).catch((err) => {
+      console.error('[social-login] init failed:', err)
+      socialLoginReady = null // allow retry on next attempt
+      throw err
+    })
+  }
+  return socialLoginReady
+}
+
 type Profile = Database['public']['Tables']['profiles']['Row']
 type UserRole = Database['public']['Enums']['user_role']
 type CollectiveRole = Database['public']['Enums']['collective_role']
@@ -512,7 +533,7 @@ export function useAuthProvider(): AuthContextValue {
     // Native: use Google SDK → get ID token → pass to Supabase
     if (Capacitor.isNativePlatform()) {
       try {
-        await SocialLogin.initialize({ google: { webClientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID } })
+        await ensureSocialLogin()
         const result = await SocialLogin.login({ provider: 'google', options: { scopes: ['email', 'profile'] } })
         const idToken = (result?.result as unknown as Record<string, unknown>)?.idToken as string | undefined
         if (!idToken) return { error: { message: 'No ID token received from Google', status: 400 } as unknown as AuthError }
@@ -537,7 +558,7 @@ export function useAuthProvider(): AuthContextValue {
     // Native: use Apple SDK → get ID token → pass to Supabase
     if (Capacitor.isNativePlatform()) {
       try {
-        await SocialLogin.initialize({ apple: {} })
+        await ensureSocialLogin()
         const result = await SocialLogin.login({ provider: 'apple', options: { scopes: ['email', 'name'] } })
         const idToken = (result?.result as unknown as Record<string, unknown>)?.idToken as string | undefined
         if (!idToken) return { error: { message: 'No ID token received from Apple', status: 400 } as unknown as AuthError }
