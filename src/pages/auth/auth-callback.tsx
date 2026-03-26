@@ -48,7 +48,7 @@ export default function AuthCallbackPage() {
       }
     })
 
-    // Safety timeout — if nothing happens after 10s, something went wrong.
+    // Safety timeout — if nothing happens after 30s, something went wrong.
     const timeout = setTimeout(() => {
       setState((prev) => {
         if (prev === 'processing') {
@@ -57,7 +57,7 @@ export default function AuthCallbackPage() {
         }
         return prev
       })
-    }, 10_000)
+    }, 30_000)
 
     return () => {
       subscription.unsubscribe()
