@@ -551,7 +551,7 @@ export default function LogImpactPage() {
           onClick={handleSubmit}
         >
           {existingImpact ? 'Update Impact' : 'Submit Impact'}
-        </Button>
+        </Button> as React.ReactNode
       }
     >
       <div className="pt-4 pb-8 space-y-6">
@@ -563,14 +563,14 @@ export default function LogImpactPage() {
           <p className="text-caption text-primary-400 mt-0.5">
             {ACTIVITY_TYPE_LABELS[event.activity_type]} · {checkedInCount} checked in / {event.registration_count} registered
           </p>
-          {event.date_end ? (
+          {event.date_end && (
             <p className="text-caption text-primary-400 mt-0.5">
               Duration: {getEventDuration(event.date_start, event.date_end)}
             </p>
-          ) : null}
+          )}
         </div>
 
-        {existingImpact && (existingImpact.custom_metrics as Record<string, unknown> | null)?.survey_synced && (
+        {existingImpact && !!(existingImpact.custom_metrics as Record<string, unknown> | null)?.survey_synced && (
           <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-info-50 text-info-700 text-sm">
             <ClipboardList size={16} />
             Some values were set from the post-event survey. You can adjust them here.
