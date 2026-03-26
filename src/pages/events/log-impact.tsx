@@ -267,12 +267,12 @@ export default function LogImpactPage() {
   const isStaff = profile?.role === 'national_staff' || profile?.role === 'national_admin' || profile?.role === 'super_admin'
   const { activeDefs } = useImpactMetricDefs()
 
-  const stagger = {
+  const stagger: import('framer-motion').Variants = {
     hidden: {},
     visible: { transition: { staggerChildren: 0.04 } },
   }
 
-  const fadeUp = {
+  const fadeUp: import('framer-motion').Variants = {
     hidden: { opacity: 0, y: 12 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
   }
@@ -403,7 +403,7 @@ export default function LogImpactPage() {
 
   // Custom metrics from admin config (not built-in, not already in activity fields)
   const customMetricDefs = useMemo(() => {
-    const activityKeys = new Set(allFields.map((f: ImpactField) => f.key))
+    const activityKeys = new Set<string>(allFields.map((f: ImpactField) => f.key))
     return activeDefs.filter(
       (d) => !isBuiltinMetric(d.key) && !activityKeys.has(d.key) && d.key !== 'hours_total',
     )
@@ -554,6 +554,7 @@ export default function LogImpactPage() {
         </Button>
       }
     >
+      {/* @ts-expect-error framer-motion v12 types children as unknown */}
       <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="pt-4 pb-8 space-y-6">
         {/* Event header */}
         <div>

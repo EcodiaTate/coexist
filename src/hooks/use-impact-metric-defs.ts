@@ -19,7 +19,7 @@ export function useImpactMetricDefs() {
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: async (): Promise<ImpactMetricDef[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('impact_metric_defs')
         .select('*')
         .order('sort_order', { ascending: true })
@@ -60,7 +60,7 @@ export function useAllImpactMetricDefs() {
   return useQuery({
     queryKey: [...QUERY_KEY, 'all'],
     queryFn: async (): Promise<ImpactMetricDef[]> => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('impact_metric_defs')
         .select('*')
         .order('sort_order', { ascending: true })
@@ -81,7 +81,7 @@ export function useUpsertMetricDef() {
 
   return useMutation({
     mutationFn: async (def: Partial<ImpactMetricDef> & { key: string }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('impact_metric_defs')
         .upsert(
           {
@@ -103,7 +103,7 @@ export function useDeleteMetricDef() {
 
   return useMutation({
     mutationFn: async (key: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('impact_metric_defs')
         .delete()
         .eq('key', key)
@@ -122,7 +122,7 @@ export function useReorderMetricDefs() {
     mutationFn: async (orderedKeys: string[]) => {
       // Batch update sort_order for all keys
       const updates = orderedKeys.map((key, i) =>
-        supabase
+        (supabase as any)
           .from('impact_metric_defs')
           .update({ sort_order: i })
           .eq('key', key),

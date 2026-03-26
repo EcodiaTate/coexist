@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { adminVariants } from '@/lib/admin-motion'
+import { adminVariants as getAdminVariants } from '@/lib/admin-motion'
 import {
   Plus,
   Save,
@@ -108,6 +108,7 @@ const emptyForm = (): Partial<ImpactMetricDef> & { key: string } => ({
 export default function AdminImpactMetricsPage() {
   useAdminHeader('Impact Metrics')
   const shouldReduceMotion = useReducedMotion()
+  const adminVariants = getAdminVariants(!!shouldReduceMotion)
   const { toast } = useToast()
 
   const { data: defs, isLoading } = useAllImpactMetricDefs()
@@ -216,7 +217,7 @@ export default function AdminImpactMetricsPage() {
 
   return (
     <motion.div
-      variants={shouldReduceMotion ? undefined : adminVariants.stagger}
+      variants={adminVariants.stagger}
       initial="hidden"
       animate="visible"
       className="w-full max-w-2xl mx-auto py-6 space-y-6"
