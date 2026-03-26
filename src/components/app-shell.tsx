@@ -21,6 +21,10 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, bare = false }: AppShellProps) {
+  // Scroll focused inputs into view when native keyboard opens —
+  // must run in BOTH bare and full shells so auth/onboarding pages work too.
+  useKeyboard()
+
   if (bare) {
     return (
       <div className="flex flex-col min-h-dvh">
@@ -89,9 +93,6 @@ function AppShellInner({ children }: { children: ReactNode }) {
 
   // Handles auto-sync on reconnect + toast notifications
   useSyncManager()
-
-  // Scroll focused inputs into view when native keyboard opens
-  useKeyboard()
 
   // Push notification registration - sets up FCM/APNs listeners,
   // stores token in DB, handles deep-link routing on tap,
