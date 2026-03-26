@@ -1,4 +1,4 @@
-import type { MapCenter } from '@/components/map-view'
+import type { MapCenter } from '@/components/map/use-map'
 
 /**
  * Parse a PostGIS location_point (unknown) into { lat, lng }.

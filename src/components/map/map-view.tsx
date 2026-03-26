@@ -1,27 +1,29 @@
 import { lazy, Suspense, type ReactNode } from 'react'
 import { MapPin as MapPinLucide } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import type { MapCenter, MapMarker } from './use-map'
+import type { AreaGeoJSON } from './map-draw'
 
 /* ------------------------------------------------------------------ */
-/*  Types                                                              */
+/*  Re-exports for consumer convenience                                */
 /* ------------------------------------------------------------------ */
 
-export interface MapCenter {
-  lat: number
-  lng: number
-}
+export type { MapCenter, MapMarker, MarkerVariant } from './use-map'
+export type { AreaGeoJSON } from './map-draw'
 
-export type MarkerVariant = 'default' | 'event' | 'collective'
+/* ------------------------------------------------------------------ */
+/*  Mode types                                                         */
+/* ------------------------------------------------------------------ */
 
-export interface MapMarker {
-  id: string
-  position: MapCenter
-  variant?: MarkerVariant
-  label?: string
-  popupContent?: ReactNode
-}
+export type MapMode = 'explore' | 'event-detail' | 'collective' | 'draw'
+
+/* ------------------------------------------------------------------ */
+/*  Props                                                              */
+/* ------------------------------------------------------------------ */
 
 export interface MapViewProps {
+  /** Controls the map's behaviour and visible overlays */
+  mode?: MapMode
   center?: MapCenter
   zoom?: number
   markers?: MapMarker[]
@@ -31,6 +33,8 @@ export interface MapViewProps {
   onDragEnd?: (position: MapCenter) => void
   /** Disable zoom/pan interactions (mini-map mode) */
   interactive?: boolean
+  /** Draw mode: callback when an area is drawn/edited/deleted */
+  onAreaChange?: (area: AreaGeoJSON | null) => void
   loading?: boolean
   children?: ReactNode
   className?: string
@@ -41,7 +45,7 @@ export interface MapViewProps {
 /*  Lazy-loaded inner map (avoids Leaflet in main bundle)              */
 /* ------------------------------------------------------------------ */
 
-const LeafletMapInner = lazy(() => import('./leaflet-map-inner'))
+const MapViewInner = lazy(() => import('./map-view-inner'))
 
 /* ------------------------------------------------------------------ */
 /*  Loading placeholder                                                */
@@ -73,6 +77,7 @@ function MapPlaceholder({ className, ariaLabel }: { className?: string; ariaLabe
 /* ------------------------------------------------------------------ */
 
 export function MapView({
+  mode = 'event-detail',
   center,
   zoom = 13,
   markers,
@@ -80,6 +85,7 @@ export function MapView({
   draggable = false,
   onDragEnd,
   interactive = true,
+  onAreaChange,
   loading = false,
   children,
   className,
@@ -99,7 +105,8 @@ export function MapView({
       )}
     >
       <Suspense fallback={<MapPlaceholder className="absolute inset-0" ariaLabel={ariaLabel} />}>
-        <LeafletMapInner
+        <MapViewInner
+          mode={mode}
           center={center}
           zoom={zoom}
           markers={markers}
@@ -107,6 +114,7 @@ export function MapView({
           draggable={draggable}
           onDragEnd={onDragEnd}
           interactive={interactive}
+          onAreaChange={onAreaChange}
         />
       </Suspense>
       {children && (
