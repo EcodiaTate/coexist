@@ -86,7 +86,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
       : Promise.resolve({ count: 0 }),
   ])
 
-  const impact = (totalImpactRes.data ?? []) as Record<string, unknown>[]
+  const impact = (totalImpactRes.data ?? []) as unknown as Record<string, unknown>[]
   return {
     totalMembers: totalMembersRes.count ?? 0,
     totalCollectives: totalCollectivesRes.count ?? 0,

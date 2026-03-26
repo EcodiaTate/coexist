@@ -44,7 +44,7 @@ function useDonateNationalStats() {
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
       ])
 
-      const logs = (impactRes.data ?? []) as Record<string, unknown>[]
+      const logs = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
       return {
         totalTrees: sumMetric(logs, 'trees_planted'),
         totalRubbishKg: Math.round(sumMetric(logs, 'rubbish_kg')),

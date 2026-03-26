@@ -30,6 +30,8 @@ import {
 } from '@/hooks/use-events'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import { useAuth } from '@/hooks/use-auth'
+import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
+import { isBuiltinMetric } from '@/lib/impact-metrics'
 import type { ImpactField } from '@/hooks/use-events'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
@@ -263,6 +265,7 @@ export default function LogImpactPage() {
   const logImpact = useLogImpact()
   const { isAssistLeader, isLoading: roleLoading } = useCollectiveRole(event?.collective_id)
   const isStaff = profile?.role === 'national_staff' || profile?.role === 'national_admin' || profile?.role === 'super_admin'
+  const { activeDefs } = useImpactMetricDefs()
 
   const stagger = {
     hidden: {},
@@ -305,6 +308,8 @@ export default function LogImpactPage() {
   const [beforePhotos, setBeforePhotos] = useState<string[]>([])
   const [afterPhotos, setAfterPhotos] = useState<string[]>([])
   const [drawnArea, setDrawnArea] = useState<Record<string, unknown> | null>(null)
+  // Custom metric values (non-builtin metrics from admin config)
+  const [customValues, setCustomValues] = useState<Record<string, string>>({})
 
   // Camera + upload hooks for each photo section
   const camera = useCamera()
@@ -345,7 +350,7 @@ export default function LogImpactPage() {
           invasive_weeds_pulled: String(existingImpact.invasive_weeds_pulled),
         })
         setNotes(existingImpact.notes ?? '')
-        // Restore species and photos from custom_metrics
+        // Restore species, photos, and custom metric values from custom_metrics
         const cm = existingImpact.custom_metrics as Record<string, unknown> | null
         if (cm) {
           if (Array.isArray(cm.species)) setSpecies(cm.species as SpeciesEntry[])
@@ -353,6 +358,14 @@ export default function LogImpactPage() {
           if (Array.isArray(cm.before_photos)) setBeforePhotos(cm.before_photos as string[])
           if (Array.isArray(cm.after_photos)) setAfterPhotos(cm.after_photos as string[])
           if (cm.drawn_area && typeof cm.drawn_area === 'object') setDrawnArea(cm.drawn_area as Record<string, unknown>)
+          // Restore custom metric values
+          const restored: Record<string, string> = {}
+          for (const [k, v] of Object.entries(cm)) {
+            if (typeof v === 'number' && !['species', 'photos', 'before_photos', 'after_photos', 'drawn_area', 'survey_synced'].includes(k)) {
+              restored[k] = String(v)
+            }
+          }
+          if (Object.keys(restored).length > 0) setCustomValues(restored)
         }
         // Back-calculate duration from stored hours_total
         if (existingImpact.hours_total && checkedInCount > 0) {
@@ -388,8 +401,28 @@ export default function LogImpactPage() {
     return { impactFields: fields, allFields: fields.filter((f: ImpactField) => f.key !== 'hours_total') }
   }, [activityType])
 
+  // Custom metrics from admin config (not built-in, not already in activity fields)
+  const customMetricDefs = useMemo(() => {
+    const activityKeys = new Set(allFields.map((f: ImpactField) => f.key))
+    return activeDefs.filter(
+      (d) => !isBuiltinMetric(d.key) && !activityKeys.has(d.key) && d.key !== 'hours_total',
+    )
+  }, [activeDefs, allFields])
+
   const handleSubmit = useCallback(async () => {
     if (!eventId) return
+
+    // Build custom_metrics jsonb: custom metric values + species/photos/etc
+    const customMetricsPayload: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(customValues)) {
+      const num = parseFloat(v)
+      if (!isNaN(num) && num > 0) customMetricsPayload[k] = num
+    }
+    if (species.length > 0) customMetricsPayload.species = species
+    if (photos.length > 0) customMetricsPayload.photos = photos
+    if (beforePhotos.length > 0) customMetricsPayload.before_photos = beforePhotos
+    if (afterPhotos.length > 0) customMetricsPayload.after_photos = afterPhotos
+    if (drawnArea) customMetricsPayload.drawn_area = drawnArea
 
     await logImpact.mutateAsync({
       event_id: eventId,
@@ -401,17 +434,11 @@ export default function LogImpactPage() {
       wildlife_sightings: parseFloat(formValues.wildlife_sightings) || 0,
       invasive_weeds_pulled: parseFloat(formValues.invasive_weeds_pulled) || 0,
       notes: notes || null,
-      custom_metrics: {
-        species: species.length > 0 ? species : undefined,
-        photos: photos.length > 0 ? photos : undefined,
-        before_photos: beforePhotos.length > 0 ? beforePhotos : undefined,
-        after_photos: afterPhotos.length > 0 ? afterPhotos : undefined,
-        drawn_area: drawnArea ?? undefined,
-      } as unknown as Json,
+      custom_metrics: customMetricsPayload as unknown as Json,
     })
 
     setSubmitted(true)
-  }, [eventId, formValues, notes, species, logImpact, computedHoursTotal, photos, beforePhotos, afterPhotos, drawnArea])
+  }, [eventId, formValues, notes, species, logImpact, computedHoursTotal, photos, beforePhotos, afterPhotos, drawnArea, customValues])
 
   const isLoading = eventLoading || impactLoading || roleLoading
   const showLoading = useDelayedLoading(isLoading)
@@ -529,7 +556,7 @@ export default function LogImpactPage() {
     >
       <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="pt-4 pb-8 space-y-6">
         {/* Event header */}
-        <motion.div variants={fadeUp}>
+        <div>
           <h2 className="font-heading text-lg font-bold text-primary-800">
             {event.title}
           </h2>
@@ -541,7 +568,7 @@ export default function LogImpactPage() {
               Duration: {getEventDuration(event.date_start, event.date_end)}
             </p>
           )}
-        </motion.div>
+        </div>
 
         {existingImpact && (existingImpact.custom_metrics as Record<string, unknown> | null)?.survey_synced && (
           <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-info-50 text-info-700 text-sm">
@@ -657,6 +684,49 @@ export default function LogImpactPage() {
                     step="any"
                   />
                   <span className="text-caption text-primary-400">{field.unit}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </motion.div>
+        )}
+
+        {/* Custom metrics from admin config */}
+        {customMetricDefs.length > 0 && (
+        <motion.div variants={fadeUp} className="space-y-4">
+          <h3 className="text-sm font-semibold text-primary-800">
+            Additional Metrics
+          </h3>
+
+          {customMetricDefs.map((def) => (
+            <div key={def.key} className="flex items-center gap-3">
+              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white shrink-0">
+                {fieldIcons[def.icon] ?? <Ruler size={18} className="text-primary-400" />}
+              </span>
+              <div className="flex-1 min-w-0">
+                <label className="block text-caption text-primary-400 mb-0.5">
+                  {def.label}
+                </label>
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={customValues[def.key] ?? '0'}
+                    onChange={(e) =>
+                      setCustomValues((prev) => ({
+                        ...prev,
+                        [def.key]: e.target.value,
+                      }))
+                    }
+                    className={cn(
+                      'w-24 rounded-lg bg-surface-3',
+                      'px-3 py-2 text-[16px] text-right font-semibold text-primary-800',
+                      'focus:outline-none focus:ring-2 focus:ring-primary-400',
+                    )}
+                    min="0"
+                    step={def.decimal ? 'any' : '1'}
+                  />
+                  <span className="text-caption text-primary-400">{def.unit}</span>
                 </div>
               </div>
             </div>

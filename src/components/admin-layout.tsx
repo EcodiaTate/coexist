@@ -20,6 +20,7 @@ import {
     Megaphone,
     Phone,
     ArrowLeft,
+    BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
@@ -297,6 +298,7 @@ const _adminNavCategories: AdminNavCategory[] = [
     label: 'Settings',
     items: [
       { label: 'Charity', path: '/admin/charity', icon: <Heart size={17} strokeWidth={1.5} />, capability: 'manage_charity' },
+      { label: 'Impact Metrics', path: '/admin/impact-metrics', icon: <BarChart3 size={17} strokeWidth={1.5} />, capability: 'manage_system' },
       { label: 'Branding', path: '/admin/branding', icon: <Image size={17} strokeWidth={1.5} />, capability: 'manage_system' },
       { label: 'System', path: '/admin/system', icon: <Settings size={17} strokeWidth={1.5} />, capability: 'manage_system' },
     ],

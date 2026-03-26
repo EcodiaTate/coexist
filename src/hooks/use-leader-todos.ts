@@ -48,7 +48,7 @@ export function useLeaderTodos(filters?: {
     queryFn: async () => {
       if (!user) return []
 
-      let query = supabase
+      let query = (supabase as any)
         .from('leader_todos')
         .select('*')
         .eq('user_id', user.id)
@@ -100,7 +100,7 @@ export function useCreateTodo() {
     }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('leader_todos')
         .insert({
           user_id: user.id,
@@ -135,7 +135,7 @@ export function useUpdateTodo() {
       id,
       ...updates
     }: Partial<LeaderTodo> & { id: string }) => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('leader_todos')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
@@ -167,7 +167,7 @@ export function useToggleTodo() {
 
   return useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('leader_todos')
         .update({
           status: completed ? 'completed' : 'pending',
@@ -209,7 +209,7 @@ export function useDeleteTodo() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('leader_todos')
         .delete()
         .eq('id', id)
