@@ -47,7 +47,6 @@
     "framer-motion": "^12.38.0",
     "html2canvas": "^1.4.1",
     "i18next": "^25.8.20",
-    "jsonwebtoken": "^9.0.3",
     "jsqr": "^1.4.0",
     "leaflet": "^1.9.4",
     "leaflet-draw": "^1.0.4",

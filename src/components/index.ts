@@ -9,7 +9,6 @@ export { Avatar } from './avatar'
 export type { AvatarProps } from './avatar'
 
 // Overlays & Feedback
-export { Modal } from './modal'
 export { BottomSheet } from './bottom-sheet'
 export { CheckInSheet } from './check-in-sheet'
 export { ToastProvider, useToast } from './toast'
@@ -68,24 +67,18 @@ export { PageTransition } from './page-transition'
 export { Confetti } from './confetti'
 export { Celebration } from './celebration'
 export { NatureLoader } from './nature-loader'
-export { SeasonalParticles } from './seasonal-particles'
 export { DonationThermometer } from './donation-thermometer'
-export { EasterEgg } from './easter-egg'
 export { ScrollReveal, StaggeredList, StaggeredItem } from './scroll-reveal'
 
 export { SharedElement } from './shared-element'
 export { RegisterButton } from './register-button'
 export { EmptyContentTransition } from './empty-content-transition'
-export { SlotCounter } from './slot-counter'
 export { LikeButton } from './like-button'
 
 // Interaction Patterns
-export { SwipeAction } from './swipe-action'
-export { LongPressMenu } from './long-press-menu'
 export { WhatsNext } from './whats-next'
 
 // Performance
-export { VirtualList } from './virtual-list'
 export { ProgressiveImage } from './progressive-image'
 
 // Upload
@@ -96,9 +89,6 @@ export { MaintenanceMode } from './maintenance-mode'
 
 // Offline & Connectivity
 export { OfflineBanner } from './offline-banner'
-
-// Media Viewer
-export { PhotoViewer } from './photo-viewer'
 
 // SEO
 export { OGMeta } from './og-meta'
