@@ -1,13 +1,23 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 import 'leaflet-draw/dist/leaflet.draw.css'
 import 'leaflet-draw'
-import { cn } from '@/lib/cn'
-import type { MapCenter } from './map-view'
 
 /* ------------------------------------------------------------------ */
-/*  Styles                                                             */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+export interface AreaGeoJSON {
+  type: 'Feature'
+  geometry: {
+    type: 'Polygon' | 'Circle'
+    coordinates: number[][] | number[][][]
+  }
+  properties: { radius?: number }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Injected styles                                                    */
 /* ------------------------------------------------------------------ */
 
 const STYLE_ID = 'coexist-draw-overrides'
@@ -24,59 +34,27 @@ function injectDrawStyles() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Props                                                              */
+/*  Draw overlay hook                                                  */
 /* ------------------------------------------------------------------ */
 
-export interface AreaGeoJSON {
-  type: 'Feature'
-  geometry: {
-    type: 'Polygon' | 'Circle'
-    coordinates: number[][] | number[][][]
-  }
-  properties: { radius?: number }
-}
-
-interface LeafletDrawMapProps {
-  center?: MapCenter
-  zoom?: number
+interface UseMapDrawOptions {
+  map: L.Map | null
   onAreaChange?: (area: AreaGeoJSON | null) => void
-  className?: string
-  'aria-label'?: string
 }
 
-/* ------------------------------------------------------------------ */
-/*  Component                                                          */
-/* ------------------------------------------------------------------ */
-
-const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-
-export default function LeafletDrawMap({
-  center = { lat: -33.8688, lng: 151.2093 },
-  zoom = 14,
-  onAreaChange,
-  className,
-  'aria-label': ariaLabel = 'Draw area on map',
-}: LeafletDrawMapProps) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<L.Map | null>(null)
+export function useMapDraw({ map, onAreaChange }: UseMapDrawOptions) {
   const onAreaChangeRef = useRef(onAreaChange)
   onAreaChangeRef.current = onAreaChange
+  const controlRef = useRef<L.Control.Draw | null>(null)
+  const drawnItemsRef = useRef<L.FeatureGroup | null>(null)
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return
+    if (!map) return
     injectDrawStyles()
-
-    const map = L.map(containerRef.current, {
-      center: [center.lat, center.lng],
-      zoom,
-      attributionControl: true,
-    })
-
-    L.tileLayer(TILE_URL, { attribution: TILE_ATTR, maxZoom: 19 }).addTo(map)
 
     const drawnItems = new L.FeatureGroup()
     map.addLayer(drawnItems)
+    drawnItemsRef.current = drawnItems
 
     const drawControl = new L.Control.Draw({
       position: 'topright',
@@ -103,6 +81,7 @@ export default function LeafletDrawMap({
     })
 
     map.addControl(drawControl)
+    controlRef.current = drawControl
 
     function emitArea() {
       const layers = drawnItems.getLayers()
@@ -114,7 +93,6 @@ export default function LeafletDrawMap({
       const last = layers[layers.length - 1]
       const geoJSON = (last as L.Polygon | L.Circle).toGeoJSON() as AreaGeoJSON
 
-      // For circles, include the radius in properties
       if (last instanceof L.Circle) {
         geoJSON.properties = { radius: last.getRadius() }
       }
@@ -123,7 +101,6 @@ export default function LeafletDrawMap({
     }
 
     map.on(L.Draw.Event.CREATED, ((e: L.DrawEvents.Created) => {
-      // Only keep one shape at a time
       drawnItems.clearLayers()
       drawnItems.addLayer(e.layer)
       emitArea()
@@ -132,29 +109,18 @@ export default function LeafletDrawMap({
     map.on(L.Draw.Event.EDITED, () => emitArea())
     map.on(L.Draw.Event.DELETED, () => emitArea())
 
-    mapRef.current = map
-
-    requestAnimationFrame(() => map.invalidateSize())
-
     return () => {
-      map.remove()
-      mapRef.current = null
+      map.off(L.Draw.Event.CREATED)
+      map.off(L.Draw.Event.EDITED)
+      map.off(L.Draw.Event.DELETED)
+      if (controlRef.current) {
+        map.removeControl(controlRef.current)
+        controlRef.current = null
+      }
+      if (drawnItemsRef.current) {
+        map.removeLayer(drawnItemsRef.current)
+        drawnItemsRef.current = null
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Update center
-  useEffect(() => {
-    mapRef.current?.setView([center.lat, center.lng], zoom)
-  }, [center.lat, center.lng, zoom])
-
-  return (
-    <div
-      role="region"
-      aria-label={ariaLabel}
-      className={cn('relative w-full overflow-hidden rounded-2xl bg-white', className)}
-    >
-      <div ref={containerRef} className="h-full w-full min-h-[250px]" style={{ zIndex: 0 }} />
-    </div>
-  )
+  }, [map])
 }

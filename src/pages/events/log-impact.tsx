@@ -18,6 +18,7 @@ import {
   Calendar,
   Sprout,
   Users,
+  ClipboardList,
 } from 'lucide-react'
 import {
   useEventDetail,
@@ -48,7 +49,7 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 
-const LeafletDrawMap = lazy(() => import('@/components/leaflet-draw-map'))
+const MapView = lazy(() => import('@/components/map/map-view').then(m => ({ default: m.MapView })))
 
 /* ------------------------------------------------------------------ */
 /*  Field icon mapping                                                 */
@@ -547,6 +548,13 @@ export default function LogImpactPage() {
           )}
         </motion.div>
 
+        {existingImpact && (existingImpact.custom_metrics as Record<string, unknown> | null)?.survey_synced && (
+          <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-info-50 text-info-700 text-sm">
+            <ClipboardList size={16} />
+            Some values were set from the post-event survey. You can adjust them here.
+          </motion.div>
+        )}
+
         {existingImpact && isEditWindowExpired && !isStaff && (
           <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-error-50 text-error-700 text-sm">
             <Clock size={16} />
@@ -719,7 +727,8 @@ export default function LogImpactPage() {
               </div>
             }
           >
-            <LeafletDrawMap
+            <MapView
+              mode="draw"
               center={parseLocationPoint(event.location_point) ?? undefined}
               zoom={15}
               aria-label="Draw the area you worked on"
