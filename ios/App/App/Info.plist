@@ -95,5 +95,9 @@
 	</array>
 
 	<!-- Associated Domains (Universal Links) - configured via entitlements -->
+
+	<!-- App Store Export Compliance -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
