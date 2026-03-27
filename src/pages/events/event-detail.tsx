@@ -13,6 +13,8 @@ import {
     Trash2,
     Eye,
     Leaf,
+    Sprout,
+    Waves,
     CheckCircle2,
     AlertCircle,
     XCircle,
@@ -956,6 +958,20 @@ export default function EventDetailPage() {
                   label="Wildlife Sightings"
                   value={event.impact.wildlife_sightings ?? 0}
                   icon={<Eye size={18} />}
+                />
+              )}
+              {(event.impact.invasive_weeds_pulled ?? 0) > 0 && (
+                <StatCard
+                  label="Weeds Pulled"
+                  value={event.impact.invasive_weeds_pulled ?? 0}
+                  icon={<Sprout size={18} />}
+                />
+              )}
+              {(event.impact.coastline_cleaned_m ?? 0) > 0 && (
+                <StatCard
+                  label="Coastline (m)"
+                  value={event.impact.coastline_cleaned_m ?? 0}
+                  icon={<Waves size={18} />}
                 />
               )}
             </div>

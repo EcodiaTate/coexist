@@ -1129,7 +1129,10 @@ export function useLogImpact() {
       const eventId = data?.event_id ?? vars.event_id
       queryClient.invalidateQueries({ queryKey: ['event-impact', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
-      queryClient.invalidateQueries({ queryKey: ['home', 'impact-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['impact-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['profile-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['collective-impact'] })
+      queryClient.invalidateQueries({ queryKey: ['national-impact'] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['leader-events'] })
       queryClient.invalidateQueries({ queryKey: ['leader-event-stats'] })
