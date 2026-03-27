@@ -249,16 +249,24 @@ export default function AdminExportsPage() {
           ]),
         )
       } else if (exportId === 'survey') {
-        const { data, error } = await supabase
+        let query = supabase
           .from('survey_responses')
-          .select('id, survey_id, user_id, answers, submitted_at, surveys(title)')
+          .select('id, survey_id, event_id, user_id, answers, submitted_at, surveys(title), events(title)')
           .order('submitted_at', { ascending: false })
           .limit(EXPORT_ROW_LIMIT)
+        if (dateStart) query = query.gte('submitted_at', dateStart)
+        if (dateEnd) query = query.lte('submitted_at', dateEnd + 'T23:59:59')
+        const { data, error } = await query
         if (error) throw error
         csv = toCsv(
-          ['Response ID', 'Survey', 'User ID', 'Answers', 'Submitted'],
+          ['Response ID', 'Survey', 'Event', 'User ID', 'Answers', 'Submitted'],
           (data ?? []).map((r) => [
-            r.id, r.surveys?.title ?? r.survey_id, r.user_id, JSON.stringify(r.answers), r.submitted_at,
+            r.id,
+            r.surveys?.title ?? r.survey_id,
+            r.events?.title ?? r.event_id ?? '',
+            r.user_id,
+            JSON.stringify(r.answers),
+            r.submitted_at,
           ]),
         )
       } else if (exportId === 'financial') {

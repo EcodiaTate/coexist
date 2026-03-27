@@ -431,7 +431,7 @@ export function parseSurveyQuestions(raw: unknown): SurveyQuestion[] {
   const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
   return (Array.isArray(parsed) ? parsed : []).map(
     (q: Record<string, unknown>) => ({
-      id: (q.id as string) || crypto.randomUUID(),
+      id: (q.id as string) || (() => { throw new Error(`Survey question missing id: ${JSON.stringify(q.text)}`) })(),
       type: (q.type as string) || 'free_text',
       text: (q.text as string) || '',
       description: (q.description as string) || undefined,
