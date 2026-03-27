@@ -2,112 +2,32 @@ import { useState, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-    Star,
     CheckCircle2,
     Send,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
 import { useEventDetail, ACTIVITY_TYPE_LABELS, isPastEvent } from '@/hooks/use-events'
+import { useEventSurvey } from '@/hooks/use-event-survey'
+import { SurveyQuestionRenderer } from '@/components/survey-questions'
+import type { SurveyQuestion } from '@/components/survey-questions'
 import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import { isBuiltinMetric } from '@/lib/impact-metrics'
 import {
     Page,
     Header,
     Button,
-    Input,
     Skeleton,
     EmptyState,
     WhatsNext,
 } from '@/components'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import type { Json } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
-/*  Types                                                              */
-/* ------------------------------------------------------------------ */
-
-interface SurveyQuestion {
-  id: string
-  question_key: string
-  question_text: string
-  question_type: 'number' | 'rating' | 'free_text' | 'yes_no' | 'multiple_choice'
-  unit: string | null
-  options: string[] | null
-  is_required: boolean
-  impact_metric: string | null
-}
-
-interface SurveyData {
-  surveyId: string
-  questions: SurveyQuestion[]
-}
-
-/* ------------------------------------------------------------------ */
 /*  Hooks                                                              */
 /* ------------------------------------------------------------------ */
-
-/**
- * Load the survey for this event from the unified `surveys` table.
- * Priority: direct event link (surveys.event_id) → auto-send by activity type.
- * Normalizes builder JSONB questions into the rendering format.
- */
-function useEventSurvey(eventId: string | undefined, activityType: string | undefined) {
-  return useQuery({
-    queryKey: ['event-survey', eventId, activityType],
-    queryFn: async (): Promise<SurveyData | null> => {
-      if (!eventId) return null
-
-      // 1. Check for a survey directly linked to this event
-      const { data: direct } = await supabase
-        .from('surveys')
-        .select('id, questions')
-        .eq('event_id', eventId)
-        .eq('status', 'active')
-        .maybeSingle()
-
-      // 2. Fallback: auto-send survey for this activity type
-      const survey = direct ?? (activityType
-        ? (await supabase
-            .from('surveys')
-            .select('id, questions')
-            .eq('activity_type', activityType)
-            .eq('auto_send_after_event', true)
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle()
-          ).data
-        : null)
-
-      if (!survey) return null
-
-      // 3. Parse and normalize questions from builder JSONB format
-      const raw = typeof survey.questions === 'string'
-        ? JSON.parse(survey.questions)
-        : survey.questions
-
-      const questions: SurveyQuestion[] = (Array.isArray(raw) ? raw : []).map(
-        (q: Record<string, unknown>) => ({
-          id: (q.id as string) || crypto.randomUUID(),
-          question_key: (q.id as string) || crypto.randomUUID(),
-          question_text: (q.text as string) || '',
-          question_type: ((q.type as string) || 'free_text') as SurveyQuestion['question_type'],
-          unit: (q.placeholder as string) || null,
-          options: Array.isArray(q.options) ? (q.options as string[]) : null,
-          is_required: (q.required as boolean) ?? false,
-          impact_metric: (q.impact_metric as string) || null,
-        }),
-      )
-
-      return { surveyId: survey.id, questions }
-    },
-    enabled: !!eventId,
-    staleTime: 10 * 60 * 1000,
-  })
-}
 
 function useAttendanceCheck(eventId: string | undefined) {
   const { user } = useAuth()
@@ -185,7 +105,6 @@ function useSubmitSurvey() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['survey-response', variables.surveyId] })
       queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
-      // Invalidate impact caches so dashboards pick up new data
       queryClient.invalidateQueries({ queryKey: ['event-impact', variables.eventId] })
       queryClient.invalidateQueries({ queryKey: ['national-impact'] })
       queryClient.invalidateQueries({ queryKey: ['collective-impact'] })
@@ -197,8 +116,7 @@ function useSubmitSurvey() {
 
 /**
  * Sync impact-tagged survey answers into event_impact.
- * Reads impact_metric directly from the questions array - no extra DB query.
- * Built-in metrics go to their columns; custom metrics go to custom_metrics jsonb.
+ * Built-in metrics → columns, custom metrics → custom_metrics jsonb.
  */
 async function syncSurveyImpact(
   eventId: string,
@@ -207,14 +125,13 @@ async function syncSurveyImpact(
   userId: string,
   validKeys: Set<string>,
 ) {
-  // Build partial impact payload from impact-tagged questions
   const builtinUpdates: Record<string, number> = {}
   const customUpdates: Record<string, number> = {}
 
   for (const q of questions) {
     if (!q.impact_metric || !validKeys.has(q.impact_metric)) continue
 
-    const raw = answers[q.question_key]
+    const raw = answers[q.id]
     const value = typeof raw === 'number' ? raw : parseFloat(String(raw ?? ''))
     if (!isNaN(value) && value >= 0) {
       if (isBuiltinMetric(q.impact_metric)) {
@@ -227,7 +144,6 @@ async function syncSurveyImpact(
 
   if (Object.keys(builtinUpdates).length === 0 && Object.keys(customUpdates).length === 0) return
 
-  // Fetch existing event_impact row to merge (preserve fields not in this survey)
   const { data: existing } = await supabase
     .from('event_impact')
     .select('*')
@@ -255,91 +171,6 @@ async function syncSurveyImpact(
 }
 
 /* ------------------------------------------------------------------ */
-/*  Question Components                                                */
-/* ------------------------------------------------------------------ */
-
-function RatingInput({ value, onChange }: { value: number; onChange: (v: number) => void }) {
-  return (
-    <div className="flex items-center gap-2">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          onClick={() => onChange(star)}
-          className={cn(
-            'flex items-center justify-center w-11 h-11 rounded-full transition-colors duration-150',
-            'cursor-pointer select-none active:scale-[0.93]',
-            star <= value
-              ? 'bg-warning-100 text-warning-500'
-              : 'bg-primary-50 text-primary-300 hover:bg-primary-100',
-          )}
-          aria-label={`${star} star${star !== 1 ? 's' : ''}`}
-        >
-          <Star size={20} fill={star <= value ? 'currentColor' : 'none'} />
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function YesNoInput({ value, onChange }: { value: boolean | null; onChange: (v: boolean) => void }) {
-  return (
-    <div className="flex gap-2">
-      {[
-        { label: 'Yes', val: true },
-        { label: 'No', val: false },
-      ].map((opt) => (
-        <button
-          key={opt.label}
-          type="button"
-          onClick={() => onChange(opt.val)}
-          className={cn(
-            'flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150',
-            'cursor-pointer select-none active:scale-[0.97]',
-            value === opt.val
-              ? 'bg-primary-600 text-white shadow-sm'
-              : 'bg-primary-50 text-primary-600 hover:bg-primary-100',
-          )}
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-function MultipleChoiceInput({
-  options,
-  value,
-  onChange,
-}: {
-  options: string[]
-  value: string | null
-  onChange: (v: string) => void
-}) {
-  return (
-    <div className="space-y-2">
-      {options.map((opt) => (
-        <button
-          key={opt}
-          type="button"
-          onClick={() => onChange(opt)}
-          className={cn(
-            'w-full text-left px-4 py-2.5 rounded-xl text-sm transition-colors duration-150',
-            'cursor-pointer select-none active:scale-[0.98]',
-            value === opt
-              ? 'bg-primary-600 text-white shadow-sm font-medium'
-              : 'bg-primary-50 text-primary-700 hover:bg-primary-100',
-          )}
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -349,29 +180,29 @@ export default function PostEventSurveyPage() {
 
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: surveyData, isLoading: surveyLoading } = useEventSurvey(eventId, event?.activity_type)
-  const questions = surveyData?.questions ?? null
+  const questions = surveyData?.questions ?? []
   const surveyId = surveyData?.surveyId
   const { data: existingResponse } = useExistingResponse(surveyId, eventId)
   const { data: attendance, isLoading: attendanceLoading } = useAttendanceCheck(eventId)
   const submitMutation = useSubmitSurvey()
 
-  const [userAnswers, setUserAnswers] = useState<Record<string, Json | undefined>>({})
+  const [userAnswers, setUserAnswers] = useState<Record<string, unknown>>({})
   const [submitted, setSubmitted] = useState(false)
 
-  // Pre-fill from existing response, user edits override
+  // Pre-fill from existing response
   const existingAnswers = useMemo(() => {
     const resp = existingResponse as Record<string, unknown> | null | undefined
-    return (resp?.answers as Record<string, Json | undefined>) ?? {}
+    return (resp?.answers as Record<string, unknown>) ?? {}
   }, [existingResponse])
 
-  const answers: Record<string, Json | undefined> = Object.keys(userAnswers).length > 0 ? userAnswers : existingAnswers
+  const answers: Record<string, unknown> = Object.keys(userAnswers).length > 0 ? userAnswers : existingAnswers
 
-  const setAnswer = useCallback((key: string, value: Json) => {
+  const setAnswer = useCallback((key: string, value: unknown) => {
     setUserAnswers((prev) => ({ ...prev, [key]: value }))
   }, [])
 
   const requiredKeys = useMemo(
-    () => (questions ?? []).filter((q: SurveyQuestion) => q.is_required).map((q: SurveyQuestion) => q.question_key),
+    () => questions.filter((q) => q.required).map((q) => q.id),
     [questions],
   )
 
@@ -381,17 +212,17 @@ export default function PostEventSurveyPage() {
   })
 
   const handleSubmit = useCallback(async () => {
-    if (!eventId || !surveyId || !canSubmit || !questions) return
-    await submitMutation.mutateAsync({ surveyId, eventId, answers, questions })
+    if (!eventId || !surveyId || !canSubmit || !questions.length) return
+    await submitMutation.mutateAsync({ surveyId, eventId, answers: answers as Json, questions })
     setSubmitted(true)
   }, [eventId, surveyId, canSubmit, answers, submitMutation, questions])
 
-  // Compute survey window expiry once (stable across renders)
+  // 7-day survey window
   const surveyWindowExpired = useMemo(() => {
     if (!event || !isPastEvent(event)) return false
     const eventEnd = new Date(event.date_end ?? event.date_start).getTime()
     return (Date.now() - eventEnd) / (1000 * 60 * 60 * 24) > 7
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- recompute when event changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event?.date_end, event?.date_start])
 
   const isLoading = eventLoading || surveyLoading || attendanceLoading
@@ -421,7 +252,6 @@ export default function PostEventSurveyPage() {
     )
   }
 
-  // Attendance verification: only attendees who checked in can submit
   if (attendance && attendance.status !== 'attended') {
     return (
       <Page swipeBack header={<Header title="Survey" back />}>
@@ -435,7 +265,6 @@ export default function PostEventSurveyPage() {
     )
   }
 
-  // 7-day survey window: surveys close 7 days after event end (unless already submitted)
   if (surveyWindowExpired && !existingResponse) {
     return (
       <Page swipeBack header={<Header title="Survey" back />}>
@@ -449,7 +278,7 @@ export default function PostEventSurveyPage() {
     )
   }
 
-  if (!questions?.length) {
+  if (!questions.length) {
     return (
       <Page swipeBack header={<Header title="Survey" back />}>
         <EmptyState
@@ -524,73 +353,17 @@ export default function PostEventSurveyPage() {
           </p>
         </div>
 
-        {/* Questions */}
+        {/* Questions — shared renderer */}
         <motion.div
-          className="space-y-5"
           initial="hidden"
           animate="visible"
           variants={shouldReduceMotion ? undefined : { hidden: {}, visible: { transition: { staggerChildren: 0.06 } } }}
         >
-          {questions.map((q) => (
-            <motion.div
-              key={q.question_key}
-              variants={shouldReduceMotion ? undefined : { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}
-              className="space-y-2"
-            >
-              <label className="text-sm font-medium text-primary-800">
-                {q.question_text}
-                {q.is_required && <span className="text-error-400 ml-1">*</span>}
-              </label>
-
-              {q.question_type === 'rating' && (
-                <RatingInput
-                  value={(answers[q.question_key] as number) ?? 0}
-                  onChange={(v) => setAnswer(q.question_key, v)}
-                />
-              )}
-
-              {q.question_type === 'number' && (
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    placeholder="0"
-                    value={String(answers[q.question_key] ?? '')}
-                    onChange={(e) => setAnswer(q.question_key, e.target.value ? Number(e.target.value) : '')}
-                    className="max-w-[120px]"
-                  />
-                  {q.unit && (
-                    <span className="text-sm text-primary-400">{q.unit}</span>
-                  )}
-                </div>
-              )}
-
-              {q.question_type === 'free_text' && (
-                <Input
-                  type="textarea"
-                  value={String(answers[q.question_key] ?? '')}
-                  onChange={(e) => setAnswer(q.question_key, e.target.value)}
-                  placeholder="Your answer..."
-                  rows={3}
-                />
-              )}
-
-              {q.question_type === 'yes_no' && (
-                <YesNoInput
-                  value={(answers[q.question_key] as boolean) ?? null}
-                  onChange={(v) => setAnswer(q.question_key, v)}
-                />
-              )}
-
-              {q.question_type === 'multiple_choice' && q.options && (
-                <MultipleChoiceInput
-                  options={q.options as string[]}
-                  value={(answers[q.question_key] as string) ?? null}
-                  onChange={(v) => setAnswer(q.question_key, v)}
-                />
-              )}
-            </motion.div>
-          ))}
+          <SurveyQuestionRenderer
+            questions={questions}
+            answers={answers}
+            setAnswer={setAnswer}
+          />
         </motion.div>
       </div>
     </Page>

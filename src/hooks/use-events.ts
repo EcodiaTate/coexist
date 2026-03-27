@@ -76,45 +76,6 @@ export const ACTIVITY_TYPE_LABELS: Record<string, string> = Object.fromEntries(
   ACTIVITY_TYPE_OPTIONS.map((o) => [o.value, o.label]),
 )
 
-/* ------------------------------------------------------------------ */
-/*  Impact field configs per activity type                             */
-/* ------------------------------------------------------------------ */
-
-export interface ImpactField {
-  key: keyof Omit<EventImpact, 'id' | 'event_id' | 'logged_by' | 'custom_metrics' | 'notes' | 'logged_at'>
-  label: string
-  unit: string
-  icon: string
-}
-
-export const IMPACT_FIELDS_BY_ACTIVITY: Record<ActivityType, ImpactField[]> = {
-  shore_cleanup: [
-    { key: 'rubbish_kg', label: 'Rubbish Collected', unit: 'kg', icon: 'trash' },
-  ],
-  tree_planting: [
-    { key: 'trees_planted', label: 'Trees Planted', unit: 'trees', icon: 'tree' },
-    { key: 'native_plants', label: 'Native Plants', unit: 'plants', icon: 'leaf' },
-    { key: 'invasive_weeds_pulled', label: 'Invasive Weeds Pulled', unit: 'weeds', icon: 'weed' },
-    { key: 'area_restored_sqm', label: 'Area Covered', unit: 'sqm', icon: 'area' },
-  ],
-  land_regeneration: [
-    { key: 'area_restored_sqm', label: 'Area Restored', unit: 'sqm', icon: 'area' },
-    { key: 'native_plants', label: 'Native Plants', unit: 'plants', icon: 'leaf' },
-    { key: 'invasive_weeds_pulled', label: 'Invasive Weeds Pulled', unit: 'weeds', icon: 'weed' },
-  ],
-  nature_walk: [
-    { key: 'wildlife_sightings', label: 'Wildlife Sightings', unit: 'sightings', icon: 'eye' },
-  ],
-  camp_out: [],
-  retreat: [],
-  film_screening: [],
-  marine_restoration: [
-    { key: 'area_restored_sqm', label: 'Area Restored', unit: 'sqm', icon: 'area' },
-    { key: 'rubbish_kg', label: 'Rubbish Collected', unit: 'kg', icon: 'trash' },
-  ],
-  workshop: [],
-}
-
 /**
  * Re-export canonical metric definitions from the single source of truth.
  * All consumers should prefer importing from '@/lib/impact-metrics' directly.

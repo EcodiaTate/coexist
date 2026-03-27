@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveMembers, useRemoveMember } from '@/hooks/use-collective'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import type { Json } from '@/types/database.types'
+import type { BroadcastLogEntry } from '@/hooks/use-chat'
 
 /* ------------------------------------------------------------------ */
 /*  Member management sheet (collective mode only)                     */
@@ -171,7 +172,7 @@ export interface ChatLeaderPanelProps {
   onCloseBroadcastSheet: () => void
   onBroadcast: (data: { title: string; body: string }) => void
   broadcastLoading: boolean
-  broadcastLog: Array<{ id: string; title: string; body: string; sent_at: string; sent_count: number | null }>
+  broadcastLog: BroadcastLogEntry[]
 
   /** Manage members sheet state */
   showManageMembers: boolean
@@ -238,7 +239,7 @@ export function ChatLeaderPanel({
         onSend={onBroadcast}
         loading={broadcastLoading}
         recentBroadcasts={broadcastLog}
-        collectiveName={isCollective ? collectiveName : channelName}
+        collectiveName={isCollective ? collectiveName ?? undefined : channelName ?? undefined}
       />
 
       {/* Member management sheet (collective only) */}
