@@ -25,15 +25,15 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 /* ─── category meta ─── */
 const CATEGORY_COLORS: Record<string, string> = {
-  shore_cleanup: '#5ea198',
-  tree_planting: '#748b50',
-  land_regeneration: '#47867d',
-  nature_walk: '#869e62',
-  camp_out: '#4a7a5e',
-  retreat: '#9677ad',
-  film_screening: '#b89565',
-  marine_restoration: '#396c65',
-  workshop: '#a07d4f',
+  shore_cleanup: 'var(--color-moss-500)',
+  tree_planting: 'var(--color-primary-600)',
+  land_regeneration: 'var(--color-moss-600)',
+  nature_walk: 'var(--color-primary-500)',
+  camp_out: 'var(--color-secondary-500)',
+  retreat: 'var(--color-plum-500)',
+  film_screening: 'var(--color-bark-500)',
+  marine_restoration: 'var(--color-moss-700)',
+  workshop: 'var(--color-bark-600)',
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -329,7 +329,7 @@ export default function ImpactDashboardPage() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
-  const { data: stats, isLoading: statsLoading } = useImpactStats()
+  const { data: stats, isLoading: statsLoading, isError: statsError } = useImpactStats()
   const showLoading = useDelayedLoading(statsLoading)
   const { data: monthly } = useMonthlyActivity()
   const { data: byCategory } = useImpactByCategory()
@@ -357,6 +357,20 @@ export default function ImpactDashboardPage() {
     )
   }
   if (statsLoading) return null
+
+  if (statsError) {
+    return (
+      <Page swipeBack noBackground className="!px-0 bg-white" header={<Header title="Impact" back />}>
+        <div className="px-4 py-12">
+          <EmptyState
+            illustration="error"
+            title="Something went wrong"
+            description="We couldn't load your impact data. Try again later."
+          />
+        </div>
+      </Page>
+    )
+  }
 
   if (!stats) {
     return (

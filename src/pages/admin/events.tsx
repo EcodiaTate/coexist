@@ -177,7 +177,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
           {event.cover_image_url ? (
             <img
               src={event.cover_image_url}
-              alt=""
+              alt={event.title}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -320,7 +320,7 @@ function HottestEventSpotlight({ event }: { event: AdminEvent }) {
         {/* Image */}
         <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-primary-300">
           {event.cover_image_url ? (
-            <img src={event.cover_image_url} alt="" className="w-full h-full object-cover" />
+            <img src={event.cover_image_url} alt={event.title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <CalendarDays size={28} className="text-primary-500" />
@@ -382,7 +382,7 @@ function PastEventRow({ event, index }: { event: AdminEvent; index: number }) {
         {event.cover_image_url ? (
           <img
             src={event.cover_image_url}
-            alt=""
+            alt={event.title}
             className="w-10 h-10 rounded-lg object-cover shrink-0"
           />
         ) : (

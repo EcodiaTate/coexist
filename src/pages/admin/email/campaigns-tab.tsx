@@ -1,20 +1,18 @@
 import { useState, useMemo } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import {
-  Send,
-  Users,
-  Plus,
-  Trash2,
-  Copy,
-  Eye,
-  Edit3,
-  CheckCircle2,
-  MousePointerClick,
-  Save,
-  XCircle,
-  AlertTriangle,
-  Loader2,
-  Sparkles,
+    Send,
+    Users,
+    Plus,
+    Trash2,
+    Copy,
+    Eye,
+    Edit3,
+    CheckCircle2,
+    MousePointerClick,
+    Save,
+    XCircle,
+    AlertTriangle
 } from 'lucide-react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Header } from '@/components/header'
@@ -32,16 +30,14 @@ import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import {
-  type EmailCampaign,
-  type EmailTag,
-  useCampaigns,
-  useTemplates,
-  useTags,
-  useCollectives,
-  sanitizeHtml,
-  formatDate,
-  formatDateTime,
-  extractTemplateVariables,
+    type EmailCampaign, useCampaigns,
+    useTemplates,
+    useTags,
+    useCollectives,
+    sanitizeHtml,
+    formatDate,
+    formatDateTime,
+    extractTemplateVariables
 } from './shared'
 import { StatusBadge } from './shared-ui'
 
@@ -344,7 +340,7 @@ function CampaignComposer({
             />
           )}
 
-          {/* Preview with field values applied — sanitized via DOMPurify */}
+          {/* Preview with field values applied - sanitized via DOMPurify */}
           {bodyHtml && !showHtmlEditor && (
             <div>
               <label className="block text-xs font-medium text-primary-400 mb-1.5">Preview</label>
@@ -438,7 +434,7 @@ function CampaignComposer({
         </div>
       )}
 
-      {/* Step: Preview — all HTML sanitized via DOMPurify */}
+      {/* Step: Preview - all HTML sanitized via DOMPurify */}
       {step === 'preview' && (
         <div className="space-y-4">
           <div className="rounded-xl bg-white shadow-sm border border-primary-100 overflow-hidden">

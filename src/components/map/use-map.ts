@@ -44,7 +44,7 @@ function injectStyles() {
     .leaflet-popup-content-wrapper {
       border-radius: 12px !important;
       box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important;
-      font-family: 'Inter', sans-serif !important;
+      font-family: var(--font-body), sans-serif !important;
     }
     .leaflet-popup-tip { box-shadow: 0 4px 12px rgba(0,0,0,0.12) !important; }
     .leaflet-control-zoom a {

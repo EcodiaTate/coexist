@@ -2,9 +2,9 @@ import { useState, useCallback, useMemo } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Star,
-  CheckCircle2,
-  Send,
+    Star,
+    CheckCircle2,
+    Send,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
@@ -12,13 +12,13 @@ import { useEventDetail, ACTIVITY_TYPE_LABELS, isPastEvent } from '@/hooks/use-e
 import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import { isBuiltinMetric } from '@/lib/impact-metrics'
 import {
-  Page,
-  Header,
-  Button,
-  Input,
-  Skeleton,
-  EmptyState,
-  WhatsNext,
+    Page,
+    Header,
+    Button,
+    Input,
+    Skeleton,
+    EmptyState,
+    WhatsNext,
 } from '@/components'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
@@ -197,7 +197,7 @@ function useSubmitSurvey() {
 
 /**
  * Sync impact-tagged survey answers into event_impact.
- * Reads impact_metric directly from the questions array — no extra DB query.
+ * Reads impact_metric directly from the questions array - no extra DB query.
  * Built-in metrics go to their columns; custom metrics go to custom_metrics jsonb.
  */
 async function syncSurveyImpact(
@@ -469,7 +469,7 @@ export default function PostEventSurveyPage() {
           <motion.div
             initial={shouldReduceMotion ? {} : { opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center py-12 space-y-4"
+            className="text-center py-8 sm:py-12 space-y-4"
           >
             <div className="flex items-center justify-center w-16 h-16 rounded-full bg-success-100 text-success-600 mx-auto">
               <CheckCircle2 size={32} />

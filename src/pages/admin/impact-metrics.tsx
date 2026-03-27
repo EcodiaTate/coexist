@@ -3,36 +3,36 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { adminVariants as getAdminVariants } from '@/lib/admin-motion'
 import {
-  Plus,
-  Save,
-  GripVertical,
-  ChevronUp,
-  ChevronDown,
-  Trash2,
-  Pencil,
-  X,
-  TreePine,
-  Trash2 as TrashIcon,
-  Waves,
-  Leaf,
-  Eye,
-  Ruler,
-  Sprout,
-  Clock,
-  Sparkles,
-  Droplets,
-  Mountain,
-  Flower2,
-  Bug,
-  Flame,
-  Fish,
-  Wind,
+    Plus,
+    Save,
+    GripVertical,
+    ChevronUp,
+    ChevronDown,
+    Trash2,
+    Pencil,
+    X,
+    TreePine,
+    Trash2 as TrashIcon,
+    Waves,
+    Leaf,
+    Eye,
+    Ruler,
+    Sprout,
+    Clock,
+    Sparkles,
+    Droplets,
+    Mountain,
+    Flower2,
+    Bug,
+    Flame,
+    Fish,
+    Wind,
 } from 'lucide-react'
 import {
-  useAllImpactMetricDefs,
-  useUpsertMetricDef,
-  useDeleteMetricDef,
-  useReorderMetricDefs,
+    useAllImpactMetricDefs,
+    useUpsertMetricDef,
+    useDeleteMetricDef,
+    useReorderMetricDefs,
 } from '@/hooks/use-impact-metric-defs'
 import { isBuiltinMetric } from '@/lib/impact-metrics'
 import type { ImpactMetricDef } from '@/lib/impact-metrics'
@@ -159,7 +159,7 @@ export default function AdminImpactMetricsPage() {
 
   const handleDelete = useCallback(async (key: string) => {
     if (isBuiltinMetric(key)) {
-      toast.error('Built-in metrics cannot be deleted — toggle them inactive instead')
+      toast.error('Built-in metrics cannot be deleted - toggle them inactive instead')
       return
     }
     try {

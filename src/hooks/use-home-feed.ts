@@ -74,7 +74,7 @@ export function useLatestUpdate() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('updates')
-        .select('*')
+        .select('id, title, body, priority, is_pinned, created_at, cover_image_url, cta_label, cta_url')
         .or('is_pinned.eq.true,priority.eq.urgent')
         .order('created_at', { ascending: false })
         .limit(1)
@@ -137,45 +137,48 @@ export function useMyCollective() {
       if (!user) return null
 
       // Get user's collective membership
-      const { data: membership } = await supabase
+      const { data: membership, error: membershipError } = await supabase
         .from('collective_members')
         .select('collective_id')
         .eq('user_id', user.id)
         .eq('status', 'active')
         .limit(1)
         .maybeSingle()
+      if (membershipError) throw membershipError
 
       if (!membership) return null
 
       // Fetch collective
       const { data: collective, error } = await supabase
         .from('collectives')
-        .select('*')
+        .select('id, name, slug, cover_image_url, region, member_count, is_active, description')
         .eq('id', membership.collective_id)
         .single()
       if (error) throw error
 
       // Next event (include currently-happening events)
       const nowStr = new Date().toISOString()
-      const { data: nextEvent } = await supabase
+      const { data: nextEvent, error: nextEventError } = await supabase
         .from('events')
-        .select('*')
+        .select('id, title, date_start, date_end, location_name, cover_image_url, collective_id, status')
         .eq('collective_id', collective.id)
         .eq('status', 'published')
         .or(`date_start.gte.${nowStr},date_end.gte.${nowStr}`)
         .order('date_start', { ascending: true })
         .limit(1)
         .maybeSingle()
+      if (nextEventError) throw nextEventError
 
       // Events this month
       const monthStart = new Date()
       monthStart.setDate(1)
       monthStart.setHours(0, 0, 0, 0)
-      const { count } = await supabase
+      const { count, error: countError } = await supabase
         .from('events')
         .select('id', { count: 'exact', head: true })
         .eq('collective_id', collective.id)
         .gte('date_start', monthStart.toISOString())
+      if (countError) throw countError
 
       return {
         ...collective,
@@ -226,7 +229,7 @@ export function useActiveChallenge() {
     queryFn: async () => {
       const { data: challenge, error } = await supabase
         .from('challenges')
-        .select('*')
+        .select('id, title, description, goal_type, goal_value, start_date, end_date, is_active, cover_image_url, status')
         .eq('is_active', true)
         .lte('start_date', new Date().toISOString())
         .gte('end_date', new Date().toISOString())
@@ -276,7 +279,7 @@ export function useTrendingCollectives() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('collectives')
-        .select('*')
+        .select('id, name, slug, cover_image_url, region, member_count, description')
         .eq('is_active', true)
         .order('member_count', { ascending: false })
         .limit(8)

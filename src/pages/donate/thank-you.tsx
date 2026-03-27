@@ -102,7 +102,7 @@ export default function DonateThankYouPage() {
           initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-          className="flex flex-col items-center justify-center flex-1 py-12 text-center"
+          className="flex flex-col items-center justify-center flex-1 py-8 sm:py-12 text-center"
         >
           {/* Heart icon */}
           <motion.div

@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { motion, useReducedMotion, AnimatePresence, type Variants } from 'framer-motion'
-import { Pin, Megaphone, AlertTriangle, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Pin, Megaphone, AlertTriangle, Image as ImageIcon } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Avatar } from '@/components/avatar'
@@ -118,7 +118,7 @@ function RichContent({ text, className }: { text: string; className?: string }) 
 /*  Role label                                                         */
 /* ------------------------------------------------------------------ */
 
- 
+
 function _roleLabel(role: string | undefined) {
   switch (role) {
     case 'super_admin': return 'Super Admin'
@@ -184,15 +184,13 @@ function DecorativeBackground() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Full-screen update detail overlay                            */
+/*  Inline update detail view (replaces list, no overlay)              */
 /* ------------------------------------------------------------------ */
 
-function UpdateDetail({
+function UpdateDetailView({
   update,
-  onClose,
 }: {
   update: UpdateWithAuthor
-  onClose: () => void
 }) {
   const images = getImages(update)
   const isUrgent = update.priority === 'urgent'
@@ -201,31 +199,26 @@ function UpdateDetail({
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 bg-white overflow-y-auto"
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
       transition={{ duration: 0.2 }}
     >
-      {/* Back button – floats over splash image */}
-      <Header title="" back onBack={onClose} transparent={!!splashImage} className={splashImage ? 'collapse-header' : ''} />
-
-      {/* Splash / hero image – full bleed */}
+      {/* Splash / hero image - full bleed */}
       {splashImage && (
-        <div className="relative">
+        <div className="relative -mx-4 lg:-mx-6">
           <img
             src={splashImage}
             alt=""
             className="w-full aspect-[16/9] lg:aspect-[21/9] object-cover"
           />
-          {/* Gradient fade into white content area */}
+          {/* Gradient fade into content area */}
           <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-white to-transparent" />
         </div>
       )}
 
       <div className={cn(
-        'px-5 lg:px-8 pb-20 max-w-3xl mx-auto overflow-hidden',
-        splashImage ? '-mt-8 relative z-10' : 'pt-6',
+        'max-w-3xl mx-auto pb-12',
+        splashImage ? '-mt-8 relative z-10 px-1' : 'pt-2 px-1',
       )}>
         {/* Badges */}
         {(update.is_pinned || isUrgent) && (
@@ -250,7 +243,7 @@ function UpdateDetail({
           {update.title}
         </h1>
 
-        {/* Author + time – no role label */}
+        {/* Author + time */}
         <div className="flex items-center gap-3 mb-6 pb-5 border-b border-primary-100">
           <Avatar
             src={update.author?.avatar_url}
@@ -289,7 +282,7 @@ function UpdateDetail({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Update card – compact white card                                   */
+/*  Update card - compact white card                                   */
 /* ------------------------------------------------------------------ */
 
 function UpdateCard({
@@ -398,7 +391,7 @@ function UpdateCard({
 
 export default function UpdatesPage() {
   const shouldReduceMotion = useReducedMotion()
-  const { pinned, regular, all, isLoading, refetch } = useUpdates()
+  const { pinned, regular, all, isLoading, isError, refetch } = useUpdates()
   const showLoading = useDelayedLoading(isLoading)
   const markRead = useMarkUpdateRead()
   const [searchQuery, setSearchQuery] = useState('')
@@ -409,6 +402,13 @@ export default function UpdatesPage() {
     () => (selectedUpdateId ? (all ?? []).find((a) => a.id === selectedUpdateId) ?? null : null),
     [selectedUpdateId, all],
   )
+
+  // Scroll to top when opening a detail view
+  useEffect(() => {
+    if (selectedUpdateId) {
+      document.getElementById('main-content')?.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [selectedUpdateId])
 
   const isEmpty = !isLoading && pinned.length === 0 && regular.length === 0
 
@@ -432,8 +432,26 @@ export default function UpdatesPage() {
       )
     : regular
 
+  // --- Detail view (inline, not an overlay) ---
+  if (selectedUpdate) {
+    return (
+      <Page
+        noBackground
+        className="!px-0 bg-surface-1"
+        header={<Header title="Updates" back onBack={() => setSelectedUpdateId(null)} />}
+      >
+        <div className="relative min-h-full">
+          <div className="relative z-10 px-4 lg:px-6">
+            <UpdateDetailView update={selectedUpdate} />
+          </div>
+        </div>
+      </Page>
+    )
+  }
+
+  // --- List view ---
   return (
-    <Page swipeBack noBackground className="!px-0 bg-surface-1" header={<Header title="Updates" back transparent />}>
+    <Page swipeBack noBackground className="!px-0 bg-surface-1" header={<Header title="Updates" back />}>
       <div className="relative min-h-full before:absolute before:inset-x-0 before:bottom-full before:h-[300px] before:bg-[linear-gradient(to_bottom,var(--color-primary-50)_60%,transparent)]">
         <DecorativeBackground />
 
@@ -475,6 +493,12 @@ export default function UpdatesPage() {
                 <div key={i} className="h-[88px] rounded-2xl bg-white border border-primary-100/60 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
               ))}
             </div>
+          ) : isError ? (
+            <EmptyState
+              illustration="error"
+              title="Something went wrong"
+              description="We couldn't load updates. Pull down to try again."
+            />
           ) : isEmpty ? (
             <EmptyState
               illustration="empty"
@@ -541,16 +565,6 @@ export default function UpdatesPage() {
           )}
         </div>
       </div>
-
-      {/* Full-screen detail overlay */}
-      <AnimatePresence>
-        {selectedUpdate && (
-          <UpdateDetail
-            update={selectedUpdate}
-            onClose={() => setSelectedUpdateId(null)}
-          />
-        )}
-      </AnimatePresence>
     </Page>
   )
 }

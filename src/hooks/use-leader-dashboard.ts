@@ -380,12 +380,13 @@ export function useEventCalendar(collectiveId: string | undefined, month: Date) 
       const start = new Date(month.getFullYear(), month.getMonth(), 1)
       const end = new Date(month.getFullYear(), month.getMonth() + 1, 0)
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('events')
         .select('id, title, date_start')
         .eq('collective_id', collectiveId)
         .gte('date_start', start.toISOString())
         .lte('date_start', end.toISOString())
+      if (error) throw error
 
       return (data ?? []) as unknown as CalendarEvent[]
     },

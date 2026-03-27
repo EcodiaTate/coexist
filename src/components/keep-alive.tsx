@@ -9,6 +9,7 @@ import {
     useLocation,
     useOutlet,
     UNSAFE_LocationContext as LocationContext,
+    type NavigationType,
 } from 'react-router'
 import { useSwipeBack } from '@/hooks/use-swipe-back'
 
@@ -33,8 +34,7 @@ function getScrollEl(wrapper: HTMLDivElement | null): HTMLElement | null {
  * were first created.
  */
 function FrozenRouter({ location, children }: { location: ReturnType<typeof useLocation>; children: ReactNode }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const locationCtx = useMemo(() => ({ location, navigationType: 'POP' as any }), [location])
+  const locationCtx = useMemo(() => ({ location, navigationType: 'POP' as NavigationType }), [location])
   return (
     <LocationContext.Provider value={locationCtx}>
       {children}

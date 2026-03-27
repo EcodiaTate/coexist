@@ -13,6 +13,9 @@ import {
   AlertTriangle,
   Accessibility,
   BookOpen,
+  ClipboardList,
+  Clock,
+  Sparkles,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import {
@@ -103,18 +106,19 @@ function AttendeeRow({
     <motion.div
       layout
       className={cn(
-        'flex items-center gap-3 px-4 py-3.5 cursor-pointer rounded-xl mb-1.5',
+        'flex items-center gap-3 px-4 py-3.5 cursor-pointer rounded-xl mb-2',
         'transition-colors duration-200',
         isCheckedIn
-          ? 'bg-gradient-to-r from-success-50 to-moss-50/50 ring-1 ring-success-200/50'
+          ? 'bg-gradient-to-r from-success-100 to-success-50 ring-1 ring-success-300/60 shadow-sm shadow-success-200/30'
           : isWaitlisted
-            ? 'bg-gradient-to-r from-warning-50 to-warning-50/30 ring-1 ring-warning-200/50'
-            : 'bg-gradient-to-r from-primary-50 to-moss-50/60 ring-1 ring-primary-200/50',
-        'active:opacity-80',
+            ? 'bg-gradient-to-r from-amber-100 to-warning-50 ring-1 ring-amber-300/60 shadow-sm shadow-amber-200/30'
+            : 'bg-white ring-1 ring-primary-200/60 shadow-sm shadow-primary-200/20',
+        'active:scale-[0.98] active:shadow-none',
       )}
       onClick={onViewDetails}
       role="button"
       tabIndex={0}
+      aria-label={`View details for ${attendee.profiles?.display_name ?? 'attendee'}`}
     >
       <Avatar
         src={attendee.profiles?.avatar_url ?? undefined}
@@ -131,7 +135,10 @@ function AttendeeRow({
             <AlertTriangle size={12} className="text-warning-500 shrink-0" aria-label="Has safety info" />
           )}
         </div>
-        <p className="text-caption text-primary-400">
+        <p className={cn(
+          'text-caption font-medium',
+          isCheckedIn ? 'text-success-600' : isWaitlisted ? 'text-amber-600' : 'text-primary-400',
+        )}>
           {isCheckedIn
             ? `Checked in ${attendee.checked_in_at ? new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' }).format(new Date(attendee.checked_in_at)) : ''}`
             : isWaitlisted
@@ -141,8 +148,8 @@ function AttendeeRow({
       </div>
 
       {isCheckedIn ? (
-        <span className="flex items-center justify-center w-9 h-9 rounded-full bg-success-100 text-success-600">
-          <Check size={18} />
+        <span className="flex items-center justify-center w-9 h-9 rounded-full bg-success-500 text-white shadow-sm shadow-success-300/50">
+          <Check size={18} strokeWidth={2.5} />
         </span>
       ) : isWaitlisted && onPromote ? (
         <Button
@@ -286,6 +293,7 @@ export default function EventDayPage() {
   const bulkCheckIn = useBulkCheckIn()
   const promote = usePromoteFromWaitlist()
 
+
   const stagger = {
     hidden: {},
     visible: { transition: { staggerChildren: 0.04 } },
@@ -400,14 +408,14 @@ export default function EventDayPage() {
   return (
     <Page
       swipeBack
-      header={<Header title="Event Day" back />}
+      header={<Header title="Event Day" back backDark />}
       footer={
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Button
             variant="secondary"
             icon={<QrCode size={18} />}
             onClick={() => setShowQr(true)}
-            className="flex-1"
+            className="flex-1 ring-1 ring-primary-200/60"
           >
             Show QR
           </Button>
@@ -415,7 +423,7 @@ export default function EventDayPage() {
             variant="primary"
             icon={<CheckCheck size={18} />}
             onClick={() => setShowBulkConfirm(true)}
-            className="flex-1"
+            className="flex-1 shadow-md shadow-success-300/30"
             disabled={stats.checkedIn === stats.registered}
           >
             Mark All Present
@@ -436,48 +444,63 @@ export default function EventDayPage() {
 
         {/* Stats row */}
         <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3 mb-5">
-          <div className="rounded-xl bg-white p-3 text-center">
-            <p className="text-xl font-bold text-primary-400">{stats.registered}</p>
-            <p className="text-caption text-primary-400">Registered</p>
+          <div className="rounded-xl bg-gradient-to-br from-sky-50 to-sky-100/80 ring-1 ring-sky-200/60 p-3 text-center shadow-sm">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-sky-500/15 mx-auto mb-1.5">
+              <ClipboardList size={16} className="text-sky-600" />
+            </div>
+            <p className="text-xl font-bold text-sky-700">{stats.registered}</p>
+            <p className="text-caption font-medium text-sky-600">Registered</p>
           </div>
-          <div className="rounded-xl bg-success-50 p-3 text-center">
+          <div className="rounded-xl bg-gradient-to-br from-success-50 to-success-100/80 ring-1 ring-success-300/60 p-3 text-center shadow-sm">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-success-500/15 mx-auto mb-1.5">
+              <UserCheck size={16} className="text-success-600" />
+            </div>
             <p className="text-xl font-bold text-success-700">{stats.checkedIn}</p>
-            <p className="text-caption text-success-600">Checked In</p>
+            <p className="text-caption font-medium text-success-600">Checked In</p>
           </div>
-          <div className="rounded-xl bg-warning-50 p-3 text-center">
-            <p className="text-xl font-bold text-warning-700">{stats.waitlisted}</p>
-            <p className="text-caption text-warning-600">Waitlisted</p>
+          <div className="rounded-xl bg-gradient-to-br from-amber-50 to-amber-100/80 ring-1 ring-amber-300/60 p-3 text-center shadow-sm">
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500/15 mx-auto mb-1.5">
+              <Clock size={16} className="text-amber-600" />
+            </div>
+            <p className="text-xl font-bold text-amber-700">{stats.waitlisted}</p>
+            <p className="text-caption font-medium text-amber-600">Waitlisted</p>
           </div>
         </motion.div>
 
         {/* Live count bar */}
         {stats.registered > 0 && (
-          <motion.div variants={fadeUp} className="mb-5">
-            <div className="flex items-center justify-between text-caption mb-1">
-              <span className="text-primary-400">Check-in progress</span>
-              <span className="font-semibold text-primary-800">
+          <motion.div variants={fadeUp} className="mb-5 rounded-xl bg-white ring-1 ring-primary-100 p-3 shadow-sm">
+            <div className="flex items-center justify-between text-caption mb-2">
+              <span className="text-primary-500 font-medium flex items-center gap-1.5">
+                <Sparkles size={13} className="text-success-500" />
+                Check-in progress
+              </span>
+              <span className="font-bold text-primary-800">
                 {stats.checkedIn}/{stats.registered}
               </span>
             </div>
-            <div className="h-2.5 rounded-full bg-white overflow-hidden">
+            <div className="h-3 rounded-full bg-primary-100/60 overflow-hidden">
               <motion.div
-                className="h-full rounded-full bg-success-500"
+                className="h-full rounded-full bg-gradient-to-r from-success-400 to-success-500"
                 initial={{ width: 0 }}
                 animate={{ width: `${stats.registered > 0 ? (stats.checkedIn / stats.registered) * 100 : 0}%` }}
                 transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.6, ease: 'easeOut' }}
               />
             </div>
+            {stats.checkedIn === stats.registered && stats.registered > 0 && (
+              <p className="text-caption font-semibold text-success-600 mt-1.5 text-center">All attendees checked in!</p>
+            )}
           </motion.div>
         )}
 
         {/* Tab switcher */}
-        <motion.div variants={fadeUp} className="flex rounded-xl bg-primary-50/60 p-1 mb-4">
+        <motion.div variants={fadeUp} className="flex rounded-xl bg-primary-100/60 p-1 mb-4">
           <button
             onClick={() => setActiveTab('attendees')}
             className={cn(
-              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-150',
+              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-bold transition-all duration-150',
               activeTab === 'attendees'
-                ? 'bg-white text-primary-800 shadow-sm'
+                ? 'bg-white text-primary-800 shadow-md ring-1 ring-primary-200/40'
                 : 'text-primary-400 active:bg-white/50',
             )}
           >
@@ -487,9 +510,9 @@ export default function EventDayPage() {
           <button
             onClick={() => setActiveTab('contacts')}
             className={cn(
-              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-semibold transition-colors duration-150',
+              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-bold transition-all duration-150',
               activeTab === 'contacts'
-                ? 'bg-white text-primary-800 shadow-sm'
+                ? 'bg-white text-primary-800 shadow-md ring-1 ring-primary-200/40'
                 : 'text-primary-400 active:bg-white/50',
             )}
           >

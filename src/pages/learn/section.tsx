@@ -168,6 +168,17 @@ export default function LearnSectionPage() {
         animate="visible"
         className="px-5 sm:px-6 pb-20 space-y-2.5"
       >
+        {sectionModules.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-100/60 mb-4">
+              <BookOpen size={28} strokeWidth={1.5} className="text-primary-400" />
+            </div>
+            <p className="text-sm font-bold text-primary-700">No modules in this section yet</p>
+            <p className="text-xs text-primary-400 mt-1 max-w-xs leading-relaxed">
+              Modules will appear here once they're published.
+            </p>
+          </div>
+        )}
         {sectionModules.map((sm, i) => {
           const mod = sm.module
           if (!mod) return null

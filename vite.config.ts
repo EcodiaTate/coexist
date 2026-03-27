@@ -27,6 +27,10 @@ export default defineConfig({
           if (id.includes('@supabase')) return 'supabase'
           if (id.includes('@tanstack')) return 'query'
           if (id.includes('framer-motion')) return 'motion'
+          if (id.includes('leaflet')) return 'leaflet'
+          if (id.includes('react-markdown') || id.includes('remark-gfm') || id.includes('dompurify')) return 'markdown'
+          if (id.includes('@dnd-kit')) return 'dnd-kit'
+          if (id.includes('i18next')) return 'i18n'
         },
       },
     },

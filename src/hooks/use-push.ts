@@ -88,18 +88,20 @@ async function storeToken(userId: string, token: string, platform: string) {
 }
 
 async function removeToken(userId: string, token: string) {
-  await supabase
+  const { error } = await supabase
     .from('push_tokens')
     .delete()
     .eq('user_id', userId)
     .eq('token', token)
+  if (error) console.error('[push] Failed to remove token:', error)
 }
 
 async function removeAllTokensForUser(userId: string) {
-  await supabase
+  const { error } = await supabase
     .from('push_tokens')
     .delete()
     .eq('user_id', userId)
+  if (error) console.error('[push] Failed to remove all tokens for user:', error)
 }
 
 async function clearBadgeCount() {
@@ -178,6 +180,7 @@ export function usePushRegistration() {
   const queryClient = useQueryClient()
   const tokenRef = useRef<string | null>(null)
   const listenersRef = useRef<Array<{ remove: () => void }>>([])
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([])
 
   useEffect(() => {
     if (!user) return
@@ -201,12 +204,13 @@ export function usePushRegistration() {
           const stored = await storeToken(user!.id, t.value, platform)
           if (!stored && mounted) {
             // Retry once after a short delay on storage failure
-            setTimeout(async () => {
+            const retryTimer = setTimeout(async () => {
               if (mounted) {
                 console.info('[push] retrying token storage…')
                 await storeToken(user!.id, t.value, platform)
               }
             }, 3000)
+            timersRef.current.push(retryTimer)
           }
         },
       )
@@ -218,12 +222,13 @@ export function usePushRegistration() {
           console.error('[push] registration error:', err)
           // Retry registration after a delay
           if (mounted) {
-            setTimeout(async () => {
+            const retryTimer = setTimeout(async () => {
               if (mounted) {
                 console.info('[push] retrying registration after error…')
                 await requestAndRegister(plugin)
               }
             }, 5000)
+            timersRef.current.push(retryTimer)
           }
         },
       )
@@ -326,6 +331,8 @@ export function usePushRegistration() {
       mounted = false
       listenersRef.current.forEach((l) => l.remove())
       listenersRef.current = []
+      timersRef.current.forEach((t) => clearTimeout(t))
+      timersRef.current = []
       resumeListener?.remove()
     }
   }, [user, navigate, queryClient])

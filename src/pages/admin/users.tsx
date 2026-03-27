@@ -58,6 +58,18 @@ import type { Database } from '@/types/database.types'
 type CollectiveRole = Database['public']['Enums']['collective_role']
 type UserRole = Database['public']['Enums']['user_role']
 
+/** Shape returned by the admin_list_users RPC */
+interface AdminUserRow {
+  id: string
+  display_name: string | null
+  avatar_url: string | null
+  email: string | null
+  role: string
+  is_suspended: boolean
+  created_at: string
+  [key: string]: unknown
+}
+
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
@@ -72,7 +84,7 @@ function useAdminUsers(search: string, roleFilter: string) {
         result_limit: 50,
       })
       if (error) throw error
-      return (data ?? []) as Record<string, unknown>[]
+      return (data ?? []) as AdminUserRow[]
     },
     staleTime: 30 * 1000,
   })
@@ -146,7 +158,7 @@ function UserSettingsSheet({
   open,
   onClose,
 }: {
-  user: any
+  user: AdminUserRow
   open: boolean
   onClose: () => void
 }) {
@@ -813,7 +825,7 @@ function UserSettingsSheet({
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
-  const [settingsUser, setSettingsUser] = useState<any>(null)
+  const [settingsUser, setSettingsUser] = useState<AdminUserRow | null>(null)
   const [profileUserId, setProfileUserId] = useState<string | null>(null)
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set())
 
@@ -868,8 +880,14 @@ export default function AdminUsersPage() {
             size="sm"
             icon={<Ban size={14} />}
             onClick={async () => {
-              for (const uid of selectedUsers) {
-                await supabase.from('profiles').update({ is_suspended: true, suspended_reason: 'Bulk suspension by admin' }).eq('id', uid)
+              const uids = Array.from(selectedUsers)
+              const { error } = await supabase.from('profiles').update({ is_suspended: true, suspended_reason: 'Bulk suspension by admin' }).in('id', uids)
+              if (error) {
+                toast.error('Failed to suspend users')
+                console.error('[admin] Bulk suspend error:', error)
+                return
+              }
+              for (const uid of uids) {
                 await logAudit({ action: 'user_suspended', target_type: 'user', target_id: uid, details: { reason: 'Bulk suspension by admin' } })
               }
               queryClient.invalidateQueries({ queryKey: ['admin-users'] })
@@ -895,7 +913,7 @@ export default function AdminUsersPage() {
         />
       ) : (
         <StaggeredList className="space-y-1.5">
-          {users.map((user: any) => (
+          {users.map((user) => (
             <StaggeredItem
               key={user.id}
               className={cn(
@@ -957,7 +975,7 @@ export default function AdminUsersPage() {
       </motion.div>
 
       {/* Unified user settings sheet */}
-      <UserSettingsSheet user={settingsUser} open={!!settingsUser} onClose={() => setSettingsUser(null)} />
+      {settingsUser && <UserSettingsSheet user={settingsUser} open onClose={() => setSettingsUser(null)} />}
 
       {/* Profile detail modal */}
       <ProfileModal userId={profileUserId} open={!!profileUserId} onClose={() => setProfileUserId(null)} />

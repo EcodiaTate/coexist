@@ -5,6 +5,7 @@ import { CheckCheck, Bell } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { PullToRefresh } from '@/components/pull-to-refresh'
+import { EmptyState } from '@/components/empty-state'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import {
@@ -328,7 +329,7 @@ function NotificationGroup({
 export default function NotificationsPage() {
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { data: notifications, isLoading, refetch, grouped } = useNotifications()
+  const { data: notifications, isLoading, isError, refetch, grouped } = useNotifications()
   const showLoading = useDelayedLoading(isLoading)
   const markRead = useMarkRead()
   const markAllRead = useMarkAllRead()
@@ -396,7 +397,15 @@ export default function NotificationsPage() {
 
         {/* Content layer */}
         <div className="relative z-10 px-4 lg:px-6">
-          {showLoading ? (
+          {isError ? (
+            <div className="py-12">
+              <EmptyState
+                illustration="error"
+                title="Something went wrong"
+                description="We couldn't load your notifications. Pull down to try again."
+              />
+            </div>
+          ) : showLoading ? (
             <div className="space-y-4 py-6">
               {Array.from({ length: 5 }, (_, i) => (
                 <div key={i} className="flex items-start gap-3.5 px-4 py-4 rounded-2xl bg-white/60 shadow-sm border border-primary-50/50 animate-pulse">

@@ -61,9 +61,9 @@ function AssignTagsSheet({
     // Optimistic: update subscriber tags in cache immediately
     const prevSubscribers = queryClient.getQueryData(['admin-email-subscribers', '', null])
     const newTags = (allTags ?? []).filter((t) => selectedIds.has(t.id))
-    queryClient.setQueryData(['admin-email-subscribers', '', null], (old: Record<string, unknown>[]) =>
-      (old ?? []).map((sub: any) =>
-        sub.id === profileId ? { ...sub, tags: newTags } : sub,
+    queryClient.setQueryData(['admin-email-subscribers', '', null], (old: Array<Record<string, unknown>>) =>
+      (old ?? []).map((sub) =>
+        (sub as { id: string }).id === profileId ? { ...sub, tags: newTags } : sub,
       ),
     )
     onClose()
@@ -224,7 +224,7 @@ export function SubscribersTab() {
         />
       ) : (
         <StaggeredList className="space-y-1">
-          {subscribers.map((sub: any) => (
+          {subscribers.map((sub) => (
             <StaggeredItem key={sub.id} className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm">
               <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary-100 shrink-0">
                 {sub.avatar_url ? (

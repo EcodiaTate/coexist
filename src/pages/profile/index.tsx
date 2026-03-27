@@ -148,7 +148,7 @@ function ProfileSkeleton() {
         <Skeleton variant="title" className="w-40" />
         <Skeleton variant="text" className="w-24" />
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <Skeleton variant="stat-card" />
         <Skeleton variant="stat-card" />
         <Skeleton variant="stat-card" />
@@ -344,7 +344,7 @@ export default function ProfilePage() {
         {/* Colourful Stats */}
         <motion.div
           variants={fadeUp}
-          className="grid grid-cols-3 gap-2.5"
+          className="grid grid-cols-2 sm:grid-cols-3 gap-2.5"
         >
           {allStats.map((s, i) => (
             <ColouredStat key={s.label} value={s.value} label={s.label} icon={s.icon} index={i} />

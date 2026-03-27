@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { untypedFrom } from '@/lib/supabase'
 import {
   FALLBACK_METRIC_DEFS,
   type ImpactMetricDef,
@@ -19,8 +19,7 @@ export function useImpactMetricDefs() {
   const query = useQuery({
     queryKey: QUERY_KEY,
     queryFn: async (): Promise<ImpactMetricDef[]> => {
-      const { data, error } = await (supabase as any)
-        .from('impact_metric_defs')
+      const { data, error } = await untypedFrom('impact_metric_defs')
         .select('*')
         .order('sort_order', { ascending: true })
       if (error) throw error
@@ -60,8 +59,7 @@ export function useAllImpactMetricDefs() {
   return useQuery({
     queryKey: [...QUERY_KEY, 'all'],
     queryFn: async (): Promise<ImpactMetricDef[]> => {
-      const { data, error } = await (supabase as any)
-        .from('impact_metric_defs')
+      const { data, error } = await untypedFrom('impact_metric_defs')
         .select('*')
         .order('sort_order', { ascending: true })
       if (error) throw error
@@ -81,8 +79,7 @@ export function useUpsertMetricDef() {
 
   return useMutation({
     mutationFn: async (def: Partial<ImpactMetricDef> & { key: string }) => {
-      const { error } = await (supabase as any)
-        .from('impact_metric_defs')
+      const { error } = await untypedFrom('impact_metric_defs')
         .upsert(
           {
             ...def,
@@ -103,8 +100,7 @@ export function useDeleteMetricDef() {
 
   return useMutation({
     mutationFn: async (key: string) => {
-      const { error } = await (supabase as any)
-        .from('impact_metric_defs')
+      const { error } = await untypedFrom('impact_metric_defs')
         .delete()
         .eq('key', key)
       if (error) throw error
@@ -122,13 +118,12 @@ export function useReorderMetricDefs() {
     mutationFn: async (orderedKeys: string[]) => {
       // Batch update sort_order for all keys
       const updates = orderedKeys.map((key, i) =>
-        (supabase as any)
-          .from('impact_metric_defs')
+        untypedFrom('impact_metric_defs')
           .update({ sort_order: i })
           .eq('key', key),
       )
       const results = await Promise.all(updates)
-      const failed = results.find((r) => r.error)
+      const failed = results.find((r: { error?: unknown }) => r.error)
       if (failed?.error) throw failed.error
     },
     onSuccess: () => {

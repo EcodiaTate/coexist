@@ -1,18 +1,16 @@
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Settings,
-  Shield,
-  X,
-  ChevronRight,
-  Home,
-  MessageCircle,
-  BookOpen,
-  Megaphone,
-  TreePine,
-  Leaf,
+    Settings,
+    Shield,
+    X,
+    ChevronRight, MessageCircle,
+    BookOpen,
+    Megaphone,
+    TreePine,
+    Leaf
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { APP_NAME } from '@/lib/constants'
@@ -22,15 +20,15 @@ import { useLayout } from '@/hooks/use-layout'
 import { Avatar } from '@/components/avatar'
 
 import {
-  SidebarShell,
-  SidebarNavList,
-  getAccentClasses,
-  adminHomeItem,
-  adminNavCategories,
-  leaderHomeItem,
-  leaderNavCategories,
-  memberHomeItem,
-  mainNavCategories,
+    SidebarShell,
+    SidebarNavList,
+    getAccentClasses,
+    adminHomeItem,
+    adminNavCategories,
+    leaderHomeItem,
+    leaderNavCategories,
+    memberHomeItem,
+    memberNavCategories,
 } from '@/components/sidebar'
 import type { Suite, NavItem, NavCategory } from '@/components/sidebar'
 
@@ -772,7 +770,7 @@ function MobileSidebarOverlay({
 }
 
 /* ------------------------------------------------------------------ */
-/*  UnifiedSidebar — orchestrator                                      */
+/*  UnifiedSidebar - orchestrator                                      */
 /* ------------------------------------------------------------------ */
 
 interface UnifiedSidebarProps {
@@ -820,7 +818,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
 
   const allSuiteCategories = useMemo(() => {
     const result: Record<Suite, NavCategory[]> = { main: [], admin: [], leader: [] }
-    result.main = [...mainNavCategories]
+    result.main = [...memberNavCategories]
     if (isStaff) {
       result.admin = adminNavCategories
         .filter((cat) => !cat.superAdminOnly || isSuperAdmin)
@@ -887,7 +885,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
       cats.push(...leaderCats)
     }
 
-    const memberCats = mainNavCategories.map((cat, i) => ({
+    const memberCats = memberNavCategories.map((cat, i) => ({
       ...cat,
       items: [
         ...(i === 0 && highestHome !== memberHomeItem ? [memberHomeItem] : []),

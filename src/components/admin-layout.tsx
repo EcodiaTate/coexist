@@ -26,6 +26,7 @@ import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
 import { useMenuSheet } from '@/hooks/use-menu-sheet'
+import type { NavItem, NavCategory } from '@/components/sidebar/types'
 
 /* ------------------------------------------------------------------ */
 /*  Admin header context  lets child pages set title + actions        */
@@ -246,22 +247,7 @@ export function useIsAdminLayout() {
 /*  Nav items                                                          */
 /* ------------------------------------------------------------------ */
 
-interface AdminNavItem {
-  label: string
-  path: string
-  icon: React.ReactNode
-  /** If set, only shown when user has this capability */
-  capability?: string
-}
-
-interface AdminNavCategory {
-  label: string
-  items: AdminNavItem[]
-  /** If true, only rendered for super admins */
-  superAdminOnly?: boolean
-}
-
-const _adminNavCategories: AdminNavCategory[] = [
+const _adminNavCategories: NavCategory[] = [
   {
     label: 'Overview',
     items: [

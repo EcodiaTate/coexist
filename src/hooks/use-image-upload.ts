@@ -96,7 +96,7 @@ export function useImageUpload({
       const fileProgress = new Array(total).fill(0)
 
       try {
-        const results = await Promise.all(
+        const settled = await Promise.allSettled(
           files.map((file, i) => {
             const path = buildPath()
             return uploadImage(file, bucket, path, (p) => {
@@ -108,6 +108,18 @@ export function useImageUpload({
             })
           }),
         )
+        const results: UploadImageResult[] = []
+        const errors: string[] = []
+        for (const outcome of settled) {
+          if (outcome.status === 'fulfilled') {
+            results.push(outcome.value)
+          } else {
+            errors.push(outcome.reason instanceof Error ? outcome.reason.message : 'Upload failed')
+          }
+        }
+        if (errors.length > 0) {
+          setError(`${errors.length} upload(s) failed: ${errors.join(', ')}`)
+        }
         setProgress(100)
         return results
       } catch (e) {

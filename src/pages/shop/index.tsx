@@ -68,10 +68,10 @@ function ShopBackground({ rm }: { rm: boolean }) {
   return (
     <div className="sticky top-0 h-[100dvh] -mb-[100dvh] pointer-events-none overflow-hidden">
       {/* Base gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#f0f4ec] via-[#f4f6f1] to-[#eef3e9]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-surface-2 via-primary-50/30 to-moss-50/20" />
 
       {/* Topographic contour lines - subtle nature map feel */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
+      <svg className="absolute inset-0 w-full h-full opacity-[0.035]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <pattern id="shop-topo" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
             <path d="M20 100c30-40 70-60 100-40s60 50 80 20" fill="none" stroke="currentColor" strokeWidth="1" />
@@ -214,7 +214,7 @@ function ShopHero({
         {/* ── Layer 0: Background landscape - drives the container height ── */}
         <div>
           <img
-            src="/img/merch-hero-1.png"
+            src="/img/merch-hero-1.webp"
             alt="Australian landscape"
             className="w-full h-auto block"
           />
@@ -225,7 +225,7 @@ function ShopHero({
         <div className="absolute bottom-0 inset-x-0 z-[3] flex justify-center">
           <div style={{ width: '56.25%' }}>
             <img
-              src="/img/merch-hero-2.png"
+              src="/img/merch-hero-2.webp"
               alt="Co-Exist members"
               className="w-full h-auto block"
             />
@@ -585,7 +585,7 @@ export default function ShopPage() {
   const location = useLocation()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
-  const { data: products, isLoading } = useProducts()
+  const { data: products, isLoading, isError } = useProducts()
   const showLoading = useDelayedLoading(isLoading)
   const cartCount = useCart((s) => s.itemCount())
   const { navMode } = useLayout()
@@ -638,13 +638,21 @@ export default function ShopPage() {
   }, [queryClient])
 
   return (
-    <Page className="!px-0 bg-[#f0f4ec]" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
+    <Page className="!px-0 bg-surface-2" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
       <PullToRefresh onRefresh={handleRefresh} background={<ShopBackground rm={rm} />}>
         <div className="relative min-h-dvh">
           {/* Main content */}
           <div className="relative z-10">
             {showLoading ? (
               <ShopSkeleton />
+            ) : isError ? (
+              <div className="px-5 py-12">
+                <EmptyState
+                  illustration="error"
+                  title="Something went wrong"
+                  description="We couldn't load the shop. Pull down to try again."
+                />
+              </div>
             ) : (
               <motion.div
                 initial="hidden"

@@ -1,0 +1,740 @@
+import { type RefObject, type ReactNode } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import {
+  MapIcon,
+  List,
+  SlidersHorizontal,
+  Calendar,
+  Users,
+  TreePine,
+  Waves,
+  Sprout,
+  Flower2,
+  GraduationCap,
+  Bird,
+  Droplets,
+  CircleDot,
+  MapPin,
+  Compass,
+  ArrowRight,
+  Heart,
+  TrendingUp,
+  Leaf,
+} from 'lucide-react'
+import type { Database } from '@/types/database.types'
+
+type ActivityType = Database['public']['Enums']['activity_type']
+import { ACTIVITY_TYPE_LABELS } from '@/hooks/use-home-feed'
+import {
+  Card,
+  Badge,
+  Skeleton,
+  EmptyState,
+  Button,
+  CountUp,
+} from '@/components'
+import { SearchBar } from '@/components/search-bar'
+import { CollectiveMap } from '@/components/collective-map'
+import { cn } from '@/lib/cn'
+
+/* ------------------------------------------------------------------ */
+/*  Types & constants                                                   */
+/* ------------------------------------------------------------------ */
+
+type ViewMode = 'map' | 'list'
+
+type BadgeActivity =
+  | 'shore-cleanup'
+  | 'tree-planting'
+  | 'land-regeneration'
+  | 'nature-walk'
+  | 'camp-out'
+  | 'retreat'
+  | 'film-screening'
+  | 'marine-restoration'
+  | 'workshop'
+
+const activityTypeToBadge: Record<string, BadgeActivity> = {
+  shore_cleanup: 'shore-cleanup',
+  tree_planting: 'tree-planting',
+  land_regeneration: 'land-regeneration',
+  nature_walk: 'nature-walk',
+  camp_out: 'camp-out',
+  retreat: 'retreat',
+  film_screening: 'film-screening',
+  marine_restoration: 'marine-restoration',
+  workshop: 'workshop',
+}
+
+const ACTIVITY_META: Record<string, {
+  icon: ReactNode
+  iconLg: ReactNode
+  bg: string
+  bgSolid: string
+  text: string
+  ring: string
+  gradient: string
+}> = {
+  shore_cleanup: {
+    icon: <Waves size={16} />,
+    iconLg: <Waves size={22} />,
+    bg: 'bg-sky-50', bgSolid: 'bg-sky-500', text: 'text-sky-700',
+    ring: 'ring-sky-300', gradient: 'from-sky-400 to-moss-500',
+  },
+  tree_planting: {
+    icon: <TreePine size={16} />,
+    iconLg: <TreePine size={22} />,
+    bg: 'bg-success-50', bgSolid: 'bg-success-500', text: 'text-success-700',
+    ring: 'ring-success-300', gradient: 'from-success-400 to-primary-500',
+  },
+  land_regeneration: {
+    icon: <Sprout size={16} />,
+    iconLg: <Sprout size={22} />,
+    bg: 'bg-sprout-50', bgSolid: 'bg-sprout-500', text: 'text-sprout-700',
+    ring: 'ring-sprout-300', gradient: 'from-sprout-400 to-success-500',
+  },
+  nature_walk: {
+    icon: <Compass size={16} />,
+    iconLg: <Compass size={22} />,
+    bg: 'bg-bark-50', bgSolid: 'bg-bark-500', text: 'text-bark-700',
+    ring: 'ring-bark-300', gradient: 'from-bark-400 to-bark-500',
+  },
+  camp_out: {
+    icon: <Bird size={16} />,
+    iconLg: <Bird size={22} />,
+    bg: 'bg-moss-50', bgSolid: 'bg-moss-500', text: 'text-moss-700',
+    ring: 'ring-moss-300', gradient: 'from-moss-400 to-primary-500',
+  },
+  retreat: {
+    icon: <Flower2 size={16} />,
+    iconLg: <Flower2 size={22} />,
+    bg: 'bg-plum-50', bgSolid: 'bg-plum-500', text: 'text-plum-700',
+    ring: 'ring-plum-300', gradient: 'from-plum-400 to-plum-500',
+  },
+  film_screening: {
+    icon: <GraduationCap size={16} />,
+    iconLg: <GraduationCap size={22} />,
+    bg: 'bg-coral-50', bgSolid: 'bg-coral-500', text: 'text-coral-700',
+    ring: 'ring-coral-300', gradient: 'from-coral-400 to-coral-500',
+  },
+  marine_restoration: {
+    icon: <Droplets size={16} />,
+    iconLg: <Droplets size={22} />,
+    bg: 'bg-primary-50', bgSolid: 'bg-primary-500', text: 'text-primary-700',
+    ring: 'ring-primary-300', gradient: 'from-primary-400 to-moss-500',
+  },
+  workshop: {
+    icon: <CircleDot size={16} />,
+    iconLg: <CircleDot size={22} />,
+    bg: 'bg-bark-50', bgSolid: 'bg-bark-500', text: 'text-bark-700',
+    ring: 'ring-bark-300', gradient: 'from-bark-400 to-warning-500',
+  },
+}
+
+const CATEGORY_CARDS: { key: ActivityType; label: string; description: string; icon: ReactNode; decorIcon: ReactNode; gradient: string }[] = [
+  {
+    key: 'shore_cleanup',
+    label: 'Shore Cleanup',
+    description: 'Protect our coastlines',
+    icon: <Waves size={18} />,
+    decorIcon: <Waves size={56} strokeWidth={1} />,
+    gradient: 'from-sky-500 to-moss-600',
+  },
+  {
+    key: 'tree_planting',
+    label: 'Tree Planting',
+    description: 'Plant native species',
+    icon: <TreePine size={18} />,
+    decorIcon: <TreePine size={56} strokeWidth={1} />,
+    gradient: 'from-success-500 to-primary-600',
+  },
+  {
+    key: 'marine_restoration',
+    label: 'Marine Restoration',
+    description: 'Restore ocean habitats',
+    icon: <Droplets size={18} />,
+    decorIcon: <Droplets size={56} strokeWidth={1} />,
+    gradient: 'from-primary-500 to-moss-600',
+  },
+  {
+    key: 'nature_walk',
+    label: 'Nature Walks',
+    description: 'Explore & connect',
+    icon: <Compass size={18} />,
+    decorIcon: <Compass size={56} strokeWidth={1} />,
+    gradient: 'from-bark-500 to-warning-600',
+  },
+]
+
+/* ------------------------------------------------------------------ */
+/*  Animation variants                                                  */
+/* ------------------------------------------------------------------ */
+
+const stagger = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.04 } },
+}
+
+const fadeUp = {
+  hidden: { opacity: 0, y: 14 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Format helpers                                                      */
+/* ------------------------------------------------------------------ */
+
+function formatEventDate(iso: string): string {
+  const d = new Date(iso)
+  return d.toLocaleDateString('en-AU', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
+}
+
+function formatActivityType(type: ActivityType): string {
+  return ACTIVITY_TYPE_LABELS[type] ?? type.replace(/_/g, ' ')
+}
+
+/* ------------------------------------------------------------------ */
+/*  Props                                                               */
+/* ------------------------------------------------------------------ */
+
+interface NearbyEvent {
+  id: string
+  title: string
+  date_start: string
+  activity_type: ActivityType
+  cover_image_url: string | null
+  location_point: unknown
+  collectives: { id: string; name: string } | null
+}
+
+interface NearbyCollective {
+  id: string
+  name: string
+  slug: string
+  region: string | null
+  state: string | null
+  member_count: number
+  location_point: unknown
+}
+
+interface NationalImpactData {
+  totalMembers: number
+  treesPlanted: number
+  collectivesCount: number
+  rubbishCollectedTonnes: number
+}
+
+export interface ExploreListViewProps {
+  searchInputRef: RefObject<HTMLInputElement | null>
+  query: string
+  setQuery: (q: string) => void
+  commitSearch: (term: string) => void
+  openFilters: () => void
+  activeFilterCount: number
+  viewMode: ViewMode
+  setViewMode: (mode: ViewMode) => void
+  filters: { activityTypes: ActivityType[] }
+  toggleActivityFilter: (type: ActivityType) => void
+  nearbyEventsData: NearbyEvent[] | undefined
+  nearbyEventsLoading: boolean
+  nearbyCollectivesData: NearbyCollective[] | undefined
+  nearbyCollectivesLoading: boolean
+  showLoading: boolean
+  nationalImpact: NationalImpactData | undefined
+  onNavigate: (path: string) => void
+}
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                           */
+/* ------------------------------------------------------------------ */
+
+export function ExploreListView({
+  searchInputRef,
+  query,
+  setQuery,
+  commitSearch,
+  openFilters,
+  activeFilterCount,
+  viewMode,
+  setViewMode,
+  filters,
+  toggleActivityFilter,
+  nearbyEventsData,
+  nearbyEventsLoading,
+  nearbyCollectivesData,
+  nearbyCollectivesLoading,
+  showLoading,
+  nationalImpact,
+  onNavigate,
+}: ExploreListViewProps) {
+  const shouldReduceMotion = useReducedMotion()
+
+  return (
+    <motion.div
+      className="space-y-0"
+      variants={stagger}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* ======== Hero Banner ======== */}
+      <motion.div variants={fadeUp} className="mb-6">
+        <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-secondary-700">
+          {/* Decorative shapes - "explorer's horizon" formation */}
+          <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full border border-white/[0.07]" aria-hidden="true" />
+          <div className="absolute -top-4 -left-2 w-40 h-40 rounded-full bg-white/[0.04]" aria-hidden="true" />
+          <div className="absolute -bottom-12 -right-12 w-56 h-56 rounded-full bg-white/[0.05]" aria-hidden="true" />
+          <div className="absolute top-[20%] right-[15%] w-14 h-14 rounded-full border border-white/[0.10]" aria-hidden="true" />
+          <div className="absolute bottom-[25%] left-[35%] w-10 h-10 rounded-full bg-sprout-400/12" aria-hidden="true" />
+
+          {/* Leaf decorations */}
+          <div className="absolute top-4 right-8 text-white/10" aria-hidden="true">
+            <Leaf size={64} strokeWidth={1} />
+          </div>
+          <div className="absolute bottom-6 left-6 text-white/8 rotate-45" aria-hidden="true">
+            <TreePine size={48} strokeWidth={1} />
+          </div>
+
+          <div className="relative px-6 lg:px-10" style={{ paddingTop: '2rem' }}>
+            <motion.div
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+            >
+              <h2 className="text-[1.75rem] font-bold text-white leading-tight mb-2">
+                Explore. Connect.<br />Protect.
+              </h2>
+              <p className="text-[0.9375rem] text-white/70 max-w-[300px] leading-relaxed">
+                Find conservation events, join local collectives, and make a real difference.
+              </p>
+            </motion.div>
+
+            {/* Impact mini-stats */}
+            <motion.div
+              className="flex gap-5 mt-6"
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+            >
+              {[
+                { value: nationalImpact?.totalMembers ?? 0, label: 'Volunteers', icon: <Users size={14} /> },
+                { value: nationalImpact?.treesPlanted ?? 0, label: 'Trees Planted', icon: <TreePine size={14} /> },
+                { value: nationalImpact?.collectivesCount ?? 0, label: 'Collectives', icon: <Heart size={14} /> },
+              ].map((stat) => (
+                <div key={stat.label} className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="text-sprout-300">{stat.icon}</span>
+                    <span className="text-lg font-bold text-white tabular-nums">
+                      <CountUp end={stat.value} duration={1200} />
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-medium text-white/50 uppercase tracking-wider">
+                    {stat.label}
+                  </span>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* Search bar + filter + view toggle inside hero */}
+            <motion.div
+              className="flex items-center gap-2.5 mt-7 pb-7"
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
+            >
+              <SearchBar
+                ref={searchInputRef}
+                value={query}
+                onChange={setQuery}
+                onSubmit={commitSearch}
+                placeholder="Search events, collectives, people..."
+                aria-label="Search"
+                className="flex-1 min-w-0 [&_input]:bg-white/15 [&_input]:text-white [&_input]:placeholder-white/50 [&_input]:border-white/20 "
+              />
+
+              {/* Filter button */}
+              <motion.button
+                type="button"
+                onClick={openFilters}
+                whileTap={shouldReduceMotion ? undefined : { scale: 0.92 }}
+                className={cn(
+                  'relative flex items-center justify-center min-h-11 min-w-11 rounded-xl shrink-0',
+                  'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
+                  'bg-white/15 text-white/80 border border-white/20',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
+                )}
+                aria-label={`Filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}
+              >
+                <SlidersHorizontal size={18} />
+                {activeFilterCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-white text-primary-700 text-[10px] font-bold shadow-sm">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </motion.button>
+
+              {/* View toggle */}
+              <div className="flex rounded-xl overflow-hidden shrink-0 border border-white/20">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('map')}
+                  className={cn(
+                    'flex items-center justify-center min-h-11 min-w-11',
+                    'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
+                    viewMode === 'map'
+                      ? 'bg-white text-primary-700'
+                      : 'bg-white/10 text-white/60',
+                  )}
+                  aria-label="Map view"
+                  aria-pressed={viewMode === 'map'}
+                >
+                  <MapIcon size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  className={cn(
+                    'flex items-center justify-center min-h-11 min-w-11',
+                    'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
+                    viewMode === 'list'
+                      ? 'bg-white text-primary-700'
+                      : 'bg-white/10 text-white/60',
+                  )}
+                  aria-label="List view"
+                  aria-pressed={viewMode === 'list'}
+                >
+                  <List size={16} />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ======== Collective Map ======== */}
+      <motion.div variants={fadeUp} className="mb-6 px-4 lg:px-6">
+        <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-3">
+          Find a Collective
+        </h3>
+        <CollectiveMap className="h-[72vh] min-h-[480px]" />
+      </motion.div>
+
+
+      {/* ======== Popular Categories Grid ======== */}
+      <motion.div variants={fadeUp} className="mb-6 px-4 lg:px-6">
+        <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-3">
+          Popular Categories
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {CATEGORY_CARDS.map((cat, i) => (
+            <motion.button
+              key={cat.key}
+              type="button"
+              onClick={() => toggleActivityFilter(cat.key)}
+              whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
+              className={cn(
+                'relative overflow-hidden rounded-2xl p-4 text-left min-h-[100px]',
+                'cursor-pointer select-none transition-shadow duration-200',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                filters.activityTypes.includes(cat.key)
+                  ? 'ring-2 ring-primary-400 shadow-lg'
+                  : 'shadow-md',
+              )}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 + i * 0.05, duration: 0.3 }}
+              aria-label={cat.label}
+              aria-pressed={filters.activityTypes.includes(cat.key)}
+            >
+              {/* Gradient background */}
+              <div className={cn('absolute inset-0 bg-gradient-to-br', cat.gradient)} aria-hidden="true" />
+              {/* Decorative icon */}
+              <div className="absolute -bottom-2 -right-2 text-white/15" aria-hidden="true">
+                {cat.decorIcon}
+              </div>
+              {/* Content */}
+              <div className="relative">
+                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 text-white mb-2">
+                  {cat.icon}
+                </span>
+                <span className="text-sm font-semibold text-white block leading-tight">
+                  {cat.label}
+                </span>
+                <span className="text-[11px] font-medium text-white/60 mt-0.5 block">
+                  {cat.description}
+                </span>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* ======== Featured / Nearby Events ======== */}
+      <motion.div variants={fadeUp} className="mb-6">
+        <div className="flex items-center justify-between mb-3 px-4 lg:px-6">
+          <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+            Nearby Events
+          </h3>
+          <button
+            type="button"
+            onClick={() => onNavigate('/events')}
+            className="flex items-center gap-1 text-xs font-semibold text-primary-500 min-h-11 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+          >
+            View all <ArrowRight size={12} />
+          </button>
+        </div>
+
+        {nearbyEventsLoading && showLoading ? (
+          <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="w-[75vw] max-w-[260px] shrink-0">
+                <Card.Skeleton />
+              </div>
+            ))}
+          </div>
+        ) : nearbyEventsData && nearbyEventsData.length > 0 ? (
+          <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
+            {nearbyEventsData.map((event, idx) => {
+                const meta = ACTIVITY_META[event.activity_type] ?? ACTIVITY_META.other
+                return (
+                  <motion.div
+                    key={event.id}
+                    className="w-[75vw] max-w-[260px] shrink-0"
+                    initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: idx * 0.06, duration: 0.3 }}
+                  >
+                    <Card.Root
+                      variant="event"
+                      onClick={() => onNavigate(`/events/${event.id}`)}
+                      aria-label={event.title}
+                      className="h-full"
+                    >
+                      {/* Image or gradient placeholder */}
+                      {event.cover_image_url ? (
+                        <div className="relative">
+                          <Card.Image
+                            src={event.cover_image_url}
+                            alt={event.title}
+                            aspectRatio="16/10"
+                          />
+                          {/* Activity badge overlapping image */}
+                          <div className="absolute bottom-2 left-3">
+                            <Badge
+                              variant="activity"
+                              activity={activityTypeToBadge[event.activity_type] ?? 'restoration'}
+                              size="sm"
+                            >
+                              {formatActivityType(event.activity_type)}
+                            </Badge>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={cn(
+                          'relative w-full flex items-center justify-center bg-gradient-to-br',
+                          meta.gradient,
+                        )} style={{ aspectRatio: '16/10' }}>
+                          <span className="text-white/30">{meta.iconLg}</span>
+                          <div className="absolute bottom-2 left-3">
+                            <Badge
+                              variant="activity"
+                              activity={activityTypeToBadge[event.activity_type] ?? 'restoration'}
+                              size="sm"
+                            >
+                              {formatActivityType(event.activity_type)}
+                            </Badge>
+                          </div>
+                        </div>
+                      )}
+
+                      <Card.Content className="p-3">
+                        <Card.Title className="text-sm line-clamp-2">
+                          {event.title}
+                        </Card.Title>
+                        <Card.Meta className="text-xs flex items-center gap-1.5 mt-1">
+                          <Calendar size={12} aria-hidden="true" />
+                          {formatEventDate(event.date_start)}
+                        </Card.Meta>
+                        {event.collectives && (
+                          <Card.Meta className="text-xs flex items-center gap-1.5 mt-0.5">
+                            <Users size={12} aria-hidden="true" />
+                            {event.collectives.name}
+                          </Card.Meta>
+                        )}
+                      </Card.Content>
+
+                      {/* Bottom accent bar */}
+                      <div className={cn(
+                        'h-1 w-full bg-gradient-to-r',
+                        meta.gradient,
+                      )} aria-hidden="true" />
+                    </Card.Root>
+                  </motion.div>
+                )
+              })}
+          </div>
+        ) : (
+          <EmptyState
+            illustration="empty"
+            title="No nearby events"
+            description="Try expanding your search radius or check back later"
+            action={{ label: 'View All Events', to: '/events' }}
+            className="min-h-[160px] py-4 px-4 lg:px-6"
+          />
+        )}
+      </motion.div>
+
+      {/* ======== Impact Stats Strip ======== */}
+      <motion.div variants={fadeUp} className="mb-6">
+        <div className="bg-gradient-to-r from-primary-50 via-sprout-50 to-sky-50 px-5 py-5 lg:px-8">
+          <div className="flex items-center gap-2 mb-3">
+            <TrendingUp size={14} className="text-primary-500" />
+            <h3 className="text-xs font-semibold text-primary-500 uppercase tracking-wider">
+              Our Collective Impact
+            </h3>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { value: nationalImpact?.treesPlanted ?? 0, suffix: '+', label: 'Trees Planted', icon: <TreePine size={16} />, iconBg: 'bg-success-100', iconColor: 'text-success-600' },
+              { value: nationalImpact?.rubbishCollectedTonnes ?? 0, suffix: 't', label: 'Rubbish Collected', icon: <Waves size={16} />, iconBg: 'bg-sky-100', iconColor: 'text-sky-600' },
+              { value: nationalImpact?.totalMembers ?? 0, suffix: '+', label: 'Volunteers', icon: <Users size={16} />, iconBg: 'bg-plum-100', iconColor: 'text-plum-600' },
+              { value: nationalImpact?.collectivesCount ?? 0, suffix: '', label: 'Collectives', icon: <Heart size={16} />, iconBg: 'bg-coral-100', iconColor: 'text-coral-600' },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                className="rounded-xl bg-white/90 p-3 shadow-sm"
+                initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 + i * 0.08, duration: 0.3 }}
+              >
+                <div className={cn(
+                  'flex items-center justify-center w-8 h-8 rounded-lg mb-1.5',
+                  stat.iconBg,
+                )}>
+                  <span className={stat.iconColor}>{stat.icon}</span>
+                </div>
+                <span className="text-lg font-bold text-primary-800 tabular-nums block">
+                  <CountUp end={stat.value} duration={1400} />{stat.suffix}
+                </span>
+                <span className="text-[11px] font-medium text-primary-400 uppercase tracking-wider">
+                  {stat.label}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ======== Collectives ======== */}
+      <motion.div variants={fadeUp} className="mb-6 px-4 lg:px-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+            Collectives Near You
+          </h3>
+          <button
+            type="button"
+            onClick={() => onNavigate('/collectives')}
+            className="flex items-center gap-1 text-xs font-semibold text-primary-500 min-h-11 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+          >
+            View all <ArrowRight size={12} />
+          </button>
+        </div>
+
+        {nearbyCollectivesLoading && showLoading ? (
+          <Skeleton variant="list-item" count={3} />
+        ) : nearbyCollectivesData && nearbyCollectivesData.length > 0 ? (
+          <div className="space-y-3">
+            {nearbyCollectivesData.map((c, idx) => (
+              <motion.div
+                key={c.id}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.06, duration: 0.25 }}
+              >
+                <Card.Root
+                  variant="collective"
+                  onClick={() => onNavigate(`/collectives/${c.slug}`)}
+                  aria-label={c.name}
+                  className="overflow-hidden"
+                >
+                  <div className="flex items-stretch">
+                    {/* Gradient accent side bar */}
+                    <div className="w-1.5 bg-gradient-to-b from-primary-400 via-sprout-400 to-moss-400 shrink-0" aria-hidden="true" />
+                    <Card.Content className="flex items-center gap-3 flex-1 min-w-0 p-3">
+                      {/* Icon with gradient bg */}
+                      <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-primary-100 to-sprout-100 text-primary-500 shrink-0 shadow-sm">
+                        <TreePine size={20} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-primary-800 truncate">
+                          {c.name}
+                        </p>
+                        <p className="text-xs text-primary-400 flex items-center gap-1">
+                          <MapPin size={10} aria-hidden="true" />
+                          {[c.region, c.state]
+                            .filter(Boolean)
+                            .join(', ')}
+                        </p>
+                      </div>
+                      {/* Member count pill */}
+                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-50 shrink-0">
+                        <Users size={12} className="text-primary-400" />
+                        <span className="text-xs font-semibold text-primary-600 tabular-nums">
+                          {c.member_count}
+                        </span>
+                      </div>
+                    </Card.Content>
+                  </div>
+                </Card.Root>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState
+            illustration="wildlife"
+            title="No collectives nearby"
+            description="Expand your search or browse all collectives nationally"
+            action={{ label: 'Browse All Collectives', to: '/collectives' }}
+            className="min-h-[160px] py-4"
+          />
+        )}
+      </motion.div>
+
+      {/* ======== Join the Movement CTA ======== */}
+      <motion.div variants={fadeUp}>
+        <div className="relative overflow-hidden bg-gradient-to-br from-secondary-700 via-primary-700 to-primary-600 px-6 pt-10 lg:px-10"
+          style={{ paddingBottom: 'calc(var(--safe-bottom) + 3.5rem)' }}
+        >
+          {/* Decorative shapes - "gathering circle" */}
+          <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full border border-white/[0.08]" aria-hidden="true" />
+          <div className="absolute -top-2 right-4 w-24 h-24 rounded-full bg-white/[0.05]" aria-hidden="true" />
+          <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-white/[0.04]" aria-hidden="true" />
+          <div className="absolute top-[50%] left-[30%] w-10 h-10 rounded-full border border-white/[0.10]" aria-hidden="true" />
+          <div className="absolute bottom-8 right-[20%] text-white/8" aria-hidden="true">
+            <Leaf size={48} strokeWidth={1} />
+          </div>
+
+          <div className="relative">
+            <h3 className="text-xl font-bold text-white mb-2">
+              Join the Movement
+            </h3>
+            <p className="text-[0.9375rem] text-white/60 mb-6 max-w-[300px] leading-relaxed">
+              5,500+ young Australians are already making a difference. Find your local collective and start today.
+            </p>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => onNavigate('/collectives')}
+              className="bg-white text-primary-700 hover:bg-white/90 shadow-lg"
+            >
+              Find a Collective
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}

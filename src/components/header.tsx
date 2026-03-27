@@ -11,6 +11,8 @@ interface HeaderProps {
   rightActions?: ReactNode
   /** Render with no background  back button gets a glass pill for contrast on images */
   transparent?: boolean
+  /** Back button gets a dark filled circle background */
+  backDark?: boolean
   /** Display the title text in the header center zone */
   showTitle?: boolean
   className?: string
@@ -22,6 +24,7 @@ export function Header({
   onBack,
   rightActions,
   transparent = false,
+  backDark = false,
   showTitle = false,
   className,
 }: HeaderProps) {
@@ -68,7 +71,9 @@ export function Header({
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 transparent
                   ? 'bg-black/40 text-white hover:bg-black/50'
-                  : 'text-primary-800 hover:bg-primary-50/80',
+                  : backDark
+                    ? 'bg-primary-800 text-white hover:bg-primary-700 shadow-sm'
+                    : 'text-primary-800 hover:bg-primary-50/80',
               )}
               aria-label="Go back"
             >

@@ -1,14 +1,18 @@
-import { MarkdownRenderer } from './markdown-renderer'
-import { VideoPlayer } from './video-player'
-import { PdfViewer } from './pdf-viewer'
-import { Slideshow } from './slideshow'
+import { lazy, Suspense } from 'react'
 import { cn } from '@/lib/cn'
 import type { DevModuleContent } from '@/hooks/use-admin-development'
+
+const MarkdownRenderer = lazy(() => import('./markdown-renderer'))
+const VideoPlayer = lazy(() => import('./video-player'))
+const PdfViewer = lazy(() => import('./pdf-viewer'))
+const Slideshow = lazy(() => import('./slideshow'))
 
 interface ContentBlockRendererProps {
   block: DevModuleContent
   className?: string
 }
+
+const BlockFallback = () => <div className="h-24 animate-pulse rounded-lg bg-white" />
 
 export function ContentBlockRenderer({ block, className }: ContentBlockRendererProps) {
   return (
@@ -20,32 +24,40 @@ export function ContentBlockRenderer({ block, className }: ContentBlockRendererP
 
       {/* Text block */}
       {block.content_type === 'text' && block.text_content && (
-        <MarkdownRenderer content={block.text_content} />
+        <Suspense fallback={<BlockFallback />}>
+          <MarkdownRenderer content={block.text_content} />
+        </Suspense>
       )}
 
       {/* Video block */}
       {block.content_type === 'video' && block.video_url && (
-        <VideoPlayer
-          url={block.video_url}
-          provider={block.video_provider}
-        />
+        <Suspense fallback={<BlockFallback />}>
+          <VideoPlayer
+            url={block.video_url}
+            provider={block.video_provider}
+          />
+        </Suspense>
       )}
 
       {/* File block */}
       {block.content_type === 'file' && block.file_url && (
-        <PdfViewer
-          url={block.file_url}
-          fileName={block.file_name}
-          fileSizeBytes={block.file_size_bytes}
-        />
+        <Suspense fallback={<BlockFallback />}>
+          <PdfViewer
+            url={block.file_url}
+            fileName={block.file_name}
+            fileSizeBytes={block.file_size_bytes}
+          />
+        </Suspense>
       )}
 
       {/* Slideshow block */}
       {block.content_type === 'slideshow' && block.image_urls.length > 0 && (
-        <Slideshow
-          images={block.image_urls}
-          captions={block.image_captions}
-        />
+        <Suspense fallback={<BlockFallback />}>
+          <Slideshow
+            images={block.image_urls}
+            captions={block.image_captions}
+          />
+        </Suspense>
       )}
 
       {/* Quiz block  rendered separately by the parent page */}

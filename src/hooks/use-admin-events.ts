@@ -62,6 +62,7 @@ async function fetchAdminEventsData(): Promise<AdminEventsData> {
       .from('event_registrations')
       .select('event_id')
       .in('event_id', eventIds)
+      .in('status', ['registered', 'attended'])
 
     for (const row of (regRows ?? []) as { event_id: string }[]) {
       regCounts.set(row.event_id, (regCounts.get(row.event_id) ?? 0) + 1)

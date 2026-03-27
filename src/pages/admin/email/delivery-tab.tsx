@@ -45,7 +45,7 @@ export function DeliveryTab() {
             <EmptyState illustration="empty" title="No bounces" description="Email bounces from SendGrid will appear here" />
           ) : (
             <StaggeredList className="space-y-1">
-              {bounces.map((event: any) => (
+              {bounces.map((event) => (
                 <StaggeredItem key={event.id} className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-error-100 shrink-0">
                     <XCircle size={16} className="text-error-500" />
@@ -53,7 +53,7 @@ export function DeliveryTab() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-primary-800 truncate">{event.email}</p>
                     <p className="text-xs text-primary-400 mt-0.5">
-                      {event.reason ?? 'Hard bounce'} &middot; {formatDate(event.created_at)}
+                      {event.reason ?? 'Hard bounce'} &middot; {formatDate(event.created_at ?? '')}
                     </p>
                   </div>
                   <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-error-100 text-error-700 shrink-0">Suppressed</span>
@@ -72,14 +72,14 @@ export function DeliveryTab() {
             <EmptyState illustration="empty" title="No complaints" description="Spam complaints from SendGrid will appear here" />
           ) : (
             <StaggeredList className="space-y-1">
-              {complaints.map((event: any) => (
+              {complaints.map((event) => (
                 <StaggeredItem key={event.id} className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm">
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-warning-100 shrink-0">
                     <AlertTriangle size={16} className="text-warning-500" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-primary-800 truncate">{event.email}</p>
-                    <p className="text-xs text-primary-400 mt-0.5">Spam complaint &middot; {formatDate(event.created_at)}</p>
+                    <p className="text-xs text-primary-400 mt-0.5">Spam complaint &middot; {formatDate(event.created_at ?? '')}</p>
                   </div>
                   <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-warning-100 text-warning-700 shrink-0">Suppressed</span>
                 </StaggeredItem>

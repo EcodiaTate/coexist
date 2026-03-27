@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, startTransition } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { subscribeWithReconnect } from '@/lib/realtime'
 import { useAuth } from '@/hooks/use-auth'
 import { useToast } from '@/components/toast'
 
@@ -71,10 +72,11 @@ export function useReserveStock() {
   const release = useCallback(
     async (variantKey: string) => {
       if (!user) return
-      await supabase.rpc('release_reservation', {
+      const { error } = await supabase.rpc('release_reservation', {
         p_user_id: user.id,
         p_variant_key: variantKey,
       })
+      if (error) console.error('[stock] release error:', error.message)
       queryClient.invalidateQueries({ queryKey: ['product-stock'] })
       queryClient.invalidateQueries({ queryKey: ['available-stock'] })
     },
@@ -83,9 +85,10 @@ export function useReserveStock() {
 
   const releaseAll = useCallback(async () => {
     if (!user) return
-    await supabase.rpc('release_all_reservations', {
+    const { error } = await supabase.rpc('release_all_reservations', {
       p_user_id: user.id,
     })
+    if (error) console.error('[stock] release error:', error.message)
     queryClient.invalidateQueries({ queryKey: ['product-stock'] })
     queryClient.invalidateQueries({ queryKey: ['available-stock'] })
   }, [user, queryClient])
@@ -154,9 +157,12 @@ export function useAvailableStock(productId: string | undefined) {
         },
         () => fetchStock(),
       )
-      .subscribe()
+
+
+    const cleanup = subscribeWithReconnect(channel)
 
     return () => {
+      cleanup()
       supabase.removeChannel(channel)
     }
   }, [productId, fetchStock])
@@ -220,9 +226,12 @@ export function useMyReservations() {
         },
         () => fetchReservations(),
       )
-      .subscribe()
+
+
+    const cleanup = subscribeWithReconnect(channel)
 
     return () => {
+      cleanup()
       supabase.removeChannel(channel)
     }
   }, [user, fetchReservations])

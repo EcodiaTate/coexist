@@ -4,6 +4,7 @@ import {
   useCallback,
   useState,
   useRef,
+  memo,
   type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
@@ -142,7 +143,7 @@ export function ToastProvider({ children, className }: ToastProviderProps) {
         >
           <AnimatePresence initial={false}>
             {toasts.map((t) => (
-              <ToastCard key={t.id} item={t} onDismiss={() => dismiss(t.id)} />
+              <ToastCard key={t.id} item={t} dismiss={dismiss} />
             ))}
           </AnimatePresence>
         </div>,
@@ -159,18 +160,19 @@ export function ToastProvider({ children, className }: ToastProviderProps) {
 const springTransition = { type: 'spring' as const, damping: 28, stiffness: 340, mass: 0.8 }
 const instantTransition = { duration: 0 }
 
-function ToastCard({
+const ToastCard = memo(function ToastCard({
   item,
-  onDismiss,
+  dismiss,
 }: {
   item: ToastItem
-  onDismiss: () => void
+  dismiss: (id: string) => void
 }) {
   const { type, message } = item
   const config = typeConfig[type]
   const Icon = config.icon
   const shouldReduceMotion = useReducedMotion()
   const transition = shouldReduceMotion ? instantTransition : springTransition
+  const handleDismiss = useCallback(() => dismiss(item.id), [dismiss, item.id])
 
   return (
     <motion.div
@@ -193,7 +195,7 @@ function ToastCard({
       <Icon size={20} className={cn('shrink-0 mt-0.5', config.iconClass)} aria-hidden="true" />
       <p className="flex-1 text-sm font-medium text-primary-800">{message}</p>
       <button
-        onClick={onDismiss}
+        onClick={handleDismiss}
         className="shrink-0 rounded-full p-0.5 text-primary-400 transition-[colors,transform] duration-150 hover:bg-black/5 hover:text-primary-400 active:scale-[0.90] cursor-pointer"
         aria-label="Dismiss notification"
       >
@@ -201,4 +203,4 @@ function ToastCard({
       </button>
     </motion.div>
   )
-}
+})

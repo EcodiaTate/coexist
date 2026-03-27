@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { supabase, escapeIlike } from '@/lib/supabase'
 import type { Tables, Database } from '@/types/database.types'
 
 type ActivityType = Database['public']['Enums']['activity_type']
@@ -137,7 +137,7 @@ export function useSearch(filters?: SearchFilters) {
         eventsQuery = eventsQuery.lte('date_start', filters.dateTo)
       }
       if (filters?.state) {
-        eventsQuery = eventsQuery.ilike('address', `%${filters.state}%`)
+        eventsQuery = eventsQuery.ilike('address', `%${escapeIlike(filters.state)}%`)
       }
 
       const [eventsRes, collectivesRes, peopleRes] = await Promise.all([

@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Calendar, MapPin, Users, TreePine, ExternalLink, Download } from 'lucide-react'
@@ -51,6 +51,7 @@ const fadeUp = {
 
 export default function PublicEventPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
 
   const { data: event, isLoading, error } = useQuery({
@@ -86,7 +87,7 @@ export default function PublicEventPage() {
         <OGMeta title="Event Not Found" description="This event doesn't exist or is no longer available." />
         <h1 className="font-heading text-2xl font-bold text-primary-800">Event not found</h1>
         <p className="mt-2 text-primary-400">This event doesn't exist or is no longer public.</p>
-        <Button variant="primary" className="mt-6" onClick={() => window.location.href = '/download'}>
+        <Button variant="primary" className="mt-6" onClick={() => navigate('/download')}>
           Get the {APP_NAME} App
         </Button>
       </div>
@@ -246,7 +247,7 @@ export default function PublicEventPage() {
               // Try to open in-app, fallback to app store
               window.location.href = `coexist://events/${event.id}`
               setTimeout(() => {
-                window.location.href = '/download'
+                navigate('/download')
               }, 1500)
             }}
           >
@@ -257,7 +258,7 @@ export default function PublicEventPage() {
             size="lg"
             fullWidth
             icon={<Download size={18} />}
-            onClick={() => window.location.href = '/download'}
+            onClick={() => navigate('/download')}
           >
             Download {APP_NAME}
           </Button>

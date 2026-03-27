@@ -3,12 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   TreePine,
-  Trash2,
-  Waves,
   Clock,
   Leaf,
-  Eye,
-  Ruler,
   Camera,
   Plus,
   X,
@@ -16,7 +12,6 @@ import {
   CheckCircle2,
   Save,
   Calendar,
-  Sprout,
   ClipboardList,
 } from 'lucide-react'
 import {
@@ -24,18 +19,18 @@ import {
   useEventImpact,
   useEventAttendees,
   useLogImpact,
-  IMPACT_FIELDS_BY_ACTIVITY,
   ACTIVITY_TYPE_LABELS,
   getEventDuration,
 } from '@/hooks/use-events'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import { useAuth } from '@/hooks/use-auth'
-import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
+import { useEventSurvey } from '@/hooks/use-event-survey'
+import { SurveyQuestionRenderer } from '@/components/survey-questions'
+import type { SurveyQuestion } from '@/components/survey-questions'
 import { isBuiltinMetric } from '@/lib/impact-metrics'
-import type { ImpactField } from '@/hooks/use-events'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
-import type { Database, Json } from '@/types/database.types'
+import type { Json } from '@/types/database.types'
 import {
   Page,
   Header,
@@ -49,22 +44,10 @@ import {
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
+import { supabase } from '@/lib/supabase'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 const MapView = lazy(() => import('@/components/map/map-view').then(m => ({ default: m.MapView })))
-
-/* ------------------------------------------------------------------ */
-/*  Field icon mapping                                                 */
-/* ------------------------------------------------------------------ */
-
-const fieldIcons: Record<string, React.ReactNode> = {
-  tree: <TreePine size={18} className="text-success-600" />,
-  trash: <Trash2 size={18} className="text-error-500" />,
-  wave: <Waves size={18} className="text-info-500" />,
-  leaf: <Leaf size={18} className="text-primary-500" />,
-  eye: <Eye size={18} className="text-warning-500" />,
-  area: <Ruler size={18} className="text-plum-500" />,
-  weed: <Sprout size={18} className="text-moss-600" />,
-}
 
 /* ------------------------------------------------------------------ */
 /*  Species entry                                                      */
@@ -250,6 +233,62 @@ function PhotoUploadSection({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Impact sync from survey answers                                    */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Sync impact-tagged survey answers into event_impact.
+ * Built-in metrics → columns, custom metrics → custom_metrics jsonb.
+ */
+async function syncSurveyImpact(
+  eventId: string,
+  questions: SurveyQuestion[],
+  answers: Record<string, unknown>,
+  userId: string,
+) {
+  const builtinUpdates: Record<string, number> = {}
+  const customUpdates: Record<string, number> = {}
+
+  for (const q of questions) {
+    if (!q.impact_metric) continue
+    const raw = answers[q.id]
+    const value = typeof raw === 'number' ? raw : parseFloat(String(raw ?? ''))
+    if (!isNaN(value) && value >= 0) {
+      if (isBuiltinMetric(q.impact_metric)) {
+        builtinUpdates[q.impact_metric] = value
+      } else {
+        customUpdates[q.impact_metric] = value
+      }
+    }
+  }
+
+  if (Object.keys(builtinUpdates).length === 0 && Object.keys(customUpdates).length === 0) return
+
+  const { data: existing } = await supabase
+    .from('event_impact')
+    .select('*')
+    .eq('event_id', eventId)
+    .maybeSingle()
+
+  const { id: _id, ...existingFields } = existing ?? ({} as Record<string, unknown>)
+  const existingCustom = (existing?.custom_metrics as Record<string, unknown>) ?? {}
+
+  const merged = {
+    ...existingFields,
+    event_id: eventId,
+    logged_by: existing?.logged_by ?? userId,
+    custom_metrics: {
+      ...existingCustom,
+      ...customUpdates,
+      survey_synced: true,
+    },
+    ...builtinUpdates,
+  }
+
+  await supabase.from('event_impact').upsert(merged, { onConflict: 'event_id' })
+}
+
+/* ------------------------------------------------------------------ */
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -257,15 +296,37 @@ export default function LogImpactPage() {
   const { id: eventId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const queryClient = useQueryClient()
 
-  const { profile } = useAuth()
+  const { user, profile } = useAuth()
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: existingImpact, isLoading: impactLoading } = useEventImpact(eventId)
   const { data: attendees } = useEventAttendees(eventId)
   const logImpact = useLogImpact()
   const { isAssistLeader, isLoading: roleLoading } = useCollectiveRole(event?.collective_id)
   const isStaff = profile?.role === 'national_staff' || profile?.role === 'national_admin' || profile?.role === 'super_admin'
-  const { activeDefs } = useImpactMetricDefs()
+
+  // Load admin-created survey for this event's activity type
+  const { data: surveyData, isLoading: surveyLoading } = useEventSurvey(eventId, event?.activity_type)
+  const surveyQuestions = surveyData?.questions ?? []
+
+  // Load existing survey response (for edit pre-fill)
+  const { data: existingSurveyResponse } = useQuery({
+    queryKey: ['survey-response-leader', surveyData?.surveyId, eventId, user?.id],
+    queryFn: async () => {
+      if (!surveyData?.surveyId || !eventId || !user) return null
+      const { data } = await supabase
+        .from('survey_responses')
+        .select('answers')
+        .eq('survey_id', surveyData.surveyId)
+        .eq('event_id', eventId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+      return (data?.answers as Record<string, unknown>) ?? null
+    },
+    enabled: !!surveyData?.surveyId && !!eventId && !!user,
+    staleTime: 5 * 60 * 1000,
+  })
 
   const stagger: import('framer-motion').Variants = {
     hidden: {},
@@ -292,15 +353,21 @@ export default function LogImpactPage() {
   }, [existingImpact?.logged_at])
   const canEdit = !isEditWindowExpired || isStaff
 
-  // Form state - numbers stored as strings for input handling
-  const [formValues, setFormValues] = useState<Record<string, string>>({
-    trees_planted: '0',
-    rubbish_kg: '0',
-    area_restored_sqm: '0',
-    native_plants: '0',
-    wildlife_sightings: '0',
-    invasive_weeds_pulled: '0',
-  })
+  // Survey answers state
+  const [surveyAnswers, setSurveyAnswers] = useState<Record<string, unknown>>({})
+  const setSurveyAnswer = useCallback((id: string, value: unknown) => {
+    setSurveyAnswers((prev) => ({ ...prev, [id]: value }))
+  }, [])
+
+  // Pre-fill survey answers from existing response
+  useEffect(() => {
+    if (existingSurveyResponse && Object.keys(surveyAnswers).length === 0) {
+      startTransition(() => setSurveyAnswers(existingSurveyResponse))
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existingSurveyResponse])
+
+  // Leader sections state
   const [eventDurationHours, setEventDurationHours] = useState('')
   const [notes, setNotes] = useState('')
   const [species, setSpecies] = useState<SpeciesEntry[]>([])
@@ -308,8 +375,6 @@ export default function LogImpactPage() {
   const [beforePhotos, setBeforePhotos] = useState<string[]>([])
   const [afterPhotos, setAfterPhotos] = useState<string[]>([])
   const [drawnArea, setDrawnArea] = useState<Record<string, unknown> | null>(null)
-  // Custom metric values (non-builtin metrics from admin config)
-  const [customValues, setCustomValues] = useState<Record<string, string>>({})
 
   // Camera + upload hooks for each photo section
   const camera = useCamera()
@@ -337,20 +402,11 @@ export default function LogImpactPage() {
     [attendees],
   )
 
-  // Pre-populate from existing impact data
+  // Pre-populate leader sections from existing impact data
   useEffect(() => {
     if (existingImpact) {
       startTransition(() => {
-        setFormValues({
-          trees_planted: String(existingImpact.trees_planted),
-          rubbish_kg: String(existingImpact.rubbish_kg),
-          area_restored_sqm: String(existingImpact.area_restored_sqm),
-          native_plants: String(existingImpact.native_plants),
-          wildlife_sightings: String(existingImpact.wildlife_sightings),
-          invasive_weeds_pulled: String(existingImpact.invasive_weeds_pulled),
-        })
         setNotes(existingImpact.notes ?? '')
-        // Restore species, photos, and custom metric values from custom_metrics
         const cm = existingImpact.custom_metrics as Record<string, unknown> | null
         if (cm) {
           if (Array.isArray(cm.species)) setSpecies(cm.species as SpeciesEntry[])
@@ -358,14 +414,6 @@ export default function LogImpactPage() {
           if (Array.isArray(cm.before_photos)) setBeforePhotos(cm.before_photos as string[])
           if (Array.isArray(cm.after_photos)) setAfterPhotos(cm.after_photos as string[])
           if (cm.drawn_area && typeof cm.drawn_area === 'object') setDrawnArea(cm.drawn_area as Record<string, unknown>)
-          // Restore custom metric values
-          const restored: Record<string, string> = {}
-          for (const [k, v] of Object.entries(cm)) {
-            if (typeof v === 'number' && !['species', 'photos', 'before_photos', 'after_photos', 'drawn_area', 'survey_synced'].includes(k)) {
-              restored[k] = String(v)
-            }
-          }
-          if (Object.keys(restored).length > 0) setCustomValues(restored)
         }
         // Back-calculate duration from stored hours_total
         if (existingImpact.hours_total && checkedInCount > 0) {
@@ -393,54 +441,63 @@ export default function LogImpactPage() {
     return Math.round(duration * checkedInCount * 10) / 10
   }, [eventDurationHours, checkedInCount])
 
-  const activityType = event?.activity_type as Database['public']['Enums']['activity_type'] | undefined
-
-  // Activity-specific fields only (hours handled separately)
-  const { allFields } = useMemo(() => {
-    const fields = activityType ? IMPACT_FIELDS_BY_ACTIVITY[activityType] : []
-    return { impactFields: fields, allFields: fields.filter((f: ImpactField) => f.key !== 'hours_total') }
-  }, [activityType])
-
-  // Custom metrics from admin config (not built-in, not already in activity fields)
-  const customMetricDefs = useMemo(() => {
-    const activityKeys = new Set<string>(allFields.map((f: ImpactField) => f.key))
-    return activeDefs.filter(
-      (d) => !isBuiltinMetric(d.key) && !activityKeys.has(d.key) && d.key !== 'hours_total',
-    )
-  }, [activeDefs, allFields])
+  const activityType = event?.activity_type
 
   const handleSubmit = useCallback(async () => {
-    if (!eventId) return
+    if (!eventId || !user) return
 
-    // Build custom_metrics jsonb: custom metric values + species/photos/etc
-    const customMetricsPayload: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(customValues)) {
-      const num = parseFloat(v)
-      if (!isNaN(num) && num > 0) customMetricsPayload[k] = num
+    // 1. Save survey response + sync impact-tagged answers
+    if (surveyData?.surveyId && surveyQuestions.length > 0) {
+      await supabase
+        .from('survey_responses')
+        .upsert(
+          {
+            survey_id: surveyData.surveyId,
+            event_id: eventId,
+            user_id: user.id,
+            answers: surveyAnswers as unknown as Json,
+          },
+          { onConflict: 'survey_responses_unique_response' },
+        )
+
+      await syncSurveyImpact(eventId, surveyQuestions, surveyAnswers, user.id)
     }
+
+    // 2. Save leader sections (hours, photos, species, GPS, notes)
+    //    This upserts on event_id, merging with what syncSurveyImpact wrote
+    const customMetricsPayload: Record<string, unknown> = {}
     if (species.length > 0) customMetricsPayload.species = species
     if (photos.length > 0) customMetricsPayload.photos = photos
     if (beforePhotos.length > 0) customMetricsPayload.before_photos = beforePhotos
     if (afterPhotos.length > 0) customMetricsPayload.after_photos = afterPhotos
     if (drawnArea) customMetricsPayload.drawn_area = drawnArea
 
+    // Merge with existing custom_metrics to preserve survey-synced values
+    const existingCm = (existingImpact?.custom_metrics as Record<string, unknown>) ?? {}
+    const mergedCustom = { ...existingCm, ...customMetricsPayload }
+
     await logImpact.mutateAsync({
       event_id: eventId,
-      trees_planted: parseFloat(formValues.trees_planted) || 0,
-      rubbish_kg: parseFloat(formValues.rubbish_kg) || 0,
       hours_total: computedHoursTotal,
-      area_restored_sqm: parseFloat(formValues.area_restored_sqm) || 0,
-      native_plants: parseFloat(formValues.native_plants) || 0,
-      wildlife_sightings: parseFloat(formValues.wildlife_sightings) || 0,
-      invasive_weeds_pulled: parseFloat(formValues.invasive_weeds_pulled) || 0,
       notes: notes || null,
-      custom_metrics: customMetricsPayload as unknown as Json,
+      custom_metrics: mergedCustom as unknown as Json,
+      // Zero out built-in columns — survey sync handles them now
+      trees_planted: 0,
+      rubbish_kg: 0,
+      area_restored_sqm: 0,
+      native_plants: 0,
+      wildlife_sightings: 0,
+      invasive_weeds_pulled: 0,
     })
 
-    setSubmitted(true)
-  }, [eventId, formValues, notes, species, logImpact, computedHoursTotal, photos, beforePhotos, afterPhotos, drawnArea, customValues])
+    // Invalidate survey caches
+    queryClient.invalidateQueries({ queryKey: ['survey-response'] })
+    queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
 
-  const isLoading = eventLoading || impactLoading || roleLoading
+    setSubmitted(true)
+  }, [eventId, user, surveyData, surveyQuestions, surveyAnswers, species, photos, beforePhotos, afterPhotos, drawnArea, existingImpact, logImpact, computedHoursTotal, notes, queryClient])
+
+  const isLoading = eventLoading || impactLoading || roleLoading || surveyLoading
   const showLoading = useDelayedLoading(isLoading)
 
   if (showLoading) {
@@ -570,13 +627,6 @@ export default function LogImpactPage() {
           )}
         </div>
 
-        {existingImpact && !!(existingImpact.custom_metrics as Record<string, unknown> | null)?.survey_synced && (
-          <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-info-50 text-info-700 text-sm">
-            <ClipboardList size={16} />
-            Some values were set from the post-event survey. You can adjust them here.
-          </motion.div>
-        )}
-
         {existingImpact && isEditWindowExpired && !isStaff && (
           <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-error-50 text-error-700 text-sm">
             <Clock size={16} />
@@ -648,90 +698,33 @@ export default function LogImpactPage() {
           </div>
         </motion.div>
 
-        {/* Activity-specific impact fields */}
-        {allFields.length > 0 && (
-        <motion.div variants={fadeUp} className="space-y-4">
-          <h3 className="text-sm font-semibold text-primary-800">
-            Impact Metrics
-          </h3>
-
-          {allFields.map((field) => (
-            <div key={field.key} className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white shrink-0">
-                {field.icon === 'clock' ? <Clock size={18} className="text-primary-400" /> : fieldIcons[field.icon] ?? <Ruler size={18} className="text-primary-400" />}
-              </span>
-              <div className="flex-1 min-w-0">
-                <label className="block text-caption text-primary-400 mb-0.5">
-                  {field.label}
-                </label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    value={formValues[field.key] ?? '0'}
-                    onChange={(e) =>
-                      setFormValues((prev) => ({
-                        ...prev,
-                        [field.key]: e.target.value,
-                      }))
-                    }
-                    className={cn(
-                      'w-24 rounded-lg bg-surface-3',
-                      'px-3 py-2 text-[16px] text-right font-semibold text-primary-800',
-                      'focus:outline-none focus:ring-2 focus:ring-primary-400',
-                    )}
-                    min="0"
-                    step="any"
-                  />
-                  <span className="text-caption text-primary-400">{field.unit}</span>
-                </div>
-              </div>
+        {/* Survey questions — admin-configured impact fields */}
+        {surveyQuestions.length > 0 && (
+          <motion.div variants={fadeUp} className="space-y-3">
+            <div className="flex items-center gap-2">
+              <ClipboardList size={16} className="text-primary-500" />
+              <h3 className="text-sm font-semibold text-primary-800">
+                {surveyData?.title ?? 'Impact Survey'}
+              </h3>
             </div>
-          ))}
-        </motion.div>
+
+            <div className="rounded-xl bg-white border border-primary-100/40 p-4">
+              <SurveyQuestionRenderer
+                questions={surveyQuestions}
+                answers={surveyAnswers}
+                setAnswer={setSurveyAnswer}
+                numbered={false}
+              />
+            </div>
+          </motion.div>
         )}
 
-        {/* Custom metrics from admin config */}
-        {customMetricDefs.length > 0 && (
-        <motion.div variants={fadeUp} className="space-y-4">
-          <h3 className="text-sm font-semibold text-primary-800">
-            Additional Metrics
-          </h3>
-
-          {customMetricDefs.map((def) => (
-            <div key={def.key} className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-white shrink-0">
-                {fieldIcons[def.icon] ?? <Ruler size={18} className="text-primary-400" />}
-              </span>
-              <div className="flex-1 min-w-0">
-                <label className="block text-caption text-primary-400 mb-0.5">
-                  {def.label}
-                </label>
-                <div className="flex items-center gap-1.5">
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    value={customValues[def.key] ?? '0'}
-                    onChange={(e) =>
-                      setCustomValues((prev) => ({
-                        ...prev,
-                        [def.key]: e.target.value,
-                      }))
-                    }
-                    className={cn(
-                      'w-24 rounded-lg bg-surface-3',
-                      'px-3 py-2 text-[16px] text-right font-semibold text-primary-800',
-                      'focus:outline-none focus:ring-2 focus:ring-primary-400',
-                    )}
-                    min="0"
-                    step={def.decimal ? 'any' : '1'}
-                  />
-                  <span className="text-caption text-primary-400">{def.unit}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </motion.div>
+        {/* No survey fallback info */}
+        {!surveyLoading && surveyQuestions.length === 0 && (
+          <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50/60 text-primary-500 text-sm">
+            <ClipboardList size={16} />
+            No impact survey configured for this event type. Ask an admin to create one under Surveys.
+          </motion.div>
         )}
 
         {/* Species tracking (for relevant activity types) */}

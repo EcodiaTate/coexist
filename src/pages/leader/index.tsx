@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
@@ -656,7 +656,7 @@ function TodoItem({ todo, reducedMotion }: { todo: LeaderTodo; reducedMotion: bo
 
         {/* Meta row */}
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-          {/* Priority badge (skip medium — it's the default) */}
+          {/* Priority badge (skip medium - it's the default) */}
           {todo.priority !== 'medium' && (
             <span className={cn(
               'inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md',
@@ -958,7 +958,9 @@ export default function LeaderDashboardPage() {
   const { data: tasks } = useMyTasks()
   const generateMutation = useGenerateTaskInstances()
   const groups = useGroupedTasks(tasks)
-  useEffect(() => { generateMutation.mutate() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  const generateMutateRef = useRef(generateMutation.mutate)
+  generateMutateRef.current = generateMutation.mutate
+  useEffect(() => { generateMutateRef.current() }, [])
   const pendingTasks = useMemo(() => {
     return groups.flatMap((g) => g.tasks).filter((t) => t.status === 'pending')
   }, [groups])
@@ -976,15 +978,16 @@ export default function LeaderDashboardPage() {
   const Wrapper = isInLeaderLayout ? LeaderPassthroughWrapper : LeaderPageWrapper
 
   // Find an event within ±3 hours of now (must be before early returns)
-  const [mountTime] = useState(() => Date.now())
+  const mountTimeRef = useRef(Date.now())
   const currentEvent = useMemo(() => {
     if (!data?.upcomingEvents) return null
     const THREE_HOURS = 3 * 60 * 60 * 1000
+    const now = mountTimeRef.current
     return (data.upcomingEvents as { date_start: string; id: string }[]).find((e) => {
       const start = new Date(e.date_start).getTime()
-      return mountTime >= start - THREE_HOURS && mountTime <= start + THREE_HOURS
+      return now >= start - THREE_HOURS && now <= start + THREE_HOURS
     }) ?? null
-  }, [data, mountTime])
+  }, [data])
 
   // Next upcoming event for "Edit Event" quick action (must be before early returns)
   const nextUpcomingEvent = useMemo(() => {

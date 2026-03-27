@@ -21,6 +21,7 @@ import { Checkbox } from '@/components/checkbox'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
+import { collectiveApplicationSchema, safeValidate } from '@/lib/validation'
 import { useAuth } from '@/hooks/use-auth'
 
 /* ------------------------------------------------------------------ */
@@ -153,6 +154,22 @@ export default function LeadACollectivePage() {
     e.preventDefault()
     if (!canSubmit) return
 
+    const { success, data: validated, error: valError } = safeValidate(collectiveApplicationSchema, {
+      firstName: firstName,
+      lastName: lastName,
+      email,
+      phone,
+      addressLine1,
+      suburb,
+      postcode,
+      whyVolunteer,
+      additionalInfo,
+    })
+    if (!success) {
+      toast.toast.error(valError)
+      return
+    }
+
     setSubmitting(true)
     try {
       // Upload resume if provided
@@ -174,24 +191,24 @@ export default function LeadACollectivePage() {
       const { error } = await supabase
         .from('collective_applications')
         .insert({
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          email: email.trim(),
+          first_name: validated.firstName,
+          last_name: validated.lastName,
+          email: validated.email,
           date_of_birth: dob || null,
-          phone: phone || null,
+          phone: validated.phone || null,
           country: 'Australia',
-          address_line1: addressLine1.trim(),
+          address_line1: validated.addressLine1,
           address_line2: addressLine2.trim() || null,
-          suburb: suburb.trim(),
+          suburb: validated.suburb,
           state,
-          postcode: postcode.trim(),
-          why_volunteer: whyVolunteer.trim(),
+          postcode: validated.postcode,
+          why_volunteer: validated.whyVolunteer,
           roles,
           time_commitment: timeCommitment,
           attended_events: attendedEvents || null,
           skills,
           resume_url: resumeUrl,
-          additional_info: additionalInfo.trim() || null,
+          additional_info: validated.additionalInfo || null,
           how_heard: howHeard,
           news_opt_in: newsOptIn,
           user_id: profile?.id ?? null,

@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { MapPin, Users, TreePine, Heart, Shield, ArrowRight } from 'lucide-react'
@@ -124,6 +124,7 @@ function TrustPill({ icon: Icon, text }: { icon: typeof Shield; text: string }) 
 
 export default function PublicCollectivePage() {
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const platform = typeof window !== 'undefined' ? getDevicePlatform() : 'web'
@@ -186,7 +187,7 @@ export default function PublicCollectivePage() {
         <p className="mt-2 text-primary-400 max-w-xs">This collective doesn't exist or is no longer active.</p>
         <button
           type="button"
-          onClick={() => window.location.href = '/download'}
+          onClick={() => navigate('/download')}
           className="mt-6 px-6 py-3 rounded-xl bg-primary-800 text-white font-heading font-semibold hover:bg-primary-900 active:scale-[0.97] transition-transform cursor-pointer"
         >
           Get the {APP_NAME} App
@@ -229,7 +230,7 @@ export default function PublicCollectivePage() {
   const handleOpenInApp = () => {
     window.location.href = `coexist://collectives/${collective.id}`
     setTimeout(() => {
-      window.location.href = '/download'
+      navigate('/download')
     }, 1500)
   }
 
@@ -239,7 +240,7 @@ export default function PublicCollectivePage() {
     } else if (platform === 'android') {
       window.open(PLAY_STORE_URL, '_blank')
     } else {
-      window.location.href = '/download'
+      navigate('/download')
     }
   }
 
@@ -455,7 +456,7 @@ export default function PublicCollectivePage() {
               {/* Web fallback */}
               <button
                 type="button"
-                onClick={() => window.location.href = '/'}
+                onClick={() => navigate('/')}
                 className={cn(
                   'w-full px-6 py-3',
                   'rounded-xl bg-white/10 text-white/80',

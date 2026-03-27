@@ -300,10 +300,11 @@ function ProductFormSheet({
           images,
         })
         // Update variants as full JSONB replace
-        await supabase
+        const { error: variantError } = await supabase
           .from('merch_products')
           .update({ variants: variantsToSave })
           .eq('id', product.id)
+        if (variantError) throw variantError
       } else {
         const created = await createProduct.mutateAsync({
           name: name.trim(),
