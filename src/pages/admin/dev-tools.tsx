@@ -246,6 +246,7 @@ function useCleanupTests() {
         const ids = testEvents.map((e) => e.id)
         for (const id of ids) {
           await supabase.from('event_registrations').delete().eq('event_id', id)
+          await supabase.from('survey_responses').delete().eq('event_id', id)
           await supabase.from('event_impact').delete().eq('event_id', id)
         }
         await supabase.from('events').delete().in('id', ids)

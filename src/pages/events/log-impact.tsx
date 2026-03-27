@@ -27,7 +27,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useEventSurvey } from '@/hooks/use-event-survey'
 import { SurveyQuestionRenderer } from '@/components/survey-questions'
 import type { SurveyQuestion } from '@/components/survey-questions'
-import { isBuiltinMetric } from '@/lib/impact-metrics'
+import { syncSurveyImpact } from '@/lib/survey-impact'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import type { Json } from '@/types/database.types'
@@ -233,62 +233,6 @@ function PhotoUploadSection({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Impact sync from survey answers                                    */
-/* ------------------------------------------------------------------ */
-
-/**
- * Sync impact-tagged survey answers into event_impact.
- * Built-in metrics → columns, custom metrics → custom_metrics jsonb.
- */
-async function syncSurveyImpact(
-  eventId: string,
-  questions: SurveyQuestion[],
-  answers: Record<string, unknown>,
-  userId: string,
-) {
-  const builtinUpdates: Record<string, number> = {}
-  const customUpdates: Record<string, number> = {}
-
-  for (const q of questions) {
-    if (!q.impact_metric) continue
-    const raw = answers[q.id]
-    const value = typeof raw === 'number' ? raw : parseFloat(String(raw ?? ''))
-    if (!isNaN(value) && value >= 0) {
-      if (isBuiltinMetric(q.impact_metric)) {
-        builtinUpdates[q.impact_metric] = value
-      } else {
-        customUpdates[q.impact_metric] = value
-      }
-    }
-  }
-
-  if (Object.keys(builtinUpdates).length === 0 && Object.keys(customUpdates).length === 0) return
-
-  const { data: existing } = await supabase
-    .from('event_impact')
-    .select('*')
-    .eq('event_id', eventId)
-    .maybeSingle()
-
-  const { id: _id, ...existingFields } = existing ?? ({} as Record<string, unknown>)
-  const existingCustom = (existing?.custom_metrics as Record<string, unknown>) ?? {}
-
-  const merged = {
-    ...existingFields,
-    event_id: eventId,
-    logged_by: existing?.logged_by ?? userId,
-    custom_metrics: {
-      ...existingCustom,
-      ...customUpdates,
-      survey_synced: true,
-    },
-    ...builtinUpdates,
-  }
-
-  await supabase.from('event_impact').upsert(merged, { onConflict: 'event_id' })
-}
-
-/* ------------------------------------------------------------------ */
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
 
@@ -460,11 +404,18 @@ export default function LogImpactPage() {
           { onConflict: 'survey_responses_unique_response' },
         )
 
-      await syncSurveyImpact(eventId, surveyQuestions, surveyAnswers, user.id)
+      await syncSurveyImpact(eventId, surveyQuestions, surveyAnswers as Record<string, Json>, user.id)
     }
 
     // 2. Save leader sections (hours, photos, species, GPS, notes)
-    //    This upserts on event_id, merging with what syncSurveyImpact wrote
+    //    Read the impact row now so we preserve any builtin values that syncSurveyImpact
+    //    just wrote. The upsert must not zero those out.
+    const { data: postSyncImpact } = await supabase
+      .from('event_impact')
+      .select('trees_planted, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings, invasive_weeds_pulled, custom_metrics')
+      .eq('event_id', eventId)
+      .maybeSingle()
+
     const customMetricsPayload: Record<string, unknown> = {}
     if (species.length > 0) customMetricsPayload.species = species
     if (photos.length > 0) customMetricsPayload.photos = photos
@@ -472,8 +423,8 @@ export default function LogImpactPage() {
     if (afterPhotos.length > 0) customMetricsPayload.after_photos = afterPhotos
     if (drawnArea) customMetricsPayload.drawn_area = drawnArea
 
-    // Merge with existing custom_metrics to preserve survey-synced values
-    const existingCm = (existingImpact?.custom_metrics as Record<string, unknown>) ?? {}
+    // Merge custom_metrics: base (existing) → survey-synced → leader sections
+    const existingCm = (postSyncImpact?.custom_metrics as Record<string, unknown>) ?? {}
     const mergedCustom = { ...existingCm, ...customMetricsPayload }
 
     await logImpact.mutateAsync({
@@ -481,13 +432,13 @@ export default function LogImpactPage() {
       hours_total: computedHoursTotal,
       notes: notes || null,
       custom_metrics: mergedCustom as unknown as Json,
-      // Zero out built-in columns — survey sync handles them now
-      trees_planted: 0,
-      rubbish_kg: 0,
-      area_restored_sqm: 0,
-      native_plants: 0,
-      wildlife_sightings: 0,
-      invasive_weeds_pulled: 0,
+      // Preserve builtin values written by syncSurveyImpact; default to 0 only when no survey data
+      trees_planted: postSyncImpact?.trees_planted ?? 0,
+      rubbish_kg: postSyncImpact?.rubbish_kg ?? 0,
+      area_restored_sqm: postSyncImpact?.area_restored_sqm ?? 0,
+      native_plants: postSyncImpact?.native_plants ?? 0,
+      wildlife_sightings: postSyncImpact?.wildlife_sightings ?? 0,
+      invasive_weeds_pulled: postSyncImpact?.invasive_weeds_pulled ?? 0,
     })
 
     // Invalidate survey caches

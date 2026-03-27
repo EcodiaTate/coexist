@@ -1031,7 +1031,7 @@ async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
   const userIds = attendees.map((a) => a.user_id)
   const [{ data: existingResponses }, { data: existingNotifications }] = await Promise.all([
     supabase
-      .from('post_event_survey_responses')
+      .from('survey_responses')
       .select('user_id')
       .eq('event_id', eventId)
       .in('user_id', userIds),
