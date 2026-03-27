@@ -9,6 +9,28 @@ import {
 /*  Query key                                                          */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Cache invalidation contract:
+ *
+ * When metric defs change (upsert, delete, reorder), only ['impact-metric-defs']
+ * queries are invalidated. Consumer hooks (useNationalImpact, useCollectiveImpact,
+ * useProfileStats, useImpactStats) use metric defs only for display labels/units,
+ * NOT for filtering or aggregation logic. Therefore:
+ *
+ * - Label/unit renames: cosmetic — consumers show stale labels until their own
+ *   staleTime (5 min) expires. This is acceptable; no cross-invalidation needed.
+ *
+ * - Metric deactivation: does NOT affect aggregate totals. Deactivated metrics
+ *   still have data in event_impact; the is_active flag only controls whether
+ *   the metric appears in the logging form and survey linker. Historical data
+ *   remains in aggregates. If the intent is to exclude deactivated metrics from
+ *   aggregates, that would require filtering in the aggregation hooks — which we
+ *   intentionally do not do, because hiding historical data would be misleading.
+ *
+ * - Metric deletion: only removes the definition row. Data in event_impact
+ *   columns (builtin) or custom_metrics jsonb (custom) is untouched. The metric
+ *   will render with a fallback label (key with underscores replaced by spaces).
+ */
 const QUERY_KEY = ['impact-metric-defs'] as const
 
 /* ------------------------------------------------------------------ */

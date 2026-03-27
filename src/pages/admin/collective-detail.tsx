@@ -61,6 +61,8 @@ import {
     type AdminCollectiveMember,
     type AdminCollectiveEvent,
 } from '@/hooks/use-admin-collectives'
+import { useCollectiveCustomMetrics } from '@/hooks/use-impact'
+import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import type { Database } from '@/types/database.types'
 
 type CollectiveRole = Database['public']['Enums']['collective_role']
@@ -221,6 +223,8 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
   const showStatsLoading = useDelayedLoading(statsLoading)
   const { data: members = [] } = useAdminCollectiveMembers(collectiveId)
   const { data: events = [] } = useAdminCollectiveEvents(collectiveId)
+  const { data: customMetrics } = useCollectiveCustomMetrics(collectiveId)
+  const { metricLabels } = useImpactMetricDefs()
 
   const leaders = members.filter((m) =>
     ['leader', 'co_leader', 'assist_leader'].includes(m.role!),
@@ -332,6 +336,33 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
                 color={item.color}
                 reducedMotion={rm}
                 delay={0.3 + i * 0.04}
+              />
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── Custom metrics ── */}
+      {customMetrics && customMetrics.length > 0 && (
+        <motion.div
+          initial={rm ? { opacity: 1 } : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles size={16} className="text-primary-500" />
+            <h3 className="font-heading text-sm font-semibold text-primary-800">Custom Metrics</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {customMetrics.map((cm, i) => (
+              <RichStatCard
+                key={cm.key}
+                value={cm.total}
+                label={metricLabels[cm.key] ?? cm.key.replace(/_/g, ' ')}
+                icon={<TrendingUp size={20} className="text-primary-600" />}
+                color="bg-primary-50"
+                reducedMotion={rm}
+                delay={0.35 + i * 0.04}
               />
             ))}
           </div>

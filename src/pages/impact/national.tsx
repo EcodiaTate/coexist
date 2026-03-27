@@ -12,6 +12,8 @@ import {
   Trophy,
   GraduationCap,
   Globe,
+  Sparkles,
+  Waves,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
@@ -21,7 +23,8 @@ import { CountUp } from '@/components/count-up'
 import { Button } from '@/components/button'
 import { cn } from '@/lib/cn'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { useNationalImpact } from '@/hooks/use-impact'
+import { useNationalImpact, useNationalCustomMetrics } from '@/hooks/use-impact'
+import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import { supabase } from '@/lib/supabase'
 import { parseLocationPoint } from '@/lib/geo'
 import { MapView } from '@/components'
@@ -181,6 +184,7 @@ const STAT_STYLES: Record<string, { gradient: string; iconBg: string }> = {
   members:     { gradient: 'from-primary-50/90 to-primary-100/50', iconBg: 'bg-primary-600' },
   collectives: { gradient: 'from-bark-50/90 to-bark-100/50', iconBg: 'bg-bark-600' },
   leaders:     { gradient: 'from-bark-100/90 to-bark-200/50', iconBg: 'bg-bark-600' },
+  coastline:   { gradient: 'from-sky-100/90 to-sky-200/50', iconBg: 'bg-sky-600' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -276,6 +280,8 @@ export default function NationalImpactPage() {
   const { data: trends } = useTrends()
   const { data: eventMapPoints } = useEventMapPoints()
   const { data: breakdown } = useByActivity()
+  const { data: customMetrics } = useNationalCustomMetrics(5)
+  const { metricLabels, metricByKey } = useImpactMetricDefs()
 
   if (showLoading) {
     const skeleton = (
@@ -309,6 +315,7 @@ export default function NationalImpactPage() {
       if (data?.invasiveWeedsPulled) parts.push(`${data.invasiveWeedsPulled.toLocaleString()} invasive weeds pulled`)
       if (data?.rubbishCollectedTonnes) parts.push(`${data.rubbishCollectedTonnes}t rubbish collected`)
       if (data?.cleanupSites) parts.push(`${data.cleanupSites} cleanup sites`)
+      if (data?.coastlineCleanedM) parts.push(`${data.coastlineCleanedM}m coastline cleaned`)
       if (data?.leadersEmpowered) parts.push(`${data.leadersEmpowered} leaders empowered`)
       navigator.share({
         title: 'Co-Exist National Impact',
@@ -427,6 +434,16 @@ export default function NationalImpactPage() {
             style="cleanups"
             delay={0.2}
           />
+          {(data?.coastlineCleanedM ?? 0) > 0 && (
+            <NationalStat
+              icon={<Waves size={20} strokeWidth={2.5} />}
+              value={data?.coastlineCleanedM ?? 0}
+              suffix="m"
+              label="Coastline Cleaned"
+              style="coastline"
+              delay={0.22}
+            />
+          )}
 
           {/* Organisational */}
           <NationalStat
@@ -451,6 +468,29 @@ export default function NationalImpactPage() {
             delay={0.3}
           />
         </motion.div>
+
+        {/* ─── Notable Custom Metrics ─── */}
+        {customMetrics && customMetrics.length > 0 && (
+          <motion.section variants={fadeUp} className="mx-5 mt-6">
+            <SectionHeading>
+              <Sparkles size={14} strokeWidth={2.5} className="text-primary-500" />
+              Notable Custom Metrics
+            </SectionHeading>
+            <div className="grid grid-cols-2 gap-4">
+              {customMetrics.map((cm, i) => (
+                <NationalStat
+                  key={cm.key}
+                  icon={<Sparkles size={20} strokeWidth={2.5} />}
+                  value={cm.total}
+                  label={metricLabels[cm.key] ?? cm.key.replace(/_/g, ' ')}
+                  suffix={metricByKey[cm.key]?.unit}
+                  style="events"
+                  delay={0.05 + i * 0.05}
+                />
+              ))}
+            </div>
+          </motion.section>
+        )}
 
         {/* ─── Geographic Activity Map ─── */}
         <motion.section
@@ -483,7 +523,7 @@ export default function NationalImpactPage() {
                   const height = (t.impact / max) * 100
                   return (
                     <div key={t.month} className="flex-1 flex flex-col items-center gap-2">
-                      <span className="text-[11px] text-primary-600 tabular-nums font-bold">{t.impact}</span>
+                      <span className="text-[11px] text-primary-600 tabular-nums font-bold">{t.impact === 0 ? '—' : t.impact}</span>
                       <motion.div
                         className="w-full rounded-xl bg-gradient-to-t from-primary-700 via-primary-500 to-primary-300 min-h-[6px] shadow-sm"
                         initial={shouldReduceMotion ? { height: `${height}%` } : { height: 0 }}

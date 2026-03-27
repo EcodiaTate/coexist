@@ -28,6 +28,7 @@ import { useEventSurvey } from '@/hooks/use-event-survey'
 import { SurveyQuestionRenderer } from '@/components/survey-questions'
 import type { SurveyQuestion } from '@/components/survey-questions'
 import { syncSurveyImpact } from '@/lib/survey-impact'
+import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import type { Json } from '@/types/database.types'
@@ -250,6 +251,8 @@ export default function LogImpactPage() {
   const { isAssistLeader, isLoading: roleLoading } = useCollectiveRole(event?.collective_id)
   const isStaff = profile?.role === 'national_staff' || profile?.role === 'national_admin' || profile?.role === 'super_admin'
 
+  const { validKeys } = useImpactMetricDefs()
+
   // Load admin-created survey for this event's activity type
   const { data: surveyData, isLoading: surveyLoading } = useEventSurvey(eventId, event?.activity_type)
   const surveyQuestions = surveyData?.questions ?? []
@@ -404,7 +407,7 @@ export default function LogImpactPage() {
           { onConflict: 'survey_responses_unique_response' },
         )
 
-      await syncSurveyImpact(eventId, surveyQuestions, surveyAnswers as Record<string, Json>, user.id)
+      await syncSurveyImpact(eventId, surveyQuestions, surveyAnswers as Record<string, Json>, user.id, validKeys)
     }
 
     // 2. Save leader sections (hours, photos, species, GPS, notes)
@@ -459,7 +462,7 @@ export default function LogImpactPage() {
     queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
 
     setSubmitted(true)
-  }, [eventId, user, surveyData, surveyQuestions, surveyAnswers, species, photos, beforePhotos, afterPhotos, drawnArea, existingImpact, logImpact, computedHoursTotal, notes, queryClient])
+  }, [eventId, user, surveyData, surveyQuestions, surveyAnswers, species, photos, beforePhotos, afterPhotos, drawnArea, existingImpact, logImpact, computedHoursTotal, notes, queryClient, validKeys])
 
   const isLoading = eventLoading || impactLoading || roleLoading || surveyLoading
   const showLoading = useDelayedLoading(isLoading)

@@ -23,7 +23,17 @@ export async function syncSurveyImpact(
 
   for (const q of questions) {
     if (!q.impact_metric) continue
-    if (validKeys && !validKeys.has(q.impact_metric)) continue
+
+    // Validate the metric key exists as builtin or in admin-defined defs
+    const knownKey = isBuiltinMetric(q.impact_metric) || (validKeys ? validKeys.has(q.impact_metric) : false)
+    if (!knownKey) {
+      console.warn(
+        `[syncSurveyImpact] Question "${q.id}" has impact_metric="${q.impact_metric}" ` +
+        `which is not a builtin metric or known metric def — skipping. ` +
+        `Check for typos or deleted metrics in the survey builder.`,
+      )
+      continue
+    }
 
     const raw = answers[q.id]
     const value = typeof raw === 'number' ? raw : parseFloat(String(raw ?? ''))

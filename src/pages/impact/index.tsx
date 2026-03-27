@@ -12,6 +12,7 @@ import {
     Flame,
     ArrowRight,
     Globe,
+    Waves,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -145,6 +146,11 @@ const STAT_CONFIGS: Record<string, { gradient: string; iconBg: string; iconColor
   leaders: {
     gradient: 'from-bark-100/90 to-bark-200/50',
     iconBg: 'bg-bark-600',
+    iconColor: 'text-white',
+  },
+  coastline: {
+    gradient: 'from-sky-100/90 to-sky-200/50',
+    iconBg: 'bg-sky-600',
     iconColor: 'text-white',
   },
 }
@@ -398,6 +404,7 @@ export default function ImpactDashboardPage() {
     if (stats.invasiveWeedsPulled > 0) parts.push(`${stats.invasiveWeedsPulled} invasive weeds pulled`)
     if (stats.rubbishCollectedTonnes > 0) parts.push(`${stats.rubbishCollectedTonnes}t rubbish collected`)
     if (stats.cleanupSites > 0) parts.push(`${stats.cleanupSites} cleanup sites`)
+    if (stats.coastlineCleanedM > 0) parts.push(`${stats.coastlineCleanedM}m coastline cleaned`)
     if (stats.leadersEmpowered > 0) parts.push(`${stats.leadersEmpowered} leaders empowered`)
     const text = `My Co-Exist Impact: ${parts.join(', ')}! Join at coexistaus.org`
     if (navigator.share) {
@@ -498,6 +505,17 @@ export default function ImpactDashboardPage() {
                 icon={<Trash2 size={20} strokeWidth={2.5} />}
                 config="cleanups"
               />
+
+              {/* Coastline */}
+              {stats.coastlineCleanedM > 0 && (
+                <BigStat
+                  value={stats.coastlineCleanedM}
+                  label="Coastline (m)"
+                  icon={<Waves size={20} strokeWidth={2.5} />}
+                  config="coastline"
+                  suffix="m"
+                />
+              )}
 
               {/* Organisational */}
               <BigStat
