@@ -177,7 +177,7 @@ export default function AdminImpactMetricsPage() {
 
     const orphanedSurveys = (linkedSurveys ?? []).filter((s) => {
       const questions = Array.isArray(s.questions) ? s.questions : []
-      return questions.some((q: Record<string, unknown>) => q.impact_metric === key)
+      return questions.some((q) => (q as Record<string, unknown>)?.impact_metric === key)
     })
 
     if (orphanedSurveys.length > 0) {
@@ -208,7 +208,7 @@ export default function AdminImpactMetricsPage() {
 
       const orphanedSurveys = (linkedSurveys ?? []).filter((s) => {
         const questions = Array.isArray(s.questions) ? s.questions : []
-        return questions.some((q: Record<string, unknown>) => q.impact_metric === def.key)
+        return questions.some((q) => (q as Record<string, unknown>)?.impact_metric === def.key)
       })
 
       if (orphanedSurveys.length > 0) {
