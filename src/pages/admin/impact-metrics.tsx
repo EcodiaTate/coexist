@@ -35,6 +35,7 @@ import {
     useReorderMetricDefs,
 } from '@/hooks/use-impact-metric-defs'
 import { isBuiltinMetric } from '@/lib/impact-metrics'
+import { supabase } from '@/lib/supabase'
 import type { ImpactMetricDef } from '@/lib/impact-metrics'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -145,6 +146,11 @@ export default function AdminImpactMetricsPage() {
       toast.error('Key must be lowercase alphanumeric with underscores (e.g. coral_fragments)')
       return
     }
+    // Prevent creating a custom metric that collides with a built-in column
+    if (showAdd && isBuiltinMetric(form.key)) {
+      toast.error(`"${form.key}" is a built-in metric — edit it instead of creating a new one`)
+      return
+    }
     try {
       await upsertMutation.mutateAsync({
         ...form,
@@ -162,6 +168,28 @@ export default function AdminImpactMetricsPage() {
       toast.error('Built-in metrics cannot be deleted - toggle them inactive instead')
       return
     }
+
+    // Check for surveys that still reference this metric key in their questions
+    const { data: linkedSurveys } = await supabase
+      .from('surveys')
+      .select('id, title, questions')
+      .eq('status', 'active')
+
+    const orphanedSurveys = (linkedSurveys ?? []).filter((s) => {
+      const questions = Array.isArray(s.questions) ? s.questions : []
+      return questions.some((q: Record<string, unknown>) => q.impact_metric === key)
+    })
+
+    if (orphanedSurveys.length > 0) {
+      const names = orphanedSurveys.map((s) => `"${s.title}"`).join(', ')
+      const confirmed = window.confirm(
+        `Warning: ${orphanedSurveys.length} active survey(s) still reference "${key}": ${names}.\n\n` +
+        `Deleting this metric will cause those questions to silently stop recording impact data.\n\n` +
+        `Delete anyway?`,
+      )
+      if (!confirmed) return
+    }
+
     try {
       await deleteMutation.mutateAsync(key)
       toast.success('Metric deleted')
@@ -171,6 +199,29 @@ export default function AdminImpactMetricsPage() {
   }, [deleteMutation, toast])
 
   const handleToggleActive = useCallback(async (def: ImpactMetricDef) => {
+    // Warn if deactivating a metric that active surveys still reference
+    if (def.is_active) {
+      const { data: linkedSurveys } = await supabase
+        .from('surveys')
+        .select('id, title, questions')
+        .eq('status', 'active')
+
+      const orphanedSurveys = (linkedSurveys ?? []).filter((s) => {
+        const questions = Array.isArray(s.questions) ? s.questions : []
+        return questions.some((q: Record<string, unknown>) => q.impact_metric === def.key)
+      })
+
+      if (orphanedSurveys.length > 0) {
+        const names = orphanedSurveys.map((s) => `"${s.title}"`).join(', ')
+        const confirmed = window.confirm(
+          `Warning: ${orphanedSurveys.length} active survey(s) still reference "${def.key}": ${names}.\n\n` +
+          `Deactivating will cause those questions to stop recording impact data.\n\n` +
+          `Deactivate anyway?`,
+        )
+        if (!confirmed) return
+      }
+    }
+
     try {
       await upsertMutation.mutateAsync({
         key: def.key,

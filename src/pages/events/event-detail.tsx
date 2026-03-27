@@ -68,6 +68,7 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import { MapView } from '@/components'
 
 /* ------------------------------------------------------------------ */
@@ -241,6 +242,7 @@ export default function EventDetailPage() {
 
   const { data: event, isLoading } = useEventDetail(id)
   const showLoading = useDelayedLoading(isLoading)
+  const { metricLabels, metricByKey } = useImpactMetricDefs()
   const collectiveRole = useCollectiveRole(event?.collective_id)
   const registerMutation = useRegisterForEvent()
   const cancelMutation = useCancelRegistration()
@@ -974,6 +976,20 @@ export default function EventDetailPage() {
                   icon={<Waves size={18} />}
                 />
               )}
+              {/* Custom metrics from JSONB */}
+              {event.impact.custom_metrics &&
+                typeof event.impact.custom_metrics === 'object' &&
+                !Array.isArray(event.impact.custom_metrics) &&
+                Object.entries(event.impact.custom_metrics as Record<string, unknown>)
+                  .filter(([, v]) => (Number(v) || 0) > 0)
+                  .map(([key, v]) => (
+                    <StatCard
+                      key={key}
+                      label={metricLabels[key] ?? key.replace(/_/g, ' ')}
+                      value={Number(v) || 0}
+                      icon={<Sparkles size={18} />}
+                    />
+                  ))}
             </div>
           </motion.div>
         )}

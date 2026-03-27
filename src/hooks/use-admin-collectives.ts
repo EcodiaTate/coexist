@@ -232,6 +232,8 @@ export function useAdminCollectiveStats(collectiveId: string | undefined) {
     queryFn: async () => {
       if (!collectiveId) throw new Error('No collective ID')
 
+      // RPC uses COALESCE(SUM(...), 0) so unmeasured metrics aggregate to 0,
+      // which is the correct semantic for dashboard totals (vs null in raw rows).
       const { data, error } = await supabase.rpc('get_collective_stats', {
         p_collective_id: collectiveId,
       })

@@ -58,13 +58,29 @@ export function useProfileStats(userId?: string) {
       if (!id) throw new Error('No user ID')
 
       // Get events attended count + event IDs in a single query
-      const { data: registrations, count: eventsAttended } = await supabase
-        .from('event_registrations')
-        .select('event_id', { count: 'exact' })
-        .eq('user_id', id)
-        .eq('status', 'attended')
+      const [regRes, activityRes] = await Promise.all([
+        supabase
+          .from('event_registrations')
+          .select('event_id', { count: 'exact' })
+          .eq('user_id', id)
+          .eq('status', 'attended'),
+        // Fetch activity types of attended events for stat visibility heuristic
+        supabase
+          .from('event_registrations')
+          .select('events(activity_type)')
+          .eq('user_id', id)
+          .eq('status', 'attended'),
+      ])
 
+      const { data: registrations, count: eventsAttended } = regRes
       const eventIds = registrations?.map((r) => r.event_id) ?? []
+
+      // Count attended events by activity_type for display heuristic
+      const activityTypeCounts = new Map<string, number>()
+      for (const row of activityRes.data ?? []) {
+        const at = (row.events as { activity_type: string } | null)?.activity_type
+        if (at) activityTypeCounts.set(at, (activityTypeCounts.get(at) ?? 0) + 1)
+      }
 
       let totalTreesPlanted = 0
       let totalHours = 0
@@ -72,6 +88,8 @@ export function useProfileStats(userId?: string) {
       let totalAreaSqm = 0
       let totalNativePlants = 0
       let totalWildlifeSightings = 0
+      let totalInvasiveWeedsPulled = 0
+      let totalCoastlineM = 0
 
       if (eventIds.length > 0) {
         // Batch in chunks to avoid URL length limits — parallelize
@@ -94,6 +112,8 @@ export function useProfileStats(userId?: string) {
             totalAreaSqm += Number(impact.area_restored_sqm) || 0
             totalNativePlants += Number(impact.native_plants) || 0
             totalWildlifeSightings += Number(impact.wildlife_sightings) || 0
+            totalInvasiveWeedsPulled += Number(impact.invasive_weeds_pulled) || 0
+            totalCoastlineM += Number(impact.coastline_cleaned_m) || 0
           }
         }
       }
@@ -106,6 +126,10 @@ export function useProfileStats(userId?: string) {
         areaRestoredSqm: totalAreaSqm,
         nativePlants: totalNativePlants,
         wildlifeSightings: totalWildlifeSightings,
+        invasiveWeedsPulled: totalInvasiveWeedsPulled,
+        coastlineCleanedM: Math.round(totalCoastlineM),
+        /** Activity types attended — used to decide which stats to show even when 0 */
+        activityTypeCounts: Object.fromEntries(activityTypeCounts) as Record<string, number>,
       }
     },
     enabled: !!id,

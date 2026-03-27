@@ -11,6 +11,7 @@ import {
   Sprout,
   Bird,
   Ruler,
+  Waves,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -213,6 +214,13 @@ export default function ViewProfilePage() {
               value={stats?.wildlifeSightings ?? 0}
               label="Wildlife"
               icon={<Bird size={20} />}
+            />
+          )}
+          {(stats?.coastlineCleanedM ?? 0) > 0 && (
+            <StatCard
+              value={stats?.coastlineCleanedM ?? 0}
+              label="Coastline (m)"
+              icon={<Waves size={20} />}
             />
           )}
         </motion.div>

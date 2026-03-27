@@ -36,6 +36,7 @@ export interface CanonicalImpact {
   /* Cleanup Sites */
   rubbishCollectedTonnes: number
   cleanupSites: number
+  coastlineCleanedM: number
   /* Organisational */
   collectivesCount: number
   leadersEmpowered: number
@@ -132,6 +133,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         invasiveWeedsPulled: sumMetric(logs, 'invasive_weeds_pulled'),
         rubbishCollectedTonnes: Math.round((sumMetric(logs, 'rubbish_kg') / 1000) * 100) / 100,
         cleanupSites: cleanupAddresses.size,
+        coastlineCleanedM: Math.round(sumMetric(logs, 'coastline_cleaned_m')),
         collectivesCount: collectivesRes.count ?? 0,
         leadersEmpowered: uniqueLeaders.size,
         totalMembers: membersRes.count ?? 0,
@@ -217,11 +219,78 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
         invasiveWeedsPulled: sumMetric(rows, 'invasive_weeds_pulled'),
         rubbishCollectedTonnes: Math.round((sumMetric(rows, 'rubbish_kg') / 1000) * 100) / 100,
         cleanupSites: cleanupAddresses.size,
+        coastlineCleanedM: Math.round(sumMetric(rows, 'coastline_cleaned_m')),
         collectivesCount: 1,
         leadersEmpowered: uniqueLeaders.size,
       }
     },
     enabled: !!collectiveId,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Custom metrics aggregation (for surfaces that need them)           */
+/* ------------------------------------------------------------------ */
+
+export interface AggregatedCustomMetric {
+  key: string
+  total: number
+}
+
+/**
+ * Aggregate custom_metrics JSONB across event_impact rows.
+ * Returns top custom metrics by total value, excluding builtins.
+ */
+function aggregateCustomMetrics(
+  rows: Record<string, unknown>[],
+  limit?: number,
+): AggregatedCustomMetric[] {
+  const totals = new Map<string, number>()
+  for (const row of rows) {
+    const cm = row.custom_metrics as Record<string, unknown> | null
+    if (!cm || typeof cm !== 'object') continue
+    for (const [key, val] of Object.entries(cm)) {
+      const n = Number(val) || 0
+      if (n > 0) totals.set(key, (totals.get(key) ?? 0) + n)
+    }
+  }
+  const sorted = Array.from(totals.entries())
+    .map(([key, total]) => ({ key, total }))
+    .sort((a, b) => b.total - a.total)
+  return limit ? sorted.slice(0, limit) : sorted
+}
+
+/** Custom metrics for a single collective */
+export function useCollectiveCustomMetrics(collectiveId: string | undefined) {
+  return useQuery({
+    queryKey: ['collective-custom-metrics', collectiveId],
+    queryFn: async (): Promise<AggregatedCustomMetric[]> => {
+      if (!collectiveId) return []
+      const { data, error } = await supabase
+        .from('event_impact')
+        .select('custom_metrics, events!inner(collective_id)')
+        .eq('events.collective_id', collectiveId)
+      if (error) throw error
+      return aggregateCustomMetrics((data ?? []) as unknown as Record<string, unknown>[])
+    },
+    enabled: !!collectiveId,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/** Top custom metrics nationally (for national dashboard) */
+export function useNationalCustomMetrics(limit = 5) {
+  return useQuery({
+    queryKey: ['national-custom-metrics', limit],
+    queryFn: async (): Promise<AggregatedCustomMetric[]> => {
+      const { data, error } = await supabase
+        .from('event_impact')
+        .select('custom_metrics')
+        .not('custom_metrics', 'is', null)
+      if (error) throw error
+      return aggregateCustomMetrics((data ?? []) as unknown as Record<string, unknown>[], limit)
+    },
     staleTime: 5 * 60 * 1000,
   })
 }
@@ -259,6 +328,7 @@ export function useImpactStats(userId?: string) {
           invasiveWeedsPulled: 0,
           rubbishCollectedTonnes: 0,
           cleanupSites: 0,
+          coastlineCleanedM: 0,
           collectivesCount: 0,
           leadersEmpowered: 0,
         }
@@ -307,12 +377,14 @@ export function useImpactStats(userId?: string) {
       let totalTrees = 0
       let totalWeeds = 0
       let totalRubbishKg = 0
+      let totalCoastlineM = 0
 
       for (const impact of impacts) {
         totalHours += impact.hours_total ?? 0
         totalTrees += impact.trees_planted ?? 0
         totalWeeds += impact.invasive_weeds_pulled ?? 0
         totalRubbishKg += impact.rubbish_kg ?? 0
+        totalCoastlineM += impact.coastline_cleaned_m ?? 0
       }
 
       const cleanupAddresses = new Set(
@@ -338,6 +410,7 @@ export function useImpactStats(userId?: string) {
         invasiveWeedsPulled: totalWeeds,
         rubbishCollectedTonnes: Math.round((totalRubbishKg / 1000) * 100) / 100,
         cleanupSites: cleanupAddresses.size,
+        coastlineCleanedM: Math.round(totalCoastlineM),
         collectivesCount: uniqueCollectives.size,
         leadersEmpowered: (leadersRes.data ?? []).length > 0 ? 1 : 0,
       }

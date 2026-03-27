@@ -20,6 +20,7 @@ import {
     Search,
     Camera,
     CheckCircle2,
+    Waves,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
@@ -914,9 +915,10 @@ function HomeImpactSection({
                   <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
                     Cleanup
                   </span>
-                  <div className="grid grid-cols-2 gap-3">
-                    <ImpactStat inView={inView} index={5} value={data.rubbishCollectedTonnes > 0 ? `${data.rubbishCollectedTonnes}t` : '-'} label="Rubbish Collected" icon={<Trash2 size={16} />} color="bg-sky-500" />
-                    <ImpactStat inView={inView} index={6} value={data.cleanupSites} label="Cleanup Sites" icon={<Trash2 size={16} />} color="bg-sky-600" />
+                  <div className="grid grid-cols-3 gap-2">
+                    <ImpactStat inView={inView} index={5} value={data.rubbishCollectedTonnes > 0 ? `${data.rubbishCollectedTonnes}t` : '-'} label="Rubbish" icon={<Trash2 size={16} />} color="bg-sky-500" />
+                    <ImpactStat inView={inView} index={6} value={data.cleanupSites} label="Sites" icon={<Trash2 size={16} />} color="bg-sky-600" />
+                    <ImpactStat inView={inView} index={9} value={data.coastlineCleanedM > 0 ? `${data.coastlineCleanedM}m` : '-'} label="Coastline" icon={<Waves size={16} />} color="bg-sky-700" />
                   </div>
                 </motion.div>
 

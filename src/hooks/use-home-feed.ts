@@ -199,6 +199,8 @@ export function useImpactStats() {
     queryKey: ['home', 'impact-stats', user?.id],
     queryFn: async () => {
       if (!user) return null
+      // RPC uses COALESCE(SUM(...), 0) so unmeasured metrics aggregate to 0,
+      // which is the correct semantic for dashboard totals (vs null in raw rows).
       const { data, error } = await supabase.rpc('get_user_impact_stats', {
         p_user_id: user.id,
       })

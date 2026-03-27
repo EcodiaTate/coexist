@@ -10,9 +10,6 @@ import { useAuth } from '@/hooks/use-auth'
 import { useEventDetail, ACTIVITY_TYPE_LABELS, isPastEvent } from '@/hooks/use-events'
 import { useEventSurvey } from '@/hooks/use-event-survey'
 import { SurveyQuestionRenderer } from '@/components/survey-questions'
-import type { SurveyQuestion } from '@/components/survey-questions'
-import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
-import { syncSurveyImpact } from '@/lib/survey-impact'
 import {
     Page,
     Header,
@@ -70,19 +67,16 @@ function useExistingResponse(surveyId: string | undefined, eventId: string | und
 function useSubmitSurvey() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
-  const { validKeys } = useImpactMetricDefs()
 
   return useMutation({
     mutationFn: async ({
       surveyId,
       eventId,
       answers,
-      questions,
     }: {
       surveyId: string
       eventId: string
       answers: Json
-      questions: SurveyQuestion[]
     }) => {
       if (!user) throw new Error('Not authenticated')
 
@@ -99,17 +93,14 @@ function useSubmitSurvey() {
         )
       if (error) throw error
 
-      // --- Sync impact-tagged answers into event_impact ---
-      await syncSurveyImpact(eventId, questions, answers as Record<string, Json>, user.id, validKeys)
+      // NOTE: Attendees do NOT call syncSurveyImpact. Impact-tagged survey
+      // answers are only synced to event_impact via the leader's log-impact
+      // submission. If attendees wrote here they'd overwrite the leader's
+      // authoritative impact figures with their own individual answers.
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['survey-response', variables.surveyId] })
       queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
-      queryClient.invalidateQueries({ queryKey: ['event-impact', variables.eventId] })
-      queryClient.invalidateQueries({ queryKey: ['national-impact'] })
-      queryClient.invalidateQueries({ queryKey: ['collective-impact'] })
-      queryClient.invalidateQueries({ queryKey: ['impact-stats'] })
-      queryClient.invalidateQueries({ queryKey: ['home.impact-stats'] })
     },
   })
 }
@@ -157,7 +148,7 @@ export default function PostEventSurveyPage() {
 
   const handleSubmit = useCallback(async () => {
     if (!eventId || !surveyId || !canSubmit || !questions.length) return
-    await submitMutation.mutateAsync({ surveyId, eventId, answers: answers as Json, questions })
+    await submitMutation.mutateAsync({ surveyId, eventId, answers: answers as Json })
     setSubmitted(true)
   }, [eventId, surveyId, canSubmit, answers, submitMutation, questions])
 
