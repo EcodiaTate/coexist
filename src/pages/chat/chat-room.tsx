@@ -772,7 +772,7 @@ export default function ChatRoomPage() {
         isFetchingNextPage={isFetchingNextPage}
         hasNextPage={hasNextPage}
         fetchNextPage={fetchNextPage}
-        typingText={isCollective ? typingText : undefined}
+        typingText={isCollective ? typingText ?? undefined : undefined}
         onMessageLongPress={handleMessageLongPress}
         onProfileTap={(userId) => setProfileUserId(userId)}
         scrollContainerRef={scrollContainerRef}

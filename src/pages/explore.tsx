@@ -672,7 +672,7 @@ export default function ExplorePage() {
                     activeFilterCount={activeFilterCount}
                     viewMode={viewMode}
                     setViewMode={setViewMode}
-                    userLocation={userLocation}
+                    userLocation={userLocation ?? undefined}
                     nearbyEventsData={nearbyEvents.data}
                     nearbyCollectivesData={nearbyCollectives.data}
                     onNavigate={navigate}

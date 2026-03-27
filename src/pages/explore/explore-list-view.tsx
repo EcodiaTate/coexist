@@ -217,7 +217,7 @@ interface NearbyCollective {
   slug: string
   region: string | null
   state: string | null
-  member_count: number
+  member_count: number | null
   location_point: unknown
 }
 
