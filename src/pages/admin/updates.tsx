@@ -2,25 +2,25 @@ import { useState, useMemo, useRef, useCallback } from 'react'
 import { motion, useReducedMotion, AnimatePresence } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
-  Plus,
-  Megaphone,
-  Pin,
-  AlertTriangle,
-  Globe,
-  Users,
-  Pencil,
-  Trash2,
-  Eye,
-  Image as ImageIcon,
-  X,
-  ExternalLink,
-  Link as LinkIcon,
-  Send,
-  Sparkles,
-  ChevronRight,
-  ArrowLeft,
-  Copy,
-  Clock,
+    Plus,
+    Megaphone,
+    Pin,
+    AlertTriangle,
+    Globe,
+    Users,
+    Pencil,
+    Trash2,
+    Eye,
+    Image as ImageIcon,
+    X,
+    ExternalLink,
+    Link as LinkIcon,
+    Send,
+    Sparkles,
+    ChevronRight,
+    ArrowLeft,
+    Copy,
+    Clock,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
@@ -39,11 +39,11 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useCollectives } from '@/hooks/use-collective'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import {
-  useAdminUpdates,
-  useCreateUpdate,
-  useUpdateUpdate,
-  useDeleteUpdate,
-  type AdminUpdate,
+    useAdminUpdates,
+    useCreateUpdate,
+    useUpdateUpdate,
+    useDeleteUpdate,
+    type AdminUpdate,
 } from '@/hooks/use-updates'
 import type { Enums } from '@/types/database.types'
 
@@ -529,7 +529,7 @@ function ComposeModal({
           </div>
         </div>
 
-        {/* Target audience — simplified: national or specific collective */}
+        {/* Target audience - simplified: national or specific collective */}
         <div>
           <label className="block text-sm font-semibold text-primary-800 mb-2">
             Who sees this?
@@ -643,7 +643,7 @@ function ComposeModal({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Detail panel — shown in the right column when an update is         */
+/*  Detail panel - shown in the right column when an update is         */
 /*  selected, giving admin a full preview + management actions         */
 /* ------------------------------------------------------------------ */
 
@@ -1114,7 +1114,7 @@ export default function AdminUpdatesPage() {
           </div>
         </motion.div>
 
-        {/* Content — list + optional detail panel */}
+        {/* Content - list + optional detail panel */}
         <motion.div variants={fadeUp}>
           <div className="flex gap-4">
             {/* Update list */}
@@ -1153,7 +1153,7 @@ export default function AdminUpdatesPage() {
               )}
             </div>
 
-            {/* Detail panel — desktop, slides in from right */}
+            {/* Detail panel - desktop, slides in from right */}
             <AnimatePresence mode="wait">
               {activeUpdate && (
                 <div className="hidden lg:block lg:w-1/2 xl:w-[55%] sticky top-0 h-[calc(100vh-12rem)]">
@@ -1170,7 +1170,7 @@ export default function AdminUpdatesPage() {
             </AnimatePresence>
           </div>
 
-          {/* Mobile detail — full overlay */}
+          {/* Mobile detail - full overlay */}
           <AnimatePresence>
             {activeUpdate && (
               <motion.div

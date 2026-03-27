@@ -178,6 +178,14 @@ export async function resolveAndGenerateDynamicInstances(
   // 3. For each template + collective combo, find matching events
   const now = new Date()
 
+  // Build all event queries in parallel, then batch upsert task instances
+  interface EventQueryJob {
+    templateId: string
+    collectiveId: string
+    rule: TimelineRule
+  }
+
+  const jobs: EventQueryJob[] = []
   for (const template of templates as TemplateRow[]) {
     const rule = ruleMap.get(template.id as string)
     if (!rule) continue
@@ -187,61 +195,74 @@ export async function resolveAndGenerateDynamicInstances(
       : staffCollectiveIds
 
     for (const collectiveId of targetCollectives) {
-      // Build event query for this collective
+      jobs.push({ templateId: template.id, collectiveId, rule })
+    }
+  }
+
+  // Fetch events for all jobs in parallel
+  const eventResults = await Promise.all(
+    jobs.map(async (job) => {
       const lookaheadEnd = new Date(now)
-      lookaheadEnd.setDate(lookaheadEnd.getDate() + rule.lookahead_days)
+      lookaheadEnd.setDate(lookaheadEnd.getDate() + job.rule.lookahead_days)
 
       let eventQuery = supabase
         .from('events')
         .select('id, title, date_start, activity_type, series_id')
-        .eq('collective_id', collectiveId)
+        .eq('collective_id', job.collectiveId)
         .eq('status', 'published')
         .gte('date_start', now.toISOString())
         .lte('date_start', lookaheadEnd.toISOString())
         .order('date_start', { ascending: true })
 
-      // Apply anchor-specific filters
-      if (rule.anchor === 'next_event_of_type' && rule.activity_type_filter) {
-        eventQuery = eventQuery.eq('activity_type', rule.activity_type_filter as Database['public']['Enums']['activity_type'])
+      if (job.rule.anchor === 'next_event_of_type' && job.rule.activity_type_filter) {
+        eventQuery = eventQuery.eq('activity_type', job.rule.activity_type_filter as Database['public']['Enums']['activity_type'])
       }
-      if (rule.anchor === 'event_series' && rule.series_id_filter) {
-        eventQuery = eventQuery.eq('series_id', rule.series_id_filter)
+      if (job.rule.anchor === 'event_series' && job.rule.series_id_filter) {
+        eventQuery = eventQuery.eq('series_id', job.rule.series_id_filter)
       }
-
-      // Limit to 1 if not matching all events
-      if (!rule.match_all_events) {
+      if (!job.rule.match_all_events) {
         eventQuery = eventQuery.limit(1)
       }
 
       const { data: events } = await eventQuery
-      if (!events?.length) continue
+      return { job, events: events ?? [] }
+    }),
+  )
 
-      // Generate an instance for each matched event
-      for (const event of events) {
-        const eventDate = new Date(event.date_start)
-        const dueDate = new Date(eventDate)
-        dueDate.setDate(dueDate.getDate() + rule.offset_days)
-        dueDate.setHours(23, 59, 59, 999)
+  // Collect all upsert rows
+  const dynamicRows: Array<{
+    template_id: string
+    collective_id: string
+    event_id: string
+    due_date: string
+    period_key: string
+    status: string
+  }> = []
 
-        // Skip if due date is already in the past — no point creating overdue tasks
-        if (dueDate < now) continue
+  for (const { job, events } of eventResults) {
+    for (const event of events) {
+      const eventDate = new Date(event.date_start)
+      const dueDate = new Date(eventDate)
+      dueDate.setDate(dueDate.getDate() + job.rule.offset_days)
+      dueDate.setHours(23, 59, 59, 999)
 
-        const periodKey = `event:${event.id}`
+      if (dueDate < now) continue
 
-        // Use ignoreDuplicates to avoid overwriting completed/skipped instances
-        await supabase.from('task_instances')
-          .upsert(
-            {
-              template_id: template.id,
-              collective_id: collectiveId,
-              event_id: event.id,
-              due_date: dueDate.toISOString(),
-              period_key: periodKey,
-              status: 'pending',
-            },
-            { onConflict: 'template_id,collective_id,period_key', ignoreDuplicates: true },
-          )
-      }
+      dynamicRows.push({
+        template_id: job.templateId,
+        collective_id: job.collectiveId,
+        event_id: event.id,
+        due_date: dueDate.toISOString(),
+        period_key: `event:${event.id}`,
+        status: 'pending',
+      })
     }
+  }
+
+  // Single batch upsert
+  if (dynamicRows.length > 0) {
+    const { error } = await supabase.from('task_instances')
+      .upsert(dynamicRows, { onConflict: 'template_id,collective_id,period_key', ignoreDuplicates: true })
+    if (error) console.error('[timeline] batch upsert error:', error.message)
   }
 }

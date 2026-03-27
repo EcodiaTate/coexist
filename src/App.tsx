@@ -197,13 +197,6 @@ function PageFallback() {
 /*  Bare routes (no app shell chrome)                                  */
 /* ------------------------------------------------------------------ */
 
-/** Bare routes (no app shell chrome)  kept for reference */
-// const _bareRoutes = [
-//   '/welcome', '/signup', '/login', '/forgot-password', '/verify-email',
-//   '/suspended', '/accept-terms', '/onboarding', '/leader-welcome', '/welcome-back',
-// ]
-
-
 /* ------------------------------------------------------------------ */
 /*  App                                                                */
 /* ------------------------------------------------------------------ */
@@ -552,15 +545,5 @@ function App() {
     </>
   )
 }
-
-/** Temporary placeholder for unbuilt pages  kept for reference */
-// function _PlaceholderPage({ title }: { title: string }) {
-//   return (
-//     <div className="flex flex-col items-center justify-center flex-1 p-6">
-//       <h1 className="font-heading text-2xl font-bold text-black">{title}</h1>
-//       <p className="mt-2 text-sm text-primary-400">Coming soon</p>
-//     </div>
-//   )
-// }
 
 export default App

@@ -87,17 +87,19 @@ export function useAdminAssignCollectiveRole() {
 
       if (role === 'leader') {
         // Demote any existing leaders in this collective to co_leader
-        await supabase
+        const { error: demoteError } = await supabase
           .from('collective_members')
           .update({ role: 'co_leader' })
           .eq('collective_id', collectiveId)
           .eq('role', 'leader')
           .neq('user_id', userId)
+        if (demoteError) throw demoteError
 
-        await supabase
+        const { error: leaderError } = await supabase
           .from('collectives')
           .update({ leader_id: userId })
           .eq('id', collectiveId)
+        if (leaderError) throw leaderError
       }
       await logAudit({ action: 'member_role_changed', target_type: 'collective_member', target_id: userId, details: { collective_id: collectiveId, new_role: role } })
     },

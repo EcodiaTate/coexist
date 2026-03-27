@@ -116,10 +116,41 @@ async function moderateImage(imageUrl: string): Promise<ModerationResult> {
 
 serve(async (req: Request) => {
   try {
-    const payload = (await req.json()) as ModerationRequest
+    // Validate auth — extract user from JWT
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Missing authorization' }), { status: 401 })
+    }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!
+
+    // Verify the JWT and get the authenticated user
+    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    })
+    const { data: { user: authUser }, error: authError } = await userClient.auth.getUser()
+    if (authError || !authUser) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+    }
+
+    const payload = (await req.json()) as ModerationRequest
+
+    // Validate required fields
+    if (!payload.storagePath || !payload.bucket) {
+      return new Response(JSON.stringify({ error: 'Missing storagePath or bucket' }), { status: 400 })
+    }
+
+    // Sanitize: only allow known buckets
+    const ALLOWED_BUCKETS = ['avatars', 'post-images', 'event-images', 'chat-images', 'impact-photos']
+    if (!ALLOWED_BUCKETS.includes(payload.bucket)) {
+      return new Response(JSON.stringify({ error: 'Invalid bucket' }), { status: 400 })
+    }
+
+    // Use authenticated user's ID instead of trusting client-provided userId
+    payload.userId = authUser.id
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Get URL for the image

@@ -118,17 +118,23 @@ export function useDataPrefetch() {
         const receiptMap = new Map(receipts?.map((r) => [r.collective_id, r.last_read_at]) ?? [])
         const counts: Record<string, number> = {}
 
-        for (const m of memberships) {
-          const lastRead = receiptMap.get(m.collective_id)
-          let query = supabase
-            .from('chat_messages')
-            .select('*', { count: 'exact', head: true })
-            .eq('collective_id', m.collective_id)
-            .eq('is_deleted', false)
-            .neq('user_id', userId)
-          if (lastRead) query = query.gt('created_at', lastRead)
-          const { count } = await query
-          if (count && count > 0) counts[m.collective_id] = count
+        // Batch: fetch unread counts for all collectives in parallel instead of N+1
+        const results = await Promise.all(
+          memberships.map(async (m) => {
+            const lastRead = receiptMap.get(m.collective_id)
+            let query = supabase
+              .from('chat_messages')
+              .select('id', { count: 'exact', head: true })
+              .eq('collective_id', m.collective_id)
+              .eq('is_deleted', false)
+              .neq('user_id', userId)
+            if (lastRead) query = query.gt('created_at', lastRead)
+            const { count } = await query
+            return { collective_id: m.collective_id, count }
+          }),
+        )
+        for (const r of results) {
+          if (r.count && r.count > 0) counts[r.collective_id] = r.count
         }
         return counts
       },

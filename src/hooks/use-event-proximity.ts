@@ -83,14 +83,24 @@ export function useEventProximity(): UseEventProximityReturn {
     setIsChecking(true)
 
     try {
-      // Get current position
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
+      // Get current position — use Capacitor plugin on native, web API as fallback
+      let position: GeolocationPosition
+      if (Capacitor.isNativePlatform()) {
+        const { Geolocation } = await import('@capacitor/geolocation')
+        const coords = await Geolocation.getCurrentPosition({
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 60000,
         })
-      })
+        position = coords as GeolocationPosition
+      } else {
+        position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000,
+          })
+        })
+      }
 
       const userLat = position.coords.latitude
       const userLng = position.coords.longitude

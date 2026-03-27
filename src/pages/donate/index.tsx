@@ -407,7 +407,7 @@ function DonateHero({ rm }: { rm: boolean }) {
           className="absolute inset-0 sm:relative sm:inset-auto will-change-transform"
         >
           <img
-            src="/img/donate-hero-bg.png"
+            src="/img/donate-hero-bg.webp"
             alt="Conservation landscape"
             className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
           />
@@ -419,7 +419,7 @@ function DonateHero({ rm }: { rm: boolean }) {
           className="absolute inset-0 z-[3] will-change-transform"
         >
           <img
-            src="/img/donate-hero-fg.png"
+            src="/img/donate-hero-fg.webp"
             alt=""
             className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
           />
@@ -589,7 +589,7 @@ export default function DonatePage() {
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-bark-50/12 to-moss-50/15" />
 
           {/* Topographic contour lines - earthy bushland feel */}
-          <svg className="absolute inset-0 w-full h-full opacity-[0.035]" xmlns="http://www.w3.org/2000/svg">
+          <svg className="absolute inset-0 w-full h-full opacity-[0.035]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="donate-topo" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
                 <path d="M20 100c30-40 70-60 100-40s60 50 80 20" fill="none" stroke="currentColor" strokeWidth="1" />

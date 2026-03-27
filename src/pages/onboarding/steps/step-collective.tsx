@@ -30,7 +30,7 @@ interface StepCollectiveProps {
 export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCollectiveProps) {
   const shouldReduceMotion = useReducedMotion()
 
-  const { data: collectives, isLoading } = useQuery({
+  const { data: collectives, isLoading, error } = useQuery({
     queryKey: ['onboarding-collectives'],
     queryFn: async () => {
       const { data } = await supabase
@@ -62,6 +62,10 @@ export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCol
         <div className="mt-6 space-y-3">
           {showLoading ? (
             <Skeleton variant="list-item" count={4} />
+          ) : error ? (
+            <p className="text-sm text-error-500 text-center py-8">
+              Couldn't load collectives. You can skip and join one later.
+            </p>
           ) : collectives && collectives.length > 0 ? (
             collectives.map((collective) => {
               const isSelected = selectedId === collective.id

@@ -203,7 +203,7 @@ function createCollectiveIcon(active = false): L.DivIcon {
   return L.divIcon({
     html: active
       ? `<div style="position:relative;display:flex;align-items:center;justify-content:center;">
-          <div style="position:absolute;width:36px;height:36px;border-radius:50%;background:${color};opacity:0.12;animation:coexist-map-ping 1.5s ease-out infinite;top:-3px;left:-3px;"></div>
+          <div style="position:absolute;width:36px;height:36px;border-radius:50%;background:${color};opacity:0.12;animation:coexist-map-ping 1.5s ease-out 3;top:-3px;left:-3px;"></div>
           ${svg}
         </div>`
       : svg,

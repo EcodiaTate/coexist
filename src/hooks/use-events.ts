@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { supabase, untypedFrom } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import type {
   Database,
@@ -252,7 +252,7 @@ export function useEventDetail(eventId: string | undefined) {
     queryFn: async () => {
       if (!eventId) return null
 
-      // Fetch event with collective + creator
+      // Fetch event first (needed for collective_id in invite check)
       const { data: event, error } = await supabase
         .from('events')
         .select('*, collectives(id, name, slug, cover_image_url, region, state), profiles!events_created_by_fkey(id, display_name, avatar_url)')
@@ -260,71 +260,63 @@ export function useEventDetail(eventId: string | undefined) {
         .single()
       if (error) throw error
 
-      // Registration count
-      const { count: regCount } = await supabase
-        .from('event_registrations')
-        .select('id', { count: 'exact', head: true })
-        .eq('event_id', eventId)
-        .in('status', ['registered', 'attended'])
-
-      // User's registration
-      let userReg: EventRegistration | null = null
-      if (user) {
-        const { data } = await supabase
+      // Parallelize all independent queries
+      const [regCountRes, userRegRes, attendeeRes, impactRes, collabRes, inviteRes] = await Promise.all([
+        // Registration count
+        supabase
           .from('event_registrations')
-          .select('*')
+          .select('id', { count: 'exact', head: true })
           .eq('event_id', eventId)
-          .eq('user_id', user.id)
-          .neq('status', 'cancelled')
-          .maybeSingle()
-        userReg = data
-      }
+          .in('status', ['registered', 'attended']),
+        // User's registration
+        user
+          ? supabase
+              .from('event_registrations')
+              .select('id, event_id, user_id, status, checked_in_at, registered_at, invited_at')
+              .eq('event_id', eventId)
+              .eq('user_id', user.id)
+              .neq('status', 'cancelled')
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null }),
+        // Attendee avatars (first 8)
+        supabase
+          .from('event_registrations')
+          .select('profiles!event_registrations_user_id_fkey(id, display_name, avatar_url)')
+          .eq('event_id', eventId)
+          .in('status', ['registered', 'attended'])
+          .limit(8),
+        // Impact data
+        supabase.from('event_impact').select('*').eq('event_id', eventId).maybeSingle(),
+        // Collaborating collectives
+        supabase
+          .from('collective_event_collaborators')
+          .select('collective_id, collectives:collective_id(id, name, slug, cover_image_url)')
+          .eq('event_id', eventId)
+          .eq('status', 'accepted'),
+        // Invite count
+        supabase
+          .from('event_invites')
+          .select('id', { count: 'exact', head: true })
+          .eq('event_id', eventId)
+          .eq('collective_id', event.collective_id),
+      ])
 
-      // Attendee avatars (first 8)
-      const { data: attendeeData } = await supabase
-        .from('event_registrations')
-        .select('profiles!event_registrations_user_id_fkey(id, display_name, avatar_url)')
-        .eq('event_id', eventId)
-        .in('status', ['registered', 'attended'])
-        .limit(8)
-
-      const attendees = (attendeeData ?? [])
+      const attendees = (attendeeRes.data ?? [])
         .map((a) => a.profiles)
         .filter(Boolean) as Pick<Profile, 'id' | 'display_name' | 'avatar_url'>[]
 
-      // Impact data (if completed)
-      const { data: impact } = await supabase
-        .from('event_impact')
-        .select('*')
-        .eq('event_id', eventId)
-        .maybeSingle()
-
-      // Collaborating collectives (accepted only)
-      const { data: collabData } = await supabase
-        .from('collective_event_collaborators')
-        .select('collective_id, collectives:collective_id(id, name, slug, cover_image_url)')
-        .eq('event_id', eventId)
-        .eq('status', 'accepted')
-
-      const collaborators = (collabData ?? [])
+      const collaborators = (collabRes.data ?? [])
         .map((c) => c.collectives)
         .filter(Boolean) as unknown as Pick<Collective, 'id' | 'name' | 'slug' | 'cover_image_url'>[]
 
-      // Check if collective has already been invited to this event
-      const { count: inviteCount } = await supabase
-        .from('event_invites')
-        .select('id', { count: 'exact', head: true })
-        .eq('event_id', eventId)
-        .eq('collective_id', event.collective_id)
-
       return {
         ...event,
-        registration_count: regCount ?? 0,
-        user_registration: userReg,
+        registration_count: regCountRes.count ?? 0,
+        user_registration: userRegRes.data as EventRegistration | null,
         attendees,
-        impact,
+        impact: impactRes.data,
         collaborators,
-        has_been_invited: (inviteCount ?? 0) > 0,
+        has_been_invited: (inviteRes.count ?? 0) > 0,
       } as EventDetailData
     },
     enabled: !!eventId,
@@ -360,7 +352,7 @@ export function prefetchEventDetail(
 
       const { data: userRegData } = await supabase
         .from('event_registrations')
-        .select('*')
+        .select('id, event_id, user_id, status, checked_in_at, registered_at, invited_at')
         .eq('event_id', eventId)
         .eq('user_id', userId)
         .neq('status', 'cancelled')
@@ -1057,8 +1049,7 @@ export function useDuplicateEvent() {
 
 async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
   // Check if auto-surveys are enabled
-  const { data: config } = await (supabase as any)
-    .from('app_settings')
+  const { data: config } = await untypedFrom('app_settings')
     .select('value')
     .eq('key', 'auto_survey_config')
     .maybeSingle()
@@ -1132,11 +1123,12 @@ export function useLogImpact() {
       if (error) throw error
 
       // Mark event as completed once impact is logged
-      await supabase
+      const { error: statusError } = await supabase
         .from('events')
         .update({ status: 'completed' })
         .eq('id', impactData.event_id)
         .in('status', ['published']) // Only transition from published, not draft/cancelled
+      if (statusError) throw statusError
 
       return data as EventImpact
     },

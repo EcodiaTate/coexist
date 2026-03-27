@@ -97,6 +97,13 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         leadersQuery,
       ])
 
+      if (impactRes.error) throw impactRes.error
+      if (eventsRes.error) throw eventsRes.error
+      if (membersRes.error) throw membersRes.error
+      if (collectivesRes.error) throw collectivesRes.error
+      if (cleanupRes.error) throw cleanupRes.error
+      if (leadersRes.error) throw leadersRes.error
+
       const logs = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
 
       // Count ALL event attendances nationally (not just events with impact logs)
@@ -186,14 +193,16 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
       const allEventIds = (eventsRes.data ?? []).map((e) => e.id)
 
       let attendanceCount = 0
-      for (const chunk of chunks(allEventIds)) {
-        const { count } = await supabase
-          .from('event_registrations')
-          .select('id', { count: 'exact', head: true })
-          .in('event_id', chunk)
-          .eq('status', 'attended')
-        attendanceCount += count ?? 0
-      }
+      const chunkResults = await Promise.all(
+        chunks(allEventIds).map((chunk) =>
+          supabase
+            .from('event_registrations')
+            .select('id', { count: 'exact', head: true })
+            .in('event_id', chunk)
+            .eq('status', 'attended'),
+        ),
+      )
+      for (const { count } of chunkResults) attendanceCount += count ?? 0
 
       const cleanupAddresses = new Set(
         (cleanupRes.data ?? []).map((e: { address: string | null }) => (e.address ?? '').trim().toLowerCase()).filter(Boolean)

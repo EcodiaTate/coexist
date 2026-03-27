@@ -337,28 +337,39 @@ export function useGenerateTaskInstances() {
 
       // --- Handle collective recurring templates (weekly/monthly) ---
       // One instance per collective per period — any qualifying staff can complete
-      // Use INSERT with ON CONFLICT DO NOTHING to avoid overwriting completed/skipped tasks
-      for (const template of collectiveRecurring) {
-        const periodKey = getCurrentPeriodKey(template.schedule_type)
-        if (!periodKey) continue
+      // Batch all upserts to avoid N+1 sequential DB calls
+      {
+        const collectiveRows: Array<{
+          template_id: string
+          collective_id: string
+          due_date: string
+          period_key: string
+          status: string
+        }> = []
 
-        const targetCollectives = getTargetCollectives(template)
+        for (const template of collectiveRecurring) {
+          const periodKey = getCurrentPeriodKey(template.schedule_type)
+          if (!periodKey) continue
 
-        for (const collectiveId of targetCollectives) {
-          const dueDate = getDueDate(template as unknown as TaskTemplate, periodKey)
-          // INSERT ... ON CONFLICT DO NOTHING: only creates if no row exists for this period
-          await supabase
+          const targetCollectives = getTargetCollectives(template)
+
+          for (const collectiveId of targetCollectives) {
+            const dueDate = getDueDate(template as unknown as TaskTemplate, periodKey)
+            collectiveRows.push({
+              template_id: template.id,
+              collective_id: collectiveId,
+              due_date: dueDate,
+              period_key: periodKey,
+              status: 'pending',
+            })
+          }
+        }
+
+        if (collectiveRows.length > 0) {
+          const { error } = await supabase
             .from('task_instances')
-            .upsert(
-              {
-                template_id: template.id,
-                collective_id: collectiveId,
-                due_date: dueDate,
-                period_key: periodKey,
-                status: 'pending',
-              },
-              { onConflict: 'template_id,collective_id,period_key', ignoreDuplicates: true },
-            )
+            .upsert(collectiveRows, { onConflict: 'template_id,collective_id,period_key', ignoreDuplicates: true })
+          if (error) console.error('[tasks] collective recurring upsert error:', error.message)
         }
       }
 
@@ -380,11 +391,19 @@ export function useGenerateTaskInstances() {
           ),
         )
 
+        const indivRows: Array<{
+          template_id: string
+          collective_id: string
+          due_date: string
+          period_key: string
+          assigned_user_id: string
+          status: string
+        }> = []
+
         for (const template of individualRecurring) {
           const basePeriodKey = getCurrentPeriodKey(template.schedule_type)
           if (!basePeriodKey) continue
 
-          // Encode user ID into period_key for uniqueness within the unique constraint
           const periodKey = `${basePeriodKey}:${user.id}`
           const targetCollectives = getTargetCollectives(template)
 
@@ -393,17 +412,20 @@ export function useGenerateTaskInstances() {
             if (existingIndivKeys.has(key)) continue
 
             const dueDate = getDueDate(template as unknown as TaskTemplate, basePeriodKey)
-            await supabase
-              .from('task_instances')
-              .insert({
-                template_id: template.id,
-                collective_id: collectiveId,
-                due_date: dueDate,
-                period_key: periodKey,
-                assigned_user_id: user.id,
-                status: 'pending',
-              })
+            indivRows.push({
+              template_id: template.id,
+              collective_id: collectiveId,
+              due_date: dueDate,
+              period_key: periodKey,
+              assigned_user_id: user.id,
+              status: 'pending',
+            })
           }
+        }
+
+        if (indivRows.length > 0) {
+          const { error } = await supabase.from('task_instances').insert(indivRows)
+          if (error) console.error('[tasks] individual recurring insert error:', error.message)
         }
       }
 
@@ -424,6 +446,15 @@ export function useGenerateTaskInstances() {
           ),
         )
 
+        const assignedRows: Array<{
+          template_id: string
+          collective_id: string
+          due_date: string
+          period_key: string
+          assigned_user_id: string
+          status: string
+        }> = []
+
         for (const template of assignedRecurring) {
           const basePeriodKey = getCurrentPeriodKey(template.schedule_type)
           if (!basePeriodKey) continue
@@ -436,17 +467,20 @@ export function useGenerateTaskInstances() {
             if (existingAssignedKeys.has(key)) continue
 
             const dueDate = getDueDate(template as unknown as TaskTemplate, basePeriodKey)
-            await supabase
-              .from('task_instances')
-              .insert({
-                template_id: template.id,
-                collective_id: collectiveId,
-                due_date: dueDate,
-                period_key: periodKey,
-                assigned_user_id: user.id,
-                status: 'pending',
-              })
+            assignedRows.push({
+              template_id: template.id,
+              collective_id: collectiveId,
+              due_date: dueDate,
+              period_key: periodKey,
+              assigned_user_id: user.id,
+              status: 'pending',
+            })
           }
+        }
+
+        if (assignedRows.length > 0) {
+          const { error } = await supabase.from('task_instances').insert(assignedRows)
+          if (error) console.error('[tasks] assigned recurring insert error:', error.message)
         }
       }
 
@@ -466,6 +500,15 @@ export function useGenerateTaskInstances() {
           ),
         )
 
+        const onceRows: Array<{
+          template_id: string
+          collective_id: string
+          due_date: string
+          period_key: string
+          assigned_user_id: string
+          status: string
+        }> = []
+
         for (const template of onceTemplates) {
           const targetCollectives = getTargetCollectives(template)
 
@@ -478,29 +521,37 @@ export function useGenerateTaskInstances() {
             dueDate.setDate(dueDate.getDate() + 7)
             dueDate.setHours(23, 59, 59, 999)
 
-            await supabase
-              .from('task_instances')
-              .insert({
-                template_id: template.id,
-                collective_id: collectiveId,
-                due_date: dueDate.toISOString(),
-                period_key: periodKey,
-                assigned_user_id: user.id,
-                status: 'pending',
-              })
+            onceRows.push({
+              template_id: template.id,
+              collective_id: collectiveId,
+              due_date: dueDate.toISOString(),
+              period_key: periodKey,
+              assigned_user_id: user.id,
+              status: 'pending',
+            })
           }
+        }
+
+        if (onceRows.length > 0) {
+          const { error } = await supabase.from('task_instances').insert(onceRows)
+          if (error) console.error('[tasks] once insert error:', error.message)
         }
       }
 
       // --- Handle legacy (non-dynamic) event_relative templates ---
       // These use a fixed event_offset_days against each collective's next upcoming event
+      // Batch: fetch all next-events in parallel, then batch upsert
       if (legacyEventRelative.length > 0) {
+        // Collect all unique collective IDs needed across legacy templates
+        const allLegacyCollectives = new Set<string>()
         for (const template of legacyEventRelative) {
-          const targetCollectives = getTargetCollectives(template)
-          const offsetDays = template.event_offset_days ?? 0
+          for (const cId of getTargetCollectives(template)) allLegacyCollectives.add(cId)
+        }
 
-          for (const collectiveId of targetCollectives) {
-            // Find the next published event for this collective
+        // Fetch next upcoming event per collective in parallel
+        const nextEventMap = new Map<string, { id: string; title: string; date_start: string }>()
+        await Promise.all(
+          Array.from(allLegacyCollectives).map(async (collectiveId) => {
             const { data: events } = await supabase
               .from('events')
               .select('id, title, date_start')
@@ -509,35 +560,51 @@ export function useGenerateTaskInstances() {
               .gte('date_start', new Date().toISOString())
               .order('date_start', { ascending: true })
               .limit(1)
+            if (events?.[0]) nextEventMap.set(collectiveId, events[0])
+          }),
+        )
 
-            if (!events?.length) continue
-            const event = events[0]
+        // Build upsert batch
+        const legacyRows: Array<{
+          template_id: string
+          collective_id: string
+          event_id: string
+          due_date: string
+          period_key: string
+          status: string
+        }> = []
+
+        for (const template of legacyEventRelative) {
+          const targetCollectives = getTargetCollectives(template)
+          const offsetDays = template.event_offset_days ?? 0
+
+          for (const collectiveId of targetCollectives) {
+            const event = nextEventMap.get(collectiveId)
+            if (!event) continue
 
             const eventDate = new Date(event.date_start)
             const dueDate = new Date(eventDate)
             dueDate.setDate(dueDate.getDate() + offsetDays)
             dueDate.setHours(23, 59, 59, 999)
 
-            // Skip if due date is already in the past
             if (dueDate < new Date()) continue
 
-            const periodKey = `event:${event.id}`
-
-            // Use ignoreDuplicates to avoid overwriting completed/skipped instances
-            await supabase
-              .from('task_instances')
-              .upsert(
-                {
-                  template_id: template.id,
-                  collective_id: collectiveId,
-                  event_id: event.id,
-                  due_date: dueDate.toISOString(),
-                  period_key: periodKey,
-                  status: 'pending',
-                },
-                { onConflict: 'template_id,collective_id,period_key', ignoreDuplicates: true },
-              )
+            legacyRows.push({
+              template_id: template.id,
+              collective_id: collectiveId,
+              event_id: event.id,
+              due_date: dueDate.toISOString(),
+              period_key: `event:${event.id}`,
+              status: 'pending',
+            })
           }
+        }
+
+        if (legacyRows.length > 0) {
+          const { error } = await supabase
+            .from('task_instances')
+            .upsert(legacyRows, { onConflict: 'template_id,collective_id,period_key', ignoreDuplicates: true })
+          if (error) console.error('[tasks] legacy event_relative upsert error:', error.message)
         }
       }
 

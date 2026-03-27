@@ -110,12 +110,11 @@ export async function uploadWithProgress({
   file,
   onProgress,
 }: UploadOptions): Promise<UploadResult> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated - cannot upload files')
   const { data: sessionData } = await supabase.auth.getSession()
   const token = sessionData.session?.access_token
-
-  if (!token) {
-    throw new Error('Not authenticated - cannot upload files')
-  }
+  if (!token) throw new Error('No active session - cannot upload files')
 
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
 
@@ -142,6 +141,8 @@ export async function uploadWithProgress({
     xhr.open('POST', `${supabaseUrl}/storage/v1/object/${bucket}/${path}`)
     xhr.setRequestHeader('Authorization', `Bearer ${token}`)
     xhr.setRequestHeader('x-upsert', 'true')
+    xhr.timeout = 30000
+    xhr.addEventListener('timeout', () => reject(new Error('Upload timed out. Please try again.')))
     xhr.send(file)
   })
 }

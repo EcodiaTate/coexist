@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { subscribeWithReconnect } from '@/lib/realtime'
 import { useAuth } from '@/hooks/use-auth'
 import type { Tables } from '@/types/database.types'
 
@@ -281,9 +282,11 @@ export function useNotifications() {
           queryClient.invalidateQueries({ queryKey: ['notifications-unread', user.id] })
         },
       )
-      .subscribe()
+
+    const cleanup = subscribeWithReconnect(channel)
 
     return () => {
+      cleanup()
       supabase.removeChannel(channel)
     }
   }, [user, queryClient])

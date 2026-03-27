@@ -57,17 +57,10 @@ export function useProfileStats(userId?: string) {
     queryFn: async () => {
       if (!id) throw new Error('No user ID')
 
-      // Get events attended
-      const { count: eventsAttended } = await supabase
+      // Get events attended count + event IDs in a single query
+      const { data: registrations, count: eventsAttended } = await supabase
         .from('event_registrations')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', id)
-        .eq('status', 'attended')
-
-      // Get total impact from events the user attended
-      const { data: registrations } = await supabase
-        .from('event_registrations')
-        .select('event_id')
+        .select('event_id', { count: 'exact' })
         .eq('user_id', id)
         .eq('status', 'attended')
 
@@ -81,14 +74,15 @@ export function useProfileStats(userId?: string) {
       let totalWildlifeSightings = 0
 
       if (eventIds.length > 0) {
-        // Batch in chunks to avoid URL length limits
+        // Batch in chunks to avoid URL length limits — parallelize
         const impactRows: Record<string, unknown>[] = []
-        for (let i = 0; i < eventIds.length; i += 50) {
-          const chunk = eventIds.slice(i, i + 50)
-          const { data } = await supabase
-            .from('event_impact')
-            .select(IMPACT_SELECT_COLUMNS)
-            .in('event_id', chunk)
+        const chunkResults = await Promise.all(
+          Array.from({ length: Math.ceil(eventIds.length / 50) }, (_, i) => {
+            const chunk = eventIds.slice(i * 50, (i + 1) * 50)
+            return supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).in('event_id', chunk)
+          }),
+        )
+        for (const { data } of chunkResults) {
           if (data) impactRows.push(...(data as unknown as Record<string, unknown>[]))
         }
 
@@ -127,37 +121,24 @@ export function useMutualConnections(targetUserId: string) {
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated')
 
-      // Shared collectives
-      const { data: myCollectives } = await supabase
-        .from('collective_members')
-        .select('collective_id')
-        .eq('user_id', user.id)
-        .eq('status', 'active')
+      // Fetch all 4 queries in parallel
+      const [myCollRes, theirCollRes, myEvtRes, theirEvtRes] = await Promise.all([
+        supabase.from('collective_members').select('collective_id').eq('user_id', user.id).eq('status', 'active'),
+        supabase.from('collective_members').select('collective_id, collectives(name)').eq('user_id', targetUserId).eq('status', 'active'),
+        supabase.from('event_registrations').select('event_id').eq('user_id', user.id).eq('status', 'attended'),
+        supabase.from('event_registrations').select('event_id').eq('user_id', targetUserId).eq('status', 'attended'),
+      ])
 
-      const { data: theirCollectives } = await supabase
-        .from('collective_members')
-        .select('collective_id, collectives(name)')
-        .eq('user_id', targetUserId)
-        .eq('status', 'active')
+      if (myCollRes.error) throw myCollRes.error
+      if (theirCollRes.error) throw theirCollRes.error
+      if (myEvtRes.error) throw myEvtRes.error
+      if (theirEvtRes.error) throw theirEvtRes.error
 
-      const myIds = new Set(myCollectives?.map((c) => c.collective_id) ?? [])
-      const sharedCollectives = theirCollectives?.filter((c) => myIds.has(c.collective_id)) ?? []
+      const myIds = new Set(myCollRes.data?.map((c) => c.collective_id) ?? [])
+      const sharedCollectives = theirCollRes.data?.filter((c) => myIds.has(c.collective_id)) ?? []
 
-      // Shared events
-      const { data: myEvents } = await supabase
-        .from('event_registrations')
-        .select('event_id')
-        .eq('user_id', user.id)
-        .eq('status', 'attended')
-
-      const { data: theirEvents } = await supabase
-        .from('event_registrations')
-        .select('event_id')
-        .eq('user_id', targetUserId)
-        .eq('status', 'attended')
-
-      const myEventIds = new Set(myEvents?.map((e) => e.event_id) ?? [])
-      const sharedEventCount = theirEvents?.filter((e) => myEventIds.has(e.event_id)).length ?? 0
+      const myEventIds = new Set(myEvtRes.data?.map((e) => e.event_id) ?? [])
+      const sharedEventCount = theirEvtRes.data?.filter((e) => myEventIds.has(e.event_id)).length ?? 0
 
       return {
         sharedCollectives: sharedCollectives.map((c) => ({

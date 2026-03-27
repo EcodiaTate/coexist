@@ -2,10 +2,10 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Camera,
-  CheckCircle2, XCircle,
-  WifiOff,
-  Sparkles,
+    Camera,
+    CheckCircle2, XCircle,
+    WifiOff,
+    Sparkles,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
@@ -156,7 +156,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
   }, [])
 
   const handleCameraError = useCallback(() => {
-    // Camera unavailable — step back to checkin (user can use manual entry)
+    // Camera unavailable - step back to checkin (user can use manual entry)
     setStep('checkin')
   }, [])
 

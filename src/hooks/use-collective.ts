@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { supabase, escapeIlike } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { IMPACT_SELECT_COLUMNS } from '@/lib/impact-metrics'
 import type {
@@ -82,7 +82,7 @@ export function useCollectives(filters?: { state?: string; search?: string }) {
         query = query.eq('state', filters.state)
       }
       if (filters?.search) {
-        query = query.ilike('name', `%${filters.search}%`)
+        query = query.ilike('name', `%${escapeIlike(filters.search)}%`)
       }
 
       const { data, error } = await query
@@ -212,35 +212,52 @@ export function useCollectiveStats(collectiveId: string | undefined) {
     queryFn: async () => {
       if (!collectiveId) throw new Error('No collective ID')
 
-      // Total events
-      const { count: totalEvents } = await supabase
-        .from('events')
-        .select('*', { count: 'exact', head: true })
-        .eq('collective_id', collectiveId)
-        .in('status', ['published', 'completed'])
+      // Parallelize initial queries
+      const [eventsCountRes, eventsRes, membersRes] = await Promise.all([
+        supabase
+          .from('events')
+          .select('*', { count: 'exact', head: true })
+          .eq('collective_id', collectiveId)
+          .in('status', ['published', 'completed']),
+        supabase.from('events').select('id').eq('collective_id', collectiveId),
+        supabase
+          .from('collective_members')
+          .select('*', { count: 'exact', head: true })
+          .eq('collective_id', collectiveId)
+          .eq('status', 'active'),
+      ])
 
-      // Impact from all events — all metrics
-      const { data: events } = await supabase
-        .from('events')
-        .select('id')
-        .eq('collective_id', collectiveId)
+      if (eventsCountRes.error) throw eventsCountRes.error
+      if (eventsRes.error) throw eventsRes.error
+      if (membersRes.error) throw membersRes.error
 
-      const eventIds = events?.map((e) => e.id) ?? []
+      const eventIds = eventsRes.data?.map((e) => e.id) ?? []
       let totalTreesPlanted = 0
       let totalRubbishKg = 0
       let totalHours = 0
       let totalAreaRestored = 0
       let totalNativePlants = 0
       let totalWildlifeSightings = 0
+      let attendanceRate = 0
 
       if (eventIds.length > 0) {
-        const { data: impacts } = await supabase
-          .from('event_impact')
-          .select(IMPACT_SELECT_COLUMNS)
-          .in('event_id', eventIds)
+        // Parallelize impact + attendance queries
+        const [impactsRes, registeredRes, attendedRes] = await Promise.all([
+          supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).in('event_id', eventIds),
+          supabase
+            .from('event_registrations')
+            .select('id', { count: 'exact', head: true })
+            .in('event_id', eventIds)
+            .in('status', ['registered', 'attended']),
+          supabase
+            .from('event_registrations')
+            .select('id', { count: 'exact', head: true })
+            .in('event_id', eventIds)
+            .eq('status', 'attended'),
+        ])
 
-        if (impacts) {
-          for (const i of impacts as unknown as Record<string, unknown>[]) {
+        if (impactsRes.data) {
+          for (const i of impactsRes.data as unknown as Record<string, unknown>[]) {
             totalTreesPlanted += Number(i.trees_planted) || 0
             totalRubbishKg += Number(i.rubbish_kg) || 0
             totalHours += Number(i.hours_total) || 0
@@ -249,44 +266,23 @@ export function useCollectiveStats(collectiveId: string | undefined) {
             totalWildlifeSightings += Number(i.wildlife_sightings) || 0
           }
         }
-      }
 
-      // Active members
-      const { count: activeMembers } = await supabase
-        .from('collective_members')
-        .select('*', { count: 'exact', head: true })
-        .eq('collective_id', collectiveId)
-        .eq('status', 'active')
-
-      // Attendance rate across all events
-      let attendanceRate = 0
-      if (eventIds.length > 0) {
-        const { count: totalRegistered } = await supabase
-          .from('event_registrations')
-          .select('id', { count: 'exact', head: true })
-          .in('event_id', eventIds)
-          .in('status', ['registered', 'attended'])
-
-        const { count: totalAttended } = await supabase
-          .from('event_registrations')
-          .select('id', { count: 'exact', head: true })
-          .in('event_id', eventIds)
-          .eq('status', 'attended')
-
-        if (totalRegistered && totalRegistered > 0) {
-          attendanceRate = Math.round(((totalAttended ?? 0) / totalRegistered) * 100) / 100
+        const totalRegistered = registeredRes.count ?? 0
+        const totalAttended = attendedRes.count ?? 0
+        if (totalRegistered > 0) {
+          attendanceRate = Math.round((totalAttended / totalRegistered) * 100) / 100
         }
       }
 
       return {
-        totalEvents: totalEvents ?? 0,
+        totalEvents: eventsCountRes.count ?? 0,
         totalTreesPlanted,
         totalRubbishKg,
         totalHours,
         totalAreaRestored,
         totalNativePlants,
         totalWildlifeSightings,
-        activeMembers: activeMembers ?? 0,
+        activeMembers: membersRes.count ?? 0,
         attendanceRate,
       } satisfies CollectiveStats
     },
@@ -306,13 +302,14 @@ export function useCollectiveMembership(collectiveId: string | undefined) {
     queryKey: ['collective-membership', collectiveId, user?.id],
     queryFn: async () => {
       if (!user || !collectiveId) return null
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('collective_members')
         .select('id, role, status, joined_at')
         .eq('collective_id', collectiveId)
         .eq('user_id', user.id)
         .eq('status', 'active')
         .maybeSingle()
+      if (error) throw error
       return data
     },
     enabled: !!user && !!collectiveId,

@@ -42,8 +42,20 @@ CREATE POLICY "impact_metric_defs_public_read"
 
 CREATE POLICY "impact_metric_defs_staff_write"
   ON impact_metric_defs FOR ALL TO authenticated
-  USING (is_staff_or_admin(auth.uid()))
-  WITH CHECK (is_staff_or_admin(auth.uid()));
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+      AND role IN ('national_staff', 'national_admin', 'super_admin')
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles
+      WHERE id = auth.uid()
+      AND role IN ('national_staff', 'national_admin', 'super_admin')
+    )
+  );
 
 -- Auto-update updated_at
 CREATE OR REPLACE FUNCTION update_impact_metric_defs_timestamp()

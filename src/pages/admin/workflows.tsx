@@ -808,7 +808,7 @@ function KpiDashboard() {
 
   const collectiveOptions = useMemo(() => [
     { value: '', label: 'All Collectives' },
-    ...(collectives ?? []).map((c: any) => ({ value: c.id as string, label: c.name as string })),
+    ...(collectives ?? []).map((c) => ({ value: c.id, label: c.name })),
   ], [collectives])
 
   return (
@@ -940,7 +940,7 @@ export default function AdminWorkflowsPage() {
   // Extend scope options with per-collective options
   const fullScopeOptions = useMemo(() => [
     ...scopeOptions,
-    ...(collectives ?? []).map((c: any) => ({ value: c.id as string, label: c.name as string })),
+    ...(collectives ?? []).map((c) => ({ value: c.id, label: c.name })),
   ], [collectives])
 
   const heroActions = useMemo(() =>

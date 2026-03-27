@@ -40,7 +40,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
   }, [profile, user])
 
   if (isLoading) {
-    return <div className="min-h-dvh bg-white" />
+    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
   }
 
   if (!user) {
@@ -61,7 +61,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
   // If we already know onboarding is done (local flag), skip the wait
   // and render children immediately.
   if (!profile && !profileTimeout && !onboardingDone) {
-    return <div className="min-h-dvh bg-white" />
+    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
   }
 
   // Redirect to onboarding ONLY if:
@@ -90,7 +90,7 @@ export function RequireRole({ minRole, children }: RequireRoleProps) {
   const location = useLocation()
 
   if (isLoading) {
-    return <div className="min-h-dvh bg-white" />
+    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
   }
 
   // Must be authenticated first
@@ -124,7 +124,7 @@ export function RequireLeaderAccess({ children }: RequireLeaderAccessProps) {
   const location = useLocation()
 
   if (isLoading) {
-    return <div className="min-h-dvh bg-white" />
+    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
   }
 
   if (!user) {
@@ -168,7 +168,7 @@ export function RequireCapability({ cap, children }: RequireCapabilityProps) {
   const location = useLocation()
 
   if (isLoading) {
-    return <div className="min-h-dvh bg-white" />
+    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
   }
 
   if (!user) {
@@ -196,7 +196,7 @@ export function RequireCollectiveRole({
   const location = useLocation()
 
   if (authLoading || isLoading) {
-    return <div className="min-h-dvh bg-white" />
+    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
   }
 
   // Must be authenticated first

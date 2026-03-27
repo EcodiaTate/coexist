@@ -54,11 +54,13 @@ function safeGet<T>(key: string, fallback: T): T {
   }
 }
 
-function safeSet(key: string, value: unknown) {
+function safeSet(key: string, value: unknown): boolean {
   try {
     localStorage.setItem(key, JSON.stringify(value))
+    return true
   } catch {
-    // Storage full - silently skip
+    // Storage full
+    return false
   }
 }
 
@@ -127,8 +129,8 @@ function getActionQueue(): OfflineAction[] {
   return safeGet<OfflineAction[]>(ACTION_QUEUE_KEY, [])
 }
 
-function saveActionQueue(queue: OfflineAction[]) {
-  safeSet(ACTION_QUEUE_KEY, queue)
+function saveActionQueue(queue: OfflineAction[]): boolean {
+  return safeSet(ACTION_QUEUE_KEY, queue)
 }
 
 /** Queue any offline action */
@@ -139,7 +141,10 @@ export function queueOfflineAction(
   const queue = getActionQueue()
   const id = `${type}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
   queue.push({ id, type, payload, createdAt: new Date().toISOString(), retries: 0 })
-  saveActionQueue(queue)
+  const saved = saveActionQueue(queue)
+  if (!saved) {
+    console.warn('Offline action could not be saved: device storage is full.')
+  }
   return id
 }
 
@@ -176,7 +181,7 @@ async function processAction(action: OfflineAction): Promise<{ ok: boolean; conf
       if (error) {
         // 409 or unique constraint = conflict (e.g. user was removed from collective)
         if (error.code === '23503' || error.code === '42501') {
-          return { ok: false, conflict: `Message to collective could not be sent: ${error.message}` }
+          return { ok: false, conflict: `Message to collective could not be sent. Please try again.` }
         }
         return { ok: false }
       }
@@ -208,7 +213,7 @@ async function processAction(action: OfflineAction): Promise<{ ok: boolean; conf
         .eq('user_id', userId)
 
       if (error) {
-        return { ok: false, conflict: `Check-in sync failed: ${error.message}` }
+        return { ok: false, conflict: `Check-in sync failed. Please try again.` }
       }
       return { ok: true }
     }

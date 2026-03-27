@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { subscribeWithReconnect } from '@/lib/realtime'
 import { useAuth } from '@/hooks/use-auth'
 import type {
   Tables,
@@ -125,9 +126,12 @@ export function useUpdates() {
           queryClient.invalidateQueries({ queryKey: ['home', 'recent-updates'] })
         },
       )
-      .subscribe()
+
+
+    const cleanup = subscribeWithReconnect(channel)
 
     return () => {
+      cleanup()
       supabase.removeChannel(channel)
     }
   }, [queryClient])
@@ -377,13 +381,19 @@ export function useAdminUpdates() {
 
       if (error) throw error
 
-      // Fetch read counts for all updates in one query
-      const { data: readCounts } = await supabase
-        .from('update_reads')
-        .select('update_id')
+      // Fetch read counts scoped to the updates we actually fetched
+      const updateIds = (data ?? []).map((u) => u.id)
+      const readCounts: { update_id: string }[] = []
+      if (updateIds.length > 0) {
+        const { data: reads } = await supabase
+          .from('update_reads')
+          .select('update_id')
+          .in('update_id', updateIds)
+        if (reads) readCounts.push(...reads)
+      }
 
       const countMap = new Map<string, number>()
-      for (const r of readCounts ?? []) {
+      for (const r of readCounts) {
         countMap.set(r.update_id, (countMap.get(r.update_id) ?? 0) + 1)
       }
 
@@ -460,7 +470,8 @@ export function useDeleteUpdate() {
   return useMutation({
     mutationFn: async (id: string) => {
       // Delete read records first (FK constraint)
-      await supabase.from('update_reads').delete().eq('update_id', id)
+      const { error: readError } = await supabase.from('update_reads').delete().eq('update_id', id)
+      if (readError) throw readError
 
       const { error } = await supabase
         .from('updates')

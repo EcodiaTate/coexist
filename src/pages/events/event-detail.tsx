@@ -21,7 +21,6 @@ import {
     Copy,
     Ban,
     Send,
-    Share2,
     Compass,
     Mountain,
     Accessibility,
@@ -33,6 +32,9 @@ import {
     ClipboardList,
     Bell,
 } from 'lucide-react'
+import { EventHero, EventHeroOverlay } from './event-hero'
+import { EventActions } from './event-actions'
+import { EventAttendees } from './event-attendees'
 import { Capacitor } from '@capacitor/core'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
@@ -45,10 +47,8 @@ import {
     useInviteCollective,
     formatEventDate,
     formatEventTime,
-    getCountdown,
     getEventDuration,
     isPastEvent,
-    ACTIVITY_TYPE_LABELS,
     downloadIcsFile,
     getGoogleCalendarUrl,
 } from '@/hooks/use-events'
@@ -57,8 +57,7 @@ import {
     Header,
     Button,
     Input,
-    Avatar,
-    Badge, EmptyState,
+    EmptyState,
     ConfirmationSheet,
     BottomSheet, StatCard,
     CheckInSheet
@@ -68,22 +67,6 @@ import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { MapView } from '@/components'
-
-/* ------------------------------------------------------------------ */
-/*  Activity badge map                                                 */
-/* ------------------------------------------------------------------ */
-
-const activityToBadge: Record<string, 'shore-cleanup' | 'tree-planting' | 'land-regeneration' | 'nature-walk' | 'camp-out' | 'retreat' | 'film-screening' | 'marine-restoration' | 'workshop'> = {
-  shore_cleanup: 'shore-cleanup',
-  tree_planting: 'tree-planting',
-  land_regeneration: 'land-regeneration',
-  nature_walk: 'nature-walk',
-  camp_out: 'camp-out',
-  retreat: 'retreat',
-  film_screening: 'film-screening',
-  marine_restoration: 'marine-restoration',
-  workshop: 'workshop',
-}
 
 /* ------------------------------------------------------------------ */
 /*  Activity colour accents                                            */
@@ -544,150 +527,16 @@ export default function EventDetailPage() {
       footer={renderCta()}
       noBackground={!!event.cover_image_url}
       stickyOverlay={
-        event.cover_image_url ? (
-          <Header
-            title=""
-            back
-            transparent
-            className="collapse-header"
-            rightActions={
-              <motion.button
-                type="button"
-                onClick={handleShare}
-                whileTap={{ scale: 0.9 }}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-black/40 text-white cursor-pointer select-none active:scale-95 transition-transform duration-150"
-                aria-label="Share event"
-              >
-                <Share2 size={18} />
-              </motion.button>
-            }
-          />
-        ) : (
-          <Header title="" back className="collapse-header" />
-        )
+        <EventHeroOverlay hasCoverImage={!!event.cover_image_url} onShare={handleShare} />
       }
     >
-      {/* ── Full-bleed hero image ── */}
-      {event.cover_image_url && (
-        <div className="relative -mx-4 lg:-mx-6">
-          <div className="relative w-full overflow-hidden" style={{ aspectRatio: '3/4', maxHeight: '56vh' }}>
-            <img
-              src={event.cover_image_url}
-              alt={event.title}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div
-              className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10"
-              aria-hidden="true"
-            />
-
-            {/* Activity badge on image */}
-            <div className="absolute top-3 right-3">
-              <Badge
-                variant="activity"
-                activity={activityToBadge[event.activity_type] ?? 'workshop'}
-                size="md"
-              >
-                {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
-              </Badge>
-            </div>
-
-            {/* Title overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-5 pb-10 z-[5]">
-              {!past && userStatus === 'registered' && (
-                <motion.span
-                  initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold mb-2.5',
-                    'bg-white/25 text-white border border-white/20',
-                  )}
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-sprout-400 animate-pulse" />
-                  {getCountdown(event.date_start)}
-                </motion.span>
-              )}
-              <h1 className="font-heading text-[26px] sm:text-3xl font-bold text-white leading-tight drop-shadow-lg">
-                {event.title}
-              </h1>
-              {event.collectives && (
-                <p className="text-sm text-white/70 font-medium mt-1.5 drop-shadow">
-                  by {event.collectives.name}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Organic wave transition - matches homepage hero */}
-          <div className="absolute -bottom-px left-0 right-0 z-10">
-            <svg
-              viewBox="0 0 1440 70"
-              preserveAspectRatio="none"
-              className="w-full h-7 sm:h-10 block"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M0,25
-                   C60,22 100,18 140,20
-                   C180,22 200,15 220,18
-                   L228,8 L234,5 L240,10
-                   C280,18 340,24 400,20
-                   C440,16 470,22 510,25
-                   C560,28 600,20 640,22
-                   C670,24 690,18 710,20
-                   L718,10 L722,6 L728,12
-                   C760,20 820,26 880,22
-                   C920,18 950,24 990,26
-                   C1020,28 1050,20 1080,18
-                   C1100,16 1120,22 1140,24
-                   L1148,12 L1153,7 L1158,9 L1165,16
-                   C1200,22 1260,26 1320,22
-                   C1360,18 1400,24 1440,22
-                   L1440,70 L0,70 Z"
-                className="fill-white"
-              />
-            </svg>
-          </div>
-        </div>
-      )}
-
-      {/* ── No cover image header ── */}
-      {!event.cover_image_url && (
-        <>
-          <motion.div
-            className="pt-2 pb-1"
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <div className="flex items-center gap-2.5">
-              <Badge
-                variant="activity"
-                activity={activityToBadge[event.activity_type] ?? 'workshop'}
-                size="md"
-              >
-                {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
-              </Badge>
-              {!past && userStatus === 'registered' && (
-                <span className={cn(
-                  'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold',
-                  accent.bg, accent.text, accent.border, 'border',
-                )}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                  {getCountdown(event.date_start)}
-                </span>
-              )}
-            </div>
-            <h1 className="font-heading text-2xl font-bold text-primary-800 mt-2.5">
-              {event.title}
-            </h1>
-            {event.collectives && (
-              <p className="text-sm text-primary-500 font-medium mt-1">
-                by {event.collectives.name}
-              </p>
-            )}
-          </motion.div>
-        </>
-      )}
+      <EventHero
+        event={event}
+        past={past}
+        userStatus={userStatus}
+        accent={accent}
+        onShare={handleShare}
+      />
 
       <div className="relative">
         {/* Decorative background elements */}
@@ -895,7 +744,7 @@ export default function EventDetailPage() {
                   className="flex items-center gap-3 min-h-11 hover:opacity-80 active:scale-[0.98] transition-[opacity,transform] duration-150"
                 >
                   {collab.cover_image_url ? (
-                    <img src={collab.cover_image_url} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm" />
+                    <img src={collab.cover_image_url} alt={collab.name} className="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm" />
                   ) : (
                     <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm bg-gradient-to-br text-white', accent.gradient)}>
                       <Users size={15} />
@@ -948,71 +797,13 @@ export default function EventDetailPage() {
         )}
 
         {/* ── Capacity section (spots filled) ── */}
-        <motion.div
-          variants={shouldReduceMotion ? undefined : fadeUp}
-          className={cn(
-            'rounded-2xl p-4.5 space-y-3 relative overflow-hidden',
-            'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
-            accent.border,
-          )}
-        >
-          <div className={cn('absolute inset-0 bg-gradient-to-br opacity-[0.06]', accent.gradient)} aria-hidden="true" />
-          <div className="absolute inset-0 bg-white/92" aria-hidden="true" />
-          <div className="relative flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shadow-sm bg-gradient-to-br text-white', accent.gradient)}>
-                <Users size={15} />
-              </div>
-              <span className="text-[15px] font-bold text-primary-800">{capacityText}</span>
-            </div>
-            {event.capacity && (
-              <span className={cn(
-                'text-xs font-bold px-2.5 py-1 rounded-full',
-                capacityPercent >= 90 ? 'text-error-700 bg-error-100' : capacityPercent >= 70 ? 'text-warning-700 bg-warning-100' : cn(accent.text, accent.bg),
-              )}>
-                {Math.round(capacityPercent)}%
-              </span>
-            )}
-          </div>
-          {event.capacity && (
-            <div className="relative h-3 rounded-full bg-primary-100/50 overflow-hidden">
-              <motion.div
-                className={cn(
-                  'h-full rounded-full shadow-sm',
-                  capacityPercent >= 90
-                    ? 'bg-gradient-to-r from-error-400 to-error-500'
-                    : capacityPercent >= 70
-                      ? 'bg-gradient-to-r from-warning-400 to-warning-500'
-                      : cn('bg-gradient-to-r', accent.gradient),
-                )}
-                initial={{ width: 0 }}
-                animate={{ width: `${capacityPercent}%` }}
-                transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut', delay: 0.2 }}
-              />
-            </div>
-          )}
-          {/* Attendee avatars */}
-          {event.attendees.length > 0 && (
-            <div className="relative flex items-center gap-2.5 pt-1">
-              <div className="flex -space-x-2.5">
-                {event.attendees.slice(0, 6).map((a) => (
-                  <Avatar
-                    key={a.id}
-                    src={a.avatar_url ?? undefined}
-                    name={a.display_name ?? 'User'}
-                    size="xs"
-                    className="ring-[2.5px] ring-white shadow-sm"
-                  />
-                ))}
-              </div>
-              {event.registration_count > 6 && (
-                <span className="text-caption text-primary-500 font-semibold">
-                  +{event.registration_count - 6} more
-                </span>
-              )}
-            </div>
-          )}
-        </motion.div>
+        <EventAttendees
+          event={event}
+          accent={accent}
+          capacityText={capacityText}
+          capacityPercent={capacityPercent}
+          fadeUpVariants={shouldReduceMotion ? undefined : fadeUp}
+        />
 
         {/* ── Event details pills (what_to_bring, terrain, difficulty, etc.) ── */}
         {(() => {
@@ -1097,31 +888,12 @@ export default function EventDetailPage() {
         })()}
 
         {/* ── Action buttons row ── */}
-        {!past && (
-          <motion.div
-            variants={shouldReduceMotion ? undefined : fadeUp}
-            className="flex gap-2.5 relative"
-          >
-            <Button
-              variant="secondary"
-              size="md"
-              icon={<CalendarPlus size={16} />}
-              onClick={() => setShowCalendarSheet(true)}
-              className="flex-1"
-            >
-              Add to Calendar
-            </Button>
-            <Button
-              variant="secondary"
-              size="md"
-              icon={<Share2 size={16} />}
-              onClick={handleShare}
-              className="flex-1"
-            >
-              Share
-            </Button>
-          </motion.div>
-        )}
+        <EventActions
+          past={past}
+          fadeUpVariants={shouldReduceMotion ? undefined : fadeUp}
+          onCalendarOpen={() => setShowCalendarSheet(true)}
+          onShare={handleShare}
+        />
 
         {/* Leader tools moved to top of content area */}
 
@@ -1379,14 +1151,14 @@ export default function EventDetailPage() {
             <div className={cn('absolute inset-0 opacity-[0.06] bg-gradient-to-br', accent.gradient)} aria-hidden="true" />
             <div className="relative flex items-center gap-3">
               {event?.cover_image_url ? (
-                <img src={event.cover_image_url} alt="" className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                <img src={event.cover_image_url} alt={event.title} className="w-12 h-12 rounded-lg object-cover shrink-0" />
               ) : (
                 <div className={cn('w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-br text-white', accent.gradient)}>
                   <Calendar size={18} />
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-primary-800 truncate">{event?.title}</p>
+                <p className="text-sm font-bold text-primary-800 line-clamp-2">{event?.title}</p>
                 <p className="text-xs text-primary-500 mt-0.5">
                   {event ? formatEventDate(event.date_start) : ''}
                 </p>

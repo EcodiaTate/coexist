@@ -146,7 +146,7 @@ export function useSubscribers(search: string, tagFilter: string | null) {
 
       // Load marketing_opt_in from profiles (added by migration 005, not in generated types)
       // The select('*') would get it but we need to be explicit - use a separate query
-      const profileIds = profiles.map((p: any) => p.id)
+      const profileIds = profiles.map((p) => p.id)
       const { data: optInData } = await supabase
         .from('profiles')
         .select('id, marketing_opt_in')
@@ -163,11 +163,11 @@ export function useSubscribers(search: string, tagFilter: string | null) {
           .select('profile_id')
           .eq('tag_id', tagFilter)
         const idSet = new Set((taggedIds ?? []).map((t) => t.profile_id))
-        profiles = profiles.filter((p: any) => idSet.has(p.id))
+        profiles = profiles.filter((p) => idSet.has(p.id))
       }
 
       // Load tags for each profile
-      const finalIds = profiles.map((p: any) => p.id)
+      const finalIds = profiles.map((p) => p.id)
       const { data: allTags } = await supabase
         .from('profile_tags')
         .select('profile_id, tag_id, email_tags(id, name, colour, description, created_at)')
@@ -180,7 +180,7 @@ export function useSubscribers(search: string, tagFilter: string | null) {
         tagMap.set(pt.profile_id, existing)
       }
 
-      return profiles.map((p: any) => ({
+      return profiles.map((p) => ({
         ...p,
         marketing_opt_in: optInMap.get(p.id) ?? true,
         tags: tagMap.get(p.id) ?? [],

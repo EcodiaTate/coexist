@@ -18,13 +18,14 @@ export async function logAudit(entry: AuditEntry): Promise<void> {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    await supabase.from('audit_log').insert({
+    const { error } = await supabase.from('audit_log').insert({
       user_id: user.id,
       action: entry.action,
       target_type: entry.target_type ?? null,
       target_id: entry.target_id ?? null,
       details: entry.details ?? {},
     })
+    if (error) console.error('[audit] Supabase error logging:', entry.action, error)
   } catch (err) {
     console.error('[audit] Failed to log:', entry.action, err)
   }

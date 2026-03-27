@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { TreePine, Globe, Shield, Heart, Leaf, Users, MapPin, Calendar } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
@@ -167,6 +168,7 @@ function AppIcon() {
 /* ------------------------------------------------------------------ */
 
 export default function DownloadPage() {
+  const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const heroDownload = useAppImage('hero_download')
@@ -260,7 +262,7 @@ export default function DownloadPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => window.location.href = WEB_APP_URL}
+                  onClick={() => navigate(WEB_APP_URL)}
                   className="w-full py-3 rounded-xl bg-white/10 text-white/70 text-sm font-medium hover:bg-white/15 active:scale-[0.97] transition-transform cursor-pointer select-none"
                 >
                   Or continue on web
@@ -277,7 +279,7 @@ export default function DownloadPage() {
                 />
                 <button
                   type="button"
-                  onClick={() => window.location.href = WEB_APP_URL}
+                  onClick={() => navigate(WEB_APP_URL)}
                   className="w-full py-3 rounded-xl bg-white/10 text-white/70 text-sm font-medium hover:bg-white/15 active:scale-[0.97] transition-transform cursor-pointer select-none"
                 >
                   Or continue on web
@@ -300,7 +302,7 @@ export default function DownloadPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => window.location.href = WEB_APP_URL}
+                  onClick={() => navigate(WEB_APP_URL)}
                   className="w-full py-3 rounded-xl bg-white/10 text-white/70 text-sm font-medium hover:bg-white/15 active:scale-[0.97] transition-transform cursor-pointer select-none"
                 >
                   <span className="flex items-center justify-center gap-2">

@@ -2,13 +2,13 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  ArrowLeft, CheckCircle, Clock,
-  AlertTriangle, ChevronRight, ChevronLeft,
-  Calendar as CalendarIcon, FileText,
-  SkipForward, Flame, Sparkles, Users,
-  ClipboardList,
-  Plus, Pencil, Eye, Trash2, List,
-  Circle, CheckCircle2, GripVertical, Flag,
+    ArrowLeft, CheckCircle, Clock,
+    AlertTriangle, ChevronRight, ChevronLeft,
+    Calendar as CalendarIcon, FileText,
+    SkipForward, Flame, Sparkles, Users,
+    ClipboardList,
+    Plus, Pencil, Eye, Trash2, List,
+    Circle, CheckCircle2, GripVertical, Flag,
 } from 'lucide-react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -25,23 +25,23 @@ import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import {
-  useMyTasks,
-  useCompleteTask,
-  useSkipTask,
-  useGenerateTaskInstances,
-  useGroupedTasks,
-  type MyTask,
+    useMyTasks,
+    useCompleteTask,
+    useSkipTask,
+    useGenerateTaskInstances,
+    useGroupedTasks,
+    type MyTask,
 } from '@/hooks/use-tasks'
 import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 import {
-  useLeaderTodos,
-  useCreateTodo,
-  useUpdateTodo,
-  useToggleTodo,
-  useDeleteTodo,
-  PRIORITY_CONFIG,
-  type LeaderTodo,
-  type TodoPriority,
+    useLeaderTodos,
+    useCreateTodo,
+    useUpdateTodo,
+    useToggleTodo,
+    useDeleteTodo,
+    PRIORITY_CONFIG,
+    type LeaderTodo,
+    type TodoPriority,
 } from '@/hooks/use-leader-todos'
 
 /* ------------------------------------------------------------------ */
@@ -120,7 +120,7 @@ function toDateKey(d: Date): string {
 }
 
 /* ================================================================== */
-/*  TASKS TAB — Org-assigned task cards                                */
+/*  TASKS TAB - Org-assigned task cards                                */
 /* ================================================================== */
 
 /* ------------------------------------------------------------------ */
@@ -526,7 +526,7 @@ function TasksTabContent({ rm }: { rm: boolean }) {
 
   if (!groups.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
+      <div className="flex flex-col items-center justify-center py-8 sm:py-12">
         <motion.div
           initial={rm ? undefined : { scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -613,7 +613,7 @@ function TasksTabContent({ rm }: { rm: boolean }) {
 }
 
 /* ================================================================== */
-/*  TODOS TAB — Personal to-do items                                   */
+/*  TODOS TAB - Personal to-do items                                   */
 /* ================================================================== */
 
 /* ------------------------------------------------------------------ */
@@ -1208,7 +1208,7 @@ function TodosTabContent({ rm }: { rm: boolean }) {
           <div className="space-y-4">
             {/* Empty state */}
             {pendingTodos.length === 0 && completedTodos.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12">
+              <div className="flex flex-col items-center justify-center py-8 sm:py-12">
                 <motion.div
                   initial={rm ? undefined : { scale: 0.85, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
@@ -1347,7 +1347,7 @@ export default function LeaderTasksPage() {
 
   return (
     <div className="relative min-h-dvh overflow-x-hidden">
-      {/* Background — blends both page palettes */}
+      {/* Background - blends both page palettes */}
       <div className="absolute inset-0 bg-gradient-to-b from-amber-50/50 via-white to-moss-50/15" />
       <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
 

@@ -28,7 +28,7 @@ export default function WelcomeBackPage() {
   // whose profile already has onboarding_completed but the local flag was lost
   useEffect(() => { markOnboardingComplete() }, [markOnboardingComplete])
 
-  const { data: missedData, isLoading } = useQuery({
+  const { data: missedData, isLoading, error } = useQuery({
     queryKey: ['welcome-back', user?.id],
     queryFn: async () => {
       if (!user) return null
@@ -97,6 +97,10 @@ export default function WelcomeBackPage() {
         <div className="mt-8 space-y-3">
           {showLoading ? (
             <Skeleton variant="list-item" count={3} />
+          ) : error ? (
+            <p className="text-sm text-error-500 text-center py-4">
+              Couldn't load your updates. Tap below to jump in anyway.
+            </p>
           ) : missedData ? (
             <>
               {missedData.missedEventsCount > 0 && (

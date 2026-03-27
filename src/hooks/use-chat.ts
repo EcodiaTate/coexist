@@ -1,6 +1,8 @@
 import { useEffect, useCallback, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { subscribeWithReconnect } from '@/lib/realtime'
+import { MAX_MESSAGE_LENGTH as _IMPORTED_MAX_LEN } from '@/lib/validation'
 import { useAuth } from '@/hooks/use-auth'
 import type { Tables, Json } from '@/types/database.types'
 
@@ -272,9 +274,11 @@ export function useChatMessages(collectiveId: string | undefined) {
           )
         },
       )
-      .subscribe()
+      // Subscribe with automatic reconnect instead of bare .subscribe()
+    const cleanup = subscribeWithReconnect(channel)
 
     return () => {
+      cleanup()
       supabase.removeChannel(channel)
     }
   }, [collectiveId, queryClient, user?.id])
@@ -378,17 +382,17 @@ export function useSendMessage() {
 
       return { optimisticId }
     },
-    onSuccess: (data, input) => {
+    onSuccess: async (data, input) => {
       // Update read receipt
       if (user) {
-        supabase
+        const { error: receiptError } = await supabase
           .from('chat_read_receipts')
           .upsert({
             collective_id: input.collectiveId,
             user_id: user.id,
             last_read_at: new Date().toISOString(),
           }, { onConflict: 'collective_id,user_id' })
-          .then()
+        if (receiptError) console.error('[chat] Failed to update read receipt:', receiptError)
 
         // Send push notification to other members (fire-and-forget, non-blocking)
         const senderName = profile?.display_name ?? 'Someone'
@@ -473,6 +477,7 @@ export function useEditMessage() {
 
   return useMutation({
     mutationFn: async ({ messageId, content, collectiveId }: { messageId: string; content: string; collectiveId: string }) => {
+      if (content.length > MAX_MESSAGE_LENGTH) throw new Error('Message too long')
       const { error } = await supabase
         .from('chat_messages')
         .update({ content })
@@ -612,13 +617,14 @@ export function useMarkChatRead(collectiveId: string | undefined) {
 
   return useCallback(async () => {
     if (!user || !collectiveId) return
-    await supabase
+    const { error } = await supabase
       .from('chat_read_receipts')
       .upsert({
         collective_id: collectiveId,
         user_id: user.id,
         last_read_at: new Date().toISOString(),
       }, { onConflict: 'collective_id,user_id' })
+    if (error) console.error('[chat] Failed to mark chat read:', error)
   }, [user, collectiveId])
 }
 
@@ -1008,11 +1014,12 @@ export function useRespondToAnnouncement() {
       if (!user) throw new Error('Not authenticated')
 
       // Remove existing response first (single-choice)
-      await supabase
+      const { error: deleteError } = await supabase
         .from('chat_announcement_responses')
         .delete()
         .eq('announcement_id', announcementId)
         .eq('user_id', user.id)
+      if (deleteError) throw deleteError
 
       const { error } = await supabase
         .from('chat_announcement_responses')

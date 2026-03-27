@@ -15,6 +15,7 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { cn } from '@/lib/cn'
+import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 
 /* ------------------------------------------------------------------ */
 /*  Animation variants                                                 */
@@ -79,60 +80,66 @@ const REQUIREMENTS = [
 
 export default function LeadershipPage() {
   const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
   const navigate = useNavigate()
+  const { bgRef, fgRef, textRef } = useParallaxLayers({ textRange: 180, withScale: false })
 
   return (
     <Page swipeBack noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
-      {/* Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-800 to-secondary-800">
-        {/* Decorative shapes - "rising leaders" formation */}
-        <div className="absolute -left-14 -top-14 w-72 h-72 rounded-full border border-white/[0.07]" />
-        <div className="absolute -left-4 -top-4 w-44 h-44 rounded-full bg-white/[0.05]" />
-        <div className="absolute -right-10 bottom-[10%] w-52 h-52 rounded-full bg-white/[0.04]" />
-        <div className="absolute right-[20%] top-4 w-16 h-16 rounded-full border border-white/[0.10]" />
-        <div className="absolute left-[40%] bottom-8 w-10 h-10 rounded-full bg-white/[0.06]" />
-
-        <div
-          className="relative z-10 px-6 pt-14 pb-16 text-center"
-          style={{ paddingTop: '3.5rem' }}
-        >
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/15 mb-5"
+      {/* Hero – layered image parallax (matches donate page pattern) */}
+      <div className="relative">
+        <div className="relative w-full h-[480px] sm:h-auto overflow-hidden">
+          {/* Background layer - covers container, clips sides on narrow screens */}
+          <div
+            ref={rm ? undefined : bgRef}
+            className="absolute inset-0 sm:relative sm:inset-auto will-change-transform"
           >
-            <Star size={32} className="text-white" />
-          </motion.div>
+            <img
+              src="/img/leadership-hero-bg.webp"
+              alt="Co-Exist leadership landscape"
+              className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
+            />
+          </div>
 
-          <motion.div
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
+          {/* Foreground cutout - same sizing, pinned to top */}
+          <div
+            ref={rm ? undefined : fgRef}
+            className="absolute inset-0 z-[3] will-change-transform"
           >
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/60 block mb-2">
+            <img
+              src="/img/leadership-hero-fg.webp"
+              alt=""
+              className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
+            />
+          </div>
+
+          {/* Scrim for text legibility */}
+          <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/40 via-black/20 to-transparent" />
+
+          {/* Hero text */}
+          <div
+            ref={rm ? undefined : textRef}
+            className="absolute inset-x-0 top-[22%] sm:top-[16%] z-[2] flex flex-col items-center px-6 will-change-transform"
+          >
+            <span className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-[0.3em] text-white mb-1 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]">
               Leadership Opportunities
             </span>
-            <span className="font-heading text-3xl sm:text-4xl font-bold text-white block">
-              Become a Collective Leader
+            <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)] leading-[0.85] block text-center" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5), 0 0 40px rgba(0,0,0,0.3)' }}>
+              Become a Leader
             </span>
-            <p className="text-sm sm:text-base text-white/70 mt-3 max-w-md mx-auto leading-relaxed">
-              Collective leaders are the backbone of Co-Exist. Bring together local volunteers,
-              organise events, and drive real environmental change.
-            </p>
-          </motion.div>
+          </div>
         </div>
 
-        {/* Wave */}
+        {/* Wave transition */}
         <div className="absolute bottom-0 left-0 right-0 z-20">
           <svg
-            viewBox="0 0 1440 70"
+            viewBox="0 0 1440 200"
             preserveAspectRatio="none"
-            className="w-full h-7 sm:h-10 block"
+            className="w-full h-20 sm:h-28 block"
             xmlns="http://www.w3.org/2000/svg"
           >
             <path
-              d="M0,28 C80,24 160,20 240,22 C320,24 360,12 400,14 L408,5 L414,3 L420,8 C460,16 540,26 640,24 C740,22 800,18 880,20 C960,22 1000,10 1040,12 L1048,4 L1054,2 L1060,7 C1100,16 1180,28 1280,26 C1360,24 1400,28 1440,26 L1440,70 L0,70 Z"
+              d="M0,80 C80,68 160,56 240,62 C320,68 360,34 400,40 L408,14 L414,8 L420,22 C460,46 540,74 640,68 C740,62 800,50 880,56 C960,62 1000,28 1040,34 L1048,12 L1054,6 L1060,20 C1100,46 1180,80 1280,74 C1360,68 1400,80 1440,74 L1440,200 L0,200 Z"
               className="fill-white"
             />
           </svg>
@@ -146,6 +153,10 @@ export default function LeadershipPage() {
         animate="visible"
         variants={shouldReduceMotion ? undefined : stagger}
       >
+        <p className="text-sm text-primary-500 text-center">
+          Bring together local volunteers, organise events, and drive real environmental change.
+        </p>
+
         {/* What leaders do - rich colored cards */}
         <motion.section variants={shouldReduceMotion ? undefined : fadeUp}>
           <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-700/60 mb-3 px-1">

@@ -10,9 +10,7 @@ import {
     CircleDot,
     ToggleLeft,
     Check,
-    UserCircle,
-    GripVertical,
-    Hash,
+    UserCircle, Hash,
     Calendar,
     Mail,
     Phone, ChevronDown,
@@ -419,7 +417,7 @@ function QuestionEditor({
       transition={{ duration: 0.2 }}
       className="rounded-xl bg-white border border-primary-100 shadow-sm overflow-hidden"
     >
-      {/* Header row — always visible, tappable to expand */}
+      {/* Header row - always visible, tappable to expand */}
       <div
         className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-3 cursor-pointer hover:bg-primary-50/30 active:bg-primary-50/50 transition-colors select-none"
         onClick={() => setExpanded(!expanded)}
@@ -429,7 +427,7 @@ function QuestionEditor({
           {index + 1}
         </span>
 
-        {/* Type badge — icon only on mobile, icon + label on sm+ */}
+        {/* Type badge - icon only on mobile, icon + label on sm+ */}
         <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md bg-primary-50 text-primary-400 shrink-0">
           {questionTypeIcons[question.type]}
           <span className="text-[11px] font-medium hidden sm:inline">{questionTypeLabels[question.type]}</span>
@@ -441,7 +439,7 @@ function QuestionEditor({
           {question.required && <span className="text-error-500 ml-0.5">*</span>}
         </p>
 
-        {/* Actions — touch-friendly 44px targets */}
+        {/* Actions - touch-friendly 44px targets */}
         <div className="flex items-center shrink-0" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
@@ -811,7 +809,7 @@ function QuestionEditor({
                   <Dropdown
                     label="Impact Metric (optional)"
                     options={[
-                      { value: '', label: 'None — not linked to impact stats' },
+                      { value: '', label: 'None - not linked to impact stats' },
                       ...surveyLinkableMetrics.map((m) => ({ value: m.key, label: m.label })),
                     ]}
                     value={question.impact_metric ?? ''}
@@ -1457,11 +1455,11 @@ export default function CreateSurveyPage() {
         )}
       </AnimatePresence>
 
-      {/* Submit bar — fixed above bottom tab bar */}
+      {/* Submit bar - fixed above bottom tab bar */}
       <div className="fixed bottom-[calc(56px+var(--safe-bottom)+0.75rem)] sm:bottom-4 inset-x-0 z-30 pointer-events-none px-4 sm:px-6">
         <div className="max-w-4xl mx-auto pointer-events-auto">
           <div className="rounded-2xl bg-white/95 backdrop-blur-sm border border-primary-100 shadow-lg px-4 py-3">
-            {/* Status line — mobile only */}
+            {/* Status line - mobile only */}
             <div className="mb-2 sm:hidden">
               {questions.length === 0 ? (
                 <p className="text-xs text-primary-400">Add at least one question</p>

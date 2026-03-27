@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase } from '@/lib/supabase'
+import { untypedFrom } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 
 /* ------------------------------------------------------------------ */
@@ -48,8 +48,7 @@ export function useLeaderTodos(filters?: {
     queryFn: async () => {
       if (!user) return []
 
-      let query = (supabase as any)
-        .from('leader_todos')
+      let query = untypedFrom('leader_todos')
         .select('*')
         .eq('user_id', user.id)
         .order('sort_order')
@@ -100,8 +99,7 @@ export function useCreateTodo() {
     }) => {
       if (!user) throw new Error('Not authenticated')
 
-      const { data, error } = await (supabase as any)
-        .from('leader_todos')
+      const { data, error } = await untypedFrom('leader_todos')
         .insert({
           user_id: user.id,
           title: input.title,
@@ -135,8 +133,7 @@ export function useUpdateTodo() {
       id,
       ...updates
     }: Partial<LeaderTodo> & { id: string }) => {
-      const { data, error } = await (supabase as any)
-        .from('leader_todos')
+      const { data, error } = await untypedFrom('leader_todos')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
@@ -167,8 +164,7 @@ export function useToggleTodo() {
 
   return useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
-      const { error } = await (supabase as any)
-        .from('leader_todos')
+      const { error } = await untypedFrom('leader_todos')
         .update({
           status: completed ? 'completed' : 'pending',
           completed_at: completed ? new Date().toISOString() : null,
@@ -209,8 +205,7 @@ export function useDeleteTodo() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await (supabase as any)
-        .from('leader_todos')
+      const { error } = await untypedFrom('leader_todos')
         .delete()
         .eq('id', id)
 

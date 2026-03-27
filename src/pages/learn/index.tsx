@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Skeleton } from '@/components/skeleton'
+import { EmptyState } from '@/components/empty-state'
 import { ProgressRing } from '@/components/development/progress-ring'
 import { cn } from '@/lib/cn'
 import { useMyTargetedContent } from '@/hooks/use-development-assignments'
@@ -158,7 +159,7 @@ export default function LearnIndexPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
 
-  const { data: content, isLoading: contentLoading } = useMyTargetedContent()
+  const { data: content, isLoading: contentLoading, isError: contentError } = useMyTargetedContent()
   const { data: moduleProgress = [] } = useMyModuleProgress()
   const { data: sectionProgress = [] } = useMySectionProgress()
 
@@ -269,6 +270,12 @@ export default function LearnIndexPage() {
             <Skeleton className="h-20 rounded-2xl" />
             <Skeleton className="h-20 rounded-2xl" />
           </div>
+        ) : contentError ? (
+          <EmptyState
+            illustration="error"
+            title="Something went wrong"
+            description="We couldn't load your learning modules. Try again later."
+          />
         ) : allContent.length === 0 ? (
           <motion.div
             initial={rm ? {} : { opacity: 0 }}

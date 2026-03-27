@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
-  ClipboardList,
-  Plus,
-  Trash2,
-  BarChart3,
-  Download,
-  Copy,
-  Pencil,
+    ClipboardList,
+    Plus,
+    Trash2,
+    BarChart3,
+    Download,
+    Copy,
+    Pencil,
 } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -205,7 +205,7 @@ export default function AdminSurveysPage() {
                     key={survey.id}
                     className="rounded-xl bg-white shadow-sm overflow-hidden"
                   >
-                    {/* Tappable main area — navigates to edit */}
+                    {/* Tappable main area - navigates to edit */}
                     <button
                       type="button"
                       onClick={() => navigate(`/admin/surveys/${survey.id}/edit`)}
@@ -255,7 +255,7 @@ export default function AdminSurveysPage() {
                       </div>
                     </button>
 
-                    {/* Action bar — always visible, horizontal scroll on small screens */}
+                    {/* Action bar - always visible, horizontal scroll on small screens */}
                     <div className="flex items-center gap-1 px-3 pb-3 -mt-0.5">
                       <button
                         type="button"

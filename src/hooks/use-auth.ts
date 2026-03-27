@@ -489,10 +489,11 @@ export function useAuthProvider(): AuthContextValue {
     if (!user) return
     // Only allow accepting the current TOS version to prevent future-version bypass
     if (version !== CURRENT_TOS_VERSION) return
-    await supabase
+    const { error } = await supabase
       .from('profiles')
       .update({ tos_accepted_version: version, tos_accepted_at: new Date().toISOString() })
       .eq('id', user.id)
+    if (error) throw new Error('Failed to accept Terms of Service. Please try again.')
     await loadUserData(user.id)
   }, [user, loadUserData])
 
@@ -592,7 +593,10 @@ export function useAuthProvider(): AuthContextValue {
     await persistSession(null)
     await persistProfile(null)
     // Clear onboarding flag so a different user gets a fresh start
-    try { localStorage.removeItem(ONBOARDING_DONE_KEY) } catch { /* */ }
+    try {
+      localStorage.removeItem(ONBOARDING_DONE_KEY)
+      localStorage.removeItem('coexist_referral_code')
+    } catch { /* */ }
     if (Capacitor.isNativePlatform()) {
       Preferences.remove({ key: ONBOARDING_DONE_KEY }).catch(() => {})
     }

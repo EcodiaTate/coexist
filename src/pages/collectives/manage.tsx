@@ -458,7 +458,7 @@ export default function CollectiveManagePage() {
           <div className="flex items-center gap-3">
             <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-primary-100">
               {collective.cover_image_url ? (
-                <img src={collective.cover_image_url} alt="" className="h-full w-full object-cover" />
+                <img src={collective.cover_image_url} alt={collective.name} className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
                   <Users size={24} className="text-primary-400" />

@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { subscribeWithReconnect } from '@/lib/realtime'
 import { useAuth } from '@/hooks/use-auth'
 import type { Tables } from '@/types/database.types'
 
@@ -219,9 +220,12 @@ export function useChannelMessages(channelId: string | undefined) {
           )
         },
       )
-      .subscribe()
+
+
+    const cleanup = subscribeWithReconnect(channel)
 
     return () => {
+      cleanup()
       supabase.removeChannel(channel)
     }
   }, [channelId, queryClient])

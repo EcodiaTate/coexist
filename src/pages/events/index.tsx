@@ -71,7 +71,7 @@ function EventsHero({ rm }: { rm: boolean }) {
           className="absolute inset-x-0 top-0 lg:-top-[60%] will-change-transform"
         >
           <img
-            src="/img/events-hero-bg.png"
+            src="/img/events-hero-bg.webp"
             alt="Conservation events"
             className="w-full h-auto block"
           />
@@ -83,7 +83,7 @@ function EventsHero({ rm }: { rm: boolean }) {
           className="absolute inset-x-0 top-0 lg:-top-[60%] z-[3] will-change-transform"
         >
           <img
-            src="/img/events-hero-fg.png"
+            src="/img/events-hero-fg.webp"
             alt=""
             className="w-full h-auto block"
           />
@@ -278,7 +278,7 @@ function MyEventCard({
                 <Card.Meta className="!text-white/70">
                   <span className="flex items-center gap-1.5">
                     <MapPin size={13} className="shrink-0 text-white/60" />
-                    <span className="truncate text-white/75">{event.address}</span>
+                    <span className="line-clamp-1 text-white/75">{event.address}</span>
                   </span>
                 </Card.Meta>
               )}
@@ -393,7 +393,7 @@ function DiscoverEventCard({ event }: { event: EventWithCollective }) {
               <Card.Meta className="!text-white/70">
                 <span className="flex items-center gap-1.5">
                   <MapPin size={13} className="shrink-0 text-white/60" />
-                  <span className="truncate text-white/75">{event.address}</span>
+                  <span className="line-clamp-1 text-white/75">{event.address}</span>
                 </span>
               </Card.Meta>
             )}
@@ -437,7 +437,7 @@ export default function EventsPage() {
   const shouldReduceMotion = useReducedMotion()
 
   // My upcoming events (next events section)
-  const { data: upcomingEvents, isLoading: upcomingLoading, dataUpdatedAt, isFetching } = useMyEvents('upcoming')
+  const { data: upcomingEvents, isLoading: upcomingLoading, isError: upcomingError, dataUpdatedAt, isFetching } = useMyEvents('upcoming')
   const upcomingShowLoading = useDelayedLoading(upcomingLoading)
   const cancelMutation = useCancelRegistration()
 
@@ -446,7 +446,7 @@ export default function EventsPage() {
   const invitedShowLoading = useDelayedLoading(invitedLoading)
 
   // Discover events with filters
-  const { data: discoverEvents, isLoading: discoverLoading } = useDiscoverEvents({
+  const { data: discoverEvents, isLoading: discoverLoading, isError: discoverError } = useDiscoverEvents({
     activityType: activityFilter,
     collectiveId: collectiveFilter || undefined,
   })
@@ -487,6 +487,15 @@ export default function EventsPage() {
 
           <PullToRefresh onRefresh={handleRefresh}>
             <div className="space-y-6 pb-6">
+              {/* Error fallback */}
+              {upcomingError && discoverError && (
+                <EmptyState
+                  illustration="error"
+                  title="Something went wrong"
+                  description="We couldn't load events. Pull down to try again."
+                />
+              )}
+
               {/* ── Next Events (upcoming registered) ── */}
               {(upcomingShowLoading || (upcomingEvents && upcomingEvents.length > 0)) && (
                 <motion.section

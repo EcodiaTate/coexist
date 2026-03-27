@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useRef, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { subscribeWithReconnect } from '@/lib/realtime'
 import { useAuth } from '@/hooks/use-auth'
 
 /* ------------------------------------------------------------------ */
@@ -42,18 +43,23 @@ export function useTyping(collectiveId: string | undefined) {
         }
         setTypingUsers(typers)
       })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          await channel.track({
-            displayName: profile?.display_name ?? 'Someone',
-            isTyping: false,
-          })
-        }
+
+
+    const cleanup = subscribeWithReconnect(channel, {
+        onStatusChange: (status: 'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR') => {
+          if (status === 'SUBSCRIBED') {
+            channel.track({
+              displayName: profile?.display_name ?? 'Someone',
+              isTyping: false,
+            })
+          }
+        },
       })
 
     channelRef.current = channel
 
     return () => {
+      cleanup()
       supabase.removeChannel(channel)
       channelRef.current = null
     }

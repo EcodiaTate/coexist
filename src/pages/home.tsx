@@ -3,44 +3,45 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion, useInView } from 'framer-motion'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 import {
-  ChevronRight,
-  Calendar,
-  Users,
-  TreePine,
-  Megaphone,
-  Clock,
-  Trash2,
-  Sprout,
-  GraduationCap,
-  Globe,
-  MapPin,
-  Heart,
-  ShoppingBag,
-  QrCode,
-  Search,
-  Camera,
-  CheckCircle2,
+    ChevronRight,
+    Calendar,
+    Users,
+    TreePine,
+    Megaphone,
+    Clock,
+    Trash2,
+    Sprout,
+    GraduationCap,
+    Globe,
+    MapPin,
+    Heart,
+    ShoppingBag,
+    QrCode,
+    Search,
+    Camera,
+    CheckCircle2,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import {
-  getGreeting,
-  useMyCollective,
-  useImpactStats,
-  useMyUpcomingEvents,
-  useCollectiveUpcomingEvents,
-  useRecentUpdates,
+    getGreeting,
+    useMyCollective,
+    useImpactStats,
+    useMyUpcomingEvents,
+    useCollectiveUpcomingEvents,
+    useRecentUpdates,
 } from '@/hooks/use-home-feed'
 import { useNationalImpact, useCollectiveImpact } from '@/hooks/use-impact'
 import type { CanonicalImpact } from '@/hooks/use-impact'
 import { usePendingSurveys } from '@/hooks/use-auto-survey'
 import {
-  Page,
-  PullToRefresh,
-  Badge,
-  Button,
-  CheckInSheet,
+    Page,
+    PullToRefresh,
+    Badge,
+    Button,
+    CheckInSheet,
+    EmptyState,
 } from '@/components'
 import { prefetchEventDetail } from '@/hooks/use-events'
 import { cn } from '@/lib/cn'
@@ -186,7 +187,7 @@ function HomeHero({ rm }: { rm: boolean }) {
           className="h-full will-change-transform"
         >
           <img
-            src="/img/home-hero-bg.png"
+            src="/img/home-hero-bg.webp"
             alt="Australian conservation landscape"
             className="w-full h-full object-cover object-center sm:h-auto sm:object-fill block"
           />
@@ -199,7 +200,7 @@ function HomeHero({ rm }: { rm: boolean }) {
         >
           <div className="w-[120%] -ml-[10%] sm:w-[70%] sm:ml-0">
             <img
-              src="/img/home-hero-fg.png"
+              src="/img/home-hero-fg.webp"
               alt="Co-Exist volunteers"
               className="w-full h-auto block"
             />
@@ -273,10 +274,11 @@ function NextEventCard({
   rm: boolean
 }) {
   const navigate = useNavigate()
-  const [checkInOpen, setCheckInOpen] = useState(false)
-  const [checkInEventId, setCheckInEventId] = useState('')
-  const [checkInEventTitle, setCheckInEventTitle] = useState('')
-  const [checkInCollective, setCheckInCollective] = useState('')
+  const [checkIn, setCheckIn] = useState<{
+    eventId: string
+    eventTitle: string
+    collectiveName: string
+  } | null>(null)
 
   if (isLoading && showLoading) {
     return (
@@ -299,6 +301,7 @@ function NextEventCard({
             onClick={() => navigate('/events')}
             role="button"
             tabIndex={0}
+            aria-label="No upcoming events - discover what's happening near you"
           >
             <Search size={24} className="mx-auto text-white/60 mb-3" />
             <p className="text-sm text-white font-medium">No upcoming events</p>
@@ -430,10 +433,11 @@ function NextEventCard({
                 className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-lg"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation()
-                  setCheckInEventId(nextEvent.id)
-                  setCheckInEventTitle(nextEvent.title)
-                  setCheckInCollective(nextEvent.collectives?.name ?? '')
-                  setCheckInOpen(true)
+                  setCheckIn({
+                    eventId: nextEvent.id,
+                    eventTitle: nextEvent.title,
+                    collectiveName: nextEvent.collectives?.name ?? '',
+                  })
                 }}
               >
                 Tap to Sign In
@@ -450,11 +454,11 @@ function NextEventCard({
       </Section>
 
       <CheckInSheet
-        open={checkInOpen}
-        onClose={() => setCheckInOpen(false)}
-        eventId={checkInEventId}
-        eventTitle={checkInEventTitle}
-        collectiveName={checkInCollective}
+        open={!!checkIn}
+        onClose={() => setCheckIn(null)}
+        eventId={checkIn?.eventId ?? ''}
+        eventTitle={checkIn?.eventTitle ?? ''}
+        collectiveName={checkIn?.collectiveName ?? ''}
         autoScan
       />
     </motion.div>
@@ -1021,6 +1025,7 @@ export default function HomePage() {
   const impact = useImpactStats()
   const pendingSurveys = usePendingSurveys()
   const initialLoading = myCollective.isLoading || myEvents.isLoading || impact.isLoading
+  const initialError = myCollective.isError && myEvents.isError && impact.isError
   const showLoading = useDelayedLoading(initialLoading)
 
   // Prefetch the "Your Next Event" detail page so tapping it is instant
@@ -1082,6 +1087,17 @@ export default function HomePage() {
               {getGreeting(firstName)}
             </motion.p>
           </div>
+
+          {/* Error fallback */}
+          {initialError && (
+            <div className="px-6 py-8">
+              <EmptyState
+                illustration="error"
+                title="Something went wrong"
+                description="We couldn't load your feed. Pull down to try again."
+              />
+            </div>
+          )}
 
           {/* Body sections */}
           <motion.div

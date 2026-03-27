@@ -16,7 +16,7 @@ const icon = (Icon: typeof Home, size = 17) => createElement(Icon, { size, strok
 
 export const memberHomeItem: NavItem = { label: 'Home', path: '/', icon: icon(Home) }
 
-export const mainNavCategories: NavCategory[] = [
+export const memberNavCategories: NavCategory[] = [
   {
     label: 'Browse',
     sectionHeader: 'Member',

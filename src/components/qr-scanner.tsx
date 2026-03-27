@@ -102,7 +102,7 @@ function WebQrScanner({ onScan, onError }: { onScan: (value: string) => void; on
 }
 
 /* ------------------------------------------------------------------ */
-/*  QR Scanner — native (Capacitor ML Kit) or web (getUserMedia)       */
+/*  QR Scanner - native (Capacitor ML Kit) or web (getUserMedia)       */
 /* ------------------------------------------------------------------ */
 
 export interface QrScannerProps {
@@ -112,7 +112,7 @@ export interface QrScannerProps {
   onScan: (scannedEventId: string) => void
   /** Called when the QR code is invalid for this event */
   onInvalidQr: () => void
-  /** Called when camera is unavailable (web only — falls back to manual) */
+  /** Called when camera is unavailable (web only - falls back to manual) */
   onCameraError: () => void
   /** Called when user cancels scanning or scanner closes */
   onCancel: () => void

@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import {
-  Mail,
-  MapPin,
-  Send,
-  Globe,
-  Instagram,
-  Facebook,
+    Mail,
+    MapPin,
+    Send,
+    Globe,
+    Instagram,
+    Facebook,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -16,7 +16,9 @@ import { Dropdown } from '@/components/dropdown'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
+import { contactFormSchema, safeValidate } from '@/lib/validation'
 import { useAuth } from '@/hooks/use-auth'
+import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 
 /* ------------------------------------------------------------------ */
 /*  Animation variants                                                 */
@@ -79,8 +81,10 @@ const SUBJECT_OPTIONS = [
 
 export default function ContactPage() {
   const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
   const { profile } = useAuth()
   const toast = useToast()
+  const { bgRef, fgRef, textRef } = useParallaxLayers({ textRange: 180, withScale: false })
 
   const [name, setName] = useState(
     profile?.first_name && profile?.last_name
@@ -98,15 +102,21 @@ export default function ContactPage() {
     e.preventDefault()
     if (!canSubmit) return
 
+    const { success, data: validated, error: valError } = safeValidate(contactFormSchema, { name, email, subject, message })
+    if (!success) {
+      toast.toast.error(valError)
+      return
+    }
+
     setSending(true)
     try {
       const { error } = await supabase
         .from('contact_submissions')
         .insert({
-          name: name.trim(),
-          email: email.trim(),
-          subject: subject || null,
-          message: message.trim(),
+          name: validated.name,
+          email: validated.email,
+          subject: validated.subject || null,
+          message: validated.message,
           user_id: profile?.id ?? null,
         })
 
@@ -125,15 +135,79 @@ export default function ContactPage() {
   return (
     <Page
       swipeBack
-      header={<Header title="" back />}
-      className="bg-surface-1"
+      noBackground
+      className="!px-0 bg-white"
+      stickyOverlay={<Header title="" back transparent className="collapse-header" />}
     >
+      {/* Hero – layered image parallax */}
+      <div className="relative -mt-px">
+        <div className="relative w-full h-[480px] sm:h-auto overflow-hidden">
+          {/* Background layer */}
+          <div
+            ref={rm ? undefined : bgRef}
+            className="absolute inset-0 sm:relative sm:inset-auto will-change-transform"
+          >
+            <img
+              src="/img/contact-hero-bg.webp"
+              alt="Contact Co-Exist"
+              className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
+            />
+          </div>
+
+          {/* Foreground cutout */}
+          <div
+            ref={rm ? undefined : fgRef}
+            className="absolute inset-0 z-[3] will-change-transform"
+          >
+            <img
+              src="/img/contact-hero-fg.webp"
+              alt=""
+              className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
+            />
+          </div>
+
+          {/* Scrim for text legibility */}
+          <div className="absolute inset-0 z-[1] bg-gradient-to-b from-black/40 via-black/20 to-transparent" />
+
+          {/* Hero text */}
+          <div
+            ref={rm ? undefined : textRef}
+            className="absolute inset-x-0 top-[13%] sm:top-[10%] z-[2] flex flex-col items-center px-6 will-change-transform"
+          >
+            <span className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-[0.3em] text-white mb-1 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]">
+              Get In Touch
+            </span>
+            <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)] leading-[0.85] block text-center" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5), 0 0 40px rgba(0,0,0,0.3)' }}>
+              Contact Us
+            </span>
+          </div>
+        </div>
+
+        {/* Wave transition */}
+        <div className="absolute bottom-0 left-0 right-0 z-20">
+          <svg
+            viewBox="0 0 1440 200"
+            preserveAspectRatio="none"
+            className="w-full h-20 sm:h-28 block"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M0,80 C80,68 160,56 240,62 C320,68 360,34 400,40 L408,14 L414,8 L420,22 C460,46 540,74 640,68 C740,62 800,50 880,56 C960,62 1000,28 1040,34 L1048,12 L1054,6 L1060,20 C1100,46 1180,80 1280,74 C1360,68 1400,80 1440,74 L1440,200 L0,200 Z"
+              className="fill-white"
+            />
+          </svg>
+        </div>
+      </div>
+
       <motion.div
-        className="space-y-6 pb-10"
+        className="px-6 space-y-6 pb-10 pt-6"
         initial="hidden"
         animate="visible"
         variants={shouldReduceMotion ? undefined : stagger}
       >
+        <p className="text-sm text-primary-500 text-center">
+          We'd love to hear from you - questions, ideas, or just to say hi.
+        </p>
         {/* Contact form */}
         <motion.form
           variants={shouldReduceMotion ? undefined : fadeUp}

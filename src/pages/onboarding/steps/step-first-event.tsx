@@ -32,7 +32,7 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
   const shouldReduceMotion = useReducedMotion()
   const queryClient = useQueryClient()
 
-  const { data: events, isLoading } = useQuery({
+  const { data: events, isLoading, error } = useQuery({
     queryKey: ['onboarding-events', collectiveId],
     queryFn: async () => {
       let query = supabase
@@ -99,6 +99,11 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
         <div className="mt-6 space-y-3">
           {showLoading ? (
             <Skeleton variant="list-item" count={3} />
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-sm text-error-500">Couldn't load events right now.</p>
+              <p className="text-xs text-primary-400 mt-1">You can skip and browse events later.</p>
+            </div>
           ) : events && events.length > 0 ? (
             events.map((event) => (
               <motion.div

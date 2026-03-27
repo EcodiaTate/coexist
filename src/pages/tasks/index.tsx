@@ -56,11 +56,12 @@ function TaskCard({ task }: { task: MyTask }) {
     mutationFn: async (answers: Record<string, unknown>) => {
       if (!user || !task.template?.survey_id) return
       // Save survey response
-      await supabase.from('survey_responses').insert({
+      const { error } = await supabase.from('survey_responses').insert({
         survey_id: task.template.survey_id,
         user_id: user.id,
         answers: answers as unknown as import('@/types/database.types').Json,
       })
+      if (error) throw error
       // Complete the task
       await completeMutation.mutateAsync({
         instanceId: task.id,

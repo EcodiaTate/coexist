@@ -37,7 +37,7 @@ const CHANNEL_TYPE_CONFIG: Record<string, {
 }> = {
   staff_national: {
     icon: Globe,
-    cardBg: 'bg-gradient-to-br from-[#ede6f2] via-[#e8dfef] to-[#e0d6e8]',
+    cardBg: 'bg-gradient-to-br from-plum-100/60 via-plum-100/40 to-plum-200/30',
     iconBg: 'bg-gradient-to-br from-plum-500 to-plum-700 text-white shadow-md shadow-plum-400/30',
     badge: 'bg-gradient-to-r from-plum-200/80 to-plum-100/60 text-plum-800 border border-plum-300/30',
     label: 'National',
@@ -45,7 +45,7 @@ const CHANNEL_TYPE_CONFIG: Record<string, {
   },
   staff_state: {
     icon: MapPin,
-    cardBg: 'bg-gradient-to-br from-[#e4edf5] via-[#dee8f1] to-[#d6e1ed]',
+    cardBg: 'bg-gradient-to-br from-info-100/60 via-info-100/40 to-info-200/30',
     iconBg: 'bg-gradient-to-br from-info-500 to-info-700 text-white shadow-md shadow-info-400/30',
     badge: 'bg-gradient-to-r from-info-200/80 to-info-100/60 text-info-800 border border-info-300/30',
     label: 'State',
@@ -53,7 +53,7 @@ const CHANNEL_TYPE_CONFIG: Record<string, {
   },
   staff_collective: {
     icon: Users,
-    cardBg: 'bg-gradient-to-br from-[#eaf0e4] via-[#e5ebde] to-[#dde5d5]',
+    cardBg: 'bg-gradient-to-br from-primary-100/60 via-primary-100/40 to-primary-200/30',
     iconBg: 'bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-md shadow-primary-400/30',
     badge: 'bg-gradient-to-r from-primary-200/80 to-primary-100/60 text-primary-800 border border-primary-300/30',
     label: 'Staff',
@@ -234,7 +234,7 @@ function CollectiveChatRow({
         to={`/chat/${collectiveId}`}
         className={cn(
           'group relative flex items-center gap-4 rounded-[20px] p-4',
-          'bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf]',
+          'bg-gradient-to-br from-primary-50/80 via-primary-50/60 to-moss-50/40',
           'border border-primary-200/35',
           'shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12),0_1px_4px_rgba(61,77,51,0.05)]',
           'transition-transform duration-200 active:scale-[0.97]',
@@ -342,10 +342,10 @@ export default function ChatListPage() {
   const shouldReduceMotion = useReducedMotion()
   const { profile, isStaff, isAdmin, isSuperAdmin } = useAuth()
   const isGlobalStaff = isStaff || isAdmin || isSuperAdmin
-  const { data: myCollectives, isLoading } = useMyCollectives()
+  const { data: myCollectives, isLoading, isError } = useMyCollectives()
   const { data: allCollectives } = useCollectives()
   const { data: unreadCounts = {} } = useUnreadCounts()
-  const { data: staffChannels, isLoading: channelsLoading } = useMyStaffChannels()
+  const { data: staffChannels, isLoading: channelsLoading, isError: channelsError } = useMyStaffChannels()
   const { data: channelUnreads = {} } = useChannelUnreadCounts()
   const showLoading = useDelayedLoading(isLoading && channelsLoading)
 
@@ -409,7 +409,7 @@ export default function ChatListPage() {
               <div className="h-5 w-20 bg-secondary-200/30 rounded" />
             </div>
             {Array.from({ length: 4 }, (_, i) => (
-              <div key={i} className="rounded-[20px] bg-gradient-to-br from-[#eef2e8] to-[#e6eadf] border border-primary-200/25 p-4 animate-pulse">
+              <div key={i} className="rounded-[20px] bg-gradient-to-br from-primary-50/80 to-moss-50/40 border border-primary-200/25 p-4 animate-pulse">
                 <div className="flex items-center gap-4">
                   <div className="w-13 h-13 rounded-2xl bg-primary-200/35" />
                   <div className="flex-1 space-y-2">
@@ -425,6 +425,23 @@ export default function ChatListPage() {
     )
   }
   if (isLoading && channelsLoading) return null
+
+  if (isError && channelsError) {
+    return (
+      <Page noBackground className="!px-0 bg-surface-1">
+        <div className="relative min-h-full">
+          <DecorativeBackground />
+          <div className="relative z-10 px-4 lg:px-6 pt-14">
+            <EmptyState
+              illustration="error"
+              title="Something went wrong"
+              description="We couldn't load your chats. Try again later."
+            />
+          </div>
+        </div>
+      </Page>
+    )
+  }
 
   if (!myCollectives?.length && !hasStaffChannels && !isGlobalStaff) {
     return (

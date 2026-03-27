@@ -140,7 +140,7 @@ export default function DiscoverCollectivesPage() {
   const [search, setSearch] = useState('')
   const [selectedState, setSelectedState] = useState<string | null>(null)
 
-  const { data: collectives = [], isLoading } = useCollectives({
+  const { data: collectives = [], isLoading, isError } = useCollectives({
     state: selectedState ?? undefined,
     search: search || undefined,
   })
@@ -269,6 +269,12 @@ export default function DiscoverCollectivesPage() {
                   <Skeleton key={i} variant="card" className="h-24" />
                 ))}
               </div>
+            ) : isError ? (
+              <EmptyState
+                illustration="error"
+                title="Something went wrong"
+                description="We couldn't load collectives. Pull down to try again."
+              />
             ) : collectives.length === 0 ? (
               <EmptyState
                 illustration="search"
