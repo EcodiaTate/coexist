@@ -258,9 +258,11 @@ export default function AdminExportsPage() {
         if (dateEnd) query = query.lte('submitted_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const surveyData = (data ?? []) as any[]
         csv = toCsv(
           ['Response ID', 'Survey', 'Event', 'User ID', 'Answers', 'Submitted'],
-          (data ?? []).map((r) => [
+          surveyData.map((r) => [
             r.id,
             r.surveys?.title ?? r.survey_id,
             r.events?.title ?? r.event_id ?? '',

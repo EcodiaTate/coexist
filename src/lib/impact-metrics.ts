@@ -53,6 +53,12 @@ export const BUILTIN_COLUMNS = new Set([
   'wildlife_sightings',
   'coastline_cleaned_m',
   'hours_total',
+  // Column exists in DB (added in migration 041) but is intentionally not
+  // displayed or aggregated — "leaders empowered" is derived from
+  // collective_members role assignments, not event logging. Listed here so
+  // isBuiltinMetric() routes it correctly if it ever appears as an impact_metric
+  // tag on a survey question, instead of silently dumping it into custom_metrics.
+  'leaders_trained',
 ])
 
 export function isBuiltinMetric(key: string): boolean {

@@ -71,6 +71,35 @@ export type Database = {
           },
         ]
       }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -2632,6 +2661,48 @@ export type Database = {
           },
         ]
       }
+      impact_metric_defs: {
+        Row: {
+          created_at: string | null
+          decimal: boolean
+          icon: string
+          id: string
+          is_active: boolean
+          key: string
+          label: string
+          sort_order: number
+          survey_linkable: boolean
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          decimal?: boolean
+          icon?: string
+          id?: string
+          is_active?: boolean
+          key: string
+          label: string
+          sort_order?: number
+          survey_linkable?: boolean
+          unit?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          decimal?: boolean
+          icon?: string
+          id?: string
+          is_active?: boolean
+          key?: string
+          label?: string
+          sort_order?: number
+          survey_linkable?: boolean
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       impact_species: {
         Row: {
           count: number | null
@@ -2693,6 +2764,69 @@ export type Database = {
           {
             foreignKeyName: "invites_inviter_id_fkey"
             columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leader_todos: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          due_time: string | null
+          id: string
+          priority: string
+          sort_order: number
+          source_template_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          id?: string
+          priority?: string
+          sort_order?: number
+          source_template_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          due_time?: string | null
+          id?: string
+          priority?: string
+          sort_order?: number
+          source_template_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leader_todos_source_template_id_fkey"
+            columns: ["source_template_id"]
+            isOneToOne: false
+            referencedRelation: "task_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leader_todos_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -3906,6 +4040,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "survey_responses_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "survey_responses_survey_id_fkey"
             columns: ["survey_id"]
             isOneToOne: false
@@ -3927,6 +4068,7 @@ export type Database = {
           auto_send_after_event: boolean | null
           created_at: string | null
           created_by: string | null
+          description: string | null
           event_id: string | null
           id: string
           is_active: boolean | null
@@ -3939,6 +4081,7 @@ export type Database = {
           auto_send_after_event?: boolean | null
           created_at?: string | null
           created_by?: string | null
+          description?: string | null
           event_id?: string | null
           id?: string
           is_active?: boolean | null
@@ -3951,6 +4094,7 @@ export type Database = {
           auto_send_after_event?: boolean | null
           created_at?: string | null
           created_by?: string | null
+          description?: string | null
           event_id?: string | null
           id?: string
           is_active?: boolean | null
@@ -4058,6 +4202,7 @@ export type Database = {
       }
       task_templates: {
         Row: {
+          assigned_to_user_id: string | null
           assignee_role: string
           assignment_mode: string
           attachment_label: string | null
@@ -4080,6 +4225,7 @@ export type Database = {
           use_dynamic_timeline: boolean
         }
         Insert: {
+          assigned_to_user_id?: string | null
           assignee_role?: string
           assignment_mode?: string
           attachment_label?: string | null
@@ -4102,6 +4248,7 @@ export type Database = {
           use_dynamic_timeline?: boolean
         }
         Update: {
+          assigned_to_user_id?: string | null
           assignee_role?: string
           assignment_mode?: string
           attachment_label?: string | null
@@ -4124,6 +4271,13 @@ export type Database = {
           use_dynamic_timeline?: boolean
         }
         Relationships: [
+          {
+            foreignKeyName: "task_templates_assigned_to_user_id_fkey"
+            columns: ["assigned_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "task_templates_collective_id_fkey"
             columns: ["collective_id"]

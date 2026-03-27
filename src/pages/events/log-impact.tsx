@@ -412,33 +412,46 @@ export default function LogImpactPage() {
     //    just wrote. The upsert must not zero those out.
     const { data: postSyncImpact } = await supabase
       .from('event_impact')
-      .select('trees_planted, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings, invasive_weeds_pulled, custom_metrics')
+      .select('trees_planted, rubbish_kg, area_restored_sqm, native_plants, wildlife_sightings, invasive_weeds_pulled, coastline_cleaned_m, custom_metrics')
       .eq('event_id', eventId)
       .maybeSingle()
 
-    const customMetricsPayload: Record<string, unknown> = {}
-    if (species.length > 0) customMetricsPayload.species = species
-    if (photos.length > 0) customMetricsPayload.photos = photos
-    if (beforePhotos.length > 0) customMetricsPayload.before_photos = beforePhotos
-    if (afterPhotos.length > 0) customMetricsPayload.after_photos = afterPhotos
-    if (drawnArea) customMetricsPayload.drawn_area = drawnArea
+    // Always write leader-section keys so that clearing a field (e.g. deleting all
+    // photos) actually removes it rather than leaving the old value in place.
+    const customMetricsPayload: Record<string, unknown> = {
+      species: species.length > 0 ? species : undefined,
+      photos: photos.length > 0 ? photos : undefined,
+      before_photos: beforePhotos.length > 0 ? beforePhotos : undefined,
+      after_photos: afterPhotos.length > 0 ? afterPhotos : undefined,
+      drawn_area: drawnArea ?? undefined,
+    }
+    // Strip undefined keys so we only merge explicitly-set values
+    const leaderSections = Object.fromEntries(
+      Object.entries(customMetricsPayload).filter(([, v]) => v !== undefined),
+    )
 
-    // Merge custom_metrics: base (existing) → survey-synced → leader sections
-    const existingCm = (postSyncImpact?.custom_metrics as Record<string, unknown>) ?? {}
-    const mergedCustom = { ...existingCm, ...customMetricsPayload }
+    // Merge custom_metrics: strip stale leader-section keys from the existing row,
+    // then layer in the current leader sections. This ensures a cleared field
+    // (e.g. all photos deleted) actually disappears rather than re-appearing.
+    const existingCm = { ...(postSyncImpact?.custom_metrics as Record<string, unknown>) ?? {} }
+    for (const key of ['species', 'photos', 'before_photos', 'after_photos', 'drawn_area']) {
+      delete existingCm[key]
+    }
+    const mergedCustom = { ...existingCm, ...leaderSections }
 
     await logImpact.mutateAsync({
       event_id: eventId,
       hours_total: computedHoursTotal,
       notes: notes || null,
       custom_metrics: mergedCustom as unknown as Json,
-      // Preserve builtin values written by syncSurveyImpact; default to 0 only when no survey data
-      trees_planted: postSyncImpact?.trees_planted ?? 0,
-      rubbish_kg: postSyncImpact?.rubbish_kg ?? 0,
-      area_restored_sqm: postSyncImpact?.area_restored_sqm ?? 0,
-      native_plants: postSyncImpact?.native_plants ?? 0,
-      wildlife_sightings: postSyncImpact?.wildlife_sightings ?? 0,
-      invasive_weeds_pulled: postSyncImpact?.invasive_weeds_pulled ?? 0,
+      // Preserve builtin values written by syncSurveyImpact; null means not measured
+      trees_planted: postSyncImpact?.trees_planted ?? null,
+      rubbish_kg: postSyncImpact?.rubbish_kg ?? null,
+      area_restored_sqm: postSyncImpact?.area_restored_sqm ?? null,
+      native_plants: postSyncImpact?.native_plants ?? null,
+      wildlife_sightings: postSyncImpact?.wildlife_sightings ?? null,
+      invasive_weeds_pulled: postSyncImpact?.invasive_weeds_pulled ?? null,
+      coastline_cleaned_m: postSyncImpact?.coastline_cleaned_m ?? null,
     })
 
     // Invalidate survey caches
