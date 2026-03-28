@@ -33,3 +33,6 @@ secrets/
 # Firebase config files (contain API keys)
 android/app/google-services.json
 ios/App/App/GoogleService-Info.plist
+
+# Claude Code agent worktrees
+.claude/worktrees/
