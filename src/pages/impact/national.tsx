@@ -1,19 +1,19 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  TreePine,
-  Trash2,
-  Sprout,
-  CalendarDays,
-  Users,
-  MapPin,
-  Download,
-  Share2,
-  Trophy,
-  GraduationCap,
-  Globe,
-  Sparkles,
-  Waves,
+    TreePine,
+    Trash2,
+    Sprout,
+    CalendarDays,
+    Users,
+    MapPin,
+    Download,
+    Share2,
+    Trophy,
+    GraduationCap,
+    Globe,
+    Sparkles,
+    Waves,
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
@@ -523,7 +523,7 @@ export default function NationalImpactPage() {
                   const height = (t.impact / max) * 100
                   return (
                     <div key={t.month} className="flex-1 flex flex-col items-center gap-2">
-                      <span className="text-[11px] text-primary-600 tabular-nums font-bold">{t.impact === 0 ? '—' : t.impact}</span>
+                      <span className="text-[11px] text-primary-600 tabular-nums font-bold">{t.impact === 0 ? '-' : t.impact}</span>
                       <motion.div
                         className="w-full rounded-xl bg-gradient-to-t from-primary-700 via-primary-500 to-primary-300 min-h-[6px] shadow-sm"
                         initial={shouldReduceMotion ? { height: `${height}%` } : { height: 0 }}

@@ -148,7 +148,7 @@ export default function AdminImpactMetricsPage() {
     }
     // Prevent creating a custom metric that collides with a built-in column
     if (showAdd && isBuiltinMetric(form.key)) {
-      toast.error(`"${form.key}" is a built-in metric — edit it instead of creating a new one`)
+      toast.error(`"${form.key}" is a built-in metric - edit it instead of creating a new one`)
       return
     }
     try {

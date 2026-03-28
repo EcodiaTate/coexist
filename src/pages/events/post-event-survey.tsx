@@ -288,7 +288,7 @@ export default function PostEventSurveyPage() {
           </p>
         </div>
 
-        {/* Questions — shared renderer */}
+        {/* Questions - shared renderer */}
         <motion.div
           initial="hidden"
           animate="visible"

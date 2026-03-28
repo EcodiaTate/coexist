@@ -2,18 +2,18 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import {
-  QueryClient,
-  QueryClientProvider,
-  dehydrate,
-  hydrate,
+    QueryClient,
+    QueryClientProvider,
+    dehydrate,
+    hydrate,
 } from '@tanstack/react-query'
 import { HelmetProvider } from 'react-helmet-async'
 import { AuthProvider } from '@/components/auth-provider'
 import { ToastProvider } from '@/components/toast'
 import {
-  attachOfflineSyncListener,
-  restoreQueryCache,
-  persistQueryCache,
+    attachOfflineSyncListener,
+    restoreQueryCache,
+    persistQueryCache,
 } from '@/lib/offline-sync'
 import { CookieConsentBanner } from '@/components/cookie-consent'
 import { SentryErrorBoundary } from '@/lib/sentry'
@@ -94,7 +94,7 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Register service worker — detect updates and prompt reload
+// Register service worker - detect updates and prompt reload
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then((reg) => {

@@ -2,51 +2,50 @@ import { useState, useCallback, useMemo, useEffect, lazy, Suspense, startTransit
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  TreePine,
-  Clock,
-  Leaf,
-  Camera,
-  Plus,
-  X,
-  MapPin,
-  CheckCircle2,
-  Save,
-  Calendar,
-  ClipboardList,
+    TreePine,
+    Clock,
+    Leaf,
+    Camera,
+    Plus,
+    X,
+    MapPin,
+    CheckCircle2,
+    Save,
+    Calendar,
+    ClipboardList,
 } from 'lucide-react'
 import {
-  useEventDetail,
-  useEventImpact,
-  useEventAttendees,
-  useLogImpact,
-  ACTIVITY_TYPE_LABELS,
-  getEventDuration,
+    useEventDetail,
+    useEventImpact,
+    useEventAttendees,
+    useLogImpact,
+    ACTIVITY_TYPE_LABELS,
+    getEventDuration,
 } from '@/hooks/use-events'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import { useAuth } from '@/hooks/use-auth'
 import { useEventSurvey } from '@/hooks/use-event-survey'
 import { SurveyQuestionRenderer } from '@/components/survey-questions'
-import type { SurveyQuestion } from '@/components/survey-questions'
 import { syncSurveyImpact } from '@/lib/survey-impact'
 import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import type { Json } from '@/types/database.types'
 import {
-  Page,
-  Header,
-  Button,
-  Input,
-  Skeleton,
-  EmptyState,
-  UploadProgress,
-  WhatsNext,
+    Page,
+    Header,
+    Button,
+    Input,
+    Skeleton,
+    EmptyState,
+    UploadProgress,
+    WhatsNext,
 } from '@/components'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import { supabase } from '@/lib/supabase'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 const MapView = lazy(() => import('@/components/map/map-view').then(m => ({ default: m.MapView })))
 
@@ -665,7 +664,7 @@ export default function LogImpactPage() {
           </div>
         </motion.div>
 
-        {/* Survey questions — admin-configured impact fields */}
+        {/* Survey questions - admin-configured impact fields */}
         {surveyQuestions.length > 0 && (
           <motion.div variants={fadeUp} className="space-y-3">
             <div className="flex items-center gap-2">
