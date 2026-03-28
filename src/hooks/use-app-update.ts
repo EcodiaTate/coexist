@@ -26,12 +26,13 @@ interface UpdateStatus {
 const CHECK_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
 
 /**
- * Checks a Supabase `app_config` table for maintenance mode and
- * minimum/latest version. The table should have rows like:
- *   { key: 'maintenance_mode',    value: 'true' }
- *   { key: 'maintenance_message', value: 'Back shortly!' }
- *   { key: 'min_version',         value: '1.1.0' }
- *   { key: 'latest_version',      value: '1.2.0' }
+ * Checks the Supabase `app_settings` key/value table for maintenance mode
+ * and minimum/latest version. Each row has { key: text, value: jsonb }.
+ * Expected keys:
+ *   maintenance_mode    → jsonb boolean or string "true"
+ *   maintenance_message → jsonb string
+ *   min_version         → jsonb string e.g. "1.1.0"
+ *   latest_version      → jsonb string e.g. "1.2.0"
  *
  * Returns safe defaults if the table doesn't exist or the fetch fails.
  */
@@ -49,14 +50,18 @@ export function useAppUpdate(): UpdateStatus {
 
     async function check() {
       try {
-        const { data, error } = await untypedFrom('app_config')
+        const { data, error } = await untypedFrom('app_settings')
           .select('key, value')
           .in('key', ['maintenance_mode', 'maintenance_message', 'min_version', 'latest_version'])
 
         if (error || !data) return
 
+        // value is jsonb — could be string, boolean, number, etc.
         const config: Record<string, string> = {}
-        for (const row of data) config[row.key] = row.value
+        for (const row of data) {
+          const v = row.value
+          config[row.key] = typeof v === 'string' ? v : JSON.stringify(v)
+        }
 
         const maintenanceMode = config.maintenance_mode === 'true'
         const maintenanceMessage = config.maintenance_message || undefined
