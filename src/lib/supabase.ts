@@ -17,7 +17,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
  * Use `supabase.from('table_name')` directly instead.
  * Kept temporarily for backwards compatibility — remove call sites then delete this.
  */
-type UntypedTable = 'leader_todos' | 'impact_metric_defs' | 'app_settings' | 'app_config'
+type UntypedTable = 'leader_todos' | 'impact_metric_defs' | 'app_settings'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const untypedFrom = (table: UntypedTable) => supabase.from(table as any) as any
 
