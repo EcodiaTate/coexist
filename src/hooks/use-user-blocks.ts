@@ -57,20 +57,43 @@ export function useBlockUser() {
       if (blockError) throw blockError
 
       // Also create a content report to notify admins about the blocked user
-      const { error: reportError } = await supabase
+      const reportReason = reason
+        ? `User blocked: ${reason}`
+        : 'User blocked by another member'
+
+      const { data: reportData, error: reportError } = await supabase
         .from('content_reports')
         .insert({
           content_id: blockedId,
           content_type: 'profile',
-          reason: reason
-            ? `User blocked: ${reason}`
-            : 'User blocked by another member',
+          reason: reportReason,
           reporter_id: user.id,
           status: 'pending',
         })
+        .select('id')
+        .single()
 
       // Don't fail the block if the report fails
-      if (reportError) console.error('Failed to create report for block:', reportError)
+      if (reportError) {
+        console.error('Failed to create report for block:', reportError)
+      } else {
+        // Notify admins via edge function (best-effort)
+        try {
+          await supabase.functions.invoke('notify-report', {
+            body: {
+              record: {
+                id: reportData.id,
+                content_id: blockedId,
+                content_type: 'profile',
+                reason: reportReason,
+                reporter_id: user.id,
+              },
+            },
+          })
+        } catch (notifyErr) {
+          console.error('Failed to notify admins:', notifyErr)
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blocked-users'] })

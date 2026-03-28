@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
@@ -10,6 +11,8 @@ import {
   MessageSquare,
   Image as ImageIcon,
   FileText,
+  UserX,
+  Flag,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -44,6 +47,8 @@ interface ReportWithReporter extends ContentReport {
 const contentTypeConfig: Record<string, { icon: typeof FileText; label: string; color: string }> = {
   photo: { icon: ImageIcon, label: 'Photo', color: 'text-plum-600 bg-plum-100' },
   chat_message: { icon: MessageSquare, label: 'Chat Message', color: 'text-success-600 bg-success-100' },
+  profile: { icon: UserX, label: 'User Report / Block', color: 'text-error-600 bg-error-100' },
+  post: { icon: Flag, label: 'Post', color: 'text-warning-600 bg-warning-100' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -188,6 +193,18 @@ function ReportCard({
             </p>
           </div>
         </div>
+
+        {/* Quick link for profile reports (user blocks / user reports) */}
+        {report.content_type === 'profile' && (
+          <div className="px-4 pb-2">
+            <Link
+              to={`/profile/${report.content_id}`}
+              className="text-xs font-medium text-primary-500 hover:text-primary-700 hover:underline"
+            >
+              View reported user profile &rarr;
+            </Link>
+          </div>
+        )}
 
         {/* Actions */}
         {report.status === 'pending' && (

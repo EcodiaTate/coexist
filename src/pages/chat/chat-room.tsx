@@ -63,6 +63,7 @@ import {
   usePinChannelMessage,
 } from '@/hooks/use-staff-channels'
 import { supabase } from '@/lib/supabase'
+import { useBlockedUsers } from '@/hooks/use-user-blocks'
 import { useInviteCollaborator } from '@/hooks/use-events'
 import { useTyping } from '@/hooks/use-typing'
 import { useOffline } from '@/hooks/use-offline'
@@ -236,6 +237,11 @@ export default function ChatRoomPage() {
   const inviteCollaborator = useInviteCollaborator()
   const { typingText, sendTyping, stopTyping } = useTyping(isCollective ? collectiveId : undefined)
   const { isOffline } = useOffline()
+  const { data: blockedUsers } = useBlockedUsers()
+  const blockedIds = useMemo(
+    () => new Set((blockedUsers ?? []).map((b) => b.blocked_id)),
+    [blockedUsers],
+  )
 
   /* ---- Channel-specific hooks ---- */
   const { data: channels } = useMyStaffChannels()
@@ -262,14 +268,21 @@ export default function ChatRoomPage() {
   const isFetchingNextPage = isCollective ? collectiveMessages.isFetchingNextPage : channelMessages.isFetchingNextPage
   const fetchNextPage = isCollective ? collectiveMessages.fetchNextPage : channelMessages.fetchNextPage
 
-  // Flatten and normalise messages for display
+  // Flatten, normalise, and filter blocked users from display
   const allMessages: AnyMessage[] = useMemo(() => {
+    let msgs: AnyMessage[]
     if (isCollective) {
       if (!collectiveMessages.data?.pages) return []
-      return collectiveMessages.data.pages.flat().reverse()
+      msgs = collectiveMessages.data.pages.flat().reverse()
+    } else {
+      msgs = channelMessages.messages ?? []
     }
-    return channelMessages.messages ?? []
-  }, [isCollective, collectiveMessages.data, channelMessages.messages])
+    // Filter out messages from blocked users
+    if (blockedIds.size > 0) {
+      msgs = msgs.filter((m) => !m.user_id || !blockedIds.has(m.user_id))
+    }
+    return msgs
+  }, [isCollective, collectiveMessages.data, channelMessages.messages, blockedIds])
 
   // Group by date (used for rendering)
   const messageGroups = useMemo(() => {
