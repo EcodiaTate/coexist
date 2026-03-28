@@ -18,7 +18,8 @@ import {
     Cookie,
     Info,
     LogOut,
-    ChevronRight, Volume2
+    ChevronRight, Volume2,
+    AlertTriangle, Undo2
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -904,7 +905,7 @@ function SettingsSkeleton() {
 
 export default function SettingsPage() {
   const navigate = useNavigate()
-  const { user, profile, signOut } = useAuth()
+  const { user, profile, signOut, refreshProfile } = useAuth()
   const { isWeb } = usePlatform()
   const { toast } = useToast()
   const { unregister: unregisterPush } = usePush()
@@ -1034,6 +1035,14 @@ export default function SettingsPage() {
     navigate('/welcome')
   }
 
+  const isPendingDeletion = profileExt?.deletion_status === 'pending_deletion'
+  const deletionRequestedAt = profileExt?.deletion_requested_at
+    ? new Date(profileExt.deletion_requested_at)
+    : null
+  const deletionDaysLeft = deletionRequestedAt
+    ? Math.max(0, 30 - Math.floor((Date.now() - deletionRequestedAt.getTime()) / (1000 * 60 * 60 * 24)))
+    : null
+
   const handleDeleteAccount = async () => {
     if (!user) return
     // Soft-delete: mark account for deletion (30-day grace)
@@ -1054,6 +1063,25 @@ export default function SettingsPage() {
     await unregisterPush()
     await signOut()
     navigate('/welcome')
+  }
+
+  const [cancellingDeletion, setCancellingDeletion] = useState(false)
+  const handleCancelDeletion = async () => {
+    if (!user) return
+    setCancellingDeletion(true)
+    try {
+      const { error } = await supabase.rpc('recover_pending_deletion', { uid: user.id })
+      if (error) {
+        toast.error('Failed to cancel deletion. Please contact support.')
+        return
+      }
+      toast.success('Account deletion cancelled. Your account is safe.')
+      await refreshProfile()
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setCancellingDeletion(false)
+    }
   }
 
   if (!user || !profile) {
@@ -1167,6 +1195,36 @@ export default function SettingsPage() {
             {/* ---- Account ---- */}
             <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
             <SectionHeader label="Account" />
+
+            {/* Pending deletion banner */}
+            {isPendingDeletion && (
+              <div className="mb-3 rounded-2xl border border-amber-200 bg-amber-50/90 p-4 space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                    <AlertTriangle size={18} className="text-amber-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-heading font-semibold text-amber-800 text-sm">Account scheduled for deletion</p>
+                    <p className="text-xs text-amber-600 mt-0.5">
+                      {deletionDaysLeft != null && deletionDaysLeft > 0
+                        ? `Your data will be permanently removed in ${deletionDaysLeft} day${deletionDaysLeft === 1 ? '' : 's'}.`
+                        : 'Your data will be permanently removed soon.'}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  fullWidth
+                  icon={<Undo2 size={16} />}
+                  loading={cancellingDeletion}
+                  onClick={handleCancelDeletion}
+                >
+                  Cancel deletion
+                </Button>
+              </div>
+            )}
+
             <div className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden">
               <MenuRow
                 icon={<Lock size={18} />}
@@ -1185,13 +1243,15 @@ export default function SettingsPage() {
                 subtitle="Export or delete your data (GDPR)"
                 onClick={() => setShowDataPrivacy(true)}
               />
-              <MenuRow
-                icon={<Trash2 size={18} />}
-                label="Delete Account"
-                danger
-                onClick={() => setShowDeleteConfirm(true)}
-                hideDivider
-              />
+              {!isPendingDeletion && (
+                <MenuRow
+                  icon={<Trash2 size={18} />}
+                  label="Delete Account"
+                  danger
+                  onClick={() => setShowDeleteConfirm(true)}
+                  hideDivider
+                />
+              )}
             </div>
 
             </motion.div>

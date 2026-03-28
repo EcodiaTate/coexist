@@ -24,6 +24,7 @@ const PublicEventPage = lazy(() => import('@/pages/public/event'))
 const PublicCollectivePage = lazy(() => import('@/pages/public/collective'))
 const DownloadPage = lazy(() => import('@/pages/public/download'))
 const AccountDeletionPage = lazy(() => import('@/pages/public/account-deletion'))
+const DataDeletionPage = lazy(() => import('@/pages/public/data-deletion'))
 
 // Legal
 const TermsOfServicePage = lazy(() => import('@/pages/legal/terms'))
@@ -540,6 +541,14 @@ function App() {
           element={
             <AppShell bare>
               <AccountDeletionPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/data-deletion"
+          element={
+            <AppShell bare>
+              <DataDeletionPage />
             </AppShell>
           }
         />

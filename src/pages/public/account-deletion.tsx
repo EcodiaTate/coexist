@@ -32,7 +32,19 @@ type Step = 'info' | 'login' | 'processing' | 'done'
 /*  Soft-delete helper                                                 */
 /* ------------------------------------------------------------------ */
 
-async function softDeleteUser(userId: string): Promise<{ error: string | null }> {
+async function softDeleteUser(userId: string): Promise<{ error: string | null; alreadyPending: boolean }> {
+  // Check if already pending deletion
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('deletion_status')
+    .eq('id', userId)
+    .single()
+
+  if ((existing as Record<string, unknown> | null)?.deletion_status === 'pending_deletion') {
+    await supabase.auth.signOut()
+    return { error: null, alreadyPending: true }
+  }
+
   const { error } = await supabase
     .from('profiles')
     .update({
@@ -42,10 +54,10 @@ async function softDeleteUser(userId: string): Promise<{ error: string | null }>
     } as unknown as Record<string, unknown>)
     .eq('id', userId)
 
-  if (error) return { error: 'Failed to process deletion request. Please contact support.' }
+  if (error) return { error: 'Failed to process deletion request. Please contact support.', alreadyPending: false }
 
   await supabase.auth.signOut()
-  return { error: null }
+  return { error: null, alreadyPending: false }
 }
 
 /* ------------------------------------------------------------------ */

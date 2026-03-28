@@ -309,18 +309,9 @@ export function useAuthProvider(): AuthContextValue {
       }
     }
 
-    // Check if account is pending deletion and user logged back in (recovery)
-    // Use server-side RPC to handle this securely instead of direct client update
-    if (profileData?.deletion_status === 'pending_deletion') {
-      try {
-        await supabase.rpc('recover_pending_deletion', { uid: userId })
-        profileData.deletion_status = 'active'
-        profileData.deleted_at = null
-        profileData.deletion_requested_at = null
-      } catch {
-        // If RPC doesn't exist yet, the account stays pending - server wins
-      }
-    }
+    // If account is pending deletion, keep the status so the UI can show it.
+    // The user can cancel deletion from Settings. We no longer auto-recover
+    // on login so the user sees the pending state and can make an informed choice.
 
     setProfile(profileData)
     setCollectiveRoles(roles as CollectiveMembership[])
