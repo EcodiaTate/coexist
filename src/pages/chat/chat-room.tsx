@@ -21,6 +21,8 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { MessageInput } from '@/components/message-input'
 import { MessageActionsSheet } from '@/components/message-actions-sheet'
+import { ReportContentSheet } from '@/components/report-content-sheet'
+import { BlockUserSheet } from '@/components/block-user-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
@@ -315,6 +317,10 @@ export default function ChatRoomPage() {
   const [profileUserId, setProfileUserId] = useState<string | null>(null)
   const [creatingPoll, setCreatingPoll] = useState(false)
   const [creatingAnnouncement, setCreatingAnnouncement] = useState(false)
+  const [showReportSheet, setShowReportSheet] = useState(false)
+  const [reportTarget, setReportTarget] = useState<AnyMessage | null>(null)
+  const [showBlockSheet, setShowBlockSheet] = useState(false)
+  const [blockTarget, setBlockTarget] = useState<{ id: string; name: string } | null>(null)
 
   /* ---- Refs ---- */
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -933,7 +939,43 @@ export default function ChatRoomPage() {
         onEdit={isCollective ? handleEdit : undefined}
         onDelete={handleDelete}
         onPin={handlePin}
+        onReport={() => {
+          setReportTarget(selectedMessage)
+          setShowReportSheet(true)
+          setSelectedMessage(null)
+        }}
+        onBlockUser={() => {
+          if (selectedMessage?.user_id) {
+            const msg = selectedMessage as ChatMessageWithSender
+            setBlockTarget({
+              id: selectedMessage.user_id,
+              name: msg.profiles?.display_name ?? 'this user',
+            })
+            setShowBlockSheet(true)
+          }
+          setSelectedMessage(null)
+        }}
       />
+
+      {/* Report content sheet */}
+      {reportTarget && (
+        <ReportContentSheet
+          open={showReportSheet}
+          onClose={() => { setShowReportSheet(false); setReportTarget(null) }}
+          contentId={reportTarget.id}
+          contentType="chat_message"
+        />
+      )}
+
+      {/* Block user sheet */}
+      {blockTarget && (
+        <BlockUserSheet
+          open={showBlockSheet}
+          onClose={() => { setShowBlockSheet(false); setBlockTarget(null) }}
+          userId={blockTarget.id}
+          userName={blockTarget.name}
+        />
+      )}
 
       {/* Delete message confirmation */}
       <ConfirmationSheet

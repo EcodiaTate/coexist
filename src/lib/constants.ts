@@ -8,7 +8,7 @@ export const INSTAGRAM_URL = 'https://www.instagram.com/coexistaus'
 export const FACEBOOK_URL = 'https://www.facebook.com/coexistaus'
 export const ECODIA_CODE_URL = 'https://code.ecodia.au'
 
-export const CURRENT_TOS_VERSION = '1.0'
+export const CURRENT_TOS_VERSION = '1.1'
 
 export const TIERS = ['New', 'Active', 'Committed', 'Dedicated', 'Lifetime'] as const
 export type Tier = (typeof TIERS)[number]

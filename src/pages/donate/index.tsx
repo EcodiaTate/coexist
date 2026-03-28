@@ -1,33 +1,22 @@
-import { useState, useCallback } from 'react'
+import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
-import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 import { useQuery } from '@tanstack/react-query'
+import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 import {
-    Heart, Users, Sparkles, ChevronRight, Repeat,
-    TreePine, Leaf, Waves, MapPin, Zap,
-    TrendingUp, ShieldCheck,
+    Heart, Users, ExternalLink,
+    TreePine, Waves,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
-import { Input } from '@/components/input'
-import { Toggle } from '@/components/toggle'
-import { ProgressBar } from '@/components/progress-bar'
 import { Skeleton } from '@/components/skeleton'
-import { useToast } from '@/components/toast'
-import { useDonationProjects, useCreateDonation } from '@/hooks/use-donations'
-import { redirectToCheckout } from '@/lib/stripe'
-import { supabase } from '@/lib/supabase'
-import {
-    PRESET_AMOUNTS,
-    getImpactMessage,
-    type DonationFrequency,
-    type DonationProject,
-} from '@/types/donations'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { supabase } from '@/lib/supabase'
+import { WEBSITE_URL } from '@/lib/constants'
 import { cn } from '@/lib/cn'
+
+const DONATE_URL = `${WEBSITE_URL}/donate`
 
 /* ------------------------------------------------------------------ */
 /*  National impact stats (same query as /impact/national)             */
@@ -67,21 +56,6 @@ const fadeUp: Variants = {
   hidden: { opacity: 0, y: 16 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
 }
-const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.92 },
-  visible: { opacity: 1, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 28 } },
-}
-
-/* ------------------------------------------------------------------ */
-/*  Impact icons mapped to amounts                                     */
-/* ------------------------------------------------------------------ */
-
-const IMPACT_ICONS: Record<number, React.ReactNode> = {
-  5: <Leaf size={18} className="text-white" />,
-  10: <Waves size={18} className="text-white" />,
-  25: <TreePine size={18} className="text-white" />,
-  50: <MapPin size={18} className="text-white" />,
-}
 
 /* ------------------------------------------------------------------ */
 /*  Breathing decorative elements                                      */
@@ -96,7 +70,6 @@ function PageDepthElements({ rm }: { rm: boolean }) {
         animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       />
-      {/* Concentric inner */}
       <motion.div
         className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-warning-200/18"
         animate={rm ? undefined : { scale: [1, 1.04, 1], opacity: [0.3, 0.55, 0.3] }}
@@ -109,75 +82,22 @@ function PageDepthElements({ rm }: { rm: boolean }) {
         animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.35, 0.65, 0.35] }}
         transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
       />
-      <motion.div
-        className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-moss-200/15"
-        animate={rm ? undefined : { rotate: -360 }}
-        transition={{ duration: 50, repeat: Infinity, ease: 'linear' }}
-      />
 
-      {/* Bottom right ring */}
-      <motion.div
-        className="absolute bottom-[18%] right-2 w-36 h-36 rounded-full border-2 border-bark-200/18"
-        animate={rm ? undefined : { rotate: 360 }}
-        transition={{ duration: 55, repeat: Infinity, ease: 'linear' }}
-      />
-
-      {/* Floating particles - golden & earthy */}
+      {/* Floating particles */}
       <motion.div className="absolute top-[18%] right-[16%] w-3.5 h-3.5 rounded-full bg-warning-400/18"
         animate={rm ? undefined : { y: [-6, 6, -6], x: [0, 4, 0] }} transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }} />
       <motion.div className="absolute top-[45%] left-[10%] w-3 h-3 rounded-full bg-bark-400/15"
         animate={rm ? undefined : { y: [4, -5, 4] }} transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }} />
-      <motion.div className="absolute top-[68%] right-[24%] w-2.5 h-2.5 rounded-full bg-sprout-400/15"
-        animate={rm ? undefined : { y: [-4, 5, -4], x: [0, -3, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 3 }} />
-      <motion.div className="absolute bottom-[35%] left-[28%] w-2 h-2 rounded-full bg-moss-400/15"
-        animate={rm ? undefined : { y: [3, -4, 3] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 2 }} />
-      <motion.div className="absolute top-[55%] right-8 w-2 h-2 rounded-full bg-warning-300/15"
-        animate={rm ? undefined : { y: [-3, 3, -3], x: [1, -1, 1] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }} />
 
-      {/* Rich blurred orbs - golden amber warmth */}
+      {/* Rich blurred orbs */}
       <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-warning-200/20 via-bark-100/10 to-transparent" />
       <div className="absolute -top-12 -left-16 w-[300px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-200/18 to-transparent" />
-      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-100/15 to-transparent" />
-      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-200/12 to-transparent" />
-      <div className="absolute bottom-[12%] right-[8%] w-48 h-48 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-warning-100/12 to-transparent" />
     </div>
   )
 }
 
 /* ------------------------------------------------------------------ */
-/*  Impact equivalency badge                                           */
-/* ------------------------------------------------------------------ */
-
-function ImpactBadge({ amount }: { amount: number }) {
-  const message = getImpactMessage(amount)
-  if (amount < 5) return null
-
-  const closest = [50, 25, 10, 5].find((t) => amount >= t) ?? 5
-  const icon = IMPACT_ICONS[closest] ?? <Leaf size={18} className="text-white" />
-
-  return (
-    <motion.div
-      key={amount}
-      initial={{ opacity: 0, y: 8, scale: 0.95 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -8, scale: 0.95 }}
-      className="flex items-center gap-3 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-sprout-50 to-primary-50 shadow-sm"
-    >
-      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sprout-500 to-primary-700 flex items-center justify-center shrink-0 shadow-md shadow-sprout-500/25">
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <p className="text-[11px] font-bold text-sprout-600 uppercase tracking-[0.15em] mb-0.5">
-          Your impact
-        </p>
-        <p className="text-sm font-semibold text-secondary-800">{message}</p>
-      </div>
-    </motion.div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  National stats - gradient cards (no blue)                          */
+/*  National stats - gradient cards                                    */
 /* ------------------------------------------------------------------ */
 
 function NationalStatsStrip() {
@@ -244,155 +164,7 @@ function NationalStatsStrip() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Project thermometer card                                           */
-/* ------------------------------------------------------------------ */
-
-function ProjectThermometer({
-  project,
-  selected,
-  onSelect,
-}: {
-  project: DonationProject
-  selected: boolean
-  onSelect: () => void
-}) {
-  const pct = project.goal_amount > 0
-    ? Math.min(100, (project.raised_amount / project.goal_amount) * 100)
-    : 0
-
-  return (
-    <motion.button
-      type="button"
-      onClick={onSelect}
-      whileTap={{ scale: 0.97 }}
-      variants={scaleIn}
-      className={cn(
-        'w-full rounded-[20px] text-left transition-colors duration-200 overflow-hidden',
-        selected
-          ? 'shadow-[0_6px_28px_-6px_rgba(61,77,51,0.14)] ring-2 ring-primary-400 bg-white'
-          : 'bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.14)] hover:-translate-y-0.5',
-      )}
-    >
-      {project.image_url && (
-        <div className="relative h-36 overflow-hidden">
-          <img
-            src={project.image_url}
-            alt={project.name}
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-secondary-900/40 to-transparent" />
-          {selected && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className="absolute top-3 right-3 w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center shadow-md"
-            >
-              <Heart size={14} className="text-white fill-white" />
-            </motion.div>
-          )}
-        </div>
-      )}
-      <div className="p-4">
-        <h3 className="font-heading font-semibold text-secondary-800 text-sm">{project.name}</h3>
-        <p className="text-xs text-primary-400 mt-1 line-clamp-2">{project.description}</p>
-        <div className="mt-3">
-          <ProgressBar
-            value={pct}
-            size="sm"
-            color={selected ? 'bg-primary-500' : 'bg-primary-300'}
-            aria-label={`${Math.round(pct)}% funded`}
-          />
-          <div className="flex justify-between mt-2 text-xs">
-            <span className="font-bold text-primary-700">
-              ${project.raised_amount.toLocaleString()}
-            </span>
-            <span className="text-primary-400">
-              {Math.round(pct)}% of ${project.goal_amount.toLocaleString()}
-            </span>
-          </div>
-        </div>
-      </div>
-    </motion.button>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Amount pill button                                                  */
-/* ------------------------------------------------------------------ */
-
-function AmountPill({
-  amount,
-  selected,
-  onSelect,
-}: {
-  amount: number
-  selected: boolean
-  onSelect: () => void
-}) {
-  return (
-    <motion.button
-      type="button"
-      onClick={onSelect}
-      whileTap={{ scale: 0.93 }}
-      className={cn(
-        'relative h-[4.5rem] rounded-2xl font-heading font-bold',
-        'transition-colors duration-200 cursor-pointer flex flex-col items-center justify-center gap-1',
-        selected
-          ? 'bg-gradient-to-br from-primary-600 via-primary-700 to-moss-700 text-white shadow-lg shadow-primary-700/25 border border-primary-500/30'
-          : 'bg-white text-secondary-800 hover:bg-gray-50 shadow-sm shadow-bark-200/15',
-      )}
-    >
-      <span className="text-xl">${amount}</span>
-      <span className={cn(
-        'text-[11px] font-medium leading-none',
-        selected ? 'text-white/60' : 'text-primary-400',
-      )}>
-        {amount === 5 && '2 plants'}
-        {amount === 10 && 'cleanup kit'}
-        {amount === 25 && '10 trees'}
-        {amount === 50 && '5m\u00B2 habitat'}
-      </span>
-      {selected && (
-        <motion.span
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md"
-        >
-          <Heart size={12} className="text-primary-600 fill-primary-600" />
-        </motion.span>
-      )}
-    </motion.button>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Trust badges                                                        */
-/* ------------------------------------------------------------------ */
-
-function TrustBadges() {
-  return (
-    <div className="flex items-center justify-center gap-4 py-3.5 px-4 rounded-[18px] bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)]">
-      <div className="flex items-center gap-1.5 text-bark-600">
-        <ShieldCheck size={14} />
-        <span className="text-[11px] font-bold">Secure</span>
-      </div>
-      <div className="w-px h-3.5 bg-bark-300/30" />
-      <div className="flex items-center gap-1.5 text-bark-600">
-        <Zap size={14} />
-        <span className="text-[11px] font-bold">Instant receipt</span>
-      </div>
-      <div className="w-px h-3.5 bg-bark-300/30" />
-      <div className="flex items-center gap-1.5 text-bark-600">
-        <TrendingUp size={14} />
-        <span className="text-[11px] font-bold">Tax deductible</span>
-      </div>
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Parallax Hero (two-layer, full-bleed like home/events)             */
+/*  Parallax Hero                                                      */
 /* ------------------------------------------------------------------ */
 
 function DonateHero({ rm }: { rm: boolean }) {
@@ -401,7 +173,6 @@ function DonateHero({ rm }: { rm: boolean }) {
   return (
     <div className="relative">
       <div className="relative w-full h-[480px] sm:h-auto overflow-hidden">
-        {/* Background layer - covers container, clips sides on narrow screens */}
         <div
           ref={rm ? undefined : bgRef}
           className="absolute inset-0 sm:relative sm:inset-auto will-change-transform"
@@ -413,7 +184,6 @@ function DonateHero({ rm }: { rm: boolean }) {
           />
         </div>
 
-        {/* Foreground cutout - same sizing, pinned to top */}
         <div
           ref={rm ? undefined : fgRef}
           className="absolute inset-0 z-[3] will-change-transform"
@@ -425,7 +195,6 @@ function DonateHero({ rm }: { rm: boolean }) {
           />
         </div>
 
-        {/* Hero text */}
         <div
           ref={rm ? undefined : textRef}
           className="absolute inset-x-0 top-[13%] sm:top-[10%] z-[2] flex flex-col items-center px-6 will-change-transform"
@@ -440,10 +209,8 @@ function DonateHero({ rm }: { rm: boolean }) {
             100% goes to conservation events & habitat restoration
           </p>
         </div>
-
       </div>
 
-      {/* Wave transition into warm bg */}
       <div className="absolute bottom-0 left-0 right-0 z-20">
         <svg
           viewBox="0 0 1440 70"
@@ -478,101 +245,12 @@ function DonateHero({ rm }: { rm: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Section header with gradient icon badge                            */
-/* ------------------------------------------------------------------ */
-
-function SectionHeader({
-  icon: Icon,
-  title,
-  badge,
-}: {
-  icon: React.ElementType
-  title: string
-  badge?: string
-}) {
-  return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2.5">
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-bark-500 to-moss-600 shadow-md shadow-bark-400/20">
-          <Icon size={14} className="text-white" />
-        </div>
-        <h2 className="font-heading font-extrabold text-secondary-900 text-lg">{title}</h2>
-      </div>
-      {badge && (
-        <span className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">
-          {badge}
-        </span>
-      )}
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
 /*  Main donate page                                                   */
 /* ------------------------------------------------------------------ */
 
 export default function DonatePage() {
-  const { toast } = useToast()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
-
-  const { data: projects, isLoading: loadingProjects } = useDonationProjects()
-  const showProjectsLoading = useDelayedLoading(loadingProjects)
-  const createDonation = useCreateDonation()
-
-  const [selectedAmount, setSelectedAmount] = useState<number | null>(25)
-  const [customAmount, setCustomAmount] = useState('')
-  const [frequency, setFrequency] = useState<DonationFrequency>('one_time')
-  const [selectedProject, setSelectedProject] = useState<string | null>(null)
-  const [message, setMessage] = useState('')
-  const [onBehalfOf, setOnBehalfOf] = useState('')
-  const [showOrg, setShowOrg] = useState(false)
-  const [isPublic, setIsPublic] = useState(true)
-
-  const parsedCustom = customAmount ? Number(customAmount) : 0
-  const effectiveAmount = selectedAmount ?? (Number.isFinite(parsedCustom) ? parsedCustom : 0)
-  const isValid = effectiveAmount >= 1 && effectiveAmount <= 50000
-
-  const handlePresetSelect = useCallback((amount: number) => {
-    setSelectedAmount(amount)
-    setCustomAmount('')
-  }, [])
-
-  const handleCustomChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    // Strip non-numeric chars except decimal point, prevent negatives
-    const raw = e.target.value.replace(/[^0-9.]/g, '')
-    // Allow only one decimal point, limit to 2 decimal places
-    const parts = raw.split('.')
-    const sanitized = parts.length > 1
-      ? `${parts[0]}.${parts[1].slice(0, 2)}`
-      : raw
-    setCustomAmount(sanitized)
-    setSelectedAmount(null)
-  }, [])
-
-  const handleDonate = useCallback(async () => {
-    if (!isValid) return
-    try {
-      const result = await createDonation.mutateAsync({
-        amount: effectiveAmount,
-        frequency,
-        projectId: selectedProject ?? undefined,
-        message: message.trim() || undefined,
-        onBehalfOf: showOrg && onBehalfOf.trim() ? onBehalfOf.trim() : undefined,
-        isPublic,
-      })
-      if (result.url) {
-        window.location.href = result.url
-      } else if (result.session_id) {
-        await redirectToCheckout(result.session_id)
-      }
-    } catch {
-      toast.error('Something went wrong. Please try again.')
-    }
-  }, [
-    isValid, effectiveAmount, frequency, selectedProject,
-    message, onBehalfOf, showOrg, isPublic, createDonation, toast,
-  ])
 
   return (
     <Page
@@ -584,11 +262,9 @@ export default function DonatePage() {
       <div className="relative min-h-dvh">
         {/* ── Rich layered background ── */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Rich golden-amber base gradient */}
           <div className="absolute inset-0 bg-gradient-to-b from-[#f2ece0] via-[#f0ead9] via-30% to-[#eae5d4] to-65%" />
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-bark-50/12 to-moss-50/15" />
 
-          {/* Topographic contour lines - earthy bushland feel */}
           <svg className="absolute inset-0 w-full h-full opacity-[0.035]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="donate-topo" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
@@ -603,10 +279,7 @@ export default function DonatePage() {
           </svg>
         </div>
 
-        {/* ── Breathing rings, dots, orbs ── */}
         <PageDepthElements rm={rm} />
-
-        {/* ── Full-bleed parallax hero ── */}
         <DonateHero rm={rm} />
 
         {/* ── Content ── */}
@@ -618,7 +291,6 @@ export default function DonatePage() {
               animate="visible"
               className="space-y-5"
             >
-
               {/* ── National stats strip ── */}
               <motion.div variants={fadeUp}>
                 <NationalStatsStrip />
@@ -646,193 +318,69 @@ export default function DonatePage() {
                       See who&apos;s making a difference
                     </p>
                   </div>
-                  <ChevronRight size={18} className="text-bark-400 shrink-0" />
                 </Link>
               </motion.div>
 
               {/* ═══════════════════════════════════════════════════ */}
-              {/*  AMOUNT SELECTION                                  */}
+              {/*  DONATE VIA WEBSITE                                */}
               {/* ═══════════════════════════════════════════════════ */}
               <motion.div variants={fadeUp}>
-                <SectionHeader icon={Heart} title="Choose an amount" badge="AUD" />
-                <div className="rounded-[20px] bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] p-5">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
-                    {PRESET_AMOUNTS.map((amount) => (
-                      <AmountPill
-                        key={amount}
-                        amount={amount}
-                        selected={selectedAmount === amount}
-                        onSelect={() => handlePresetSelect(amount)}
-                      />
+                <div className="rounded-[20px] bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-moss-700 flex items-center justify-center shrink-0 shadow-md shadow-primary-500/25">
+                      <Heart size={18} className="text-white" />
+                    </div>
+                    <div>
+                      <h2 className="font-heading font-extrabold text-secondary-900 text-lg">
+                        Make a donation
+                      </h2>
+                      <p className="text-xs text-primary-400 mt-0.5">
+                        Secure payments via our website
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-primary-500 leading-relaxed mb-5">
+                    Every dollar goes directly to conservation events and habitat restoration
+                    across Australia. Donations are processed securely on our website.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3 mb-5">
+                    {[
+                      { amount: '$5', desc: 'Seeds for 2 native plants' },
+                      { amount: '$10', desc: 'One beach cleanup kit' },
+                      { amount: '$25', desc: 'Plant ~10 native trees' },
+                      { amount: '$50', desc: 'Restore 5m\u00B2 of habitat' },
+                    ].map((item) => (
+                      <div
+                        key={item.amount}
+                        className="flex flex-col items-center gap-1 py-3.5 px-2 rounded-2xl bg-primary-50/60"
+                      >
+                        <span className="font-heading font-bold text-lg text-secondary-800">{item.amount}</span>
+                        <span className="text-[11px] text-primary-400 text-center leading-tight">{item.desc}</span>
+                      </div>
                     ))}
                   </div>
-                  <Input
-                    label="Custom amount"
-                    type="text"
-                    value={customAmount}
-                    onChange={handleCustomChange}
-                    placeholder="Enter amount"
-                    icon={<span className="text-primary-400 font-semibold">$</span>}
-                  />
 
-                  <div className="mt-4">
-                    <AnimatePresence mode="wait">
-                      {effectiveAmount >= 5 && (
-                        <ImpactBadge amount={effectiveAmount} />
-                      )}
-                    </AnimatePresence>
-                  </div>
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    icon={<ExternalLink size={18} />}
+                    onClick={() => window.open(DONATE_URL, '_blank')}
+                    className="shadow-[0_4px_16px_-4px_rgba(61,77,51,0.15)]"
+                  >
+                    Donate on our website
+                  </Button>
 
-                  {/* Frequency toggle */}
-                  <div className="mt-4 flex items-center gap-3 p-3 rounded-2xl bg-primary-50/60">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-moss-600 flex items-center justify-center shrink-0 shadow-sm">
-                      <Repeat size={16} className="text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <Toggle
-                        label="Make it monthly"
-                        description={frequency === 'monthly' ? `$${effectiveAmount || 0}/mo  cancel anytime` : undefined}
-                        checked={frequency === 'monthly'}
-                        onChange={(v) => setFrequency(v ? 'monthly' : 'one_time')}
-                        size="sm"
-                      />
-                    </div>
-                  </div>
+                  <p className="text-xs text-primary-300 text-center mt-3">
+                    You&apos;ll be taken to coexistaus.org to complete your donation
+                  </p>
                 </div>
-              </motion.div>
-
-              {/* ═══════════════════════════════════════════════════ */}
-              {/*  PROJECT SELECTION - tinted panel with wave        */}
-              {/* ═══════════════════════════════════════════════════ */}
-              {showProjectsLoading ? (
-                <motion.div variants={fadeUp}>
-                  <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-[#e4ddd0]/50 to-transparent">
-                    <div className="absolute top-0 left-0 right-0 -translate-y-[calc(100%-1px)]">
-                      <svg viewBox="0 0 1440 40" preserveAspectRatio="none" className="w-full h-5 block" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M0,40 C480,0 960,30 1440,10 L1440,40 Z" className="fill-[#e4ddd0]/50" />
-                      </svg>
-                    </div>
-                    <SectionHeader icon={TreePine} title="Support a project" badge="Optional" />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <Skeleton variant="card" />
-                      <Skeleton variant="card" />
-                    </div>
-                  </div>
-                </motion.div>
-              ) : loadingProjects ? null : projects && projects.length > 0 ? (
-                <motion.div variants={fadeUp}>
-                  <div className="relative -mx-5 lg:-mx-6 px-5 lg:px-6 py-6 bg-gradient-to-b from-[#e4ddd0]/50 to-transparent">
-                    <div className="absolute top-0 left-0 right-0 -translate-y-[calc(100%-1px)]">
-                      <svg viewBox="0 0 1440 40" preserveAspectRatio="none" className="w-full h-5 block" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M0,40 C480,0 960,30 1440,10 L1440,40 Z" className="fill-[#e4ddd0]/50" />
-                      </svg>
-                    </div>
-                    <SectionHeader icon={TreePine} title="Support a project" badge="Optional" />
-                    <motion.div
-                      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.07 } } }}
-                      initial="hidden"
-                      animate="visible"
-                      className="grid grid-cols-1 sm:grid-cols-2 gap-3"
-                    >
-                      {projects.map((p) => (
-                        <ProjectThermometer
-                          key={p.id}
-                          project={p}
-                          selected={selectedProject === p.id}
-                          onSelect={() =>
-                            setSelectedProject(selectedProject === p.id ? null : p.id)
-                          }
-                        />
-                      ))}
-                    </motion.div>
-                  </div>
-                </motion.div>
-              ) : null}
-
-              {/* ═══════════════════════════════════════════════════ */}
-              {/*  PERSONAL TOUCHES                                  */}
-              {/* ═══════════════════════════════════════════════════ */}
-              <motion.div variants={fadeUp}>
-                <SectionHeader icon={Sparkles} title="Personal touches" badge="Optional" />
-                <div className="rounded-[20px] bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] p-5 space-y-4">
-                  <Input
-                    type="textarea"
-                    label="Leave a message"
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    rows={3}
-                  />
-
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#e0dace] to-[#d6cec0] border border-bark-200/20 flex items-center justify-center shrink-0">
-                      <Users size={16} className="text-primary-600" />
-                    </div>
-                    <Toggle
-                      label="On behalf of an organisation"
-                      checked={showOrg}
-                      onChange={setShowOrg}
-                      size="sm"
-                    />
-                  </div>
-                  <AnimatePresence>
-                    {showOrg && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden"
-                      >
-                        <Input
-                          label="Organisation name"
-                          value={onBehalfOf}
-                          onChange={(e) => setOnBehalfOf(e.target.value)}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#e0dace] to-[#d6cec0] border border-bark-200/20 flex items-center justify-center shrink-0">
-                      <Sparkles size={16} className="text-primary-600" />
-                    </div>
-                    <Toggle
-                      label="Show on donor wall"
-                      description="Your name appears on our public recognition page"
-                      checked={isPublic}
-                      onChange={setIsPublic}
-                    />
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* ── Trust footer ── */}
-              <motion.div variants={fadeUp}>
-                <TrustBadges />
               </motion.div>
 
               <div className="h-20" />
             </motion.div>
-          </div>
-        </div>
-
-        {/* Sticky donate button - no background panel */}
-        <div
-          className="sticky bottom-0 z-30 px-5 lg:px-6 pb-1 pt-2"
-          style={{ paddingBottom: 'calc(var(--safe-bottom) + 0.25rem)' }}
-        >
-          <div className="max-w-2xl mx-auto w-full">
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              icon={<Heart size={18} />}
-              loading={createDonation.isPending}
-              disabled={!isValid}
-              onClick={handleDonate}
-              className="shadow-[0_-4px_24px_-4px_rgba(61,77,51,0.20),0_4px_16px_-4px_rgba(61,77,51,0.15)]"
-            >
-              Donate{effectiveAmount > 0 ? ` $${effectiveAmount}` : ''}{frequency === 'monthly' ? '/mo' : ''}
-            </Button>
           </div>
         </div>
       </div>

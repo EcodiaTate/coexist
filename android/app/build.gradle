@@ -16,8 +16,17 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            storeFile file('coexist-release.jks')
+            storePassword System.getenv('COEXIST_KEYSTORE_PASSWORD') ?: project.findProperty('COEXIST_KEYSTORE_PASSWORD') ?: ''
+            keyAlias 'coexist'
+            keyPassword System.getenv('COEXIST_KEY_PASSWORD') ?: project.findProperty('COEXIST_KEY_PASSWORD') ?: ''
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
