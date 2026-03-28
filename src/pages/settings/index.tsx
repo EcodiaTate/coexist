@@ -19,7 +19,7 @@ import {
     Info,
     LogOut,
     ChevronRight, Volume2,
-    AlertTriangle, Undo2
+    AlertTriangle, Undo2, ShieldOff
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -47,6 +47,7 @@ import { DEFAULT_PREFERENCES } from '@/hooks/use-notifications'
 import { usePush } from '@/hooks/use-push'
 import { supabase } from '@/lib/supabase'
 import { useLegalPage } from '@/hooks/use-legal-page'
+import { useBlockedUsers, useUnblockUser } from '@/hooks/use-user-blocks'
 import DOMPurify from 'dompurify'
 
 /* ------------------------------------------------------------------ */
@@ -886,6 +887,66 @@ function DataPrivacySheet({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Blocked Users Sheet                                                */
+/* ------------------------------------------------------------------ */
+
+function BlockedUsersSheet({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  const { data: blockedUsers, isLoading } = useBlockedUsers()
+  const unblock = useUnblockUser()
+  const { toast } = useToast()
+
+  return (
+    <BottomSheet open={open} onClose={onClose} snapPoints={[0.55]}>
+      <div className="flex items-center gap-2.5 mb-4">
+        <div className="flex items-center justify-center w-9 h-9 rounded-full bg-error-100 text-error-600">
+          <ShieldOff size={16} />
+        </div>
+        <h2 className="font-heading text-lg font-semibold text-primary-800">
+          Blocked Users
+        </h2>
+      </div>
+
+      {isLoading ? (
+        <div className="space-y-3">
+          <Skeleton variant="text" className="h-12 rounded-lg" />
+          <Skeleton variant="text" className="h-12 rounded-lg" />
+        </div>
+      ) : !blockedUsers || blockedUsers.length === 0 ? (
+        <p className="text-sm text-primary-400 text-center py-6">
+          You haven&apos;t blocked anyone
+        </p>
+      ) : (
+        <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+          {blockedUsers.map((block) => (
+            <div key={block.blocked_id} className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-primary-50/60">
+              <span className="text-sm text-primary-700 truncate flex-1">{block.blocked_id}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  unblock.mutate(block.blocked_id, {
+                    onSuccess: () => toast.success('User unblocked'),
+                    onError: () => toast.error('Failed to unblock'),
+                  })
+                }}
+                className="text-xs font-medium text-primary-500 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors cursor-pointer select-none"
+              >
+                Unblock
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </BottomSheet>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Settings Skeleton                                                  */
 /* ------------------------------------------------------------------ */
 
@@ -924,6 +985,7 @@ export default function SettingsPage() {
   const [showDataPrivacy, setShowDataPrivacy] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
+  const [showBlockedUsers, setShowBlockedUsers] = useState(false)
 
   // Notification preferences (local state, hydrated from profile, persisted to profile)
   const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT_PREFERENCES)
@@ -1186,6 +1248,12 @@ export default function SettingsPage() {
                   />
                 }
                 onClick={() => handleMarketingToggle(!marketingOptIn)}
+              />
+              <MenuRow
+                icon={<ShieldOff size={18} />}
+                label="Blocked Users"
+                subtitle="Manage blocked accounts"
+                onClick={() => setShowBlockedUsers(true)}
                 hideDivider
               />
             </div>
@@ -1393,6 +1461,12 @@ export default function SettingsPage() {
               description="Your account will be marked for deletion. You have 30 days to recover it by logging back in. After that, all data will be permanently removed."
               confirmLabel="Delete My Account"
               variant="danger"
+            />
+
+            {/* Blocked Users */}
+            <BlockedUsersSheet
+              open={showBlockedUsers}
+              onClose={() => setShowBlockedUsers(false)}
             />
 
             {/* Logout Confirmation */}

@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -12,6 +13,8 @@ import {
   Bird,
   Ruler,
   Waves,
+  Flag,
+  ShieldOff,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -20,9 +23,13 @@ import { Chip } from '@/components/chip'
 import { StatCard } from '@/components/stat-card'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
+import { ReportContentSheet } from '@/components/report-content-sheet'
+import { BlockUserSheet } from '@/components/block-user-sheet'
 import { parseLocationPoint } from '@/lib/geo'
 import { MapView } from '@/components'
+import { useAuth } from '@/hooks/use-auth'
 import { useProfile, useProfileCollectives, useProfileStats, useMutualConnections } from '@/hooks/use-profile'
+import { useIsBlocked } from '@/hooks/use-user-blocks'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 function ViewProfileSkeleton() {
@@ -46,11 +53,17 @@ export default function ViewProfilePage() {
   const { userId } = useParams<{ userId: string }>()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
+  const { user } = useAuth()
   const { data: profile, isLoading } = useProfile(userId)
   const showLoading = useDelayedLoading(isLoading)
   const { data: collectives } = useProfileCollectives(userId)
   const { data: stats } = useProfileStats(userId)
   const { data: mutualData } = useMutualConnections(userId ?? '')
+  const isBlocked = useIsBlocked(userId)
+  const isOwnProfile = user?.id === userId
+
+  const [showReportSheet, setShowReportSheet] = useState(false)
+  const [showBlockSheet, setShowBlockSheet] = useState(false)
 
   if (showLoading) {
     return (
@@ -290,7 +303,52 @@ export default function ViewProfilePage() {
             </motion.section>
           )
         })()}
+
+        {/* Report & Block actions (only for other users) */}
+        {!isOwnProfile && userId && (
+          <motion.div
+            variants={fadeUp}
+            className="mt-8 flex gap-3"
+          >
+            <button
+              type="button"
+              onClick={() => setShowReportSheet(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-warning-700 bg-warning-50 hover:bg-warning-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+            >
+              <Flag size={16} />
+              Report
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowBlockSheet(true)}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm text-error-600 bg-error-50 hover:bg-error-100 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
+            >
+              <ShieldOff size={16} />
+              {isBlocked ? 'Blocked' : 'Block'}
+            </button>
+          </motion.div>
+        )}
       </motion.div>
+
+      {/* Report sheet */}
+      {userId && (
+        <ReportContentSheet
+          open={showReportSheet}
+          onClose={() => setShowReportSheet(false)}
+          contentId={userId}
+          contentType="profile"
+        />
+      )}
+
+      {/* Block sheet */}
+      {userId && (
+        <BlockUserSheet
+          open={showBlockSheet}
+          onClose={() => setShowBlockSheet(false)}
+          userId={userId}
+          userName={profile.display_name ?? 'this user'}
+        />
+      )}
     </Page>
   )
 }

@@ -1,4 +1,4 @@
-import { Reply, Pencil, Pin, Trash2 } from 'lucide-react'
+import { Reply, Pencil, Pin, Trash2, Flag, ShieldOff } from 'lucide-react'
 import { BottomSheet } from '@/components/bottom-sheet'
 
 /* ------------------------------------------------------------------ */
@@ -33,6 +33,8 @@ interface MessageActionsProps {
   onEdit?: () => void
   onDelete: () => void
   onPin?: () => void
+  onReport?: () => void
+  onBlockUser?: () => void
 }
 
 export function MessageActionsSheet({
@@ -44,6 +46,8 @@ export function MessageActionsSheet({
   onEdit,
   onDelete,
   onPin,
+  onReport,
+  onBlockUser,
 }: MessageActionsProps) {
   if (!message) return null
 
@@ -90,6 +94,35 @@ export function MessageActionsSheet({
             <Trash2 size={18} />
             Delete message
           </button>
+        )}
+
+        {/* ── Report & Block (only for other users' messages) ── */}
+        {!isOwnMessage && (
+          <>
+            <div className="mx-4 my-1 border-t border-primary-100/60" />
+
+            {onReport && (
+              <button
+                type="button"
+                onClick={onReport}
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-warning-700 hover:bg-warning-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+              >
+                <Flag size={18} />
+                Report message
+              </button>
+            )}
+
+            {onBlockUser && (
+              <button
+                type="button"
+                onClick={onBlockUser}
+                className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-error-600 hover:bg-error-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+              >
+                <ShieldOff size={18} />
+                Block user
+              </button>
+            )}
+          </>
         )}
       </div>
     </BottomSheet>

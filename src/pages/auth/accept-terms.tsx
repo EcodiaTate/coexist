@@ -85,7 +85,20 @@ export default function AcceptTermsPage() {
             <li>Clarified content moderation and reporting policies</li>
             <li>Updated age verification requirements (18+)</li>
             <li>Added cookie consent and analytics disclosure</li>
+            <li><strong className="text-primary-600">Zero tolerance for objectionable content</strong> &mdash; users who post abusive, offensive, or objectionable content will have the content removed and their account suspended or terminated</li>
+            <li><strong className="text-primary-600">User-generated content policy</strong> &mdash; added guidelines for acceptable use, content reporting, and user blocking</li>
           </ul>
+
+          <h2 className="font-heading text-sm font-semibold text-primary-800 mt-4 mb-2">
+            Community Standards
+          </h2>
+          <p className="text-xs text-primary-400 leading-relaxed">
+            Co-Exist has zero tolerance for objectionable content or abusive behaviour.
+            Content that is offensive, hateful, discriminatory, sexually explicit, violent, or
+            otherwise inappropriate will be removed, and the responsible user may be
+            permanently banned. All users can report content and block other users.
+            Reports are reviewed within 24 hours.
+          </p>
         </motion.div>
 
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
