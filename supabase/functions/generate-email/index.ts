@@ -106,6 +106,39 @@ interface GeneratePayload {
 
 serve(async (req: Request) => {
   try {
+    // ── Auth: require admin/staff ──
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ success: false, error: 'Missing authorization' }), {
+        status: 401, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    const token = authHeader.replace('Bearer ', '')
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+    )
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
+    if (authError || !user) {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), {
+        status: 401, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    )
+    const { data: callerProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    if (!callerProfile || !['national_staff', 'national_admin', 'super_admin'].includes(callerProfile.role)) {
+      return new Response(JSON.stringify({ success: false, error: 'Admin access required' }), {
+        status: 403, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     if (!ANTHROPIC_API_KEY) {
       return new Response(
         JSON.stringify({ success: false, error: 'ANTHROPIC_API_KEY not configured. Add it to your Supabase Edge Function secrets.' }),

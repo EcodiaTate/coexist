@@ -26,7 +26,7 @@ function formatRelativeDate(dateStr: string): string {
 }
 
 export default function DonorWallPage() {
-  const { data: donors, isLoading, isError } = useDonorWall()
+  const { data: donors, isLoading, isError, refetch } = useDonorWall()
   const showLoading = useDelayedLoading(isLoading)
   const shouldReduceMotion = useReducedMotion()
 
@@ -63,7 +63,8 @@ export default function DonorWallPage() {
           <EmptyState
             illustration="error"
             title="Something went wrong"
-            description="We couldn't load the donor wall. Try again later."
+            description="We couldn't load the donor wall."
+            action={{ label: 'Try again', onClick: () => refetch() }}
           />
         ) : !donors || donors.length === 0 ? (
           <EmptyState

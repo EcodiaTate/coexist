@@ -1,4 +1,4 @@
-import { type ReactNode, memo, Suspense } from 'react'
+import { type ReactNode, memo, Suspense, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { cn } from '@/lib/cn'
@@ -13,6 +13,7 @@ import { usePushRegistration } from '@/hooks/use-push'
 import { useKeyboard } from '@/hooks/use-keyboard'
 import { useRolePrefetch } from '@/hooks/use-role-prefetch'
 import { useDataPrefetch } from '@/hooks/use-data-prefetch'
+import { useUnreadCounts } from '@/hooks/use-chat'
 
 interface AppShellProps {
   children: ReactNode
@@ -75,6 +76,13 @@ function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
   const isLeaderRoute = location.pathname.startsWith('/leader') && !location.pathname.startsWith('/leaderboard') && !location.pathname.startsWith('/leadership')
   const isChatRoute = location.pathname.startsWith('/chat/')
 
+  // Compute total unread chat messages for the badge
+  const { data: unreadCounts } = useUnreadCounts()
+  const totalUnread = useMemo(
+    () => Object.values(unreadCounts ?? {}).reduce((sum, n) => sum + (n as number), 0),
+    [unreadCounts],
+  )
+
   return (
     <>
       {/* Web footer - full width, below the sidebar row so sidebar unsticks at footer */}
@@ -82,7 +90,7 @@ function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
 
       {/* Bottom tab bar (mobile + native) - hidden on admin/leader pages (they have their own) */}
       {showBottomTabs && !isAdminRoute && !isLeaderRoute && (
-        <BottomTabBar onMorePress={openMenu} />
+        <BottomTabBar onMorePress={openMenu} chatBadge={totalUnread} />
       )}
     </>
   )

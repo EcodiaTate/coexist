@@ -159,7 +159,7 @@ export default function LearnIndexPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
 
-  const { data: content, isLoading: contentLoading, isError: contentError } = useMyTargetedContent()
+  const { data: content, isLoading: contentLoading, isError: contentError, refetch: refetchContent } = useMyTargetedContent()
   const { data: moduleProgress = [] } = useMyModuleProgress()
   const { data: sectionProgress = [] } = useMySectionProgress()
 
@@ -274,7 +274,8 @@ export default function LearnIndexPage() {
           <EmptyState
             illustration="error"
             title="Something went wrong"
-            description="We couldn't load your learning modules. Try again later."
+            description="We couldn't load your learning modules."
+            action={{ label: 'Try again', onClick: () => refetchContent() }}
           />
         ) : allContent.length === 0 ? (
           <motion.div

@@ -398,13 +398,16 @@ export default function NotificationsPage() {
         {/* Content layer */}
         <div className="relative z-10 px-4 lg:px-6">
           {isError ? (
-            <div className="py-12">
-              <EmptyState
-                illustration="error"
-                title="Something went wrong"
-                description="We couldn't load your notifications. Pull down to try again."
-              />
-            </div>
+            <PullToRefresh onRefresh={handleRefresh}>
+              <div className="py-12">
+                <EmptyState
+                  illustration="error"
+                  title="Something went wrong"
+                  description="We couldn't load your notifications."
+                  action={{ label: 'Try again', onClick: () => refetch() }}
+                />
+              </div>
+            </PullToRefresh>
           ) : showLoading ? (
             <div className="space-y-4 py-6">
               {Array.from({ length: 5 }, (_, i) => (

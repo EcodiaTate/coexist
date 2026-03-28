@@ -114,11 +114,29 @@ async function clearBadgeCount() {
   }
 }
 
+/** Guard against concurrent registration calls (rapid resume, mount + resume overlap) */
+let registrationInFlight = false
+
 /**
  * Attempt to get push permission and register with FCM/APNs.
  * Returns true if registration was triggered (token will arrive via listener).
+ * Deduplicated — concurrent calls are no-ops.
  */
 async function requestAndRegister(plugin: NonNullable<typeof PushNotifications>): Promise<boolean> {
+  if (registrationInFlight) {
+    console.info('[push] registration already in flight — skipping')
+    return false
+  }
+  registrationInFlight = true
+
+  try {
+    return await _doRequestAndRegister(plugin)
+  } finally {
+    registrationInFlight = false
+  }
+}
+
+async function _doRequestAndRegister(plugin: NonNullable<typeof PushNotifications>): Promise<boolean> {
   // Check current permission state first
   let permState: string
   try {
@@ -199,6 +217,12 @@ export function usePushRegistration() {
         async (token: unknown) => {
           const t = token as PushNotificationToken
           console.info('[push] token received:', t.value.slice(0, 12) + '…')
+
+          // Skip if we already stored this exact token (rapid resume dedup)
+          if (tokenRef.current === t.value) {
+            console.info('[push] token unchanged — skipping store')
+            return
+          }
           tokenRef.current = t.value
 
           const stored = await storeToken(user!.id, t.value, platform)

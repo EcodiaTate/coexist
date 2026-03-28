@@ -273,7 +273,8 @@ export default function DiscoverCollectivesPage() {
               <EmptyState
                 illustration="error"
                 title="Something went wrong"
-                description="We couldn't load collectives. Pull down to try again."
+                description="We couldn't load collectives."
+                action={{ label: 'Try again', onClick: handleRefresh }}
               />
             ) : collectives.length === 0 ? (
               <EmptyState

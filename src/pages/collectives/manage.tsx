@@ -309,13 +309,13 @@ export default function CollectiveManagePage() {
   const { slug } = useParams<{ slug: string }>()
   const navigate = useNavigate()
   const { toast } = useToast()
-  const { user } = useAuth()
+  const { user, isStaff } = useAuth()
 
   // Fetch collective by slug, derive UUID for sub-queries
   const { data: collective, isLoading: loadingCollective } = useCollective(slug)
   const collectiveId = collective?.id
   const { isLeader, isCoLeader, role: myRole } = useCollectiveRole(collectiveId)
-  const canManage = isLeader || isCoLeader
+  const canManage = isLeader || isCoLeader || isStaff
   const { data: members = [], isLoading: loadingMembers } = useCollectiveMembers(collectiveId)
   const showLoading = useDelayedLoading(loadingCollective || loadingMembers)
   const updateCollective = useUpdateCollective()
@@ -407,7 +407,7 @@ export default function CollectiveManagePage() {
     toast.success('CSV downloaded')
   }
 
-  if (showLoading) {
+  if (showLoading || loadingCollective || loadingMembers) {
     return (
       <Page swipeBack header={<Header title="Manage" back />}>
         <div className="py-4 space-y-4">
@@ -417,7 +417,6 @@ export default function CollectiveManagePage() {
       </Page>
     )
   }
-  if (loadingCollective || loadingMembers) return null
 
   if (!collective || !canManage) {
     return (

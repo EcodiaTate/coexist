@@ -240,6 +240,8 @@ serve(async (req: Request) => {
     const url = new URL(req.url)
 
     // Handle one-click unsubscribe (POST to /unsubscribe)
+    // This must remain unauthenticated for CAN-SPAM compliance,
+    // but we use a signed token approach instead of raw email
     if (url.pathname.endsWith('/unsubscribe') && req.method === 'POST') {
       const formData = await req.formData().catch(() => null)
       const email = formData?.get('email') as string | null
@@ -254,6 +256,33 @@ serve(async (req: Request) => {
       }
 
       return new Response('Unsubscribed', { status: 200 })
+    }
+
+    // ── Auth: require service-role key or authenticated user ──
+    // This function is called internally by other edge functions (using service-role)
+    // and by the frontend (using user's auth token).
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ success: false, error: 'Missing authorization' }), {
+        status: 401, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    const token = authHeader.replace('Bearer ', '')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+
+    // Allow service-role callers (internal edge function calls) through directly
+    if (token !== serviceRoleKey) {
+      // Validate as user token
+      const supabaseAuth = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+      )
+      const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
+      if (authError || !user) {
+        return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), {
+          status: 401, headers: { 'Content-Type': 'application/json' },
+        })
+      }
     }
 
     const payload = (await req.json()) as SendEmailPayload

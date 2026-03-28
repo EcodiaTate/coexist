@@ -186,6 +186,30 @@ async function sendFcmMessage(
 
 serve(async (req: Request) => {
   try {
+    // ── Auth: require service-role key or authenticated user ──
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Missing authorization', sent: 0 }), {
+        status: 401, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    const token = authHeader.replace('Bearer ', '')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+
+    if (token !== serviceRoleKey) {
+      // Validate as user token
+      const supabaseAuth = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+      )
+      const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: 'Invalid token', sent: 0 }), {
+          status: 401, headers: { 'Content-Type': 'application/json' },
+        })
+      }
+    }
+
     const payload = (await req.json()) as PushPayload
 
     // ---- Input validation ----

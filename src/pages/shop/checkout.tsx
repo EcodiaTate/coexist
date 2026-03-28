@@ -148,9 +148,10 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (items.length === 0) {
+      toast.info('Your cart is empty')
       navigate('/shop/cart', { replace: true })
     }
-  }, [items.length, navigate])
+  }, [items.length, navigate, toast])
 
   if (items.length === 0) return null
 

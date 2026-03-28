@@ -268,16 +268,16 @@ const _adminNavCategories: NavCategory[] = [
       { label: 'Events', path: '/admin/events', icon: <CalendarDays size={17} strokeWidth={1.5} />, capability: 'manage_events' },
       { label: 'Partners', path: '/admin/partners', icon: <Handshake size={17} strokeWidth={1.5} />, capability: 'manage_partners' },
       { label: 'Shop', path: '/admin/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} />, capability: 'manage_merch' },
-      { label: 'Contacts', path: '/admin/contacts', icon: <Phone size={17} strokeWidth={1.5} /> },
+      { label: 'Contacts', path: '/admin/contacts', icon: <Phone size={17} strokeWidth={1.5} />, capability: 'manage_users' },
     ],
   },
   {
     label: 'Create',
     items: [
-      { label: 'Tasks', path: '/admin/tasks', icon: <ClipboardCheck size={17} strokeWidth={1.5} /> },
+      { label: 'Tasks', path: '/admin/tasks', icon: <ClipboardCheck size={17} strokeWidth={1.5} />, capability: 'manage_workflows' },
       { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_surveys' },
       { label: 'Email', path: '/admin/email', icon: <Mail size={17} strokeWidth={1.5} />, capability: 'manage_email' },
-      { label: 'Updates', path: '/admin/updates', icon: <Megaphone size={17} strokeWidth={1.5} /> },
+      { label: 'Updates', path: '/admin/updates', icon: <Megaphone size={17} strokeWidth={1.5} />, capability: 'send_announcements' },
     ],
   },
   {
@@ -295,7 +295,7 @@ const _adminNavCategories: NavCategory[] = [
       { label: 'Reports', path: '/admin/reports', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_reports' },
       { label: 'Exports', path: '/admin/exports', icon: <Download size={17} strokeWidth={1.5} />, capability: 'manage_exports' },
       { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_audit_log' },
-      { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={17} strokeWidth={1.5} /> },
+      { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={17} strokeWidth={1.5} />, capability: 'manage_system' },
     ],
   },
 ]

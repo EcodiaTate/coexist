@@ -31,6 +31,8 @@ interface UseEventProximityReturn {
   nearbyEvent: NearbyEvent | null
   isChecking: boolean
   lastCheck: Date | null
+  /** If geolocation failed, describes why (permission denied, unavailable, etc.) */
+  locationError: string | null
   checkNow: () => Promise<void>
 }
 
@@ -75,6 +77,7 @@ export function useEventProximity(): UseEventProximityReturn {
   const [nearbyEvent, setNearbyEvent] = useState<NearbyEvent | null>(null)
   const [isChecking, setIsChecking] = useState(false)
   const [lastCheck, setLastCheck] = useState<Date | null>(null)
+  const [locationError, setLocationError] = useState<string | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const dismissedRef = useRef<Set<string>>(new Set())
 
@@ -87,12 +90,37 @@ export function useEventProximity(): UseEventProximityReturn {
       let position: GeolocationPosition
       if (Capacitor.isNativePlatform()) {
         const { Geolocation } = await import('@capacitor/geolocation')
+
+        // Check permission first so we can give a specific error
+        const permStatus = await Geolocation.checkPermissions()
+        if (permStatus.location === 'denied') {
+          setLocationError('Location access denied. Enable location in your device settings to get check-in prompts.')
+          setNearbyEvent(null)
+          return
+        }
+
+        if (permStatus.location === 'prompt' || permStatus.location === 'prompt-with-rationale') {
+          const requested = await Geolocation.requestPermissions({ permissions: ['location'] })
+          if (requested.location === 'denied') {
+            setLocationError('Location access denied. Enable location in your device settings to get check-in prompts.')
+            setNearbyEvent(null)
+            return
+          }
+        }
+
         const coords = await Geolocation.getCurrentPosition({
           enableHighAccuracy: true,
           timeout: 10000,
         })
         position = coords as GeolocationPosition
       } else {
+        // Check if geolocation API exists
+        if (!navigator.geolocation) {
+          setLocationError('Location is not supported by your browser.')
+          setNearbyEvent(null)
+          return
+        }
+
         position = await new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject, {
             enableHighAccuracy: true,
@@ -101,6 +129,9 @@ export function useEventProximity(): UseEventProximityReturn {
           })
         })
       }
+
+      // Clear any previous location error on success
+      setLocationError(null)
 
       const userLat = position.coords.latitude
       const userLng = position.coords.longitude
@@ -163,8 +194,22 @@ export function useEventProximity(): UseEventProximityReturn {
 
       setNearbyEvent(closest)
     } catch (err) {
-      // Geolocation failed or denied — silently skip
       console.warn('[proximity] Geolocation check failed:', err)
+      // Surface actionable error messages
+      const e = err as { code?: number; message?: string }
+      if (e?.code === 1) {
+        // GeolocationPositionError.PERMISSION_DENIED
+        setLocationError('Location access denied. Enable location in your device settings to get check-in prompts.')
+      } else if (e?.code === 2) {
+        // POSITION_UNAVAILABLE
+        setLocationError('Location unavailable. Check that location services are enabled.')
+      } else if (e?.code === 3) {
+        // TIMEOUT
+        setLocationError('Location request timed out. Try again in a moment.')
+      } else {
+        setLocationError(null) // transient/unknown — don't persist
+      }
+      setNearbyEvent(null)
     } finally {
       setIsChecking(false)
       setLastCheck(new Date())
@@ -187,7 +232,7 @@ export function useEventProximity(): UseEventProximityReturn {
     }
   }, [user, checkProximity])
 
-  return { nearbyEvent, isChecking, lastCheck, checkNow: checkProximity }
+  return { nearbyEvent, isChecking, lastCheck, locationError, checkNow: checkProximity }
 }
 
 /* ------------------------------------------------------------------ */

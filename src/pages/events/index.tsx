@@ -27,6 +27,7 @@ import {
     Card,
     Badge, EmptyState, ConfirmationSheet, Dropdown
 } from '@/components'
+import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { OfflineIndicator } from '@/components/offline-indicator'
@@ -435,6 +436,7 @@ export default function EventsPage() {
   const [cancelTarget, setCancelTarget] = useState<string | null>(null)
   const queryClient = useQueryClient()
   const shouldReduceMotion = useReducedMotion()
+  const { toast } = useToast()
 
   // My upcoming events (next events section)
   const { data: upcomingEvents, isLoading: upcomingLoading, isError: upcomingError, dataUpdatedAt, isFetching } = useMyEvents('upcoming')
@@ -469,9 +471,12 @@ export default function EventsPage() {
 
   const handleCancelConfirm = useCallback(() => {
     if (!cancelTarget) return
-    cancelMutation.mutate(cancelTarget)
+    cancelMutation.mutate(cancelTarget, {
+      onSuccess: () => toast.success('Registration cancelled'),
+      onError: () => toast.error('Failed to cancel registration'),
+    })
     setCancelTarget(null)
-  }, [cancelTarget, cancelMutation])
+  }, [cancelTarget, cancelMutation, toast])
 
   return (
     <Page noBackground className="!px-0 bg-white">
@@ -487,16 +492,32 @@ export default function EventsPage() {
 
           <PullToRefresh onRefresh={handleRefresh}>
             <div className="space-y-6 pb-6">
-              {/* Error fallback */}
+              {/* ── Next Events (upcoming registered) ── */}
+              {upcomingError && !discoverError && (
+                <motion.section
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35, delay: 0.06 }}
+                >
+                  <SectionHeader title="Your Next Events" />
+                  <EmptyState
+                    illustration="error"
+                    title="Couldn't load your events"
+                    description="Pull down to try again."
+                  />
+                </motion.section>
+              )}
+
+              {/* Both errored */}
               {upcomingError && discoverError && (
                 <EmptyState
                   illustration="error"
                   title="Something went wrong"
-                  description="We couldn't load events. Pull down to try again."
+                  description="We couldn't load events."
+                  action={{ label: 'Try again', onClick: handleRefresh }}
                 />
               )}
 
-              {/* ── Next Events (upcoming registered) ── */}
               {(upcomingShowLoading || (upcomingEvents && upcomingEvents.length > 0)) && (
                 <motion.section
                   initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
@@ -582,11 +603,18 @@ export default function EventsPage() {
 
                 {discoverShowLoading ? (
                   <EventListSkeleton />
+                ) : discoverError ? (
+                  <EmptyState
+                    illustration="error"
+                    title="Couldn't load events"
+                    description="Pull down to try again."
+                  />
                 ) : !discoverEvents || discoverEvents.length === 0 ? (
                   <EmptyState
                     illustration="empty"
                     title="No events found"
                     description={activityFilter || collectiveFilter ? 'Try different filters or check back soon.' : 'No upcoming events right now. Check back soon!'}
+                    action={activityFilter || collectiveFilter ? { label: 'Clear filters', onClick: () => { setActivityFilter(''); setCollectiveFilter('') } } : { label: 'Browse collectives', to: '/collectives' }}
                   />
                 ) : (
                   <motion.div

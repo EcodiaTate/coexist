@@ -320,12 +320,24 @@ export function CreateAnnouncementSheet({
       })
     }
 
-    setTitle('')
-    setBody('')
-    setEventId('')
-    setInviteCollectiveIds([])
-    setInviteMessage('')
+    // Clear form after a short delay to let the parent mutation fire
+    // (if the sheet closes on success, the form resets on next open)
+    onClose()
   }
+
+  // Reset form fields when the sheet closes (re-opens fresh)
+  useEffect(() => {
+    if (!open) {
+      const timer = setTimeout(() => {
+        setTitle('')
+        setBody('')
+        setEventId('')
+        setInviteCollectiveIds([])
+        setInviteMessage('')
+      }, 300) // wait for close animation
+      return () => clearTimeout(timer)
+    }
+  }, [open])
 
   const typeOptions = [
     { value: 'announcement' as const, label: 'Announcement', icon: Megaphone, desc: 'Share news with your collective' },

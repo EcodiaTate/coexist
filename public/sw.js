@@ -3,12 +3,17 @@
  *
  * Strategy:
  *   - Pre-cache: app shell (index.html, offline fallback)
- *   - Cache-first: static assets (JS chunks, CSS, fonts, images, icons, audio)
- *   - Network-first: HTML navigation (with offline fallback)
+ *   - Cache-first: hashed static assets (/assets/*, content-hashed by Vite)
+ *   - Network-first: non-hashed statics (manifest, icons) + HTML navigation
  *   - Skip: Supabase API calls (handled by React Query cache)
+ *
+ * Cache versioning: bump CACHE_VERSION to force a full cache clear on deploy.
+ * Hashed assets are safe to cache indefinitely (new hash = new URL).
  */
 
-const CACHE_NAME = 'coexist-v2'
+const CACHE_VERSION = 3
+const SHELL_CACHE = `coexist-shell-v${CACHE_VERSION}`
+const ASSET_CACHE = `coexist-assets-v${CACHE_VERSION}`
 
 const PRECACHE = [
   '/',
@@ -21,24 +26,34 @@ const PRECACHE = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE)),
+    caches.open(SHELL_CACHE).then((cache) => cache.addAll(PRECACHE)),
   )
-  self.skipWaiting()
+  // Don't skipWaiting() immediately — wait for the client to opt in
+  // via postMessage so users aren't surprised by a mid-session reload.
 })
 
 /* ------- Activate: clean old caches ------- */
 
 self.addEventListener('activate', (event) => {
+  const currentCaches = new Set([SHELL_CACHE, ASSET_CACHE])
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
         keys
-          .filter((key) => key !== CACHE_NAME)
+          .filter((key) => !currentCaches.has(key))
           .map((key) => caches.delete(key)),
       ),
     ),
   )
   self.clients.claim()
+})
+
+/* ------- Message handler: allow clients to trigger skipWaiting ------- */
+
+self.addEventListener('message', (event) => {
+  if (event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
 })
 
 /* ------- Fetch: routing logic ------- */
@@ -56,27 +71,44 @@ self.addEventListener('fetch', (event) => {
   // Skip browser extensions, chrome-extension, etc.
   if (!url.protocol.startsWith('http')) return
 
-  // Static assets: cache-first (JS chunks, CSS, fonts, images, icons, audio)
-  const isStatic =
-    url.pathname.match(
-      /\.(woff2?|ttf|eot|otf|png|jpe?g|gif|svg|webp|ico|avif|css|js|mp3|wav|ogg|json)$/,
-    ) || url.pathname.startsWith('/assets/')
-
-  if (isStatic) {
+  // Vite hashed assets (/assets/*): cache-first (hash guarantees uniqueness)
+  if (url.pathname.startsWith('/assets/')) {
     event.respondWith(
       caches.match(request).then((cached) => {
         if (cached) return cached
         return fetch(request).then((response) => {
           if (response.ok) {
             const clone = response.clone()
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+            caches.open(ASSET_CACHE).then((cache) => cache.put(request, clone))
           }
           return response
         }).catch(() => {
-          // If both cache and network fail for non-critical assets, return empty
           return new Response('', { status: 503, statusText: 'Offline' })
         })
       }),
+    )
+    return
+  }
+
+  // Non-hashed static assets (fonts, images not in /assets/): network-first
+  // so deployments that change these files don't serve stale versions
+  const isStatic = url.pathname.match(
+    /\.(woff2?|ttf|eot|otf|png|jpe?g|gif|svg|webp|ico|avif|css|js|mp3|wav|ogg)$/,
+  )
+
+  if (isStatic) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone()
+            caches.open(ASSET_CACHE).then((cache) => cache.put(request, clone))
+          }
+          return response
+        })
+        .catch(() => caches.match(request).then((c) =>
+          c || new Response('', { status: 503, statusText: 'Offline' }),
+        )),
     )
     return
   }
@@ -88,7 +120,7 @@ self.addEventListener('fetch', (event) => {
         .then((response) => {
           if (response.ok) {
             const clone = response.clone()
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+            caches.open(SHELL_CACHE).then((cache) => cache.put(request, clone))
           }
           return response
         })
@@ -107,7 +139,7 @@ self.addEventListener('fetch', (event) => {
       .then((response) => {
         if (response.ok) {
           const clone = response.clone()
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+          caches.open(SHELL_CACHE).then((cache) => cache.put(request, clone))
         }
         return response
       })

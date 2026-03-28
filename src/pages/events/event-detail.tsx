@@ -298,17 +298,31 @@ export default function EventDetailPage() {
 
   const handleRegister = useCallback(() => {
     if (!event) return
-    registerMutation.mutate({
-      eventId: event.id,
-      asWaitlist: isAtCapacity,
-    })
-  }, [event, isAtCapacity, registerMutation])
+    registerMutation.mutate(
+      { eventId: event.id, asWaitlist: isAtCapacity },
+      {
+        onSuccess: () => {
+          toast.success(isAtCapacity ? 'Added to waitlist' : "You're registered!")
+        },
+        onError: () => {
+          toast.error('Registration failed. Please try again.')
+        },
+      },
+    )
+  }, [event, isAtCapacity, registerMutation, toast])
 
   const handleCancelConfirm = useCallback(() => {
     if (!event) return
-    cancelMutation.mutate(event.id)
+    cancelMutation.mutate(event.id, {
+      onSuccess: () => {
+        toast.success('Registration cancelled')
+      },
+      onError: () => {
+        toast.error('Failed to cancel registration')
+      },
+    })
     setShowCancelSheet(false)
-  }, [event, cancelMutation])
+  }, [event, cancelMutation, toast])
 
   const handleGetDirections = useCallback(() => {
     if (!event?.address) return
@@ -324,16 +338,26 @@ export default function EventDetailPage() {
     if (!event) return
     cancelEventMutation.mutate(
       { eventId: event.id, reason: cancelReason },
-      { onSuccess: () => setShowCancelEventSheet(false) },
+      {
+        onSuccess: () => {
+          toast.success('Event cancelled')
+          setShowCancelEventSheet(false)
+        },
+        onError: () => toast.error('Failed to cancel event'),
+      },
     )
-  }, [event, cancelReason, cancelEventMutation])
+  }, [event, cancelReason, cancelEventMutation, toast])
 
   const handleDuplicate = useCallback(() => {
     if (!event) return
     duplicateEventMutation.mutate(event.id, {
-      onSuccess: (newEvent) => navigate(`/events/${newEvent.id}/edit`),
+      onSuccess: (newEvent) => {
+        toast.success('Event duplicated')
+        navigate(`/events/${newEvent.id}/edit`)
+      },
+      onError: () => toast.error('Failed to duplicate event'),
     })
-  }, [event, duplicateEventMutation, navigate])
+  }, [event, duplicateEventMutation, navigate, toast])
 
   const alreadyInvited = event?.has_been_invited ?? false
 
