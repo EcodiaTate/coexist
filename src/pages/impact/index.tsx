@@ -350,7 +350,7 @@ export default function ImpactDashboardPage() {
     ])
   }, [queryClient])
 
-  if (showLoading) {
+  if (showLoading || statsLoading) {
     return (
       <Page swipeBack noBackground className="!px-0 bg-white" header={<Header title="Impact" back />}>
         <div className="relative min-h-full">
@@ -362,7 +362,6 @@ export default function ImpactDashboardPage() {
       </Page>
     )
   }
-  if (statsLoading) return null
 
   if (statsError) {
     return (
@@ -371,7 +370,8 @@ export default function ImpactDashboardPage() {
           <EmptyState
             illustration="error"
             title="Something went wrong"
-            description="We couldn't load your impact data. Try again later."
+            description="We couldn't load your impact data."
+            action={{ label: 'Try again', onClick: handleRefresh }}
           />
         </div>
       </Page>

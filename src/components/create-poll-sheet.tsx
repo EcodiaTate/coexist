@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Trash2, BarChart3 } from 'lucide-react'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/button'
@@ -33,12 +33,22 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
       allowMultiple,
       anonymous,
     })
-    // Reset
-    setQuestion('')
-    setOptions(['', ''])
-    setAllowMultiple(false)
-    setAnonymous(false)
+    // Close sheet; form resets when sheet re-opens (avoids data loss if parent mutation fails)
+    onClose()
   }
+
+  // Reset form fields when the sheet closes
+  useEffect(() => {
+    if (!open) {
+      const timer = setTimeout(() => {
+        setQuestion('')
+        setOptions(['', ''])
+        setAllowMultiple(false)
+        setAnonymous(false)
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [open])
 
   const addOption = () => {
     if (options.length >= 8) return

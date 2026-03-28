@@ -38,7 +38,7 @@ export default function OrdersPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const placeholderMerch = useAppImage('placeholder_merch')
-  const { data: orders, isLoading } = useMyOrders()
+  const { data: orders, isLoading, isError, refetch } = useMyOrders()
   const showLoading = useDelayedLoading(isLoading)
 
   return (
@@ -50,6 +50,13 @@ export default function OrdersPage() {
               <Skeleton key={i} variant="card" />
             ))}
           </div>
+        ) : isError ? (
+          <EmptyState
+            illustration="error"
+            title="Couldn't load orders"
+            description="Something went wrong loading your orders."
+            action={{ label: 'Try again', onClick: () => refetch() }}
+          />
         ) : !orders || orders.length === 0 ? (
           <EmptyState
             illustration="empty"

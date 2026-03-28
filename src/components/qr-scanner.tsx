@@ -168,7 +168,7 @@ export function QrScanner({
         }
 
         if (camPerm !== 'granted' && camPerm !== 'limited') {
-          if (!cancelled) onCancel()
+          if (!cancelled) onCameraError()
           return
         }
 

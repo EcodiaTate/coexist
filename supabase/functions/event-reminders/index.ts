@@ -17,10 +17,15 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 serve(async (req: Request) => {
   try {
-    // Verify this is called by cron (check for service role or cron header)
+    // Verify caller is using the service-role key (cron invocations)
     const authHeader = req.headers.get('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response('Unauthorized', { status: 401 })
+    }
+    const token = authHeader.replace('Bearer ', '')
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    if (token !== serviceRoleKey) {
+      return new Response('Forbidden: service-role key required', { status: 403 })
     }
 
     const supabase = createClient(

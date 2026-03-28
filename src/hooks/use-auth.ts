@@ -427,6 +427,52 @@ export function useAuthProvider(): AuthContextValue {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  /* ---- realtime: refresh on role/profile changes ---- */
+  useEffect(() => {
+    if (!user) return
+
+    // Subscribe to changes on the user's collective_members rows
+    const memberChannel = supabase
+      .channel(`auth-member-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'collective_members',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          console.log('[auth] collective_members changed — refreshing')
+          loadUserData(user.id)
+        },
+      )
+      .subscribe()
+
+    // Subscribe to changes on the user's profile (role, suspension, etc.)
+    const profileChannel = supabase
+      .channel(`auth-profile-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        () => {
+          console.log('[auth] profile changed — refreshing')
+          loadUserData(user.id)
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(memberChannel)
+      supabase.removeChannel(profileChannel)
+    }
+  }, [user, loadUserData])
+
   /* ---- collective role checkers ---- */
   const getCollectiveRole = useCallback(
     (collectiveId: string): CollectiveRole | null => {

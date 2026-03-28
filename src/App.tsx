@@ -23,6 +23,7 @@ import SplashPage from '@/pages/splash'
 const PublicEventPage = lazy(() => import('@/pages/public/event'))
 const PublicCollectivePage = lazy(() => import('@/pages/public/collective'))
 const DownloadPage = lazy(() => import('@/pages/public/download'))
+const AccountDeletionPage = lazy(() => import('@/pages/public/account-deletion'))
 
 // Legal
 const TermsOfServicePage = lazy(() => import('@/pages/legal/terms'))
@@ -203,7 +204,7 @@ function PageFallback() {
 
 function App() {
   const [showSplash, setShowSplash] = useState(true)
-  const { maintenanceMode, maintenanceMessage } = useAppUpdate()
+  const { maintenanceMode, maintenanceMessage, forceUpdate, latestVersion } = useAppUpdate()
   useDeepLink()
 
   const handleSplashReady = useCallback(() => {
@@ -212,6 +213,10 @@ function App() {
 
   if (maintenanceMode) {
     return <MaintenanceMode message={maintenanceMessage} />
+  }
+
+  if (forceUpdate) {
+    return <MaintenanceMode message={`A required update (v${latestVersion}) is available. Please update the app to continue.`} />
   }
 
   return (
@@ -409,7 +414,7 @@ function App() {
             <Route path="collectives" element={<RequireCapability cap="manage_collectives"><AdminCollectivesPage /></RequireCapability>} />
             <Route path="collectives/:collectiveId" element={<RequireCapability cap="manage_collectives"><AdminCollectiveDetailPage /></RequireCapability>} />
             <Route path="users" element={<RequireCapability cap="manage_users"><AdminUsersPage /></RequireCapability>} />
-            <Route path="create" element={<AdminCreatePage />} />
+            <Route path="create" element={<RequireCapability cap="manage_workflows"><AdminCreatePage /></RequireCapability>} />
             <Route path="updates" element={<RequireRole minRole="national_admin"><AdminUpdatesPage /></RequireRole>} />
             <Route path="tasks" element={<RequireCapability cap="manage_workflows"><AdminWorkflowsPage /></RequireCapability>} />
             <Route path="events" element={<RequireCapability cap="manage_events"><AdminEventsPage /></RequireCapability>} />
@@ -431,7 +436,7 @@ function App() {
             <Route path="partners" element={<RequireCapability cap="manage_partners"><AdminPartnersPage /></RequireCapability>} />
             <Route path="challenges" element={<RequireCapability cap="manage_challenges"><AdminChallengesPage /></RequireCapability>} />
             <Route path="moderation" element={<RequireCapability cap="manage_content"><ModerationQueuePage /></RequireCapability>} />
-            <Route path="contacts" element={<AdminContactsPage />} />
+            <Route path="contacts" element={<RequireCapability cap="manage_users"><AdminContactsPage /></RequireCapability>} />
             <Route path="legal-pages" element={<RequireCapability cap="manage_system"><AdminLegalPagesPage /></RequireCapability>} />
             <Route path="dev-tools" element={<RequireCapability cap="manage_system"><DevToolsPage /></RequireCapability>} />
             <Route path="development" element={<RequireCapability cap="manage_content"><AdminDevelopmentPage /></RequireCapability>} />
@@ -527,6 +532,14 @@ function App() {
           element={
             <AppShell bare>
               <DownloadPage />
+            </AppShell>
+          }
+        />
+        <Route
+          path="/account-deletion"
+          element={
+            <AppShell bare>
+              <AccountDeletionPage />
             </AppShell>
           }
         />

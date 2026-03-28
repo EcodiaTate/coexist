@@ -114,14 +114,13 @@ export default function ReferralPage() {
     }
   }
 
-  if (showLoading) {
+  if (showLoading || codeLoading) {
     return (
       <Page swipeBack header={<Header title="Invite Friends" back />}>
         <ReferralSkeleton />
       </Page>
     )
   }
-  if (codeLoading) return null
 
   return (
     <Page swipeBack header={<Header title="Invite Friends" back />}>

@@ -42,6 +42,12 @@ async function sendEmailNotification(
 ): Promise<boolean> {
   const roleList = roles.map(r => ROLE_LABELS[r] ?? r).join(', ')
 
+  // Sanitise all user-supplied values before embedding in HTML
+  const safeName = sanitizeHtml(applicantName)
+  const safeEmail = sanitizeHtml(applicantEmail)
+  const safeLocation = sanitizeHtml(location)
+  const safeRoleList = sanitizeHtml(roleList)
+
   const resp = await fetch('https://api.sendgrid.com/v3/mail/send', {
     method: 'POST',
     headers: {
@@ -51,7 +57,7 @@ async function sendEmailNotification(
     body: JSON.stringify({
       personalizations: [{ to: [{ email: toEmail }] }],
       from: { email: FROM_EMAIL, name: FROM_NAME },
-      subject: `New Collective Application: ${applicantName}`,
+      subject: `New Collective Application: ${safeName}`,
       content: [
         {
           type: 'text/html',
@@ -65,19 +71,19 @@ async function sendEmailNotification(
                 <table style="width: 100%; border-collapse: collapse;">
                   <tr>
                     <td style="padding: 8px 0; color: #6b7a5a; font-size: 13px; font-weight: 600;">Name</td>
-                    <td style="padding: 8px 0; color: #2d3a22; font-size: 14px;">${applicantName}</td>
+                    <td style="padding: 8px 0; color: #2d3a22; font-size: 14px;">${safeName}</td>
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; color: #6b7a5a; font-size: 13px; font-weight: 600;">Email</td>
-                    <td style="padding: 8px 0; color: #2d3a22; font-size: 14px;"><a href="mailto:${applicantEmail}" style="color: #869e62;">${applicantEmail}</a></td>
+                    <td style="padding: 8px 0; color: #2d3a22; font-size: 14px;"><a href="mailto:${safeEmail}" style="color: #869e62;">${safeEmail}</a></td>
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; color: #6b7a5a; font-size: 13px; font-weight: 600;">Location</td>
-                    <td style="padding: 8px 0; color: #2d3a22; font-size: 14px;">${location}</td>
+                    <td style="padding: 8px 0; color: #2d3a22; font-size: 14px;">${safeLocation}</td>
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; color: #6b7a5a; font-size: 13px; font-weight: 600;">Roles</td>
-                    <td style="padding: 8px 0; color: #2d3a22; font-size: 14px;">${roleList}</td>
+                    <td style="padding: 8px 0; color: #2d3a22; font-size: 14px;">${safeRoleList}</td>
                   </tr>
                 </table>
                 <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e8eddf;">
@@ -153,8 +159,37 @@ async function sendPushNotifications(
 /*  Main handler                                                       */
 /* ------------------------------------------------------------------ */
 
+/** Sanitise user input for safe inclusion in HTML email */
+function sanitizeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 serve(async (req: Request) => {
   try {
+    // ── Auth: require authenticated user ──
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Missing authorization' }), {
+        status: 401, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    const token = authHeader.replace('Bearer ', '')
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+    )
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401, headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     const payload = (await req.json()) as NotifyPayload
 
     if (!payload.applicant_name || !payload.applicant_email) {
@@ -233,7 +268,7 @@ serve(async (req: Request) => {
     console.error('[notify-application] Error:', err)
     return new Response(
       JSON.stringify({ error: 'Internal error' }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } },
+      { status: 500, headers: { 'Content-Type': 'application/json' } },
     )
   }
 })

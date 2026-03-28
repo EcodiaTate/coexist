@@ -94,10 +94,39 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Register service worker for static asset caching
+// Register service worker — detect updates and prompt reload
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      // Check for updates periodically (every 30 min)
+      setInterval(() => reg.update().catch(() => {}), 30 * 60 * 1000)
+
+      // When a new SW is waiting, tell it to activate and reload
+      function onNewSW() {
+        const waiting = reg.waiting
+        if (!waiting) return
+        waiting.postMessage({ type: 'SKIP_WAITING' })
+        waiting.addEventListener('statechange', () => {
+          if (waiting.state === 'activated') {
+            window.location.reload()
+          }
+        })
+      }
+
+      // SW already waiting (e.g. user revisits after deploy)
+      if (reg.waiting) onNewSW()
+
+      // New SW installed while page is open
+      reg.addEventListener('updatefound', () => {
+        const installing = reg.installing
+        if (!installing) return
+        installing.addEventListener('statechange', () => {
+          if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+            onNewSW()
+          }
+        })
+      })
+    }).catch(() => {
       // Service worker registration failed - silent fallback
     })
   })

@@ -185,6 +185,10 @@ export default function LearnQuizPage() {
             <CircleDot size={24} strokeWidth={1.5} className="text-primary-400" />
           </div>
           <p className="text-[15px] font-bold text-primary-700">Quiz not found</p>
+          <p className="text-[13px] text-primary-400 mt-1">This quiz may have been removed or is no longer available.</p>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/learn')} className="mt-3">
+            Back to My Learning
+          </Button>
         </div>
       </Page>
     )

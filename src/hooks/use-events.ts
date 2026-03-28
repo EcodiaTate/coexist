@@ -626,7 +626,10 @@ export function useRegisterForEvent() {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
+      queryClient.invalidateQueries({ queryKey: ['event-waitlist', eventId] })
       queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
+      queryClient.invalidateQueries({ queryKey: ['discover-events'] })
+      queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
     },
   })
 }
@@ -706,6 +709,8 @@ export function useCancelRegistration() {
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event-waitlist', eventId] })
       queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
+      queryClient.invalidateQueries({ queryKey: ['discover-events'] })
+      queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
     },
   })
 }
@@ -747,6 +752,11 @@ export function useCheckIn() {
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
+      queryClient.invalidateQueries({ queryKey: ['impact-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['profile-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'impact-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
     },
   })
 }
@@ -783,6 +793,10 @@ export function useBulkCheckIn() {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
+      queryClient.invalidateQueries({ queryKey: ['impact-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['profile-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'impact-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
     },
   })
 }
@@ -818,6 +832,11 @@ export function useCreateEvent() {
       queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['discover-events'] })
+      queryClient.invalidateQueries({ queryKey: ['leader-events'] })
+      queryClient.invalidateQueries({ queryKey: ['leader-event-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'featured-events'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'upcoming-nearby'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'collective-upcoming-events'] })
     },
   })
 }
@@ -877,6 +896,12 @@ export function useUpdateEvent() {
         queryClient.invalidateQueries({ queryKey: ['leader-event-stats'] })
       }
       queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
+      queryClient.invalidateQueries({ queryKey: ['discover-events'] })
+      queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'featured-events'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'upcoming-nearby'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'collective-upcoming-events'] })
     },
   })
 }
@@ -957,8 +982,14 @@ export function useCancelEvent() {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['nearby-events'] })
+      queryClient.invalidateQueries({ queryKey: ['discover-events'] })
+      queryClient.invalidateQueries({ queryKey: ['collective-events'] })
       queryClient.invalidateQueries({ queryKey: ['leader-events'] })
       queryClient.invalidateQueries({ queryKey: ['leader-event-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'featured-events'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'upcoming-nearby'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'collective-upcoming-events'] })
     },
   })
 }
@@ -1000,6 +1031,8 @@ export function useDuplicateEvent() {
       if (data) {
         queryClient.invalidateQueries({ queryKey: ['collective-events', data.collective_id] })
       }
+      queryClient.invalidateQueries({ queryKey: ['leader-events'] })
+      queryClient.invalidateQueries({ queryKey: ['leader-event-stats'] })
     },
   })
 }
@@ -1136,6 +1169,13 @@ export function useLogImpact() {
       queryClient.invalidateQueries({ queryKey: ['my-events'] })
       queryClient.invalidateQueries({ queryKey: ['leader-events'] })
       queryClient.invalidateQueries({ queryKey: ['leader-event-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'impact-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
+      queryClient.invalidateQueries({ queryKey: ['collective-stats'] })
+      queryClient.invalidateQueries({ queryKey: ['leader-impact-full'] })
+      queryClient.invalidateQueries({ queryKey: ['leader-dashboard'] })
+      queryClient.invalidateQueries({ queryKey: ['collective-custom-metrics'] })
+      queryClient.invalidateQueries({ queryKey: ['national-custom-metrics'] })
     },
   })
 }
@@ -1344,6 +1384,8 @@ export function useInviteCollective() {
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
       queryClient.invalidateQueries({ queryKey: ['chat-messages', collectiveId] })
+      // Invited users' my-events (invited tab) should update
+      queryClient.invalidateQueries({ queryKey: ['my-events'] })
     },
   })
 }
@@ -1409,6 +1451,9 @@ export function usePromoteFromWaitlist() {
       queryClient.invalidateQueries({ queryKey: ['event-waitlist', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event-attendees', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
+      // The promoted user's my-events and home feed should update
+      queryClient.invalidateQueries({ queryKey: ['my-events'] })
+      queryClient.invalidateQueries({ queryKey: ['home', 'my-upcoming-events'] })
     },
   })
 }

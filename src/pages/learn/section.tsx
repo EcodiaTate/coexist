@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
-
+import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { ProgressRing } from '@/components/development/progress-ring'
 import { cn } from '@/lib/cn'
@@ -98,6 +98,10 @@ export default function LearnSectionPage() {
             <Layers size={24} strokeWidth={1.5} className="text-primary-400" />
           </div>
           <p className="text-[15px] font-bold text-primary-700">Section not found</p>
+          <p className="text-[13px] text-primary-400 mt-1">This section may have been removed or is no longer available.</p>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/learn')} className="mt-3">
+            Back to My Learning
+          </Button>
         </div>
       </Page>
     )

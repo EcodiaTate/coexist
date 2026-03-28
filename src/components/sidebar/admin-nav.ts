@@ -48,7 +48,7 @@ export const adminNavCategories: NavCategory[] = [
       { label: 'Events', path: '/admin/events', icon: icon(CalendarDays), capability: 'manage_events' },
       { label: 'Partners', path: '/admin/partners', icon: icon(Handshake), capability: 'manage_partners' },
       { label: 'Shop', path: '/admin/shop', icon: icon(ShoppingBag), capability: 'manage_merch' },
-      { label: 'Contacts', path: '/admin/contacts', icon: icon(Phone) },
+      { label: 'Contacts', path: '/admin/contacts', icon: icon(Phone), capability: 'manage_users' },
     ],
   },
   {
@@ -56,10 +56,10 @@ export const adminNavCategories: NavCategory[] = [
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
-      { label: 'Tasks', path: '/admin/tasks', icon: icon(ClipboardCheck) },
+      { label: 'Tasks', path: '/admin/tasks', icon: icon(ClipboardCheck), capability: 'manage_workflows' },
       { label: 'Surveys', path: '/admin/surveys', icon: icon(ClipboardList), capability: 'manage_surveys' },
       { label: 'Email', path: '/admin/email', icon: icon(Mail), capability: 'manage_email' },
-      { label: 'Updates', path: '/admin/updates', icon: icon(Megaphone) },
+      { label: 'Updates', path: '/admin/updates', icon: icon(Megaphone), capability: 'send_announcements' },
     ],
   },
   {

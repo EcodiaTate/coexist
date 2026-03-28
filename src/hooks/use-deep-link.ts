@@ -1,6 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
+import { useAuth } from '@/hooks/use-auth'
 
 /**
  * Map of custom-scheme paths → in-app routes.
@@ -38,6 +39,17 @@ function resolveDeepLinkPath(rawPath: string): string {
 
 export function useDeepLink() {
   const navigate = useNavigate()
+  const { user, isLoading } = useAuth()
+  const pendingRoute = useRef<string | null>(null)
+
+  // When auth finishes loading and we have a queued deep link, navigate now
+  useEffect(() => {
+    if (!isLoading && pendingRoute.current) {
+      const route = pendingRoute.current
+      pendingRoute.current = null
+      navigate(route)
+    }
+  }, [isLoading, user, navigate])
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return
@@ -49,20 +61,25 @@ export function useDeepLink() {
         const { App } = await import('@capacitor/app')
 
         const listener = await App.addListener('appUrlOpen', (event) => {
+          let resolved: string | null = null
           try {
             // Universal link: https://coexist.app/events/abc → /events/abc
             const url = new URL(event.url)
-            const resolved = resolveDeepLinkPath(url.pathname)
-            if (resolved && resolved !== '/') {
-              navigate(resolved)
-            }
+            resolved = resolveDeepLinkPath(url.pathname)
           } catch {
             // Custom scheme: coexist://events/abc → /events/abc
             const slug = event.url.replace(/^[^:]+:\/\//, '')
-            const resolved = resolveDeepLinkPath(slug)
-            if (resolved && resolved !== '/') {
-              navigate(resolved)
-            }
+            resolved = resolveDeepLinkPath(slug)
+          }
+
+          if (!resolved || resolved === '/') return
+
+          // If auth is still loading (cold start), queue the route
+          // so RequireAuth doesn't redirect to /login before session resolves
+          if (isLoading) {
+            pendingRoute.current = resolved
+          } else {
+            navigate(resolved)
           }
         })
 
@@ -74,5 +91,5 @@ export function useDeepLink() {
 
     setup()
     return () => cleanup?.()
-  }, [navigate])
+  }, [navigate, isLoading])
 }

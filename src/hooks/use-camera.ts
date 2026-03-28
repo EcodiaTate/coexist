@@ -105,9 +105,26 @@ export function useCamera(): UseCameraReturn {
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Camera error'
-        if (!msg.includes('cancelled') && !msg.includes('User cancelled')) {
-          setError(msg)
+        const name = e instanceof Error ? e.name : ''
+
+        // User cancelled — not an error
+        if (msg.includes('cancelled') || msg.includes('User cancelled')) {
+          return null
         }
+
+        // Storage full (QuotaExceededError from canvas/blob/createObjectURL)
+        if (name === 'QuotaExceededError' || msg.includes('quota') || msg.includes('storage')) {
+          setError('Not enough storage on your device. Free up some space and try again.')
+          return null
+        }
+
+        // SecurityError — camera blocked by browser policy
+        if (name === 'NotAllowedError' || name === 'SecurityError') {
+          setError('Camera access was blocked. Please allow camera access in your browser or device settings.')
+          return null
+        }
+
+        setError(msg)
         return null
       } finally {
         setLoading(false)

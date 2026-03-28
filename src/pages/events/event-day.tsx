@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { useToast } from '@/components/toast'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
   QrCode,
@@ -283,6 +284,7 @@ export default function EventDayPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { profile } = useAuth()
+  const { toast } = useToast()
 
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: attendees, isLoading: attendeesLoading } = useEventAttendees(eventId)
@@ -345,9 +347,12 @@ export default function EventDayPage() {
 
   const handleBulkCheckIn = useCallback(() => {
     if (!eventId) return
-    bulkCheckIn.mutate(eventId)
+    bulkCheckIn.mutate(eventId, {
+      onSuccess: () => toast.success('All attendees checked in'),
+      onError: () => toast.error('Failed to check in attendees'),
+    })
     setShowBulkConfirm(false)
-  }, [eventId, bulkCheckIn])
+  }, [eventId, bulkCheckIn, toast])
 
   const handlePromote = useCallback(
     (userId: string) => {

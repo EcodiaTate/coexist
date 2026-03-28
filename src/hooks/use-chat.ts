@@ -465,6 +465,10 @@ export function useSendMessage() {
         )
       }
     },
+    onSettled: (_data, _err, input) => {
+      // Sender just read the latest message — reset their unread count
+      queryClient.invalidateQueries({ queryKey: ['unread-counts'] })
+    },
   })
 }
 
@@ -614,6 +618,7 @@ export function usePinnedMessages(collectiveId: string | undefined) {
 
 export function useMarkChatRead(collectiveId: string | undefined) {
   const { user } = useAuth()
+  const queryClient = useQueryClient()
 
   return useCallback(async () => {
     if (!user || !collectiveId) return
@@ -624,8 +629,13 @@ export function useMarkChatRead(collectiveId: string | undefined) {
         user_id: user.id,
         last_read_at: new Date().toISOString(),
       }, { onConflict: 'collective_id,user_id' })
-    if (error) console.error('[chat] Failed to mark chat read:', error)
-  }, [user, collectiveId])
+    if (error) {
+      console.error('[chat] Failed to mark chat read:', error)
+      return
+    }
+    // Invalidate unread counts so the tab badge updates immediately
+    queryClient.invalidateQueries({ queryKey: ['unread-counts'] })
+  }, [user, collectiveId, queryClient])
 }
 
 /* ------------------------------------------------------------------ */

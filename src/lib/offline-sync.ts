@@ -170,6 +170,25 @@ async function processAction(action: OfflineAction): Promise<{ ok: boolean; conf
         content: string
         replyToId?: string
       }
+
+      // Dedup: check if an identical message was already sent (e.g. partial sync
+      // succeeded before the action was removed from the queue)
+      const dedupeWindow = new Date(
+        new Date(action.createdAt).getTime() - 5000,
+      ).toISOString()
+      const { data: existing } = await supabase
+        .from('chat_messages')
+        .select('id')
+        .eq('collective_id', collectiveId)
+        .eq('user_id', userId)
+        .eq('content', content ?? '')
+        .gte('created_at', dedupeWindow)
+        .limit(1)
+      if (existing && existing.length > 0) {
+        // Already sent — treat as success, skip insert
+        return { ok: true }
+      }
+
       const { error } = await supabase
         .from('chat_messages')
         .insert({
@@ -223,9 +242,47 @@ async function processAction(action: OfflineAction): Promise<{ ok: boolean; conf
   }
 }
 
+/**
+ * Ensure the Supabase auth token is fresh before syncing.
+ * If the token expired while offline, this refreshes it.
+ * Returns true if we have a valid session, false if re-auth failed.
+ */
+async function ensureFreshAuth(): Promise<boolean> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session) return false
+
+    // Check if token is expired or about to expire (within 60s)
+    const expiresAt = session.expires_at ?? 0
+    const nowSecs = Math.floor(Date.now() / 1000)
+    if (expiresAt > nowSecs + 60) return true
+
+    // Token is expired or nearly expired — force refresh
+    const { data, error } = await supabase.auth.refreshSession()
+    if (error || !data.session) {
+      console.warn('[offline-sync] Auth refresh failed:', error?.message)
+      return false
+    }
+    return true
+  } catch {
+    return false
+  }
+}
+
 /** Sync all pending actions. Server wins on conflicts, notifies user. */
 export async function syncAllOfflineActions(): Promise<SyncResult> {
   const result: SyncResult = { synced: 0, failed: 0, conflicts: [] }
+
+  // Refresh auth token before attempting any sync — it may have expired while offline
+  const hasAuth = await ensureFreshAuth()
+  if (!hasAuth) {
+    const totalPending = getPendingCheckInCount() + getActionQueue().length
+    if (totalPending > 0) {
+      result.failed = totalPending
+      result.conflicts.push('Session expired. Please sign in again to sync your pending actions.')
+    }
+    return result
+  }
 
   // Sync legacy check-in queue first
   const checkinsSynced = await syncOfflineCheckIns()
