@@ -257,9 +257,12 @@ html {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   background-color: var(--color-surface-1);
-  /* Fill the entire viewport including safe areas on native */
+  /* Fill the entire viewport including safe areas on native.
+     height: 100% lets Capacitor keyboard resize (body shrink) propagate
+     through the DOM so fixed chat layouts stay above the keyboard. */
   min-height: 100vh;
   min-height: 100dvh;
+  height: 100%;
 }
 
 body {
@@ -267,11 +270,13 @@ body {
   color: var(--color-neutral-900);
   background-color: var(--color-surface-1);
   min-height: 100dvh;
+  height: 100%;
 }
 
 /* Ensure #root fills the viewport so no white gap shows at the bottom */
 #root {
   min-height: 100dvh;
+  height: 100%;
 }
 
 /* Safe areas for native app */

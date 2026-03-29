@@ -702,7 +702,7 @@ export default function ChatRoomPage() {
   /* ---- Not found guard ---- */
   if (isChannel && !channelId) {
     return (
-      <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
+      <div className="flex flex-col flex-1 min-h-0 overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
         <Header title="Staff Chat" back />
         <div className="flex-1 flex items-center justify-center">
           <EmptyState illustration="empty" title="Channel not found" description="This channel may have been removed." />
@@ -723,7 +723,7 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <div className="flex flex-col h-full max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
+    <div className="flex flex-col flex-1 min-h-0 overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
       {/* Header */}
       <motion.div
         variants={isCollective && !shouldReduceMotion ? fadeUp : undefined}
