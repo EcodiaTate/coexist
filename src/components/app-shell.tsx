@@ -122,9 +122,11 @@ function AppShellInner({ children }: { children: ReactNode }) {
   return (
     <div className={cn(
       'flex flex-col bg-surface-1',
-      // Mobile/native: fixed viewport - only inner Page <main> scrolls (native app feel)
+      // Mobile/native: fixed viewport - only inner Page <main> scrolls (native app feel).
+      // Use h-full (not h-dvh) so the shell tracks the body height after Capacitor
+      // keyboard resize, keeping inputs visible above the native keyboard.
       // Desktop web: document can grow for natural window scrolling + WebFooter
-      showBottomTabs ? 'h-dvh overflow-hidden' : 'min-h-dvh',
+      showBottomTabs ? 'h-full overflow-hidden' : 'min-h-dvh',
     )}>
       {/* Offline connectivity banner */}
       <OfflineBanner />

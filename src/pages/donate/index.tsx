@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/skeleton'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { supabase } from '@/lib/supabase'
 import { WEBSITE_URL } from '@/lib/constants'
+import { openExternal } from '@/lib/open-external'
 import { cn } from '@/lib/cn'
 
 const DONATE_URL = `${WEBSITE_URL}/donate`
@@ -367,7 +368,7 @@ export default function DonatePage() {
                     size="lg"
                     fullWidth
                     icon={<ExternalLink size={18} />}
-                    onClick={() => window.open(DONATE_URL, '_blank')}
+                    onClick={() => openExternal(DONATE_URL)}
                     className="shadow-[0_4px_16px_-4px_rgba(61,77,51,0.15)]"
                   >
                     Donate on our website
