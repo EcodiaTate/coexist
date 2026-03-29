@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height'
 
 interface BottomSheetProps {
   open: boolean
@@ -43,12 +44,14 @@ function MobileSheet({
   onClose,
   children,
   maxHeight,
+  keyboardHeight,
   className,
 }: {
   open: boolean
   onClose: () => void
   children: ReactNode
   maxHeight: number
+  keyboardHeight: number
   className?: string
 }) {
   const sheetRef = useRef<HTMLDivElement>(null)
@@ -201,9 +204,10 @@ function MobileSheet({
           className,
         )}
         style={{
-          maxHeight,
+          maxHeight: keyboardHeight > 0 ? maxHeight - keyboardHeight : maxHeight,
+          bottom: keyboardHeight > 0 ? keyboardHeight : 0,
           transform: visible ? 'translateY(0)' : 'translateY(100%)',
-          transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+          transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1), bottom 0.25s ease-out, max-height 0.25s ease-out',
         }}
         onTransitionEnd={onTransitionEnd}
       >
@@ -252,6 +256,7 @@ export function BottomSheet({
 }: BottomSheetProps) {
   const shouldReduceMotion = useReducedMotion()
   const isDesktop = useIsDesktop()
+  const keyboardHeight = useKeyboardHeight()
 
   const vh = typeof window !== 'undefined' ? window.innerHeight : 800
   const maxHeight = vh * MAX_HEIGHT_FRACTION
@@ -259,7 +264,7 @@ export function BottomSheet({
   /* ---- If mobile, delegate entirely to MobileSheet ---- */
   if (!isDesktop) {
     return (
-      <MobileSheet open={open} onClose={onClose} maxHeight={maxHeight} className={className}>
+      <MobileSheet open={open} onClose={onClose} maxHeight={maxHeight} keyboardHeight={keyboardHeight} className={className}>
         {children}
       </MobileSheet>
     )
