@@ -55,9 +55,11 @@ const config: CapacitorConfig = {
       backgroundColor: '#f8f9f5',
     },
 
-    // Keyboard
+    // Keyboard – use 'none' so iOS doesn't fight our own visualViewport-based
+    // keyboard avoidance (--kb-height CSS variable set by useKeyboardHeight).
+    // 'body' resize is unreliable on modern iOS WKWebView.
     Keyboard: {
-      resize: 'body',
+      resize: 'none',
       resizeOnFullScreen: true,
     },
   },

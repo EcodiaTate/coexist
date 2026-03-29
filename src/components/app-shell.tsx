@@ -11,6 +11,7 @@ import { MenuSheetProvider, useMenuSheet } from '@/hooks/use-menu-sheet'
 import { useSyncManager } from '@/hooks/use-sync-manager'
 import { usePushRegistration } from '@/hooks/use-push'
 import { useKeyboard } from '@/hooks/use-keyboard'
+import { useKeyboardHeight } from '@/hooks/use-keyboard-height'
 import { useRolePrefetch } from '@/hooks/use-role-prefetch'
 import { useDataPrefetch } from '@/hooks/use-data-prefetch'
 import { useUnreadCounts } from '@/hooks/use-chat'
@@ -25,6 +26,9 @@ export function AppShell({ children, bare = false }: AppShellProps) {
   // Scroll focused inputs into view when native keyboard opens
   // must run in BOTH bare and full shells so auth/onboarding pages work too.
   useKeyboard()
+  // Track keyboard height via visualViewport and set --kb-height CSS variable
+  // so fixed-position elements (bottom sheets, chat input) can offset above keyboard.
+  useKeyboardHeight()
 
   if (bare) {
     return (
@@ -120,14 +124,18 @@ function AppShellInner({ children }: { children: ReactNode }) {
   const showSidebar = navMode === 'sidebar'
 
   return (
-    <div className={cn(
-      'flex flex-col bg-surface-1',
-      // Mobile/native: fixed viewport - only inner Page <main> scrolls (native app feel).
-      // Use h-full (not h-dvh) so the shell tracks the body height after Capacitor
-      // keyboard resize, keeping inputs visible above the native keyboard.
-      // Desktop web: document can grow for natural window scrolling + WebFooter
-      showBottomTabs ? 'h-full overflow-hidden' : 'min-h-dvh',
-    )}>
+    <div
+      className={cn(
+        'flex flex-col bg-surface-1',
+        // Desktop web: document can grow for natural window scrolling + WebFooter
+        showBottomTabs ? 'overflow-hidden' : 'min-h-dvh',
+      )}
+      style={showBottomTabs ? {
+        // Use visualViewport-aware height so the shell shrinks when the native
+        // keyboard opens. --kb-height is set by useKeyboardHeight via visualViewport.
+        height: 'calc(100dvh - var(--kb-height, 0px))',
+      } : undefined}
+    >
       {/* Offline connectivity banner */}
       <OfflineBanner />
 
