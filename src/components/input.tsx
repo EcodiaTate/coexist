@@ -47,6 +47,7 @@ export const Input = forwardRef<
   {
     type = 'text',
     label,
+    compact,
     value,
     defaultValue,
     onChange,

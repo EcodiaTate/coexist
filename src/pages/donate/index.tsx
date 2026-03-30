@@ -71,32 +71,32 @@ function PageDepthElements({ rm }: { rm: boolean }) {
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
       {/* Large ring - upper right */}
       <motion.div
-        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-bark-300/22"
+        className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-primary-300/15"
         animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
       />
       <motion.div
-        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-warning-200/18"
+        className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-sprout-200/20"
         animate={rm ? undefined : { scale: [1, 1.04, 1], opacity: [0.3, 0.55, 0.3] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
       />
 
       {/* Left ring cluster */}
       <motion.div
-        className="absolute top-[32%] -left-16 w-56 h-56 rounded-full border-[2.5px] border-bark-200/20"
+        className="absolute top-[32%] -left-16 w-56 h-56 rounded-full border-[2.5px] border-primary-200/15"
         animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.35, 0.65, 0.35] }}
         transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
       />
 
       {/* Floating particles */}
-      <motion.div className="absolute top-[18%] right-[16%] w-3.5 h-3.5 rounded-full bg-warning-400/18"
+      <motion.div className="absolute top-[18%] right-[16%] w-3.5 h-3.5 rounded-full bg-sprout-400/15"
         animate={rm ? undefined : { y: [-6, 6, -6], x: [0, 4, 0] }} transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }} />
-      <motion.div className="absolute top-[45%] left-[10%] w-3 h-3 rounded-full bg-bark-400/15"
+      <motion.div className="absolute top-[45%] left-[10%] w-3 h-3 rounded-full bg-primary-400/12"
         animate={rm ? undefined : { y: [4, -5, 4] }} transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }} />
 
       {/* Rich blurred orbs */}
-      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-warning-200/20 via-bark-100/10 to-transparent" />
-      <div className="absolute -top-12 -left-16 w-[300px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-bark-200/18 to-transparent" />
+      <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-200/15 via-primary-100/8 to-transparent" />
+      <div className="absolute -top-12 -left-16 w-[300px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-200/12 to-transparent" />
     </div>
   )
 }
@@ -241,7 +241,7 @@ function DonateHero({ rm }: { rm: boolean }) {
                C1200,22 1260,26 1320,22
                C1360,18 1400,24 1440,22
                L1440,70 L0,70 Z"
-            className="fill-[#f2ece0]"
+            className="fill-[#f0eedf]"
           />
         </svg>
       </div>
@@ -253,7 +253,7 @@ function DonateHero({ rm }: { rm: boolean }) {
 /*  Donation form                                                      */
 /* ------------------------------------------------------------------ */
 
-function DonationForm() {
+function DonationForm({ rm }: { rm: boolean }) {
   const { user } = useAuth()
   const createDonation = useCreateDonation()
   const [selectedAmount, setSelectedAmount] = useState<number | null>(25)
@@ -302,159 +302,189 @@ function DonationForm() {
   }
 
   return (
-    <div className="rounded-[20px] bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] p-6">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-5">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-moss-700 flex items-center justify-center shrink-0 shadow-md shadow-primary-500/25">
-          <Heart size={18} className="text-white" />
-        </div>
-        <div>
-          <h2 className="font-heading font-extrabold text-secondary-900 text-lg">
-            Make a donation
-          </h2>
-          <p className="text-xs text-primary-400 mt-0.5">
-            Secure payment via Stripe
-          </p>
-        </div>
-      </div>
+    <div className="relative rounded-[24px] bg-white shadow-[0_8px_32px_-8px_rgba(93,77,51,0.12),0_2px_8px_rgba(93,77,51,0.04)] overflow-hidden">
+      {/* Top accent gradient */}
+      <div className="h-1.5 bg-gradient-to-r from-primary-400 via-sprout-400 to-moss-400" />
 
-      {/* Frequency toggle */}
-      <div className="flex rounded-2xl bg-primary-50/60 p-1 mb-5">
-        <button
-          type="button"
-          onClick={() => setFrequency('one_time')}
-          className={cn(
-            'flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200',
-            frequency === 'one_time'
-              ? 'bg-white text-secondary-800 shadow-sm'
-              : 'text-primary-400 hover:text-primary-500',
-          )}
-        >
-          One-time
-        </button>
-        <button
-          type="button"
-          onClick={() => setFrequency('monthly')}
-          className={cn(
-            'flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5',
-            frequency === 'monthly'
-              ? 'bg-white text-secondary-800 shadow-sm'
-              : 'text-primary-400 hover:text-primary-500',
-          )}
-        >
-          <Repeat size={14} />
-          Monthly
-        </button>
-      </div>
+      <div className="p-6">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-primary-500 via-sprout-500 to-moss-500 flex items-center justify-center shrink-0 shadow-lg shadow-primary-500/20">
+            <Heart size={19} className="text-white" />
+          </div>
+          <div>
+            <h2 className="font-heading font-extrabold text-secondary-900 text-lg">
+              Make a donation
+            </h2>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <Shield size={11} className="text-primary-300" />
+              <p className="text-[11px] text-primary-400 font-medium">
+                Secure payment via Stripe
+              </p>
+            </div>
+          </div>
+        </div>
 
-      {/* Preset amounts */}
-      <div className="grid grid-cols-4 gap-2.5 mb-3">
-        {PRESET_AMOUNTS.map((preset) => (
+        {/* Frequency toggle */}
+        <div className="flex rounded-2xl bg-gradient-to-r from-primary-50/80 to-sprout-50/60 p-1.5 mb-6 border border-primary-100/30">
           <button
-            key={preset}
             type="button"
-            onClick={() => handlePresetSelect(preset)}
+            onClick={() => setFrequency('one_time')}
             className={cn(
-              'flex flex-col items-center gap-0.5 py-3.5 px-2 rounded-2xl transition-all duration-200',
-              'border-2',
-              selectedAmount === preset
-                ? 'border-primary-500 bg-primary-50 shadow-sm'
-                : 'border-transparent bg-primary-50/60 hover:bg-primary-50',
+              'flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200',
+              frequency === 'one_time'
+                ? 'bg-white text-secondary-800 shadow-md shadow-primary-900/8'
+                : 'text-primary-400 hover:text-primary-600',
             )}
           >
-            <span className="font-heading font-bold text-lg text-secondary-800">${preset}</span>
+            One-time
           </button>
-        ))}
-      </div>
+          <button
+            type="button"
+            onClick={() => setFrequency('monthly')}
+            className={cn(
+              'flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5',
+              frequency === 'monthly'
+                ? 'bg-white text-secondary-800 shadow-md shadow-primary-900/8'
+                : 'text-primary-400 hover:text-primary-600',
+            )}
+          >
+            <Repeat size={14} />
+            Monthly
+          </button>
+        </div>
 
-      {/* Custom amount */}
-      <div className="mb-4">
-        <Input
-          type="number"
-          placeholder="Custom amount"
-          value={customAmount}
-          onChange={handleCustomChange}
-          icon={<span className="text-primary-400 font-semibold">$</span>}
-          min="1"
-          max="50000"
-          step="1"
-          compact
-        />
-      </div>
+        {/* Preset amounts */}
+        <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider mb-2.5">Choose an amount</p>
+        <div className="grid grid-cols-4 gap-2.5 mb-4">
+          {PRESET_AMOUNTS.map((preset) => (
+            <motion.button
+              key={preset}
+              type="button"
+              onClick={() => handlePresetSelect(preset)}
+              whileTap={rm ? undefined : { scale: 0.95 }}
+              className={cn(
+                'relative flex flex-col items-center gap-0.5 py-4 px-2 rounded-2xl transition-all duration-200 cursor-pointer',
+                'border-2',
+                selectedAmount === preset
+                  ? 'border-primary-500 bg-gradient-to-b from-primary-50 to-sprout-50/50 shadow-md shadow-primary-500/15'
+                  : 'border-primary-100/60 bg-white hover:bg-primary-50/50 hover:border-primary-200/80',
+              )}
+            >
+              {selectedAmount === preset && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary-500 flex items-center justify-center">
+                  <Sparkles size={9} className="text-white" />
+                </div>
+              )}
+              <span className="font-heading font-extrabold text-xl text-secondary-800">${preset}</span>
+            </motion.button>
+          ))}
+        </div>
 
-      {/* Impact equivalency */}
-      {isValid && impactText && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="mb-4 px-4 py-3 rounded-xl bg-primary-50/80 border border-primary-100"
-        >
-          <p className="text-sm text-primary-600 leading-relaxed">
-            <Heart size={13} className="inline-block mr-1.5 text-primary-400 -mt-0.5" />
-            ${amount} {impactText}
-          </p>
-          {frequency === 'monthly' && (
-            <p className="text-xs text-primary-400 mt-1">
-              That&apos;s ${amount * 12}/year of sustained impact
+        {/* Custom amount */}
+        <div className="mb-5">
+          <Input
+            type="number"
+            placeholder="Enter a custom amount"
+            value={customAmount}
+            onChange={handleCustomChange}
+            icon={<span className="text-primary-500 font-bold text-base">$</span>}
+            inputClassName="bg-primary-50/40 border border-primary-100/60 focus:bg-white"
+            min="1"
+            max="50000"
+            step="1"
+            compact
+          />
+        </div>
+
+        {/* Impact equivalency */}
+        {isValid && impactText && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            className="mb-5 px-4 py-3.5 rounded-2xl bg-gradient-to-r from-sprout-50 to-primary-50 border border-sprout-200/40"
+          >
+            <p className="text-sm text-primary-700 leading-relaxed font-medium">
+              <Leaf size={13} className="inline-block mr-1.5 text-sprout-500 -mt-0.5" />
+              ${amount} {impactText}
             </p>
+            {frequency === 'monthly' && (
+              <p className="text-xs text-primary-400 mt-1.5 pl-[22px]">
+                That&apos;s <span className="font-semibold text-primary-500">${amount * 12}/year</span> of sustained impact
+              </p>
+            )}
+          </motion.div>
+        )}
+
+        {/* Divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-primary-100 to-transparent mb-5" />
+
+        {/* Optional message */}
+        <div className="mb-4">
+          <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+            <MessageCircle size={12} />
+            Leave a message
+          </p>
+          <Input
+            type="textarea"
+            placeholder="Share why you're supporting Co-Exist (optional)"
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            inputClassName="bg-primary-50/40 border border-primary-100/60 focus:bg-white"
+            rows={2}
+            maxLength={200}
+            compact
+          />
+          {message.length > 0 && (
+            <p className="text-[10px] text-primary-300 text-right mt-1">{message.length}/200</p>
           )}
-        </motion.div>
-      )}
+        </div>
 
-      {/* Optional message */}
-      <div className="mb-4">
-        <Input
-          type="textarea"
-          placeholder="Add a message (optional)"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          rows={2}
-          maxLength={200}
-          compact
-        />
-      </div>
+        {/* Public toggle */}
+        <div className="mb-6 px-4 py-3 rounded-2xl bg-primary-50/40 border border-primary-100/30">
+          <Toggle
+            checked={isPublic}
+            onChange={setIsPublic}
+            label="Show on donor wall"
+            description="Your name and amount will be visible to others"
+            size="sm"
+          />
+        </div>
 
-      {/* Public toggle */}
-      <div className="mb-5">
-        <Toggle
-          checked={isPublic}
-          onChange={setIsPublic}
-          label="Show on donor wall"
-          description="Your name and amount will be visible to others"
-          size="sm"
-        />
-      </div>
+        {/* Donate button */}
+        <Button
+          variant="primary"
+          size="lg"
+          fullWidth
+          icon={createDonation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Heart size={18} />}
+          onClick={handleDonate}
+          disabled={!isValid || !user || createDonation.isPending}
+          className="shadow-lg shadow-primary-600/20 !rounded-2xl"
+        >
+          {createDonation.isPending
+            ? 'Setting up...'
+            : `Donate $${amount}${frequency === 'monthly' ? '/mo' : ''}`}
+        </Button>
 
-      {/* Donate button */}
-      <Button
-        variant="primary"
-        size="lg"
-        fullWidth
-        icon={createDonation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Heart size={18} />}
-        onClick={handleDonate}
-        disabled={!isValid || !user || createDonation.isPending}
-        className="shadow-[0_4px_16px_-4px_rgba(61,77,51,0.15)]"
-      >
-        {createDonation.isPending
-          ? 'Setting up...'
-          : `Donate $${amount}${frequency === 'monthly' ? '/mo' : ''}`}
-      </Button>
+        {createDonation.isError && (
+          <p className="text-xs text-red-500 text-center mt-2">
+            Something went wrong. Please try again.
+          </p>
+        )}
 
-      {createDonation.isError && (
-        <p className="text-xs text-red-500 text-center mt-2">
-          Something went wrong. Please try again.
+        {!user && (
+          <p className="text-xs text-primary-300 text-center mt-3">
+            <Link to="/auth/login" className="underline text-primary-500 font-medium">Sign in</Link> to donate and track your impact
+          </p>
+        )}
+
+        <p className="text-[11px] text-primary-300 text-center mt-4 leading-relaxed">
+          Co-Exist Australia is a DGR-registered charity.
+          <br />
+          Donations over $2 are tax-deductible.
         </p>
-      )}
-
-      {!user && (
-        <p className="text-xs text-primary-300 text-center mt-3">
-          <Link to="/auth/login" className="underline text-primary-500">Sign in</Link> to donate and track your impact
-        </p>
-      )}
-
-      <p className="text-xs text-primary-300 text-center mt-3">
-        Co-Exist Australia is a DGR-registered charity. Donations over $2 are tax-deductible.
-      </p>
+      </div>
     </div>
   )
 }
@@ -477,10 +507,10 @@ export default function DonatePage() {
       <div className="relative min-h-dvh">
         {/* ── Rich layered background ── */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#f2ece0] via-[#f0ead9] via-30% to-[#eae5d4] to-65%" />
-          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-bark-50/12 to-moss-50/15" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#f2ece0] via-[#eef5e8] via-40% to-[#f0f4ec] to-70%" />
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-sprout-50/15 to-primary-50/20" />
 
-          <svg className="absolute inset-0 w-full h-full opacity-[0.035]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+          <svg className="absolute inset-0 w-full h-full opacity-[0.03]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="donate-topo" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
                 <path d="M20 100c30-40 70-60 100-40s60 50 80 20" fill="none" stroke="currentColor" strokeWidth="1" />
@@ -511,34 +541,49 @@ export default function DonatePage() {
                 <NationalStatsStrip />
               </motion.div>
 
+              {/* ── Donation form ── */}
+              <motion.div variants={fadeUp}>
+                <DonationForm rm={rm} />
+              </motion.div>
+
               {/* ── Donor wall link ── */}
               <motion.div variants={fadeUp}>
                 <Link
                   to="/donate/donors"
                   className={cn(
                     'flex items-center gap-3 p-4 rounded-[20px]',
-                    'bg-white',
+                    'bg-white/90 backdrop-blur-sm',
                     'shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)]',
-                    'transition-transform hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.14)] hover:-translate-y-0.5 active:scale-[0.98] duration-200',
+                    'border border-primary-100/30',
+                    'transition-all hover:shadow-[0_6px_28px_-4px_rgba(93,77,51,0.14)] hover:-translate-y-0.5 active:scale-[0.98] duration-200',
                   )}
                 >
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-bark-500 to-moss-600 flex items-center justify-center shrink-0 shadow-md shadow-bark-400/25">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-moss-600 flex items-center justify-center shrink-0 shadow-md shadow-primary-400/25">
                     <Users size={18} className="text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-heading text-sm font-bold text-secondary-800">
                       View donor wall
                     </p>
-                    <p className="text-xs text-bark-500 mt-0.5">
+                    <p className="text-xs text-primary-400 mt-0.5">
                       See who&apos;s making a difference
                     </p>
                   </div>
+                  <ChevronRight size={18} className="text-primary-300 shrink-0" />
                 </Link>
               </motion.div>
 
-              {/* ── Donation form ── */}
+              {/* ── Tax deductibility note ── */}
               <motion.div variants={fadeUp}>
-                <DonationForm />
+                <div className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-white/60 border border-primary-100/20">
+                  <Shield size={16} className="text-primary-300 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-primary-500 font-medium">Tax-deductible giving</p>
+                    <p className="text-[11px] text-primary-300 mt-0.5 leading-relaxed">
+                      Co-Exist Australia is DGR-registered. Donations over $2 are tax-deductible. You&apos;ll receive a receipt via email.
+                    </p>
+                  </div>
+                </div>
               </motion.div>
 
               <div className="h-20" />

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
+import { IMPACT_SELECT_COLUMNS, sumMetric, isBuiltinMetric } from '@/lib/impact-metrics'
+import type { ImpactMetricDef } from '@/lib/impact-metrics'
 import { getDateRangeStart, type DateRange } from '@/hooks/use-admin-dashboard'
 import type { Database } from '@/types/database.types'
 
@@ -24,19 +25,11 @@ export interface EventImpactRow {
   collectiveName: string
   collectiveId: string
   activityType: ActivityType
-  treesPlanted: number | null
-  rubbishKg: number | null
-  invasiveWeedsPulled: number | null
-  hoursTotal: number | null
-  coastlineCleanedM: number | null
-  nativePlants: number | null
-  wildlifeSightings: number | null
-  areaRestoredSqm: number | null
-  customMetrics: Record<string, number>
+  /** All metric values keyed by metric def key (builtin + custom) */
+  metrics: Record<string, number | null>
   notes: string | null
   isLegacy: boolean
   attendance: number | null
-  /** Estimated vol hours: attendance × event duration (hours). Null if no attendance. */
   estimatedVolHours: number | null
 }
 
@@ -45,30 +38,26 @@ export interface CollectiveBreakdown {
   name: string
   eventCount: number
   attendees: number
-  trees: number
-  rubbish: number
-  weeds: number
-  hours: number
-  coastline: number
+  /** Aggregated metric totals keyed by metric def key */
+  metrics: Record<string, number>
+  estimatedHours: number
 }
 
 export interface YearSummary {
   year: number
   events: number
-  trees: number
-  rubbish: number
-  weeds: number
   attendees: number
-  hours: number
+  estimatedHours: number
+  /** Aggregated metric totals keyed by metric def key */
+  metrics: Record<string, number>
 }
 
 export interface ImpactSummary {
   totalEvents: number
-  totalTrees: number
-  totalRubbish: number
-  totalHours: number
-  totalWeeds: number
   totalAttendees: number
+  totalEstimatedHours: number
+  /** Aggregated metric totals keyed by metric def key */
+  metrics: Record<string, number>
 }
 
 export interface DataQuality {
@@ -88,11 +77,22 @@ const SEED_ADMIN = 'a0000000-0000-0000-0000-000000000001'
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-/** Parse "Legacy import: N attendees" from notes */
 function parseAttendance(notes: string | null): number | null {
   if (!notes) return null
   const m = notes.match(/Legacy import:\s*(\d+)\s*attendees/)
   return m ? parseInt(m[1]) : null
+}
+
+/** Extract a single metric value from a raw impact row */
+function getMetricValue(row: Record<string, unknown>, key: string): number | null {
+  if (isBuiltinMetric(key)) {
+    const v = row[key]
+    return v != null ? Number(v) || 0 : null
+  }
+  // Custom metric — inside custom_metrics jsonb
+  const cm = row.custom_metrics as Record<string, unknown> | null
+  const v = cm?.[key]
+  return v != null ? Number(v) || 0 : null
 }
 
 /* ------------------------------------------------------------------ */
@@ -112,9 +112,14 @@ type RawRow = Record<string, unknown> & {
   }
 }
 
-export function useImpactObservations(filters: ObservationFilters) {
+/**
+ * Fetches event_impact rows and aggregates them using the provided metric defs.
+ * Pass activeDefs from useImpactMetricDefs() so the hook aggregates both
+ * builtin and custom metrics dynamically.
+ */
+export function useImpactObservations(filters: ObservationFilters, metricDefs: ImpactMetricDef[]) {
   return useQuery({
-    queryKey: ['admin-impact-observations', filters],
+    queryKey: ['admin-impact-observations', filters, metricDefs.map((d) => d.key)],
     queryFn: async () => {
       const rangeStart = getDateRangeStart(filters.dateRange)
 
@@ -134,21 +139,26 @@ export function useImpactObservations(filters: ObservationFilters) {
 
       const rawRows = (data ?? []) as unknown as RawRow[]
 
-      // Client-side search filter (title search)
       const filtered = filters.search
         ? rawRows.filter((r) =>
             r.events.title.toLowerCase().includes(filters.search!.toLowerCase()),
           )
         : rawRows
 
+      const metricKeys = metricDefs.map((d) => d.key)
+
       // Transform rows
       const rows: EventImpactRow[] = filtered.map((r) => {
         const attendance = parseAttendance(r.notes as string | null)
-        // Estimate event duration from date_start/date_end, default 3h
         const start = new Date(r.events.date_start).getTime()
         const end = r.events.date_end ? new Date(r.events.date_end).getTime() : 0
         const durationHrs = end > start ? (end - start) / 3_600_000 : 3
         const estimatedVolHours = attendance != null ? Math.round(attendance * durationHrs) : null
+
+        const metrics: Record<string, number | null> = {}
+        for (const key of metricKeys) {
+          metrics[key] = getMetricValue(r, key)
+        }
 
         return {
           eventId: r.events.id,
@@ -157,15 +167,7 @@ export function useImpactObservations(filters: ObservationFilters) {
           collectiveName: r.events.collectives?.name ?? 'Unknown',
           collectiveId: r.events.collective_id,
           activityType: r.events.activity_type,
-          treesPlanted: r.trees_planted as number | null,
-          rubbishKg: r.rubbish_kg as number | null,
-          invasiveWeedsPulled: r.invasive_weeds_pulled as number | null,
-          hoursTotal: r.hours_total as number | null,
-          coastlineCleanedM: r.coastline_cleaned_m as number | null,
-          nativePlants: r.native_plants as number | null,
-          wildlifeSightings: r.wildlife_sightings as number | null,
-          areaRestoredSqm: r.area_restored_sqm as number | null,
-          customMetrics: (r.custom_metrics as Record<string, number>) ?? {},
+          metrics,
           notes: r.notes as string | null,
           isLegacy:
             r.events.created_by === SEED_ADMIN ||
@@ -175,44 +177,45 @@ export function useImpactObservations(filters: ObservationFilters) {
         }
       })
 
-      // Summary stats
-      const totalLoggedHours = Math.round(sumMetric(filtered, 'hours_total'))
-      const totalEstimatedHours = rows.reduce((s, r) => s + (r.estimatedVolHours ?? 0), 0)
+      // Summary — aggregate all active metrics
+      const summaryMetrics: Record<string, number> = {}
+      for (const key of metricKeys) {
+        summaryMetrics[key] = sumMetric(filtered, key)
+      }
+
       const totalAttendees = rows.reduce((s, r) => s + (r.attendance ?? 0), 0)
+      const totalEstimatedHours = rows.reduce((s, r) => s + (r.estimatedVolHours ?? 0), 0)
 
       const summary: ImpactSummary = {
         totalEvents: rows.length,
-        totalTrees: sumMetric(filtered, 'trees_planted'),
-        totalRubbish: Math.round(sumMetric(filtered, 'rubbish_kg') * 10) / 10,
-        totalHours: totalLoggedHours || totalEstimatedHours,
-        totalWeeds: sumMetric(filtered, 'invasive_weeds_pulled'),
         totalAttendees,
+        totalEstimatedHours,
+        metrics: summaryMetrics,
       }
 
       // Collective breakdown
       const byCollective = new Map<string, CollectiveBreakdown>()
       for (const r of rows) {
-        const estHours = r.estimatedVolHours ?? 0
         const existing = byCollective.get(r.collectiveId)
         if (existing) {
           existing.eventCount++
           existing.attendees += r.attendance ?? 0
-          existing.trees += r.treesPlanted ?? 0
-          existing.rubbish += r.rubbishKg ?? 0
-          existing.weeds += r.invasiveWeedsPulled ?? 0
-          existing.hours += r.hoursTotal ?? estHours
-          existing.coastline += r.coastlineCleanedM ?? 0
+          existing.estimatedHours += r.estimatedVolHours ?? 0
+          for (const key of metricKeys) {
+            existing.metrics[key] = (existing.metrics[key] ?? 0) + (r.metrics[key] ?? 0)
+          }
         } else {
+          const metrics: Record<string, number> = {}
+          for (const key of metricKeys) {
+            metrics[key] = r.metrics[key] ?? 0
+          }
           byCollective.set(r.collectiveId, {
             collectiveId: r.collectiveId,
             name: r.collectiveName,
             eventCount: 1,
             attendees: r.attendance ?? 0,
-            trees: r.treesPlanted ?? 0,
-            rubbish: r.rubbishKg ?? 0,
-            weeds: r.invasiveWeedsPulled ?? 0,
-            hours: r.hoursTotal ?? estHours,
-            coastline: r.coastlineCleanedM ?? 0,
+            metrics,
+            estimatedHours: r.estimatedVolHours ?? 0,
           })
         }
       }
@@ -230,9 +233,9 @@ export function useImpactObservations(filters: ObservationFilters) {
 /*  Year-over-year summary                                             */
 /* ------------------------------------------------------------------ */
 
-export function useYearOverYear() {
+export function useYearOverYear(metricDefs: ImpactMetricDef[]) {
   return useQuery({
-    queryKey: ['admin-impact-yoy'],
+    queryKey: ['admin-impact-yoy', metricDefs.map((d) => d.key)],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('event_impact')
@@ -240,10 +243,13 @@ export function useYearOverYear() {
 
       if (error) throw error
 
-      const rows = (data ?? []) as unknown as (Record<string, unknown> & {
+      const metricKeys = metricDefs.map((d) => d.key)
+
+      type Row = Record<string, unknown> & {
         events: { date_start: string; date_end: string | null } | null
-      })[]
-      const byYear = new Map<number, typeof rows>()
+      }
+      const rows = (data ?? []) as unknown as Row[]
+      const byYear = new Map<number, Row[]>()
 
       for (const r of rows) {
         const year = new Date(r.logged_at as string).getFullYear()
@@ -265,15 +271,12 @@ export function useYearOverYear() {
             hours += Math.round(att * dur)
           }
 
-          return {
-            year,
-            events: yearRows.length,
-            trees: sumMetric(yearRows as Record<string, unknown>[], 'trees_planted'),
-            rubbish: Math.round(sumMetric(yearRows as Record<string, unknown>[], 'rubbish_kg') * 10) / 10,
-            weeds: sumMetric(yearRows as Record<string, unknown>[], 'invasive_weeds_pulled'),
-            attendees,
-            hours,
+          const metrics: Record<string, number> = {}
+          for (const key of metricKeys) {
+            metrics[key] = sumMetric(yearRows as Record<string, unknown>[], key)
           }
+
+          return { year, events: yearRows.length, attendees, estimatedHours: hours, metrics }
         })
         .sort((a, b) => a.year - b.year)
 
@@ -291,7 +294,6 @@ export function useImpactDataQuality() {
   return useQuery({
     queryKey: ['admin-impact-data-quality'],
     queryFn: async () => {
-      // Get all completed events
       const { data: events, error: evError } = await supabase
         .from('events')
         .select('id')
@@ -299,7 +301,6 @@ export function useImpactDataQuality() {
 
       if (evError) throw evError
 
-      // Get all event_impact rows
       const { data: impacts, error: impError } = await supabase
         .from('event_impact')
         .select(
@@ -313,7 +314,6 @@ export function useImpactDataQuality() {
         (e) => !impactEventIds.has(e.id),
       ).length
 
-      // Zero-metric events: all numeric columns are null or 0
       const zeroMetricEvents = (impacts ?? []).filter((i) => {
         const nums = [
           i.trees_planted, i.rubbish_kg, i.invasive_weeds_pulled,
@@ -323,7 +323,6 @@ export function useImpactDataQuality() {
         return nums.every((n) => !n || n === 0)
       }).length
 
-      // Legacy vs app
       const legacyCount = (impacts ?? []).filter(
         (i) =>
           i.logged_by === SEED_ADMIN ||
@@ -331,12 +330,7 @@ export function useImpactDataQuality() {
       ).length
       const appCount = (impacts ?? []).length - legacyCount
 
-      return {
-        eventsWithoutImpact,
-        zeroMetricEvents,
-        legacyCount,
-        appCount,
-      } satisfies DataQuality
+      return { eventsWithoutImpact, zeroMetricEvents, legacyCount, appCount } satisfies DataQuality
     },
     staleTime: 5 * 60 * 1000,
   })
