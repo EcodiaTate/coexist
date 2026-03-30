@@ -123,7 +123,7 @@ function _roleLabel(role: string | undefined) {
   switch (role) {
     case 'super_admin': return 'Super Admin'
     case 'national_admin': return 'Admin'
-    case 'national_staff': return 'Staff'
+    case 'national_leader': return 'Staff'
     default: return ''
   }
 }

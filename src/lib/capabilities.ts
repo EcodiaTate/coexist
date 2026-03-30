@@ -61,7 +61,7 @@ export const CATEGORY_LABELS: Record<CapabilityDef['category'], string> = {
 /** Which capabilities each global role gets by default */
 export const ROLE_DEFAULT_CAPS: Record<UserRole, readonly string[]> = {
   participant: [],
-  national_staff: [
+  national_leader: [
     'manage_content',
     'manage_events',
     'view_reports',

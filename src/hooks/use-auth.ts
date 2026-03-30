@@ -39,7 +39,7 @@ type CollectiveRole = Database['public']['Enums']['collective_role']
 
 const GLOBAL_ROLE_RANK: Record<UserRole, number> = {
   participant: 0,
-  national_staff: 1,
+  national_leader: 1,
   national_admin: 2,
   super_admin: 3,
 }
@@ -496,7 +496,7 @@ export function useAuthProvider(): AuthContextValue {
 
   /* ---- global role checks ---- */
   const role = profile?.role ?? 'participant'
-  const isStaff = GLOBAL_ROLE_RANK[role] >= GLOBAL_ROLE_RANK.national_staff
+  const isStaff = GLOBAL_ROLE_RANK[role] >= GLOBAL_ROLE_RANK.national_leader
   const isAdmin = GLOBAL_ROLE_RANK[role] >= GLOBAL_ROLE_RANK.national_admin
   const isSuperAdmin = role === 'super_admin'
 

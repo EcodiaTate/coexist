@@ -411,7 +411,7 @@ function App() {
           </Route>
 
           {/* ---- Admin routes (staff+) ---- */}
-          <Route path="/admin" element={<RequireRole minRole="national_staff"><AdminLayoutRoute /></RequireRole>}>
+          <Route path="/admin" element={<RequireRole minRole="national_leader"><AdminLayoutRoute /></RequireRole>}>
             <Route index element={<AdminDashboardPage />} />
             <Route path="collectives" element={<RequireCapability cap="manage_collectives"><AdminCollectivesPage /></RequireCapability>} />
             <Route path="collectives/:collectiveId" element={<RequireCapability cap="manage_collectives"><AdminCollectiveDetailPage /></RequireCapability>} />

@@ -8,7 +8,7 @@ type CollectiveRole = Database['public']['Enums']['collective_role']
 
 const GLOBAL_RANK: Record<UserRole, number> = {
   participant: 0,
-  national_staff: 1,
+  national_leader: 1,
   national_admin: 2,
   super_admin: 3,
 }
@@ -49,9 +49,9 @@ export function RoleGate({ minRole, collectiveId, capability, fallback = null, c
     return <>{children}</>
   }
 
-  // Collective-level check  national_staff+ always passes
+  // Collective-level check  national_leader+ always passes
   if (collectiveId && isCollectiveRole(minRole)) {
-    const isStaffPlus = GLOBAL_RANK[globalRole] >= GLOBAL_RANK.national_staff
+    const isStaffPlus = GLOBAL_RANK[globalRole] >= GLOBAL_RANK.national_leader
     return (isStaffPlus || hasMinRole(minRole)) ? <>{children}</> : <>{fallback}</>
   }
 

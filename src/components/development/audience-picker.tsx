@@ -18,14 +18,14 @@ const ROLE_ICONS: Record<string, React.ReactNode> = {
   leader: <Crown size={14} />,
   co_leader: <Shield size={14} />,
   assist_leader: <UserPlus size={14} />,
-  national_staff: <Briefcase size={14} />,
+  national_leader: <Briefcase size={14} />,
 }
 
 const ROLE_COLORS: Record<string, string> = {
   leader: 'bg-amber-100 text-amber-700 border-amber-200',
   co_leader: 'bg-sky-100 text-sky-700 border-sky-200',
   assist_leader: 'bg-secondary-100 text-secondary-700 border-secondary-200',
-  national_staff: 'bg-bark-100 text-bark-700 border-bark-200',
+  national_leader: 'bg-bark-100 text-bark-700 border-bark-200',
 }
 
 /* ------------------------------------------------------------------ */

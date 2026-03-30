@@ -10,13 +10,13 @@ export type DevModuleStatus = 'draft' | 'published' | 'archived'
 export type DevContentType = 'text' | 'video' | 'file' | 'slideshow' | 'quiz'
 export type DevQuestionType = 'multiple_choice' | 'multi_select' | 'true_false' | 'short_answer'
 
-export type DevTargetRole = 'leader' | 'co_leader' | 'assist_leader' | 'national_staff'
+export type DevTargetRole = 'leader' | 'co_leader' | 'assist_leader' | 'national_leader'
 
 export const TARGET_ROLE_OPTIONS: { value: DevTargetRole; label: string }[] = [
   { value: 'leader', label: 'Leaders' },
   { value: 'co_leader', label: 'Co-Leaders' },
   { value: 'assist_leader', label: 'Assist Leaders' },
-  { value: 'national_staff', label: 'National Staff' },
+  { value: 'national_leader', label: 'National Leader' },
 ]
 
 export interface DevModule {

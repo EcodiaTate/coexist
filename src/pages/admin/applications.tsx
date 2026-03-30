@@ -184,7 +184,7 @@ function useStaffUsers() {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, display_name')
-        .in('role', ['national_staff', 'super_admin'])
+        .in('role', ['national_leader', 'super_admin'])
         .order('display_name')
       if (error) throw error
       return data ?? []

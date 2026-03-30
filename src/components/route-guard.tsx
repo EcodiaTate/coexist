@@ -9,7 +9,7 @@ type CollectiveRole = Database['public']['Enums']['collective_role']
 
 const _GLOBAL_RANK: Record<UserRole, number> = {
   participant: 0,
-  national_staff: 1,
+  national_leader: 1,
   national_admin: 2,
   super_admin: 3,
 }
@@ -117,7 +117,7 @@ interface RequireLeaderAccessProps {
 
 /**
  * Grants access if the user holds assist_leader / co_leader / leader
- * in any collective, OR has a global role of national_staff or above.
+ * in any collective, OR has a global role of national_leader or above.
  */
 export function RequireLeaderAccess({ children }: RequireLeaderAccessProps) {
   const { user, role, collectiveRoles, isLoading } = useAuth()
@@ -132,7 +132,7 @@ export function RequireLeaderAccess({ children }: RequireLeaderAccessProps) {
   }
 
   // National staff and above always have access
-  const isStaffPlus = _GLOBAL_RANK[role] >= _GLOBAL_RANK.national_staff
+  const isStaffPlus = _GLOBAL_RANK[role] >= _GLOBAL_RANK.national_leader
 
   // Check if user holds a qualifying collective role
   const hasLeaderRole = collectiveRoles.some((m) => _LEADER_ROLES.includes(m.role as CollectiveRole))
@@ -205,7 +205,7 @@ export function RequireCollectiveRole({
   }
 
   // National staff+ always have access to collective-scoped routes
-  const isStaffPlus = _GLOBAL_RANK[role] >= _GLOBAL_RANK.national_staff
+  const isStaffPlus = _GLOBAL_RANK[role] >= _GLOBAL_RANK.national_leader
 
   if (!isStaffPlus && !hasMinRole(minRole)) {
     return <Navigate to="/" replace />
