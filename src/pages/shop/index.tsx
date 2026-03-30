@@ -447,7 +447,7 @@ function ImpactStrip() {
     if (!impact) return null
     return [
       { icon: TreePine, value: formatStat(impact.treesPlanted), label: 'Trees planted' },
-      { icon: Clock, value: formatStat(impact.volunteerHours), label: 'Volunteer hours' },
+      { icon: Clock, value: formatStat(impact.volunteerHours), label: 'Est. volunteer hours' },
       { icon: Trash2, value: `${impact.rubbishCollectedTonnes}t`, label: 'Rubbish collected' },
     ]
   }, [impact])

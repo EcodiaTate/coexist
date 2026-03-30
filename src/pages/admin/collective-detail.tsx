@@ -310,7 +310,7 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <HeroStat value={stats.member_count} label="Members" icon={<Users size={20} />} variant="primary" reducedMotion={rm} delay={0.05} />
           <HeroStat value={stats.event_count} label="Events" icon={<CalendarDays size={20} />} variant="accent" reducedMotion={rm} delay={0.1} />
-          <HeroStat value={Math.round(stats.hours_total)} label="Volunteer Hours" icon={<Clock size={20} />} variant="dark" reducedMotion={rm} delay={0.15} />
+          <HeroStat value={Math.round(stats.hours_total)} label="Est. Vol. Hours" icon={<Clock size={20} />} variant="dark" reducedMotion={rm} delay={0.15} />
           <HeroStat value={stats.trees_planted} label="Trees Planted" icon={<TreePine size={20} />} variant="default" reducedMotion={rm} delay={0.2} />
         </div>
       ) : null}

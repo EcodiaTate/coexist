@@ -606,10 +606,10 @@ export default function LogImpactPage() {
           </motion.div>
         )}
 
-        {/* Volunteer Hours - duration × checked-in attendees */}
+        {/* Est. Volunteer Hours - duration × checked-in attendees */}
         <motion.div variants={fadeUp} className="space-y-3">
           <h3 className="text-sm font-semibold text-primary-800">
-            Volunteer Hours
+            Est. Volunteer Hours
           </h3>
 
           <div className="rounded-xl bg-white border border-primary-100/40 p-4 space-y-3">
