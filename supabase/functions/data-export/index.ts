@@ -34,7 +34,8 @@ serve(async (req: Request) => {
     )
 
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user: caller }, error: authError } = await supabase.auth.getUser(token)
+    const authClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!)
+    const { data: { user: caller }, error: authError } = await authClient.auth.getUser(token)
     if (authError || !caller) {
       return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
         status: 401,
