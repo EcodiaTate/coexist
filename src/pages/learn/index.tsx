@@ -74,7 +74,7 @@ function ContentCard({
         >
           {/* Thumbnail or icon */}
           {item.thumbnail_url ? (
-            <img src={item.thumbnail_url} alt="" className="w-14 h-14 rounded-xl object-cover shrink-0" />
+            <img src={item.thumbnail_url} alt="" loading="lazy" decoding="async" className="w-14 h-14 rounded-xl object-cover shrink-0" />
           ) : (
             <div className={cn(
               'flex items-center justify-center w-14 h-14 rounded-xl shrink-0',

@@ -95,6 +95,8 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
                 alt={`${alt} image ${i + 1}`}
                 className="w-full aspect-[4/5] sm:aspect-square object-cover"
                 loading={i === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                fetchPriority={i === 0 ? 'high' : undefined}
               />
               <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
             </div>
@@ -339,6 +341,8 @@ function AddedToCartModal({
                     <img
                       src={p.images[0] ?? placeholderMerch}
                       alt={p.name}
+                      loading="lazy"
+                      decoding="async"
                       className="w-full aspect-square object-cover"
                     />
                     <div className="p-2.5">
