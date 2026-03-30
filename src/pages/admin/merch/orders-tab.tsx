@@ -697,29 +697,11 @@ export default function OrdersTab() {
               </div>
             </div>
 
-            {/* Totals */}
-            <div className="space-y-1 px-1">
-              {selectedOrder.subtotal_cents !== undefined && (
-                <div className="flex justify-between text-sm text-primary-400">
-                  <span>Subtotal</span>
-                  <span className="tabular-nums">{formatPrice(selectedOrder.subtotal_cents)}</span>
-                </div>
-              )}
-              {selectedOrder.shipping_cents !== undefined && selectedOrder.shipping_cents > 0 && (
-                <div className="flex justify-between text-sm text-primary-400">
-                  <span>Shipping</span>
-                  <span className="tabular-nums">{formatPrice(selectedOrder.shipping_cents)}</span>
-                </div>
-              )}
-              {selectedOrder.discount_cents !== undefined && selectedOrder.discount_cents > 0 && (
-                <div className="flex justify-between text-sm text-success-600">
-                  <span>Discount</span>
-                  <span className="tabular-nums">-{formatPrice(selectedOrder.discount_cents)}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-sm font-bold text-primary-800 pt-1">
+            {/* Total */}
+            <div className="px-1">
+              <div className="flex justify-between text-sm font-bold text-primary-800">
                 <span>Total</span>
-                <span className="tabular-nums">{formatPrice(selectedOrder.total_cents)}</span>
+                <span className="tabular-nums">{formatPrice(selectedOrder.total_cents ?? Math.round((selectedOrder.total ?? 0) * 100))}</span>
               </div>
             </div>
 

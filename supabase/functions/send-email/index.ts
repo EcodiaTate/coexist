@@ -309,13 +309,15 @@ Deno.serve(async (req: Request) => {
 
     // Allow service-role callers (internal edge function calls) through directly
     if (token !== serviceRoleKey) {
-      // Validate as user token
-      const supabaseAuth = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_ANON_KEY')!,
-      )
-      const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
-      if (authError || !user) {
+      // Validate as user token via GoTrue directly
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+      const gotruRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'apikey': serviceRoleKey,
+        },
+      })
+      if (!gotruRes.ok) {
         return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), {
           status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })

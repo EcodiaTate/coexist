@@ -196,13 +196,12 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 
     if (token !== serviceRoleKey) {
-      // Validate as user token
-      const supabaseAuth = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_ANON_KEY')!,
-      )
-      const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
-      if (authError || !user) {
+      // Validate as user token via GoTrue directly
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+      const gotruRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+        headers: { 'Authorization': `Bearer ${token}`, 'apikey': serviceRoleKey },
+      })
+      if (!gotruRes.ok) {
         return new Response(JSON.stringify({ error: 'Invalid token', sent: 0 }), {
           status: 401, headers: { 'Content-Type': 'application/json' },
         })

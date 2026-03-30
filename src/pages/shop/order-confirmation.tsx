@@ -1,20 +1,447 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
-import { CheckCircle, Package, ArrowRight } from 'lucide-react'
+import { motion, useReducedMotion, type Variants } from 'framer-motion'
+import {
+  CheckCircle, Package, ArrowRight, ShoppingBag,
+  MapPin, Calendar, Truck, Leaf, Sparkles,
+} from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
+import { Skeleton } from '@/components/skeleton'
+import { WhatsNext } from '@/components/whats-next'
 import { useCart } from '@/hooks/use-cart'
+import { useOrder } from '@/hooks/use-orders'
+import { useAppImage } from '@/hooks/use-app-images'
+import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { formatPrice, type OrderStatus } from '@/types/merch'
 import { cn } from '@/lib/cn'
+
+/* ------------------------------------------------------------------ */
+/*  Animation variants                                                 */
+/* ------------------------------------------------------------------ */
+
+const stagger: Variants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.2 } },
+}
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] },
+  },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Status badge config                                                */
+/* ------------------------------------------------------------------ */
+
+const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
+  pending: { label: 'Pending', color: 'bg-warning-100 text-warning-800' },
+  processing: { label: 'Processing', color: 'bg-info-100 text-info-800' },
+  shipped: { label: 'Shipped', color: 'bg-plum-100 text-plum-800' },
+  delivered: { label: 'Delivered', color: 'bg-success-100 text-success-800' },
+  cancelled: { label: 'Cancelled', color: 'bg-white text-primary-400' },
+  refunded: { label: 'Refunded', color: 'bg-error-100 text-error-700' },
+}
+
+/* ------------------------------------------------------------------ */
+/*  Confetti particles                                                 */
+/* ------------------------------------------------------------------ */
+
+interface Particle {
+  id: number
+  x: number
+  y: number
+  size: number
+  color: string
+  delay: number
+  duration: number
+  rotation: number
+  drift: number
+}
+
+const CONFETTI_COLORS = [
+  'bg-primary-400',     // sage green
+  'bg-sprout-400',      // bright green
+  'bg-moss-400',        // deep green
+  'bg-[#c4a86b]',       // warm gold
+  'bg-[#a67c52]',       // warm brown
+  'bg-primary-300',     // light sage
+  'bg-sprout-300',      // light sprout
+  'bg-[#d4b98a]',       // amber/tan
+]
+
+function useConfettiParticles(count: number): Particle[] {
+  return useMemo(() =>
+    Array.from({ length: count }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: -10 - Math.random() * 20,
+      size: 4 + Math.random() * 6,
+      color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+      delay: Math.random() * 1.2,
+      duration: 2.2 + Math.random() * 1.5,
+      rotation: Math.random() * 360,
+      drift: (Math.random() - 0.5) * 40,
+    })),
+  [count])
+}
+
+function ConfettiLayer({ rm }: { rm: boolean }) {
+  const particles = useConfettiParticles(rm ? 0 : 28)
+
+  if (rm) return null
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className={cn('absolute rounded-sm', p.color)}
+          style={{
+            width: p.size,
+            height: p.size * 0.6,
+            left: `${p.x}%`,
+            rotate: p.rotation,
+          }}
+          initial={{ y: p.y, opacity: 0 }}
+          animate={{
+            y: [p.y, 320 + Math.random() * 120],
+            x: [0, p.drift],
+            opacity: [0, 1, 1, 0],
+            rotate: [p.rotation, p.rotation + 180 + Math.random() * 180],
+          }}
+          transition={{
+            duration: p.duration,
+            delay: p.delay,
+            ease: 'easeOut',
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Breathing decorative elements                                      */
+/* ------------------------------------------------------------------ */
+
+function DepthElements({ rm }: { rm: boolean }) {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* Large ring - upper right */}
+      <motion.div
+        className="absolute -top-20 -right-16 w-64 h-64 rounded-full border-[3px] border-primary-300/15"
+        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute -top-6 -right-2 w-40 h-40 rounded-full border-2 border-sprout-200/20"
+        animate={rm ? undefined : { scale: [1, 1.04, 1], opacity: [0.3, 0.55, 0.3] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      />
+
+      {/* Left ring */}
+      <motion.div
+        className="absolute top-[40%] -left-14 w-48 h-48 rounded-full border-[2.5px] border-primary-200/15"
+        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.35, 0.65, 0.35] }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
+
+      {/* Floating particles */}
+      <motion.div
+        className="absolute top-[20%] right-[14%] w-3.5 h-3.5 rounded-full bg-sprout-400/15"
+        animate={rm ? undefined : { y: [-6, 6, -6], x: [0, 4, 0] }}
+        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.div
+        className="absolute top-[55%] left-[8%] w-3 h-3 rounded-full bg-primary-400/12"
+        animate={rm ? undefined : { y: [4, -5, 4] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+      />
+      <motion.div
+        className="absolute top-[30%] left-[70%] w-2.5 h-2.5 rounded-full bg-[#c4a86b]/15"
+        animate={rm ? undefined : { y: [-4, 5, -4], x: [2, -2, 2] }}
+        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+      />
+
+      {/* Rich blurred orbs */}
+      <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[500px] h-[300px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-200/15 via-primary-100/8 to-transparent" />
+      <div className="absolute -top-8 -left-12 w-[250px] h-[240px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-200/12 to-transparent" />
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Hero celebration section                                           */
+/* ------------------------------------------------------------------ */
+
+function CelebrationHero({ rm }: { rm: boolean }) {
+  return (
+    <div className="relative pt-8 pb-6 overflow-hidden">
+      <ConfettiLayer rm={rm} />
+
+      <div className="relative z-20 flex flex-col items-center text-center px-6">
+        {/* Animated check icon with pulsing rings */}
+        <motion.div
+          className="relative mb-5"
+          initial={rm ? false : { scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.15 }}
+        >
+          {/* Outer breathing ring */}
+          <motion.div
+            className="absolute inset-0 -m-4 rounded-full border-2 border-sprout-300/30"
+            animate={rm ? undefined : { scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          {/* Middle breathing ring */}
+          <motion.div
+            className="absolute inset-0 -m-2 rounded-full border border-primary-300/20"
+            animate={rm ? undefined : { scale: [1, 1.1, 1], opacity: [0.2, 0.5, 0.2] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+          />
+
+          <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 via-sprout-500 to-moss-500 flex items-center justify-center shadow-xl shadow-primary-500/25">
+            <CheckCircle size={36} className="text-white" strokeWidth={2.5} />
+          </div>
+        </motion.div>
+
+        {/* Heading */}
+        <motion.h1
+          initial={rm ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.4 }}
+          className="font-heading text-2xl sm:text-3xl font-extrabold text-secondary-900"
+        >
+          Order confirmed!
+        </motion.h1>
+
+        <motion.p
+          initial={rm ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45, duration: 0.35 }}
+          className="mt-2 text-sm text-primary-500 max-w-xs leading-relaxed"
+        >
+          You&apos;ll receive a confirmation email shortly with your order details.
+        </motion.p>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Order summary card                                                 */
+/* ------------------------------------------------------------------ */
+
+function OrderSummaryCard({
+  orderId,
+  rm,
+}: {
+  orderId: string
+  rm: boolean
+}) {
+  const { data: order, isLoading, isError } = useOrder(orderId)
+  const showLoading = useDelayedLoading(isLoading)
+  const placeholderMerch = useAppImage('placeholder_merch')
+
+  if (showLoading) {
+    return (
+      <div className="rounded-[24px] bg-white shadow-[0_8px_32px_-8px_rgba(93,77,51,0.12),0_2px_8px_rgba(93,77,51,0.04)] overflow-hidden">
+        <div className="h-1.5 bg-gradient-to-r from-primary-400 via-sprout-400 to-moss-400" />
+        <div className="p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <Skeleton variant="text" className="w-32" />
+            <Skeleton variant="text" className="w-20" />
+          </div>
+          {[0, 1].map((i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="w-12 h-12 rounded-xl" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton variant="text" className="w-3/4" />
+                <Skeleton variant="text" className="w-1/3" />
+              </div>
+            </div>
+          ))}
+          <div className="h-px bg-primary-100/40" />
+          <div className="flex justify-between">
+            <Skeleton variant="text" className="w-16" />
+            <Skeleton variant="text" className="w-20" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (isError || !order) {
+    return (
+      <div className="rounded-[24px] bg-white shadow-[0_8px_32px_-8px_rgba(93,77,51,0.12),0_2px_8px_rgba(93,77,51,0.04)] overflow-hidden">
+        <div className="h-1.5 bg-gradient-to-r from-primary-400 via-sprout-400 to-moss-400" />
+        <div className="p-5 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-50 border border-primary-100/40">
+            <Package size={16} className="text-primary-400" />
+            <span className="text-sm font-mono text-primary-600">
+              #{orderId.slice(0, 8)}
+            </span>
+          </div>
+          <p className="mt-3 text-sm text-primary-400">
+            Order details will appear here once ready.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const config = STATUS_CONFIG[order.status]
+  const itemCount = order.items.reduce((sum, i) => sum + i.quantity, 0)
+
+  return (
+    <motion.div
+      initial={rm ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.5, duration: 0.4 }}
+      className="rounded-[24px] bg-white shadow-[0_8px_32px_-8px_rgba(93,77,51,0.12),0_2px_8px_rgba(93,77,51,0.04)] overflow-hidden"
+    >
+      {/* Top accent gradient */}
+      <div className="h-1.5 bg-gradient-to-r from-primary-400 via-sprout-400 to-moss-400" />
+
+      <div className="p-5">
+        {/* Order ID + Status */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50/80 border border-primary-100/40">
+            <Package size={13} className="text-primary-400" />
+            <span className="text-xs font-mono font-semibold text-primary-600">
+              #{orderId.slice(0, 8)}
+            </span>
+          </div>
+          <span
+            className={cn(
+              'px-2.5 py-1 rounded-full text-xs font-semibold',
+              config.color,
+            )}
+          >
+            {config.label}
+          </span>
+        </div>
+
+        {/* Items list */}
+        <div className="space-y-3 mb-4">
+          {order.items.map((item, idx) => (
+            <div key={idx} className="flex items-center gap-3">
+              <img
+                src={item.image_url ?? placeholderMerch}
+                alt={item.product_name}
+                className="w-12 h-12 rounded-xl object-cover border border-primary-100/30 shadow-sm"
+              />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-secondary-800 truncate">
+                  {item.product_name}
+                </p>
+                <p className="text-xs text-primary-400 mt-0.5">
+                  {item.variant_label && (
+                    <span>{item.variant_label} &middot; </span>
+                  )}
+                  Qty {item.quantity}
+                </p>
+              </div>
+              <span className="text-sm font-heading font-bold text-secondary-800 tabular-nums shrink-0">
+                {formatPrice(item.price_cents * item.quantity)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Divider */}
+        <div className="h-px bg-gradient-to-r from-transparent via-primary-100 to-transparent mb-3" />
+
+        {/* Shipping + total */}
+        <div className="space-y-2">
+          {(() => {
+            // DB has flat columns shipping_city/shipping_state, but Order type has nested shipping_address
+            const raw = order as Record<string, unknown>
+            const city = (raw.shipping_city as string) || order.shipping_address?.city
+            const state = (raw.shipping_state as string) || order.shipping_address?.state
+            const location = [city, state].filter(Boolean).join(', ')
+            if (!location) return null
+            return (
+              <div className="flex items-center gap-2 text-xs text-primary-400">
+                <MapPin size={13} className="shrink-0" />
+                <span>Shipping to {location}</span>
+              </div>
+            )
+          })()}
+          <div className="flex items-center gap-2 text-xs text-primary-400">
+            <Calendar size={13} className="shrink-0" />
+            <span>
+              Ordered {new Date(order.created_at).toLocaleDateString('en-AU', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </span>
+          </div>
+        </div>
+
+        {/* Total row */}
+        <div className="mt-4 flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-primary-50/80 to-sprout-50/60 border border-primary-100/30">
+          <span className="text-sm font-semibold text-primary-600">
+            Total ({itemCount} item{itemCount !== 1 ? 's' : ''})
+          </span>
+          <span className="font-heading text-lg font-extrabold text-secondary-900 tabular-nums">
+            {formatPrice(order.total_cents ?? 0)}
+          </span>
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Impact message card                                                */
+/* ------------------------------------------------------------------ */
+
+function ImpactCard({ rm }: { rm: boolean }) {
+  return (
+    <motion.div
+      initial={rm ? false : { opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.6, duration: 0.4 }}
+      className={cn(
+        'flex items-start gap-3 p-4 rounded-[20px]',
+        'bg-gradient-to-r from-sprout-50 to-primary-50',
+        'border border-sprout-200/40',
+      )}
+    >
+      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sprout-500 to-primary-600 flex items-center justify-center shrink-0 shadow-md shadow-sprout-400/25">
+        <Leaf size={18} className="text-white" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-secondary-800">
+          Thanks for supporting Co-Exist!
+        </p>
+        <p className="text-xs text-primary-500 mt-1 leading-relaxed">
+          Every purchase funds conservation events and habitat restoration across Australia.
+        </p>
+      </div>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Main page                                                          */
+/* ------------------------------------------------------------------ */
 
 export default function OrderConfirmationPage() {
   const [searchParams] = useSearchParams()
   const shouldReduceMotion = useReducedMotion()
+  const rm = !!shouldReduceMotion
   const clearCart = useCart((s) => s.clear)
   const orderId = searchParams.get('order_id')
 
-  // Only clear cart if we have a valid order_id (indicating a real completed order)
+  // Clear cart on mount when we have a valid order_id
   useEffect(() => {
     if (orderId) {
       clearCart()
@@ -22,76 +449,132 @@ export default function OrderConfirmationPage() {
   }, [orderId, clearCart])
 
   return (
-    <Page header={<Header title="Order Confirmed" back />}>
-      <motion.div
-        initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-        className="flex flex-col items-center justify-center flex-1 py-8 sm:py-12 text-center"
-      >
-        <motion.div
-          initial={shouldReduceMotion ? false : { scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ type: 'spring', stiffness: 300, damping: 15, delay: 0.2 }}
-          className="mb-6"
-        >
-          <div className="flex items-center justify-center w-20 h-20 rounded-full bg-success-100">
-            <CheckCircle size={36} className="text-success-600" />
-          </div>
-        </motion.div>
+    <Page
+      header={<Header title="Order Confirmed" back />}
+      className="!bg-transparent"
+    >
+      <div className="relative min-h-[80dvh]">
+        {/* ── Rich layered background ── */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden -mx-5 -mt-4">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#f2ece0] via-[#eef5e8] via-40% to-[#f0f4ec] to-70%" />
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-sprout-50/15 to-primary-50/20" />
 
-        <motion.h1
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="font-heading text-2xl font-bold text-primary-800"
-        >
-          Order confirmed!
-        </motion.h1>
-
-        <motion.p
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-2 text-sm text-primary-400 max-w-xs"
-        >
-          Thanks for supporting Co-Exist! You'll receive a confirmation email shortly.
-        </motion.p>
-
-        {orderId && (
-          <motion.p
-            initial={shouldReduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className={cn(
-              'mt-4 px-4 py-2 rounded-xl text-sm',
-              'bg-white shadow-sm text-primary-400',
-            )}
+          {/* Topo pattern */}
+          <svg
+            className="absolute inset-0 w-full h-full opacity-[0.03]"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            Order ID: <span className="font-mono font-medium">{orderId.slice(0, 8)}</span>
-          </motion.p>
-        )}
+            <defs>
+              <pattern
+                id="confirm-topo"
+                x="0" y="0"
+                width="200" height="200"
+                patternUnits="userSpaceOnUse"
+              >
+                <path d="M20 100c30-40 70-60 100-40s60 50 80 20" fill="none" stroke="currentColor" strokeWidth="1" />
+                <path d="M10 140c40-30 80-50 120-30s50 40 70 10" fill="none" stroke="currentColor" strokeWidth="1" />
+                <path d="M30 60c25-35 55-45 85-25s45 35 65 5" fill="none" stroke="currentColor" strokeWidth="0.8" />
+                <circle cx="160" cy="30" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" />
+                <circle cx="160" cy="30" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#confirm-topo)" className="text-primary-900" />
+          </svg>
+        </div>
 
-        <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="mt-8 w-full max-w-xs space-y-3"
-        >
-          {orderId && (
-            <Link to={`/shop/orders/${orderId}`} tabIndex={-1}>
-              <Button variant="primary" fullWidth icon={<Package size={16} />}>
-                Track order
-              </Button>
-            </Link>
-          )}
-          <Link to="/shop" tabIndex={-1} className="block mt-3">
-            <Button variant="ghost" fullWidth icon={<ArrowRight size={16} />}>
-              Continue shopping
-            </Button>
-          </Link>
-        </motion.div>
-      </motion.div>
+        <DepthElements rm={rm} />
+
+        {/* ── Content ── */}
+        <div className="relative z-10">
+          <div className="max-w-lg mx-auto">
+            <motion.div
+              variants={rm ? undefined : stagger}
+              initial="hidden"
+              animate="visible"
+              className="space-y-5"
+            >
+              {/* ── Celebration hero ── */}
+              <motion.div variants={fadeUp}>
+                <CelebrationHero rm={rm} />
+              </motion.div>
+
+              {/* ── Order summary ── */}
+              {orderId && (
+                <motion.div variants={fadeUp}>
+                  <OrderSummaryCard orderId={orderId} rm={rm} />
+                </motion.div>
+              )}
+
+              {/* ── Impact message ── */}
+              <motion.div variants={fadeUp}>
+                <ImpactCard rm={rm} />
+              </motion.div>
+
+              {/* ── Action buttons ── */}
+              <motion.div variants={fadeUp} className="space-y-3">
+                {orderId && (
+                  <Link to={`/shop/orders/${orderId}`} tabIndex={-1}>
+                    <Button
+                      variant="primary"
+                      size="lg"
+                      fullWidth
+                      icon={<Truck size={18} />}
+                      className="shadow-lg shadow-primary-600/20 !rounded-2xl"
+                    >
+                      Track your order
+                    </Button>
+                  </Link>
+                )}
+                <Link to="/shop" tabIndex={-1} className="block">
+                  <Button
+                    variant="ghost"
+                    fullWidth
+                    icon={<ShoppingBag size={16} />}
+                    className="!rounded-2xl"
+                  >
+                    Continue shopping
+                  </Button>
+                </Link>
+              </motion.div>
+
+              {/* ── Divider ── */}
+              <div className="h-px bg-gradient-to-r from-transparent via-primary-100 to-transparent" />
+
+              {/* ── What's next ── */}
+              <motion.div variants={fadeUp}>
+                <WhatsNext
+                  suggestions={[
+                    ...(orderId
+                      ? [{
+                          label: 'Track Order',
+                          description: 'View shipping status and updates',
+                          icon: <Truck size={16} />,
+                          to: `/shop/orders/${orderId}`,
+                        }]
+                      : []),
+                    {
+                      label: 'View All Orders',
+                      description: 'See your full order history',
+                      icon: <Package size={16} />,
+                      to: '/shop/orders',
+                    },
+                    {
+                      label: 'Find an Event',
+                      description: 'Join a conservation event near you',
+                      icon: <Sparkles size={16} />,
+                      to: '/events',
+                    },
+                  ]}
+                />
+              </motion.div>
+
+              {/* Bottom spacing */}
+              <div className="h-16" />
+            </motion.div>
+          </div>
+        </div>
+      </div>
     </Page>
   )
 }

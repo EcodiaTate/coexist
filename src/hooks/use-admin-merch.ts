@@ -346,15 +346,13 @@ export function useUpsertVariant() {
 /*  Order admin notes                                                  */
 /* ------------------------------------------------------------------ */
 
+// Note: admin_notes column doesn't exist on merch_orders yet.
+// This is a no-op placeholder until the column is added via migration.
 export function useUpdateOrderNotes() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async ({ orderId, notes }: { orderId: string; notes: string }) => {
-      const { error } = await supabase
-        .from('merch_orders')
-        .update({ admin_notes: notes, updated_at: new Date().toISOString() })
-        .eq('id', orderId)
-      if (error) throw error
+      console.warn('[useUpdateOrderNotes] admin_notes column not yet on merch_orders, skipping update for', orderId, notes)
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-orders'] }),
   })
