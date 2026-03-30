@@ -3,13 +3,13 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 /* ------------------------------------------------------------------ */
-/*  SendGrid bulk campaign sender                                      */
+/*  Resend bulk campaign sender                                        */
 /* ------------------------------------------------------------------ */
 
-const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY') ?? ''
-const FROM_EMAIL = Deno.env.get('SENDGRID_FROM_EMAIL') ?? 'hello@coexistaus.org'
-const FROM_NAME = Deno.env.get('SENDGRID_FROM_NAME') ?? 'Co-Exist'
-const BATCH_SIZE = 50 // SendGrid personalizations per API call (max 1000)
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
+const FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') ?? 'hello@coexistaus.org'
+const FROM_NAME = Deno.env.get('RESEND_FROM_NAME') ?? 'Co-Exist'
+const BATCH_SIZE = 50 // Resend supports up to 100 recipients per batch send
 const DELAY_MS = 200  // Pause between batches to respect rate limits
 
 interface CampaignPayload {
@@ -20,39 +20,43 @@ async function sendBatch(
   recipients: { email: string; name?: string }[],
   subject: string,
   htmlContent: string,
-  textContent: string,
+  _textContent: string,
 ): Promise<{ success: boolean; error?: string }> {
-  const personalizations = recipients.map((r) => ({
-    to: [{ email: r.email, name: r.name }],
-    dynamic_template_data: { name: r.name || 'there', subject },
-  }))
-
-  const resp = await fetch('https://api.sendgrid.com/v3/mail/send', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${SENDGRID_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      personalizations,
-      from: { email: FROM_EMAIL, name: FROM_NAME },
-      subject,
-      content: [
-        { type: 'text/plain', value: textContent || 'View this email in a browser.' },
-        { type: 'text/html', value: htmlContent },
-      ],
-      categories: ['campaign'],
-      headers: {
-        'List-Unsubscribe': `<mailto:unsubscribe@coexistaus.org?subject=Unsubscribe>, <https://app.coexistaus.org/unsubscribe>`,
-        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-      },
+  // Resend batch: send individual emails per recipient for personalisation
+  const results = await Promise.allSettled(
+    recipients.map((r) => {
+      const personalised = htmlContent.replace(/\{\{name\}\}/g, r.name || 'there')
+      return fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: `${FROM_NAME} <${FROM_EMAIL}>`,
+          to: [r.email],
+          subject,
+          html: personalised,
+          tags: [{ name: 'category', value: 'campaign' }],
+          headers: {
+            'List-Unsubscribe': `<mailto:unsubscribe@coexistaus.org?subject=Unsubscribe>, <https://app.coexistaus.org/unsubscribe>`,
+            'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+          },
+        }),
+      })
     }),
-  })
+  )
 
-  if (!resp.ok) {
-    const err = await resp.text()
-    console.error('[send-campaign] SendGrid error:', err)
-    return { success: false, error: err }
+  const failures = results.filter(
+    (r) => r.status === 'rejected' || (r.status === 'fulfilled' && !r.value.ok),
+  )
+
+  if (failures.length === recipients.length) {
+    console.error('[send-campaign] All emails in batch failed')
+    return { success: false, error: `All ${failures.length} emails failed` }
+  }
+  if (failures.length > 0) {
+    console.warn(`[send-campaign] ${failures.length}/${recipients.length} emails failed in batch`)
   }
   return { success: true }
 }

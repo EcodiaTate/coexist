@@ -761,7 +761,7 @@ function PrivacySheet({ open, onClose }: { open: boolean; onClose: () => void })
           <p>To operate the app, facilitate events, track conservation impact, send notifications,
             process donations, and improve our services.</p>
           <h4 className="font-semibold text-primary-800 text-sm">Third Parties</h4>
-          <p>We use Supabase (database), Stripe (payments), SendGrid (email), and Firebase Cloud
+          <p>We use Supabase (database), Stripe (payments), Resend (email), and Firebase Cloud
             Messaging (push notifications). We do not sell your data.</p>
           <h4 className="font-semibold text-primary-800 text-sm">Your Rights</h4>
           <p>You can access, correct, export, or delete your personal data at any time through the

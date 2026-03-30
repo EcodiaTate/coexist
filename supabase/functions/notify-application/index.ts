@@ -25,12 +25,12 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  SendGrid email                                                     */
+/*  Resend email                                                       */
 /* ------------------------------------------------------------------ */
 
-const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY') ?? ''
-const FROM_EMAIL = Deno.env.get('SENDGRID_FROM_EMAIL') ?? 'hello@coexistaus.org'
-const FROM_NAME = Deno.env.get('SENDGRID_FROM_NAME') ?? 'Co-Exist'
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
+const FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') ?? 'hello@coexistaus.org'
+const FROM_NAME = Deno.env.get('RESEND_FROM_NAME') ?? 'Co-Exist'
 
 async function sendEmailNotification(
   toEmail: string,
@@ -47,20 +47,17 @@ async function sendEmailNotification(
   const safeLocation = sanitizeHtml(location)
   const safeRoleList = sanitizeHtml(roleList)
 
-  const resp = await fetch('https://api.sendgrid.com/v3/mail/send', {
+  const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${SENDGRID_API_KEY}`,
+      Authorization: `Bearer ${RESEND_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      personalizations: [{ to: [{ email: toEmail }] }],
-      from: { email: FROM_EMAIL, name: FROM_NAME },
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: [toEmail],
       subject: `New Collective Application: ${safeName}`,
-      content: [
-        {
-          type: 'text/html',
-          value: `
+      html: `
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
               <div style="background: linear-gradient(135deg, #869e62 0%, #3d4d33 100%); padding: 32px; border-radius: 16px 16px 0 0;">
                 <h1 style="color: white; margin: 0; font-size: 22px;">New Collective Application</h1>
@@ -93,15 +90,16 @@ async function sendEmailNotification(
               </div>
             </div>
           `,
-        },
+      tags: [
+        { name: 'category', value: 'transactional' },
+        { name: 'type', value: 'collective_application' },
       ],
-      categories: ['transactional', 'collective_application'],
     }),
   })
 
   if (!resp.ok) {
     const err = await resp.text()
-    console.error(`[notify-application] SendGrid error:`, err)
+    console.error(`[notify-application] Resend error:`, err)
     return false
   }
   return true

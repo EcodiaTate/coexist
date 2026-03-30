@@ -698,11 +698,13 @@ function VariantSummary({
 function StockAdjustSheet({
   open,
   onClose,
+  productId,
   variantId,
   currentStock,
 }: {
   open: boolean
   onClose: () => void
+  productId: string
   variantId: string
   currentStock: number
 }) {
@@ -715,13 +717,13 @@ function StockAdjustSheet({
     const adj = Number(adjustment)
     if (isNaN(adj) || adj === 0 || !reason.trim()) return
     try {
-      await adjustStock.mutateAsync({ productId: variantId, variantKey: variantId, adjustment: adj })
+      await adjustStock.mutateAsync({ productId, variantKey: variantId, adjustment: adj })
       toast.success(`Stock adjusted by ${adj > 0 ? '+' : ''}${adj}`)
       onClose()
     } catch {
       toast.error('Failed to adjust stock')
     }
-  }, [variantId, adjustment, reason, adjustStock, toast, onClose])
+  }, [productId, variantId, adjustment, reason, adjustStock, toast, onClose])
 
   return (
     <BottomSheet open={open} onClose={onClose}>
@@ -769,7 +771,7 @@ export default function ProductsTab() {
   const [formOpen, setFormOpen] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | undefined>()
   const [archiveTarget, setArchiveTarget] = useState<Product | null>(null)
-  const [stockTarget, setStockTarget] = useState<{ variantId: string; stock: number } | null>(null)
+  const [stockTarget, setStockTarget] = useState<{ productId: string; variantId: string; stock: number } | null>(null)
   const [search, setSearch] = useState('')
   const [showArchived, setShowArchived] = useState(false)
   const shouldReduceMotion = useReducedMotion()
@@ -944,7 +946,7 @@ export default function ProductsTab() {
                   <div className="px-2.5 pb-2 sm:px-3 sm:pb-2.5">
                     <VariantSummary
                       product={product}
-                      onAdjustStock={(variantId, stock) => setStockTarget({ variantId, stock })}
+                      onAdjustStock={(variantId, stock) => setStockTarget({ productId: product.id, variantId, stock })}
                     />
                   </div>
                 )}
@@ -974,6 +976,7 @@ export default function ProductsTab() {
         <StockAdjustSheet
           open
           onClose={() => setStockTarget(null)}
+          productId={stockTarget.productId}
           variantId={stockTarget.variantId}
           currentStock={stockTarget.stock}
         />

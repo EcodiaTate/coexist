@@ -162,21 +162,13 @@ export function useAdjustStock() {
       variantKey: string
       adjustment: number
     }) => {
-      if (adjustment > 0) {
-        const { error } = await supabase.rpc('increment_stock', {
-          p_product_id: productId,
-          p_variant_key: variantKey,
-          p_quantity: adjustment,
-        })
-        if (error) throw error
-      } else if (adjustment < 0) {
-        const { error } = await supabase.rpc('decrement_stock', {
-          p_product_id: productId,
-          p_variant_key: variantKey,
-          p_quantity: Math.abs(adjustment),
-        })
-        if (error) throw error
-      }
+      if (adjustment === 0) return
+      const { error } = await supabase.rpc('adjust_variant_stock', {
+        p_product_id: productId,
+        p_variant_key: variantKey,
+        p_adjustment: adjustment,
+      })
+      if (error) throw error
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-products'] }),
   })

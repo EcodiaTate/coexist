@@ -463,7 +463,7 @@ export default function ImpactDashboardPage() {
                       <span className="font-heading text-4xl font-extrabold text-white tabular-nums leading-none tracking-tight">
                         <CountUp end={stats.volunteerHours} />
                       </span>
-                      <p className="text-sm text-white/60 font-semibold mt-1">volunteer hours</p>
+                      <p className="text-sm text-white/60 font-semibold mt-1">est. volunteer hours</p>
                     </div>
                   </div>
                 </div>

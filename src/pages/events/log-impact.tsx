@@ -381,7 +381,7 @@ export default function LogImpactPage() {
     }
   }, [event, existingImpact])
 
-  // Computed total volunteer hours = duration × checked-in attendees
+  // Computed total est. volunteer hours = duration × checked-in attendees
   const computedHoursTotal = useMemo(() => {
     const duration = parseFloat(eventDurationHours) || 0
     return Math.round(duration * checkedInCount * 10) / 10
@@ -652,13 +652,13 @@ export default function LogImpactPage() {
               </span>
               <span className="text-primary-400">=</span>
               <span className="font-bold text-primary-800">
-                {computedHoursTotal} volunteer hours
+                {computedHoursTotal} est. volunteer hours
               </span>
             </div>
 
             {checkedInCount === 0 && (
               <p className="text-caption text-warning-600">
-                No attendees checked in yet. Check in attendees on the Event Day page to calculate volunteer hours.
+                No attendees checked in yet. Check in attendees on the Event Day page to calculate est. volunteer hours.
               </p>
             )}
           </div>

@@ -16,7 +16,8 @@ import {
     XCircle, Smartphone,
     Moon,
     Globe,
-    RefreshCw
+    RefreshCw,
+    Mail, Send,
 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -891,7 +892,135 @@ function ResultGroup({ label, results }: { label: string; results: PushTestResul
 }
 
 /* ================================================================== */
-/*  SECTION 3 - Main Page                                              */
+/*  SECTION 3 - Email (Resend) Test                                    */
+/* ================================================================== */
+
+const EMAIL_TYPES = [
+  { value: 'welcome', label: 'Welcome', sampleData: { name: 'Test User', app_url: 'https://app.coexistaus.org' } },
+  { value: 'event_confirmation', label: 'Event Confirmation', sampleData: { name: 'Test User', event_title: 'Byron Beach Clean-Up', event_date: 'Sat 5 Apr 2026, 9:00 AM', event_location: 'Main Beach, Byron Bay', event_url: 'https://app.coexistaus.org/events/test' } },
+  { value: 'event_reminder', label: 'Event Reminder', sampleData: { name: 'Test User', event_title: 'Byron Beach Clean-Up', event_date: 'Tomorrow 9:00 AM', event_location: 'Main Beach, Byron Bay', event_url: 'https://app.coexistaus.org/events/test', time_until: 'tomorrow' } },
+  { value: 'donation_receipt', label: 'Donation Receipt', sampleData: { name: 'Test User', amount: '$25.00', currency: 'AUD', date: new Date().toLocaleDateString('en-AU'), receipt_url: 'https://app.coexistaus.org/receipts/test', is_recurring: false } },
+  { value: 'order_confirmation', label: 'Order Confirmation', sampleData: { name: 'Test User', order_id: 'TEST-001', items: 'Co-Exist Tee (M) x1', total: '$45.00', shipping_address: '1 Main St, Byron Bay NSW 2481' } },
+  { value: 'password_reset', label: 'Password Reset', sampleData: { name: 'Test User', reset_url: 'https://app.coexistaus.org/reset?token=test' } },
+  { value: 'collective_application', label: 'Collective Application', sampleData: { applicant_name: 'Jane Smith', applicant_email: 'jane@example.com', roles: 'Collective Leader', location: 'Gold Coast, QLD' } },
+  { value: 'monthly_impact_recap', label: 'Impact Recap', sampleData: { name: 'Test User', events_count: '4', trees: '120', hours: '16', rubbish_kg: '35', month: 'March' } },
+] as const
+
+function EmailTestSection() {
+  const { user } = useAuth()
+  const { toast } = useToast()
+  const [selectedType, setSelectedType] = useState(EMAIL_TYPES[0].value)
+  const [recipientEmail, setRecipientEmail] = useState('')
+
+  const selectedTemplate = EMAIL_TYPES.find((t) => t.value === selectedType) ?? EMAIL_TYPES[0]
+  const toAddress = recipientEmail.trim() || user?.email || ''
+
+  const sendTest = useMutation({
+    mutationFn: async () => {
+      if (!toAddress) throw new Error('No recipient email')
+
+      const { data, error } = await supabase.functions.invoke('send-email', {
+        body: {
+          type: selectedTemplate.value,
+          to: toAddress,
+          data: selectedTemplate.sampleData,
+        },
+      })
+
+      if (error) throw error
+      if (data?.error) throw new Error(data.error)
+      return data
+    },
+    onSuccess: () => {
+      toast.success(`Test email sent to ${toAddress}`)
+    },
+    onError: (err) => {
+      toast.error(`Failed: ${(err as Error).message}`)
+    },
+  })
+
+  return (
+    <div className="space-y-4">
+      {/* Template picker */}
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-primary-500">Email Template</p>
+        <div className="flex flex-wrap gap-1.5">
+          {EMAIL_TYPES.map((t) => (
+            <button
+              key={t.value}
+              type="button"
+              onClick={() => setSelectedType(t.value)}
+              className={cn(
+                'px-2.5 py-1 rounded-full text-[11px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.97] cursor-pointer',
+                selectedType === t.value ? 'bg-primary-600 text-white' : 'bg-primary-50 text-primary-500',
+              )}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Recipient */}
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-primary-500">Recipient</p>
+        <input
+          type="email"
+          value={recipientEmail}
+          onChange={(e) => setRecipientEmail(e.target.value)}
+          placeholder={user?.email ?? 'your@email.com'}
+          className="w-full h-11 px-3 rounded-xl border border-primary-200 bg-white text-sm text-primary-800 placeholder:text-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300"
+        />
+        <p className="text-[11px] text-primary-400">
+          Leave blank to send to your account email ({user?.email}).
+        </p>
+      </div>
+
+      {/* Sample data preview */}
+      <div className="space-y-1.5">
+        <p className="text-xs font-medium text-primary-500">Sample Data</p>
+        <div className="rounded-lg bg-primary-50/60 p-2.5 overflow-x-auto">
+          <pre className="text-[11px] text-primary-600 font-mono whitespace-pre-wrap break-all">
+            {JSON.stringify(selectedTemplate.sampleData, null, 2)}
+          </pre>
+        </div>
+      </div>
+
+      {/* Send */}
+      <Button
+        variant="primary"
+        size="md"
+        fullWidth
+        icon={<Send size={16} />}
+        loading={sendTest.isPending}
+        onClick={() => sendTest.mutate()}
+      >
+        {sendTest.isPending ? 'Sending...' : `Send "${selectedTemplate.label}" Email`}
+      </Button>
+
+      {sendTest.isSuccess && (
+        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-success-50 border border-success-200">
+          <CheckCircle2 size={14} className="text-success-600 shrink-0" />
+          <p className="text-[11px] text-success-700">
+            Sent via Resend. Check your inbox (and spam folder).
+          </p>
+        </div>
+      )}
+
+      {sendTest.isError && (
+        <div className="flex items-center gap-2 p-2.5 rounded-lg bg-error-50 border border-error-200">
+          <XCircle size={14} className="text-error-600 shrink-0" />
+          <p className="text-[11px] text-error-700">
+            {(sendTest.error as Error).message}
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ================================================================== */
+/*  SECTION 4 - Main Page                                              */
 /* ================================================================== */
 
 export default function DevToolsPage() {
@@ -1053,6 +1182,24 @@ export default function DevToolsPage() {
         </div>
       </motion.div>
 
+      {/* ---- Email (Resend) Test ---- */}
+      <motion.div variants={fadeUp}>
+        <div className="rounded-2xl bg-white p-4 shadow-sm border border-primary-100/40 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-9 h-9 rounded-full bg-success-100 text-success-600">
+              <Mail size={18} />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-primary-800">Email Test (Resend)</h3>
+              <p className="text-[11px] text-primary-400">
+                Send a test email to verify Resend is configured and delivering.
+              </p>
+            </div>
+          </div>
+          <EmailTestSection />
+        </div>
+      </motion.div>
+
       {/* ---- Quick-Nav to Flows ---- */}
       <motion.div variants={fadeUp}>
         <div className="rounded-2xl bg-white p-4 shadow-sm border border-primary-100/40 space-y-3">
@@ -1089,7 +1236,7 @@ export default function DevToolsPage() {
 }
 
 /* ================================================================== */
-/*  SECTION 4 - Test Event Card                                        */
+/*  SECTION 5 - Test Event Card                                        */
 /* ================================================================== */
 
 function TestEventCard({
