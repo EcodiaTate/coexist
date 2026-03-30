@@ -46,23 +46,15 @@ Deno.serve(async (req: Request) => {
     }
     const token = authHeader.replace('Bearer ', '')
 
-    // Verify user JWT by calling GoTrue directly. The supabase-js getUser()
-    // methods have version-dependent issues with ES256 tokens on edge runtime.
-    const gotruUrl = `${supabaseUrl}/auth/v1/user`
-    console.log('[create-checkout] Calling GoTrue:', gotruUrl)
-    console.log('[create-checkout] Token (first 20):', token.substring(0, 20))
-    console.log('[create-checkout] Service key (first 20):', supabaseServiceKey.substring(0, 20))
-    const gotruRes = await fetch(gotruUrl, {
+    // Verify user JWT by calling GoTrue directly.
+    const gotruRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'apikey': supabaseServiceKey,
       },
     })
-    console.log('[create-checkout] GoTrue status:', gotruRes.status)
     if (!gotruRes.ok) {
-      const errBody = await gotruRes.text()
-      console.log('[create-checkout] GoTrue error body:', errBody)
-      return new Response(JSON.stringify({ error: 'Invalid or expired token', gotrue_status: gotruRes.status, gotrue_error: errBody }), {
+      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })

@@ -489,7 +489,7 @@ export default function AdminDashboardPage() {
             />
             <HeroStatCard
               value={data?.totalHours ?? 0}
-              label="Vol. Hours"
+              label="Est. Vol. Hours"
               icon={<Clock size={20} />}
               bg="bg-gradient-to-br from-bark-500 to-bark-800 shadow-bark-600/30"
               reducedMotion={rm}

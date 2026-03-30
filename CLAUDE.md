@@ -24,7 +24,7 @@ A mobile-first app for Co-Exist Australia - a national youth-led environmental n
 | Server state | **TanStack Query** | Caching, stale-while-revalidate |
 | Animation | **Framer Motion** | All transitions, micro-interactions, page choreography |
 | Payments | **Stripe** | Checkout for donations + merch. Subscriptions for recurring donations |
-| Email | **SendGrid** | NOT Mailchimp. Transactional + marketing via Edge Functions |
+| Email | **Resend** | Transactional + marketing via Edge Functions |
 | Maps | **Mapbox or Leaflet** | Custom styled pins everywhere, never default markers |
 | Routing | **React Router** | SPA routing, works in Capacitor + Vercel |
 
@@ -44,7 +44,7 @@ src/
   components/     Shared UI: Button, Card, Avatar, Input, Modal, BottomSheet, etc.
   features/       Feature modules (events/, collectives/, chat/, profile/, etc.)
   hooks/          useAuth, useLayout, useOffline, useRealtime, etc.
-  lib/            supabase.ts, stripe.ts, sendgrid.ts, constants.ts, utils.ts
+  lib/            supabase.ts, stripe.ts, constants.ts, utils.ts
   pages/          Route-level page components (lazy-loaded)
   styles/         globals.css, tailwind theme config
   types/          TypeScript types and Supabase generated types
@@ -148,7 +148,7 @@ export const supabase = createClient<Database>(
 - **RLS on EVERY table**. No exceptions. No `public` access without a policy.
 - **Anon key only** in client code. Service role key ONLY in Edge Functions.
 - **Generated types**: run `supabase gen types typescript` after every migration. Types live in `src/types/database.types.ts`.
-- **Edge Functions** for: SendGrid emails, Stripe webhooks, PDF generation, push notifications, any server-side logic.
+- **Edge Functions** for: Resend emails, Stripe webhooks, PDF generation, push notifications, any server-side logic.
 - **Realtime** enabled on: `chat_messages`, `notifications`, `event_registrations`, `posts`, `global_announcements`.
 - **PostGIS** for all location data. Store as `geography(Point, 4326)`. Query with `ST_DWithin` for distance.
 - **Storage buckets**: public for avatars/event-images/merch, authenticated for chat-images/voice/video.

@@ -42,7 +42,7 @@ export function DeliveryTab() {
           {showBouncesLoading ? (
             <Skeleton variant="list-item" count={5} />
           ) : bouncesLoading ? null : !bounces?.length ? (
-            <EmptyState illustration="empty" title="No bounces" description="Email bounces from SendGrid will appear here" />
+            <EmptyState illustration="empty" title="No bounces" description="Email bounces from Resend will appear here" />
           ) : (
             <StaggeredList className="space-y-1">
               {bounces.map((event) => (
@@ -69,7 +69,7 @@ export function DeliveryTab() {
           {showComplaintsLoading ? (
             <Skeleton variant="list-item" count={5} />
           ) : complaintsLoading ? null : !complaints?.length ? (
-            <EmptyState illustration="empty" title="No complaints" description="Spam complaints from SendGrid will appear here" />
+            <EmptyState illustration="empty" title="No complaints" description="Spam complaints from Resend will appear here" />
           ) : (
             <StaggeredList className="space-y-1">
               {complaints.map((event) => (

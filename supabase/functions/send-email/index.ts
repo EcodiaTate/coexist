@@ -21,123 +21,127 @@ const FROM_NAME = Deno.env.get('RESEND_FROM_NAME') ?? 'Co-Exist'
 /* ------------------------------------------------------------------ */
 
 /**
- * Each template maps to a SendGrid dynamic template ID.
- * Set these as environment variables: SENDGRID_TPL_{TYPE}
+ * Resend doesn't use server-side template IDs like SendGrid.
+ * Instead, you send HTML directly (or use React Email on the server).
  *
- * Dynamic template data is passed as `dynamic_template_data` in the API call.
- * Design templates in the SendGrid dashboard with Handlebars syntax.
+ * For now, each template type maps to a subject line generator and
+ * an HTML builder. The `data` object passed by callers is used to
+ * populate the email content.
+ *
+ * To use React Email templates later, build them in a shared package
+ * and render to HTML before passing to the Resend API.
  */
 
 interface TemplateDefinition {
-  templateIdEnvKey: string
   category: 'transactional' | 'marketing'
   description: string
+  subject: (data: Record<string, unknown>) => string
 }
 
 const EMAIL_TEMPLATES: Record<string, TemplateDefinition> = {
   // ---- Transactional ----
   welcome: {
-    templateIdEnvKey: 'SENDGRID_TPL_WELCOME',
     category: 'transactional',
     description: 'Welcome email after signup. Data: { name, app_url }',
+    subject: () => 'Welcome to Co-Exist!',
   },
   event_confirmation: {
-    templateIdEnvKey: 'SENDGRID_TPL_EVENT_CONFIRMATION',
     category: 'transactional',
     description: 'Event registration confirmation. Data: { name, event_title, event_date, event_location, event_url }',
+    subject: (d) => `You're registered: ${d.event_title}`,
   },
   event_reminder: {
-    templateIdEnvKey: 'SENDGRID_TPL_EVENT_REMINDER',
     category: 'transactional',
     description: '24h event reminder. Data: { name, event_title, event_date, event_location, event_url }',
+    subject: (d) => `Reminder: ${d.event_title} is coming up`,
   },
   event_cancelled: {
-    templateIdEnvKey: 'SENDGRID_TPL_EVENT_CANCELLED',
     category: 'transactional',
     description: 'Event cancelled notification. Data: { name, event_title, event_date, reason }',
+    subject: (d) => `Event cancelled: ${d.event_title}`,
   },
   event_invite: {
-    templateIdEnvKey: 'SENDGRID_TPL_EVENT_INVITE',
     category: 'transactional',
     description: 'Invited to an event. Data: { name, inviter_name, event_title, event_url }',
+    subject: (d) => `${d.inviter_name} invited you to ${d.event_title}`,
   },
   waitlist_promoted: {
-    templateIdEnvKey: 'SENDGRID_TPL_WAITLIST_PROMOTED',
     category: 'transactional',
     description: 'Promoted from waitlist. Data: { name, event_title, event_date, event_url }',
+    subject: (d) => `You're in! Spot available for ${d.event_title}`,
   },
   password_reset: {
-    templateIdEnvKey: 'SENDGRID_TPL_PASSWORD_RESET',
     category: 'transactional',
     description: 'Password reset. Data: { name, reset_url }',
+    subject: () => 'Reset your password',
   },
   donation_receipt: {
-    templateIdEnvKey: 'SENDGRID_TPL_DONATION_RECEIPT',
     category: 'transactional',
     description: 'Donation receipt. Data: { name, amount, currency, date, receipt_url, is_recurring }',
+    subject: (d) => `Thanks for your ${d.is_recurring ? 'recurring ' : ''}donation!`,
   },
   order_confirmation: {
-    templateIdEnvKey: 'SENDGRID_TPL_ORDER_CONFIRMATION',
     category: 'transactional',
     description: 'Merch order confirmation. Data: { name, order_id, items, total, shipping_address }',
+    subject: (d) => `Order confirmed: #${d.order_id}`,
   },
   order_shipped: {
-    templateIdEnvKey: 'SENDGRID_TPL_ORDER_SHIPPED',
     category: 'transactional',
     description: 'Order shipped. Data: { name, order_id, tracking_number, tracking_url }',
+    subject: (d) => `Your order #${d.order_id} has shipped!`,
   },
   'data-export-request': {
-    templateIdEnvKey: 'SENDGRID_TPL_DATA_EXPORT',
     category: 'transactional',
     description: 'Data export requested. Data: { name, email }',
+    subject: () => 'Your data export request',
   },
   payment_failed: {
-    templateIdEnvKey: 'SENDGRID_TPL_PAYMENT_FAILED',
     category: 'transactional',
     description: 'Recurring payment failed. Data: { name, amount, update_url }',
+    subject: () => 'Payment failed — action needed',
   },
   subscription_cancelled: {
-    templateIdEnvKey: 'SENDGRID_TPL_SUBSCRIPTION_CANCELLED',
     category: 'transactional',
     description: 'Subscription cancelled. Data: { name, donate_url }',
+    subject: () => 'Your recurring donation has been cancelled',
   },
   refund_confirmation: {
-    templateIdEnvKey: 'SENDGRID_TPL_REFUND_CONFIRMATION',
     category: 'transactional',
     description: 'Order refund processed. Data: { name, order_id, refund_amount, currency }',
+    subject: (d) => `Refund processed for order #${d.order_id}`,
   },
 
   collective_application: {
-    templateIdEnvKey: 'SENDGRID_TPL_COLLECTIVE_APPLICATION',
     category: 'transactional',
     description: 'New collective application notification. Data: { applicant_name, applicant_email, roles, location }',
+    subject: (d) => `New Collective Application: ${d.applicant_name}`,
   },
 
   // ---- Marketing ----
   newsletter: {
-    templateIdEnvKey: 'SENDGRID_TPL_NEWSLETTER',
     category: 'marketing',
     description: 'Monthly newsletter. Data: { name, content_html }',
+    subject: () => 'Co-Exist Monthly Update',
   },
   challenge_announcement: {
-    templateIdEnvKey: 'SENDGRID_TPL_CHALLENGE',
     category: 'marketing',
     description: 'New challenge launched. Data: { name, challenge_title, challenge_description, challenge_url }',
+    subject: (d) => `New Challenge: ${d.challenge_title}`,
   },
   monthly_impact_recap: {
-    templateIdEnvKey: 'SENDGRID_TPL_IMPACT_RECAP',
     category: 'marketing',
     description: 'Monthly impact summary. Data: { name, events_count, trees, hours, rubbish_kg, month }',
+    subject: (d) => `Your ${d.month} impact recap`,
   },
   announcement_digest: {
-    templateIdEnvKey: 'SENDGRID_TPL_ANNOUNCEMENT_DIGEST',
     category: 'marketing',
     description: 'Weekly announcement digest. Data: { name, announcements[] }',
+    subject: () => 'This week at Co-Exist',
   },
 }
 
 /* ------------------------------------------------------------------ */
-/*  SendGrid API call                                                  */
+/*  Resend API call                                                    */
 /* ------------------------------------------------------------------ */
 
 interface SendEmailPayload {
@@ -149,34 +153,60 @@ interface SendEmailPayload {
   data?: Record<string, unknown>
   /** Optional: override the subject (for non-template sends) */
   subject?: string
+  /** Optional: HTML content (used by campaign sends) */
+  html?: string
   /** For internal requests (e.g. data export) */
   userId?: string
   email?: string
 }
 
-async function sendViaSendGrid(
+/**
+ * Build a simple branded HTML email wrapper.
+ * For richer templates, swap this out for React Email rendered server-side.
+ */
+function buildEmailHtml(data: Record<string, unknown>): string {
+  const name = (data.name as string) || 'there'
+  // If raw HTML content is provided (e.g. newsletter), wrap it
+  if (data.content_html) {
+    return `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+      <p>Hey ${name},</p>
+      ${data.content_html}
+      <p style="color: #6b7a5a; font-size: 13px; margin-top: 32px;">— Co-Exist</p>
+    </div>`
+  }
+
+  // Build a simple key-value summary from the data
+  const exclude = new Set(['name', 'content_html'])
+  const entries = Object.entries(data).filter(([k]) => !exclude.has(k))
+  const rows = entries
+    .map(([k, v]) => `<tr><td style="padding:6px 12px 6px 0;color:#6b7a5a;font-size:13px;font-weight:600;">${k.replace(/_/g, ' ')}</td><td style="padding:6px 0;color:#2d3a22;font-size:14px;">${v}</td></tr>`)
+    .join('')
+
+  return `<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+    <p>Hey ${name},</p>
+    ${rows ? `<table style="width:100%;border-collapse:collapse;margin:16px 0;">${rows}</table>` : ''}
+    <p style="color: #6b7a5a; font-size: 13px; margin-top: 32px;">— Co-Exist</p>
+  </div>`
+}
+
+async function sendViaResend(
   to: string,
-  templateId: string,
-  dynamicData: Record<string, unknown>,
-  category: string,
+  subject: string,
+  html: string,
+  tags: { name: string; value: string }[],
 ): Promise<{ success: boolean; error?: string }> {
-  const resp = await fetch('https://api.sendgrid.com/v3/mail/send', {
+  const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${SENDGRID_API_KEY}`,
+      Authorization: `Bearer ${RESEND_API_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      personalizations: [
-        {
-          to: [{ email: to }],
-          dynamic_template_data: dynamicData,
-        },
-      ],
-      from: { email: FROM_EMAIL, name: FROM_NAME },
-      template_id: templateId,
-      categories: [category],
-      // CAN-SPAM: one-click unsubscribe header
+      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+      to: [to],
+      subject,
+      html,
+      tags,
       headers: {
         'List-Unsubscribe': `<mailto:unsubscribe@coexistaus.org?subject=Unsubscribe>, <https://app.coexistaus.org/unsubscribe?email=${encodeURIComponent(to)}>`,
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
@@ -186,7 +216,7 @@ async function sendViaSendGrid(
 
   if (!resp.ok) {
     const err = await resp.text()
-    console.error(`[send-email] SendGrid error:`, err)
+    console.error(`[send-email] Resend error:`, err)
     return { success: false, error: err }
   }
 
@@ -233,7 +263,16 @@ async function handleUnsubscribe(
 /*  Main handler                                                       */
 /* ------------------------------------------------------------------ */
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 Deno.serve(async (req: Request) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
   try {
     const url = new URL(req.url)
 
@@ -253,7 +292,7 @@ Deno.serve(async (req: Request) => {
         await handleUnsubscribe(supabaseAdmin, email)
       }
 
-      return new Response('Unsubscribed', { status: 200 })
+      return new Response('Unsubscribed', { status: 200, headers: corsHeaders })
     }
 
     // ── Auth: require service-role key or authenticated user ──
@@ -262,7 +301,7 @@ Deno.serve(async (req: Request) => {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ success: false, error: 'Missing authorization' }), {
-        status: 401, headers: { 'Content-Type': 'application/json' },
+        status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
     const token = authHeader.replace('Bearer ', '')
@@ -278,7 +317,7 @@ Deno.serve(async (req: Request) => {
       const { data: { user }, error: authError } = await supabaseAuth.auth.getUser(token)
       if (authError || !user) {
         return new Response(JSON.stringify({ success: false, error: 'Invalid token' }), {
-          status: 401, headers: { 'Content-Type': 'application/json' },
+          status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
       }
     }
@@ -342,25 +381,22 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const templateId = Deno.env.get(templateDef.templateIdEnvKey)
-    if (!templateId) {
-      console.error(`[send-email] Missing env var: ${templateDef.templateIdEnvKey}`)
-      return new Response(
-        JSON.stringify({ success: false, error: 'Template not configured' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } },
-      )
-    }
+    const subject = payload.subject || templateDef.subject(data)
+    const html = payload.html || buildEmailHtml(data)
 
-    const result = await sendViaSendGrid(
+    const result = await sendViaResend(
       toEmail,
-      templateId,
-      data,
-      templateDef.category,
+      subject,
+      html,
+      [
+        { name: 'category', value: templateDef.category },
+        { name: 'type', value: type },
+      ],
     )
 
     return new Response(JSON.stringify(result), {
       status: result.success ? 200 : 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {
     console.error('[send-email] Error:', err)

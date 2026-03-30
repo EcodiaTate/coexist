@@ -404,7 +404,7 @@ export default function InventoryTab() {
 
   const [filter, setFilter] = useState<StockFilter>('all')
   const [search, setSearch] = useState('')
-  const [sort, setSort] = useState<SortMode>('stock-asc')
+  const [sort, setSort] = useState<SortMode>('name')
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [batchOpen, setBatchOpen] = useState(false)
 
@@ -443,19 +443,22 @@ export default function InventoryTab() {
     }
 
     // Sort
+    // Stable tiebreaker so items don't jump around when stock changes
+    const tie = (a: FlatVariant, b: FlatVariant) =>
+      a.product.name.localeCompare(b.product.name) ||
+      variantLabel(a.variant).localeCompare(variantLabel(b.variant)) ||
+      a.variant.id.localeCompare(b.variant.id)
+
     items = [...items].sort((a, b) => {
       switch (sort) {
         case 'stock-asc':
-          return a.variant.stock - b.variant.stock
+          return a.variant.stock - b.variant.stock || tie(a, b)
         case 'name':
-          return a.product.name.localeCompare(b.product.name)
+          return tie(a, b)
         case 'product':
-          return (
-            a.product.name.localeCompare(b.product.name) ||
-            variantLabel(a.variant).localeCompare(variantLabel(b.variant))
-          )
+          return tie(a, b)
         default:
-          return 0
+          return tie(a, b)
       }
     })
 
