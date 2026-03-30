@@ -186,26 +186,9 @@ export default function OrderDetailPage() {
 
         {/* Price breakdown */}
         <motion.section variants={fadeUp} className="space-y-2 text-sm">
-          <div className="flex justify-between text-primary-400">
-            <span>Subtotal</span>
-            <span className="tabular-nums">{formatPrice(order.subtotal_cents ?? 0)}</span>
-          </div>
-          {(order.discount_cents ?? 0) > 0 && (
-            <div className="flex justify-between text-primary-400">
-              <span>Discount</span>
-              <span className="tabular-nums">-{formatPrice(order.discount_cents ?? 0)}</span>
-            </div>
-          )}
-          <div className="flex justify-between text-primary-400">
-            <span>Shipping</span>
-            <span className="tabular-nums">
-              {(order.shipping_cents ?? 0) === 0 ? 'Free' : formatPrice(order.shipping_cents ?? 0)}
-            </span>
-          </div>
-          <Divider />
           <div className="flex justify-between font-heading font-bold text-primary-800">
             <span>Total</span>
-            <span className="tabular-nums">{formatPrice(order.total_cents ?? 0)}</span>
+            <span className="tabular-nums">{formatPrice(order.total_cents ?? Math.round((order.total ?? 0) * 100))}</span>
           </div>
         </motion.section>
 

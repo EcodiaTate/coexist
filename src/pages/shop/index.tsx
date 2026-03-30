@@ -752,28 +752,42 @@ export default function ShopPage() {
         </div>
       </PullToRefresh>
 
-      {/* Floating cart button */}
+      {/* Floating action buttons */}
       {isOnShopPage && (
-        <button
-          type="button"
-          onClick={() => navigate('/shop/cart')}
-          className="fixed right-5 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg shadow-primary-900/20 active:scale-[0.95] transition-transform cursor-pointer"
-          style={{ bottom: hasBottomTabs ? 'calc(4.5rem + var(--safe-bottom, 0px))' : 'calc(1.5rem + var(--safe-bottom, 0px))' }}
-          aria-label={`Cart (${cartCount} items)`}
-        >
-          <ShoppingBag size={22} />
-          {cartCount > 0 && (
-            <span
-              className={cn(
-                'absolute -top-1 -right-1 flex items-center justify-center',
-                'min-w-[20px] h-[20px] px-1 rounded-full',
-                'bg-coral-500 text-white text-[10px] font-bold shadow-lg shadow-coral-500/30',
-              )}
-            >
-              {cartCount}
-            </span>
-          )}
-        </button>
+        <>
+          {/* Orders button */}
+          <button
+            type="button"
+            onClick={() => navigate('/shop/orders')}
+            className="fixed right-5 z-50 flex items-center justify-center w-11 h-11 rounded-full bg-white text-primary-600 shadow-md shadow-primary-900/10 active:scale-[0.95] transition-transform cursor-pointer border border-primary-100"
+            style={{ bottom: hasBottomTabs ? 'calc(9.5rem + var(--safe-bottom, 0px))' : 'calc(6rem + var(--safe-bottom, 0px))' }}
+            aria-label="My orders"
+          >
+            <Package size={18} />
+          </button>
+
+          {/* Cart button */}
+          <button
+            type="button"
+            onClick={() => navigate('/shop/cart')}
+            className="fixed right-5 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg shadow-primary-900/20 active:scale-[0.95] transition-transform cursor-pointer"
+            style={{ bottom: hasBottomTabs ? 'calc(4.5rem + var(--safe-bottom, 0px))' : 'calc(1.5rem + var(--safe-bottom, 0px))' }}
+            aria-label={`Cart (${cartCount} items)`}
+          >
+            <ShoppingBag size={22} />
+            {cartCount > 0 && (
+              <span
+                className={cn(
+                  'absolute -top-1 -right-1 flex items-center justify-center',
+                  'min-w-[20px] h-[20px] px-1 rounded-full',
+                  'bg-coral-500 text-white text-[10px] font-bold shadow-lg shadow-coral-500/30',
+                )}
+              >
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </>
       )}
     </Page>
   )

@@ -59,14 +59,16 @@ Deno.serve(async (req: Request) => {
     )
 
     const token = authHeader.replace('Bearer ', '')
-    const authClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!)
-    const { data: { user }, error: authError } = await authClient.auth.getUser(token)
-    if (authError || !user) {
+    const gotruRes = await fetch(`${Deno.env.get('SUPABASE_URL')!}/auth/v1/user`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'apikey': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')! },
+    })
+    if (!gotruRes.ok) {
       return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
+    const user = await gotruRes.json() as { id: string; email?: string }
 
     const userId = user.id
 

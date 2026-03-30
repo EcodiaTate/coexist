@@ -64,14 +64,16 @@ Deno.serve(async (req: Request) => {
       })
     }
     const token = authHeader.replace('Bearer ', '')
-    const authClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!)
-    const { data: { user }, error: authError } = await authClient.auth.getUser(token)
-    if (authError || !user) {
+    const gotruRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: { 'Authorization': `Bearer ${token}`, 'apikey': supabaseServiceKey },
+    })
+    if (!gotruRes.ok) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
+    const user = await gotruRes.json() as { id: string; email?: string }
 
     const platform = body.platform // 'apple' | 'google'
     if (!platform || !['apple', 'google'].includes(platform)) {

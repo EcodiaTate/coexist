@@ -311,20 +311,16 @@ Deno.serve(async (req: Request) => {
         const memberDiscountCents = typeof body.member_discount_cents === 'number' ? Math.max(0, Math.round(body.member_discount_cents)) : 0
         const dbTotalCents = Math.max(0, serverSubtotalCents - memberDiscountCents - discountCents + shippingCents)
 
-        // Insert pending order into DB with full price breakdown
+        // Insert pending order into DB
         const { data: order, error: orderError } = await supabase
           .from('merch_orders')
           .insert({
             user_id: body.user_id,
             status: 'pending',
             items: body.items,
-            subtotal_cents: serverSubtotalCents,
-            discount_cents: discountCents + memberDiscountCents,
-            shipping_cents: shippingCents,
             total_cents: dbTotalCents,
             total: dbTotalCents / 100,
             shipping_address: body.shipping_address,
-            promo_code_id: body.promo_code_id ?? null,
           })
           .select()
           .single()
