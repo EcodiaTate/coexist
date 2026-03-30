@@ -98,7 +98,7 @@ type RawRow = Record<string, unknown> & {
     title: string
     date_start: string
     collective_id: string
-    activity_type: string
+    activity_type: ActivityType
     created_by: string
     collectives: { name: string } | null
   }
