@@ -670,7 +670,7 @@ export default function ShopPage() {
                 {/* Content below hero - padded */}
                 <div className="px-5 lg:px-6 space-y-6 -mt-1">
                   {/* Impact banner */}
-                  {!search && activeCategory === CATEGORY_ALL && <ImpactStrip />}
+                  {!search && <ImpactStrip />}
 
                   {/* Search */}
                   <motion.div variants={rm ? undefined : fadeUp}>

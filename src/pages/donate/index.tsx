@@ -7,6 +7,8 @@ import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 import {
     Heart, Users, Repeat,
     TreePine, Waves, Loader2,
+    Sparkles, Shield, ChevronRight,
+    Leaf, MessageCircle,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'

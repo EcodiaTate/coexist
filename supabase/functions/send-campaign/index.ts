@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Deno Edge Function
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 /* ------------------------------------------------------------------ */
@@ -58,7 +57,7 @@ async function sendBatch(
   return { success: true }
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   try {
     // ── Auth: require admin/staff ──
     const authHeader = req.headers.get('Authorization')

@@ -1,5 +1,4 @@
 // Deno Edge Function
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 /* ------------------------------------------------------------------ */
@@ -169,7 +168,7 @@ function sanitizeHtml(str: string): string {
     .replace(/'/g, '&#39;')
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   try {
     // ── Auth: require authenticated user ──
     const authHeader = req.headers.get('Authorization')

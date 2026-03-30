@@ -1,5 +1,4 @@
 // Deno Edge Function
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -14,7 +13,7 @@ const corsHeaders = {
  * Removes all user data across tables, then deletes the auth user.
  */
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
