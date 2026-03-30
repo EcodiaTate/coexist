@@ -909,7 +909,7 @@ const EMAIL_TYPES = [
 function EmailTestSection() {
   const { user } = useAuth()
   const { toast } = useToast()
-  const [selectedType, setSelectedType] = useState(EMAIL_TYPES[0].value)
+  const [selectedType, setSelectedType] = useState<string>(EMAIL_TYPES[0].value)
   const [recipientEmail, setRecipientEmail] = useState('')
 
   const selectedTemplate = EMAIL_TYPES.find((t) => t.value === selectedType) ?? EMAIL_TYPES[0]
