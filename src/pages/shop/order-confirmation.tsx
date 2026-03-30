@@ -181,7 +181,7 @@ function DepthElements({ rm }: { rm: boolean }) {
 
 function CelebrationHero({ rm }: { rm: boolean }) {
   return (
-    <div className="relative pt-8 pb-6 overflow-hidden">
+    <div className="relative pt-16 pb-6 overflow-hidden">
       <ConfettiLayer rm={rm} />
 
       <div className="relative z-20 flex flex-col items-center text-center px-6">
@@ -361,7 +361,7 @@ function OrderSummaryCard({
         <div className="space-y-2">
           {(() => {
             // DB has flat columns shipping_city/shipping_state, but Order type has nested shipping_address
-            const raw = order as Record<string, unknown>
+            const raw = order as unknown as Record<string, unknown>
             const city = (raw.shipping_city as string) || order.shipping_address?.city
             const state = (raw.shipping_state as string) || order.shipping_address?.state
             const location = [city, state].filter(Boolean).join(', ')
@@ -450,12 +450,14 @@ export default function OrderConfirmationPage() {
 
   return (
     <Page
-      header={<Header title="Order Confirmed" back />}
+      noBackground
+      fullBleed
       className="!bg-transparent"
+      stickyOverlay={<Header title="" back transparent className="!fixed pointer-events-none [&_button]:pointer-events-auto" />}
     >
       <div className="relative min-h-[80dvh]">
         {/* ── Rich layered background ── */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden -mx-5 -mt-4">
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-[#f2ece0] via-[#eef5e8] via-40% to-[#f0f4ec] to-70%" />
           <div className="absolute inset-0 bg-gradient-to-br from-transparent via-sprout-50/15 to-primary-50/20" />
 
@@ -486,7 +488,7 @@ export default function OrderConfirmationPage() {
         <DepthElements rm={rm} />
 
         {/* ── Content ── */}
-        <div className="relative z-10">
+        <div className="relative z-10 px-4 lg:px-6">
           <div className="max-w-lg mx-auto">
             <motion.div
               variants={rm ? undefined : stagger}

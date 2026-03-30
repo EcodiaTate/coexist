@@ -221,8 +221,9 @@ export default function DonateThankYouPage() {
     <Page
       swipeBack
       noBackground
-      className="!px-0 !bg-transparent"
-      stickyOverlay={<Header title="" back transparent className="collapse-header" />}
+      fullBleed
+      className="!bg-transparent"
+      stickyOverlay={<Header title="" back transparent className="!fixed pointer-events-none [&_button]:pointer-events-auto" />}
     >
       <div className="relative min-h-dvh">
         {/* ── Rich layered background ── */}
@@ -251,7 +252,7 @@ export default function DonateThankYouPage() {
         {/* ── Hero celebration area ── */}
         <div className="relative overflow-hidden">
           {/* Warm gradient hero band */}
-          <div className="relative pt-20 pb-14 sm:pt-24 sm:pb-16">
+          <div className="relative pt-16 pb-14 sm:pt-20 sm:pb-16">
             <div className="absolute inset-0 bg-gradient-to-b from-[#e8dfc8]/60 via-[#e5ecd9]/40 to-transparent" />
 
             <motion.div

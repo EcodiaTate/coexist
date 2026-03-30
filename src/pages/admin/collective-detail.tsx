@@ -28,6 +28,8 @@ import {
     ImagePlus,
     Trash2,
     X,
+    Settings,
+    ArrowLeft,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -247,58 +249,6 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
 
   return (
     <div className="space-y-8">
-      {/* ── Collective hero card ── */}
-      <motion.div
-        initial={rm ? { opacity: 1 } : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary-800 via-primary-900 to-primary-950 shadow-lg"
-      >
-        {/* Decorative shapes */}
-        <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full border border-white/[0.04]" />
-        <div className="absolute -right-24 -top-24 w-72 h-72 rounded-full border border-white/[0.02]" />
-        <div className="absolute left-[8%] bottom-[20%] w-2 h-2 rounded-full bg-primary-400/25" />
-        <div className="absolute right-[15%] top-[30%] w-1.5 h-1.5 rounded-full bg-success-400/20" />
-
-        {/* Cover image with gradient overlay */}
-        {detail?.cover_image_url && (
-          <div className="absolute inset-0">
-            <img
-              src={detail.cover_image_url}
-              alt=""
-              className="w-full h-full object-cover opacity-20"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-primary-950/95 via-primary-900/80 to-primary-800/60" />
-          </div>
-        )}
-
-        <div className="relative z-10 p-5 sm:p-7">
-          <div className="flex items-start justify-between gap-3 mb-4">
-            <div className="min-w-0">
-              <h2 className="font-heading text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {detail?.name}
-              </h2>
-              {(detail?.region || detail?.state) && (
-                <p className="text-sm text-white/50 flex items-center gap-1.5 mt-1">
-                  <MapPin size={14} />
-                  {[detail.region, detail.state].filter(Boolean).join(', ')}
-                </p>
-              )}
-            </div>
-            {!detail?.is_active && (
-              <span className="shrink-0 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/60 border border-white/10">
-                Archived
-              </span>
-            )}
-          </div>
-          {detail?.description && (
-            <p className="text-sm text-white/45 leading-relaxed max-w-2xl">
-              {detail.description}
-            </p>
-          )}
-        </div>
-      </motion.div>
-
       {/* ── Primary stats - 4 hero cards ── */}
       {showStatsLoading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -1325,11 +1275,11 @@ export default function AdminCollectiveDetailPage() {
     [detail?.slug, collectiveId, navigate],
   )
 
-  useAdminHeader(detail?.name ?? 'Collective', { actions: heroActions })
+  useAdminHeader(detail?.name ?? 'Collective', { actions: heroActions, fullBleed: true })
 
   if (showLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 p-6">
         <Skeleton className="h-8 w-32 rounded-lg" />
         <Skeleton className="h-48 rounded-2xl" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -1355,16 +1305,88 @@ export default function AdminCollectiveDetailPage() {
     { key: 'overview', label: 'Overview', icon: <TrendingUp size={15} /> },
     { key: 'members', label: 'Members', icon: <Users size={15} /> },
     { key: 'events', label: 'Events', icon: <CalendarDays size={15} /> },
-    { key: 'settings', label: 'Settings', icon: <Shield size={15} /> },
+    { key: 'settings', label: 'Settings', icon: <Settings size={15} /> },
   ]
 
   return (
     <motion.div
-      className="space-y-6"
       initial={rm ? { opacity: 1 } : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
+      className="relative"
     >
+      {/* ── Sticky back button ── */}
+      <div className="sticky top-0 z-30 h-0 pointer-events-none">
+        <div className="px-4 pt-4 w-fit">
+          <motion.button
+            type="button"
+            onClick={() => navigate(-1)}
+            whileTap={rm ? undefined : { scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            className={cn(
+              'pointer-events-auto flex items-center justify-center',
+              'w-11 h-11 rounded-full',
+              'bg-black/40 text-white hover:bg-black/50',
+              'cursor-pointer select-none',
+              'transition-colors duration-150',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
+            )}
+            aria-label="Go back"
+          >
+            <ArrowLeft size={22} />
+          </motion.button>
+        </div>
+      </div>
+
+      {/* ── Full-bleed cover image hero ── */}
+      {detail.cover_image_url ? (
+        <motion.div
+          initial={rm ? { opacity: 1 } : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.35 }}
+          className="relative"
+        >
+          <img
+            src={detail.cover_image_url}
+            alt={detail.name}
+            className="w-full block"
+          />
+          {/* Rocky wave overlay */}
+          <div className="absolute -bottom-px left-0 right-0 z-10">
+            <svg
+              viewBox="0 0 1440 70"
+              preserveAspectRatio="none"
+              className="w-full h-7 sm:h-10 block"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0,25
+                   C60,22 100,18 140,20
+                   C180,22 200,15 220,18
+                   L228,8 L234,5 L240,10
+                   C280,18 340,24 400,20
+                   C440,16 470,22 510,25
+                   C560,28 600,20 640,22
+                   C670,24 690,18 710,20
+                   L718,10 L722,6 L728,12
+                   C760,20 820,26 880,22
+                   C920,18 950,24 990,26
+                   C1020,28 1050,20 1080,18
+                   C1100,16 1120,22 1140,24
+                   L1148,12 L1153,7 L1158,9 L1165,16
+                   C1200,22 1260,26 1320,22
+                   C1360,18 1400,24 1440,22
+                   L1440,70 L0,70 Z"
+                className="fill-white"
+              />
+            </svg>
+          </div>
+        </motion.div>
+      ) : null}
+
+      {/* ── Padded content below hero ── */}
+      <div className="space-y-6 p-6">
+
       {/* ── Tab bar - rich pill style ── */}
       <motion.div
         initial={rm ? {} : { opacity: 0, y: 8 }}
@@ -1411,6 +1433,7 @@ export default function AdminCollectiveDetailPage() {
           {activeTab === 'settings' && <SettingsTab collectiveId={collectiveId!} />}
         </motion.div>
       </AnimatePresence>
+      </div>
     </motion.div>
   )
 }

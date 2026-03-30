@@ -243,11 +243,6 @@ export function SubscribersTab() {
                       <MapPin size={9} />{sub.location}
                     </span>
                   )}
-                  {sub.membership_level && sub.membership_level !== 'New' && (
-                    <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-success-50 text-success-600">
-                      {sub.membership_level}
-                    </span>
-                  )}
                   {sub.marketing_opt_in === false && (
                     <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-500">
                       Opted out

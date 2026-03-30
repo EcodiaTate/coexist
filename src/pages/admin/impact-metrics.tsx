@@ -224,7 +224,7 @@ export default function AdminImpactMetricsPage() {
 
     try {
       await upsertMutation.mutateAsync({
-        key: def.key,
+        ...def,
         is_active: !def.is_active,
       })
     } catch {

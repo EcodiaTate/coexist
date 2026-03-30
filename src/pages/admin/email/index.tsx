@@ -5,6 +5,7 @@ import {
   Users,
   Tag,
   FileText,
+  Mail,
   BarChart3,
   XCircle,
   AlertTriangle,
@@ -17,6 +18,7 @@ import { TabBar } from '@/components/tab-bar'
 import { useEmailMarketingStats } from './shared'
 import { CampaignsTab } from './campaigns-tab'
 import { TemplatesTab } from './templates-tab'
+import { SystemTemplatesTab } from './system-templates-tab'
 import { SubscribersTab } from './subscribers-tab'
 import { TagsTab } from './tags-tab'
 import { DeliveryTab } from './delivery-tab'
@@ -24,6 +26,7 @@ import { DeliveryTab } from './delivery-tab'
 const tabs = [
   { id: 'campaigns', label: 'Campaigns', icon: <Send size={14} /> },
   { id: 'templates', label: 'Templates', icon: <FileText size={14} /> },
+  { id: 'system', label: 'System', icon: <Mail size={14} /> },
   { id: 'subscribers', label: 'Subscribers', icon: <Users size={14} /> },
   { id: 'tags', label: 'Tags', icon: <Tag size={14} /> },
   { id: 'delivery', label: 'Delivery', icon: <BarChart3 size={14} /> },
@@ -82,6 +85,7 @@ export default function AdminEmailPage() {
       >
         {activeTab === 'campaigns' && <CampaignsTab />}
         {activeTab === 'templates' && <TemplatesTab />}
+        {activeTab === 'system' && <SystemTemplatesTab />}
         {activeTab === 'subscribers' && <SubscribersTab />}
         {activeTab === 'tags' && <TagsTab />}
         {activeTab === 'delivery' && <DeliveryTab />}

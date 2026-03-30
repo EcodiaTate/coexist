@@ -126,7 +126,7 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       let q = supabase
         .from('event_impact')
         .select(
-          `${IMPACT_SELECT_COLUMNS}, notes, event_id, logged_by, events!inner(id, title, date_start, date_end, collective_id, activity_type, created_by, collectives(name))`,
+          `${IMPACT_SELECT_COLUMNS}, event_id, events!inner(id, title, date_start, date_end, collective_id, activity_type, created_by, collectives(name))`,
         )
         .order('logged_at', { ascending: false })
 
@@ -239,7 +239,7 @@ export function useYearOverYear(metricDefs: ImpactMetricDef[]) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, notes, logged_at, events(date_start, date_end)`)
+        .select(`${IMPACT_SELECT_COLUMNS}, logged_at, events(date_start, date_end)`)
 
       if (error) throw error
 

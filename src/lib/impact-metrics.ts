@@ -7,7 +7,8 @@
  * the DB query loads.
  *
  * "Leaders Trained/Empowered" is NOT an impact metric — it's
- * derived from role assignments in collective_members.
+ * a cumulative counter in app_settings, incremented by DB trigger
+ * when users are assigned leadership roles.
  */
 
 /* ------------------------------------------------------------------ */
@@ -54,8 +55,8 @@ export const BUILTIN_COLUMNS = new Set([
   'coastline_cleaned_m',
   'hours_total',
   // Column exists in DB (added in migration 041) but is intentionally not
-  // displayed or aggregated — "leaders empowered" is derived from
-  // collective_members role assignments, not event logging. Listed here so
+  // displayed or aggregated — "leaders empowered" uses a cumulative counter
+  // in app_settings (migration 073), not event logging. Listed here so
   // isBuiltinMetric() routes it correctly if it ever appears as an impact_metric
   // tag on a survey question, instead of silently dumping it into custom_metrics.
   'leaders_trained',
@@ -94,7 +95,7 @@ export const FALLBACK_METRIC_DEFS: readonly ImpactMetricDef[] = [
  * This is static because built-in columns never change at runtime.
  */
 export const IMPACT_SELECT_COLUMNS =
-  Array.from(BUILTIN_COLUMNS).join(', ') + ', custom_metrics'
+  Array.from(BUILTIN_COLUMNS).join(', ') + ', custom_metrics, notes, logged_by'
 
 /**
  * Sum a specific metric key across an array of impact rows.
@@ -109,6 +110,49 @@ export function sumMetric(rows: Record<string, unknown>[], key: string): number 
     const cm = r.custom_metrics as Record<string, unknown> | null
     return s + (Number(cm?.[key]) || 0)
   }, 0)
+}
+
+/**
+ * Compute total estimated volunteer hours from impact rows that include
+ * notes (for legacy attendance) and event timing.
+ *
+ * - App-logged events: hours_total is already set by the log-impact form
+ * - Legacy imports: hours_total is 0; attendance is in notes, so we compute
+ *   attendance × duration
+ *
+ * Pass rows that have: hours_total, notes, and nested events.date_start / date_end
+ */
+const SEED_ADMIN = 'a0000000-0000-0000-0000-000000000001'
+
+export function computeEstimatedHours(
+  rows: {
+    hours_total?: number | null
+    notes?: string | null
+    logged_by?: string | null
+    events?: { date_start: string; date_end: string | null } | null
+  }[],
+): number {
+  let total = 0
+  for (const r of rows) {
+    const isLegacy =
+      r.logged_by === SEED_ADMIN ||
+      ((r.notes ?? '').startsWith('Legacy import'))
+
+    if (!isLegacy) {
+      // App-logged: use hours_total directly
+      total += Number(r.hours_total) || 0
+    } else {
+      // Legacy: parse attendance from notes, multiply by duration
+      const m = r.notes?.match(/Legacy import:\s*(\d+)\s*attendees/)
+      const att = m ? parseInt(m[1]) : 0
+      if (att <= 0) continue
+      const start = r.events ? new Date(r.events.date_start).getTime() : 0
+      const end = r.events?.date_end ? new Date(r.events.date_end).getTime() : 0
+      const dur = end > start ? (end - start) / 3_600_000 : 3
+      total += Math.round(att * dur)
+    }
+  }
+  return Math.round(total)
 }
 
 /* ------------------------------------------------------------------ */

@@ -37,6 +37,7 @@ import {
     Circle,
     Calendar,
     ArrowRight,
+    Waves,
 } from 'lucide-react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -1071,15 +1072,22 @@ export default function LeaderDashboardPage() {
     { label: 'Invite', icon: <UserPlus size={18} />, to: `/collectives/${collectiveSlug}/manage`, bg: 'bg-bark-600', text: 'text-white', badge: 0 },
   ]
 
-  // Build impact cards from stats
-  const impactCards = impactStats ? [
+  // Build impact cards — core stats always show (even if 0), secondary only if non-zero
+  const coreImpactCards = impactStats ? [
+    { value: impactStats.totalEvents, label: 'Events Held', icon: <CalendarDays size={15} className="text-warning-600" />, color: 'bg-warning-100' },
+    { value: impactStats.eventsAttended, label: 'Attendances', icon: <Users size={15} className="text-warning-700" />, color: 'bg-warning-50' },
     { value: impactStats.volunteerHours, label: 'Est. Vol. Hours', unit: 'hrs', icon: <Clock size={15} className="text-primary-600" />, color: 'bg-primary-100' },
     { value: impactStats.treesPlanted, label: 'Trees Planted', icon: <TreePine size={15} className="text-moss-600" />, color: 'bg-moss-100' },
-    { value: impactStats.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={15} className="text-plum-600" />, color: 'bg-plum-100' },
     { value: impactStats.rubbishKg, label: 'Rubbish Collected', unit: 'kg', icon: <Trash2 size={15} className="text-bark-600" />, color: 'bg-bark-100' },
-    { value: impactStats.cleanupSites, label: 'Cleanup Sites', icon: <Trash2 size={15} className="text-sky-600" />, color: 'bg-sky-100' },
+    { value: impactStats.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={15} className="text-plum-600" />, color: 'bg-plum-100' },
+    { value: impactStats.coastlineCleanedM, label: 'Coastline Cleaned', unit: 'm', icon: <Waves size={15} className="text-sky-600" />, color: 'bg-sky-100' },
     { value: impactStats.leadersEmpowered, label: 'Leaders Empowered', icon: <GraduationCap size={15} className="text-bark-700" />, color: 'bg-bark-50' },
+  ] : []
+  // Secondary stats only if non-zero
+  const secondaryImpactCards = impactStats ? [
+    { value: impactStats.cleanupSites, label: 'Cleanup Sites', icon: <Trash2 size={15} className="text-sky-700" />, color: 'bg-sky-50' },
   ].filter((c) => c.value > 0) : []
+  const impactCards = [...coreImpactCards, ...secondaryImpactCards]
 
   return (
     <Wrapper>
@@ -1342,11 +1350,11 @@ export default function LeaderDashboardPage() {
             </div>
           </motion.div>
 
-          {/* ── Environmental Impact ── */}
-          {impactCards.length > 0 && (
+          {/* ── Collective Impact ── */}
+          {impactStats && (
             <motion.div variants={rm ? undefined : fadeUp}>
               <SectionHeader icon={<TreePine size={14} />}>
-                Environmental Impact
+                Collective Impact
               </SectionHeader>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {impactCards.map((card) => (

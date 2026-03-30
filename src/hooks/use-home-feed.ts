@@ -191,6 +191,37 @@ export function useMyCollective() {
   })
 }
 
+/** All collectives the user belongs to (for impact scope dropdown) */
+export interface MyCollectiveSummary {
+  id: string
+  name: string
+}
+
+export function useMyCollectives() {
+  const { user } = useAuth()
+
+  return useQuery({
+    queryKey: ['home', 'my-collectives', user?.id],
+    queryFn: async (): Promise<MyCollectiveSummary[]> => {
+      if (!user) return []
+      const { data, error } = await supabase
+        .from('collective_members')
+        .select('collective_id, collectives(id, name)')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+      if (error) throw error
+      return (data ?? [])
+        .map((m) => {
+          const c = m.collectives as { id: string; name: string } | null
+          return c ? { id: c.id, name: c.name } : null
+        })
+        .filter((c): c is MyCollectiveSummary => c !== null)
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 /** Impact stats from RPC */
 export function useImpactStats() {
   const { user } = useAuth()

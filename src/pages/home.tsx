@@ -4,6 +4,7 @@ import { motion, useReducedMotion, useInView } from 'framer-motion'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 import {
     ChevronRight,
+    ChevronDown,
     Calendar,
     Users,
     TreePine,
@@ -20,7 +21,6 @@ import {
     Search,
     Camera,
     CheckCircle2,
-    Waves,
 } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '@/hooks/use-auth'
@@ -28,11 +28,13 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import {
     getGreeting,
     useMyCollective,
+    useMyCollectives,
     useImpactStats,
     useMyUpcomingEvents,
     useCollectiveUpcomingEvents,
     useRecentUpdates,
 } from '@/hooks/use-home-feed'
+import type { MyCollectiveSummary } from '@/hooks/use-home-feed'
 import { useNationalImpact, useCollectiveImpact } from '@/hooks/use-impact'
 import type { CanonicalImpact } from '@/hooks/use-impact'
 import { usePendingSurveys } from '@/hooks/use-auto-survey'
@@ -752,17 +754,37 @@ function ImpactStat({
 }
 
 function HomeImpactSection({
-  collectiveId,
+  collectives,
   rm,
 }: {
-  collectiveId: string | undefined
+  collectives: MyCollectiveSummary[]
   rm: boolean
 }) {
-  const [scope, setScope] = useState<'national' | 'collective'>(collectiveId ? 'collective' : 'national')
+  const hasCollectives = collectives.length > 0
+  const hasMultiple = collectives.length > 1
+  const [scope, setScope] = useState<'national' | 'collective'>(hasCollectives ? 'collective' : 'national')
+  const [selectedCollectiveId, setSelectedCollectiveId] = useState<string | undefined>(collectives[0]?.id)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
   const [timeRange, setTimeRange] = useState<'all-time' | 'current-year'>('all-time')
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!dropdownOpen) return
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [dropdownOpen])
+
+  const activeCollectiveId = scope === 'collective' ? selectedCollectiveId : undefined
+  const selectedCollective = collectives.find((c) => c.id === selectedCollectiveId)
 
   const national = useNationalImpact(timeRange)
-  const collective = useCollectiveImpact(scope === 'collective' ? collectiveId : undefined, timeRange)
+  const collective = useCollectiveImpact(activeCollectiveId, timeRange)
 
   const data: CanonicalImpact | null | undefined =
     scope === 'national' ? national.data : collective.data
@@ -798,7 +820,8 @@ function HomeImpactSection({
           </motion.div>
 
           {/* Toggles */}
-          <div className="flex flex-wrap items-center gap-2 mb-8">
+          <div className="flex items-center gap-2 mb-8">
+            {/* Scope toggle: National / Collective (with dropdown if multiple) */}
             <div className="flex rounded-full bg-black/15 p-0.5">
               <button
                 type="button"
@@ -813,23 +836,63 @@ function HomeImpactSection({
                 <Globe size={11} className="inline mr-1 -mt-0.5" />
                 National
               </button>
-              {collectiveId && (
-                <button
-                  type="button"
-                  onClick={() => setScope('collective')}
-                  className={cn(
-                    'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
-                    scope === 'collective'
-                      ? 'bg-white text-primary-800 shadow-sm'
-                      : 'text-white/70 hover:text-white',
+              {hasCollectives && (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (scope !== 'collective') {
+                        setScope('collective')
+                        if (hasMultiple) setDropdownOpen(true)
+                      } else if (hasMultiple) {
+                        setDropdownOpen((o) => !o)
+                      }
+                    }}
+                    className={cn(
+                      'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none flex items-center gap-1 max-w-[160px]',
+                      scope === 'collective'
+                        ? 'bg-white text-primary-800 shadow-sm'
+                        : 'text-white/70 hover:text-white',
+                    )}
+                  >
+                    <MapPin size={11} className="-mt-0.5 shrink-0" />
+                    <span className="truncate">
+                      {hasMultiple && scope === 'collective' && selectedCollective
+                        ? selectedCollective.name
+                        : 'Collective'}
+                    </span>
+                    {hasMultiple && <ChevronDown size={11} className={cn('shrink-0 transition-transform duration-200', dropdownOpen && 'rotate-180')} />}
+                  </button>
+
+                  {/* Dropdown for multiple collectives */}
+                  {hasMultiple && dropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1.5 min-w-[180px] rounded-xl bg-white shadow-lg border border-primary-100 overflow-hidden z-50">
+                      {collectives.map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCollectiveId(c.id)
+                            setScope('collective')
+                            setDropdownOpen(false)
+                          }}
+                          className={cn(
+                            'w-full px-4 py-2.5 text-left text-xs font-medium transition-colors duration-100 cursor-pointer',
+                            c.id === selectedCollectiveId
+                              ? 'bg-primary-50 text-primary-800 font-semibold'
+                              : 'text-primary-700 hover:bg-primary-50/60',
+                          )}
+                        >
+                          {c.name}
+                        </button>
+                      ))}
+                    </div>
                   )}
-                >
-                  <MapPin size={11} className="inline mr-1 -mt-0.5" />
-                  Collective
-                </button>
+                </div>
               )}
             </div>
 
+            {/* Time range toggle */}
             <div className="flex rounded-full bg-black/15 p-0.5">
               <button
                 type="button"
@@ -870,73 +933,80 @@ function HomeImpactSection({
             </div>
           ) : data ? (
             <>
-              {/* All stats in categorised rows */}
+              {/* All stats in categorised rows — only show non-zero sections */}
               <div className="space-y-3">
-                {/* Events */}
-                <motion.div
-                  className="rounded-xl bg-white/10 p-4"
-                  initial={rm ? undefined : { opacity: 0, y: 16 }}
-                  animate={inView ? { opacity: 1, y: 0 } : undefined}
-                  transition={{ delay: 0.05, duration: 0.4, ease: 'easeOut' }}
-                >
-                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
-                    Community Events
-                  </span>
-                  <div className="grid grid-cols-3 gap-2">
-                    <ImpactStat inView={inView} index={0} value={totalEvents} label="Events" icon={<Calendar size={16} />} color="bg-warning-500" />
-                    <ImpactStat inView={inView} index={1} value={data.eventsAttended} label="Attendances" icon={<Users size={16} />} color="bg-warning-600" />
-                    <ImpactStat inView={inView} index={2} value={data.volunteerHours} label="Est. Vol. Hours" icon={<Clock size={16} />} color="bg-warning-700" />
-                  </div>
-                </motion.div>
+                {/* Events — always show if any events exist */}
+                {(totalEvents > 0 || data.eventsAttended > 0 || data.volunteerHours > 0) && (
+                  <motion.div
+                    className="rounded-xl bg-white/10 p-4"
+                    initial={rm ? undefined : { opacity: 0, y: 16 }}
+                    animate={inView ? { opacity: 1, y: 0 } : undefined}
+                    transition={{ delay: 0.05, duration: 0.4, ease: 'easeOut' }}
+                  >
+                    <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
+                      Community Events
+                    </span>
+                    <div className="flex flex-wrap justify-evenly gap-y-3">
+                      {totalEvents > 0 && <ImpactStat inView={inView} index={0} value={totalEvents} label="Events" icon={<Calendar size={16} />} color="bg-warning-500" />}
+                      {data.eventsAttended > 0 && <ImpactStat inView={inView} index={1} value={data.eventsAttended} label="Attendances" icon={<Users size={16} />} color="bg-warning-600" />}
+                      {data.volunteerHours > 0 && <ImpactStat inView={inView} index={2} value={data.volunteerHours} label="Est. Vol. Hours" icon={<Clock size={16} />} color="bg-warning-700" />}
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Restoration */}
-                <motion.div
-                  className="rounded-xl bg-white/10 p-4"
-                  initial={rm ? undefined : { opacity: 0, y: 16 }}
-                  animate={inView ? { opacity: 1, y: 0 } : undefined}
-                  transition={{ delay: 0.2, duration: 0.4, ease: 'easeOut' }}
-                >
-                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
-                    Land Restoration
-                  </span>
-                  <div className="grid grid-cols-2 gap-3">
-                    <ImpactStat inView={inView} index={3} value={data.treesPlanted} label="Trees Planted" icon={<TreePine size={16} />} color="bg-sprout-500" />
-                    <ImpactStat inView={inView} index={4} value={data.invasiveWeedsPulled} label="Weeds Pulled" icon={<Sprout size={16} />} color="bg-sprout-600" />
-                  </div>
-                </motion.div>
+                {(data.treesPlanted > 0 || data.invasiveWeedsPulled > 0) && (
+                  <motion.div
+                    className="rounded-xl bg-white/10 p-4"
+                    initial={rm ? undefined : { opacity: 0, y: 16 }}
+                    animate={inView ? { opacity: 1, y: 0 } : undefined}
+                    transition={{ delay: 0.2, duration: 0.4, ease: 'easeOut' }}
+                  >
+                    <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
+                      Land Restoration
+                    </span>
+                    <div className="flex flex-wrap justify-evenly gap-y-3">
+                      {data.treesPlanted > 0 && <ImpactStat inView={inView} index={3} value={data.treesPlanted} label="Trees Planted" icon={<TreePine size={16} />} color="bg-sprout-500" />}
+                      {data.invasiveWeedsPulled > 0 && <ImpactStat inView={inView} index={4} value={data.invasiveWeedsPulled} label="Weeds Pulled" icon={<Sprout size={16} />} color="bg-sprout-600" />}
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Cleanup */}
-                <motion.div
-                  className="rounded-xl bg-white/10 p-4"
-                  initial={rm ? undefined : { opacity: 0, y: 16 }}
-                  animate={inView ? { opacity: 1, y: 0 } : undefined}
-                  transition={{ delay: 0.35, duration: 0.4, ease: 'easeOut' }}
-                >
-                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
-                    Cleanup
-                  </span>
-                  <div className="grid grid-cols-3 gap-2">
-                    <ImpactStat inView={inView} index={5} value={data.rubbishCollectedTonnes > 0 ? `${data.rubbishCollectedTonnes}t` : '-'} label="Rubbish" icon={<Trash2 size={16} />} color="bg-sky-500" />
-                    <ImpactStat inView={inView} index={6} value={data.cleanupSites} label="Sites" icon={<Trash2 size={16} />} color="bg-sky-600" />
-                    <ImpactStat inView={inView} index={9} value={data.coastlineCleanedM > 0 ? `${data.coastlineCleanedM}m` : '-'} label="Coastline" icon={<Waves size={16} />} color="bg-sky-700" />
-                  </div>
-                </motion.div>
+                {(data.rubbishCollectedTonnes > 0 || data.cleanupSites > 0) && (
+                  <motion.div
+                    className="rounded-xl bg-white/10 p-4"
+                    initial={rm ? undefined : { opacity: 0, y: 16 }}
+                    animate={inView ? { opacity: 1, y: 0 } : undefined}
+                    transition={{ delay: 0.35, duration: 0.4, ease: 'easeOut' }}
+                  >
+                    <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
+                      Cleanup
+                    </span>
+                    <div className="flex flex-wrap justify-evenly gap-y-3">
+                      {data.rubbishCollectedTonnes > 0 && <ImpactStat inView={inView} index={5} value={`${data.rubbishCollectedTonnes}t`} label="Rubbish" icon={<Trash2 size={16} />} color="bg-sky-500" />}
+                      {data.cleanupSites > 0 && <ImpactStat inView={inView} index={6} value={data.cleanupSites} label="Sites" icon={<Trash2 size={16} />} color="bg-sky-600" />}
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Community */}
-                <motion.div
-                  className="rounded-xl bg-white/10 p-4"
-                  initial={rm ? undefined : { opacity: 0, y: 16 }}
-                  animate={inView ? { opacity: 1, y: 0 } : undefined}
-                  transition={{ delay: 0.5, duration: 0.4, ease: 'easeOut' }}
-                >
-                  <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
-                    Community
-                  </span>
-                  <div className="grid grid-cols-2 gap-3">
-                    <ImpactStat inView={inView} index={7} value={data.collectivesCount} label="Collectives" icon={<Users size={16} />} color="bg-moss-500" />
-                    <ImpactStat inView={inView} index={8} value={data.leadersEmpowered} label="Leaders Empowered" icon={<GraduationCap size={16} />} color="bg-moss-600" />
-                  </div>
-                </motion.div>
+                {(data.collectivesCount > 0 || data.leadersEmpowered > 0) && (
+                  <motion.div
+                    className="rounded-xl bg-white/10 p-4"
+                    initial={rm ? undefined : { opacity: 0, y: 16 }}
+                    animate={inView ? { opacity: 1, y: 0 } : undefined}
+                    transition={{ delay: 0.5, duration: 0.4, ease: 'easeOut' }}
+                  >
+                    <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
+                      Community
+                    </span>
+                    <div className="flex flex-wrap justify-evenly gap-y-3">
+                      {data.collectivesCount > 0 && <ImpactStat inView={inView} index={7} value={data.collectivesCount} label="Collectives" icon={<Users size={16} />} color="bg-moss-500" />}
+                      {data.leadersEmpowered > 0 && <ImpactStat inView={inView} index={8} value={data.leadersEmpowered} label="Leaders Empowered" icon={<GraduationCap size={16} />} color="bg-moss-600" />}
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </>
           ) : null}
@@ -1023,6 +1093,7 @@ export default function HomePage() {
   const { profile, user } = useAuth()
 
   const myCollective = useMyCollective()
+  const myCollectives = useMyCollectives()
   const myEvents = useMyUpcomingEvents()
   const impact = useImpactStats()
   const pendingSurveys = usePendingSurveys()
@@ -1156,7 +1227,7 @@ export default function HomePage() {
 
             {/* 5. Impact section */}
             <HomeImpactSection
-              collectiveId={myCollective.data?.id}
+              collectives={myCollectives.data ?? []}
               rm={rm}
             />
 
