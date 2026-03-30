@@ -71,8 +71,7 @@ export function StaggeredList({
     <motion.div
       className={className}
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.1 }}
+      animate="visible"
       custom={stagger}
       variants={containerVariants}
     >

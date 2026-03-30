@@ -534,7 +534,7 @@ export function ChatMessageList({
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.15 }}
-              className="px-4 pb-1.5 bg-white/90"
+              className="shrink-0 px-4 pb-1.5 bg-white/90"
             >
               <div className="flex items-center gap-2">
                 <div className="flex gap-1">

@@ -4,8 +4,12 @@
 -- that reference the old literal.
 -- ============================================================
 
--- 1. Rename the enum value
-ALTER TYPE user_role RENAME VALUE 'national_staff' TO 'national_leader';
+-- 1. Rename the enum value (skip if already renamed)
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'national_staff' AND enumtypid = 'user_role'::regtype) THEN
+    ALTER TYPE user_role RENAME VALUE 'national_staff' TO 'national_leader';
+  END IF;
+END $$;
 
 -- 2. Update text[] columns that store role strings
 UPDATE dev_modules

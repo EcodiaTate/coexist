@@ -20,6 +20,7 @@ import {
   Phone,
   BarChart3,
   Eye,
+  Leaf,
 } from 'lucide-react'
 import { createElement } from 'react'
 import type { NavCategory, NavItem } from './types'
@@ -72,12 +73,20 @@ export const adminNavCategories: NavCategory[] = [
     ],
   },
   {
+    label: 'Impact',
+    labelColor: 'text-amber-600',
+    dotColor: 'bg-amber-500',
+    items: [
+      { label: 'Impact Dashboard', path: '/admin/impact', icon: icon(Leaf), capability: 'view_reports' },
+      { label: 'Metric Definitions', path: '/admin/impact-metrics', icon: icon(BarChart3), capability: 'manage_system' },
+    ],
+  },
+  {
     label: 'Settings',
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
       { label: 'Charity', path: '/admin/charity', icon: icon(Heart), capability: 'manage_charity' },
-      { label: 'Impact Metrics', path: '/admin/impact-metrics', icon: icon(BarChart3), capability: 'manage_system' },
       { label: 'Branding', path: '/admin/branding', icon: icon(Image), capability: 'manage_system' },
       { label: 'Legal Pages', path: '/admin/legal-pages', icon: icon(FileText), capability: 'manage_system' },
       { label: 'System', path: '/admin/system', icon: icon(Settings), capability: 'manage_system' },
@@ -88,7 +97,6 @@ export const adminNavCategories: NavCategory[] = [
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
-      { label: 'Impact Observations', path: '/admin/impact', icon: icon(Eye), capability: 'view_reports' },
       { label: 'Reports', path: '/admin/reports', icon: icon(FileText), capability: 'view_reports' },
       { label: 'Exports', path: '/admin/exports', icon: icon(Download), capability: 'manage_exports' },
       { label: 'Audit Log', path: '/admin/audit-log', icon: icon(FileText), capability: 'view_audit_log' },

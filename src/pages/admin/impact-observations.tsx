@@ -335,7 +335,7 @@ export default function AdminImpactObservationsPage() {
   const rm = !!useReducedMotion()
   const v = adminVariants(rm)
 
-  useAdminHeader('Impact Observations')
+  useAdminHeader('Impact Dashboard')
 
   /* ── Metric definitions (drives everything) ── */
   const { activeDefs } = useImpactMetricDefs()

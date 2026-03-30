@@ -117,7 +117,7 @@ function PinnedMessageBar({
   const hasMultiple = messages.length > 1
 
   return (
-    <div className="bg-surface-1 shadow-md">
+    <div className="shrink-0 bg-surface-1 shadow-md">
       <div className="flex w-full items-center gap-2.5 px-4 py-2.5 min-h-11">
         <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100 shrink-0">
           <Pin size={13} className="text-primary-600" />
@@ -704,8 +704,8 @@ export default function ChatRoomPage() {
   /* ---- Not found guard ---- */
   if (isChannel && !channelId) {
     return (
-      <div className="flex flex-col flex-1 min-h-0 overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
-        <Header title="Staff Chat" back />
+      <div className="flex flex-col flex-1 min-h-0 max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
+        <Header title="Staff Chat" back className="!relative !top-0" />
         <div className="flex-1 flex items-center justify-center">
           <EmptyState illustration="empty" title="Channel not found" description="This channel may have been removed." />
         </div>
@@ -725,9 +725,13 @@ export default function ChatRoomPage() {
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
-      {/* Header */}
+    <div
+      className="flex flex-col flex-1 min-h-0 max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40"
+      style={{ paddingTop: 'var(--safe-top)' }}
+    >
+      {/* Header — shrink-0 keeps it pinned at the top of the flex column */}
       <motion.div
+        className="shrink-0"
         variants={isCollective && !shouldReduceMotion ? fadeUp : undefined}
         initial={isCollective ? 'hidden' : undefined}
         animate={isCollective ? 'visible' : undefined}
@@ -736,6 +740,7 @@ export default function ChatRoomPage() {
           title={title}
           back
           showTitle
+          className="!relative !top-0"
           rightActions={
             <div className="flex items-center gap-1">
               <ChatSwitcherDropdown
@@ -809,7 +814,7 @@ export default function ChatRoomPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="bg-surface-1 px-4 py-2.5 shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
+            className="shrink-0 bg-surface-1 px-4 py-2.5 shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
           >
             <div className="flex items-center gap-2.5">
               <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100">
@@ -841,7 +846,7 @@ export default function ChatRoomPage() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.15 }}
-              className="bg-warning-100 px-4 py-2.5 shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
+              className="shrink-0 bg-warning-100 px-4 py-2.5 shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
             >
               <div className="flex items-center gap-2.5">
                 <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-warning-200">
@@ -884,7 +889,7 @@ export default function ChatRoomPage() {
 
       {/* Upload progress */}
       {(chatUpload.uploading || chatUpload.error) && (
-        <div className="px-4 py-1">
+        <div className="shrink-0 px-4 py-1">
           <UploadProgress
             progress={chatUpload.progress}
             uploading={chatUpload.uploading}
@@ -895,7 +900,7 @@ export default function ChatRoomPage() {
 
       {/* Offline indicator (collective only) */}
       {isCollective && isOffline && (
-        <div className="px-4 py-1.5">
+        <div className="shrink-0 px-4 py-1.5">
           <OfflineIndicator
             dataUpdatedAt={collectiveMessages.data?.pages?.[0]?.[0]?.created_at ? new Date(collectiveMessages.data.pages[0][0].created_at).getTime() : undefined}
           />
@@ -904,6 +909,7 @@ export default function ChatRoomPage() {
 
       {/* Message input */}
       <motion.div
+        className="shrink-0"
         variants={isCollective && !shouldReduceMotion ? fadeUp : undefined}
         initial={isCollective ? 'hidden' : undefined}
         animate={isCollective ? 'visible' : undefined}

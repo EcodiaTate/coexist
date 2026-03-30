@@ -107,7 +107,7 @@ const emptyForm = (): Partial<ImpactMetricDef> & { key: string } => ({
 /* ------------------------------------------------------------------ */
 
 export default function AdminImpactMetricsPage() {
-  useAdminHeader('Impact Metrics')
+  useAdminHeader('Metric Definitions')
   const shouldReduceMotion = useReducedMotion()
   const adminVariants = getAdminVariants(!!shouldReduceMotion)
   const { toast } = useToast()
