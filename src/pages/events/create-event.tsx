@@ -13,6 +13,7 @@ import {
     Users,
     Building2,
     CheckCircle2,
+    Leaf,
     TreePine,
     Waves,
     Sprout,
@@ -33,6 +34,7 @@ import {
     HelpCircle,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
+import { useQuery } from '@tanstack/react-query'
 import {
     useCreateEvent,
     useInviteCollective,
@@ -68,6 +70,7 @@ import { cn } from '@/lib/cn'
 /* ------------------------------------------------------------------ */
 
 interface CreateExtraFields {
+  selected_collective_ids: string[]
   is_recurring: boolean
   recurring_type: 'weekly' | 'fortnightly' | 'monthly'
   recurring_count: number
@@ -82,6 +85,7 @@ interface CreateExtraFields {
 }
 
 const INITIAL_EXTRA: CreateExtraFields = {
+  selected_collective_ids: [],
   is_recurring: false,
   recurring_type: 'weekly',
   recurring_count: 4,
@@ -100,6 +104,16 @@ const INITIAL_EXTRA: CreateExtraFields = {
 /* ------------------------------------------------------------------ */
 
 const STEPS = [
+  {
+    title: 'Collective',
+    subtitle: 'Which collectives is this event for?',
+    icon: <Leaf size={20} />,
+    gradient: 'from-sprout-500/20 via-moss-400/10 to-transparent',
+    accentColor: 'text-sprout-600',
+    accentBg: 'bg-sprout-500',
+    cardBorder: 'border-l-sprout-400',
+    cardGlow: 'bg-sprout-50/40',
+  },
   {
     title: 'Basics',
     subtitle: 'Name your event and pick an activity',
@@ -271,6 +285,124 @@ function SectionLabel({
 /* ------------------------------------------------------------------ */
 /*  Step Components                                                    */
 /* ------------------------------------------------------------------ */
+
+/** Lightweight hook to fetch all active collectives for admin picker */
+function useAllActiveCollectives() {
+  return useQuery({
+    queryKey: ['all-active-collectives'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('collectives')
+        .select('id, name, region, state, cover_image_url')
+        .eq('is_active', true)
+        .order('name')
+      if (error) throw error
+      return data ?? []
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+function StepCollective({
+  selectedIds,
+  onToggle,
+}: {
+  selectedIds: string[]
+  onToggle: (id: string) => void
+}) {
+  const { data: collectives, isLoading } = useAllActiveCollectives()
+
+  return (
+    <div className="space-y-4">
+      <StepCard>
+        <SectionLabel icon={<Leaf size={14} />}>Select Collectives</SectionLabel>
+        <p className="text-sm text-primary-400 mb-4">
+          Choose one or more collectives this event belongs to. The first
+          selected collective is the primary host.
+        </p>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8 text-primary-400 text-sm">
+            Loading collectives...
+          </div>
+        ) : !collectives?.length ? (
+          <div className="flex items-center justify-center py-8 text-primary-400 text-sm">
+            No active collectives found
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-[360px] overflow-y-auto -mx-1 px-1">
+            {collectives.map((c) => {
+              const isSelected = selectedIds.includes(c.id)
+              const isPrimary = selectedIds[0] === c.id
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => onToggle(c.id)}
+                  className={cn(
+                    'w-full min-h-11 flex items-center gap-3 p-3 rounded-xl cursor-pointer select-none text-left',
+                    'active:scale-[0.98] transition-all duration-200',
+                    'border',
+                    isSelected
+                      ? 'border-sprout-400 bg-gradient-to-r from-sprout-50 to-moss-50 ring-1 ring-sprout-300/50'
+                      : 'border-primary-100 bg-surface-0 hover:bg-surface-1',
+                  )}
+                >
+                  {c.cover_image_url ? (
+                    <img
+                      src={c.cover_image_url}
+                      alt=""
+                      className="w-10 h-10 rounded-lg object-cover shrink-0"
+                    />
+                  ) : (
+                    <div className={cn(
+                      'w-10 h-10 rounded-lg flex items-center justify-center shrink-0',
+                      isSelected ? 'bg-sprout-500 text-white' : 'bg-surface-2 text-primary-400',
+                    )}>
+                      <Leaf size={18} />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-primary-800 truncate">{c.name}</p>
+                    {(c.region || c.state) && (
+                      <p className="text-caption text-primary-400 truncate">
+                        {[c.region, c.state].filter(Boolean).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                  {isSelected && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      {isPrimary && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-sprout-600 bg-sprout-100 rounded-full px-2 py-0.5">
+                          Host
+                        </span>
+                      )}
+                      <div className="w-6 h-6 rounded-full bg-sprout-500 flex items-center justify-center">
+                        <Check size={14} className="text-white" />
+                      </div>
+                    </div>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </StepCard>
+
+      {selectedIds.length > 1 && (
+        <div className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-sprout-50 to-moss-50 border border-sprout-200/60">
+          <div className="w-9 h-9 rounded-xl bg-sprout-500 flex items-center justify-center shrink-0">
+            <Users size={16} className="text-white" />
+          </div>
+          <p className="text-sm text-sprout-700 font-medium">
+            {selectedIds.length} collectives selected. The first one selected is
+            the primary host.
+          </p>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function StepBasics({
   fields,
@@ -765,7 +897,7 @@ function StepVisibility({
             Collective Only
           </p>
           <p className="text-caption text-primary-400 mt-0.5">
-            Only members of your collective can see and register
+            Only members of the selected collectives can see and register
           </p>
         </div>
         {!fields.is_public && (
@@ -790,13 +922,14 @@ function StepInvite({
       <StepCard>
         <SectionLabel icon={<Send size={14} />}>Notifications</SectionLabel>
         <p className="text-sm text-primary-400 mb-4">
-          Optionally invite all members of your collective. They'll receive a
-          push notification and the event will appear in their "Invited" tab.
+          Optionally invite all members of the selected collectives. They'll
+          receive a push notification and the event will appear in their
+          "Invited" tab.
         </p>
 
         <Toggle
           label="Invite All Collective Members"
-          description="Send invites to every member when this event is published"
+          description="Send invites to every member of each selected collective when published"
           checked={extra.invite_collective}
           onChange={(checked) => onExtraChange({ invite_collective: checked })}
         />
@@ -814,7 +947,8 @@ function StepInvite({
                 <Users size={16} className="text-white" />
               </div>
               <p className="text-sm text-moss-700 font-medium">
-                All active members will be notified when you publish.
+                All active members of each selected collective will be notified
+                when you publish.
               </p>
             </div>
           </motion.div>
@@ -866,6 +1000,10 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
   const activityLabel =
     ACTIVITY_TYPE_OPTIONS.find((o) => o.value === fields.activity_type)?.label ??
     fields.activity_type
+  const { data: allCollectives } = useAllActiveCollectives()
+  const selectedCollectives = (allCollectives ?? []).filter((c) =>
+    extra.selected_collective_ids.includes(c.id),
+  )
 
   return (
     <div className="space-y-4">
@@ -904,6 +1042,15 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
           </p>
         </div>
         <div className="px-5 py-2 divide-y divide-primary-50">
+          <SummaryRow
+            icon={<Leaf size={15} />}
+            label="Collectives"
+            value={
+              selectedCollectives.length > 0
+                ? selectedCollectives.map((c) => c.name).join(', ')
+                : '-'
+            }
+          />
           <SummaryRow
             icon={
               activityIcons[fields.activity_type] || <HelpCircle size={15} />
@@ -966,7 +1113,7 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
             <SummaryRow
               icon={<Send size={15} />}
               label="Invites"
-              value="All collective members"
+              value={`All members (${extra.selected_collective_ids.length} collective${extra.selected_collective_ids.length === 1 ? '' : 's'})`}
             />
           )}
           {extra.partner_name && (
@@ -1085,13 +1232,15 @@ export default function CreateEventPage() {
   const canProceed = useMemo(() => {
     switch (step) {
       case 0:
-        return form.isBasicsValid
+        return extra.selected_collective_ids.length > 0
       case 1:
+        return form.isBasicsValid
+      case 2:
         return form.isDateValid
       default:
         return true
     }
-  }, [step, form.isBasicsValid, form.isDateValid])
+  }, [step, extra.selected_collective_ids.length, form.isBasicsValid, form.isDateValid])
 
   // We need the user's collective - use the first one they're a leader of
   const handlePublish = useCallback(
@@ -1111,24 +1260,17 @@ export default function CreateEventPage() {
       }
 
       try {
-        // Get user's collective membership
-        const { data: memberships, error: membershipError } = await supabase
-          .from('collective_members')
-          .select('collective_id, role')
-          .eq('user_id', user.id)
-          .in('role', ['leader', 'co_leader', 'assist_leader'])
-          .limit(1)
-
-        if (membershipError) throw membershipError
-
-        const collectiveId = memberships?.[0]?.collective_id
-        if (!collectiveId) {
-          toastApi.error('You must be a leader of a collective to create events')
+        const selectedIds = extra.selected_collective_ids
+        if (selectedIds.length === 0) {
+          toastApi.error('Please select at least one collective')
           return
         }
 
+        const primaryCollectiveId = selectedIds[0]
+        const additionalCollectiveIds = selectedIds.slice(1)
+
         const event = await createEvent.mutateAsync({
-          collective_id: collectiveId,
+          collective_id: primaryCollectiveId,
           title: form.fields.title,
           description: form.fields.description || null,
           activity_type:
@@ -1143,15 +1285,37 @@ export default function CreateEventPage() {
           status: isDraft ? 'draft' : 'published',
         })
 
-        // Auto-invite collective if selected
-        if (extra.invite_collective && !isDraft) {
-          await inviteCollective.mutateAsync({
-            eventId: event.id,
-            collectiveId,
-          })
+        // Link additional collectives as accepted collaborators
+        if (additionalCollectiveIds.length > 0) {
+          const { error: collabErr } = await supabase
+            .from('collective_event_collaborators')
+            .insert(
+              additionalCollectiveIds.map((cId) => ({
+                event_id: event.id,
+                collective_id: cId,
+                invited_by_collective_id: primaryCollectiveId,
+                invited_by_user: user.id,
+                status: 'accepted',
+              })),
+            )
+          if (collabErr) console.error('[create-event] collaborator insert error:', collabErr)
         }
 
-        // Auto-post event as rich card to collective chat
+        // Auto-invite selected collectives if toggled on
+        if (extra.invite_collective && !isDraft) {
+          for (const cId of selectedIds) {
+            try {
+              await inviteCollective.mutateAsync({
+                eventId: event.id,
+                collectiveId: cId,
+              })
+            } catch {
+              // Non-critical — continue with other collectives
+            }
+          }
+        }
+
+        // Auto-post event as rich card to each selected collective's chat
         if (!isDraft) {
           const dateStr = form.fields.date_start
             ? new Intl.DateTimeFormat('en-AU', {
@@ -1160,16 +1324,18 @@ export default function CreateEventPage() {
               }).format(form.fields.date_start)
             : ''
           const chatContent = `New event created!\n\n**${form.fields.title}**\n${dateStr}${form.fields.address ? `\n${form.fields.address}` : ''}\n\nTap to view and register → /events/${event.id}`
-          try {
-            await supabase.from('chat_messages').insert({
-              collective_id: collectiveId,
-              user_id: user.id,
-              content: chatContent,
-              message_type: 'event_card',
-              metadata: { event_id: event.id, event_title: form.fields.title },
-            })
-          } catch {
-            // Non-critical
+          for (const cId of selectedIds) {
+            try {
+              await supabase.from('chat_messages').insert({
+                collective_id: cId,
+                user_id: user.id,
+                content: chatContent,
+                message_type: 'event_card',
+                metadata: { event_id: event.id, event_title: form.fields.title },
+              })
+            } catch {
+              // Non-critical
+            }
           }
         }
 
@@ -1214,7 +1380,20 @@ export default function CreateEventPage() {
     }),
   }
 
+  const toggleCollective = useCallback((id: string) => {
+    setExtra((prev) => {
+      const ids = prev.selected_collective_ids
+      return {
+        ...prev,
+        selected_collective_ids: ids.includes(id)
+          ? ids.filter((x) => x !== id)
+          : [...ids, id],
+      }
+    })
+  }, [])
+
   const stepComponents = [
+    <StepCollective selectedIds={extra.selected_collective_ids} onToggle={toggleCollective} />,
     <StepBasics fields={form.fields} onChange={form.updateFields} />,
     <StepDateTime fields={form.fields} onChange={form.updateFields} extra={extra} onExtraChange={updateExtra} />,
     <StepLocation fields={form.fields} onChange={form.updateFields} extra={extra} onExtraChange={updateExtra} />,
