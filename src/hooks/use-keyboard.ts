@@ -35,8 +35,8 @@ function scrollFocusedIntoView() {
     // Re-check — focus may have moved during the delay
     const current = document.activeElement
     if (!isTextInput(current)) return
-    current.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  }, 250)
+    current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, 300)
 }
 
 /**
@@ -73,7 +73,7 @@ export function useKeyboard() {
       if (!keyboardVisible) return
       if (!isTextInput(e.target as Element)) return
       setTimeout(() => {
-        ;(e.target as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'center' })
+        ;(e.target as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       }, 150)
     }
 

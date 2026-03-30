@@ -37,6 +37,7 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useLayout } from '@/hooks/use-layout'
+import { useKeyboardOpen } from '@/components/app-shell'
 import { useCollective } from '@/hooks/use-collective'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import {
@@ -220,7 +221,8 @@ export default function ChatRoomPage() {
   const { user, isStaff, isAdmin, isSuperAdmin } = useAuth()
   const shouldReduceMotion = useReducedMotion()
   const { navMode } = useLayout()
-  const hasBottomTabs = navMode === 'bottom-tabs'
+  const keyboardOpen = useKeyboardOpen()
+  const hasBottomTabs = navMode === 'bottom-tabs' && !keyboardOpen
 
   /* ---- Collective-specific hooks ---- */
   const { data: collective } = useCollective(isCollective ? collectiveId : undefined)

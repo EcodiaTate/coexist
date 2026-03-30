@@ -1,4 +1,4 @@
-import { type ReactNode, memo, Suspense, useMemo } from 'react'
+import { type ReactNode, memo, Suspense, useMemo, createContext, useContext } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { cn } from '@/lib/cn'
@@ -22,13 +22,18 @@ interface AppShellProps {
   bare?: boolean
 }
 
+/** Context so child components can know when the keyboard is open */
+const KeyboardOpenContext = createContext(false)
+export function useKeyboardOpen() { return useContext(KeyboardOpenContext) }
+
 export function AppShell({ children, bare = false }: AppShellProps) {
   // Scroll focused inputs into view when native keyboard opens
   // must run in BOTH bare and full shells so auth/onboarding pages work too.
   useKeyboard()
   // Track keyboard height via visualViewport and set --kb-height CSS variable
   // so fixed-position elements (bottom sheets, chat input) can offset above keyboard.
-  useKeyboardHeight()
+  const kbHeight = useKeyboardHeight()
+  const keyboardOpen = kbHeight > 0
 
   if (bare) {
     return (
@@ -41,9 +46,11 @@ export function AppShell({ children, bare = false }: AppShellProps) {
   }
 
   return (
-    <MenuSheetProvider>
-      <AppShellInner>{children}</AppShellInner>
-    </MenuSheetProvider>
+    <KeyboardOpenContext.Provider value={keyboardOpen}>
+      <MenuSheetProvider>
+        <AppShellInner>{children}</AppShellInner>
+      </MenuSheetProvider>
+    </KeyboardOpenContext.Provider>
   )
 }
 
@@ -76,6 +83,7 @@ function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
   const { isMobile, isWeb } = useLayout()
   const location = useLocation()
   const { openMenu } = useMenuSheet()
+  const keyboardOpen = useKeyboardOpen()
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isLeaderRoute = location.pathname.startsWith('/leader') && !location.pathname.startsWith('/leaderboard') && !location.pathname.startsWith('/leadership')
   const isChatRoute = location.pathname.startsWith('/chat/')
@@ -92,8 +100,8 @@ function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
       {/* Web footer - full width, below the sidebar row so sidebar unsticks at footer */}
       {isWeb && !isMobile && !isChatRoute && <WebFooter />}
 
-      {/* Bottom tab bar (mobile + native) - hidden on admin/leader pages (they have their own) */}
-      {showBottomTabs && !isAdminRoute && !isLeaderRoute && (
+      {/* Bottom tab bar (mobile + native) - hidden on admin/leader pages, and when keyboard is open */}
+      {showBottomTabs && !isAdminRoute && !isLeaderRoute && !keyboardOpen && (
         <BottomTabBar onMorePress={openMenu} chatBadge={totalUnread} />
       )}
     </>

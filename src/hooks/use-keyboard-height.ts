@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Capacitor } from '@capacitor/core'
+import { Keyboard } from '@capacitor/keyboard'
 
 /**
- * Track the native keyboard height using the visual viewport API.
+ * Track the native keyboard height so fixed-position / flex-end elements
+ * (bottom sheets, chat inputs) can offset themselves above the keyboard.
  *
- * On iOS (Capacitor), `position: fixed` elements sit relative to the
- * layout viewport which does NOT shrink when the keyboard appears.
- * This hook returns the keyboard height so fixed-position elements
- * (bottom sheets, chat inputs) can offset themselves.
+ * Uses Capacitor Keyboard plugin events as the primary source (gives exact
+ * keyboard height on both iOS and Android), with the Visual Viewport API
+ * as a continuous refinement while the keyboard is open.
  *
- * Also sets CSS custom property `--kb-height` on `<html>` so any
- * element can use `calc(... + var(--kb-height, 0px))` without
- * needing the hook directly.
+ * Sets CSS custom property `--kb-height` on `<html>` so any element can use
+ * `calc(... + var(--kb-height, 0px))` without needing the hook directly.
  *
  * Returns 0 on web or when keyboard is hidden.
  */
@@ -21,24 +21,46 @@ export function useKeyboardHeight(): number {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return
 
-    const vv = window.visualViewport
-    if (!vv) return
+    let currentHeight = 0
 
-    const update = () => {
-      // The keyboard height is the gap between the full window and the
-      // visual viewport. On iOS the visual viewport shrinks when the
-      // keyboard appears.
-      const kbHeight = Math.max(0, Math.round(window.innerHeight - vv.height))
-      setKeyboardHeight(kbHeight)
-      document.documentElement.style.setProperty('--kb-height', `${kbHeight}px`)
+    const setHeight = (h: number) => {
+      currentHeight = h
+      setKeyboardHeight(h)
+      document.documentElement.style.setProperty('--kb-height', `${h}px`)
     }
 
-    vv.addEventListener('resize', update)
-    vv.addEventListener('scroll', update)
+    // Primary: Capacitor Keyboard plugin events (reliable on both platforms)
+    const showListener = Keyboard.addListener('keyboardWillShow', (info) => {
+      setHeight(Math.round(info.keyboardHeight))
+    })
+
+    const hideListener = Keyboard.addListener('keyboardWillHide', () => {
+      setHeight(0)
+    })
+
+    // Secondary: Visual Viewport API for continuous refinement
+    // (handles keyboard height changes during autocomplete bar, etc.)
+    const vv = window.visualViewport
+    let vvUpdate: (() => void) | undefined
+
+    if (vv) {
+      vvUpdate = () => {
+        const vvHeight = Math.max(0, Math.round(window.innerHeight - vv.height))
+        // Only update if keyboard is known to be open (avoid false positives)
+        // and the visual viewport gives a meaningful value
+        if (currentHeight > 0 && vvHeight > 0) {
+          setHeight(vvHeight)
+        }
+      }
+      vv.addEventListener('resize', vvUpdate)
+    }
 
     return () => {
-      vv.removeEventListener('resize', update)
-      vv.removeEventListener('scroll', update)
+      showListener.then((h) => h.remove())
+      hideListener.then((h) => h.remove())
+      if (vv && vvUpdate) {
+        vv.removeEventListener('resize', vvUpdate)
+      }
       document.documentElement.style.setProperty('--kb-height', '0px')
     }
   }, [])
