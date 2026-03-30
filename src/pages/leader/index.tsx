@@ -1073,7 +1073,7 @@ export default function LeaderDashboardPage() {
   ]
 
   // Build impact cards — core stats always show (even if 0), secondary only if non-zero
-  const coreImpactCards = impactStats ? [
+  const coreImpactCards: { value: number; label: string; unit?: string; icon: React.ReactElement; color: string }[] = impactStats ? [
     { value: impactStats.totalEvents, label: 'Events Held', icon: <CalendarDays size={15} className="text-warning-600" />, color: 'bg-warning-100' },
     { value: impactStats.eventsAttended, label: 'Attendances', icon: <Users size={15} className="text-warning-700" />, color: 'bg-warning-50' },
     { value: impactStats.volunteerHours, label: 'Est. Vol. Hours', unit: 'hrs', icon: <Clock size={15} className="text-primary-600" />, color: 'bg-primary-100' },
@@ -1084,7 +1084,7 @@ export default function LeaderDashboardPage() {
     { value: impactStats.leadersEmpowered, label: 'Leaders Empowered', icon: <GraduationCap size={15} className="text-bark-700" />, color: 'bg-bark-50' },
   ] : []
   // Secondary stats only if non-zero
-  const secondaryImpactCards = impactStats ? [
+  const secondaryImpactCards: { value: number; label: string; unit?: string; icon: React.ReactElement; color: string }[] = impactStats ? [
     { value: impactStats.cleanupSites, label: 'Cleanup Sites', icon: <Trash2 size={15} className="text-sky-700" />, color: 'bg-sky-50' },
   ].filter((c) => c.value > 0) : []
   const impactCards = [...coreImpactCards, ...secondaryImpactCards]
