@@ -441,7 +441,7 @@ export default function AdminImpactObservationsPage() {
 
       {/* ── Summary cards — dynamic from metric defs ── */}
       <motion.div variants={v.fadeUp}>
-        <AdminHeroStatRow>
+        <AdminHeroStatRow className="!max-w-none grid-cols-2 sm:!grid-cols-3 md:!grid-cols-4 lg:!grid-cols-5 xl:!grid-cols-6 2xl:!grid-cols-8">
           <AdminHeroStat value={data?.summary.totalEvents ?? 0} label="Events" icon={<BarChart3 size={18} />} color="primary" reducedMotion={rm} delay={0} />
           <AdminHeroStat value={data?.summary.totalAttendees ?? 0} label="Attendees" icon={<Users size={18} />} color="warning" reducedMotion={rm} delay={0.04} />
           {activeDefs.map((def, i) => {

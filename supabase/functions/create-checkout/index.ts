@@ -46,19 +46,21 @@ Deno.serve(async (req: Request) => {
     }
     const token = authHeader.replace('Bearer ', '')
 
-    // Use an anon-key client to verify user JWTs. The service-role client's
-    // getUser(jwt) is unreliable — matches the pattern used in send-push,
-    // send-email, and other working edge functions in this project.
-    const authClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!)
-    const { data: authData, error: authError } = await authClient.auth.getUser(token)
-    const caller = authData?.user
-    if (authError || !caller) {
+    // Verify user JWT by calling GoTrue directly. The supabase-js getUser()
+    // methods have version-dependent issues with ES256 tokens on edge runtime.
+    const gotruRes = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'apikey': supabaseServiceKey,
+      },
+    })
+    if (!gotruRes.ok) {
       return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
-    console.log('[create-checkout] AUTH OK - user:', caller.id, caller.email)
+    const caller = await gotruRes.json() as { id: string; email?: string }
     // Enforce that the caller can only act on their own behalf
     if (body.user_id && body.user_id !== caller.id) {
       return new Response(JSON.stringify({ error: 'user_id does not match authenticated user' }), {
