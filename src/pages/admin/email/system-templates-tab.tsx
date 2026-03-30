@@ -297,7 +297,7 @@ function useSystemOverrides() {
   return useQuery({
     queryKey: ['admin-system-email-overrides'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('system_email_overrides')
         .select('*')
         .order('template_type')
@@ -404,7 +404,7 @@ function SystemTemplateEditor({
         updated_at: new Date().toISOString(),
       }
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('system_email_overrides')
         .upsert(payload, { onConflict: 'template_type' })
       if (error) throw error
@@ -421,7 +421,7 @@ function SystemTemplateEditor({
 
   const resetMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('system_email_overrides')
         .delete()
         .eq('template_type', template.type)
@@ -453,7 +453,7 @@ function SystemTemplateEditor({
         updated_by: user?.id,
         updated_at: new Date().toISOString(),
       }
-      await supabase
+      await (supabase as any)
         .from('system_email_overrides')
         .upsert(payload, { onConflict: 'template_type' })
 
