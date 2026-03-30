@@ -2,20 +2,19 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 /* ------------------------------------------------------------------ */
-/*  SendGrid Configuration                                             */
+/*  Resend Configuration                                               */
 /* ------------------------------------------------------------------ */
 
 /**
- * SendGrid Setup Requirements:
- * 1. Domain verification: Verify coexistaus.org in SendGrid (DNS records: CNAME for DKIM, TXT for SPF)
- * 2. API key: Create a restricted API key with "Mail Send" permission
- * 3. Templates: Create dynamic templates in SendGrid for each email type below
- * 4. Env vars: SENDGRID_API_KEY, SENDGRID_FROM_EMAIL, SENDGRID_FROM_NAME
+ * Resend Setup Requirements:
+ * 1. Domain verification: Verify coexistaus.org in Resend (DNS records for DKIM, SPF, DMARC)
+ * 2. API key: Create an API key at resend.com/api-keys
+ * 3. Env vars: RESEND_API_KEY, RESEND_FROM_EMAIL, RESEND_FROM_NAME
  */
 
-const SENDGRID_API_KEY = Deno.env.get('SENDGRID_API_KEY') ?? ''
-const FROM_EMAIL = Deno.env.get('SENDGRID_FROM_EMAIL') ?? 'hello@coexistaus.org'
-const FROM_NAME = Deno.env.get('SENDGRID_FROM_NAME') ?? 'Co-Exist'
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') ?? ''
+const FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') ?? 'hello@coexistaus.org'
+const FROM_NAME = Deno.env.get('RESEND_FROM_NAME') ?? 'Co-Exist'
 
 /* ------------------------------------------------------------------ */
 /*  Email Template Definitions                                         */

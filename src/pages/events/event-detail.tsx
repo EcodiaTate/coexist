@@ -960,7 +960,7 @@ export default function EventDetailPage() {
               )}
               {(event.impact.hours_total ?? 0) > 0 && (
                 <StatCard
-                  label="Volunteer Hours"
+                  label="Est. Vol. Hours"
                   value={event.impact.hours_total ?? 0}
                   icon={<Clock size={18} />}
                 />

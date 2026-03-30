@@ -326,7 +326,7 @@ export default function CollectiveDetailPage() {
                 icon={<CalendarDays size={18} />}
               />
               <StatCard
-                label="Vol. Hours"
+                label="Est. Vol. Hours"
                 value={stats.totalHours}
                 icon={<Clock size={18} />}
               />

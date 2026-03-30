@@ -310,7 +310,7 @@ export default function NationalImpactPage() {
     if (navigator.share) {
       const parts: string[] = []
       if (data?.eventsAttended) parts.push(`${data.eventsAttended.toLocaleString()} event attendances`)
-      if (data?.volunteerHours) parts.push(`${data.volunteerHours.toLocaleString()} volunteer hours`)
+      if (data?.volunteerHours) parts.push(`${data.volunteerHours.toLocaleString()} est. volunteer hours`)
       if (data?.treesPlanted) parts.push(`${data.treesPlanted.toLocaleString()} trees planted`)
       if (data?.invasiveWeedsPulled) parts.push(`${data.invasiveWeedsPulled.toLocaleString()} invasive weeds pulled`)
       if (data?.rubbishCollectedTonnes) parts.push(`${data.rubbishCollectedTonnes}t rubbish collected`)
@@ -393,7 +393,7 @@ export default function NationalImpactPage() {
                   <p className="font-heading text-4xl font-extrabold text-white tabular-nums leading-none tracking-tight">
                     <CountUp end={data?.volunteerHours ?? 0} duration={2000} />
                   </p>
-                  <p className="text-sm text-white/60 font-semibold mt-1">volunteer hours</p>
+                  <p className="text-sm text-white/60 font-semibold mt-1">est. volunteer hours</p>
                 </div>
               </div>
             </div>
@@ -509,13 +509,13 @@ export default function NationalImpactPage() {
           </div>
         </motion.section>
 
-        {/* ─── Monthly Volunteer Hours Trend ─── */}
+        {/* ─── Monthly Est. Volunteer Hours Trend ─── */}
         {trends && trends.length > 0 && (
           <motion.section
             variants={fadeUp}
             className="mx-5 mt-10"
           >
-            <SectionHeading>Monthly Volunteer Hours</SectionHeading>
+            <SectionHeading>Monthly Est. Volunteer Hours</SectionHeading>
             <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6">
               <div className="flex items-end gap-4 h-36">
                 {trends.map((t, i) => {

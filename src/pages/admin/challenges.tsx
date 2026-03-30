@@ -284,7 +284,7 @@ export default function AdminChallengesPage() {
                   options={[
                     { value: 'events', label: 'Events' },
                     { value: 'trees', label: 'Trees Planted' },
-                    { value: 'hours', label: 'Volunteer Hours' },
+                    { value: 'hours', label: 'Est. Volunteer Hours' },
                     { value: 'rubbish', label: 'Rubbish (kg)' },
                     { value: 'members', label: 'New Members' },
                   ]}

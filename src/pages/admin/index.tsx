@@ -330,7 +330,7 @@ export default function AdminDashboardPage() {
     },
     {
       value: data?.totalHours ?? 0,
-      label: 'Volunteer Hours',
+      label: 'Est. Vol. Hours',
       icon: <Clock size={16} className="text-white" />,
       color: 'bg-gradient-to-br from-bark-500 to-bark-600',
     },

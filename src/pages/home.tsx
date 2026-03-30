@@ -885,7 +885,7 @@ function HomeImpactSection({
                   <div className="grid grid-cols-3 gap-2">
                     <ImpactStat inView={inView} index={0} value={totalEvents} label="Events" icon={<Calendar size={16} />} color="bg-warning-500" />
                     <ImpactStat inView={inView} index={1} value={data.eventsAttended} label="Attendances" icon={<Users size={16} />} color="bg-warning-600" />
-                    <ImpactStat inView={inView} index={2} value={data.volunteerHours} label="Vol. Hours" icon={<Clock size={16} />} color="bg-warning-700" />
+                    <ImpactStat inView={inView} index={2} value={data.volunteerHours} label="Est. Vol. Hours" icon={<Clock size={16} />} color="bg-warning-700" />
                   </div>
                 </motion.div>
 

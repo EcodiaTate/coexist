@@ -399,7 +399,7 @@ export default function ImpactDashboardPage() {
   const handleShare = async () => {
     const parts: string[] = []
     if (stats.eventsAttended > 0) parts.push(`${stats.eventsAttended} events attended`)
-    if (stats.volunteerHours > 0) parts.push(`${stats.volunteerHours} volunteer hours`)
+    if (stats.volunteerHours > 0) parts.push(`${stats.volunteerHours} est. volunteer hours`)
     if (stats.treesPlanted > 0) parts.push(`${stats.treesPlanted} trees planted`)
     if (stats.invasiveWeedsPulled > 0) parts.push(`${stats.invasiveWeedsPulled} invasive weeds pulled`)
     if (stats.rubbishCollectedTonnes > 0) parts.push(`${stats.rubbishCollectedTonnes}t rubbish collected`)

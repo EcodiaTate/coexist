@@ -81,7 +81,7 @@ export const FALLBACK_METRIC_DEFS: readonly ImpactMetricDef[] = [
   { key: 'area_restored_sqm',     label: 'Area Restored',         unit: 'sqm',       icon: 'area',  decimal: true,  sort_order: 4, is_active: true, survey_linkable: true  },
   { key: 'wildlife_sightings',    label: 'Wildlife Sightings',    unit: 'sightings', icon: 'eye',   decimal: false, sort_order: 5, is_active: true, survey_linkable: true  },
   { key: 'coastline_cleaned_m',   label: 'Coastline Cleaned',     unit: 'm',         icon: 'wave',  decimal: true,  sort_order: 6, is_active: true, survey_linkable: true  },
-  { key: 'hours_total',           label: 'Volunteer Hours',       unit: 'hours',     icon: 'clock', decimal: true,  sort_order: 7, is_active: true, survey_linkable: false },
+  { key: 'hours_total',           label: 'Est. Volunteer Hours',   unit: 'hours',     icon: 'clock', decimal: true,  sort_order: 7, is_active: true, survey_linkable: false },
 ]
 
 /* ------------------------------------------------------------------ */

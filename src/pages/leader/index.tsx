@@ -1073,7 +1073,7 @@ export default function LeaderDashboardPage() {
 
   // Build impact cards from stats
   const impactCards = impactStats ? [
-    { value: impactStats.volunteerHours, label: 'Volunteer Hours', unit: 'hrs', icon: <Clock size={15} className="text-primary-600" />, color: 'bg-primary-100' },
+    { value: impactStats.volunteerHours, label: 'Est. Vol. Hours', unit: 'hrs', icon: <Clock size={15} className="text-primary-600" />, color: 'bg-primary-100' },
     { value: impactStats.treesPlanted, label: 'Trees Planted', icon: <TreePine size={15} className="text-moss-600" />, color: 'bg-moss-100' },
     { value: impactStats.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={15} className="text-plum-600" />, color: 'bg-plum-100' },
     { value: impactStats.rubbishKg, label: 'Rubbish Collected', unit: 'kg', icon: <Trash2 size={15} className="text-bark-600" />, color: 'bg-bark-100' },

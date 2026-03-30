@@ -63,7 +63,7 @@ const scopeOptions = [
 
 const impactMetrics = [
   'Event attendances',
-  'Volunteer hours',
+  'Est. volunteer hours',
   'Trees planted',
   'Invasive weeds pulled',
   'Rubbish collected (tonnes)',
