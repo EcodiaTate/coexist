@@ -18,7 +18,6 @@
  *   - "all"               → all of the above
  */
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
@@ -39,7 +38,7 @@ const VALID_CATEGORIES = new Set([
   'all',
 ])
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }

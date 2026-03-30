@@ -18,7 +18,6 @@
  *   GOOGLE_WALLET_SA_KEY_B64  — Base64-encoded service account JSON key
  */
 
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { encode as _base64Encode } from 'https://deno.land/std@0.177.0/encoding/base64.ts'
 import { decode as base64Decode } from 'https://deno.land/std@0.177.0/encoding/base64.ts'
@@ -47,7 +46,7 @@ const tierLabels: Record<string, string> = {
   dedicated: 'Dedicated', lifetime: 'Founding',
 }
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }

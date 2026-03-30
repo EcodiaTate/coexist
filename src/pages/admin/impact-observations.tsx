@@ -5,19 +5,20 @@ import {
   Trash2,
   Clock,
   BarChart3,
-  Search,
   ChevronDown,
   ChevronUp,
   ExternalLink,
   Database,
   AlertTriangle,
   Leaf,
+  Users,
+  Sprout,
 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useAdminHeader } from '@/components/admin-layout'
 import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
 import { Dropdown } from '@/components/dropdown'
-import { Input } from '@/components/input'
+import { SearchBar } from '@/components/search-bar'
 import { Badge } from '@/components/badge'
 import { adminVariants } from '@/lib/admin-motion'
 import { cn } from '@/lib/cn'
@@ -34,7 +35,6 @@ import {
 import { dateRangeOptions, type DateRange } from '@/hooks/use-admin-dashboard'
 import { ACTIVITY_TYPE_OPTIONS, ACTIVITY_TYPE_LABELS } from '@/hooks/use-events'
 import { useCollectives } from '@/hooks/use-collective'
-import { useCountUp } from '@/components/stat-card'
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -48,14 +48,21 @@ function fmtDate(iso: string) {
   })
 }
 
-function fmtNum(n: number | null) {
+function fmtNum(n: number | null, unit?: string) {
   if (n == null || n === 0) return '-'
-  return n.toLocaleString('en-AU')
+  const s = n.toLocaleString('en-AU')
+  return unit ? `${s} ${unit}` : s
 }
 
-function fmtDec(n: number | null) {
+function fmtDec(n: number | null, unit?: string) {
   if (n == null || n === 0) return '-'
-  return n.toLocaleString('en-AU', { maximumFractionDigits: 1 })
+  const s = n.toLocaleString('en-AU', { maximumFractionDigits: 1 })
+  return unit ? `${s} ${unit}` : s
+}
+
+/** Convert DB activity_type (underscore) to Badge activity variant (hyphen) */
+function activityToBadge(type: string) {
+  return type.replace(/_/g, '-') as Parameters<typeof Badge>[0] extends { activity: infer A } ? A : never
 }
 
 /* ------------------------------------------------------------------ */
@@ -75,13 +82,13 @@ function sortRows(rows: EventImpactRow[], field: SortField, dir: SortDir) {
       case 'trees': return m * ((a.treesPlanted ?? 0) - (b.treesPlanted ?? 0))
       case 'rubbish': return m * ((a.rubbishKg ?? 0) - (b.rubbishKg ?? 0))
       case 'weeds': return m * ((a.invasiveWeedsPulled ?? 0) - (b.invasiveWeedsPulled ?? 0))
-      case 'hours': return m * ((a.hoursTotal ?? 0) - (b.hoursTotal ?? 0))
+      case 'hours': return m * ((a.hoursTotal ?? a.estimatedVolHours ?? 0) - (b.hoursTotal ?? b.estimatedVolHours ?? 0))
       default: return 0
     }
   })
 }
 
-type CollectiveSortField = 'name' | 'events' | 'trees' | 'rubbish' | 'weeds' | 'hours'
+type CollectiveSortField = 'name' | 'events' | 'trees' | 'rubbish' | 'weeds' | 'hours' | 'attendees'
 
 function sortCollectives(rows: CollectiveBreakdown[], field: CollectiveSortField, dir: SortDir) {
   const m = dir === 'asc' ? 1 : -1
@@ -93,6 +100,7 @@ function sortCollectives(rows: CollectiveBreakdown[], field: CollectiveSortField
       case 'rubbish': return m * (a.rubbish - b.rubbish)
       case 'weeds': return m * (a.weeds - b.weeds)
       case 'hours': return m * (a.hours - b.hours)
+      case 'attendees': return m * (a.attendees - b.attendees)
       default: return 0
     }
   })
@@ -139,48 +147,44 @@ function SortHeader<T extends string>({
 /* ------------------------------------------------------------------ */
 
 function YoYChart({ data, rm }: { data: YearSummary[]; rm: boolean }) {
-  const max = Math.max(...data.map((d) => d.trees), 1)
+  const metrics = [
+    { key: 'attendees' as const, label: 'Attendees', color: 'from-warning-400 to-warning-500', unit: '' },
+    { key: 'trees' as const, label: 'Trees', color: 'from-moss-400 to-moss-500', unit: '' },
+    { key: 'rubbish' as const, label: 'Rubbish', color: 'from-sky-400 to-sky-500', unit: 'kg' },
+    { key: 'hours' as const, label: 'Est. Vol Hours', color: 'from-bark-400 to-bark-500', unit: '' },
+  ]
 
   return (
     <div className="rounded-2xl bg-white shadow-md border border-primary-100/50 p-5">
       <h3 className="font-heading text-sm font-semibold text-primary-800 mb-5">
         Year-over-Year Impact
       </h3>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {data.map((d) => (
-          <div key={d.year} className="flex items-center gap-3">
-            <span className="w-10 text-xs font-bold text-primary-600 tabular-nums">{d.year}</span>
-            <div className="flex-1 space-y-1">
-              {/* Trees bar */}
-              <div className="flex items-center gap-2">
-                <div className="w-16 text-[10px] text-primary-400 text-right">Trees</div>
-                <div className="flex-1 h-4 bg-primary-50 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-moss-400 to-moss-500 rounded-full"
-                    initial={rm ? { width: `${(d.trees / max) * 100}%` } : { width: 0 }}
-                    animate={{ width: `${(d.trees / max) * 100}%` }}
-                    transition={{ duration: 0.6, ease: 'easeOut' }}
-                  />
-                </div>
-                <span className="w-14 text-xs font-semibold text-primary-700 tabular-nums text-right">
-                  {d.trees.toLocaleString()}
-                </span>
-              </div>
-              {/* Rubbish bar */}
-              <div className="flex items-center gap-2">
-                <div className="w-16 text-[10px] text-primary-400 text-right">Rubbish</div>
-                <div className="flex-1 h-4 bg-primary-50 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-sky-400 to-sky-500 rounded-full"
-                    initial={rm ? { width: `${(d.rubbish / Math.max(...data.map((x) => x.rubbish), 1)) * 100}%` } : { width: 0 }}
-                    animate={{ width: `${(d.rubbish / Math.max(...data.map((x) => x.rubbish), 1)) * 100}%` }}
-                    transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
-                  />
-                </div>
-                <span className="w-14 text-xs font-semibold text-primary-700 tabular-nums text-right">
-                  {d.rubbish.toLocaleString()} kg
-                </span>
-              </div>
+          <div key={d.year}>
+            <span className="text-xs font-bold text-primary-600 tabular-nums">{d.year}</span>
+            <span className="text-[10px] text-primary-400 ml-2">{d.events} events</span>
+            <div className="mt-1.5 space-y-1">
+              {metrics.map((m) => {
+                const val = d[m.key]
+                const max = Math.max(...data.map((x) => x[m.key]), 1)
+                return (
+                  <div key={m.key} className="flex items-center gap-2">
+                    <div className="w-20 text-[10px] text-primary-400 text-right truncate">{m.label}</div>
+                    <div className="flex-1 h-3.5 bg-primary-50 rounded-full overflow-hidden">
+                      <motion.div
+                        className={cn('h-full rounded-full bg-gradient-to-r', m.color)}
+                        initial={rm ? { width: `${(val / max) * 100}%` } : { width: 0 }}
+                        animate={{ width: `${Math.max((val / max) * 100, val > 0 ? 2 : 0)}%` }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                      />
+                    </div>
+                    <span className="w-16 text-[11px] font-semibold text-primary-700 tabular-nums text-right">
+                      {val > 0 ? `${val.toLocaleString()}${m.unit ? ` ${m.unit}` : ''}` : '-'}
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </div>
         ))}
@@ -193,7 +197,7 @@ function YoYChart({ data, rm }: { data: YearSummary[]; rm: boolean }) {
 /*  Data quality panel                                                 */
 /* ------------------------------------------------------------------ */
 
-function DataQualityPanel({ rm }: { rm: boolean }) {
+function DataQualityPanel() {
   const { data } = useImpactDataQuality()
   if (!data) return null
 
@@ -211,7 +215,7 @@ function DataQualityPanel({ rm }: { rm: boolean }) {
         <div>
           <div className="flex items-center justify-between text-xs mb-1.5">
             <span className="text-primary-500 font-medium">Data Source</span>
-            <span className="text-primary-400">{total} total impact logs</span>
+            <span className="text-primary-400">{total} impact logs</span>
           </div>
           <div className="flex h-3 rounded-full overflow-hidden bg-primary-50">
             <div
@@ -246,7 +250,7 @@ function DataQualityPanel({ rm }: { rm: boolean }) {
                 {data.eventsWithoutImpact} completed event{data.eventsWithoutImpact !== 1 ? 's' : ''} without impact logs
               </p>
               <p className="text-[11px] text-warning-500 mt-0.5">
-                Leaders haven't submitted impact data for these events yet
+                Leaders haven't submitted impact data yet
               </p>
             </div>
           </div>
@@ -257,10 +261,10 @@ function DataQualityPanel({ rm }: { rm: boolean }) {
             <Leaf size={14} className="text-primary-400 mt-0.5 shrink-0" />
             <div>
               <p className="text-xs font-semibold text-primary-600">
-                {data.zeroMetricEvents} impact log{data.zeroMetricEvents !== 1 ? 's' : ''} with all metrics at zero
+                {data.zeroMetricEvents} log{data.zeroMetricEvents !== 1 ? 's' : ''} with all metrics at zero
               </p>
               <p className="text-[11px] text-primary-400 mt-0.5">
-                May indicate recreational events or missing data entry
+                Recreational events or missing data entry
               </p>
             </div>
           </div>
@@ -331,7 +335,7 @@ export default function AdminImpactObservationsPage() {
     [data, collSort, collDir],
   )
 
-  /* ── Collective dropdown options ── */
+  /* ── Dropdown options ── */
   const collectiveOptions = useMemo(
     () => [
       { value: '', label: 'All Collectives' },
@@ -378,7 +382,7 @@ export default function AdminImpactObservationsPage() {
       animate="visible"
     >
       {/* ── Filter bar ── */}
-      <motion.div variants={v.fadeUp} className="flex flex-wrap items-end gap-3">
+      <motion.div variants={v.fadeUp} className="flex flex-wrap items-center gap-3">
         <Dropdown
           options={dateRangeOptions}
           value={dateRange}
@@ -397,15 +401,13 @@ export default function AdminImpactObservationsPage() {
           onChange={setActivityType}
           className="w-40"
         />
-        <div className="relative flex-1 min-w-[160px]">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-primary-300 pointer-events-none" />
-          <Input
-            placeholder="Search events..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-8"
-          />
-        </div>
+        <SearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Search events..."
+          compact
+          className="flex-1 min-w-[160px]"
+        />
       </motion.div>
 
       {/* ── Summary cards ── */}
@@ -418,6 +420,14 @@ export default function AdminImpactObservationsPage() {
             color="primary"
             reducedMotion={rm}
             delay={0}
+          />
+          <AdminHeroStat
+            value={data?.summary.totalAttendees ?? 0}
+            label="Attendees"
+            icon={<Users size={18} />}
+            color="warning"
+            reducedMotion={rm}
+            delay={0.05}
           />
           <AdminHeroStat
             value={data?.summary.totalTrees ?? 0}
@@ -433,15 +443,23 @@ export default function AdminImpactObservationsPage() {
             icon={<Trash2 size={18} />}
             color="sky"
             reducedMotion={rm}
+            delay={0.15}
+          />
+          <AdminHeroStat
+            value={data?.summary.totalWeeds ?? 0}
+            label="Weeds Pulled"
+            icon={<Sprout size={18} />}
+            color="sprout"
+            reducedMotion={rm}
             delay={0.2}
           />
           <AdminHeroStat
             value={data?.summary.totalHours ?? 0}
-            label="Vol. Hours"
+            label="Est. Vol Hours"
             icon={<Clock size={18} />}
             color="bark"
             reducedMotion={rm}
-            delay={0.3}
+            delay={0.25}
           />
         </AdminHeroStatRow>
       </motion.div>
@@ -454,56 +472,50 @@ export default function AdminImpactObservationsPage() {
           </h2>
           <div className="rounded-2xl bg-white shadow-md border border-primary-100/50 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-primary-100">
-                    <th className="px-4 py-3">
+                    <th className="px-4 py-3 text-left">
                       <SortHeader label="Collective" field="name" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} />
                     </th>
-                    <th className="px-3 py-3 text-right">
-                      <SortHeader label="Events" field="events" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-end" />
+                    <th className="px-3 py-3 text-center">
+                      <SortHeader label="Events" field="events" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-center" />
                     </th>
-                    <th className="px-3 py-3 text-right">
-                      <SortHeader label="Trees" field="trees" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-end" />
+                    <th className="px-3 py-3 text-center">
+                      <SortHeader label="Attendees" field="attendees" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-center" />
                     </th>
-                    <th className="px-3 py-3 text-right">
-                      <SortHeader label="Rubbish" field="rubbish" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-end" />
+                    <th className="px-3 py-3 text-center">
+                      <SortHeader label="Trees" field="trees" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-center" />
                     </th>
-                    <th className="px-3 py-3 text-right">
-                      <SortHeader label="Weeds" field="weeds" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-end" />
+                    <th className="px-3 py-3 text-center">
+                      <SortHeader label="Rubbish (kg)" field="rubbish" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-center" />
                     </th>
-                    <th className="px-3 py-3 text-right">
-                      <SortHeader label="Hours" field="hours" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-end" />
+                    <th className="px-3 py-3 text-center">
+                      <SortHeader label="Weeds" field="weeds" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-center" />
+                    </th>
+                    <th className="px-3 py-3 text-center">
+                      <SortHeader label="Est. Hours" field="hours" currentField={collSort} currentDir={collDir} onSort={toggleCollSort} className="justify-center" />
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {sortedCollectives.map((c) => {
-                    const maxTrees = Math.max(...sortedCollectives.map((x) => x.trees), 1)
-                    return (
-                      <tr
-                        key={c.collectiveId}
-                        className="border-b border-primary-50 last:border-b-0 hover:bg-primary-25 transition-colors cursor-pointer"
-                        onClick={() => setCollectiveId(c.collectiveId)}
-                      >
-                        <td className="px-4 py-3">
-                          <span className="font-semibold text-primary-800 text-sm">{c.name}</span>
-                          {/* Inline bar */}
-                          <div className="mt-1.5 h-1.5 w-full max-w-[120px] bg-primary-50 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-moss-400 rounded-full transition-all duration-300"
-                              style={{ width: `${(c.trees / maxTrees) * 100}%` }}
-                            />
-                          </div>
-                        </td>
-                        <td className="px-3 py-3 text-right font-medium text-primary-700 tabular-nums">{c.eventCount}</td>
-                        <td className="px-3 py-3 text-right font-medium text-primary-700 tabular-nums">{fmtNum(c.trees)}</td>
-                        <td className="px-3 py-3 text-right font-medium text-primary-700 tabular-nums">{fmtDec(c.rubbish)}</td>
-                        <td className="px-3 py-3 text-right font-medium text-primary-700 tabular-nums">{fmtNum(c.weeds)}</td>
-                        <td className="px-3 py-3 text-right font-medium text-primary-700 tabular-nums">{fmtDec(c.hours)}</td>
-                      </tr>
-                    )
-                  })}
+                  {sortedCollectives.map((c) => (
+                    <tr
+                      key={c.collectiveId}
+                      className="border-b border-primary-50 last:border-b-0 hover:bg-primary-25 transition-colors cursor-pointer"
+                      onClick={() => setCollectiveId(c.collectiveId)}
+                    >
+                      <td className="px-4 py-3 text-left">
+                        <span className="font-semibold text-primary-800 text-sm">{c.name}</span>
+                      </td>
+                      <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{c.eventCount}</td>
+                      <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtNum(c.attendees)}</td>
+                      <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtNum(c.trees)}</td>
+                      <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtDec(c.rubbish)}</td>
+                      <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtNum(c.weeds)}</td>
+                      <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtDec(c.hours)}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -526,32 +538,32 @@ export default function AdminImpactObservationsPage() {
 
         <div className="rounded-2xl bg-white shadow-md border border-primary-100/50 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-primary-100">
-                  <th className="px-4 py-3">
+                  <th className="px-4 py-3 text-left">
                     <SortHeader label="Date" field="date" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} />
                   </th>
-                  <th className="px-3 py-3 min-w-[180px]">
+                  <th className="px-3 py-3 text-left min-w-[180px]">
                     <SortHeader label="Event" field="title" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} />
                   </th>
-                  <th className="px-3 py-3">
+                  <th className="px-3 py-3 text-left">
                     <SortHeader label="Collective" field="collective" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} />
                   </th>
-                  <th className="px-3 py-3">
+                  <th className="px-3 py-3 text-center">
                     <span className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Type</span>
                   </th>
-                  <th className="px-3 py-3 text-right">
-                    <SortHeader label="Trees" field="trees" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} className="justify-end" />
+                  <th className="px-3 py-3 text-center">
+                    <SortHeader label="Trees" field="trees" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} className="justify-center" />
                   </th>
-                  <th className="px-3 py-3 text-right">
-                    <SortHeader label="Rubbish" field="rubbish" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} className="justify-end" />
+                  <th className="px-3 py-3 text-center">
+                    <SortHeader label="Rubbish (kg)" field="rubbish" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} className="justify-center" />
                   </th>
-                  <th className="px-3 py-3 text-right">
-                    <SortHeader label="Weeds" field="weeds" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} className="justify-end" />
+                  <th className="px-3 py-3 text-center">
+                    <SortHeader label="Weeds" field="weeds" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} className="justify-center" />
                   </th>
-                  <th className="px-3 py-3 text-right">
-                    <SortHeader label="Hours" field="hours" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} className="justify-end" />
+                  <th className="px-3 py-3 text-center">
+                    <SortHeader label="Est. Hours" field="hours" currentField={eventSort} currentDir={eventDir} onSort={toggleEventSort} className="justify-center" />
                   </th>
                 </tr>
               </thead>
@@ -563,53 +575,48 @@ export default function AdminImpactObservationsPage() {
                     </td>
                   </tr>
                 ) : (
-                  displayEvents.map((row) => (
-                    <tr
-                      key={row.eventId}
-                      className="border-b border-primary-50 last:border-b-0 hover:bg-primary-25 transition-colors group"
-                    >
-                      <td className="px-4 py-3 text-xs text-primary-500 tabular-nums whitespace-nowrap">
-                        {fmtDate(row.date)}
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="flex items-center gap-2">
-                          <Link
-                            to={`/events/${row.eventId}`}
-                            className="text-sm font-medium text-primary-800 hover:text-primary-600 transition-colors line-clamp-1"
-                          >
-                            {row.title}
-                          </Link>
-                          <ExternalLink size={12} className="text-primary-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                          {row.isLegacy && (
-                            <Badge variant="default" size="sm">Legacy</Badge>
+                  displayEvents.map((row) => {
+                    const hours = row.hoursTotal ?? row.estimatedVolHours
+                    return (
+                      <tr
+                        key={row.eventId}
+                        className="border-b border-primary-50 last:border-b-0 hover:bg-primary-25 transition-colors group"
+                      >
+                        <td className="px-4 py-3 text-xs text-primary-500 tabular-nums whitespace-nowrap">
+                          {fmtDate(row.date)}
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="flex items-center gap-2">
+                            <Link
+                              to={`/events/${row.eventId}`}
+                              className="text-sm font-medium text-primary-800 hover:text-primary-600 transition-colors line-clamp-1"
+                            >
+                              {row.title}
+                            </Link>
+                            <ExternalLink size={12} className="text-primary-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                            {row.isLegacy && (
+                              <Badge variant="default" size="sm">Legacy</Badge>
+                            )}
+                          </div>
+                          {row.attendance != null && (
+                            <span className="text-[11px] text-primary-400">{row.attendance} attendees</span>
                           )}
-                        </div>
-                        {row.attendance != null && (
-                          <span className="text-[11px] text-primary-400">{row.attendance} attendees</span>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-xs text-primary-500 whitespace-nowrap">
-                        {row.collectiveName}
-                      </td>
-                      <td className="px-3 py-3">
-                        <span className={cn(
-                          'inline-flex px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider',
-                          row.activityType === 'shore_cleanup' ? 'bg-sky-100 text-sky-700'
-                            : row.activityType === 'tree_planting' ? 'bg-moss-100 text-moss-700'
-                            : row.activityType === 'land_regeneration' ? 'bg-sprout-100 text-sprout-700'
-                            : row.activityType === 'nature_walk' ? 'bg-primary-100 text-primary-700'
-                            : row.activityType === 'marine_restoration' ? 'bg-info-100 text-info-700'
-                            : 'bg-bark-100 text-bark-700',
-                        )}>
-                          {ACTIVITY_TYPE_LABELS[row.activityType] ?? row.activityType}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-right text-sm font-medium text-primary-700 tabular-nums">{fmtNum(row.treesPlanted)}</td>
-                      <td className="px-3 py-3 text-right text-sm font-medium text-primary-700 tabular-nums">{fmtDec(row.rubbishKg)}</td>
-                      <td className="px-3 py-3 text-right text-sm font-medium text-primary-700 tabular-nums">{fmtNum(row.invasiveWeedsPulled)}</td>
-                      <td className="px-3 py-3 text-right text-sm font-medium text-primary-700 tabular-nums">{fmtDec(row.hoursTotal)}</td>
-                    </tr>
-                  ))
+                        </td>
+                        <td className="px-3 py-3 text-xs text-primary-500 whitespace-nowrap">
+                          {row.collectiveName}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <Badge variant="activity" activity={activityToBadge(row.activityType)} size="sm">
+                            {ACTIVITY_TYPE_LABELS[row.activityType] ?? row.activityType}
+                          </Badge>
+                        </td>
+                        <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtNum(row.treesPlanted)}</td>
+                        <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtDec(row.rubbishKg, 'kg')}</td>
+                        <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtNum(row.invasiveWeedsPulled)}</td>
+                        <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtDec(hours, 'hrs')}</td>
+                      </tr>
+                    )
+                  })
                 )}
               </tbody>
             </table>
@@ -638,7 +645,7 @@ export default function AdminImpactObservationsPage() {
           </motion.div>
         )}
         <motion.div variants={v.fadeUp}>
-          <DataQualityPanel rm={rm} />
+          <DataQualityPanel />
         </motion.div>
       </div>
     </motion.div>

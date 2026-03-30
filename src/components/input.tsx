@@ -121,6 +121,7 @@ export const Input = forwardRef<
   )
 
   const isDate = type === 'date'
+  const isCompact = compact && !label
   const isFloating = focused || filled || isDate
   const isTextarea = type === 'textarea'
   const isSearch = type === 'search'
@@ -128,9 +129,11 @@ export const Input = forwardRef<
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type
 
   const sharedClasses = cn(
-    'peer w-full rounded-lg px-4 pt-7 pb-2',
+    'peer w-full rounded-lg px-4',
+    isCompact ? 'py-3' : 'pt-7 pb-2',
     inputClassName ?? 'bg-surface-3',
     'text-[16px] leading-normal text-primary-800',
+    'placeholder:text-primary-300',
     'outline-none transition-colors duration-150',
     'disabled:opacity-50 disabled:cursor-not-allowed',
     (isSearch || icon) && 'pl-10',
@@ -192,12 +195,12 @@ export const Input = forwardRef<
             disabled={disabled}
             required={required}
             autoComplete={autoComplete}
-            placeholder={focused ? placeholder : undefined}
+            placeholder={isCompact ? placeholder : focused ? placeholder : undefined}
             aria-label={ariaLabel}
             aria-invalid={!!error}
             aria-describedby={describedBy}
             maxLength={maxLength}
-            className={cn(sharedClasses, 'resize-y min-h-[100px]')}
+            className={cn(sharedClasses, 'resize-y', isCompact ? 'min-h-[80px]' : 'min-h-[100px]')}
           />
         ) : (
           <input
@@ -213,7 +216,7 @@ export const Input = forwardRef<
             disabled={disabled}
             required={required}
             autoComplete={autoComplete}
-            placeholder={focused ? placeholder : undefined}
+            placeholder={isCompact ? placeholder : focused ? placeholder : undefined}
             aria-label={ariaLabel}
             aria-invalid={!!error}
             aria-describedby={describedBy}
@@ -226,19 +229,21 @@ export const Input = forwardRef<
         )}
 
         {/* Floating label */}
-        <motion.label
-          htmlFor={id}
-          {...(labelMotion as Record<string, unknown>)}
-          className={cn(
-            'absolute left-4 top-3 pointer-events-none',
-            'text-[16px] leading-normal origin-left',
-            (isSearch || icon) && 'left-10',
-            error ? 'text-error' : focused ? 'text-primary-400' : 'text-primary-400',
-          )}
-        >
-          {label}
-          {required && <span className="text-error ml-0.5">*</span>}
-        </motion.label>
+        {!isCompact && (
+          <motion.label
+            htmlFor={id}
+            {...(labelMotion as Record<string, unknown>)}
+            className={cn(
+              'absolute left-4 top-3 pointer-events-none',
+              'text-[16px] leading-normal origin-left',
+              (isSearch || icon) && 'left-10',
+              error ? 'text-error' : focused ? 'text-primary-400' : 'text-primary-400',
+            )}
+          >
+            {label}
+            {required && <span className="text-error ml-0.5">*</span>}
+          </motion.label>
+        )}
 
         {/* Password toggle */}
         {isPassword && (

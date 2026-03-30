@@ -1,5 +1,4 @@
 // Deno Edge Function
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 /**
@@ -16,7 +15,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
  * Uses `event_day_notifications_sent` tracking table to prevent duplicates.
  */
 
-serve(async (req: Request) => {
+Deno.serve(async (req: Request) => {
   try {
     // Verify caller is using the service-role key (cron invocations)
     const authHeader = req.headers.get('Authorization')
