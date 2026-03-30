@@ -2,6 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 import { getDateRangeStart, type DateRange } from '@/hooks/use-admin-dashboard'
+import type { Database } from '@/types/database.types'
+
+type ActivityType = Database['public']['Enums']['activity_type']
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -10,7 +13,7 @@ import { getDateRangeStart, type DateRange } from '@/hooks/use-admin-dashboard'
 export interface ObservationFilters {
   dateRange: DateRange
   collectiveId?: string
-  activityType?: string
+  activityType?: ActivityType
   search?: string
 }
 
@@ -20,7 +23,7 @@ export interface EventImpactRow {
   date: string
   collectiveName: string
   collectiveId: string
-  activityType: string
+  activityType: ActivityType
   treesPlanted: number | null
   rubbishKg: number | null
   invasiveWeedsPulled: number | null
