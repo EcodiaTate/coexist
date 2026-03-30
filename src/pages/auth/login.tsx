@@ -138,10 +138,16 @@ export default function LoginPage() {
       />
 
       {/* ── Content ── */}
-      <div className="relative z-10 flex-1 flex flex-col w-full max-w-[440px] mx-auto">
+      <div className="relative z-10 flex-1 flex flex-col w-full max-w-[440px] mx-auto overflow-y-auto">
         <motion.form
           onSubmit={handleSubmit}
           className="flex-1 flex flex-col"
+          onFocus={(e) => {
+            const target = e.target as HTMLElement
+            if (target.tagName === 'INPUT') {
+              setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)
+            }
+          }}
         >
           {/* Back button */}
           <Header title="" back onBack={() => navigate('/welcome')} transparent />

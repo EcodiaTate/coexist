@@ -971,7 +971,9 @@ export default function LeaderDashboardPage() {
   }, [pendingTasks])
 
   const collectiveNameRaw = collectiveDetail?.name ?? 'Your Collective'
-  const collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
+  const collectiveName = collectiveDetail?.name
+    ? collectiveNameRaw.replace(/\s+Collective$/i, '')
+    : collectiveNameRaw
 
   const fullBleedOpts = useMemo(() => ({ fullBleed: true as const }), [])
   useLeaderHeader('Dashboard', fullBleedOpts)

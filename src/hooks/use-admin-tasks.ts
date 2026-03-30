@@ -247,13 +247,7 @@ export function useAdminCreateTemplate() {
       const row = data as TemplateRow
       return { ...row, collective: row.collectives } as unknown as TaskTemplate
     },
-    onSuccess: (created) => {
-      // Immediately prepend the new template into all matching query caches
-      // so it shows up instantly without waiting for the refetch
-      queryClient.setQueriesData<TaskTemplate[]>(
-        { queryKey: ['admin-task-templates'] },
-        (old) => old ? [created, ...old] : [created],
-      )
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-task-templates'] })
     },
   })
@@ -276,12 +270,7 @@ export function useAdminUpdateTemplate() {
       const row = data as TemplateRow
       return { ...row, collective: row.collectives } as unknown as TaskTemplate
     },
-    onSuccess: (updated) => {
-      // Instantly replace the updated template in cache
-      queryClient.setQueriesData<TaskTemplate[]>(
-        { queryKey: ['admin-task-templates'] },
-        (old) => old?.map((t) => (t.id === updated.id ? updated : t)) ?? [],
-      )
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-task-templates'] })
     },
   })

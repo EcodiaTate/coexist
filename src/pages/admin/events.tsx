@@ -153,6 +153,7 @@ function CountdownBadge({ dateStr }: { dateStr: string }) {
 /* ------------------------------------------------------------------ */
 
 function EventCard({ event, index }: { event: AdminEvent; index: number }) {
+  const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const isPast = new Date(event.date_start) < new Date()
   const actColor = activityColors[event.activity_type ?? ''] ?? 'bg-primary-50 text-primary-600'
@@ -239,22 +240,22 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
               <span>{event.registrationCount} registered{event.capacity ? ` / ${event.capacity}` : ''}</span>
             </div>
             <div className="flex items-center gap-0.5">
-              <Link
-                to={`/events/${event.id}/day`}
-                onClick={(e) => e.stopPropagation()}
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/events/${event.id}/day`) }}
                 className="flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
                 title="Event Day"
               >
                 <ClipboardList size={16} />
-              </Link>
-              <Link
-                to={`/events/${event.id}/edit`}
-                onClick={(e) => e.stopPropagation()}
+              </button>
+              <button
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/events/${event.id}/edit`) }}
                 className="flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
                 title="Edit Event"
               >
                 <Pencil size={16} />
-              </Link>
+              </button>
             </div>
           </div>
         </div>

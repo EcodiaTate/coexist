@@ -502,28 +502,7 @@ function TemplateModal({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Instructions or details for this task..."
         />
-        <Dropdown
-          options={collectiveOptions}
-          value={collectiveId}
-          onChange={setCollectiveId}
-          label="Scope"
-        />
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Dropdown
-            options={TASK_CATEGORIES}
-            value={category}
-            onChange={setCategory}
-            label="Category"
-          />
-          <Dropdown
-            options={assigneeRoleOptions}
-            value={assigneeRole}
-            onChange={setAssigneeRole}
-            label="Visible To"
-          />
-        </div>
-
-        {/* Assignment mode */}
+        {/* Assignment mode — placed before scope/category so conditional fields make sense */}
         <div>
           <p className="text-sm font-medium text-primary-800 mb-2">Completion Mode</p>
           <div className="flex gap-2">
@@ -602,6 +581,32 @@ function TemplateModal({
                 </p>
               )}
             </div>
+          )}
+        </div>
+
+        {/* Scope & targeting — hidden for assigned mode (task goes to a specific person) */}
+        {assignmentMode !== 'assigned' && (
+          <Dropdown
+            options={collectiveOptions}
+            value={collectiveId}
+            onChange={setCollectiveId}
+            label="Scope"
+          />
+        )}
+        <div className={cn('grid gap-3', assignmentMode === 'assigned' ? 'grid-cols-1' : 'grid-cols-1 sm:grid-cols-2')}>
+          <Dropdown
+            options={TASK_CATEGORIES}
+            value={category}
+            onChange={setCategory}
+            label="Category"
+          />
+          {assignmentMode !== 'assigned' && (
+            <Dropdown
+              options={assigneeRoleOptions}
+              value={assigneeRole}
+              onChange={setAssigneeRole}
+              label="Visible To"
+            />
           )}
         </div>
 
