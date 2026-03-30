@@ -38,16 +38,7 @@ Deno.serve(async (req: Request) => {
 
     // ---- Authenticate the caller ----
     const authHeader = req.headers.get('authorization')
-    console.log('[create-checkout] Auth header present:', !!authHeader)
-    console.log('[create-checkout] Auth header starts with Bearer:', authHeader?.startsWith('Bearer '))
-    console.log('[create-checkout] Token length:', authHeader?.replace('Bearer ', '').length)
-    console.log('[create-checkout] Request type:', body.type)
-    console.log('[create-checkout] SUPABASE_URL:', supabaseUrl)
-    console.log('[create-checkout] ANON_KEY present:', !!Deno.env.get('SUPABASE_ANON_KEY'))
-    console.log('[create-checkout] SERVICE_ROLE_KEY present:', !!supabaseServiceKey)
-
     if (!authHeader?.startsWith('Bearer ')) {
-      console.log('[create-checkout] REJECTED: Missing or malformed authorization header')
       return new Response(JSON.stringify({ error: 'Missing authorization' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -55,39 +46,14 @@ Deno.serve(async (req: Request) => {
     }
     const token = authHeader.replace('Bearer ', '')
 
-    // Decode JWT payload for diagnostics
-    try {
-      const payloadB64 = token.split('.')[1]
-      const payload = JSON.parse(atob(payloadB64))
-      console.log('[create-checkout] JWT sub:', payload.sub)
-      console.log('[create-checkout] JWT exp:', payload.exp, 'now:', Math.floor(Date.now() / 1000))
-      console.log('[create-checkout] JWT expired?', payload.exp < Math.floor(Date.now() / 1000))
-      console.log('[create-checkout] JWT iss:', payload.iss)
-      console.log('[create-checkout] JWT aud:', payload.aud)
-      console.log('[create-checkout] JWT role:', payload.role)
-    } catch (e) {
-      console.log('[create-checkout] Failed to decode JWT:', (e as Error).message)
-    }
-
     // Use an anon-key client to verify user JWTs. The service-role client's
     // getUser(jwt) is unreliable — matches the pattern used in send-push,
     // send-email, and other working edge functions in this project.
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!
-    console.log('[create-checkout] Creating auth client with anon key length:', anonKey.length)
-    const authClient = createClient(supabaseUrl, anonKey)
+    const authClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!)
     const { data: authData, error: authError } = await authClient.auth.getUser(token)
-    console.log('[create-checkout] getUser result - user:', authData?.user?.id ?? 'null')
-    console.log('[create-checkout] getUser result - error:', authError?.message ?? 'none')
-    console.log('[create-checkout] getUser result - error status:', authError?.status ?? 'none')
-
     const caller = authData?.user
     if (authError || !caller) {
-      console.log('[create-checkout] REJECTED: Auth verification failed')
-      return new Response(JSON.stringify({
-        error: 'Invalid or expired token',
-        debug_auth_error: authError?.message,
-        debug_auth_status: authError?.status,
-      }), {
+      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
