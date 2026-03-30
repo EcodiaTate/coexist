@@ -159,6 +159,7 @@ export interface CollectiveFullStats {
   invasiveWeedsPulled: number
   rubbishKg: number
   cleanupSites: number
+  coastlineCleanedM: number
   leadersEmpowered: number
   eventsLogged: number
   totalMembers: number
@@ -169,7 +170,7 @@ export interface CollectiveFullStats {
 async function fetchCollectiveFullStats(collectiveId: string): Promise<CollectiveFullStats | null> {
   const now = new Date()
 
-  const [impactRes, membersRes, eventsRes, pastEventsRes, cleanupRes, leadersRes] = await Promise.all([
+  const [impactRes, membersRes, eventsRes, pastEventsRes, cleanupRes, leadersCountRes] = await Promise.all([
     supabase
       .from('event_impact')
       .select(`${IMPACT_SELECT_COLUMNS}, events!inner(collective_id)`)
@@ -195,10 +196,10 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
       .in('activity_type', ['shore_cleanup', 'marine_restoration'])
       .lt('date_start', now.toISOString()),
     supabase
-      .from('collective_members')
-      .select('user_id')
-      .eq('collective_id', collectiveId)
-      .in('role', ['assist_leader', 'co_leader', 'leader']),
+      .from('app_settings')
+      .select('value')
+      .eq('key', 'leaders_empowered:' + collectiveId)
+      .single(),
   ])
 
   const rows = (impactRes.data ?? []) as unknown as ImpactRow[]
@@ -223,8 +224,6 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
     }
   }
 
-  const uniqueLeaders = new Set((leadersRes.data ?? []).map((r: { user_id: string }) => r.user_id))
-
   return {
     eventsAttended: attendanceCount,
     volunteerHours: Math.round(sumMetric(rows as Record<string, unknown>[], 'hours_total')),
@@ -232,7 +231,8 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
     invasiveWeedsPulled: sumMetric(rows as Record<string, unknown>[], 'invasive_weeds_pulled'),
     rubbishKg: Math.round(sumMetric(rows as Record<string, unknown>[], 'rubbish_kg') * 10) / 10,
     cleanupSites: cleanupRes.count ?? 0,
-    leadersEmpowered: uniqueLeaders.size,
+    coastlineCleanedM: Math.round(sumMetric(rows as Record<string, unknown>[], 'coastline_cleaned_m')),
+    leadersEmpowered: (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
     eventsLogged: rows.length,
     totalMembers: membersRes.count ?? 0,
     totalEvents: eventsRes.count ?? 0,

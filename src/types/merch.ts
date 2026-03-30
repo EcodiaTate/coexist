@@ -86,6 +86,8 @@ export interface Order {
   shipping_cents: number
   discount_cents: number
   total_cents: number
+  /** Legacy DB column – prefer total_cents */
+  total?: number
   promo_code_id: string | null
   shipping_address: ShippingAddress
   tracking_number: string | null

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, escapeIlike } from '@/lib/supabase'
+import { computeEstimatedHours } from '@/lib/impact-metrics'
 import { logAudit } from '@/lib/audit'
 import type {
   Database,
@@ -234,11 +235,23 @@ export function useAdminCollectiveStats(collectiveId: string | undefined) {
 
       // RPC uses COALESCE(SUM(...), 0) so unmeasured metrics aggregate to 0,
       // which is the correct semantic for dashboard totals (vs null in raw rows).
-      const { data, error } = await supabase.rpc('get_collective_stats', {
-        p_collective_id: collectiveId,
-      })
-      if (error) throw error
-      return data as {
+      const [rpcRes, impactRes] = await Promise.all([
+        supabase.rpc('get_collective_stats', { p_collective_id: collectiveId }),
+        supabase
+          .from('event_impact')
+          .select('hours_total, notes, logged_by, events!inner(date_start, date_end, collective_id)')
+          .eq('events.collective_id', collectiveId),
+      ])
+      if (rpcRes.error) throw rpcRes.error
+
+      const impactRows = (impactRes.data ?? []) as unknown as {
+        hours_total: number | null
+        notes: string | null
+        logged_by: string | null
+        events: { date_start: string; date_end: string | null }
+      }[]
+
+      const rpcData = rpcRes.data as {
         member_count: number
         event_count: number
         trees_planted: number
@@ -249,6 +262,11 @@ export function useAdminCollectiveStats(collectiveId: string | undefined) {
         native_plants: number
         wildlife_sightings: number
         invasive_weeds_pulled: number
+      }
+
+      return {
+        ...rpcData,
+        hours_total: computeEstimatedHours(impactRows),
       }
     },
     enabled: !!collectiveId,

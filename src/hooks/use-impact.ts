@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
-import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
+import { IMPACT_SELECT_COLUMNS, sumMetric, computeEstimatedHours } from '@/lib/impact-metrics'
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -21,9 +21,9 @@ function chunks<T>(arr: T[], size = 50): T[][] {
 
 /**
  * Canonical Co-Exist dashboard impact shape.
- * "leadersEmpowered" is derived from collective_members roles,
- * NOT from event_impact — it increments when a user gets a
- * leadership role, not from survey/logging.
+ * "leadersEmpowered" is a cumulative counter stored in app_settings
+ * (seeded from collective_members, incremented by DB trigger on new
+ * leadership role assignments — never decremented).
  */
 export interface CanonicalImpact {
   /* Community Events */
@@ -60,7 +60,8 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
 
       let impactQuery = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id`)
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events(date_start, date_end)`)
+        .range(0, 9999)
       if (timeRange === 'current-year') {
         impactQuery = impactQuery.gte('logged_at', yearStart)
       }
@@ -83,19 +84,20 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         cleanupQuery = cleanupQuery.gte('date_start', yearStart)
       }
 
-      // Leaders empowered = anyone who holds a leadership role in any collective
-      const leadersQuery = supabase
-        .from('collective_members')
-        .select('user_id')
-        .in('role', ['assist_leader', 'co_leader', 'leader'])
+      // Leaders empowered — cumulative counter from app_settings
+      const leadersCountQuery = supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'leaders_empowered_total')
+        .single()
 
-      const [impactRes, eventsRes, membersRes, collectivesRes, cleanupRes, leadersRes] = await Promise.all([
+      const [impactRes, eventsRes, membersRes, collectivesRes, cleanupRes, leadersCountRes] = await Promise.all([
         impactQuery,
         eventsQuery,
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
         cleanupQuery,
-        leadersQuery,
+        leadersCountQuery,
       ])
 
       if (impactRes.error) throw impactRes.error
@@ -103,9 +105,13 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       if (membersRes.error) throw membersRes.error
       if (collectivesRes.error) throw collectivesRes.error
       if (cleanupRes.error) throw cleanupRes.error
-      if (leadersRes.error) throw leadersRes.error
+      // leadersCountRes may not exist yet — don't throw
 
       const logs = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
+      const logsWithEvents = logs.map((r) => ({
+        ...r,
+        events: r.events as { date_start: string; date_end: string | null } | null,
+      }))
 
       // Count ALL event attendances nationally (not just events with impact logs)
       let attendanceQuery = supabase
@@ -117,17 +123,31 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       }
       const { count: attendanceCount } = await attendanceQuery
 
+      // Also count legacy attendance from impact notes
+      // Fetch ALL legacy notes (select only notes column, use range to avoid 1000-row cap)
+      let legacyNotesQuery = supabase
+        .from('event_impact')
+        .select('notes')
+        .like('notes', 'Legacy import:%')
+        .range(0, 9999)
+      if (timeRange === 'current-year') {
+        legacyNotesQuery = legacyNotesQuery.gte('logged_at', yearStart)
+      }
+      const { data: legacyNotes } = await legacyNotesQuery
+      let legacyAttendance = 0
+      for (const r of (legacyNotes ?? [])) {
+        const m = (r.notes as string)?.match(/Legacy import:\s*(\d+)\s*attendees/)
+        if (m) legacyAttendance += parseInt(m[1])
+      }
+
       // Count unique cleanup sites by address
       const cleanupAddresses = new Set(
         (cleanupRes.data ?? []).map((e: { address: string | null }) => (e.address ?? '').trim().toLowerCase()).filter(Boolean)
       )
 
-      // Count unique users with leadership roles
-      const uniqueLeaders = new Set((leadersRes.data ?? []).map((r: { user_id: string }) => r.user_id))
-
       return {
-        eventsAttended: attendanceCount ?? 0,
-        volunteerHours: Math.round(sumMetric(logs, 'hours_total')),
+        eventsAttended: (attendanceCount ?? 0) + legacyAttendance,
+        volunteerHours: computeEstimatedHours(logsWithEvents),
         eventsHeld: eventsRes.count ?? 0,
         treesPlanted: sumMetric(logs, 'trees_planted'),
         invasiveWeedsPulled: sumMetric(logs, 'invasive_weeds_pulled'),
@@ -135,7 +155,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         cleanupSites: cleanupAddresses.size,
         coastlineCleanedM: Math.round(sumMetric(logs, 'coastline_cleaned_m')),
         collectivesCount: collectivesRes.count ?? 0,
-        leadersEmpowered: uniqueLeaders.size,
+        leadersEmpowered: (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
         totalMembers: membersRes.count ?? 0,
       }
     },
@@ -156,7 +176,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
 
       let impactQuery = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id)`)
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id, date_start, date_end)`)
         .eq('events.collective_id', collectiveId)
       if (timeRange === 'current-year') {
         impactQuery = impactQuery.gte('logged_at', yearStart)
@@ -181,15 +201,19 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
         eventsQuery = eventsQuery.gte('date_start', yearStart)
       }
 
-      const leadersQuery = supabase
-        .from('collective_members')
-        .select('user_id')
-        .eq('collective_id', collectiveId)
-        .in('role', ['assist_leader', 'co_leader', 'leader'])
+      const leadersCountQuery = supabase
+        .from('app_settings')
+        .select('value')
+        .eq('key', 'leaders_empowered:' + collectiveId)
+        .single()
 
-      const [impactRes, cleanupRes, eventsRes, leadersRes] = await Promise.all([impactQuery, cleanupQuery, eventsQuery, leadersQuery])
+      const [impactRes, cleanupRes, eventsRes, leadersCountRes] = await Promise.all([impactQuery, cleanupQuery, eventsQuery, leadersCountQuery])
 
       const rows = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
+      const rowsWithEvents = rows.map((r) => ({
+        ...r,
+        events: r.events as { date_start: string; date_end: string | null } | null,
+      }))
 
       // Count ALL event attendances for this collective's events (not just those with impact)
       const allEventIds = (eventsRes.data ?? []).map((e) => e.id)
@@ -206,14 +230,20 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
       )
       for (const { count } of chunkResults) attendanceCount += count ?? 0
 
+      // Also count legacy attendance from impact notes
+      let legacyAttendance = 0
+      for (const r of rows) {
+        const notes = r.notes as string | null
+        const m = notes?.match(/Legacy import:\s*(\d+)\s*attendees/)
+        if (m) legacyAttendance += parseInt(m[1])
+      }
+
       const cleanupAddresses = new Set(
         (cleanupRes.data ?? []).map((e: { address: string | null }) => (e.address ?? '').trim().toLowerCase()).filter(Boolean)
       )
-      const uniqueLeaders = new Set((leadersRes.data ?? []).map((r: { user_id: string }) => r.user_id))
-
       return {
-        eventsAttended: attendanceCount,
-        volunteerHours: Math.round(sumMetric(rows, 'hours_total')),
+        eventsAttended: attendanceCount + legacyAttendance,
+        volunteerHours: computeEstimatedHours(rowsWithEvents),
         eventsHeld: eventsRes.count ?? 0,
         treesPlanted: sumMetric(rows, 'trees_planted'),
         invasiveWeedsPulled: sumMetric(rows, 'invasive_weeds_pulled'),
@@ -221,7 +251,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
         cleanupSites: cleanupAddresses.size,
         coastlineCleanedM: Math.round(sumMetric(rows, 'coastline_cleaned_m')),
         collectivesCount: 1,
-        leadersEmpowered: uniqueLeaders.size,
+        leadersEmpowered: (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
       }
     },
     enabled: !!collectiveId,

@@ -364,10 +364,11 @@ export default function AdminImpactObservationsPage() {
 
   /* ── Pick which metrics have data to show in tables ── */
   const visibleDefs = useMemo(() => {
-    if (!data) return activeDefs
+    if (!data) return activeDefs.filter((d) => d.key !== 'hours_total')
     // Show metrics that have at least one non-zero value across all rows
+    // Exclude hours_total — estimated vol hours are shown in a dedicated column
     return activeDefs.filter((d) =>
-      data.rows.some((r) => (r.metrics[d.key] ?? 0) > 0),
+      d.key !== 'hours_total' && data.rows.some((r) => (r.metrics[d.key] ?? 0) > 0),
     )
   }, [activeDefs, data])
 
@@ -444,7 +445,7 @@ export default function AdminImpactObservationsPage() {
         <AdminHeroStatRow className="!max-w-none grid-cols-2 sm:!grid-cols-3 md:!grid-cols-4 lg:!grid-cols-5 xl:!grid-cols-6 2xl:!grid-cols-8">
           <AdminHeroStat value={data?.summary.totalEvents ?? 0} label="Events" icon={<BarChart3 size={18} />} color="primary" reducedMotion={rm} delay={0} />
           <AdminHeroStat value={data?.summary.totalAttendees ?? 0} label="Attendees" icon={<Users size={18} />} color="warning" reducedMotion={rm} delay={0.04} />
-          {activeDefs.map((def, i) => {
+          {activeDefs.filter((d) => d.key !== 'hours_total').map((def, i) => {
             const val = data?.summary.metrics[def.key] ?? 0
             if (val === 0 && !data) return null
             return (
