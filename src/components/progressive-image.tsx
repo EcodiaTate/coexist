@@ -1,33 +1,51 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
+import { getSrcSet, getPlaceholderUrl, getTransformUrl, isSupabaseStorageUrl } from '@/lib/image-utils'
 
 interface ProgressiveImageProps {
   src: string
   alt: string
-  /** Low-quality placeholder (blur-up) */
+  /** Low-quality placeholder (blur-up) — auto-generated for Supabase URLs if omitted */
   placeholder?: string
   aspectRatio?: string
+  /** CSS sizes attribute for responsive srcset */
+  sizes?: string
   className?: string
 }
 
 /**
  * Image lazy loading with blur -> sharp progressive loading.
- * §42 item 61.
+ * Now enhanced with responsive srcset and auto-generated placeholders.
  */
 export function ProgressiveImage({
   src,
   alt,
   placeholder,
   aspectRatio = '16/9',
+  sizes = '100vw',
   className,
 }: ProgressiveImageProps) {
   const shouldReduceMotion = useReducedMotion()
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
+  const imgRef = useRef<HTMLImageElement>(null)
 
   const handleLoad = useCallback(() => setLoaded(true), [])
   const handleError = useCallback(() => setError(true), [])
+
+  // Check if already cached on mount
+  useEffect(() => {
+    if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
+      setLoaded(true)
+    }
+  }, [src])
+
+  const autoPlaceholder = placeholder || getPlaceholderUrl(src)
+  const srcSet = getSrcSet(src)
+  const imgSrc = isSupabaseStorageUrl(src)
+    ? getTransformUrl(src, { width: 1280, quality: 80 })
+    : src
 
   return (
     <div
@@ -35,17 +53,17 @@ export function ProgressiveImage({
       style={{ aspectRatio }}
     >
       {/* Placeholder / blur layer */}
-      {placeholder && !loaded && !error && (
+      {autoPlaceholder && !loaded && !error && (
         <img
-          src={placeholder}
+          src={autoPlaceholder}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover blur-lg scale-110"
+          className="absolute inset-0 w-full h-full object-cover blur-xl scale-110"
         />
       )}
 
-      {/* Shimmer while loading */}
-      {!loaded && !error && !placeholder && (
+      {/* Shimmer while loading (only if no placeholder available) */}
+      {!loaded && !error && !autoPlaceholder && (
         <div
           className={cn(
             'absolute inset-0 bg-white',
@@ -61,9 +79,13 @@ export function ProgressiveImage({
       {/* Full image */}
       {!error && (
         <motion.img
-          src={src}
+          ref={imgRef}
+          src={imgSrc}
+          srcSet={srcSet || undefined}
+          sizes={srcSet ? sizes : undefined}
           alt={alt}
           loading="lazy"
+          decoding="async"
           onLoad={handleLoad}
           onError={handleError}
           className={cn(

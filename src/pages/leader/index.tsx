@@ -1099,6 +1099,8 @@ export default function LeaderDashboardPage() {
               <img
                 src={collectiveDetail.cover_image_url}
                 alt={collectiveName}
+                loading="eager"
+                decoding="async"
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -1298,6 +1300,8 @@ export default function LeaderDashboardPage() {
                       <img
                         src={event.cover_image_url}
                         alt=""
+                        loading="lazy"
+                        decoding="async"
                         className="w-14 h-14 rounded-xl object-cover shrink-0"
                       />
                     ) : (

@@ -1,6 +1,7 @@
 import { useState, useCallback, memo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
+import { getSrcSet, getTransformUrl, isSupabaseStorageUrl } from '@/lib/image-utils'
 
 interface GridImage {
   src: string
@@ -60,9 +61,12 @@ const PhotoItem = memo(function PhotoItem({
       )}
     >
       <img
-        src={image.src}
+        src={isSupabaseStorageUrl(image.src) ? getTransformUrl(image.src, { width: 640, quality: 80 }) : image.src}
+        srcSet={getSrcSet(image.src, [200, 400, 640]) || undefined}
+        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
         alt={image.alt}
         loading="lazy"
+        decoding="async"
         onLoad={handleLoad}
         className={cn(
           'h-full w-full object-cover transition-opacity duration-300',

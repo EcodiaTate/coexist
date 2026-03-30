@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Share2 } from 'lucide-react'
 import { Header, Badge } from '@/components'
+import { OptimizedImage } from '@/components/optimized-image'
 import { ACTIVITY_TYPE_LABELS, getCountdown } from '@/hooks/use-events'
 import { cn } from '@/lib/cn'
 import type { EventDetailData } from '@/hooks/use-events'
@@ -48,10 +49,12 @@ export function EventHero({ event, past, userStatus, accent, onShare }: EventHer
       {event.cover_image_url && (
         <div className="relative -mx-4 lg:-mx-6">
           <div className="relative w-full overflow-hidden" style={{ aspectRatio: '3/4', maxHeight: '56vh' }}>
-            <img
+            <OptimizedImage
               src={event.cover_image_url}
               alt={event.title}
-              className="absolute inset-0 w-full h-full object-cover"
+              priority
+              sizes="100vw"
+              wrapperClassName="absolute inset-0"
             />
             <div
               className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-black/10"

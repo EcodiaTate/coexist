@@ -81,6 +81,7 @@ export { WhatsNext } from './whats-next'
 
 // Performance
 export { ProgressiveImage } from './progressive-image'
+export { OptimizedImage } from './optimized-image'
 
 // Upload
 export { UploadProgress } from './upload-progress'

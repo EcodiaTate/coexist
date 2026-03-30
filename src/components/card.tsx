@@ -7,6 +7,7 @@ import {
 } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { cn } from '@/lib/cn'
+import { OptimizedImage } from './optimized-image'
 
 /* ------------------------------------------------------------------ */
 /*  Context                                                            */
@@ -122,15 +123,13 @@ function CardImage({
   const hasGradient = variant === 'event'
 
   return (
-    <div
-      className={cn('relative w-full overflow-hidden', className)}
-      style={{ aspectRatio }}
-    >
-      <img
+    <div className={cn('relative w-full overflow-hidden', className)} style={{ aspectRatio }}>
+      <OptimizedImage
         src={src}
         alt={alt}
-        loading="lazy"
-        className="absolute inset-0 w-full h-full object-cover"
+        aspectRatio={aspectRatio}
+        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        className="absolute inset-0"
       />
       {hasGradient && (
         <div

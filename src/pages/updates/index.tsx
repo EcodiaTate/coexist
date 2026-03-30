@@ -138,7 +138,7 @@ function CardThumbnail({ images }: { images: string[] }) {
   if (images.length === 1) {
     return (
       <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 ring-1 ring-black/[0.04]">
-        <img src={images[0]} alt="" loading="lazy" className="w-full h-full object-cover" />
+        <img src={images[0]} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
       </div>
     )
   }
@@ -148,7 +148,7 @@ function CardThumbnail({ images }: { images: string[] }) {
     <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 grid grid-cols-2 gap-0.5 bg-primary-100 ring-1 ring-black/[0.04]">
       {images.slice(0, 4).map((src, i) => (
         <div key={i} className="relative overflow-hidden">
-          <img src={src} alt="" loading="lazy" className="w-full h-full object-cover" />
+          <img src={src} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover" />
           {i === 3 && images.length > 4 && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
               <span className="text-white text-[10px] font-bold">+{images.length - 4}</span>
