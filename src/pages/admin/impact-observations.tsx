@@ -390,10 +390,26 @@ export default function AdminImpactObservationsPage() {
   )
   const displayEvents = showAllEvents ? sortedEvents : sortedEvents.slice(0, 50)
 
-  const sortedCollectives = useMemo(
-    () => (data ? sortCollectives(data.collectiveBreakdown, collSort, collDir) : []),
-    [data, collSort, collDir],
-  )
+  const sortedCollectives = useMemo(() => {
+    if (!data) return []
+    const breakdown = new Map(data.collectiveBreakdown.map((c) => [c.collectiveId, c]))
+    // Merge in all active collectives so ones without impact data still appear
+    for (const c of collectives ?? []) {
+      if (!breakdown.has(c.id)) {
+        const metrics: Record<string, number> = {}
+        for (const d of activeDefs) metrics[d.key] = 0
+        breakdown.set(c.id, {
+          collectiveId: c.id,
+          name: c.name,
+          eventCount: 0,
+          attendees: 0,
+          metrics,
+          estimatedHours: 0,
+        })
+      }
+    }
+    return sortCollectives([...breakdown.values()], collSort, collDir)
+  }, [data, collectives, activeDefs, collSort, collDir])
 
   /* ── Dropdown options ── */
   const collectiveOptions = useMemo(

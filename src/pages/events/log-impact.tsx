@@ -191,7 +191,7 @@ function PhotoUploadSection({
       <div className="flex gap-2 overflow-x-auto px-4 lg:px-6 pb-1 scrollbar-none">
         {photos.map((p, i) => (
           <div key={i} className="relative shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-white">
-            <img src={p} alt={`Photo ${i + 1}`} className="w-full h-full object-cover" />
+            <img src={p} alt={`Photo ${i + 1}`} loading="lazy" decoding="async" className="w-full h-full object-cover" />
             <button
               type="button"
               onClick={() => onRemove(i)}

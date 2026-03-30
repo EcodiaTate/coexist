@@ -271,7 +271,7 @@ function UpdateDetailView({
           <div className="mt-6 space-y-3">
             {extraImages.map((src, i) => (
               <div key={i} className="rounded-2xl overflow-hidden ring-1 ring-black/[0.04]">
-                <img src={src} alt="" loading="lazy" className="w-full object-cover" />
+                <img src={src} alt="" loading="lazy" decoding="async" className="w-full object-cover" />
               </div>
             ))}
           </div>

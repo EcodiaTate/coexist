@@ -232,6 +232,7 @@ export default function CreateUpdatePage() {
                     <img
                       src={src}
                       alt={`Selected photo ${i + 1}`}
+                      decoding="async"
                       className="w-full h-full object-cover"
                     />
                     <button
@@ -431,6 +432,8 @@ export default function CreateUpdatePage() {
                           <img
                             src={collective.cover_image_url}
                             alt=""
+                            loading="lazy"
+                            decoding="async"
                             className="w-10 h-10 rounded-xl object-cover shrink-0"
                           />
                         ) : (
@@ -565,6 +568,7 @@ export default function CreateUpdatePage() {
                     <img
                       src={previews[0]}
                       alt=""
+                      decoding="async"
                       className="w-full aspect-[16/9] object-cover"
                     />
                   </div>
@@ -582,6 +586,7 @@ export default function CreateUpdatePage() {
                         <img
                           src={src}
                           alt=""
+                          decoding="async"
                           className="w-full h-full object-cover"
                         />
                         {i === 5 && previews.length > 6 && (

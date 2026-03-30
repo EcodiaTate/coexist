@@ -156,6 +156,8 @@ function SlideCard({
       <img
         src={slide.url}
         alt={slide.caption || `Slide ${index + 1}`}
+        loading="lazy"
+        decoding="async"
         className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover shrink-0 bg-primary-100"
       />
       <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
@@ -300,7 +302,7 @@ function SortableBlock({
 
       {/* Thumbnail for visual types */}
       {block.content_type === 'slideshow' && block.image_urls?.[0] && (
-        <img src={block.image_urls[0]} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />
+        <img src={block.image_urls[0]} alt="" loading="lazy" decoding="async" className="w-10 h-10 rounded-lg object-cover shrink-0" />
       )}
 
       <div className="flex-1 min-w-0">

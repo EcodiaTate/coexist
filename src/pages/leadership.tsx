@@ -97,6 +97,8 @@ export default function LeadershipPage() {
             <img
               src="/img/leadership-hero-bg.webp"
               alt="Co-Exist leadership landscape"
+              decoding="async"
+              fetchPriority="high"
               className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
             />
           </div>
@@ -109,6 +111,7 @@ export default function LeadershipPage() {
             <img
               src="/img/leadership-hero-fg.webp"
               alt=""
+              decoding="async"
               className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
             />
           </div>
