@@ -1,23 +1,25 @@
+import { useState } from 'react'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 import {
-    Heart, Users, ExternalLink,
-    TreePine, Waves,
+    Heart, Users, Repeat,
+    TreePine, Waves, Loader2,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
+import { Input } from '@/components/input'
+import { Toggle } from '@/components/toggle'
 import { Skeleton } from '@/components/skeleton'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { useCreateDonation } from '@/hooks/use-donations'
+import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase'
-import { WEBSITE_URL } from '@/lib/constants'
-import { openExternal } from '@/lib/open-external'
 import { cn } from '@/lib/cn'
-
-const DONATE_URL = `${WEBSITE_URL}/donate`
+import { PRESET_AMOUNTS, IMPACT_EQUIVALENCIES, type DonationFrequency } from '@/types/donations'
 
 /* ------------------------------------------------------------------ */
 /*  National impact stats (same query as /impact/national)             */
@@ -246,6 +248,216 @@ function DonateHero({ rm }: { rm: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Donation form                                                      */
+/* ------------------------------------------------------------------ */
+
+function DonationForm() {
+  const { user } = useAuth()
+  const createDonation = useCreateDonation()
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(25)
+  const [customAmount, setCustomAmount] = useState('')
+  const [frequency, setFrequency] = useState<DonationFrequency>('one_time')
+  const [message, setMessage] = useState('')
+  const [isPublic, setIsPublic] = useState(true)
+
+  const amount = selectedAmount ?? (Number(customAmount) || 0)
+  const isValid = amount >= 1 && amount <= 50000
+
+  const impactText = (() => {
+    const thresholds = Object.keys(IMPACT_EQUIVALENCIES)
+      .map(Number)
+      .sort((a, b) => b - a)
+    const match = thresholds.find((t) => amount >= t)
+    return match ? IMPACT_EQUIVALENCIES[match] : null
+  })()
+
+  const handlePresetSelect = (preset: number) => {
+    setSelectedAmount(preset)
+    setCustomAmount('')
+  }
+
+  const handleCustomChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setSelectedAmount(null)
+    setCustomAmount(e.target.value)
+  }
+
+  const handleDonate = async () => {
+    if (!isValid) return
+    try {
+      const result = await createDonation.mutateAsync({
+        amount,
+        frequency,
+        message: message.trim() || undefined,
+        isPublic,
+      })
+      // Redirect to Stripe Checkout
+      if (result.url) {
+        window.location.href = result.url
+      }
+    } catch {
+      // Error is handled by TanStack Query
+    }
+  }
+
+  return (
+    <div className="rounded-[20px] bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] p-6">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-5">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-moss-700 flex items-center justify-center shrink-0 shadow-md shadow-primary-500/25">
+          <Heart size={18} className="text-white" />
+        </div>
+        <div>
+          <h2 className="font-heading font-extrabold text-secondary-900 text-lg">
+            Make a donation
+          </h2>
+          <p className="text-xs text-primary-400 mt-0.5">
+            Secure payment via Stripe
+          </p>
+        </div>
+      </div>
+
+      {/* Frequency toggle */}
+      <div className="flex rounded-2xl bg-primary-50/60 p-1 mb-5">
+        <button
+          type="button"
+          onClick={() => setFrequency('one_time')}
+          className={cn(
+            'flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200',
+            frequency === 'one_time'
+              ? 'bg-white text-secondary-800 shadow-sm'
+              : 'text-primary-400 hover:text-primary-500',
+          )}
+        >
+          One-time
+        </button>
+        <button
+          type="button"
+          onClick={() => setFrequency('monthly')}
+          className={cn(
+            'flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5',
+            frequency === 'monthly'
+              ? 'bg-white text-secondary-800 shadow-sm'
+              : 'text-primary-400 hover:text-primary-500',
+          )}
+        >
+          <Repeat size={14} />
+          Monthly
+        </button>
+      </div>
+
+      {/* Preset amounts */}
+      <div className="grid grid-cols-4 gap-2.5 mb-3">
+        {PRESET_AMOUNTS.map((preset) => (
+          <button
+            key={preset}
+            type="button"
+            onClick={() => handlePresetSelect(preset)}
+            className={cn(
+              'flex flex-col items-center gap-0.5 py-3.5 px-2 rounded-2xl transition-all duration-200',
+              'border-2',
+              selectedAmount === preset
+                ? 'border-primary-500 bg-primary-50 shadow-sm'
+                : 'border-transparent bg-primary-50/60 hover:bg-primary-50',
+            )}
+          >
+            <span className="font-heading font-bold text-lg text-secondary-800">${preset}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Custom amount */}
+      <div className="mb-4">
+        <Input
+          type="number"
+          placeholder="Custom amount"
+          value={customAmount}
+          onChange={handleCustomChange}
+          icon={<span className="text-primary-400 font-semibold">$</span>}
+          min="1"
+          max="50000"
+          step="1"
+          compact
+        />
+      </div>
+
+      {/* Impact equivalency */}
+      {isValid && impactText && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="mb-4 px-4 py-3 rounded-xl bg-primary-50/80 border border-primary-100"
+        >
+          <p className="text-sm text-primary-600 leading-relaxed">
+            <Heart size={13} className="inline-block mr-1.5 text-primary-400 -mt-0.5" />
+            ${amount} {impactText}
+          </p>
+          {frequency === 'monthly' && (
+            <p className="text-xs text-primary-400 mt-1">
+              That&apos;s ${amount * 12}/year of sustained impact
+            </p>
+          )}
+        </motion.div>
+      )}
+
+      {/* Optional message */}
+      <div className="mb-4">
+        <Input
+          type="textarea"
+          placeholder="Add a message (optional)"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={2}
+          maxLength={200}
+          compact
+        />
+      </div>
+
+      {/* Public toggle */}
+      <div className="mb-5">
+        <Toggle
+          checked={isPublic}
+          onChange={setIsPublic}
+          label="Show on donor wall"
+          description="Your name and amount will be visible to others"
+          size="sm"
+        />
+      </div>
+
+      {/* Donate button */}
+      <Button
+        variant="primary"
+        size="lg"
+        fullWidth
+        icon={createDonation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Heart size={18} />}
+        onClick={handleDonate}
+        disabled={!isValid || !user || createDonation.isPending}
+        className="shadow-[0_4px_16px_-4px_rgba(61,77,51,0.15)]"
+      >
+        {createDonation.isPending
+          ? 'Setting up...'
+          : `Donate $${amount}${frequency === 'monthly' ? '/mo' : ''}`}
+      </Button>
+
+      {createDonation.isError && (
+        <p className="text-xs text-red-500 text-center mt-2">
+          Something went wrong. Please try again.
+        </p>
+      )}
+
+      {!user && (
+        <p className="text-xs text-primary-300 text-center mt-3">
+          <Link to="/auth/login" className="underline text-primary-500">Sign in</Link> to donate and track your impact
+        </p>
+      )}
+
+      <p className="text-xs text-primary-300 text-center mt-3">
+        Co-Exist Australia is a DGR-registered charity. Donations over $2 are tax-deductible.
+      </p>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Main donate page                                                   */
 /* ------------------------------------------------------------------ */
 
@@ -322,62 +534,9 @@ export default function DonatePage() {
                 </Link>
               </motion.div>
 
-              {/* ═══════════════════════════════════════════════════ */}
-              {/*  DONATE VIA WEBSITE                                */}
-              {/* ═══════════════════════════════════════════════════ */}
+              {/* ── Donation form ── */}
               <motion.div variants={fadeUp}>
-                <div className="rounded-[20px] bg-white shadow-[0_4px_20px_-4px_rgba(93,77,51,0.10),0_1px_4px_rgba(93,77,51,0.04)] p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-600 to-moss-700 flex items-center justify-center shrink-0 shadow-md shadow-primary-500/25">
-                      <Heart size={18} className="text-white" />
-                    </div>
-                    <div>
-                      <h2 className="font-heading font-extrabold text-secondary-900 text-lg">
-                        Make a donation
-                      </h2>
-                      <p className="text-xs text-primary-400 mt-0.5">
-                        Secure payments via our website
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-primary-500 leading-relaxed mb-5">
-                    Every dollar goes directly to conservation events and habitat restoration
-                    across Australia. Donations are processed securely on our website.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-3 mb-5">
-                    {[
-                      { amount: '$5', desc: 'Seeds for 2 native plants' },
-                      { amount: '$10', desc: 'One beach cleanup kit' },
-                      { amount: '$25', desc: 'Plant ~10 native trees' },
-                      { amount: '$50', desc: 'Restore 5m\u00B2 of habitat' },
-                    ].map((item) => (
-                      <div
-                        key={item.amount}
-                        className="flex flex-col items-center gap-1 py-3.5 px-2 rounded-2xl bg-primary-50/60"
-                      >
-                        <span className="font-heading font-bold text-lg text-secondary-800">{item.amount}</span>
-                        <span className="text-[11px] text-primary-400 text-center leading-tight">{item.desc}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Button
-                    variant="primary"
-                    size="lg"
-                    fullWidth
-                    icon={<ExternalLink size={18} />}
-                    onClick={() => openExternal(DONATE_URL)}
-                    className="shadow-[0_4px_16px_-4px_rgba(61,77,51,0.15)]"
-                  >
-                    Donate on our website
-                  </Button>
-
-                  <p className="text-xs text-primary-300 text-center mt-3">
-                    You&apos;ll be taken to coexistaus.org to complete your donation
-                  </p>
-                </div>
+                <DonationForm />
               </motion.div>
 
               <div className="h-20" />

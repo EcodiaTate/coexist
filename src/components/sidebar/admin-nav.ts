@@ -19,6 +19,7 @@ import {
   Shield,
   Phone,
   BarChart3,
+  Eye,
 } from 'lucide-react'
 import { createElement } from 'react'
 import type { NavCategory, NavItem } from './types'
@@ -87,6 +88,7 @@ export const adminNavCategories: NavCategory[] = [
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
+      { label: 'Impact Observations', path: '/admin/impact', icon: icon(Eye), capability: 'view_reports' },
       { label: 'Reports', path: '/admin/reports', icon: icon(FileText), capability: 'view_reports' },
       { label: 'Exports', path: '/admin/exports', icon: icon(Download), capability: 'manage_exports' },
       { label: 'Audit Log', path: '/admin/audit-log', icon: icon(FileText), capability: 'view_audit_log' },
