@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { cn } from '@/lib/cn'
+import { getTransformUrl, isSupabaseStorageUrl } from '@/lib/image-utils'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -85,9 +86,12 @@ export function Avatar({
       >
         {showImage ? (
           <img
-            src={src}
+            src={isSupabaseStorageUrl(src!) ? getTransformUrl(src!, { width: s.px * 2, height: s.px * 2 }) : src!}
             alt={name ?? undefined}
             loading="lazy"
+            decoding="async"
+            width={s.px}
+            height={s.px}
             onError={() => setImgError(true)}
             className="w-full h-full object-cover"
           />

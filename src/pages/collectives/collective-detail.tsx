@@ -26,6 +26,7 @@ import { EmptyState } from '@/components/empty-state'
 import { MapView } from '@/components/map/map-view'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { WhatsNext } from '@/components/whats-next'
+import { OptimizedImage } from '@/components/optimized-image'
 import { useToast } from '@/components/toast'
 import { parseLocationPoint } from '@/lib/geo'
 
@@ -214,10 +215,12 @@ export default function CollectiveDetailPage() {
         className="relative aspect-[2.2/1] w-[calc(100%+2rem)] -mx-4 lg:w-[calc(100%+3rem)] lg:-mx-6 overflow-hidden bg-primary-100"
       >
         {collective.cover_image_url ? (
-          <img
+          <OptimizedImage
             src={collective.cover_image_url}
             alt={collective.name}
-            className="h-full w-full object-cover"
+            priority
+            sizes="100vw"
+            wrapperClassName="h-full w-full"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-200 to-primary-400">

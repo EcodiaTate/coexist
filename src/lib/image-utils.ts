@@ -188,6 +188,44 @@ export function getMediumUrl(publicUrl: string): string {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Responsive srcset generation                                       */
+/* ------------------------------------------------------------------ */
+
+/** Standard breakpoints for srcset generation */
+const SRCSET_WIDTHS = [320, 640, 768, 1024, 1280] as const
+
+/**
+ * Check whether a URL points to Supabase Storage (and can use transforms).
+ */
+export function isSupabaseStorageUrl(url: string): boolean {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
+  return url.startsWith(supabaseUrl) && url.includes('/storage/v1/')
+}
+
+/**
+ * Generate a srcSet string for responsive images via Supabase transforms.
+ * Falls back to the original URL if it's not a Supabase Storage URL.
+ */
+export function getSrcSet(
+  publicUrl: string,
+  widths: readonly number[] = SRCSET_WIDTHS,
+  quality = 80,
+): string {
+  if (!isSupabaseStorageUrl(publicUrl)) return ''
+  return widths
+    .map((w) => `${getTransformUrl(publicUrl, { width: w, quality })} ${w}w`)
+    .join(', ')
+}
+
+/**
+ * Get a low-quality placeholder URL for blur-up loading (20px wide, quality 20).
+ */
+export function getPlaceholderUrl(publicUrl: string): string {
+  if (!isSupabaseStorageUrl(publicUrl)) return ''
+  return getTransformUrl(publicUrl, { width: 20, quality: 20 })
+}
+
+/* ------------------------------------------------------------------ */
 /*  Unified uploadImage helper                                         */
 /* ------------------------------------------------------------------ */
 

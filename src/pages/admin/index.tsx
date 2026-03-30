@@ -111,8 +111,6 @@ function TrendChart({
   const shouldReduceMotion = useReducedMotion()
   const values = data.map((d) => d[dataKey as keyof TrendMonth] as number)
   const max = Math.max(...values, 1)
-  const mean = values.reduce((a, b) => a + b, 0) / values.length || 1
-  const scale = max > 0 ? Math.max(max, mean * 1.65) : 1
   const total = values.reduce((a, b) => a + b, 0)
 
   return (
@@ -134,22 +132,22 @@ function TrendChart({
         </div>
       </div>
 
-      <div className="flex items-end gap-1.5 sm:gap-2 h-28 sm:h-36">
+      <div className="flex gap-1.5 sm:gap-2 h-28 sm:h-36">
         {data.map((d, i) => {
           const val = d[dataKey as keyof TrendMonth] as number
-          const height = val > 0 ? Math.max((val / scale) * 100, 6) : 0
+          const height = val > 0 ? Math.max((val / max) * 100, 6) : 0
           return (
             <div key={d.month} className="flex-1 flex flex-col items-center gap-1.5">
               <span className="text-[11px] sm:text-xs font-medium text-primary-500 tabular-nums">
                 {val > 0 ? val : ''}
               </span>
-              <div className="w-full flex flex-col justify-end" style={{ height: `${height}%`, minHeight: height > 0 ? 4 : 0 }}>
+              <div className="relative w-full flex-1">
                 <motion.div
-                  className={cn('w-full rounded-md', barColor)}
-                  initial={shouldReduceMotion ? { scaleY: 1 } : { scaleY: 0 }}
-                  animate={{ scaleY: 1 }}
+                  className={cn('absolute bottom-0 left-0 right-0 rounded-md', barColor)}
+                  initial={shouldReduceMotion ? { height: `${height}%` } : { height: '0%' }}
+                  animate={{ height: `${height}%` }}
                   transition={{ duration: 0.6, delay: i * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  style={{ height: '100%', transformOrigin: 'bottom', willChange: 'transform' }}
+                  style={{ minHeight: height > 0 ? 4 : 0 }}
                 />
               </div>
               <span className="text-[11px] sm:text-[11px] text-primary-300 font-medium">{d.month}</span>
