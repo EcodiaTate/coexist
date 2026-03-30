@@ -290,7 +290,7 @@ export default function AdminImpactObservationsPage() {
     () => ({
       dateRange,
       collectiveId: collectiveId || undefined,
-      activityType: activityType || undefined,
+      activityType: (activityType || undefined) as ObservationFilters['activityType'],
       search: search || undefined,
     }),
     [dateRange, collectiveId, activityType, search],
