@@ -217,7 +217,7 @@ const registerForEvent = useMutation({
 | Role | Access |
 |------|--------|
 | `participant` | Default. Standard app features. |
-| `national_staff` | Admin dashboard with granular permissions via `staff_roles` table. |
+| `national_leader` | Admin dashboard with granular permissions via `staff_roles` table. |
 | `national_admin` | Full admin access. |
 | `super_admin` | Everything + staff management + impersonation + feature flags. |
 
@@ -245,7 +245,7 @@ const { user, profile, role, isLeader, isAssistLeader, isStaff, isAdmin, isSuper
 
 ### Route Guard
 ```tsx
-<Route path="/admin/*" element={<RequireRole minRole="national_staff"><AdminLayout /></RequireRole>} />
+<Route path="/admin/*" element={<RequireRole minRole="national_leader"><AdminLayout /></RequireRole>} />
 ```
 
 ---

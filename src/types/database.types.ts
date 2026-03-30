@@ -5620,7 +5620,7 @@ export type Database = {
       update_target: "all" | "leaders" | "collective_specific"
       user_role:
         | "participant"
-        | "national_staff"
+        | "national_leader"
         | "national_admin"
         | "super_admin"
     }
@@ -5807,7 +5807,7 @@ export const Constants = {
       update_target: ["all", "leaders", "collective_specific"],
       user_role: [
         "participant",
-        "national_staff",
+        "national_leader",
         "national_admin",
         "super_admin",
       ],

@@ -248,7 +248,7 @@ export default function LogImpactPage() {
   const { data: attendees } = useEventAttendees(eventId)
   const logImpact = useLogImpact()
   const { isAssistLeader, isLoading: roleLoading } = useCollectiveRole(event?.collective_id)
-  const isStaff = profile?.role === 'national_staff' || profile?.role === 'national_admin' || profile?.role === 'super_admin'
+  const isStaff = profile?.role === 'national_leader' || profile?.role === 'national_admin' || profile?.role === 'super_admin'
 
   const { validKeys } = useImpactMetricDefs()
 
