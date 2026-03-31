@@ -486,7 +486,7 @@ function NextEventCard({
             tabIndex={0}
             aria-label={nextEvent.title}
           >
-            <div className="p-6">
+            <div className="p-6 min-h-[192px] flex flex-col justify-end">
               {cardContent}
             </div>
           </div>
@@ -797,7 +797,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
                 </Card.Overlay>
               ) : (
                 /* Fallback gradient when no image */
-                <div className="bg-gradient-to-br from-sprout-600 to-primary-700 p-4">
+                <div className="bg-gradient-to-br from-sprout-600 to-primary-700 p-4 h-[170px] flex flex-col justify-end">
                   <div className="flex items-center gap-2 mb-2">
                     {item.is_pinned && (
                       <Badge variant="default" size="sm">Pinned</Badge>
