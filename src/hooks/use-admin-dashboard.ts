@@ -54,7 +54,8 @@ export interface AdminOverviewData {
 
 const ADMIN_BASELINE_TREES      = 35000
 const ADMIN_BASELINE_RUBBISH_KG = 4900
-const ADMIN_BASELINE_DATE       = '2025-12-31'
+const ADMIN_BASELINE_EVENTS     = 340
+const ADMIN_BASELINE_DATE       = '2026-01-01'
 
 async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewData> {
   const rangeStart = getDateRangeStart(dateRange)
@@ -71,16 +72,20 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
   ] = await Promise.all([
     supabase.from('profiles').select('id', { count: 'exact', head: true }),
     supabase.from('collectives').select('id', { count: 'exact', head: true }),
-    supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
+    supabase.from('events').select('id', { count: 'exact', head: true })
+      .lt('date_start', new Date().toISOString())
+      .gte('date_start', baselineDate),
     (() => {
-      // Exclude legacy imports; for all-time add baseline constants on top
-      let q = supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS)
+      // Filter by the event's date_start (not logged_at) so backfilled rows are
+      // included correctly. Legacy bulk-import rows are excluded by notes filter.
+      const eventDateStart = rangeStart ?? baselineDate
+      return supabase
+        .from('event_impact')
+        .select(`${IMPACT_SELECT_COLUMNS}, events!inner(date_start)`)
         .not('notes', 'like', 'Legacy import:%')
+        .gte('events.date_start', eventDateStart)
+        .lt('events.date_start', new Date().toISOString())
         .range(0, 9999)
-      // For scoped ranges use rangeStart; for all-time still only sum post-baseline app rows
-      const start = rangeStart ?? baselineDate
-      q = q.gte('logged_at', start)
-      return q
     })(),
     rangeStart
       ? supabase
@@ -92,7 +97,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
       ? supabase
           .from('events')
           .select('id', { count: 'exact', head: true })
-          .gte('created_at', rangeStart)
+          .gte('date_start', rangeStart)
           .lt('date_start', new Date().toISOString())
       : Promise.resolve({ count: 0 }),
   ])
@@ -101,7 +106,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
   return {
     totalMembers: totalMembersRes.count ?? 0,
     totalCollectives: totalCollectivesRes.count ?? 0,
-    totalEvents: totalEventsRes.count ?? 0,
+    totalEvents: (totalEventsRes.count ?? 0) + (isAllTime ? ADMIN_BASELINE_EVENTS : 0),
     totalTrees: sumMetric(impact, 'trees_planted') + (isAllTime ? ADMIN_BASELINE_TREES : 0),
     totalHours: Math.round(sumMetric(impact, 'hours_total')),
     totalRubbish: Math.round(sumMetric(impact, 'rubbish_kg') + (isAllTime ? ADMIN_BASELINE_RUBBISH_KG : 0)),

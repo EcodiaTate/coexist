@@ -2,6 +2,7 @@ import { type ReactNode, useState, useEffect, useRef, createContext, useContext,
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { AdminCollectiveScopeContext, useAdminCollectiveScopeProvider } from '@/hooks/use-admin-collective-scope'
+import { WAVE_PATHS } from '@/components/wave-transition'
 
 import {
     LayoutDashboard,
@@ -127,22 +128,6 @@ const PAGE_HERO_CONFIG: Record<string, HeroCfg> = {
 
 const DEFAULT_HERO: HeroCfg = { hue: 'from-primary-800 via-primary-900 to-primary-950', defaultSubtitle: '', tall: true, f: 11, w: 3 }
 
-/* ------------------------------------------------------------------ */
-/*  Wave paths – organic SVG dividers (1440×70 viewBox)               */
-/* ------------------------------------------------------------------ */
-
-const WAVE_PATHS = [
-  // Gentle rolling hills with rocky spikes
-  'M0,25 C60,22 100,18 140,20 C180,22 200,15 220,18 L228,8 L234,5 L240,10 C280,18 340,24 400,20 C440,16 470,22 510,25 C560,28 600,20 640,22 C670,24 690,18 710,20 L718,10 L722,6 L728,12 C760,20 820,26 880,22 C920,18 950,24 990,26 C1020,28 1050,20 1080,18 C1100,16 1120,22 1140,24 L1148,12 L1153,7 L1158,9 L1165,16 C1200,22 1260,26 1320,22 C1360,18 1400,24 1440,22 L1440,70 L0,70 Z',
-  // Soft dunes with single peak
-  'M0,30 C120,28 200,22 320,26 C440,30 520,18 600,20 C680,22 720,14 760,16 L768,6 L774,4 L780,10 C820,18 920,28 1040,24 C1120,20 1200,26 1280,30 C1360,32 1400,28 1440,26 L1440,70 L0,70 Z',
-  // Double crest ridge
-  'M0,28 C80,24 160,20 240,22 C320,24 360,12 400,14 L408,5 L414,3 L420,8 C460,16 540,26 640,24 C740,22 800,18 880,20 C960,22 1000,10 1040,12 L1048,4 L1054,2 L1060,7 C1100,16 1180,28 1280,26 C1360,24 1400,28 1440,26 L1440,70 L0,70 Z',
-  // Asymmetric shelf drop
-  'M0,22 C100,20 200,24 300,26 C400,28 480,30 560,28 C640,26 700,22 780,20 C860,18 900,14 940,16 L948,7 L954,4 L960,9 C1000,16 1080,24 1160,28 C1240,32 1320,30 1400,26 L1440,24 L1440,70 L0,70 Z',
-  // Choppy reef
-  'M0,26 C40,24 80,20 120,22 L128,12 L133,8 L138,14 C180,22 240,28 320,24 C400,20 440,16 480,18 C520,20 560,26 640,28 C720,30 760,24 800,22 L808,14 L813,10 L818,16 C860,24 920,28 1000,26 C1080,24 1120,20 1160,22 L1168,14 L1173,10 L1178,16 C1220,24 1300,28 1380,26 C1410,24 1440,22 1440,22 L1440,70 L0,70 Z',
-]
 
 /* ------------------------------------------------------------------ */
 /*  Shape formations – unique decorative geometry per page             */

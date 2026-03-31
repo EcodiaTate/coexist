@@ -14,6 +14,7 @@ import {
 import { Page } from '@/components/page'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
+import { WaveTransition } from '@/components/wave-transition'
 import { ProgressRing } from '@/components/development/progress-ring'
 import { cn } from '@/lib/cn'
 import { useMyTargetedContent } from '@/hooks/use-development-assignments'
@@ -230,14 +231,7 @@ export default function LearnIndexPage() {
         </div>
 
         {/* Wave divider */}
-        <div className="absolute bottom-0 left-0 right-0 z-20">
-          <svg viewBox="0 0 1440 70" preserveAspectRatio="none" className="w-full h-7 sm:h-10 block">
-            <path
-              d="M0,30 C120,28 200,22 320,26 C440,30 520,18 600,20 C680,22 720,14 760,16 L768,6 L774,4 L780,10 C820,18 920,28 1040,24 C1120,20 1200,26 1280,30 C1360,32 1400,28 1440,26 L1440,70 L0,70 Z"
-              className="fill-white"
-            />
-          </svg>
-        </div>
+        <WaveTransition wave={1} />
       </div>
 
       {/* ── Content ── */}

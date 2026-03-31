@@ -218,13 +218,17 @@ export function useCollectiveStats(collectiveId: string | undefined) {
       if (!collectiveId) throw new Error('No collective ID')
 
       // Parallelize initial queries
+      const now = new Date().toISOString()
       const [eventsCountRes, eventsRes, membersRes] = await Promise.all([
         supabase
           .from('events')
           .select('*', { count: 'exact', head: true })
           .eq('collective_id', collectiveId)
-          .in('status', ['published', 'completed']),
-        supabase.from('events').select('id').eq('collective_id', collectiveId),
+          .in('status', ['published', 'completed'])
+          .lt('date_start', now),
+        supabase.from('events').select('id').eq('collective_id', collectiveId)
+          .in('status', ['published', 'completed'])
+          .lt('date_start', now),
         supabase
           .from('collective_members')
           .select('*', { count: 'exact', head: true })
@@ -248,7 +252,8 @@ export function useCollectiveStats(collectiveId: string | undefined) {
       if (eventIds.length > 0) {
         // Parallelize impact + attendance queries
         const [impactsRes, registeredRes, attendedRes] = await Promise.all([
-          supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).in('event_id', eventIds),
+          supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).in('event_id', eventIds)
+            .not('notes', 'like', 'Legacy import:%'),
           supabase
             .from('event_registrations')
             .select('id', { count: 'exact', head: true })

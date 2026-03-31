@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-    ArrowLeft, CheckCircle, Clock,
+    CheckCircle, Clock,
     AlertTriangle, ChevronRight, ChevronLeft,
     Calendar as CalendarIcon, FileText,
     SkipForward, Flame, Sparkles, Users,
@@ -13,6 +13,7 @@ import {
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader } from '@/components/leader-layout'
+import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { BottomSheet } from '@/components/bottom-sheet'
@@ -65,7 +66,6 @@ const PRIORITY_OPTIONS = [
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
 
-const backButtonCn = 'absolute top-[var(--safe-top,0px)] left-4 mt-3 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-black/40 text-white cursor-pointer'
 
 /* ------------------------------------------------------------------ */
 /*  Todo helpers                                                       */
@@ -1568,7 +1568,7 @@ export default function LeaderTasksPage() {
     <div className="relative min-h-dvh overflow-x-hidden">
       {/* Background - blends both page palettes */}
       <div className="absolute inset-0 bg-gradient-to-b from-amber-50/50 via-white to-moss-50/15" />
-      <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
+      <Header title="Tasks" back transparent className="absolute left-0 right-0 z-30" />
 
       {/* Decorative elements */}
       <div className="absolute -right-14 top-[15%] w-52 h-52 rounded-full border border-amber-200/25 animate-[gentleSpin_55s_linear_infinite]" />

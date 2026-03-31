@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router-dom'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
+import { WaveTransition } from '@/components/wave-transition'
 import { cn } from '@/lib/cn'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
 
@@ -134,19 +135,7 @@ export default function LeadershipPage() {
         </div>
 
         {/* Wave transition */}
-        <div className="absolute bottom-0 left-0 right-0 z-20">
-          <svg
-            viewBox="0 0 1440 200"
-            preserveAspectRatio="none"
-            className="w-full h-20 sm:h-28 block"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M0,80 C80,68 160,56 240,62 C320,68 360,34 400,40 L408,14 L414,8 L420,22 C460,46 540,74 640,68 C740,62 800,50 880,56 C960,62 1000,28 1040,34 L1048,12 L1054,6 L1060,20 C1100,46 1180,80 1280,74 C1360,68 1400,80 1440,74 L1440,200 L0,200 Z"
-              className="fill-white"
-            />
-          </svg>
-        </div>
+        <WaveTransition size="lg" />
       </div>
 
       {/* Content */}

@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
-import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 import {
     Heart, Users, Repeat,
-    TreePine, Waves, Loader2,
+    Loader2,
     Sparkles, Shield, ChevronRight,
     Leaf, MessageCircle,
 } from 'lucide-react'
@@ -15,42 +13,11 @@ import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Toggle } from '@/components/toggle'
-import { Skeleton } from '@/components/skeleton'
-import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useCreateDonation } from '@/hooks/use-donations'
 import { useAuth } from '@/hooks/use-auth'
-import { supabase } from '@/lib/supabase'
+import { WaveTransition } from '@/components/wave-transition'
 import { cn } from '@/lib/cn'
 import { PRESET_AMOUNTS, IMPACT_EQUIVALENCIES, type DonationFrequency } from '@/types/donations'
-
-/* ------------------------------------------------------------------ */
-/*  National impact stats (same query as /impact/national)             */
-/* ------------------------------------------------------------------ */
-
-function useDonateNationalStats() {
-  return useQuery({
-    queryKey: ['national-impact'],
-    queryFn: async () => {
-      const [impactRes, eventsRes, membersRes, collectivesRes] = await Promise.all([
-        supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).not('notes', 'like', 'Legacy import:%'),
-        supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('collectives').select('id', { count: 'exact', head: true }),
-      ])
-
-      const logs = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
-      return {
-        totalTrees: sumMetric(logs, 'trees_planted'),
-        totalRubbishKg: Math.round(sumMetric(logs, 'rubbish_kg')),
-        totalNativePlants: sumMetric(logs, 'native_plants'),
-        totalEvents: eventsRes.count ?? 0,
-        totalMembers: membersRes.count ?? 0,
-        totalCollectives: collectivesRes.count ?? 0,
-      }
-    },
-    staleTime: 5 * 60 * 1000,
-  })
-}
 
 /* ------------------------------------------------------------------ */
 /*  Animations                                                         */
@@ -68,67 +35,6 @@ const fadeUp: Variants = {
 
 function PageDepthElements({ rm: _rm }: { rm: boolean }) {
   return null
-}
-
-/* ------------------------------------------------------------------ */
-/*  National stats - gradient cards                                    */
-/* ------------------------------------------------------------------ */
-
-function NationalStatsStrip() {
-  const { data, isLoading } = useDonateNationalStats()
-  const showLoading = useDelayedLoading(isLoading)
-
-  if (showLoading) {
-    return (
-      <div className="grid grid-cols-3 gap-2.5">
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="py-5 rounded-2xl bg-white/10">
-            <Skeleton variant="text" className="w-12 mx-auto mb-1" />
-            <Skeleton variant="text" className="w-16 mx-auto" />
-          </div>
-        ))}
-      </div>
-    )
-  }
-  if (!data) return null
-
-  const stats = [
-    {
-      icon: <TreePine size={18} strokeWidth={2.5} />,
-      value: data.totalTrees.toLocaleString(),
-      label: 'Trees planted',
-      iconBg: 'bg-primary-50 text-primary-600',
-    },
-    {
-      icon: <Waves size={18} strokeWidth={2.5} />,
-      value: `${(data.totalRubbishKg ?? 0).toLocaleString()} kg`,
-      label: 'Rubbish cleared',
-      iconBg: 'bg-moss-50 text-moss-600',
-    },
-    {
-      icon: <Users size={18} strokeWidth={2.5} />,
-      value: data.totalMembers.toLocaleString(),
-      label: 'Members',
-      iconBg: 'bg-sky-50 text-sky-600',
-    },
-  ]
-
-  return (
-    <div className="grid grid-cols-3 gap-2.5">
-      {stats.map((s) => (
-        <div
-          key={s.label}
-          className="flex flex-col items-center gap-2 py-4 px-2 rounded-2xl bg-white border border-neutral-100 shadow-sm"
-        >
-          <div className={cn('w-8 h-8 rounded-xl flex items-center justify-center', s.iconBg)}>
-            {s.icon}
-          </div>
-          <span className="font-heading font-bold text-lg tabular-nums text-neutral-900">{s.value}</span>
-          <span className="text-[11px] text-neutral-500 text-center leading-tight font-semibold uppercase tracking-wider">{s.label}</span>
-        </div>
-      ))}
-    </div>
-  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -179,35 +85,7 @@ function DonateHero({ rm }: { rm: boolean }) {
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 z-20">
-        <svg
-          viewBox="0 0 1440 70"
-          preserveAspectRatio="none"
-          className="w-full h-7 sm:h-10 block"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M0,25
-               C60,22 100,18 140,20
-               C180,22 200,15 220,18
-               L228,8 L234,5 L240,10
-               C280,18 340,24 400,20
-               C440,16 470,22 510,25
-               C560,28 600,20 640,22
-               C670,24 690,18 710,20
-               L718,10 L722,6 L728,12
-               C760,20 820,26 880,22
-               C920,18 950,24 990,26
-               C1020,28 1050,20 1080,18
-               C1100,16 1120,22 1140,24
-               L1148,12 L1153,7 L1158,9 L1165,16
-               C1200,22 1260,26 1320,22
-               C1360,18 1400,24 1440,22
-               L1440,70 L0,70 Z"
-            className="fill-white"
-          />
-        </svg>
-      </div>
+      <WaveTransition />
     </div>
   )
 }
@@ -477,11 +355,6 @@ export default function DonatePage() {
               animate="visible"
               className="space-y-5"
             >
-              {/* ── National stats strip ── */}
-              <motion.div variants={fadeUp}>
-                <NationalStatsStrip />
-              </motion.div>
-
               {/* ── Donation form ── */}
               <motion.div variants={fadeUp}>
                 <DonationForm rm={rm} />

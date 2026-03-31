@@ -6,6 +6,7 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { WaveTransition } from '@/components/wave-transition'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
@@ -299,26 +300,7 @@ function EditorialEventDetail({
         </div>
 
         {/* Wave cutout */}
-        <div className="absolute -bottom-px left-0 right-0 z-10">
-          <svg
-            viewBox="0 0 1440 80"
-            preserveAspectRatio="none"
-            className="w-full h-8 sm:h-10 block"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M0,30
-                 C120,22 200,18 280,24
-                 C360,30 440,20 520,22
-                 C600,24 680,32 760,28
-                 C840,24 920,18 1000,22
-                 C1080,26 1160,30 1240,26
-                 C1320,22 1380,28 1440,24
-                 L1440,80 L0,80 Z"
-              className="fill-white"
-            />
-          </svg>
-        </div>
+        <WaveTransition wave={1} className="-bottom-px z-10" />
       </div>
 
       {/* ── Content ── */}

@@ -45,6 +45,7 @@ import {
     Button,
     CheckInSheet,
     EmptyState,
+    WaveTransition,
 } from '@/components'
 import { Card } from '@/components/card'
 import { BentoStatCard, BentoStatGrid } from '@/components/bento-stats'
@@ -254,35 +255,7 @@ function HomeHero({ rm }: { rm: boolean }) {
       </div>
 
       {/* Wave transition - pinned to bottom of image */}
-      <div className="absolute bottom-0 left-0 right-0 z-20">
-        <svg
-          viewBox="0 0 1440 70"
-          preserveAspectRatio="none"
-          className="w-full h-7 sm:h-10 block"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M0,25
-               C60,22 100,18 140,20
-               C180,22 200,15 220,18
-               L228,8 L234,5 L240,10
-               C280,18 340,24 400,20
-               C440,16 470,22 510,25
-               C560,28 600,20 640,22
-               C670,24 690,18 710,20
-               L718,10 L722,6 L728,12
-               C760,20 820,26 880,22
-               C920,18 950,24 990,26
-               C1020,28 1050,20 1080,18
-               C1100,16 1120,22 1140,24
-               L1148,12 L1153,7 L1158,9 L1165,16
-               C1200,22 1260,26 1320,22
-               C1360,18 1400,24 1440,22
-               L1440,70 L0,70 Z"
-            className="fill-white"
-          />
-        </svg>
-      </div>
+      <WaveTransition />
     </div>
   )
 }
@@ -450,6 +423,7 @@ function NextEventCard({
   return (
     <motion.div variants={rm ? undefined : fadeUp}>
       <Section title="Your Next Event">
+        <div className="sm:max-w-lg">
         {nextEvent.cover_image_url ? (
           /* Full-bleed overlay card when cover image exists */
           <Card
@@ -491,6 +465,7 @@ function NextEventCard({
             </div>
           </div>
         )}
+        </div>
       </Section>
 
       <CheckInSheet
@@ -1040,31 +1015,31 @@ function HomeImpactSection({
           ) : data ? (
             <BentoStatGrid>
               {totalEvents > 0 && (
-                <BentoStatCard value={totalEvents} label="Events" icon={<Calendar size={18} />} theme="warning" />
+                <BentoStatCard value={totalEvents} label="Events" icon={<Calendar size={18} />} theme="warning-soft" />
               )}
               {data.eventsAttended > 0 && (
-                <BentoStatCard value={data.eventsAttended} label="Attendances" icon={<Users size={16} />} theme="primary" />
+                <BentoStatCard value={data.eventsAttended} label="Attendances" icon={<Users size={16} />} theme="primary-soft" />
               )}
               {data.volunteerHours > 0 && (
-                <BentoStatCard value={data.volunteerHours} label="Vol. Hours" icon={<Clock size={16} />} unit="hrs" theme="moss" />
+                <BentoStatCard value={data.volunteerHours} label="Vol. Hours" icon={<Clock size={16} />} unit="hrs" theme="moss-soft" />
               )}
               {data.treesPlanted > 0 && (
-                <BentoStatCard value={data.treesPlanted} label="Trees Planted" icon={<TreePine size={16} />} theme="sprout" />
+                <BentoStatCard value={data.treesPlanted} label="Trees Planted" icon={<TreePine size={16} />} theme="sprout-soft" />
               )}
               {data.invasiveWeedsPulled > 0 && (
-                <BentoStatCard value={data.invasiveWeedsPulled} label="Weeds Pulled" icon={<Sprout size={16} />} theme="bark" />
+                <BentoStatCard value={data.invasiveWeedsPulled} label="Weeds Pulled" icon={<Sprout size={16} />} theme="bark-soft" />
               )}
               {data.rubbishCollectedTonnes > 0 && (
-                <BentoStatCard value={data.rubbishCollectedTonnes} label="Rubbish" icon={<Trash2 size={16} />} unit="t" theme="sky" />
+                <BentoStatCard value={data.rubbishCollectedTonnes} label="Rubbish" icon={<Trash2 size={16} />} unit="t" theme="sky-soft" />
               )}
               {data.cleanupSites > 0 && (
-                <BentoStatCard value={data.cleanupSites} label="Cleanup Sites" icon={<Trash2 size={16} />} theme="info" />
+                <BentoStatCard value={data.cleanupSites} label="Cleanup Sites" icon={<Trash2 size={16} />} theme="sky-soft" />
               )}
               {data.collectivesCount > 0 && (
-                <BentoStatCard value={data.collectivesCount} label="Collectives" icon={<Users size={16} />} theme="plum" />
+                <BentoStatCard value={data.collectivesCount} label="Collectives" icon={<Users size={16} />} theme="plum-soft" />
               )}
               {data.leadersEmpowered > 0 && (
-                <BentoStatCard value={data.leadersEmpowered} label="Leaders Empowered" icon={<GraduationCap size={16} />} theme="coral" />
+                <BentoStatCard value={data.leadersEmpowered} label="Leaders Empowered" icon={<GraduationCap size={16} />} theme="coral-soft" />
               )}
             </BentoStatGrid>
           ) : null}
@@ -1076,63 +1051,43 @@ function HomeImpactSection({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Donate + Shop CTA cards — bento layout                             */
+/*  Donate + Shop CTA — full-bleed dark closer                         */
 /* ------------------------------------------------------------------ */
 
 function CtaCards({ rm }: { rm: boolean }) {
   const navigate = useNavigate()
 
   return (
-    <motion.div variants={rm ? undefined : fadeUp}>
-      <div className="grid grid-cols-3 grid-rows-2 gap-3" style={{ gridTemplateRows: 'auto auto' }}>
-        {/* Donate — spans 2 columns and 2 rows */}
-        <div
-          className={cn(
-            'relative rounded-2xl overflow-hidden p-6 col-span-2 row-span-2',
-            'bg-gradient-to-br from-primary-500 to-primary-800',
-            'shadow-lg',
-            'active:scale-[0.97] transition-transform duration-150 cursor-pointer',
-          )}
-          onClick={() => navigate('/donate')}
-          role="button"
-          tabIndex={0}
-          aria-label="Donate"
-        >
-          <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/20 text-white mb-4">
-            <Heart size={24} />
-          </span>
-          <p className="font-heading text-lg font-bold text-white">
-            Donate
-          </p>
-          <p className="mt-1.5 text-sm text-white/70 leading-snug">
-            Support young adults & conservation
-          </p>
+    <motion.div variants={rm ? undefined : fadeUp} className="flex flex-col gap-3">
+      {/* Donate */}
+      <button
+        onClick={() => navigate('/donate')}
+        className="w-full flex items-center gap-4 px-5 h-16 rounded-2xl bg-gradient-to-r from-primary-500 to-primary-700 shadow-md shadow-primary-500/25 active:scale-[0.98] transition-transform duration-150"
+      >
+        <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 text-white shrink-0">
+          <Heart size={18} />
+        </span>
+        <div className="flex-1 text-left">
+          <p className="text-[15px] font-bold text-white leading-tight">Donate</p>
+          <p className="text-[11px] text-white/65 mt-0.5">Support Co-Exist Australia</p>
         </div>
+        <ChevronRight size={18} className="text-white/50 shrink-0" />
+      </button>
 
-        {/* Shop Merch — spans 1 column and 2 rows */}
-        <div
-          className={cn(
-            'relative rounded-2xl overflow-hidden p-4 col-span-1 row-span-2 flex flex-col items-center justify-center text-center',
-            'bg-gradient-to-br from-bark-500 to-bark-800',
-            'shadow-lg',
-            'active:scale-[0.97] transition-transform duration-150 cursor-pointer',
-          )}
-          onClick={() => navigate('/shop')}
-          role="button"
-          tabIndex={0}
-          aria-label="Shop Merch"
-        >
-          <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 text-white mb-3">
-            <ShoppingBag size={20} />
-          </span>
-          <p className="font-heading text-sm font-bold text-white">
-            Shop
-          </p>
-          <p className="mt-1 text-[11px] text-white/70">
-            Wear Co-Exist
-          </p>
+      {/* Shop */}
+      <button
+        onClick={() => navigate('/shop')}
+        className="w-full flex items-center gap-4 px-5 h-16 rounded-2xl bg-gradient-to-r from-bark-500 to-bark-700 shadow-md shadow-bark-500/20 active:scale-[0.98] transition-transform duration-150"
+      >
+        <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 text-white shrink-0">
+          <ShoppingBag size={18} />
+        </span>
+        <div className="flex-1 text-left">
+          <p className="text-[15px] font-bold text-white leading-tight">Shop merch</p>
+          <p className="text-[11px] text-white/65 mt-0.5">Wear the movement</p>
         </div>
-      </div>
+        <ChevronRight size={18} className="text-white/50 shrink-0" />
+      </button>
     </motion.div>
   )
 }

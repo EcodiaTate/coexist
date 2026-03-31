@@ -1,12 +1,12 @@
 import { useState, useCallback } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   Calendar, MapPin, Users, X, Leaf, Filter, ChevronRight,
-  TreePine, Waves, Flower2,
+  Flower2,
   GraduationCap, CircleDot,
-  ArrowRight, Heart, TrendingUp,
+  ArrowRight,
 } from 'lucide-react'
 import {
   useMyEvents,
@@ -21,15 +21,14 @@ import {
 import type { MyEventItem, EventWithCollective } from '@/hooks/use-events'
 import type { Database } from '@/types/database.types'
 import { useCollectives, useMyCollectives, type CollectiveWithLeader } from '@/hooks/use-collective'
-import { useNationalImpact } from '@/hooks/use-impact'
 import {
   Page,
   Card,
-  Badge, EmptyState, ConfirmationSheet, Dropdown, CountUp, Skeleton,
+  Badge, EmptyState, ConfirmationSheet, Dropdown, Skeleton,
+  WaveTransition, SegmentedControl,
 } from '@/components'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
-import { supabase } from '@/lib/supabase'
 import { activityToBadge, ACTIVITY_META } from '@/lib/activity-types'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -39,34 +38,6 @@ import { CollectiveMap } from '@/components/collective-map'
 
 type ActivityType = Database['public']['Enums']['activity_type']
 
-/* ------------------------------------------------------------------ */
-/*  Simple hero stats (lightweight fallback)                           */
-/* ------------------------------------------------------------------ */
-
-function useHeroStats() {
-  return useQuery({
-    queryKey: ['hero-stats'],
-    queryFn: async () => {
-      const [profilesRes, collectivesRes] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('collectives').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      ])
-      // Sum trees_planted from event_impact (simple aggregate)
-      const { data: impactData } = await supabase
-        .from('event_impact')
-        .select('trees_planted')
-        .range(0, 9999)
-      const treesPlanted = (impactData ?? []).reduce((sum, r) => sum + (Number(r.trees_planted) || 0), 0)
-
-      return {
-        totalMembers: profilesRes.count ?? 0,
-        collectivesCount: collectivesRes.count ?? 0,
-        treesPlanted,
-      }
-    },
-    staleTime: 10 * 60 * 1000,
-  })
-}
 
 
 /* ------------------------------------------------------------------ */
@@ -114,7 +85,7 @@ function SectionHeader({ title, count, action }: { title: string; count?: number
 /*  Hero                                                               */
 /* ------------------------------------------------------------------ */
 
-function ExploreHero({ rm, nationalImpact }: { rm: boolean; nationalImpact?: { totalMembers: number; treesPlanted: number; collectivesCount: number; rubbishCollectedTonnes?: number } }) {
+function ExploreHero({ rm }: { rm: boolean }) {
   return (
     <div className="relative overflow-hidden">
       {/* Deep gradient background */}
@@ -141,50 +112,10 @@ function ExploreHero({ rm, nationalImpact }: { rm: boolean; nationalImpact?: { t
             Find events, join collectives, and make a real difference for Australia's nature.
           </p>
         </motion.div>
-
-        {/* Impact bento grid */}
-        <motion.div
-          className="grid grid-cols-3 gap-2.5 mt-7"
-          initial={rm ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-        >
-          {[
-            { value: nationalImpact?.totalMembers ?? 0, suffix: '+', label: 'Volunteers', icon: <Users size={15} />, color: 'from-white/[0.12] to-white/[0.04]' },
-            { value: nationalImpact?.treesPlanted ?? 0, suffix: '+', label: 'Trees Planted', icon: <TreePine size={15} />, color: 'from-sprout-400/20 to-sprout-400/5' },
-            { value: nationalImpact?.collectivesCount ?? 0, suffix: '', label: 'Collectives', icon: <Heart size={15} />, color: 'from-white/[0.12] to-white/[0.04]' },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              className={cn(
-                'rounded-2xl bg-gradient-to-br border border-white/10 p-3',
-                stat.color,
-              )}
-              initial={rm ? false : { opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.25 + i * 0.06, duration: 0.35 }}
-            >
-              <span className="text-sprout-300 block mb-1.5">{stat.icon}</span>
-              <span className="text-xl font-bold text-white tabular-nums block leading-none">
-                <CountUp end={stat.value} duration={1200} />{stat.suffix}
-              </span>
-              <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mt-1 block">
-                {stat.label}
-              </span>
-            </motion.div>
-          ))}
-        </motion.div>
       </div>
 
       {/* Wave transition into content bg */}
-      <div className="relative z-20 mt-2">
-        <svg viewBox="0 0 1440 70" preserveAspectRatio="none" className="w-full h-8 sm:h-10 block" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M0,25 C60,22 100,18 140,20 C180,22 200,15 220,18 L228,8 L234,5 L240,10 C280,18 340,24 400,20 C440,16 470,22 510,25 C560,28 600,20 640,22 C670,24 690,18 710,20 L718,10 L722,6 L728,12 C760,20 820,26 880,22 C920,18 950,24 990,26 C1020,28 1050,20 1080,18 C1100,16 1120,22 1140,24 L1148,12 L1153,7 L1158,9 L1165,16 C1200,22 1260,26 1320,22 C1360,18 1400,24 1440,22 L1440,70 L0,70 Z"
-            className="fill-neutral-50"
-          />
-        </svg>
-      </div>
+      <WaveTransition position="inline" fill="fill-neutral-50" className="mt-2" />
     </div>
   )
 }
@@ -397,11 +328,6 @@ export default function ExplorePage() {
   const collectivesShowLoading = useDelayedLoading(collectivesLoading)
   const { data: myCollectives } = useMyCollectives()
 
-  const { data: nationalImpact } = useNationalImpact()
-  const { data: heroStats } = useHeroStats()
-
-  // Use nationalImpact if available, fall back to simple hero stats
-  const heroData = nationalImpact ?? heroStats
 
   const collectiveOptions = [
     { value: '', label: 'All collectives' },
@@ -433,7 +359,7 @@ export default function ExplorePage() {
         {/* ============================================================ */}
         {/*  Hero                                                         */}
         {/* ============================================================ */}
-        <ExploreHero rm={!!shouldReduceMotion} nationalImpact={heroData} />
+        <ExploreHero rm={!!shouldReduceMotion} />
 
         {/* ============================================================ */}
         {/*  Content on tinted bg                                         */}
@@ -448,24 +374,16 @@ export default function ExplorePage() {
 
           {/* ── Tab toggle ── */}
           <div className="px-4 lg:px-6 mb-5">
-            <div className="flex rounded-2xl bg-white/80 border border-neutral-200/50 p-1 shadow-sm">
-              {(['events', 'collectives'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                  className={cn(
-                    'flex-1 flex items-center justify-center gap-2 min-h-11 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer select-none',
-                    activeTab === tab
-                      ? 'bg-primary-600 text-white shadow-md'
-                      : 'text-neutral-500 hover:text-neutral-700',
-                  )}
-                >
-                  {tab === 'events' ? <Calendar size={15} /> : <Users size={15} />}
-                  {tab === 'events' ? 'Events' : 'Collectives'}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl
+              segments={[
+                { id: 'events' as const, label: 'Events', icon: <Calendar size={15} /> },
+                { id: 'collectives' as const, label: 'Collectives', icon: <Users size={15} /> },
+              ]}
+              value={activeTab}
+              onChange={setActiveTab}
+              variant="pill"
+              aria-label="Browse events or collectives"
+            />
           </div>
 
             <AnimatePresence mode="wait">
@@ -751,37 +669,6 @@ export default function ExplorePage() {
                     )}
                   </section>
 
-                  {/* ── Impact Stats ── */}
-                  <section className="mx-4 lg:mx-6 rounded-2xl overflow-hidden shadow-sm border border-neutral-100">
-                    <div className="bg-gradient-to-br from-primary-600 via-primary-700 to-secondary-700 px-5 py-6 lg:px-8">
-                      <div className="flex items-center gap-2 mb-4">
-                        <TrendingUp size={14} className="text-sprout-300" />
-                        <h3 className="text-xs font-bold text-sprout-300/80 uppercase tracking-wider">Our Collective Impact</h3>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        {[
-                          { value: heroData?.treesPlanted ?? 0, suffix: '+', label: 'Trees Planted', icon: <TreePine size={16} />, bg: 'from-success-400/20 to-success-400/5', iconColor: 'text-success-300' },
-                          { value: nationalImpact?.rubbishCollectedTonnes ?? 0, suffix: 't', label: 'Rubbish Collected', icon: <Waves size={16} />, bg: 'from-sky-400/20 to-sky-400/5', iconColor: 'text-sky-300' },
-                          { value: heroData?.totalMembers ?? 0, suffix: '+', label: 'Volunteers', icon: <Users size={16} />, bg: 'from-white/[0.12] to-white/[0.04]', iconColor: 'text-white/70' },
-                          { value: heroData?.collectivesCount ?? 0, suffix: '', label: 'Collectives', icon: <Heart size={16} />, bg: 'from-sprout-400/20 to-sprout-400/5', iconColor: 'text-sprout-300' },
-                        ].map((stat, i) => (
-                          <motion.div
-                            key={stat.label}
-                            className={cn('rounded-xl bg-gradient-to-br border border-white/10 p-3.5', stat.bg)}
-                            initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.2 + i * 0.08, duration: 0.3 }}
-                          >
-                            <span className={cn('block mb-1.5', stat.iconColor)}>{stat.icon}</span>
-                            <span className="text-xl font-bold text-white tabular-nums block leading-none">
-                              <CountUp end={stat.value} duration={1400} />{stat.suffix}
-                            </span>
-                            <span className="text-[10px] font-semibold text-white/40 uppercase tracking-wider mt-1 block">{stat.label}</span>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-                  </section>
                 </motion.div>
               )}
             </AnimatePresence>

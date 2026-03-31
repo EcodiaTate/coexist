@@ -85,6 +85,7 @@ import {
 import { useMyModuleProgress } from '@/hooks/use-development-progress'
 import { useMyTargetedContent } from '@/hooks/use-development-assignments'
 import { BentoStatCard, BentoStatGrid } from '@/components/bento-stats'
+import { WaveTransition } from '@/components/wave-transition'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
@@ -1112,35 +1113,7 @@ export default function LeaderDashboardPage() {
           </div>
 
           {/* Rocky wave overlay - single layer, like root homepage */}
-          <div className="absolute bottom-0 left-0 right-0 z-[3]">
-            <svg
-              viewBox="0 0 1440 70"
-              preserveAspectRatio="none"
-              className="w-full h-7 sm:h-10 block"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M0,25
-                   C60,22 100,18 140,20
-                   C180,22 200,15 220,18
-                   L228,8 L234,5 L240,10
-                   C280,18 340,24 400,20
-                   C440,16 470,22 510,25
-                   C560,28 600,20 640,22
-                   C670,24 690,18 710,20
-                   L718,10 L722,6 L728,12
-                   C760,20 820,26 880,22
-                   C920,18 950,24 990,26
-                   C1020,28 1050,20 1080,18
-                   C1100,16 1120,22 1140,24
-                   L1148,12 L1153,7 L1158,9 L1165,16
-                   C1200,22 1260,26 1320,22
-                   C1360,18 1400,24 1440,22
-                   L1440,70 L0,70 Z"
-                className="fill-white"
-              />
-            </svg>
-          </div>
+          <WaveTransition className="z-[3]" />
         </div>
 
         {/* ── Content on white background ── */}

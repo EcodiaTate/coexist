@@ -39,6 +39,7 @@ import {
   EmptyState,
   ConfirmationSheet,
   BottomSheet,
+  SegmentedControl,
 } from '@/components'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { ProfileModal } from '@/components/profile-modal'
@@ -499,31 +500,16 @@ export default function EventDayPage() {
         )}
 
         {/* Tab switcher */}
-        <motion.div variants={fadeUp} className="flex rounded-xl bg-neutral-100 p-1 mb-4">
-          <button
-            onClick={() => setActiveTab('attendees')}
-            className={cn(
-              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-bold transition-all duration-150',
-              activeTab === 'attendees'
-                ? 'bg-white text-primary-800 shadow-md ring-1 ring-primary-200/40'
-                : 'text-neutral-500 active:bg-white/50',
-            )}
-          >
-            <Users size={15} />
-            Attendees
-          </button>
-          <button
-            onClick={() => setActiveTab('contacts')}
-            className={cn(
-              'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-bold transition-all duration-150',
-              activeTab === 'contacts'
-                ? 'bg-white text-primary-800 shadow-md ring-1 ring-primary-200/40'
-                : 'text-neutral-500 active:bg-white/50',
-            )}
-          >
-            <BookOpen size={15} />
-            Contacts
-          </button>
+        <motion.div variants={fadeUp} className="mb-4">
+          <SegmentedControl
+            segments={[
+              { id: 'attendees' as const, label: 'Attendees', icon: <Users size={15} /> },
+              { id: 'contacts' as const, label: 'Contacts', icon: <BookOpen size={15} /> },
+            ]}
+            value={activeTab}
+            onChange={setActiveTab}
+            aria-label="View attendees or contacts"
+          />
         </motion.div>
 
         {activeTab === 'attendees' ? (

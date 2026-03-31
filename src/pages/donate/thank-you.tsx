@@ -9,6 +9,7 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { WhatsNext } from '@/components/whats-next'
+import { WaveTransition } from '@/components/wave-transition'
 import { cn } from '@/lib/cn'
 import { getImpactMessage } from '@/types/donations'
 
@@ -238,19 +239,7 @@ export default function DonateThankYouPage() {
           </div>
 
           {/* Organic edge */}
-          <div className="absolute bottom-0 left-0 right-0">
-            <svg
-              viewBox="0 0 1440 40"
-              preserveAspectRatio="none"
-              className="w-full h-5 block"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M0,20 C120,8 240,28 360,18 C480,8 600,28 720,16 C840,4 960,24 1080,14 C1200,4 1320,22 1440,18 L1440,40 L0,40 Z"
-                className="fill-white"
-              />
-            </svg>
-          </div>
+          <WaveTransition size="sm" />
         </div>
 
         {/* ── Content ── */}

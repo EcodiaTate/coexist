@@ -5,18 +5,18 @@
 -- cumulative totals. We freeze those as baseline numbers and sum event_impact
 -- rows logged on or after 2026-01-01 on top of them.
 --
--- Baseline figures (as of end of 2025, from published website):
---   Volunteers/Attendees : 5,254  (6164 total − 910 post-2026)
---   Events held          : 348    (410 total − 62 post-2026)
+-- Baseline figures (as of end of 2025, from verified spreadsheet):
+--   Volunteers/Attendees : 5,500
+--   Events held          : 340    (388 total − 48 post-2026 in-app)
 --   Trees planted        : 35,000
 --   Rubbish removed (kg) : 4,900 (4.9t)
 -- ============================================================================
 
 INSERT INTO app_settings (key, value)
 VALUES
-  ('impact_baseline_date',      '"2025-12-31"'::jsonb),
-  ('impact_baseline_attendees', '{"count": 5254}'::jsonb),
-  ('impact_baseline_events',    '{"count": 348}'::jsonb),
+  ('impact_baseline_date',      '"2026-01-01"'::jsonb),
+  ('impact_baseline_attendees', '{"count": 5500}'::jsonb),
+  ('impact_baseline_events',    '{"count": 340}'::jsonb),
   ('impact_baseline_trees',     '{"count": 35000}'::jsonb),
   ('impact_baseline_rubbish_kg','{"count": 4900}'::jsonb)
 ON CONFLICT (key) DO UPDATE
