@@ -341,7 +341,7 @@ export default function EventDetailPage() {
   const isAtCapacity = event?.capacity ? event.registration_count >= event.capacity : false
 
   // Event is "active" if it started (or starts within the check-in window) and hasn't ended
-  const checkinWindowMinutes = (event as Record<string, unknown>)?.checkin_window_minutes as number | undefined ?? 60
+  const checkinWindowMinutes = (event as unknown as Record<string, unknown>)?.checkin_window_minutes as number | undefined ?? 60
   const isEventActive = useMemo(() => {
     if (checkInForcedOpen) return true
     if (!event) return false
@@ -774,8 +774,8 @@ export default function EventDetailPage() {
                 if (result.url) {
                   window.location.href = result.url
                 } else if (result.session_id) {
-                  const stripe = await getStripe()
-                  await stripe?.redirectToCheckout({ sessionId: result.session_id })
+                  const { redirectToCheckout: redir } = await import('@/lib/stripe')
+                  await redir(result.session_id)
                 }
               } catch (err) {
                 toast.error(err instanceof Error ? err.message : 'Failed to start checkout')

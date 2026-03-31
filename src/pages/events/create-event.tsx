@@ -1559,7 +1559,6 @@ export default function CreateEventPage() {
           cover_image_url: form.fields.cover_image_url || null,
           is_public: form.fields.is_public,
           is_ticketed: extra.is_ticketed,
-          checkin_window_minutes: extra.checkin_window_minutes,
           status: isDraft ? 'draft' : 'published',
           ...(extra.is_recurring && {
             is_recurring: true,
