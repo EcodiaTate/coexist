@@ -15,7 +15,6 @@ import {
     ArrowLeft,
     X,
 } from 'lucide-react'
-import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -283,12 +282,10 @@ function AddedToCartModal({
   open,
   onClose,
   related,
-  placeholderMerch,
 }: {
   open: boolean
   onClose: () => void
   related: Product[] | undefined
-  placeholderMerch: string | undefined
 }) {
   const navigate = useNavigate()
 
@@ -325,7 +322,7 @@ function AddedToCartModal({
                 >
                   <div className="rounded-xl overflow-hidden bg-neutral-50 shadow-sm">
                     <img
-                      src={p.images[0] ?? placeholderMerch}
+                      src={p.images[0] ?? '/img/placeholder-merch.jpg'}
                       alt={p.name}
                       loading="lazy"
                       decoding="async"
@@ -384,8 +381,6 @@ export default function ProductDetailPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { toast } = useToast()
-  const placeholderMerch = useAppImage('placeholder_merch')
-
   const { data: product, isLoading } = useProduct(slug)
   const showLoading = useDelayedLoading(isLoading)
   const { data: related } = useRelatedProducts(product?.id)
@@ -720,7 +715,7 @@ export default function ProductDetailPage() {
                       <Card variant="merch">
                         <div className="relative">
                           <Card.Image
-                            src={p.images[0] ?? placeholderMerch}
+                            src={p.images[0] ?? '/img/placeholder-merch.jpg'}
                             alt={p.name}
                             aspectRatio="1/1"
                           />
@@ -754,7 +749,6 @@ export default function ProductDetailPage() {
         open={showCartModal}
         onClose={() => setShowCartModal(false)}
         related={related}
-        placeholderMerch={placeholderMerch}
       />
     </Page>
   )

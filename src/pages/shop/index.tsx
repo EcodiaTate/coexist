@@ -19,7 +19,6 @@ import {
     Coffee,
     HardHat,
 } from 'lucide-react'
-import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
@@ -244,7 +243,6 @@ function ShopHero({
 /* ------------------------------------------------------------------ */
 
 function ProductCard({ product, onClick, index }: { product: Product; onClick: () => void; index: number }) {
-  const placeholderMerch = useAppImage('placeholder_merch')
   const inStock = product.variants.some((v) => v.stock > 0 && v.is_active)
   const lowStock = product.variants.every((v) => v.stock <= 5) && inStock
 
@@ -265,7 +263,7 @@ function ProductCard({ product, onClick, index }: { product: Product; onClick: (
         {/* Full-bleed image with overlay */}
         <div className="relative aspect-[4/5] overflow-hidden">
           <img
-            src={product.images[0] ?? placeholderMerch}
+            src={product.images[0] ?? '/img/placeholder-merch.jpg'}
             alt={product.name}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             loading="lazy"
@@ -320,8 +318,6 @@ function isNewProduct(createdAt: string): boolean {
 /* ------------------------------------------------------------------ */
 
 function FeaturedProduct({ product, onClick }: { product: Product; onClick: () => void }) {
-  const placeholderMerch = useAppImage('placeholder_merch')
-
   return (
     <motion.div
       variants={fadeUp}
@@ -338,7 +334,7 @@ function FeaturedProduct({ product, onClick }: { product: Product; onClick: () =
       <div className="relative rounded-3xl overflow-hidden bg-white border border-neutral-100 shadow-sm">
         <div className="relative aspect-[16/9] sm:aspect-[2/1] overflow-hidden">
           <img
-            src={product.images[0] ?? placeholderMerch}
+            src={product.images[0] ?? '/img/placeholder-merch.jpg'}
             alt={product.name}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
@@ -385,10 +381,10 @@ function ImpactStrip() {
   const stats = useMemo(() => {
     if (!impact) return null
     return [
-      { icon: TreePine, value: formatStat(impact.treesPlanted), label: 'Trees planted' },
-      { icon: Clock, value: formatStat(impact.volunteerHours), label: 'Est. volunteer hours' },
-      { icon: Trash2, value: `${impact.rubbishCollectedTonnes}t`, label: 'Rubbish collected' },
-    ]
+      impact.treesPlanted > 0 && { icon: TreePine, value: formatStat(impact.treesPlanted), label: 'Trees planted' },
+      impact.volunteerHours > 0 && { icon: Clock, value: formatStat(impact.volunteerHours), label: 'Est. volunteer hours' },
+      impact.rubbishCollectedTonnes > 0 && { icon: Trash2, value: `${impact.rubbishCollectedTonnes}t`, label: 'Rubbish collected' },
+    ].filter(Boolean) as { icon: React.ElementType; value: string; label: string }[]
   }, [impact])
 
   return (
@@ -401,8 +397,8 @@ function ImpactStrip() {
           </div>
 
           {/* Live stats row */}
-          {stats ? (
-            <div className="grid grid-cols-3 divide-x divide-neutral-100">
+          {stats && stats.length > 0 ? (
+            <div className={`grid divide-x divide-neutral-100 ${stats.length === 1 ? 'grid-cols-1' : stats.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
               {stats.map(({ icon: Icon, value, label }) => (
                 <div key={label} className="py-3 text-center">
                   <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 text-primary-600 mx-auto mb-1.5">
@@ -415,7 +411,7 @@ function ImpactStrip() {
             </div>
           ) : (
             <div className="grid grid-cols-3 divide-x divide-neutral-100">
-              {[1, 2, 3].map((i) => (
+              {[0, 1, 2].map((i) => (
                 <div key={i} className="py-3 text-center">
                   <div className="w-4 h-4 rounded bg-neutral-100 mx-auto mb-1.5" />
                   <div className="w-10 h-5 rounded bg-neutral-100 mx-auto" />

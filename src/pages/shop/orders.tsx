@@ -2,7 +2,6 @@ import { useNavigate } from 'react-router-dom'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { ChevronRight } from 'lucide-react'
-import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Skeleton } from '@/components/skeleton'
@@ -37,7 +36,6 @@ function formatDate(dateStr: string): string {
 export default function OrdersPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
-  const placeholderMerch = useAppImage('placeholder_merch')
   const { data: orders, isLoading, isError, refetch } = useMyOrders()
   const showLoading = useDelayedLoading(isLoading)
 
@@ -105,7 +103,7 @@ export default function OrdersPage() {
                       {order.items.slice(0, 3).map((item) => (
                         <img
                           key={item.id}
-                          src={item.image_url ?? placeholderMerch}
+                          src={item.image_url ?? '/img/placeholder-merch.jpg'}
                           alt={item.product_name}
                           className="w-8 h-8 rounded-lg object-cover border-2 border-white"
                         />

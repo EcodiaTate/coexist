@@ -3,7 +3,6 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Truck, MapPin, RotateCcw } from 'lucide-react'
-import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -70,8 +69,6 @@ export default function OrderDetailPage() {
   const { orderId } = useParams<{ orderId: string }>()
   const shouldReduceMotion = useReducedMotion()
   const { toast } = useToast()
-  const placeholderMerch = useAppImage('placeholder_merch')
-
   const { data: order, isLoading } = useOrder(orderId)
   const showLoading = useDelayedLoading(isLoading)
   const requestReturn = useRequestReturn()
@@ -161,7 +158,7 @@ export default function OrderDetailPage() {
             {order.items.map((item) => (
               <div key={item.id} className="flex gap-3">
                 <img
-                  src={item.image_url ?? placeholderMerch}
+                  src={item.image_url ?? '/img/placeholder-merch.jpg'}
                   alt={item.product_name}
                   className="w-16 h-16 object-cover rounded-xl shrink-0"
                 />

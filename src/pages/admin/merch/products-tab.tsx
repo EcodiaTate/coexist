@@ -6,7 +6,6 @@ import {
     ChevronDown, ImagePlus, GripVertical, Trash2,
 } from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { useAppImage } from '@/hooks/use-app-images'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/button'
@@ -766,8 +765,6 @@ export default function ProductsTab() {
   const showLoading = useDelayedLoading(isLoading)
   const updateProduct = useUpdateProduct()
   const { toast } = useToast()
-  const placeholderMerch = useAppImage('placeholder_merch')
-
   const [formOpen, setFormOpen] = useState(false)
   const [editProduct, setEditProduct] = useState<Product | undefined>()
   const [archiveTarget, setArchiveTarget] = useState<Product | null>(null)
@@ -880,7 +877,7 @@ export default function ProductsTab() {
                 <div className="flex items-center gap-2.5 p-2.5 sm:p-3">
                   {/* Thumbnail */}
                   <img
-                    src={product.images[0] ?? placeholderMerch}
+                    src={product.images[0] ?? '/img/placeholder-merch.jpg'}
                     alt={product.name}
                     className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover shrink-0"
                   />

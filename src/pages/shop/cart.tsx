@@ -5,7 +5,6 @@ import {
     Minus, Plus, Tag, ArrowRight, Clock,
     AlertTriangle, ShoppingBag, Truck, Shield, X, Leaf,
 } from 'lucide-react'
-import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -86,8 +85,6 @@ export default function CartPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const { toast } = useToast()
-  const placeholderMerch = useAppImage('placeholder_merch')
-
   const items = useCart((s) => s.items)
   const removeItem = useCart((s) => s.removeItem)
   const updateQuantity = useCart((s) => s.updateQuantity)
@@ -295,7 +292,7 @@ export default function CartPage() {
                   <Link to={`/shop/${item.product.slug}`} className="shrink-0 group">
                     <div className="relative rounded-xl overflow-hidden ring-1 ring-primary-900/[0.06]">
                       <img
-                        src={item.product.images[0] ?? placeholderMerch}
+                        src={item.product.images[0] ?? '/img/placeholder-merch.jpg'}
                         alt={item.product.name}
                         className="w-[84px] h-[84px] object-cover group-active:scale-[0.97] transition-transform duration-150"
                         loading="lazy"

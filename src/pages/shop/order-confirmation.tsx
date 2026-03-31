@@ -12,7 +12,6 @@ import { Skeleton } from '@/components/skeleton'
 import { WhatsNext } from '@/components/whats-next'
 import { useCart } from '@/hooks/use-cart'
 import { useOrder } from '@/hooks/use-orders'
-import { useAppImage } from '@/hooks/use-app-images'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { formatPrice, type OrderStatus } from '@/types/merch'
 import { cn } from '@/lib/cn'
@@ -191,8 +190,6 @@ function OrderSummaryCard({
 }) {
   const { data: order, isLoading, isError } = useOrder(orderId)
   const showLoading = useDelayedLoading(isLoading)
-  const placeholderMerch = useAppImage('placeholder_merch')
-
   if (showLoading) {
     return (
       <div className="bg-white border border-neutral-100 shadow-sm rounded-2xl overflow-hidden">
@@ -272,7 +269,7 @@ function OrderSummaryCard({
           {order.items.map((item, idx) => (
             <div key={idx} className="flex items-center gap-3">
               <img
-                src={item.image_url ?? placeholderMerch}
+                src={item.image_url ?? '/img/placeholder-merch.jpg'}
                 alt={item.product_name}
                 className="w-12 h-12 rounded-xl object-cover border border-neutral-100 shadow-sm"
               />

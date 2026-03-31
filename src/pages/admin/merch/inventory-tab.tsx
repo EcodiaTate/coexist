@@ -6,7 +6,6 @@ import {
     Minus, Plus, CheckSquare, Square, Package, Layers
 } from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { useAppImage } from '@/hooks/use-app-images'
 import { TabBar } from '@/components/tab-bar'
 import { SearchBar } from '@/components/search-bar'
 import { Button } from '@/components/button'
@@ -272,14 +271,14 @@ function ProductGroup({
   selectedIds,
   onToggleSelect,
   adjustStock,
-  placeholderMerch,
+  '/img/placeholder-merch.jpg',
 }: {
   product: Product
   variants: FlatVariant[]
   selectedIds: Set<string>
   onToggleSelect: (key: string) => void
   adjustStock: ReturnType<typeof useAdjustStock>
-  placeholderMerch: string | undefined
+  '/img/placeholder-merch.jpg': string | undefined
 }) {
   const allSelected = variants.every((v) => selectedIds.has(`${product.id}-${v.variant.id}`))
   const someSelected = variants.some((v) => selectedIds.has(`${product.id}-${v.variant.id}`))
@@ -324,7 +323,7 @@ function ProductGroup({
           )}
         </div>
         <img
-          src={product.images[0] ?? placeholderMerch}
+          src={product.images[0] ?? '/img/placeholder-merch.jpg'}
           alt={product.name}
           className="w-10 h-10 rounded-lg object-cover shrink-0"
         />
@@ -401,7 +400,6 @@ export default function InventoryTab() {
   const { data: products, isLoading } = useAdminProducts()
   const showLoading = useDelayedLoading(isLoading)
   const shouldReduceMotion = useReducedMotion()
-  const placeholderMerch = useAppImage('placeholder_merch')
   const adjustStock = useAdjustStock()
 
   const [filter, setFilter] = useState<StockFilter>('all')
@@ -633,7 +631,7 @@ export default function InventoryTab() {
                 selectedIds={selectedIds}
                 onToggleSelect={toggleSelect}
                 adjustStock={adjustStock}
-                placeholderMerch={placeholderMerch}
+                '/img/placeholder-merch.jpg'={'/img/placeholder-merch.jpg'}
               />
             ))}
           </div>

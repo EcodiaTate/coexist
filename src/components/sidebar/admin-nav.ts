@@ -1,9 +1,7 @@
 import {
   CalendarDays,
   Users,
-  Settings,
   ShoppingBag,
-  Heart,
   Megaphone,
   MapPin,
   Handshake,
@@ -13,13 +11,10 @@ import {
   Download,
   Mail,
   Bug,
-  Image,
   GraduationCap,
   Home,
   Shield,
   Phone,
-  BarChart3,
-  Eye,
   Leaf,
 } from 'lucide-react'
 import { createElement } from 'react'
@@ -31,27 +26,17 @@ export const adminHomeItem: NavItem = { label: 'Admin Home', path: '/admin', ico
 
 export const adminNavCategories: NavCategory[] = [
   {
-    label: 'People',
+    label: 'Programme',
     sectionHeader: 'Admin',
     sectionBorderColor: 'border-amber-500',
-    labelColor: 'text-amber-600',
-    dotColor: 'bg-amber-500',
-    items: [
-      { label: 'Users', path: '/admin/users', icon: icon(Users), capability: 'manage_users' },
-      { label: 'Applications', path: '/admin/applications', icon: icon(ClipboardList), capability: 'manage_users' },
-    ],
-  },
-  {
-    label: 'Programme',
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
       { label: 'Collectives', path: '/admin/collectives', icon: icon(MapPin), capability: 'manage_collectives' },
       { label: 'Events', path: '/admin/events', icon: icon(CalendarDays), capability: 'manage_events' },
       { label: 'Development', path: '/admin/development', icon: icon(GraduationCap), capability: 'manage_content' },
-      { label: 'Partners', path: '/admin/partners', icon: icon(Handshake), capability: 'manage_partners' },
       { label: 'Shop', path: '/admin/shop', icon: icon(ShoppingBag), capability: 'manage_merch' },
-      { label: 'Contacts', path: '/admin/contacts', icon: icon(Phone), capability: 'manage_users' },
+      { label: 'Users', path: '/admin/users', icon: icon(Users), capability: 'manage_users' },
     ],
   },
   {
@@ -70,8 +55,7 @@ export const adminNavCategories: NavCategory[] = [
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
-      { label: 'Impact Dashboard', path: '/admin/impact', icon: icon(Leaf), capability: 'view_reports' },
-      { label: 'Metric Definitions', path: '/admin/impact-metrics', icon: icon(BarChart3), capability: 'manage_system' },
+      { label: 'Impact', path: '/admin/impact', icon: icon(Leaf), capability: 'view_reports' },
       { label: 'Reports', path: '/admin/reports', icon: icon(FileText), capability: 'view_reports' },
       { label: 'Exports', path: '/admin/exports', icon: icon(Download), capability: 'manage_exports' },
       { label: 'Audit Log', path: '/admin/audit-log', icon: icon(FileText), capability: 'view_audit_log' },
@@ -82,10 +66,10 @@ export const adminNavCategories: NavCategory[] = [
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
-      { label: 'Charity', path: '/admin/charity', icon: icon(Heart), capability: 'manage_charity' },
-      { label: 'Branding', path: '/admin/branding', icon: icon(Image), capability: 'manage_system' },
       { label: 'Legal Pages', path: '/admin/legal-pages', icon: icon(FileText), capability: 'manage_system' },
-      { label: 'System', path: '/admin/system', icon: icon(Settings), capability: 'manage_system' },
+      { label: 'Applications', path: '/admin/applications', icon: icon(ClipboardList), capability: 'manage_users' },
+      { label: 'Partners', path: '/admin/partners', icon: icon(Handshake), capability: 'manage_partners' },
+      { label: 'Contacts', path: '/admin/contacts', icon: icon(Phone), capability: 'manage_users' },
       { label: 'Dev Tools', path: '/admin/dev-tools', icon: icon(Bug), devOnly: true },
     ],
   },
