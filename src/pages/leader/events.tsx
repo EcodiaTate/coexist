@@ -14,6 +14,8 @@ import {
 } from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader, useLeaderContext } from '@/components/leader-layout'
+import { useLeaderCollectiveScope } from '@/hooks/use-leader-collective-scope'
+import { Dropdown } from '@/components/dropdown'
 import { SearchBar } from '@/components/search-bar'
 import { Badge } from '@/components/badge'
 import { cn } from '@/lib/cn'
@@ -54,10 +56,19 @@ export default function LeaderEventsPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const { collectiveId } = useLeaderContext()
+  const scopeCtx = useLeaderCollectiveScope()
   const [filter, setFilter] = useState<string>('upcoming')
   const [searchQuery, setSearchQuery] = useState('')
 
   useLeaderHeader('Events', { fullBleed: true })
+
+  const collectiveScopeOptions = useMemo(() =>
+    scopeCtx.availableCollectives.map((c) => ({
+      value: c.id,
+      label: c.name.replace(/\s+Collective$/i, '') + (c.state ? ` (${c.state})` : ''),
+    })),
+    [scopeCtx.availableCollectives],
+  )
 
   const { data: allEvents, isLoading } = useCollectiveEvents(collectiveId, filter)
 
@@ -120,6 +131,16 @@ export default function LeaderEventsPage() {
           <h1 className="font-heading text-3xl sm:text-4xl font-bold text-primary-900 mt-1.5">
             Events
           </h1>
+          {scopeCtx.showCollectiveSelector && collectiveScopeOptions.length > 1 && (
+            <div className="mt-3">
+              <Dropdown
+                options={collectiveScopeOptions}
+                value={scopeCtx.selectedCollectiveId ?? ''}
+                onChange={scopeCtx.setSelectedCollectiveId}
+                className="w-52"
+              />
+            </div>
+          )}
         </motion.div>
 
         {/* ── Stat pills ── */}

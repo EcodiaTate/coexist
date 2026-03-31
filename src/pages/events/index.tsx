@@ -4,8 +4,8 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Calendar, MapPin, Users, X, Leaf, Filter, ChevronRight,
-  TreePine, Waves, Sprout, Compass, Bird, Flower2,
-  GraduationCap, Droplets, CircleDot,
+  TreePine, Waves, Flower2,
+  GraduationCap, CircleDot,
   ArrowRight, Heart, TrendingUp,
 } from 'lucide-react'
 import {
@@ -79,26 +79,6 @@ const statusBadge: Record<string, { label: string; className: string }> = {
   attended: { label: 'Attended', className: 'bg-success-50 text-success-700 border border-success-200' },
   invited: { label: 'Invited', className: 'bg-info-50 text-info-700 border border-info-200' },
 }
-
-/* ------------------------------------------------------------------ */
-/*  Bento category cards                                               */
-/* ------------------------------------------------------------------ */
-
-const BENTO_CATEGORIES: {
-  key: ActivityType
-  label: string
-  tagline: string
-  icon: React.ReactNode
-  gradient: string
-  span?: 'wide'
-}[] = [
-  { key: 'shore_cleanup',       label: 'Shore Cleanup',       tagline: 'Protect our coastlines',  icon: <Waves size={20} />,    gradient: 'from-sky-500 via-sky-400 to-moss-500',           span: 'wide' },
-  { key: 'tree_planting',       label: 'Tree Planting',       tagline: 'Plant native species',    icon: <TreePine size={20} />, gradient: 'from-success-600 via-success-500 to-primary-500' },
-  { key: 'marine_restoration',  label: 'Marine Restoration',  tagline: 'Restore ocean habitats',  icon: <Droplets size={20} />, gradient: 'from-primary-600 via-primary-500 to-moss-500' },
-  { key: 'nature_walk',         label: 'Nature Walks',        tagline: 'Explore & connect',       icon: <Compass size={20} />,  gradient: 'from-bark-600 via-bark-500 to-warning-500',      span: 'wide' },
-  { key: 'land_regeneration',   label: 'Land Regen',          tagline: 'Restore native habitat',  icon: <Sprout size={20} />,   gradient: 'from-sprout-600 via-sprout-500 to-success-500' },
-  { key: 'camp_out',            label: 'Camp Outs',           tagline: 'Under the stars',         icon: <Bird size={20} />,     gradient: 'from-moss-600 via-moss-500 to-primary-500' },
-]
 
 /* ------------------------------------------------------------------ */
 /*  Section header                                                     */
@@ -553,55 +533,6 @@ export default function ExplorePage() {
                     </motion.section>
                   )}
 
-                  {/* ── Bento Category Grid ── */}
-                  <motion.section
-                    className="px-4 lg:px-6"
-                    initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.35, delay: 0.12 }}
-                  >
-                    <SectionHeader title="Browse by Activity" />
-                    <div className="grid grid-cols-2 gap-3">
-                      {BENTO_CATEGORIES.map((cat, i) => (
-                        <motion.button
-                          key={cat.key}
-                          type="button"
-                          onClick={() => setActivityFilter(activityFilter === cat.key ? '' : cat.key)}
-                          whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
-                          className={cn(
-                            'relative overflow-hidden rounded-2xl text-left cursor-pointer select-none',
-                            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2',
-                            'transition-all duration-200',
-                            cat.span === 'wide' ? 'col-span-2' : '',
-                            activityFilter === cat.key
-                              ? 'ring-2 ring-white ring-offset-2 ring-offset-neutral-50 shadow-xl scale-[1.01]'
-                              : 'shadow-md',
-                          )}
-                          initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.08 + i * 0.04, duration: 0.3 }}
-                          aria-pressed={activityFilter === cat.key}
-                        >
-                          <div className={cn(
-                            'bg-gradient-to-br p-4',
-                            cat.gradient,
-                            cat.span === 'wide' ? 'min-h-[80px]' : 'min-h-[100px]',
-                          )}>
-                            <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm text-white mb-2">
-                              {cat.icon}
-                            </span>
-                            <span className="text-sm font-bold text-white block leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.15)]">
-                              {cat.label}
-                            </span>
-                            <span className="text-[11px] font-medium text-white/70 mt-0.5 block">
-                              {cat.tagline}
-                            </span>
-                          </div>
-                        </motion.button>
-                      ))}
-                    </div>
-                  </motion.section>
-
                   {/* ── Discover Events ── */}
                   <motion.section
                     className="px-4 lg:px-6"
@@ -789,7 +720,7 @@ export default function ExplorePage() {
                   <section className="px-4 lg:px-6">
                     <SectionHeader title="Find a Collective" />
                     <div className="rounded-2xl overflow-hidden border border-neutral-100 shadow-sm">
-                      <CollectiveMap className="h-[50vh] min-h-[320px]" />
+                      <CollectiveMap className="h-[75vh] min-h-[500px]" />
                     </div>
                   </section>
 

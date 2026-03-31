@@ -68,7 +68,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col bg-white">
+    <div className="min-h-dvh flex flex-col" style={{ backgroundColor: '#f0ede6' }}>
       <OGMeta
         title="Log In"
         description="Sign in to your Co-Exist account. Access conservation events, connect with your collective, and track your environmental impact across Australia."
@@ -97,7 +97,7 @@ export default function LoginPage() {
               initial={rm ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
-              className="text-[28px] font-bold text-neutral-900 tracking-tight leading-tight"
+              className="text-[32px] font-bold tracking-tight leading-tight text-neutral-900"
             >
               Welcome back
             </motion.h1>
@@ -126,10 +126,10 @@ export default function LoginPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2.5',
                   'h-[52px] rounded-2xl',
-                  'bg-white border border-neutral-100',
-                  'text-sm text-neutral-900 font-semibold',
-                  'active:scale-[0.97] transition-transform duration-200',
-                  'cursor-pointer hover:bg-neutral-50',
+                  'bg-white border-2 border-neutral-200 text-neutral-900',
+                  'text-sm font-semibold',
+                  'active:scale-[0.97] transition-all duration-200',
+                  'cursor-pointer hover:border-neutral-400 hover:bg-neutral-50',
                 )}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -147,10 +147,10 @@ export default function LoginPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2.5',
                   'h-[52px] rounded-2xl',
-                  'bg-white border border-neutral-100',
-                  'text-sm text-neutral-900 font-semibold',
-                  'active:scale-[0.97] transition-transform duration-200',
-                  'cursor-pointer hover:bg-neutral-50',
+                  'bg-white border-2 border-neutral-200 text-neutral-900',
+                  'text-sm font-semibold',
+                  'active:scale-[0.97] transition-all duration-200',
+                  'cursor-pointer hover:border-neutral-400 hover:bg-neutral-50',
                 )}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -162,13 +162,13 @@ export default function LoginPage() {
 
             {/* Divider */}
             <div className="flex items-center gap-4 my-7">
-              <div className="flex-1 h-px bg-neutral-100" />
+              <div className="flex-1 h-px bg-neutral-300" />
               <span className="text-[11px] text-neutral-400 font-semibold uppercase tracking-[0.15em]">or</span>
-              <div className="flex-1 h-px bg-neutral-100" />
+              <div className="flex-1 h-px bg-neutral-300" />
             </div>
 
-            {/* Form card */}
-            <div className="bg-white rounded-2xl border border-neutral-100 p-5 space-y-4">
+            {/* Form fields */}
+            <div className="space-y-3">
               <Input
                 type="email"
                 label="Email"
@@ -176,6 +176,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
                 required
+                inputClassName="bg-white border-2 border-neutral-200 text-neutral-900 focus:border-primary-500 rounded-xl"
               />
 
               <Input
@@ -185,9 +186,10 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
                 required
+                inputClassName="bg-white border-2 border-neutral-200 text-neutral-900 focus:border-primary-500 rounded-xl"
               />
 
-              <div className="flex items-center justify-between pt-0.5">
+              <div className="flex items-center justify-between pt-1">
                 <button
                   type="button"
                   onClick={handleMagicLink}

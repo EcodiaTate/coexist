@@ -2,8 +2,6 @@ import { type ReactNode, useState, useEffect, useRef, createContext, useContext,
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { AdminCollectiveScopeContext, useAdminCollectiveScopeProvider } from '@/hooks/use-admin-collective-scope'
-import { useAuth } from '@/hooks/use-auth'
-import { Dropdown } from '@/components/dropdown'
 
 import {
     LayoutDashboard,
@@ -342,7 +340,6 @@ export function AdminLayout() {
   const showBackButton = !TOP_LEVEL_ADMIN_PATHS.has(location.pathname)
   const [header, setHeaderState] = useState<AdminHeaderState>({ title: '' })
   const scrollRef = useRef<HTMLDivElement>(null)
-  const { isAdmin: isAdminUser } = useAuth()
   const scopeCtx = useAdminCollectiveScopeProvider()
 
   // Scroll content to top on route change  instant to avoid fighting
@@ -356,19 +353,6 @@ export function AdminLayout() {
   }, [])
 
   const headerCtx = useMemo(() => ({ setHeader }), [setHeader])
-
-  // Collective scope dropdown options
-  const collectiveScopeOptions = useMemo(() => {
-    const opts = scopeCtx.availableCollectives.map((c) => ({
-      value: c.id,
-      label: c.name + (c.state ? ` (${c.state})` : ''),
-    }))
-    // Only admins get the "All Collectives" option; managers must pick one
-    if (isAdminUser) {
-      opts.unshift({ value: 'all', label: 'All Collectives' })
-    }
-    return opts
-  }, [scopeCtx.availableCollectives, isAdminUser])
 
   return (
     <AdminCollectiveScopeContext.Provider value={scopeCtx}>
@@ -441,15 +425,6 @@ export function AdminLayout() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      {scopeCtx.showCollectiveSelector && collectiveScopeOptions.length > 1 && (
-                        <Dropdown
-                          options={collectiveScopeOptions}
-                          value={scopeCtx.selectedCollectiveId}
-                          onChange={scopeCtx.setSelectedCollectiveId}
-                          className="w-48 sm:w-56"
-                          tone="dark"
-                        />
-                      )}
                       {header.actions}
                     </div>
                   </div>

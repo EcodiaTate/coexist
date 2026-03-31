@@ -12,7 +12,6 @@ import { useCollective } from '@/hooks/use-collective'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
 import { useMenuSheet } from '@/hooks/use-menu-sheet'
-import { Dropdown } from '@/components/dropdown'
 import {
     LeaderCollectiveScopeContext,
     useLeaderCollectiveScopeProvider,
@@ -239,14 +238,6 @@ export function LeaderLayout() {
   // Strip trailing "Collective" - e.g. "Byron Bay Collective" → "Byron Bay"
   const _collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
 
-  // Build dropdown options for collective selector
-  const collectiveScopeOptions = useMemo(() => {
-    return scopeCtx.availableCollectives.map((c) => ({
-      value: c.id,
-      label: c.name.replace(/\s+Collective$/i, '') + (c.state ? ` (${c.state})` : ''),
-    }))
-  }, [scopeCtx.availableCollectives])
-
   // Scroll content to top on route change  instant to avoid fighting
   // with page transition animations
   useEffect(() => {
@@ -282,19 +273,6 @@ export function LeaderLayout() {
           'flex-1 flex flex-col min-w-0 min-h-0 bg-surface-1',
           showBottomTabs && 'overflow-y-auto overscroll-none',
         )}>
-          {/* Collective scope selector — floating overlay, always accessible */}
-          {scopeCtx.showCollectiveSelector && collectiveScopeOptions.length > 1 && (
-            <div className="absolute top-[var(--safe-top,0px)] right-4 mt-3 z-40">
-              <Dropdown
-                options={collectiveScopeOptions}
-                value={scopeCtx.selectedCollectiveId ?? ''}
-                onChange={scopeCtx.setSelectedCollectiveId}
-                className="w-48 sm:w-56 shadow-lg"
-                tone="dark"
-              />
-            </div>
-          )}
-
           {/* Shared hero bar - only for non-fullBleed pages */}
           {!header.fullBleed && header.title ? (() => {
             const cfg = PAGE_HERO_CONFIG[header.title] ?? DEFAULT_HERO

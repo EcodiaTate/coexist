@@ -207,8 +207,13 @@ export default function AdminExportsPage() {
           body: { exportId, dateStart, dateEnd, scope, collectiveId: collectiveFilter },
         })
         if (error) throw error
-        if (data?.url) {
-          window.open(data.url, '_blank')
+        if (data?.html) {
+          const blob = new Blob([data.html], { type: 'text/html' })
+          const url = URL.createObjectURL(blob)
+          const win = window.open(url, '_blank')
+          // Revoke after the window has had time to load
+          setTimeout(() => URL.revokeObjectURL(url), 10_000)
+          if (!win) toast.error('Allow popups to open the PDF preview')
         }
         toast.success('PDF generated')
         return

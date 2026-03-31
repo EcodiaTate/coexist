@@ -13,8 +13,8 @@ const corsHeaders = {
  * Called from Admin > Exports when the user selects PDF format.
  * Generates a PDF, uploads it to Supabase Storage, and returns a signed URL.
  *
- * Supported exportIds: members, attendance, impact-csv, survey, financial,
- * orders, reconciliation, gst, donation-tax
+ * Supported exportIds: members, attendance, impact-csv, impact-pdf, survey, financial,
+ * orders, reconciliation, gst, donation-tax, charity-annual
  */
 
 /* ------------------------------------------------------------------ */
@@ -35,20 +35,39 @@ function buildHtmlTable(title: string, headers: string[], rows: string[][], date
 
   return `<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>${escapeHtml(title)}</title></head>
-<body style="font-family:Arial,sans-serif;margin:40px;color:#333;">
+<head>
+<meta charset="utf-8">
+<title>${escapeHtml(title)}</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 40px; color: #333; }
+  h1 { color: #1a6b3c; margin: 0; }
+  h2 { margin: 8px 0 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { border: 1px solid #ddd; padding: 8px; background: #1a6b3c; color: #fff; text-align: left; }
+  td { border: 1px solid #ddd; padding: 6px; }
+  .footer { text-align: center; color: #999; margin-top: 24px; font-size: 10px; }
+  @media print {
+    body { margin: 20px; }
+    button { display: none !important; }
+    @page { margin: 1.5cm; }
+  }
+</style>
+</head>
+<body>
   <div style="text-align:center;margin-bottom:24px;">
-    <h1 style="color:#1a6b3c;margin:0;">Co-Exist Australia</h1>
-    <h2 style="margin:8px 0 4px;">${escapeHtml(title)}</h2>
+    <h1>Co-Exist Australia</h1>
+    <h2>${escapeHtml(title)}</h2>
     <p style="color:#666;margin:0;">${dateRange ? `Period: ${escapeHtml(dateRange)}` : `Generated: ${new Date().toLocaleDateString('en-AU')}`}</p>
   </div>
-  <table style="width:100%;border-collapse:collapse;font-size:12px;">
+  <button onclick="window.print()" style="display:block;margin:0 auto 20px;padding:8px 24px;background:#1a6b3c;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:14px;">
+    Save as PDF
+  </button>
+  <table>
     <thead><tr>${headerCells}</tr></thead>
     <tbody>${bodyRows}</tbody>
   </table>
-  <p style="text-align:center;color:#999;margin-top:24px;font-size:10px;">
-    Generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC &bull; Co-Exist Australia
-  </p>
+  <p class="footer">Generated ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC &bull; Co-Exist Australia</p>
+  <script>window.onload = function() { window.print(); }</script>
 </body>
 </html>`
 }
@@ -252,6 +271,91 @@ async function fetchExportData(
       }
     }
 
+    case 'charity-annual': {
+      // Aggregate key stats for ACNC annual report
+      const [membersRes, eventsRes, impactRes, donationsRes] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('events').select('id, title, start_time, status').eq('status', 'completed').order('start_time'),
+        supabase.from('event_impact').select('trees_planted, hours_total, rubbish_kg, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings'),
+        supabase.from('donations').select('amount_cents, donor_name, donor_email, created_at'),
+      ])
+      const totalMembers = membersRes.count ?? 0
+      const events = eventsRes.data ?? []
+      const impacts = impactRes.data ?? []
+      const donations = donationsRes.data ?? []
+
+      const totals = impacts.reduce((acc: any, r: any) => {
+        acc.trees += r.trees_planted ?? 0
+        acc.hours += r.hours_total ?? 0
+        acc.rubbish += r.rubbish_kg ?? 0
+        acc.coastline += r.coastline_cleaned_m ?? 0
+        acc.area += r.area_restored_sqm ?? 0
+        acc.plants += r.native_plants ?? 0
+        acc.wildlife += r.wildlife_sightings ?? 0
+        return acc
+      }, { trees: 0, hours: 0, rubbish: 0, coastline: 0, area: 0, plants: 0, wildlife: 0 })
+
+      const totalDonations = donations.reduce((sum: number, d: any) => sum + (d.amount_cents ?? 0), 0)
+
+      const summaryRows: string[][] = [
+        ['Total Members', String(totalMembers)],
+        ['Events Completed', String(events.length)],
+        ['Total Volunteer Hours', String(totals.hours)],
+        ['Trees Planted', String(totals.trees)],
+        ['Native Plants', String(totals.plants)],
+        ['Rubbish Collected (kg)', String(totals.rubbish)],
+        ['Coastline Cleaned (m)', String(totals.coastline)],
+        ['Area Restored (m²)', String(totals.area)],
+        ['Wildlife Sightings', String(totals.wildlife)],
+        ['Total Donations Received', `$${(totalDonations / 100).toFixed(2)}`],
+        ['Unique Donors', String(new Set(donations.map((d: any) => d.donor_email).filter(Boolean)).size)],
+      ]
+
+      return {
+        title: 'Charity Annual Report',
+        headers: ['Metric', 'Value'],
+        rows: summaryRows,
+      }
+    }
+
+    case 'impact-pdf': {
+      let query = supabase
+        .from('event_impact')
+        .select('event_id, trees_planted, hours_total, rubbish_kg, coastline_cleaned_m, area_restored_sqm, native_plants, wildlife_sightings, logged_at, events(title)')
+        .order('logged_at', { ascending: false })
+      query = applyDateFilter(query, 'logged_at')
+      const { data, error } = await query
+      if (error) throw error
+
+      const totals = (data ?? []).reduce((acc: any, r: any) => {
+        acc.trees += r.trees_planted ?? 0
+        acc.hours += r.hours_total ?? 0
+        acc.rubbish += r.rubbish_kg ?? 0
+        acc.plants += r.native_plants ?? 0
+        acc.wildlife += r.wildlife_sightings ?? 0
+        return acc
+      }, { trees: 0, hours: 0, rubbish: 0, plants: 0, wildlife: 0 })
+
+      const summaryRows: string[][] = [
+        ['--- SUMMARY ---', '', '', '', '', '', '', '', ''],
+        ['ALL EVENTS', String(totals.trees), String(totals.hours), String(totals.rubbish), '', '', String(totals.plants), String(totals.wildlife), ''],
+        ['--- EVENT BREAKDOWN ---', '', '', '', '', '', '', '', ''],
+        ...(data ?? []).map((r: any) => [
+          r.events?.title ?? r.event_id ?? '', String(r.trees_planted ?? 0),
+          String(r.hours_total ?? 0), String(r.rubbish_kg ?? 0),
+          String(r.coastline_cleaned_m ?? 0), String(r.area_restored_sqm ?? 0),
+          String(r.native_plants ?? 0), String(r.wildlife_sightings ?? 0),
+          r.logged_at?.slice(0, 10) ?? '',
+        ]),
+      ]
+
+      return {
+        title: 'Environmental Impact Report',
+        headers: ['Event', 'Trees Planted', 'Volunteer Hours', 'Rubbish (kg)', 'Coastline (m)', 'Area Restored (m²)', 'Native Plants', 'Wildlife Sightings', 'Date'],
+        rows: summaryRows,
+      }
+    }
+
     default:
       throw new Error(`Unknown export type: ${exportId}`)
   }
@@ -325,46 +429,9 @@ Deno.serve(async (req: Request) => {
 
     const html = buildHtmlTable(title, headers, rows, dateRange)
 
-    // ---- Upload HTML as a PDF-ready file to Storage ----
-    const filename = `exports/${caller.id}/${exportId}-${Date.now()}.html`
-
-    const { error: uploadError } = await supabase.storage
-      .from('admin-exports')
-      .upload(filename, new Blob([html], { type: 'text/html' }), {
-        contentType: 'text/html',
-        upsert: true,
-      })
-
-    if (uploadError) {
-      // If bucket doesn't exist, try creating it
-      if (uploadError.message?.includes('not found') || uploadError.statusCode === '404') {
-        await supabase.storage.createBucket('admin-exports', {
-          public: false,
-          fileSizeLimit: 10 * 1024 * 1024, // 10MB
-        })
-        const { error: retryError } = await supabase.storage
-          .from('admin-exports')
-          .upload(filename, new Blob([html], { type: 'text/html' }), {
-            contentType: 'text/html',
-            upsert: true,
-          })
-        if (retryError) throw retryError
-      } else {
-        throw uploadError
-      }
-    }
-
-    // Generate a signed URL (valid for 1 hour)
-    const { data: signedData, error: signError } = await supabase.storage
-      .from('admin-exports')
-      .createSignedUrl(filename, 3600)
-
-    if (signError || !signedData?.signedUrl) {
-      throw signError ?? new Error('Failed to generate signed URL')
-    }
-
+    // ---- Return HTML directly — frontend opens a blob URL and prints it ----
     return new Response(
-      JSON.stringify({ url: signedData.signedUrl }),
+      JSON.stringify({ html }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (err) {
