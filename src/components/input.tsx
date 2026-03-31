@@ -33,6 +33,8 @@ export interface InputProps {
   className?: string
   /** Extra classes merged onto the <input>/<textarea> element itself (e.g. bg override). */
   inputClassName?: string
+  /** Extra classes merged onto the floating label element. */
+  labelClassName?: string
   'aria-label'?: string
   maxLength?: number
   max?: string
@@ -64,6 +66,7 @@ export const Input = forwardRef<
     icon,
     className,
     inputClassName,
+    labelClassName,
     'aria-label': ariaLabel,
     maxLength,
     max,
@@ -239,6 +242,7 @@ export const Input = forwardRef<
               'text-[16px] leading-normal origin-left',
               (isSearch || icon) && 'left-10',
               error ? 'text-error' : focused ? 'text-primary-500' : 'text-neutral-500',
+              labelClassName,
             )}
           >
             {label}

@@ -51,6 +51,8 @@ import { useOffline } from '@/hooks/use-offline'
 import { queueOfflineAction } from '@/lib/offline-sync'
 import { useCollective } from '@/hooks/use-collective'
 import { useLeaderHeader, useLeaderContext, useIsLeaderLayout } from '@/components/leader-layout'
+import { useLeaderCollectiveScope } from '@/hooks/use-leader-collective-scope'
+import { Dropdown } from '@/components/dropdown'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { TaskSurveyModal } from '@/components/task-survey-modal'
@@ -904,7 +906,16 @@ export default function LeaderDashboardPage() {
     return membership?.collective_id
   }, [collectiveRoles])
 
+  const scopeCtx = useLeaderCollectiveScope()
   const collectiveId = leaderCtx.collectiveId ?? fallbackCollectiveId
+
+  const collectiveScopeOptions = useMemo(() =>
+    scopeCtx.availableCollectives.map((c) => ({
+      value: c.id,
+      label: c.name.replace(/\s+Collective$/i, '') + (c.state ? ` (${c.state})` : ''),
+    })),
+    [scopeCtx.availableCollectives],
+  )
 
   const { data, isLoading } = useLeaderDashboard(collectiveId)
   const { data: impactStats } = useCollectiveFullStats(collectiveId)
@@ -1139,6 +1150,19 @@ export default function LeaderDashboardPage() {
           initial="hidden"
           animate="visible"
         >
+          {/* ── Collective selector (multi-collective leaders/managers only) ── */}
+          {scopeCtx.showCollectiveSelector && collectiveScopeOptions.length > 1 && (
+            <motion.div variants={rm ? undefined : fadeUp} className="flex items-center justify-between gap-3 pt-1">
+              <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">Viewing</p>
+              <Dropdown
+                options={collectiveScopeOptions}
+                value={scopeCtx.selectedCollectiveId ?? ''}
+                onChange={scopeCtx.setSelectedCollectiveId}
+                className="w-52"
+              />
+            </motion.div>
+          )}
+
           {/* ── Collective Impact (prominent, right under hero) ── */}
           {impactStats && impactCards.length > 0 && (
             <motion.div variants={rm ? undefined : fadeUp}>

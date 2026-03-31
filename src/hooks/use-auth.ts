@@ -19,7 +19,9 @@ function ensureSocialLogin(): Promise<void> {
   if (!socialLoginReady) {
     socialLoginReady = SocialLogin.initialize({
       google: { webClientId: import.meta.env.VITE_GOOGLE_WEB_CLIENT_ID },
-      apple: {},
+      apple: {
+        redirectUrl: `${import.meta.env.VITE_SUPABASE_URL}/auth/v1/callback`,
+      },
     }).catch((err) => {
       console.error('[social-login] init failed:', err)
       socialLoginReady = null // allow retry on next attempt

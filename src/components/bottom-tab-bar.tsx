@@ -95,7 +95,7 @@ export function BottomTabBar({
   const location = useLocation()
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
-  const { haptics } = usePlatform()
+  const { haptics, isAndroid } = usePlatform()
 
   const tabs = customTabs ?? baseTabs
 
@@ -127,6 +127,12 @@ export function BottomTabBar({
   const inactiveText = accent === 'moss' ? 'text-moss-400/70' : 'text-neutral-400/70'
   const activePill = accent === 'moss' ? 'bg-moss-100/80' : 'bg-primary-100/80'
 
+  // Android gesture/button nav bars don't reliably populate env(safe-area-inset-bottom).
+  // Apply a 16px minimum so the bar always clears the system UI on Android.
+  const navStyle = isAndroid
+    ? { marginBottom: 'max(env(safe-area-inset-bottom, 0px), 16px)' }
+    : undefined
+
   return (
     <div
       className={cn(
@@ -141,6 +147,7 @@ export function BottomTabBar({
           'mx-4 mb-[var(--safe-bottom,0px)] rounded-[20px]',
           'bg-white shadow-sm',
         )}
+        style={navStyle}
         aria-label="Navigation"
         role="tablist"
       >

@@ -139,23 +139,37 @@ export default function SettingsPrivacyPage() {
   // Privacy state
   type ProfileExt = { notification_preferences?: Partial<NotificationPreferences> & { sound_enabled?: boolean; profile_visible?: boolean }; marketing_opt_in?: boolean }
   const profileExt = profile as unknown as ProfileExt | null
-  const savedPrefsJson = JSON.stringify(profileExt?.notification_preferences ?? null)
 
-  const [profileVisible, setProfileVisible] = useState(true)
-  const [marketingOptIn, setMarketingOptIn] = useState(true)
-  const [soundEnabled, setSoundEnabled] = useState(true)
-  const [prefs, setPrefs] = useState<NotificationPreferences>(DEFAULT_PREFERENCES)
+  const [profileVisible, setProfileVisible] = useState(() => {
+    const saved = profileExt?.notification_preferences
+    return saved?.profile_visible !== undefined ? saved.profile_visible : true
+  })
+  const [marketingOptIn, setMarketingOptIn] = useState(() =>
+    profileExt ? profileExt.marketing_opt_in !== false : true
+  )
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = profileExt?.notification_preferences
+    return saved?.sound_enabled !== undefined ? saved.sound_enabled : true
+  })
+  const [prefs, setPrefs] = useState<NotificationPreferences>(() => ({
+    ...DEFAULT_PREFERENCES,
+    ...(profileExt?.notification_preferences as Partial<NotificationPreferences> | undefined),
+  }))
+  const [hydrated, setHydrated] = useState(!!profileExt)
 
   useEffect(() => {
-    const saved = profileExt?.notification_preferences
+    // Only seed from profile once — after the first load where profile arrives
+    if (!profileExt || hydrated) return
+    const saved = profileExt.notification_preferences
     if (saved) {
       setPrefs((prev) => ({ ...prev, ...(saved as Partial<NotificationPreferences>) }))
       if (saved.sound_enabled !== undefined) setSoundEnabled(saved.sound_enabled)
       if (saved.profile_visible !== undefined) setProfileVisible(saved.profile_visible)
     }
-    if (profileExt) setMarketingOptIn(profileExt.marketing_opt_in !== false)
+    setMarketingOptIn(profileExt.marketing_opt_in !== false)
+    setHydrated(true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [savedPrefsJson])
+  }, [profileExt])
 
   const persistPrefs = useCallback(
     (updated: Record<string, unknown>, rollbackFn?: () => void) => {
