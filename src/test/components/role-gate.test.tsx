@@ -31,7 +31,7 @@ describe('RoleGate', () => {
 
   describe('global role checks', () => {
     it('renders children when user meets minimum global role', () => {
-      mockAuth.role = 'national_admin'
+      mockAuth.role = 'manager'
       render(
         <RoleGate minRole="national_leader">
           <p>Admin content</p>
@@ -43,7 +43,7 @@ describe('RoleGate', () => {
     it('hides children when user does not meet minimum global role', () => {
       mockAuth.role = 'participant'
       render(
-        <RoleGate minRole="national_admin">
+        <RoleGate minRole="manager">
           <p>Hidden content</p>
         </RoleGate>,
       )
@@ -53,7 +53,7 @@ describe('RoleGate', () => {
     it('renders fallback when user does not meet role', () => {
       mockAuth.role = 'participant'
       render(
-        <RoleGate minRole="national_admin" fallback={<p>No access</p>}>
+        <RoleGate minRole="manager" fallback={<p>No access</p>}>
           <p>Admin only</p>
         </RoleGate>,
       )
@@ -61,10 +61,10 @@ describe('RoleGate', () => {
       expect(screen.getByText('No access')).toBeInTheDocument()
     })
 
-    it('super_admin meets all global roles', () => {
-      mockAuth.role = 'super_admin'
+    it('admin meets all global roles', () => {
+      mockAuth.role = 'admin'
       render(
-        <RoleGate minRole="national_admin">
+        <RoleGate minRole="manager">
           <p>Visible</p>
         </RoleGate>,
       )

@@ -13,7 +13,7 @@ export function Divider({ label, className }: DividerProps) {
         className={cn('flex items-center gap-3 py-2', className)}
       >
         <span className="flex-1 h-px bg-white" aria-hidden="true" />
-        <span className="text-xs font-semibold uppercase tracking-wider text-primary-400 select-none">
+        <span className="text-xs font-semibold uppercase tracking-wider text-neutral-400 select-none">
           {label}
         </span>
         <span className="flex-1 h-px bg-white" aria-hidden="true" />

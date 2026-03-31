@@ -175,16 +175,16 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 /*  Stat card configs                                                  */
 /* ------------------------------------------------------------------ */
 
-const STAT_STYLES: Record<string, { gradient: string; iconBg: string }> = {
-  hours:       { gradient: 'from-primary-100/90 to-primary-200/50', iconBg: 'bg-primary-600' },
-  rubbish:     { gradient: 'from-moss-100/90 to-moss-200/50', iconBg: 'bg-moss-600' },
-  cleanups:    { gradient: 'from-sky-100/90 to-sky-200/50', iconBg: 'bg-sky-600' },
-  weeds:       { gradient: 'from-plum-100/90 to-plum-200/50', iconBg: 'bg-plum-600' },
-  events:      { gradient: 'from-plum-100/90 to-plum-200/50', iconBg: 'bg-plum-600' },
-  members:     { gradient: 'from-primary-50/90 to-primary-100/50', iconBg: 'bg-primary-600' },
-  collectives: { gradient: 'from-bark-50/90 to-bark-100/50', iconBg: 'bg-bark-600' },
-  leaders:     { gradient: 'from-bark-100/90 to-bark-200/50', iconBg: 'bg-bark-600' },
-  coastline:   { gradient: 'from-sky-100/90 to-sky-200/50', iconBg: 'bg-sky-600' },
+const STAT_STYLES: Record<string, { iconBg: string; iconColor: string }> = {
+  hours:       { iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
+  rubbish:     { iconBg: 'bg-moss-50', iconColor: 'text-moss-600' },
+  cleanups:    { iconBg: 'bg-sky-50', iconColor: 'text-sky-600' },
+  weeds:       { iconBg: 'bg-plum-50', iconColor: 'text-plum-600' },
+  events:      { iconBg: 'bg-plum-50', iconColor: 'text-plum-600' },
+  members:     { iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
+  collectives: { iconBg: 'bg-bark-50', iconColor: 'text-bark-600' },
+  leaders:     { iconBg: 'bg-bark-50', iconColor: 'text-bark-600' },
+  coastline:   { iconBg: 'bg-sky-50', iconColor: 'text-sky-600' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -214,26 +214,15 @@ function NationalStat({
       initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4, ease: 'easeOut' }}
-      className={cn(
-        'relative flex flex-col items-center justify-center text-center rounded-3xl p-6 pb-8 min-h-[150px]',
-        'bg-gradient-to-br',
-        cfg.gradient,
-      )}
+      className="flex flex-col items-center justify-center text-center rounded-3xl p-6 pb-8 min-h-[150px] bg-white border border-neutral-100 shadow-sm"
     >
-      <svg className="absolute top-1 left-4 w-14 h-10 opacity-[0.3] pointer-events-none" viewBox="0 0 56 40" fill="none">
-        <ellipse cx="28" cy="10" rx="28" ry="16" fill="white" />
-      </svg>
-
-      <div className={cn('mb-4 flex items-center justify-center w-11 h-11 rounded-2xl shadow-md text-white', cfg.iconBg)} aria-hidden="true">
+      <div className={cn('mb-4 flex items-center justify-center w-11 h-11 rounded-2xl', cfg.iconBg, cfg.iconColor)} aria-hidden="true">
         {icon}
       </div>
-      <div className="relative">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 70%)' }} />
-        <div className="relative font-heading text-4xl font-extrabold text-primary-900 tabular-nums leading-none">
-          <CountUp end={value} duration={2000} suffix={suffix} />
-        </div>
+      <div className="font-heading text-4xl font-extrabold text-neutral-900 tabular-nums leading-none">
+        <CountUp end={value} duration={2000} suffix={suffix} />
       </div>
-      <p className="relative text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold mt-2.5">{label}</p>
+      <p className="text-[11px] uppercase tracking-[0.15em] text-neutral-500 font-bold mt-2.5">{label}</p>
     </motion.div>
   )
 }
@@ -259,9 +248,9 @@ const ACTIVITY_BAR_COLORS: Record<string, string> = {
 /* ------------------------------------------------------------------ */
 
 const MEDAL_STYLES = [
-  'bg-gradient-to-br from-warning-400 to-warning-600 text-white shadow-lg shadow-warning-200/50',
-  'bg-gradient-to-br from-gray-300 to-gray-400 text-white shadow-md',
-  'bg-gradient-to-br from-bark-300 to-bark-500 text-white shadow-md',
+  'bg-warning-50 text-warning-700 shadow-sm',
+  'bg-neutral-100 text-neutral-600 shadow-sm',
+  'bg-bark-50 text-bark-700 shadow-sm',
 ]
 
 /* ------------------------------------------------------------------ */
@@ -287,12 +276,12 @@ export default function NationalImpactPage() {
     const skeleton = (
         <div className="p-5 space-y-5">
           <div className="grid grid-cols-2 gap-4">
-            <div className="h-36 rounded-3xl bg-primary-100/30 animate-pulse" />
-            <div className="h-36 rounded-3xl bg-primary-100/30 animate-pulse" />
-            <div className="h-36 rounded-3xl bg-primary-100/30 animate-pulse" />
-            <div className="h-36 rounded-3xl bg-primary-100/30 animate-pulse" />
+            <div className="h-36 rounded-3xl bg-neutral-100 animate-pulse" />
+            <div className="h-36 rounded-3xl bg-neutral-100 animate-pulse" />
+            <div className="h-36 rounded-3xl bg-neutral-100 animate-pulse" />
+            <div className="h-36 rounded-3xl bg-neutral-100 animate-pulse" />
           </div>
-          <div className="h-64 rounded-3xl bg-primary-100/20 animate-pulse" />
+          <div className="h-64 rounded-3xl bg-neutral-100 animate-pulse" />
         </div>
     )
     if (isAdmin) return skeleton
@@ -335,7 +324,7 @@ export default function NationalImpactPage() {
 
         {/* ─── Time range toggle ─── */}
         <motion.div variants={fadeUp} className="px-5 pt-4 pb-2 flex justify-end">
-          <div className="flex rounded-lg bg-primary-100/60 p-0.5">
+          <div className="flex rounded-lg bg-neutral-100 p-0.5">
             <button
               type="button"
               onClick={() => setTimeRange('all-time')}
@@ -343,7 +332,7 @@ export default function NationalImpactPage() {
                 'px-3.5 min-h-11 rounded-md text-sm font-semibold transition-transform active:scale-[0.95] cursor-pointer select-none',
                 timeRange === 'all-time'
                   ? 'bg-white text-primary-700 shadow-sm'
-                  : 'text-primary-400 hover:text-primary-600',
+                  : 'text-neutral-400 hover:text-neutral-600',
               )}
             >
               All Time
@@ -355,7 +344,7 @@ export default function NationalImpactPage() {
                 'px-3.5 min-h-11 rounded-md text-sm font-semibold transition-transform active:scale-[0.95] cursor-pointer select-none',
                 timeRange === 'current-year'
                   ? 'bg-white text-primary-700 shadow-sm'
-                  : 'text-primary-400 hover:text-primary-600',
+                  : 'text-neutral-400 hover:text-neutral-600',
               )}
             >
               {new Date().getFullYear()}
@@ -368,33 +357,28 @@ export default function NationalImpactPage() {
           variants={fadeUp}
           className="px-5 pb-2"
         >
-          <div className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-7 shadow-2xl overflow-hidden">
-            <div className="absolute top-0 right-0 w-44 h-44 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
-            <div className="absolute bottom-0 left-0 w-28 h-28 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
-
-            <div className="relative">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/20">
-                  <Globe size={20} strokeWidth={2.5} className="text-white" />
-                </div>
-                <p className="text-[11px] uppercase tracking-[0.2em] text-white/60 font-bold">
-                  Australia-Wide
-                </p>
+          <div className="rounded-3xl bg-white border border-neutral-100 shadow-sm p-7 overflow-hidden">
+            <div className="flex items-center gap-2 mb-5">
+              <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-primary-50 text-primary-600">
+                <Globe size={20} strokeWidth={2.5} />
               </div>
+              <p className="text-[11px] uppercase tracking-[0.2em] text-neutral-400 font-bold">
+                Australia-Wide
+              </p>
+            </div>
 
-              <div className="flex items-baseline gap-6">
-                <div>
-                  <p className="font-heading text-6xl font-extrabold text-white tabular-nums leading-none tracking-tight">
-                    <CountUp end={data?.eventsAttended ?? 0} duration={2000} />
-                  </p>
-                  <p className="text-base text-white/70 font-semibold mt-2">event attendances</p>
-                </div>
-                <div className="border-l border-white/15 pl-6">
-                  <p className="font-heading text-4xl font-extrabold text-white tabular-nums leading-none tracking-tight">
-                    <CountUp end={data?.volunteerHours ?? 0} duration={2000} />
-                  </p>
-                  <p className="text-sm text-white/60 font-semibold mt-1">est. volunteer hours</p>
-                </div>
+            <div className="flex items-baseline gap-6">
+              <div>
+                <p className="font-heading text-6xl font-extrabold text-neutral-900 tabular-nums leading-none tracking-tight">
+                  <CountUp end={data?.eventsAttended ?? 0} duration={2000} />
+                </p>
+                <p className="text-base text-neutral-500 font-semibold mt-2">event attendances</p>
+              </div>
+              <div className="border-l border-neutral-100 pl-6">
+                <p className="font-heading text-4xl font-extrabold text-neutral-900 tabular-nums leading-none tracking-tight">
+                  <CountUp end={data?.volunteerHours ?? 0} duration={2000} />
+                </p>
+                <p className="text-sm text-neutral-500 font-semibold mt-1">est. volunteer hours</p>
               </div>
             </div>
           </div>
@@ -498,7 +482,7 @@ export default function NationalImpactPage() {
           className="mx-5 mt-10"
         >
           <SectionHeading>Geographic Activity</SectionHeading>
-          <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-5 overflow-hidden">
+          <div className="rounded-3xl bg-white border border-neutral-100 shadow-sm p-5 overflow-hidden">
             <MapView
               center={{ lat: -28.0, lng: 134.0 }}
               zoom={4}
@@ -516,21 +500,21 @@ export default function NationalImpactPage() {
             className="mx-5 mt-10"
           >
             <SectionHeading>Monthly Est. Volunteer Hours</SectionHeading>
-            <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6">
+            <div className="rounded-3xl bg-white border border-neutral-100 shadow-sm p-6">
               <div className="flex items-end gap-4 h-36">
                 {trends.map((t, i) => {
                   const max = Math.max(...trends.map((tr) => tr.impact), 1)
                   const height = (t.impact / max) * 100
                   return (
                     <div key={t.month} className="flex-1 flex flex-col items-center gap-2">
-                      <span className="text-[11px] text-primary-600 tabular-nums font-bold">{t.impact === 0 ? '-' : t.impact}</span>
+                      <span className="text-[11px] text-neutral-900 tabular-nums font-bold">{t.impact === 0 ? '-' : t.impact}</span>
                       <motion.div
-                        className="w-full rounded-xl bg-gradient-to-t from-primary-700 via-primary-500 to-primary-300 min-h-[6px] shadow-sm"
+                        className="w-full rounded-xl bg-primary-500 min-h-[6px]"
                         initial={shouldReduceMotion ? { height: `${height}%` } : { height: 0 }}
                         animate={{ height: `${height}%` }}
                         transition={{ duration: 0.5, delay: i * 0.08, ease: 'easeOut' }}
                       />
-                      <span className="text-[11px] text-primary-500 font-bold">{t.month}</span>
+                      <span className="text-[11px] text-neutral-500 font-bold">{t.month}</span>
                     </div>
                   )
                 })}
@@ -546,7 +530,7 @@ export default function NationalImpactPage() {
             className="mx-5 mt-10"
           >
             <SectionHeading>By Activity Type</SectionHeading>
-            <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6 space-y-5">
+            <div className="rounded-3xl bg-white border border-neutral-100 shadow-sm p-6 space-y-5">
               {breakdown.byActivity.map(([type, count]) => {
                 const total = breakdown.byActivity.reduce((s, [, c]) => s + c, 0)
                 const percent = total > 0 ? Math.round((count / total) * 100) : 0
@@ -554,10 +538,10 @@ export default function NationalImpactPage() {
                 return (
                   <div key={type}>
                     <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="text-primary-800 font-bold capitalize">{type.replace(/_/g, ' ')}</span>
-                      <span className="text-primary-500 tabular-nums text-xs font-bold">{count} ({percent}%)</span>
+                      <span className="text-neutral-900 font-bold capitalize">{type.replace(/_/g, ' ')}</span>
+                      <span className="text-neutral-500 tabular-nums text-xs font-bold">{count} ({percent}%)</span>
                     </div>
-                    <div className="h-3 bg-primary-100/50 rounded-full overflow-hidden">
+                    <div className="h-3 bg-neutral-100 rounded-full overflow-hidden">
                       <motion.div
                         className={cn('h-full rounded-full shadow-sm', barColor)}
                         initial={shouldReduceMotion ? { width: `${percent}%` } : { width: 0 }}
@@ -579,7 +563,7 @@ export default function NationalImpactPage() {
             className="mx-5 mt-10"
           >
             <SectionHeading>By State / Region</SectionHeading>
-            <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6 space-y-1">
+            <div className="rounded-3xl bg-white border border-neutral-100 shadow-sm p-6 space-y-1">
               {breakdown.byState.map(([state, count], i) => {
                 const maxCount = breakdown.byState[0]?.[1] ?? 1
                 const barWidth = Math.max((count / maxCount) * 100, 8)
@@ -588,8 +572,8 @@ export default function NationalImpactPage() {
                     key={state}
                     className="flex items-center gap-4 py-3.5"
                   >
-                    <span className="text-sm text-primary-800 font-bold w-16 shrink-0">{state}</span>
-                    <div className="flex-1 h-3 bg-primary-100/50 rounded-full overflow-hidden">
+                    <span className="text-sm text-neutral-900 font-bold w-16 shrink-0">{state}</span>
+                    <div className="flex-1 h-3 bg-neutral-100 rounded-full overflow-hidden">
                       <motion.div
                         className="h-full rounded-full bg-gradient-to-r from-primary-500 to-primary-400 shadow-sm"
                         initial={shouldReduceMotion ? { width: `${barWidth}%` } : { width: 0 }}
@@ -597,7 +581,7 @@ export default function NationalImpactPage() {
                         transition={{ duration: 0.5, delay: 0.3 + i * 0.05, ease: 'easeOut' }}
                       />
                     </div>
-                    <span className="text-sm font-extrabold text-primary-900 tabular-nums w-10 text-right shrink-0">
+                    <span className="text-sm font-extrabold text-neutral-900 tabular-nums w-10 text-right shrink-0">
                       {count}
                     </span>
                   </div>
@@ -617,13 +601,13 @@ export default function NationalImpactPage() {
               <Trophy size={14} strokeWidth={2.5} className="text-warning-500" />
               Top Collectives
             </SectionHeading>
-            <div className="rounded-3xl bg-surface-2 shadow-lg shadow-sm p-6 space-y-2">
+            <div className="rounded-3xl bg-white border border-neutral-100 shadow-sm p-6 space-y-2">
               {topCollectives.map((c, i) => (
                 <div
                   key={c.id}
                   className={cn(
                     'flex items-center gap-4 py-3.5 rounded-2xl px-3 transition-colors',
-                    i === 0 && 'bg-gradient-to-r from-warning-50/80 to-transparent',
+                    i === 0 && 'bg-warning-50/60',
                   )}
                 >
                   <span
@@ -631,15 +615,15 @@ export default function NationalImpactPage() {
                       'flex items-center justify-center w-9 h-9 rounded-xl text-sm font-extrabold shrink-0',
                       i < 3
                         ? MEDAL_STYLES[i]
-                        : 'bg-primary-100 text-primary-600 shadow-sm',
+                        : 'bg-neutral-100 text-neutral-500 shadow-sm',
                     )}
                   >
                     {i + 1}
                   </span>
-                  <p className="flex-1 min-w-0 text-sm font-bold text-primary-900 truncate">
+                  <p className="flex-1 min-w-0 text-sm font-bold text-neutral-900 truncate">
                     {c.name}
                   </p>
-                  <span className="text-xs text-primary-500 tabular-nums shrink-0 font-bold">
+                  <span className="text-xs text-neutral-500 tabular-nums shrink-0 font-bold">
                     {c.eventCount} events
                   </span>
                 </div>

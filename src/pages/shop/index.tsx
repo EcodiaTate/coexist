@@ -67,45 +67,7 @@ const slideInRight: Variants = {
 function ShopBackground({ rm }: { rm: boolean }) {
   return (
     <div className="sticky top-0 h-[100dvh] -mb-[100dvh] pointer-events-none overflow-hidden">
-      {/* Base gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-surface-2 via-primary-50/30 to-moss-50/20" />
-
-      {/* Topographic contour lines - subtle nature map feel */}
-      <svg className="absolute inset-0 w-full h-full opacity-[0.035]" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <pattern id="shop-topo" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
-            <path d="M20 100c30-40 70-60 100-40s60 50 80 20" fill="none" stroke="currentColor" strokeWidth="1" />
-            <path d="M10 140c40-30 80-50 120-30s50 40 70 10" fill="none" stroke="currentColor" strokeWidth="1" />
-            <path d="M30 60c25-35 55-45 85-25s45 35 65 5" fill="none" stroke="currentColor" strokeWidth="0.8" />
-            <circle cx="160" cy="30" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" />
-            <circle cx="160" cy="30" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#shop-topo)" className="text-primary-900" />
-      </svg>
-
-      {/* Soft blurred orbs - depth without clutter */}
-      <div className="absolute top-[25%] -left-20 w-80 h-80 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-200/8 to-transparent" />
-      <div className="absolute top-[60%] -right-16 w-72 h-72 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-200/6 to-transparent" />
-
-      {/* Single breathing ring */}
-      <motion.div
-        className="absolute top-[40%] -right-16 w-56 h-56 rounded-full border border-primary-300/10"
-        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.1, 0.18, 0.1] }}
-        transition={rm ? undefined : { duration: 12, repeat: Infinity, ease: 'easeInOut' }}
-      />
-
-      {/* Floating dots - restrained */}
-      <motion.div
-        className="absolute top-[35%] left-[15%] w-2 h-2 rounded-full bg-primary-400/12"
-        animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.12, 0.24, 0.12] }}
-        transition={rm ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-[65%] right-[20%] w-1.5 h-1.5 rounded-full bg-moss-400/10"
-        animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.1, 0.2, 0.1] }}
-        transition={rm ? undefined : { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      />
+      <div className="absolute inset-0 bg-white" />
     </div>
   )
 }
@@ -135,8 +97,8 @@ function CategoryPills({
 }) {
   return (
     <div className="relative -mx-5 lg:-mx-6">
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-[#f0f4ec] to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-4 bg-gradient-to-r from-[#f0f4ec] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-white to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-4 bg-gradient-to-r from-white to-transparent" />
       <div
         className="flex gap-2 overflow-x-auto px-5 lg:px-6 pb-1 scrollbar-none snap-x snap-proximity"
         style={{ WebkitOverflowScrolling: 'touch' }}
@@ -148,8 +110,8 @@ function CategoryPills({
             'shrink-0 snap-start px-4 h-10 rounded-2xl text-sm font-semibold transition-transform duration-200 select-none cursor-pointer',
             'flex items-center gap-1.5 active:scale-[0.96]',
             active === CATEGORY_ALL
-              ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md shadow-primary-400/20'
-              : 'bg-white text-primary-700 hover:bg-primary-50 border border-primary-100/60 shadow-sm',
+              ? 'bg-neutral-900 text-white shadow-sm'
+              : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-100 shadow-sm',
           )}
         >
           <Package size={14} />
@@ -164,8 +126,8 @@ function CategoryPills({
               'shrink-0 snap-start px-4 h-10 rounded-2xl text-sm font-semibold capitalize transition-transform duration-200 select-none cursor-pointer whitespace-nowrap',
               'flex items-center gap-1.5 active:scale-[0.96]',
               active === cat
-                ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md shadow-primary-400/20'
-                : 'bg-white text-primary-700 hover:bg-primary-50 border border-primary-100/60 shadow-sm',
+                ? 'bg-neutral-900 text-white shadow-sm'
+                : 'bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-100 shadow-sm',
             )}
           >
             {CATEGORY_ICONS[cat.toLowerCase()] && (
@@ -270,7 +232,7 @@ function ShopHero({
                C1200,22 1260,26 1320,22
                C1360,18 1400,24 1440,22
                L1440,70 L0,70 Z"
-            className="fill-[#f0f4ec]"
+            className="fill-white"
           />
         </svg>
       </div>
@@ -282,20 +244,10 @@ function ShopHero({
 /*  Product card - with colored accent & hover depth                   */
 /* ------------------------------------------------------------------ */
 
-const ACCENT_COLORS = [
-  'from-primary-500 to-moss-500',
-  'from-moss-500 to-sprout-500',
-  'from-bark-400 to-primary-500',
-  'from-sprout-500 to-primary-500',
-  'from-coral-400 to-amber-400',
-  'from-amber-400 to-primary-500',
-] as const
-
 function ProductCard({ product, onClick, index }: { product: Product; onClick: () => void; index: number }) {
   const placeholderMerch = useAppImage('placeholder_merch')
   const inStock = product.variants.some((v) => v.stock > 0 && v.is_active)
   const lowStock = product.variants.every((v) => v.stock <= 5) && inStock
-  const accent = ACCENT_COLORS[index % ACCENT_COLORS.length]
 
   return (
     <motion.div
@@ -310,53 +262,45 @@ function ProductCard({ product, onClick, index }: { product: Product; onClick: (
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() }
       }}
     >
-      <div className="relative rounded-3xl overflow-hidden bg-white shadow-sm hover:shadow-lg hover:shadow-primary-900/8 transition-shadow duration-300">
-        {/* Top accent bar */}
-        <div className={cn('h-1 w-full bg-gradient-to-r', accent)} />
-
-        {/* Image */}
-        <div className="relative aspect-[4/5] overflow-hidden bg-primary-50/50">
+      <div className="relative rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+        {/* Full-bleed image with overlay */}
+        <div className="relative aspect-[4/5] overflow-hidden">
           <img
             src={product.images[0] ?? placeholderMerch}
             alt={product.name}
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             loading="lazy"
           />
 
-          {/* Subtle shimmer on hover */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          {/* Dark gradient for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
           {!inStock && (
-            <div className="absolute inset-0 bg-primary-900/70 flex items-center justify-center">
-              <span className="px-4 py-1.5 bg-white rounded-full text-sm font-bold text-primary-800 shadow">
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+              <span className="px-4 py-1.5 bg-white rounded-full text-sm font-bold text-neutral-900 shadow">
                 Sold Out
               </span>
             </div>
           )}
 
           {lowStock && inStock && (
-            <span className="absolute top-3 right-3 px-2.5 py-1 bg-amber-500 text-white text-[11px] font-bold rounded-xl shadow-sm uppercase tracking-wider">
+            <span className="absolute top-3 right-3 px-2.5 py-1 bg-amber-500 text-white text-[11px] font-bold rounded-xl uppercase tracking-wider">
               Low Stock
             </span>
           )}
 
           {inStock && isNewProduct(product.created_at) && (
-            <span className="absolute top-3 left-3 px-2.5 py-1 bg-gradient-to-r from-sprout-500 to-moss-500 text-white text-[11px] font-bold rounded-xl shadow-sm uppercase tracking-wider">
+            <span className="absolute top-3 left-3 px-2.5 py-1 bg-white text-neutral-900 text-[11px] font-bold rounded-xl uppercase tracking-wider">
               New
             </span>
           )}
-        </div>
 
-        {/* Details */}
-        <div className="p-3.5 pb-4">
-          <p className="font-heading text-sm font-bold text-primary-800 line-clamp-1 leading-snug">
-            {product.name}
-          </p>
-          {product.category && (
-            <p className="text-[11px] text-primary-400 mt-0.5 capitalize font-medium">{product.category}</p>
-          )}
-          <div className="flex items-center justify-between mt-2.5">
-            <span className="font-heading font-extrabold text-base text-primary-700">
+          {/* Title + price overlay */}
+          <div className="absolute inset-x-0 bottom-0 p-3.5">
+            <p className="font-heading text-sm font-bold text-white line-clamp-1 leading-snug">
+              {product.name}
+            </p>
+            <span className="font-heading font-extrabold text-base text-white/90 mt-1 block">
               {formatPrice(product.base_price_cents)}
             </span>
           </div>
@@ -392,22 +336,18 @@ function FeaturedProduct({ product, onClick }: { product: Product; onClick: () =
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() }
       }}
     >
-      <div className="relative rounded-3xl overflow-hidden shadow-lg shadow-primary-900/10">
+      <div className="relative rounded-3xl overflow-hidden bg-white border border-neutral-100 shadow-sm">
         <div className="relative aspect-[16/9] sm:aspect-[2/1] overflow-hidden">
           <img
             src={product.images[0] ?? placeholderMerch}
             alt={product.name}
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           />
-          {/* Gradient: primary-to-moss diagonal overlay */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-primary-800/80 via-primary-700/50 to-sprout-700/30" />
-
-          {/* Decorative floating circle */}
-          <div className="absolute -top-6 -right-6 w-32 h-32 rounded-full bg-sprout-400/10 blur-2xl" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
           {/* Content overlay */}
           <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 mb-2.5 rounded-full bg-sprout-400/25 text-sprout-200 text-xs font-bold tracking-wide border border-sprout-400/20">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 mb-2.5 rounded-full bg-white/90 text-primary-700 text-xs font-bold tracking-wide">
               <TrendingUp size={12} />
               Featured
             </span>
@@ -454,37 +394,33 @@ function ImpactStrip() {
 
   return (
     <motion.div variants={fadeUp}>
-      <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary-500 via-primary-400 to-sprout-500 shadow-lg shadow-primary-600/15">
+      <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm">
         <div className="p-5 pb-6">
           {/* Header */}
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/10">
-              <Heart size={16} className="text-coral-300" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-white leading-tight">Your purchases fund real impact</p>
-              <p className="text-[11px] text-white/45 mt-0.5">Community totals so far</p>
-            </div>
+          <div className="mb-4">
+            <p className="text-[11px] uppercase tracking-[0.15em] font-bold text-neutral-400">Community Impact</p>
           </div>
 
           {/* Live stats row */}
           {stats ? (
-            <div className="grid grid-cols-3 divide-x divide-white/[0.08]">
+            <div className="grid grid-cols-3 divide-x divide-neutral-100">
               {stats.map(({ icon: Icon, value, label }) => (
                 <div key={label} className="py-3 text-center">
-                  <Icon size={16} className="text-sprout-300 mx-auto mb-1.5" />
-                  <p className="font-heading text-lg font-extrabold text-white leading-none">{value}</p>
-                  <p className="text-[11px] text-white/40 mt-1 leading-tight">{label}</p>
+                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 text-primary-600 mx-auto mb-1.5">
+                    <Icon size={14} />
+                  </div>
+                  <p className="font-heading text-lg font-extrabold text-neutral-900 leading-none">{value}</p>
+                  <p className="text-[11px] text-neutral-500 mt-1 leading-tight">{label}</p>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-3 divide-x divide-white/[0.08]">
+            <div className="grid grid-cols-3 divide-x divide-neutral-100">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="py-3 text-center">
-                  <div className="w-4 h-4 rounded bg-white/10 mx-auto mb-1.5" />
-                  <div className="w-10 h-5 rounded bg-white/10 mx-auto" />
-                  <div className="w-14 h-2.5 rounded bg-white/10 mx-auto mt-1" />
+                  <div className="w-4 h-4 rounded bg-neutral-100 mx-auto mb-1.5" />
+                  <div className="w-10 h-5 rounded bg-neutral-100 mx-auto" />
+                  <div className="w-14 h-2.5 rounded bg-neutral-100 mx-auto mt-1" />
                 </div>
               ))}
             </div>
@@ -511,17 +447,14 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2.5">
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-moss-500 shadow-sm">
-          <Icon size={14} className="text-white" />
-        </div>
-        <h2 className="font-heading font-extrabold text-primary-800 text-lg">{title}</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="text-[11px] uppercase tracking-[0.15em] font-bold text-neutral-400">{title}</h2>
       </div>
       {action && (
         <button
           type="button"
           onClick={action.onClick}
-          className="flex items-center gap-0.5 text-sm font-semibold text-primary-500 active:opacity-70 cursor-pointer"
+          className="flex items-center gap-0.5 text-sm font-semibold text-neutral-500 active:opacity-70 cursor-pointer"
         >
           {action.label}
           <ChevronRight size={16} />
@@ -542,7 +475,7 @@ function ShopSkeleton() {
       <div className="relative">
         <Skeleton className="w-full h-[280px] sm:h-[340px] rounded-none" />
         <div className="relative -mt-1 z-10">
-          <div className="h-6 sm:h-10 bg-[#f0f4ec]" />
+          <div className="h-6 sm:h-10 bg-white" />
         </div>
       </div>
       {/* Search + pills skeleton */}
@@ -638,7 +571,7 @@ export default function ShopPage() {
   }, [queryClient])
 
   return (
-    <Page className="!px-0 bg-surface-2" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
+    <Page className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
       <PullToRefresh onRefresh={handleRefresh} background={<ShopBackground rm={rm} />}>
         <div className="relative min-h-dvh">
           {/* Main content */}
@@ -759,7 +692,7 @@ export default function ShopPage() {
           <button
             type="button"
             onClick={() => navigate('/shop/orders')}
-            className="fixed right-5 z-50 flex items-center justify-center w-11 h-11 rounded-full bg-white text-primary-600 shadow-md shadow-primary-900/10 active:scale-[0.95] transition-transform cursor-pointer border border-primary-100"
+            className="fixed right-5 z-50 flex items-center justify-center w-11 h-11 rounded-full bg-white text-neutral-600 shadow-sm active:scale-[0.95] transition-transform cursor-pointer border border-neutral-100"
             style={{ bottom: hasBottomTabs ? 'calc(9.5rem + var(--safe-bottom, 0px))' : 'calc(6rem + var(--safe-bottom, 0px))' }}
             aria-label="My orders"
           >
@@ -770,7 +703,7 @@ export default function ShopPage() {
           <button
             type="button"
             onClick={() => navigate('/shop/cart')}
-            className="fixed right-5 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-primary-600 text-white shadow-lg shadow-primary-900/20 active:scale-[0.95] transition-transform cursor-pointer"
+            className="fixed right-5 z-50 flex items-center justify-center w-14 h-14 rounded-full bg-neutral-900 text-white shadow-sm active:scale-[0.95] transition-transform cursor-pointer"
             style={{ bottom: hasBottomTabs ? 'calc(4.5rem + var(--safe-bottom, 0px))' : 'calc(1.5rem + var(--safe-bottom, 0px))' }}
             aria-label={`Cart (${cartCount} items)`}
           >
@@ -780,7 +713,7 @@ export default function ShopPage() {
                 className={cn(
                   'absolute -top-1 -right-1 flex items-center justify-center',
                   'min-w-[20px] h-[20px] px-1 rounded-full',
-                  'bg-coral-500 text-white text-[10px] font-bold shadow-lg shadow-coral-500/30',
+                  'bg-primary-500 text-white text-[10px] font-bold shadow-sm',
                 )}
               >
                 {cartCount}

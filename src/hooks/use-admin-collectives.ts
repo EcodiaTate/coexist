@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, escapeIlike } from '@/lib/supabase'
-import { computeEstimatedHours } from '@/lib/impact-metrics'
+import { sumMetric } from '@/lib/impact-metrics'
 import { logAudit } from '@/lib/audit'
 import type {
   Database,
@@ -239,17 +239,12 @@ export function useAdminCollectiveStats(collectiveId: string | undefined) {
         supabase.rpc('get_collective_stats', { p_collective_id: collectiveId }),
         supabase
           .from('event_impact')
-          .select('hours_total, notes, logged_by, events!inner(date_start, date_end, collective_id)')
+          .select('hours_total, events!inner(collective_id)')
           .eq('events.collective_id', collectiveId),
       ])
       if (rpcRes.error) throw rpcRes.error
 
-      const impactRows = (impactRes.data ?? []) as unknown as {
-        hours_total: number | null
-        notes: string | null
-        logged_by: string | null
-        events: { date_start: string; date_end: string | null }
-      }[]
+      const impactRows = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
 
       const rpcData = rpcRes.data as {
         member_count: number
@@ -266,7 +261,7 @@ export function useAdminCollectiveStats(collectiveId: string | undefined) {
 
       return {
         ...rpcData,
-        hours_total: computeEstimatedHours(impactRows),
+        hours_total: Math.round(sumMetric(impactRows, 'hours_total')),
       }
     },
     enabled: !!collectiveId,

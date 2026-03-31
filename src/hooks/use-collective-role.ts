@@ -35,7 +35,7 @@ export function useCollectiveRole(collectiveId: string | undefined): UseCollecti
         .eq('collective_id', collectiveId)
         .eq('user_id', user.id)
         .eq('status', 'active')
-        .single()
+        .maybeSingle()
       return (data?.role as CollectiveRole) ?? null
     },
     enabled: !!user && !!collectiveId,

@@ -1,11 +1,11 @@
 import { type ReactNode, useEffect, useState, startTransition } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { TrendingUp, TrendingDown } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 interface Trend {
   value: number
-  direction: 'up' | 'down'
+  direction: 'up' | 'down' | 'flat'
 }
 
 interface StatCardProps {
@@ -13,6 +13,8 @@ interface StatCardProps {
   label: string
   trend?: Trend
   icon?: ReactNode
+  /** Accent colour for the icon badge — defaults to primary */
+  accent?: string
   className?: string
   'aria-label'?: string
 }
@@ -49,11 +51,18 @@ export function useCountUp(target: number, duration: number, enabled: boolean) {
   return current
 }
 
+const trendConfig = {
+  up: { icon: TrendingUp, color: 'text-success-600 bg-success-50' },
+  down: { icon: TrendingDown, color: 'text-error-600 bg-error-50' },
+  flat: { icon: Minus, color: 'text-neutral-400 bg-neutral-50' },
+}
+
 export function StatCard({
   value,
   label,
   trend,
   icon,
+  accent,
   className,
   'aria-label': ariaLabel,
 }: StatCardProps) {
@@ -64,6 +73,9 @@ export function StatCard({
     1200,
     isNumeric && !shouldReduceMotion,
   )
+
+  const tc = trend ? trendConfig[trend.direction] : null
+  const TrendIcon = tc?.icon
 
   return (
     <motion.div
@@ -76,41 +88,39 @@ export function StatCard({
       }
       aria-label={ariaLabel ?? `${label}: ${value}`}
       className={cn(
-        'rounded-xl shadow-sm p-4',
-        'bg-gradient-to-br from-surface-0 to-primary-100/60',
+        'rounded-2xl bg-white shadow-sm p-4 border border-neutral-100',
         className,
       )}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
-          <p className="font-heading text-3xl font-bold text-primary-800 tabular-nums">
+          <p className="font-heading text-3xl font-bold text-neutral-900 tabular-nums">
             {isNumeric ? displayValue.toLocaleString() : value}
           </p>
-          <p className="mt-1 text-sm text-primary-400 truncate">{label}</p>
+          <p className="mt-1.5 text-xs font-medium text-neutral-500 uppercase tracking-wider">{label}</p>
         </div>
         {icon && (
           <span
-            className="flex items-center justify-center shrink-0 ml-3 text-primary-500"
+            className={cn(
+              'flex items-center justify-center shrink-0 ml-3 w-10 h-10 rounded-xl',
+              accent ?? 'bg-primary-50 text-primary-600',
+            )}
             aria-hidden="true"
           >
             {icon}
           </span>
         )}
       </div>
-      {trend && (
+      {trend && tc && TrendIcon && (
         <div
           className={cn(
-            'mt-3 inline-flex items-center gap-1 text-sm font-medium',
-            trend.direction === 'up' ? 'text-success' : 'text-error',
+            'mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold',
+            tc.color,
           )}
-          aria-label={`Trend: ${trend.direction === 'up' ? 'up' : 'down'} ${trend.value}%`}
+          aria-label={`Trend: ${trend.direction} ${trend.value}%`}
         >
-          {trend.direction === 'up' ? (
-            <TrendingUp className="w-4 h-4" aria-hidden="true" />
-          ) : (
-            <TrendingDown className="w-4 h-4" aria-hidden="true" />
-          )}
-          <span className="tabular-nums">{trend.value}%</span>
+          <TrendIcon className="w-3.5 h-3.5" aria-hidden="true" />
+          <span className="tabular-nums">{trend.direction === 'flat' ? '—' : `${trend.value}%`}</span>
         </div>
       )}
     </motion.div>

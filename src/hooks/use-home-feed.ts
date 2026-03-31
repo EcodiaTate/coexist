@@ -127,6 +127,52 @@ export function useUpcomingNearby() {
   })
 }
 
+/**
+ * National events — org-wide retreats, campouts, cross-collective activities.
+ * Suggested to users whose collective is within 500km of the event.
+ */
+export function useNationalEvents(userLocation?: { lat: number; lng: number } | null) {
+  return useQuery({
+    queryKey: ['home', 'national-events', userLocation?.lat, userLocation?.lng],
+    queryFn: async () => {
+      const now = new Date().toISOString()
+
+      // If user has a location, use PostGIS distance filter (500km)
+      if (userLocation?.lat && userLocation?.lng) {
+        const { data, error } = await supabase.rpc('get_events_within_radius', {
+          p_lat: userLocation.lat,
+          p_lng: userLocation.lng,
+          p_radius_km: 500,
+          p_limit: 10,
+        })
+        if (error) throw error
+        // Filter to only national collective events from the RPC results
+        if (!data?.length) return [] as EventWithCollective[]
+        const eventIds = (data as Event[]).map((e) => e.id)
+        const { data: withCollectives } = await supabase
+          .from('events')
+          .select('*, collectives!inner(id, name, is_national)')
+          .in('id', eventIds)
+          .eq('collectives.is_national', true)
+        return (withCollectives ?? []) as EventWithCollective[]
+      }
+
+      // No location — show all upcoming national events
+      const { data, error } = await supabase
+        .from('events')
+        .select('*, collectives!inner(id, name, is_national)')
+        .eq('status', 'published')
+        .eq('collectives.is_national', true)
+        .or(`date_start.gte.${now},date_end.gte.${now}`)
+        .order('date_start', { ascending: true })
+        .limit(10)
+      if (error) throw error
+      return (data ?? []) as EventWithCollective[]
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
 /** User's primary collective with next event + stats */
 export function useMyCollective() {
   const { user } = useAuth()
@@ -314,6 +360,7 @@ export function useTrendingCollectives() {
         .from('collectives')
         .select('id, name, slug, cover_image_url, region, member_count, description')
         .eq('is_active', true)
+        .or('is_national.is.null,is_national.eq.false')
         .order('member_count', { ascending: false })
         .limit(8)
       if (error) throw error

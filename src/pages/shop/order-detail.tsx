@@ -33,11 +33,11 @@ function StatusTimeline({ current }: { current: OrderStatus }) {
               <div
                 className={cn(
                   'w-3 h-3 rounded-full border-2',
-                  done ? 'bg-primary-500 border-primary-500' : 'bg-white border-primary-200',
+                  done ? 'bg-neutral-900 border-neutral-900' : 'bg-white border-neutral-200',
                   isCancelled && 'bg-error border-error',
                 )}
               />
-              <span className="text-[11px] mt-1 text-primary-400 capitalize">
+              <span className="text-[11px] mt-1 text-neutral-500 capitalize">
                 {step}
               </span>
             </div>
@@ -45,7 +45,7 @@ function StatusTimeline({ current }: { current: OrderStatus }) {
               <div
                 className={cn(
                   'h-0.5 flex-1 -mt-4',
-                  i < currentIdx && !isCancelled ? 'bg-primary-500' : 'bg-white',
+                  i < currentIdx && !isCancelled ? 'bg-neutral-900' : 'bg-neutral-200',
                 )}
               />
             )}
@@ -143,18 +143,18 @@ export default function OrderDetailPage() {
 
         {/* Tracking info */}
         {order.tracking_number && (
-          <motion.section variants={fadeUp} className="p-3 rounded-xl bg-plum-50 shadow-sm">
+          <motion.section variants={fadeUp} className="p-3 rounded-xl bg-white border border-neutral-100 shadow-sm">
             <div className="flex items-center gap-2">
-              <Truck size={16} className="text-plum-600" />
-              <span className="text-sm font-medium text-plum-700">Tracking number</span>
+              <Truck size={16} className="text-neutral-500" />
+              <span className="text-sm font-medium text-neutral-900">Tracking number</span>
             </div>
-            <p className="mt-1 text-sm font-mono text-plum-900">{order.tracking_number}</p>
+            <p className="mt-1 text-sm font-mono text-neutral-900">{order.tracking_number}</p>
           </motion.section>
         )}
 
         {/* Items */}
         <motion.section variants={fadeUp}>
-          <h3 className="font-heading font-semibold text-primary-800 mb-3">
+          <h3 className="font-heading font-semibold text-neutral-900 mb-3">
             Items ({order.items.length})
           </h3>
           <div className="space-y-3">
@@ -166,13 +166,13 @@ export default function OrderDetailPage() {
                   className="w-16 h-16 object-cover rounded-xl shrink-0"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-primary-800 truncate">
+                  <p className="text-sm font-medium text-neutral-900 truncate">
                     {item.product_name}
                   </p>
-                  <p className="text-xs text-primary-400">{item.variant_label}</p>
+                  <p className="text-xs text-neutral-500">{item.variant_label}</p>
                   <div className="flex items-center justify-between mt-1">
-                    <span className="text-xs text-primary-400">Qty: {item.quantity}</span>
-                    <span className="text-sm font-semibold text-primary-800 tabular-nums">
+                    <span className="text-xs text-neutral-500">Qty: {item.quantity}</span>
+                    <span className="text-sm font-semibold text-neutral-900 tabular-nums">
                       {formatPrice(item.price_cents * item.quantity)}
                     </span>
                   </div>
@@ -186,7 +186,7 @@ export default function OrderDetailPage() {
 
         {/* Price breakdown */}
         <motion.section variants={fadeUp} className="space-y-2 text-sm">
-          <div className="flex justify-between font-heading font-bold text-primary-800">
+          <div className="flex justify-between font-heading font-bold text-neutral-900">
             <span>Total</span>
             <span className="tabular-nums">{formatPrice(order.total_cents ?? Math.round((order.total ?? 0) * 100))}</span>
           </div>
@@ -195,12 +195,12 @@ export default function OrderDetailPage() {
         {/* Shipping address */}
         <motion.section variants={fadeUp}>
           <div className="flex items-center gap-2 mb-2">
-            <MapPin size={16} className="text-primary-400" />
-            <h3 className="font-heading font-semibold text-primary-800 text-sm">
+            <MapPin size={16} className="text-neutral-400" />
+            <h3 className="font-heading font-semibold text-neutral-900 text-sm">
               Shipping address
             </h3>
           </div>
-          <div className="p-3 rounded-xl bg-white shadow-sm text-sm text-primary-800">
+          <div className="p-3 rounded-xl bg-white shadow-sm border border-neutral-100 text-sm text-neutral-900">
             <p className="font-medium">{order.shipping_address.full_name}</p>
             <p>{order.shipping_address.line1}</p>
             {order.shipping_address.line2 && <p>{order.shipping_address.line2}</p>}
@@ -212,7 +212,7 @@ export default function OrderDetailPage() {
         </motion.section>
 
         {/* Order date */}
-        <p className="text-xs text-primary-400 text-center">
+        <p className="text-xs text-neutral-500 text-center">
           Ordered {formatDate(order.created_at)}
         </p>
 
@@ -235,10 +235,10 @@ export default function OrderDetailPage() {
         onClose={() => setShowReturnSheet(false)}
       >
         <div className="space-y-4">
-          <h3 className="font-heading font-semibold text-primary-800 text-lg">
+          <h3 className="font-heading font-semibold text-neutral-900 text-lg">
             Request a return
           </h3>
-          <p className="text-sm text-primary-400">
+          <p className="text-sm text-neutral-500">
             Let us know why you'd like to return this order. Our team will review your request.
           </p>
           <Input

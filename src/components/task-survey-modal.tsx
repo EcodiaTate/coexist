@@ -44,7 +44,7 @@ function useUserCollective(collectiveId: string | undefined) {
       if (!collectiveId || !user) return null
       const [{ data: collective }, { data: membership }] = await Promise.all([
         supabase.from('collectives').select('name, state, region').eq('id', collectiveId).single(),
-        supabase.from('collective_members').select('role').eq('collective_id', collectiveId).eq('user_id', user.id).maybeSingle(),
+        supabase.from('collective_members').select('role').eq('collective_id', collectiveId).eq('user_id', user.id).eq('status', 'active').maybeSingle(),
       ])
       return {
         name: collective?.name ?? null,

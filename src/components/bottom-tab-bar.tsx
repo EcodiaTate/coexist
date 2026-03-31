@@ -121,7 +121,7 @@ export function BottomTabBar({
   }
 
   const activeText = accent === 'moss' ? 'text-moss-700' : 'text-primary-800'
-  const inactiveText = accent === 'moss' ? 'text-moss-400/70' : 'text-primary-400/70'
+  const inactiveText = accent === 'moss' ? 'text-moss-400/70' : 'text-neutral-400/70'
   const activePill = accent === 'moss' ? 'bg-moss-100/80' : 'bg-primary-100/80'
 
   return (
@@ -136,8 +136,7 @@ export function BottomTabBar({
         className={cn(
           'pointer-events-auto',
           'mx-4 mb-[var(--safe-bottom,0px)] rounded-[20px]',
-          'bg-white shadow-[0_-1px_3px_rgb(0_0_0/0.08)]',
-          'shadow-[0_2px_20px_-4px_rgba(30,40,25,0.10),0_0_0_1px_rgba(30,40,25,0.04)]',
+          'bg-white shadow-sm',
         )}
         aria-label="Navigation"
         role="tablist"

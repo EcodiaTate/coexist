@@ -44,10 +44,8 @@ export default function LeaderWelcomePage() {
   const { collectiveRoles, isStaff, markOnboardingComplete } = useAuth()
   const shouldReduceMotion = useReducedMotion()
 
-  // Mark onboarding done on mount so the user isn't sent back here
   useEffect(() => { markOnboardingComplete() }, [markOnboardingComplete])
 
-  // If user isn't a leader/staff, redirect to home
   const hasLeaderRole = collectiveRoles.some(
     (m) => m.role === 'leader' || m.role === 'co_leader' || m.role === 'assist_leader',
   )
@@ -71,21 +69,21 @@ export default function LeaderWelcomePage() {
           }}
           className="mx-auto mb-6"
         >
-          <div className="w-20 h-20 rounded-full bg-accent-100 flex items-center justify-center">
-            <Crown className="w-10 h-10 text-primary-400" />
+          <div className="w-20 h-20 rounded-full bg-neutral-50 flex items-center justify-center">
+            <Crown className="w-10 h-10 text-neutral-400" />
           </div>
         </motion.div>
 
         <motion.h1
           variants={fadeUp}
-          className="font-heading text-2xl font-bold text-primary-800 text-center"
+          className="font-heading text-2xl font-bold text-neutral-900 text-center"
         >
           Welcome, Leader!
         </motion.h1>
 
         <motion.p
           variants={fadeUp}
-          className="mt-2 text-primary-400 text-center max-w-xs mx-auto leading-relaxed"
+          className="mt-2 text-neutral-500 text-center max-w-xs mx-auto leading-relaxed"
         >
           You've got the tools to make a real difference. Here's a quick look at what you can do.
         </motion.p>
@@ -98,15 +96,15 @@ export default function LeaderWelcomePage() {
               variants={fadeUp}
               className={cn(
                 'flex items-start gap-4 p-4 rounded-xl',
-                'bg-white shadow-sm',
+                'bg-white border border-neutral-100 shadow-sm',
               )}
             >
-              <div className="w-10 h-10 rounded-lg bg-primary-100 flex items-center justify-center shrink-0 text-primary-400">
+              <div className="w-10 h-10 rounded-lg bg-neutral-50 flex items-center justify-center shrink-0 text-neutral-400">
                 {tool.icon}
               </div>
               <div>
-                <p className="font-semibold text-sm text-primary-800">{tool.title}</p>
-                <p className="text-xs text-primary-400 mt-0.5">{tool.description}</p>
+                <p className="font-semibold text-sm text-neutral-900">{tool.title}</p>
+                <p className="text-xs text-neutral-500 mt-0.5">{tool.description}</p>
               </div>
             </motion.div>
           ))}

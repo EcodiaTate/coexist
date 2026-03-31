@@ -243,6 +243,6 @@ async function getAdminUserIds(
   const { data } = await supabase
     .from('profiles')
     .select('id')
-    .in('role', ['national_admin', 'super_admin'])
+    .in('role', ['manager', 'admin'])
   return (data ?? []).map((p: { id: string }) => p.id)
 }

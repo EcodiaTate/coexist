@@ -114,17 +114,17 @@ export default function AdminCharityPage() {
         {/* Info banner */}
         <motion.div
           variants={fadeUp}
-          className="rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100/60 p-5 shadow-sm"
+          className="rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm"
         >
           <div className="flex items-start gap-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
               <Heart size={20} className="text-primary-600" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-primary-900">
+              <h3 className="text-sm font-semibold text-neutral-900">
                 ACNC Charity Details
               </h3>
-              <p className="mt-1 text-sm leading-relaxed text-primary-600">
+              <p className="mt-1 text-sm leading-relaxed text-neutral-500">
                 These details are used in official reports, donation receipts, and compliance
                 documents. Ensure they are accurate and up to date.
               </p>
@@ -133,12 +133,12 @@ export default function AdminCharityPage() {
         </motion.div>
 
         {/* Organisation Identity */}
-        <motion.div variants={fadeUp} className="rounded-2xl bg-white p-6 shadow-sm">
+        <motion.div variants={fadeUp} className="rounded-2xl bg-white border border-neutral-100 p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50">
               <Building2 size={16} className="text-primary-700" />
             </div>
-            <h2 className="text-sm font-semibold tracking-wide text-primary-900 uppercase">
+            <h2 className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase">
               Organisation
             </h2>
           </div>
@@ -160,12 +160,12 @@ export default function AdminCharityPage() {
         </motion.div>
 
         {/* Registration Details */}
-        <motion.div variants={fadeUp} className="rounded-2xl bg-white p-6 shadow-sm">
+        <motion.div variants={fadeUp} className="rounded-2xl bg-white border border-neutral-100 p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50">
               <FileText size={16} className="text-primary-700" />
             </div>
-            <h2 className="text-sm font-semibold tracking-wide text-primary-900 uppercase">
+            <h2 className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase">
               Registration
             </h2>
           </div>
@@ -198,12 +198,12 @@ export default function AdminCharityPage() {
         </motion.div>
 
         {/* Tax Status */}
-        <motion.div variants={fadeUp} className="rounded-2xl bg-white p-6 shadow-sm">
+        <motion.div variants={fadeUp} className="rounded-2xl bg-white border border-neutral-100 p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary-50">
               <Shield size={16} className="text-primary-700" />
             </div>
-            <h2 className="text-sm font-semibold tracking-wide text-primary-900 uppercase">
+            <h2 className="text-[11px] font-bold tracking-widest text-neutral-400 uppercase">
               Tax Status
             </h2>
           </div>

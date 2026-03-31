@@ -60,7 +60,7 @@ export function Page({
           // On desktop, clip overflow so sticky bg doesn't paint over the web footer
           isDesktopNav ? 'overflow-clip' : 'overflow-y-auto overflow-x-hidden overscroll-none',
           // Base gradient painted on element itself so first paint has colour (no flash)
-          !noBackground && 'bg-gradient-to-b from-primary-50/50 via-white to-moss-50/20',
+          !noBackground && 'bg-gradient-to-b from-primary-50/40 via-white to-white',
           // Side padding for all page content (skip when fullBleed)
           fullBleed ? 'px-0' : 'px-4 lg:px-6',
           // Small gap between sidebar and page content on desktop
@@ -76,23 +76,7 @@ export function Page({
             content scrolls over it. Negative margin collapses it out of flow. */}
         {!noBackground && (
           <div className={cn("pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] -z-10 overflow-hidden", fullBleed ? 'mx-0' : '-mx-4 lg:-mx-6')} aria-hidden="true">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary-50/50 via-white to-moss-50/20" />
-            {/* Large soft ring - top right */}
-            <div className="absolute -top-20 -right-20 w-[340px] h-[340px] rounded-full border-2 border-moss-200/25" />
-            {/* Concentric inner ring */}
-            <div className="absolute -top-6 -right-6 w-[220px] h-[220px] rounded-full border border-primary-200/15" />
-            {/* Soft glow - bottom left */}
-            <div className="absolute -bottom-20 -left-16 w-[300px] h-[300px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/25 to-transparent" />
-            {/* Small ring - mid left */}
-            <div className="absolute top-[45%] -left-8 w-[100px] h-[100px] rounded-full border border-primary-100/25" />
-            {/* Warm glow - center right */}
-            <div className="absolute top-[20%] -right-10 w-[200px] h-[200px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-50/18 to-transparent" />
-            {/* Small filled accent - lower right */}
-            <div className="absolute bottom-[15%] right-[8%] w-[60px] h-[60px] rounded-full bg-moss-100/20" />
-            {/* Dots */}
-            <div className="absolute top-16 left-[14%] w-2 h-2 rounded-full bg-moss-200/30" />
-            <div className="absolute top-[30%] right-[10%] w-1.5 h-1.5 rounded-full bg-primary-200/25" />
-            <div className="absolute bottom-[22%] left-[20%] w-2 h-2 rounded-full bg-moss-200/20" />
+            <div className="absolute inset-0 bg-gradient-to-b from-primary-50/40 via-white to-white" />
           </div>
         )}
 
@@ -113,7 +97,7 @@ export function Page({
             'sticky bottom-0 z-30',
             fullBleed
               ? ''
-              : 'bg-surface-0 border-t border-primary-100 shadow-[0_-4px_16px_-2px_rgba(0,0,0,0.08)]',
+              : 'bg-surface-0 border-t border-neutral-100 shadow-sm',
             (fullWidthFooter || fullBleed) ? 'px-0 py-0' : 'px-4 py-3',
           )}
           style={{

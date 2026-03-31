@@ -40,11 +40,6 @@ export default function LearnCompletePage() {
         {/* Soft radial gradient bg */}
         <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-primary-50/30 pointer-events-none" />
 
-        {/* Decorative shapes */}
-        <div className="absolute -left-20 top-[20%] w-64 h-64 rounded-full bg-moss-100/30 pointer-events-none" />
-        <div className="absolute -right-16 bottom-[15%] w-48 h-48 rounded-full bg-primary-100/30 pointer-events-none" />
-        <div className="absolute left-[60%] top-[10%] w-20 h-20 rounded-full border border-moss-200/40 pointer-events-none" />
-        <div className="absolute left-[20%] bottom-[25%] w-12 h-12 rounded-full bg-moss-100/40 pointer-events-none" />
 
         {/* Confetti */}
         {!rm && <Confetti active />}

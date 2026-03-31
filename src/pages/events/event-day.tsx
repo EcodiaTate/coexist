@@ -218,7 +218,7 @@ function AttendeeSafetySheet({
 
         {/* Phone */}
         {p.phone && (
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-primary-50/60">
+          <div className="flex items-start gap-3 p-3 rounded-lg bg-neutral-50">
             <Phone size={16} className="text-primary-500 mt-0.5 shrink-0" />
             <div>
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider">Phone</p>
@@ -289,7 +289,7 @@ export default function EventDayPage() {
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
   const { data: attendees, isLoading: attendeesLoading } = useEventAttendees(eventId)
   const { isAssistLeader, isLoading: roleLoading } = useCollectiveRole(event?.collective_id)
-  const isStaff = profile?.role === 'national_leader' || profile?.role === 'national_admin' || profile?.role === 'super_admin'
+  const isStaff = profile?.role === 'national_leader' || profile?.role === 'manager' || profile?.role === 'admin'
 
   const checkIn = useCheckIn()
   const bulkCheckIn = useBulkCheckIn()
@@ -484,7 +484,7 @@ export default function EventDayPage() {
                 {stats.checkedIn}/{stats.registered}
               </span>
             </div>
-            <div className="h-3 rounded-full bg-primary-100/60 overflow-hidden">
+            <div className="h-3 rounded-full bg-neutral-100 overflow-hidden">
               <motion.div
                 className="h-full rounded-full bg-gradient-to-r from-success-400 to-success-500"
                 initial={{ width: 0 }}
@@ -499,7 +499,7 @@ export default function EventDayPage() {
         )}
 
         {/* Tab switcher */}
-        <motion.div variants={fadeUp} className="flex rounded-xl bg-primary-100/60 p-1 mb-4">
+        <motion.div variants={fadeUp} className="flex rounded-xl bg-neutral-100 p-1 mb-4">
           <button
             onClick={() => setActiveTab('attendees')}
             className={cn(

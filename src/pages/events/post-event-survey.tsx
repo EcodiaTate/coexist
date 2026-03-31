@@ -114,7 +114,7 @@ export default function PostEventSurveyPage() {
   const shouldReduceMotion = useReducedMotion()
 
   const { data: event, isLoading: eventLoading } = useEventDetail(eventId)
-  const { data: surveyData, isLoading: surveyLoading } = useEventSurvey(eventId, event?.activity_type)
+  const { data: surveyData, isLoading: surveyLoading } = useEventSurvey(eventId, event?.activity_type, 'attendee')
   const questions = surveyData?.questions ?? []
   const surveyId = surveyData?.surveyId
   const { data: existingResponse } = useExistingResponse(surveyId, eventId)

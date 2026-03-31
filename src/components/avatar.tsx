@@ -27,7 +27,7 @@ const sizeMap: Record<AvatarSize, { px: number; text: string; dot: string; ring:
   sm: { px: 32, text: 'text-xs', dot: 'w-2.5 h-2.5 ring-[1.5px]', ring: 'ring-2' },
   md: { px: 40, text: 'text-sm', dot: 'w-3 h-3 ring-2', ring: 'ring-2' },
   lg: { px: 56, text: 'text-base', dot: 'w-3.5 h-3.5 ring-2', ring: 'ring-[3px]' },
-  xl: { px: 80, text: 'text-xl', dot: 'w-4 h-4 ring-2', ring: 'ring-[3px]' },
+  xl: { px: 96, text: 'text-2xl', dot: 'w-4 h-4 ring-2', ring: 'ring-[3px]' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -99,7 +99,7 @@ export function Avatar({
           <span
             className={cn(
               'flex items-center justify-center w-full h-full',
-              'font-heading font-semibold text-primary-400 select-none',
+              'font-heading font-semibold text-neutral-500 select-none',
               s.text,
             )}
             aria-hidden="true"

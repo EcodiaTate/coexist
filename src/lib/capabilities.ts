@@ -66,7 +66,7 @@ export const ROLE_DEFAULT_CAPS: Record<UserRole, readonly string[]> = {
     'manage_events',
     'view_reports',
   ],
-  national_admin: [
+  manager: [
     'manage_users',
     'manage_collectives',
     'manage_content',
@@ -81,8 +81,9 @@ export const ROLE_DEFAULT_CAPS: Record<UserRole, readonly string[]> = {
     'manage_charity',
     'view_reports',
     'manage_exports',
+    'view_audit_log',
   ],
-  super_admin: CAPABILITY_KEYS,
+  admin: CAPABILITY_KEYS,
 }
 
 /* ------------------------------------------------------------------ */

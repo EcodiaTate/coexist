@@ -150,10 +150,7 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       // Transform rows
       const rows: EventImpactRow[] = filtered.map((r) => {
         const attendance = parseAttendance(r.notes as string | null)
-        const start = new Date(r.events.date_start).getTime()
-        const end = r.events.date_end ? new Date(r.events.date_end).getTime() : 0
-        const durationHrs = end > start ? (end - start) / 3_600_000 : 3
-        const estimatedVolHours = attendance != null ? Math.round(attendance * durationHrs) : null
+        const estimatedVolHours = Number(r.hours_total) || null
 
         const metrics: Record<string, number | null> = {}
         for (const key of metricKeys) {
@@ -184,7 +181,7 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       }
 
       const totalAttendees = rows.reduce((s, r) => s + (r.attendance ?? 0), 0)
-      const totalEstimatedHours = rows.reduce((s, r) => s + (r.estimatedVolHours ?? 0), 0)
+      const totalEstimatedHours = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'hours_total'))
 
       const summary: ImpactSummary = {
         totalEvents: rows.length,
@@ -261,20 +258,17 @@ export function useYearOverYear(metricDefs: ImpactMetricDef[]) {
       const summaries: YearSummary[] = [...byYear.entries()]
         .map(([year, yearRows]) => {
           let attendees = 0
-          let hours = 0
           for (const r of yearRows) {
             const att = parseAttendance(r.notes as string | null) ?? 0
             attendees += att
-            const start = r.events ? new Date(r.events.date_start).getTime() : 0
-            const end = r.events?.date_end ? new Date(r.events.date_end).getTime() : 0
-            const dur = end > start ? (end - start) / 3_600_000 : 3
-            hours += Math.round(att * dur)
           }
 
           const metrics: Record<string, number> = {}
           for (const key of metricKeys) {
             metrics[key] = sumMetric(yearRows as Record<string, unknown>[], key)
           }
+
+          const hours = Math.round(sumMetric(yearRows as Record<string, unknown>[], 'hours_total'))
 
           return { year, events: yearRows.length, attendees, estimatedHours: hours, metrics }
         })
@@ -331,6 +325,76 @@ export function useImpactDataQuality() {
       const appCount = (impacts ?? []).length - legacyCount
 
       return { eventsWithoutImpact, zeroMetricEvents, legacyCount, appCount } satisfies DataQuality
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  Events missing impact (gap analysis for admin)                     */
+/* ------------------------------------------------------------------ */
+
+export interface EventMissingImpact {
+  id: string
+  title: string
+  activity_type: string
+  date_end: string
+  collective_id: string
+  collective_name: string | null
+  days_since: number
+}
+
+/**
+ * Returns completed/published events from the last 30 days that have
+ * no event_impact row. Gives admins a clear list of "who hasn't logged".
+ */
+export function useEventsMissingImpact() {
+  return useQuery({
+    queryKey: ['admin-events-missing-impact'],
+    queryFn: async () => {
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+      const { data: events, error } = await supabase
+        .from('events')
+        .select('id, title, activity_type, date_end, date_start, status, collective_id, collectives(name)')
+        .in('status', ['completed', 'published'])
+        .gte('date_start', thirtyDaysAgo.toISOString())
+        .lte('date_start', new Date().toISOString())
+        .order('date_start', { ascending: false })
+
+      if (error) throw error
+
+      // Filter to events that have actually ended
+      const now = new Date()
+      const ended = (events ?? []).filter((e) => {
+        const end = new Date(e.date_end ?? e.date_start)
+        return end <= now
+      })
+      if (ended.length === 0) return []
+
+      const eventIds = ended.map((e) => e.id)
+      const { data: impacts } = await supabase
+        .from('event_impact')
+        .select('event_id')
+        .in('event_id', eventIds)
+
+      const loggedIds = new Set((impacts ?? []).map((i) => i.event_id))
+
+      return ended
+        .filter((e) => !loggedIds.has(e.id))
+        .map((e) => {
+          const endDate = new Date(e.date_end ?? e.date_start)
+          return {
+            id: e.id,
+            title: e.title,
+            activity_type: e.activity_type,
+            date_end: e.date_end ?? e.date_start,
+            collective_id: e.collective_id,
+            collective_name: (e.collectives as unknown as { name: string } | null)?.name ?? null,
+            days_since: Math.floor((now.getTime() - endDate.getTime()) / 86400000),
+          }
+        }) as EventMissingImpact[]
     },
     staleTime: 5 * 60 * 1000,
   })

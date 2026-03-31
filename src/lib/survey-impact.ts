@@ -24,8 +24,9 @@ export async function syncSurveyImpact(
   for (const q of questions) {
     if (!q.impact_metric) continue
 
-    // Validate the metric key exists as builtin or in admin-defined defs
-    const knownKey = isBuiltinMetric(q.impact_metric) || (validKeys ? validKeys.has(q.impact_metric) : false)
+    // Validate the metric key exists as builtin or in admin-defined defs.
+    // When validKeys is undefined, skip custom-key validation (accept all).
+    const knownKey = isBuiltinMetric(q.impact_metric) || (validKeys ? validKeys.has(q.impact_metric) : true)
     if (!knownKey) {
       console.warn(
         `[syncSurveyImpact] Question "${q.id}" has impact_metric="${q.impact_metric}" ` +
@@ -54,7 +55,15 @@ export async function syncSurveyImpact(
     .eq('event_id', eventId)
     .maybeSingle()
 
-  const { id: _id, ...existingFields } = existing ?? ({} as Record<string, unknown>)
+  // Strip DB-managed fields (id, created_at, updated_at, logged_at) so the
+  // upsert doesn't send stale timestamps back and suppress DB triggers.
+  const {
+    id: _id,
+    created_at: _ca,
+    updated_at: _ua,
+    logged_at: _la,
+    ...existingFields
+  } = existing ?? ({} as Record<string, unknown>)
   const existingCustom = (existing?.custom_metrics as Record<string, unknown>) ?? {}
 
   const merged = {
@@ -69,5 +78,6 @@ export async function syncSurveyImpact(
     ...builtinUpdates,
   }
 
-  await supabase.from('event_impact').upsert(merged, { onConflict: 'event_id' })
+  const { error } = await supabase.from('event_impact').upsert(merged, { onConflict: 'event_id' })
+  if (error) throw new Error(`syncSurveyImpact failed: ${error.message}`)
 }

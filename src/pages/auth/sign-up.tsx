@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Leaf, UserPlus } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Header } from '@/components/header'
 import { OGMeta } from '@/components/og-meta'
@@ -109,7 +109,6 @@ export default function SignUpPage() {
       setError(authError.message)
     } else {
       // Store referral code so it can be accepted after email verification
-      // (user doesn't have an active session until they confirm their email)
       if (refCode) {
         try { localStorage.setItem('coexist_referral_code', refCode) } catch { /* storage may be unavailable */ }
       }
@@ -127,24 +126,16 @@ export default function SignUpPage() {
   const motionProps = shouldReduceMotion ? {} : fadeUp
 
   return (
-    <div className="min-h-dvh flex flex-col bg-primary-50/60 relative overflow-hidden">
+    <div className="min-h-dvh flex flex-col bg-white">
       <OGMeta
         title="Sign Up"
         description="Create your free Co-Exist account. Join thousands of young Australians volunteering for conservation - tree planting, beach cleanups, habitat restoration, and more."
         canonicalPath="/signup"
         noindex
       />
-      {/* Subtle background accents */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-32 -left-28 w-80 h-80 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-200/26 to-transparent" />
-        <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-300/13 to-transparent" />
-        <div className="absolute top-36 right-8 text-primary-200/20 hidden sm:block">
-          <Leaf size={44} strokeWidth={1} style={{ transform: 'rotate(45deg)' }} />
-        </div>
-      </div>
 
-      {/* Centered container  caps width on larger screens */}
-      <div className="relative flex-1 flex flex-col w-full max-w-[440px] mx-auto">
+      {/* Centered container */}
+      <div className="flex-1 flex flex-col w-full max-w-[440px] mx-auto">
         <motion.form
           onSubmit={handleSubmit}
           variants={shouldReduceMotion ? undefined : stagger}
@@ -159,10 +150,10 @@ export default function SignUpPage() {
           {refValid && (
             <motion.div
               {...motionProps}
-              className="mx-5 mt-3 flex items-center gap-2.5 rounded-xl bg-moss-50/80 border border-moss-200/50 px-4 py-2.5"
+              className="mx-5 mt-3 flex items-center gap-2.5 rounded-xl bg-white border border-neutral-100 px-4 py-2.5"
             >
-              <UserPlus size={16} className="text-moss-600 shrink-0" />
-              <p className="text-sm text-primary-700">
+              <UserPlus size={16} className="text-neutral-500 shrink-0" />
+              <p className="text-sm text-neutral-900">
                 You've been invited to join the movement!
               </p>
             </motion.div>
@@ -170,16 +161,16 @@ export default function SignUpPage() {
 
           {/* Hero */}
           <motion.div {...motionProps} className="px-6 pt-6 pb-1">
-            <h1 className="text-[28px] font-bold text-primary-900 tracking-tight leading-tight">
+            <h1 className="text-[28px] font-bold text-neutral-900 tracking-tight leading-tight">
               Join the movement
             </h1>
-            <p className="mt-1 text-[15px] text-primary-400">
+            <p className="mt-1 text-[15px] text-neutral-500">
               Create your account to get started
             </p>
           </motion.div>
 
           {/* Scrollable form body */}
-          <div className="flex-1 px-5 pt-5 overflow-y-auto">
+          <div className="flex-1 px-6 pt-5 overflow-y-auto">
             {/* Social sign-up */}
             <motion.div {...motionProps} className="flex gap-3">
               <button
@@ -188,10 +179,10 @@ export default function SignUpPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2.5',
                   'h-[50px] rounded-2xl',
-                  'bg-white/90 border border-primary-100/80',
-                  'text-sm text-primary-800 font-semibold',
+                  'bg-white border border-neutral-100',
+                  'text-sm text-neutral-900 font-semibold',
                   'active:scale-[0.97] transition-transform duration-150',
-                  'cursor-pointer',
+                  'cursor-pointer hover:bg-neutral-50',
                 )}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -209,10 +200,10 @@ export default function SignUpPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2.5',
                   'h-[50px] rounded-2xl',
-                  'bg-white/90 border border-primary-100/80',
-                  'text-sm text-primary-800 font-semibold',
+                  'bg-white border border-neutral-100',
+                  'text-sm text-neutral-900 font-semibold',
                   'active:scale-[0.97] transition-transform duration-150',
-                  'cursor-pointer',
+                  'cursor-pointer hover:bg-neutral-50',
                 )}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -224,15 +215,15 @@ export default function SignUpPage() {
 
             {/* Divider */}
             <motion.div {...motionProps} className="flex items-center gap-4 my-5">
-              <div className="flex-1 h-px bg-primary-200/50" />
-              <span className="text-[11px] text-primary-300 font-semibold uppercase tracking-[0.15em]">or</span>
-              <div className="flex-1 h-px bg-primary-200/50" />
+              <div className="flex-1 h-px bg-neutral-100" />
+              <span className="text-[11px] text-neutral-400 font-semibold uppercase tracking-[0.15em]">or</span>
+              <div className="flex-1 h-px bg-neutral-100" />
             </motion.div>
 
             {/* Form card */}
             <motion.div
               {...motionProps}
-              className="bg-white/95 rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] border border-primary-100/50 space-y-4"
+              className="bg-white rounded-2xl border border-neutral-100 p-5 space-y-4"
             >
               <Input
                 label="Display name"
@@ -275,12 +266,12 @@ export default function SignUpPage() {
                             'h-1 flex-1 rounded-full origin-left transition-colors duration-300',
                             i < Math.ceil(passwordStrength.score / 1.25)
                               ? passwordStrength.color
-                              : 'bg-primary-100',
+                              : 'bg-neutral-100',
                           )}
                         />
                       ))}
                     </div>
-                    <span className="text-[11px] font-semibold text-primary-400 min-w-[3rem]">
+                    <span className="text-[11px] font-semibold text-neutral-500 min-w-[3rem]">
                       {passwordStrength.label}
                     </span>
                   </div>
@@ -307,11 +298,11 @@ export default function SignUpPage() {
                 label={
                   <>
                     I agree to the{' '}
-                    <Link to="/terms" className="text-primary-600 font-bold hover:underline">
+                    <Link to="/terms" className="text-neutral-900 font-bold hover:underline">
                       Terms of Service
                     </Link>{' '}
                     and{' '}
-                    <Link to="/privacy" className="text-primary-600 font-bold hover:underline">
+                    <Link to="/privacy" className="text-neutral-900 font-bold hover:underline">
                       Privacy Policy
                     </Link>
                   </>
@@ -335,7 +326,7 @@ export default function SignUpPage() {
           {/* Bottom CTA */}
           <motion.div
             {...motionProps}
-            className="px-5 pt-4 pb-5"
+            className="px-6 pt-4 pb-5"
             style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
           >
             <Button
@@ -345,14 +336,14 @@ export default function SignUpPage() {
               fullWidth
               loading={isSubmitting}
               disabled={!canSubmit}
-              className="!rounded-2xl !h-[54px] !text-[15px] !font-bold !shadow-sm"
+              className="!rounded-2xl !h-[54px] !text-[15px] !font-bold"
             >
               Create Account
             </Button>
 
-            <p className="mt-4 text-center text-sm text-primary-400">
+            <p className="mt-4 text-center text-sm text-neutral-500">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary-600 font-bold hover:underline">
+              <Link to="/login" className="text-neutral-900 font-bold hover:underline">
                 Log in
               </Link>
             </p>

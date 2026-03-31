@@ -129,7 +129,7 @@ function PromoFormSheet({
                   'flex-1 py-2.5 rounded-xl text-xs font-semibold cursor-pointer transition-colors duration-150',
                   type === t
                     ? `${TYPE_COLOURS[t]} ring-2 shadow-sm`
-                    : 'bg-primary-50/60 text-primary-400 hover:bg-primary-100/60',
+                    : 'bg-neutral-50 text-neutral-400 hover:bg-neutral-100',
                 )}
               >
                 {TYPE_LABELS[t]}

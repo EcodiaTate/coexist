@@ -39,6 +39,7 @@ import {
   useImpactObservations,
   useYearOverYear,
   useImpactDataQuality,
+  useEventsMissingImpact,
   type ObservationFilters,
   type CollectiveBreakdown,
   type EventImpactRow,
@@ -49,6 +50,9 @@ import type { ImpactMetricDef } from '@/lib/impact-metrics'
 import { dateRangeOptions, type DateRange } from '@/hooks/use-admin-dashboard'
 import { ACTIVITY_TYPE_OPTIONS, ACTIVITY_TYPE_LABELS } from '@/hooks/use-events'
 import { useCollectives } from '@/hooks/use-collective'
+import { useNotifyLeadersForImpactForm } from '@/hooks/use-impact-form-tasks'
+import { Button } from '@/components/button'
+import { useToast } from '@/components/toast'
 
 /* ------------------------------------------------------------------ */
 /*  Icon registry (matches admin/impact-metrics.tsx)                   */
@@ -180,7 +184,7 @@ function SortHeader({
       onClick={() => onSort(field)}
       className={cn(
         'flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider transition-colors cursor-pointer select-none',
-        active ? 'text-primary-700' : 'text-primary-400 hover:text-primary-600',
+        active ? 'text-neutral-700' : 'text-neutral-400 hover:text-neutral-600',
         className,
       )}
     >
@@ -216,23 +220,23 @@ function YoYChart({ data, defs, rm }: { data: YearSummary[]; defs: ImpactMetricD
   ]
 
   return (
-    <div className="rounded-2xl bg-white shadow-md border border-primary-100/50 p-5">
-      <h3 className="font-heading text-sm font-semibold text-primary-800 mb-5">
+    <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 p-5">
+      <h3 className="font-heading text-sm font-semibold text-neutral-900 mb-5">
         Year-over-Year Impact
       </h3>
       <div className="space-y-4">
         {data.map((d) => (
           <div key={d.year}>
-            <span className="text-xs font-bold text-primary-600 tabular-nums">{d.year}</span>
-            <span className="text-[10px] text-primary-400 ml-2">{d.events} events</span>
+            <span className="text-xs font-bold text-neutral-600 tabular-nums">{d.year}</span>
+            <span className="text-[10px] text-neutral-400 ml-2">{d.events} events</span>
             <div className="mt-1.5 space-y-1">
               {bars.map((bar) => {
                 const val = bar.getValue(d)
                 const max = Math.max(...data.map((x) => bar.getValue(x)), 1)
                 return (
                   <div key={bar.key} className="flex items-center gap-2">
-                    <div className="w-20 text-[10px] text-primary-400 text-right truncate">{bar.label}</div>
-                    <div className="flex-1 h-3.5 bg-primary-50 rounded-full overflow-hidden">
+                    <div className="w-20 text-[10px] text-neutral-400 text-right truncate">{bar.label}</div>
+                    <div className="flex-1 h-3.5 bg-neutral-50 rounded-full overflow-hidden">
                       <motion.div
                         className={cn('h-full rounded-full bg-gradient-to-r', bar.color)}
                         initial={rm ? { width: `${(val / max) * 100}%` } : { width: 0 }}
@@ -240,7 +244,7 @@ function YoYChart({ data, defs, rm }: { data: YearSummary[]; defs: ImpactMetricD
                         transition={{ duration: 0.6, ease: 'easeOut' }}
                       />
                     </div>
-                    <span className="w-16 text-[11px] font-semibold text-primary-700 tabular-nums text-right">
+                    <span className="w-16 text-[11px] font-semibold text-neutral-700 tabular-nums text-right">
                       {val > 0 ? `${val.toLocaleString()}${bar.unit ? ` ${bar.unit}` : ''}` : '-'}
                     </span>
                   </div>
@@ -266,18 +270,18 @@ function DataQualityPanel() {
   const legacyPct = total > 0 ? Math.round((data.legacyCount / total) * 100) : 0
 
   return (
-    <div className="rounded-2xl bg-white shadow-md border border-primary-100/50 p-5">
-      <h3 className="flex items-center gap-2 font-heading text-sm font-semibold text-primary-800 mb-4">
-        <Database size={16} className="text-primary-400" />
+    <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 p-5">
+      <h3 className="flex items-center gap-2 font-heading text-sm font-semibold text-neutral-900 mb-4">
+        <Database size={16} className="text-neutral-400" />
         Data Quality
       </h3>
       <div className="space-y-3">
         <div>
           <div className="flex items-center justify-between text-xs mb-1.5">
-            <span className="text-primary-500 font-medium">Data Source</span>
-            <span className="text-primary-400">{total} impact logs</span>
+            <span className="text-neutral-500 font-medium">Data Source</span>
+            <span className="text-neutral-400">{total} impact logs</span>
           </div>
-          <div className="flex h-3 rounded-full overflow-hidden bg-primary-50">
+          <div className="flex h-3 rounded-full overflow-hidden bg-neutral-50">
             <div
               className="bg-gradient-to-r from-primary-400 to-primary-500 transition-all duration-500"
               style={{ width: `${legacyPct}%` }}
@@ -290,11 +294,11 @@ function DataQualityPanel() {
           <div className="flex justify-between mt-1.5 text-[11px]">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-primary-400" />
-              <span className="text-primary-500">Legacy ({data.legacyCount})</span>
+              <span className="text-neutral-500">Legacy ({data.legacyCount})</span>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-sprout-400" />
-              <span className="text-primary-500">App ({data.appCount})</span>
+              <span className="text-neutral-500">App ({data.appCount})</span>
             </span>
           </div>
         </div>
@@ -312,13 +316,13 @@ function DataQualityPanel() {
         )}
 
         {data.zeroMetricEvents > 0 && (
-          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-primary-50 border border-primary-100">
-            <Leaf size={14} className="text-primary-400 mt-0.5 shrink-0" />
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-neutral-50 border border-neutral-100">
+            <Leaf size={14} className="text-neutral-400 mt-0.5 shrink-0" />
             <div>
-              <p className="text-xs font-semibold text-primary-600">
+              <p className="text-xs font-semibold text-neutral-600">
                 {data.zeroMetricEvents} log{data.zeroMetricEvents !== 1 ? 's' : ''} with all metrics at zero
               </p>
-              <p className="text-[11px] text-primary-400 mt-0.5">Recreational events or missing data entry</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">Recreational events or missing data entry</p>
             </div>
           </div>
         )}
@@ -359,7 +363,11 @@ export default function AdminImpactObservationsPage() {
   /* ── Data (driven by activeDefs) ── */
   const { data, isLoading } = useImpactObservations(filters, activeDefs)
   const { data: yoyData } = useYearOverYear(activeDefs)
-  const { data: collectives } = useCollectives()
+  const { data: collectives } = useCollectives({ includeNational: true })
+  const { data: missingImpact } = useEventsMissingImpact()
+  const notifyLeaders = useNotifyLeadersForImpactForm()
+  const { toast } = useToast()
+  const [nudgingEvent, setNudgingEvent] = useState<string | null>(null)
   const showLoading = useDelayedLoading(isLoading)
 
   /* ── Pick which metrics have data to show in tables ── */
@@ -429,12 +437,12 @@ export default function AdminImpactObservationsPage() {
       <div className="px-6 py-8 space-y-6">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 rounded-2xl bg-primary-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+            <div key={i} className="h-24 rounded-2xl bg-neutral-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
           ))}
         </div>
         <div className="space-y-2">
           {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-12 rounded-xl bg-primary-50 animate-pulse" style={{ animationDelay: `${i * 60}ms` }} />
+            <div key={i} className="h-12 rounded-xl bg-neutral-50 animate-pulse" style={{ animationDelay: `${i * 60}ms` }} />
           ))}
         </div>
       </div>
@@ -484,22 +492,86 @@ export default function AdminImpactObservationsPage() {
       <motion.div variants={v.fadeUp} className="flex justify-end -mt-4">
         <Link
           to="/admin/impact-metrics"
-          className="flex items-center gap-1.5 text-[11px] font-semibold text-primary-400 hover:text-primary-600 transition-colors"
+          className="flex items-center gap-1.5 text-[11px] font-semibold text-neutral-400 hover:text-neutral-600 transition-colors"
         >
           <Settings size={12} />
           Configure metrics
         </Link>
       </motion.div>
 
+      {/* ── Events missing impact (gap analysis) ── */}
+      {(missingImpact?.length ?? 0) > 0 && (
+        <motion.div variants={v.fadeUp}>
+          <div className="rounded-2xl bg-warning-50 border border-warning-200/50 p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={16} className="text-warning-600 shrink-0" />
+              <h3 className="text-sm font-semibold text-warning-800">
+                {missingImpact!.length} event{missingImpact!.length !== 1 ? 's' : ''} missing impact data
+              </h3>
+            </div>
+            <p className="text-xs text-warning-700">
+              These events ended in the last 30 days but no leader has logged impact yet.
+            </p>
+            <div className="space-y-1.5 max-h-[240px] overflow-y-auto">
+              {missingImpact!.map((e) => (
+                <div
+                  key={e.id}
+                  className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/70"
+                >
+                  <Link
+                    to={`/events/${e.id}/log-impact`}
+                    className="flex-1 min-w-0 hover:opacity-80 active:scale-[0.99] transition-all"
+                  >
+                    <p className="text-sm font-medium text-neutral-800 truncate">{e.title}</p>
+                    <p className="text-[11px] text-neutral-400">
+                      {e.collective_name ?? 'Unknown'} · {ACTIVITY_TYPE_LABELS[e.activity_type] ?? e.activity_type} · {e.days_since}d ago
+                    </p>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNudgingEvent(e.id)
+                      notifyLeaders.mutate(
+                        { eventId: e.id, eventTitle: e.title, collectiveId: e.collective_id },
+                        {
+                          onSuccess: (result) => {
+                            toast.success(`Reminder sent to ${result?.sent ?? 0} leader${(result?.sent ?? 0) !== 1 ? 's' : ''}`)
+                            setNudgingEvent(null)
+                          },
+                          onError: () => {
+                            toast.error('Failed to send reminder')
+                            setNudgingEvent(null)
+                          },
+                        },
+                      )
+                    }}
+                    disabled={nudgingEvent === e.id}
+                    className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-warning-200 text-warning-800 hover:bg-warning-300 active:scale-[0.97] transition-all shrink-0 cursor-pointer disabled:opacity-50"
+                  >
+                    {nudgingEvent === e.id ? 'Sending...' : 'Nudge'}
+                  </button>
+                  <span className={cn(
+                    'text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0',
+                    e.days_since > 7 ? 'bg-error-100 text-error-700' : e.days_since > 3 ? 'bg-warning-100 text-warning-700' : 'bg-neutral-100 text-neutral-500',
+                  )}>
+                    {e.days_since}d
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* ── Per-collective breakdown ── */}
       {sortedCollectives.length > 0 && (
         <motion.div variants={v.fadeUp}>
-          <h2 className="font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest mb-3">By Collective</h2>
-          <div className="rounded-2xl bg-white shadow-md border border-primary-100/50 overflow-hidden">
+          <h2 className="font-heading text-[13px] font-bold text-neutral-700/60 uppercase tracking-widest mb-3">By Collective</h2>
+          <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-primary-100">
+                  <tr className="border-b border-neutral-100">
                     <th className="px-4 py-3 text-left">
                       <SortHeader label="Collective" field="name" currentField={collSort} currentDir={collDir} onSort={(f) => toggleSort(f, collSort, setCollSort, collDir, setCollDir)} />
                     </th>
@@ -530,7 +602,7 @@ export default function AdminImpactObservationsPage() {
                   {sortedCollectives.map((c) => (
                     <tr
                       key={c.collectiveId}
-                      className="border-b border-primary-50 last:border-b-0 hover:bg-primary-25 transition-colors cursor-pointer"
+                      className="border-b border-neutral-50 last:border-b-0 hover:bg-neutral-50 transition-colors cursor-pointer"
                       onClick={() => setCollectiveId(c.collectiveId)}
                     >
                       <td className="px-4 py-3 text-left font-semibold text-primary-800 text-sm">{c.name}</td>
@@ -563,7 +635,7 @@ export default function AdminImpactObservationsPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-primary-100">
+                <tr className="border-b border-neutral-100">
                   <th className="px-4 py-3 text-left">
                     <SortHeader label="Date" field="date" currentField={eventSort} currentDir={eventDir} onSort={(f) => toggleSort(f, eventSort, setEventSort, eventDir, setEventDir)} />
                   </th>
@@ -602,7 +674,7 @@ export default function AdminImpactObservationsPage() {
                   </tr>
                 ) : (
                   displayEvents.map((row) => (
-                    <tr key={row.eventId} className="border-b border-primary-50 last:border-b-0 hover:bg-primary-25 transition-colors group">
+                    <tr key={row.eventId} className="border-b border-neutral-50 last:border-b-0 hover:bg-neutral-50 transition-colors group">
                       <td className="px-4 py-3 text-xs text-primary-500 tabular-nums whitespace-nowrap">{fmtDate(row.date)}</td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">

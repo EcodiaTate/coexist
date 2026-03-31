@@ -28,6 +28,7 @@ import type { Database } from '@/types/database.types'
 type ActivityType = Database['public']['Enums']['activity_type']
 import { useNearbyEvents, useNearbyCollectives, useUserLocation, AU_STATES } from '@/hooks/use-nearby'
 import { useNationalImpact } from '@/hooks/use-impact'
+import { useNationalEvents } from '@/hooks/use-home-feed'
 import { ACTIVITY_TYPE_LABELS } from '@/hooks/use-home-feed'
 import {
   Page,
@@ -238,6 +239,9 @@ export default function ExplorePage() {
 
   // National impact stats (for hero)
   const { data: nationalImpact } = useNationalImpact()
+
+  // National events (retreats, campouts, cross-collective)
+  const nationalEvents = useNationalEvents(userLocation ?? undefined)
 
   // Filter actions
   const toggleActivityFilter = useCallback(
@@ -691,6 +695,7 @@ export default function ExplorePage() {
                     toggleActivityFilter={toggleActivityFilter}
                     nearbyEventsData={nearbyEvents.data}
                     nearbyEventsLoading={nearbyEvents.isLoading}
+                    nationalEventsData={nationalEvents.data}
                     nearbyCollectivesData={nearbyCollectives.data}
                     nearbyCollectivesLoading={nearbyCollectives.isLoading}
                     showLoading={showLoading}

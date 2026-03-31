@@ -187,7 +187,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
               'flex-1 bg-transparent outline-none ring-0 border-none',
               'focus:outline-none focus:ring-0 focus:border-none',
               'appearance-none [&::-webkit-search-cancel-button]:hidden',
-              'text-primary-800 placeholder:text-primary-400/60',
+              'text-primary-800 placeholder:text-primary-600',
               'caret-primary-500',
               // 16px on mobile prevents iOS zoom, smaller on desktop
               'text-[16px] sm:text-sm',

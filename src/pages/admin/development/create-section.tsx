@@ -49,18 +49,18 @@ function SortableModuleItem({ item, onToggleRequired, onRemove }: { item: Module
       className={cn(
         'group flex items-center gap-3 rounded-2xl p-3.5 transition-colors duration-200',
         isDragging
-          ? 'bg-white shadow-lg ring-2 ring-primary-300/50 z-10 scale-[1.02]'
+          ? 'bg-white shadow-lg ring-2 ring-neutral-300/50 z-10 scale-[1.02]'
           : 'bg-white shadow-sm hover:shadow-md',
       )}
     >
-      <button type="button" className="cursor-grab touch-none text-primary-300 hover:text-primary-500 active:cursor-grabbing transition-colors" {...attributes} {...listeners}>
+      <button type="button" className="cursor-grab touch-none text-neutral-300 hover:text-neutral-500 active:cursor-grabbing transition-colors" {...attributes} {...listeners}>
         <GripVertical size={18} />
       </button>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-bold text-primary-800 truncate">{item.module.title}</p>
+        <p className="text-[13px] font-bold text-neutral-900 truncate">{item.module.title}</p>
         <div className="flex items-center gap-2 mt-0.5">
           <span className="text-[11px] text-secondary-600 font-medium capitalize">{item.module.category.replace('_', ' ')}</span>
-          <span className="flex items-center gap-0.5 text-[11px] text-primary-400"><Clock size={10} />{item.module.estimated_minutes}m</span>
+          <span className="flex items-center gap-0.5 text-[11px] text-neutral-400"><Clock size={10} />{item.module.estimated_minutes}m</span>
         </div>
       </div>
       <motion.button
@@ -69,7 +69,7 @@ function SortableModuleItem({ item, onToggleRequired, onRemove }: { item: Module
         whileTap={{ scale: 0.93 }}
         className={cn(
           'inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors duration-200',
-          item.is_required ? 'bg-moss-100 text-moss-700' : 'bg-primary-50 text-primary-400',
+          item.is_required ? 'bg-moss-100 text-moss-700' : 'bg-neutral-50 text-neutral-400',
         )}
       >
         <AnimatePresence mode="wait">
@@ -105,17 +105,17 @@ function ModulePicker({ modules, selectedIds, onSelect }: { modules: DevModule[]
     <div className="space-y-3">
       <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search published modules..." className="text-sm" />
       {filtered.length === 0 ? (
-        <p className="text-[11px] text-primary-400 text-center py-4">{search ? 'No matching modules' : 'All published modules are already added'}</p>
+        <p className="text-[11px] text-neutral-400 text-center py-4">{search ? 'No matching modules' : 'All published modules are already added'}</p>
       ) : (
         <div className="max-h-60 overflow-y-auto space-y-1.5">
           {filtered.map((m) => (
             <motion.button key={m.id} type="button" onClick={() => onSelect(m)} whileTap={{ scale: 0.98 }}
-              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-primary-50 transition-colors text-left">
+              className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 transition-colors text-left">
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-primary-800 truncate">{m.title}</p>
-                <p className="text-[11px] text-primary-500 capitalize">{m.category.replace('_', ' ')} · {m.estimated_minutes}m</p>
+                <p className="text-[13px] font-semibold text-neutral-900 truncate">{m.title}</p>
+                <p className="text-[11px] text-neutral-500 capitalize">{m.category.replace('_', ' ')} · {m.estimated_minutes}m</p>
               </div>
-              <Plus size={16} className="text-primary-400 shrink-0" />
+              <Plus size={16} className="text-neutral-400 shrink-0" />
             </motion.button>
           ))}
         </div>
@@ -197,12 +197,12 @@ export default function AdminCreateSectionPage() {
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="max-w-3xl mx-auto space-y-6">
       {/* Details */}
-      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6 space-y-4">
+      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2.5 mb-1">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-secondary-500 to-secondary-700 shadow-lg shadow-secondary-600/20">
             <Layers size={16} className="text-white" />
           </div>
-          <h2 className="font-heading text-base font-bold text-primary-800">Section Details</h2>
+          <h2 className="font-heading text-base font-bold text-neutral-900">Section Details</h2>
         </div>
         <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Onboarding Pathway" required />
         <Input type="textarea" label="Description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What does this pathway cover?" rows={3} />
@@ -214,12 +214,12 @@ export default function AdminCreateSectionPage() {
       </motion.div>
 
       {/* Audience */}
-      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6">
+      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5 sm:p-6">
         <div className="flex items-center gap-2.5 mb-3">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg shadow-primary-600/20">
             <Users size={16} className="text-white" />
           </div>
-          <h2 className="font-heading text-base font-bold text-primary-800">Target Audience</h2>
+          <h2 className="font-heading text-base font-bold text-neutral-900">Target Audience</h2>
         </div>
         <AudiencePicker selectedRoles={targetRoles} onRolesChange={setTargetRoles} />
       </motion.div>
@@ -227,13 +227,13 @@ export default function AdminCreateSectionPage() {
       {/* Modules */}
       <motion.div variants={fadeUp}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest">Modules</h2>
+          <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-neutral-700/60 uppercase tracking-widest">Modules</h2>
           <Button variant="secondary" size="sm" icon={<Plus size={14} />} onClick={() => setShowPicker(!showPicker)}>Add Modules</Button>
         </div>
         <AnimatePresence>
           {showPicker && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
-              <div className="rounded-2xl bg-white shadow-md p-4 mb-4">
+              <div className="rounded-2xl bg-white shadow-sm p-4 mb-4">
                 <ModulePicker modules={allModules} selectedIds={selectedIds} onSelect={(m) => setModuleItems((prev) => [...prev, { _key: `sm-${Date.now()}-${m.id}`, module: m, is_required: true }])} />
               </div>
             </motion.div>
@@ -242,12 +242,12 @@ export default function AdminCreateSectionPage() {
         <AnimatePresence mode="wait">
           {moduleItems.length === 0 ? (
             <motion.div key="empty" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
-              className="flex flex-col items-center justify-center py-14 rounded-2xl bg-primary-50/60">
+              className="flex flex-col items-center justify-center py-14 rounded-2xl bg-neutral-50"
               <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-secondary-500 to-secondary-700 shadow-lg mb-3">
                 <Layers size={24} strokeWidth={1.5} className="text-white" />
               </div>
-              <p className="text-[13px] font-semibold text-primary-600 mb-1">No modules added</p>
-              <p className="text-[11px] text-primary-400">Add modules to build this pathway</p>
+              <p className="text-[13px] font-semibold text-neutral-600 mb-1">No modules added</p>
+              <p className="text-[11px] text-neutral-400">Add modules to build this pathway</p>
             </motion.div>
           ) : (
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -268,8 +268,8 @@ export default function AdminCreateSectionPage() {
       </motion.div>
 
       {/* Bottom bar */}
-      <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-6 -mb-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-t border-primary-100/60 flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold text-primary-400">{moduleItems.length} module{moduleItems.length !== 1 ? 's' : ''}</p>
+      <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-6 -mb-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-t border-neutral-100 flex items-center justify-between gap-3">
+        <p className="text-[11px] font-semibold text-neutral-400">{moduleItems.length} module{moduleItems.length !== 1 ? 's' : ''}</p>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => navigate('/admin/development')}>Cancel</Button>
           <Button variant="secondary" size="sm" icon={<Save size={14} />} onClick={() => handleSave('draft')} loading={isSaving} disabled={!title.trim()}>Save Draft</Button>

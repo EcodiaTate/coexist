@@ -66,7 +66,7 @@ export function Checkbox({
           'peer-focus-visible:ring-2 peer-focus-visible:ring-primary-400 peer-focus-visible:ring-offset-2',
           isCheckedOrIndeterminate
             ? 'bg-primary-800 border-primary-600'
-            : 'bg-white border-primary-200',
+            : 'bg-white border-neutral-300',
         )}
       >
         <AnimatePresence mode="wait">

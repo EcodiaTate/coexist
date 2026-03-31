@@ -28,7 +28,6 @@ export interface AdminEventsStats {
   totalRegistrations: number
   upcomingRegistrations: number
   avgAttendance: number
-  activeCollectives: number
   hottestEvent: AdminEvent | null
 }
 
@@ -42,13 +41,29 @@ export interface AdminEventsData {
 async function fetchAdminEventsData(): Promise<AdminEventsData> {
   const now = new Date().toISOString()
 
-  const { data: events, error } = await supabase
-    .from('events')
-    .select(
-      'id, title, date_start, date_end, address, cover_image_url, collective_id, capacity, activity_type, status, collectives(name, region, state)',
-    )
-    .order('date_start', { ascending: true })
-    .limit(200)
+  // Fetch upcoming and past separately to ensure upcoming events are never
+  // cut off by the row limit when there are many past events.
+  const [upcomingRes, pastRes] = await Promise.all([
+    supabase
+      .from('events')
+      .select(
+        'id, title, date_start, date_end, address, cover_image_url, collective_id, capacity, activity_type, status, collectives(name, region, state)',
+      )
+      .gte('date_start', now)
+      .order('date_start', { ascending: true })
+      .limit(200),
+    supabase
+      .from('events')
+      .select(
+        'id, title, date_start, date_end, address, cover_image_url, collective_id, capacity, activity_type, status, collectives(name, region, state)',
+      )
+      .lt('date_start', now)
+      .order('date_start', { ascending: false })
+      .limit(200),
+  ])
+
+  const error = upcomingRes.error || pastRes.error
+  const events = [...(upcomingRes.data ?? []), ...(pastRes.data ?? [])]
 
   if (error) throw error
 
@@ -88,8 +103,6 @@ async function fetchAdminEventsData(): Promise<AdminEventsData> {
     ? upcoming.reduce((a, b) => (a.registrationCount > b.registrationCount ? a : b))
     : null
 
-  const activeCollectives = new Set(upcoming.map((e) => e.collective_id)).size
-
   return {
     all: enriched,
     upcoming,
@@ -100,7 +113,6 @@ async function fetchAdminEventsData(): Promise<AdminEventsData> {
       totalRegistrations,
       upcomingRegistrations,
       avgAttendance,
-      activeCollectives,
       hottestEvent,
     },
   }

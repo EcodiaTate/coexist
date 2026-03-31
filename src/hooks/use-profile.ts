@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { useToast } from '@/components/toast'
+import { queueOfflineAction } from '@/lib/offline-sync'
 import { IMPACT_SELECT_COLUMNS } from '@/lib/impact-metrics'
 import type { Database } from '@/types/database.types'
 
@@ -180,10 +183,18 @@ export function useMutualConnections(targetUserId: string) {
 export function useUpdateProfile() {
   const queryClient = useQueryClient()
   const { user, refreshProfile } = useAuth()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async (updates: ProfileUpdate) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('profile-update', { userId: user.id, updates })
+        return
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update(updates)
@@ -197,9 +208,13 @@ export function useUpdateProfile() {
       return { previous }
     },
     onError: (_err, _, context) => {
-      if (context?.previous) queryClient.setQueryData(['profile', user?.id], context.previous)
+      if (!isOffline && context?.previous) queryClient.setQueryData(['profile', user?.id], context.previous)
+    },
+    onSuccess: () => {
+      if (isOffline) toast.info('Profile update saved offline — will sync when back online')
     },
     onSettled: () => {
+      if (isOffline) return
       queryClient.invalidateQueries({ queryKey: ['profile', user?.id] })
       refreshProfile()
     },

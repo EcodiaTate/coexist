@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { useToast } from '@/components/toast'
+import { queueOfflineAction } from '@/lib/offline-sync'
 
 // user_blocks table is not yet in generated types (migration 070).
 // Use untyped access until `supabase gen types` is re-run post-migration.
@@ -41,10 +44,21 @@ export function useIsBlocked(userId: string | undefined) {
 export function useBlockUser() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async ({ blockedId, reason }: { blockedId: string; reason?: string }) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('block-user', {
+          blockerId: user.id,
+          blockedId,
+          reason,
+        })
+        return
+      }
 
       // Block the user
       const { error: blockError } = await blocks()
@@ -95,7 +109,26 @@ export function useBlockUser() {
         }
       }
     },
+    onMutate: async ({ blockedId }) => {
+      // Optimistically add to blocked list
+      await queryClient.cancelQueries({ queryKey: ['blocked-users', user?.id] })
+      const previous = queryClient.getQueryData<UserBlock[]>(['blocked-users', user?.id])
+      queryClient.setQueryData<UserBlock[]>(['blocked-users', user?.id], (old) => [
+        ...(old ?? []),
+        { blocked_id: blockedId, created_at: new Date().toISOString() },
+      ])
+      return { previous }
+    },
+    onError: (_err, _, context) => {
+      if (!isOffline && context?.previous) {
+        queryClient.setQueryData(['blocked-users', user?.id], context.previous)
+      }
+    },
     onSuccess: () => {
+      if (isOffline) {
+        toast.info('User blocked offline — will sync when back online')
+        return
+      }
       queryClient.invalidateQueries({ queryKey: ['blocked-users'] })
       queryClient.invalidateQueries({ queryKey: ['chat'] })
       queryClient.invalidateQueries({ queryKey: ['moderation-queue'] })
@@ -106,10 +139,20 @@ export function useBlockUser() {
 export function useUnblockUser() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async (blockedId: string) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('unblock-user', {
+          blockerId: user.id,
+          blockedId,
+        })
+        return
+      }
 
       const { error } = await blocks()
         .delete()
@@ -118,7 +161,24 @@ export function useUnblockUser() {
 
       if (error) throw error
     },
+    onMutate: async (blockedId) => {
+      await queryClient.cancelQueries({ queryKey: ['blocked-users', user?.id] })
+      const previous = queryClient.getQueryData<UserBlock[]>(['blocked-users', user?.id])
+      queryClient.setQueryData<UserBlock[]>(['blocked-users', user?.id], (old) =>
+        old?.filter((b) => b.blocked_id !== blockedId),
+      )
+      return { previous }
+    },
+    onError: (_err, _, context) => {
+      if (!isOffline && context?.previous) {
+        queryClient.setQueryData(['blocked-users', user?.id], context.previous)
+      }
+    },
     onSuccess: () => {
+      if (isOffline) {
+        toast.info('User unblocked offline — will sync when back online')
+        return
+      }
       queryClient.invalidateQueries({ queryKey: ['blocked-users'] })
       queryClient.invalidateQueries({ queryKey: ['chat'] })
     },

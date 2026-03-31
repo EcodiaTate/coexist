@@ -63,7 +63,7 @@ const actionColors: Record<string, string> = {
   content_auto_flagged: 'text-warning-600 bg-warning-50',
   content_removed: 'text-error-600 bg-error-50',
   impersonation_started: 'text-error-600 bg-error-50',
-  default: 'text-primary-400 bg-white',
+  default: 'text-neutral-400 bg-neutral-50',
 }
 
 function useAuditLog(search: string, actionFilter: string, page: number) {
@@ -173,7 +173,7 @@ export default function AdminAuditLogPage() {
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium text-primary-800">
+                        <span className="text-sm font-medium text-neutral-900">
                           {profile?.display_name ?? 'System'}
                         </span>
                         <span
@@ -186,17 +186,17 @@ export default function AdminAuditLogPage() {
                         </span>
                       </div>
                       {log.details && (
-                        <p className="text-xs text-primary-400 mt-0.5 line-clamp-2">
+                        <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">
                           {typeof log.details === 'string' ? log.details : log.details?.message ?? JSON.stringify(log.details)}
                         </p>
                       )}
                       {log.target_type && log.target_id && (
-                        <p className="text-[11px] text-primary-400 mt-0.5">
+                        <p className="text-[11px] text-neutral-400 mt-0.5">
                           {log.target_type}: {log.target_id}
                         </p>
                       )}
                     </div>
-                    <span className="text-[11px] text-primary-400 shrink-0 flex items-center gap-1">
+                    <span className="text-[11px] text-neutral-400 shrink-0 flex items-center gap-1">
                       <Clock size={12} />
                       {new Date(log.created_at).toLocaleDateString('en-AU', {
                         day: 'numeric',
@@ -220,13 +220,13 @@ export default function AdminAuditLogPage() {
                   className={cn(
                     'px-4 min-h-11 rounded-lg text-sm font-medium cursor-pointer',
                     page === 0
-                      ? 'text-primary-300 cursor-not-allowed'
-                      : 'text-primary-400 hover:bg-primary-50',
+                      ? 'text-neutral-300 cursor-not-allowed'
+                      : 'text-neutral-400 hover:bg-neutral-50',
                   )}
                 >
                   Previous
                 </button>
-                <span className="text-sm text-primary-400">
+                <span className="text-sm text-neutral-400">
                   {page + 1} / {totalPages}
                 </span>
                 <button
@@ -236,8 +236,8 @@ export default function AdminAuditLogPage() {
                   className={cn(
                     'px-4 min-h-11 rounded-lg text-sm font-medium cursor-pointer',
                     page >= totalPages - 1
-                      ? 'text-primary-300 cursor-not-allowed'
-                      : 'text-primary-400 hover:bg-primary-50',
+                      ? 'text-neutral-300 cursor-not-allowed'
+                      : 'text-neutral-400 hover:bg-neutral-50',
                   )}
                 >
                   Next

@@ -43,6 +43,7 @@ import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
+import { PlaceAutocomplete } from '@/components/place-autocomplete'
 import { useAuth } from '@/hooks/use-auth'
 import { useCountUp } from '@/components/stat-card'
 import { useImageUpload } from '@/hooks/use-image-upload'
@@ -142,11 +143,11 @@ function RichStatCard({
       <div className="min-w-0">
         <p
           style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-          className="text-xl sm:text-2xl font-bold text-primary-800 tabular-nums"
+          className="text-xl sm:text-2xl font-bold text-neutral-900 tabular-nums"
         >
           {display.toLocaleString()}
         </p>
-        <p className="text-xs text-primary-400 font-medium truncate">{label}</p>
+        <p className="text-xs text-neutral-400 font-medium truncate">{label}</p>
       </div>
     </motion.div>
   )
@@ -177,12 +178,12 @@ function HeroStat({
     primary: 'bg-gradient-to-br from-primary-700 via-primary-800 to-primary-950 text-white',
     dark: 'bg-gradient-to-br from-primary-900 via-primary-950 to-neutral-900 text-white',
     accent: 'bg-gradient-to-br from-accent-500 via-accent-600 to-primary-700 text-white',
-    default: 'bg-white text-primary-800 shadow-sm',
+    default: 'bg-white text-neutral-900 shadow-sm',
   }
   const iconBg = { primary: 'bg-white/15', dark: 'bg-white/10', accent: 'bg-white/15', default: 'bg-primary-50' }
-  const iconColor = { primary: 'text-white/80', dark: 'text-white/70', accent: 'text-white/80', default: 'text-primary-500' }
-  const labelColor = { primary: 'text-white/65', dark: 'text-white/55', accent: 'text-white/65', default: 'text-primary-400' }
-  const valColor = { primary: 'text-white', dark: 'text-white', accent: 'text-white', default: 'text-primary-800' }
+  const iconColor = { primary: 'text-white/80', dark: 'text-white/70', accent: 'text-white/80', default: 'text-neutral-500' }
+  const labelColor = { primary: 'text-white/65', dark: 'text-white/55', accent: 'text-white/65', default: 'text-neutral-400' }
+  const valColor = { primary: 'text-white', dark: 'text-white', accent: 'text-white', default: 'text-neutral-900' }
 
   return (
     <motion.div
@@ -199,7 +200,7 @@ function HeroStat({
         </>
       )}
       {variant === 'default' && (
-        <div className="absolute -right-4 -top-4 w-20 h-20 rounded-full bg-primary-50/60" />
+        <>{/* decorative circle removed – design system */}</>
       )}
       <div className="relative z-10">
         <span className={cn('flex items-center justify-center w-9 h-9 rounded-xl mb-3', iconBg[variant], iconColor[variant])} aria-hidden="true">
@@ -274,7 +275,7 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
         >
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={16} className="text-primary-500" />
-            <h3 className="font-heading text-sm font-semibold text-primary-800">Environmental Impact</h3>
+            <h3 className="font-heading text-sm font-semibold text-neutral-900">Environmental Impact</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {impactItems.map((item, i) => (
@@ -301,7 +302,7 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
         >
           <div className="flex items-center gap-2 mb-3">
             <Sparkles size={16} className="text-primary-500" />
-            <h3 className="font-heading text-sm font-semibold text-primary-800">Custom Metrics</h3>
+            <h3 className="font-heading text-sm font-semibold text-neutral-900">Custom Metrics</h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {customMetrics.map((cm, i) => (
@@ -327,14 +328,14 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
       >
         <div className="flex items-center gap-2 mb-3">
           <Crown size={16} className="text-warning-500" />
-          <h3 className="font-heading text-sm font-semibold text-primary-800">
+          <h3 className="font-heading text-sm font-semibold text-neutral-900">
             Leadership Team
           </h3>
-          <span className="text-xs text-primary-400 font-medium">({leaders.length})</span>
+          <span className="text-xs text-neutral-400 font-medium">({leaders.length})</span>
         </div>
         {leaders.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-primary-200 p-6 text-center">
-            <p className="text-sm text-primary-400">No leaders assigned yet</p>
+          <div className="rounded-2xl border border-dashed border-neutral-100 p-6 text-center">
+            <p className="text-sm text-neutral-400">No leaders assigned yet</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -361,11 +362,11 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
                       size="md"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-primary-800 truncate">
+                      <p className="text-sm font-semibold text-neutral-900 truncate">
                         {m.profiles?.display_name ?? 'Unknown'}
                       </p>
                       {m.profiles?.instagram_handle && (
-                        <p className="text-xs text-primary-400 truncate">
+                        <p className="text-xs text-neutral-400 truncate">
                           @{m.profiles.instagram_handle}
                         </p>
                       )}
@@ -396,13 +397,13 @@ function OverviewTab({ collectiveId, reducedMotion }: { collectiveId: string; re
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2">
             <CalendarDays size={16} className="text-accent-500" />
-            <h3 className="font-heading text-sm font-semibold text-primary-800">Recent Events</h3>
-            <span className="text-xs text-primary-400 font-medium">({events.length} total)</span>
+            <h3 className="font-heading text-sm font-semibold text-neutral-900">Recent Events</h3>
+            <span className="text-xs text-neutral-400 font-medium">({events.length} total)</span>
           </div>
         </div>
         {recentEvents.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-primary-200 p-6 text-center">
-            <p className="text-sm text-primary-400">No events yet</p>
+          <div className="rounded-2xl border border-dashed border-neutral-100 p-6 text-center">
+            <p className="text-sm text-neutral-400">No events yet</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -436,24 +437,24 @@ function EventRow({ event, reducedMotion, delay = 0 }: { event: AdminCollectiveE
       initial={reducedMotion ? { opacity: 1 } : { opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.25, delay: reducedMotion ? 0 : Math.min(delay, 0.3) }}
-      className="flex items-center gap-3.5 rounded-2xl bg-white shadow-sm px-4 py-3 hover:shadow-md transition-shadow duration-200"
+      className="flex items-center gap-3.5 rounded-2xl bg-white shadow-sm px-4 py-3 hover:shadow transition-shadow duration-200"
     >
       {/* Date block */}
-      <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100/60 border border-primary-100/60 shrink-0">
-        <span className="text-[11px] font-bold text-primary-500 uppercase leading-none">
+      <div className="flex flex-col items-center justify-center w-12 h-12 rounded-xl bg-neutral-50 border border-neutral-100 shrink-0">
+        <span className="text-[11px] font-bold text-neutral-500 uppercase leading-none">
           {date.toLocaleDateString('en-AU', { month: 'short' })}
         </span>
-        <span className="text-base font-bold text-primary-800 leading-tight">
+        <span className="text-base font-bold text-neutral-900 leading-tight">
           {date.getDate()}
         </span>
       </div>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-primary-800 truncate">{event.title}</p>
-        <div className="flex items-center gap-2 mt-0.5 text-xs text-primary-400">
+        <p className="text-sm font-semibold text-neutral-900 truncate">{event.title}</p>
+        <div className="flex items-center gap-2 mt-0.5 text-xs text-neutral-400">
           <span className="capitalize">{event.activity_type.replace(/_/g, ' ')}</span>
-          <span className="w-1 h-1 rounded-full bg-primary-300" />
+          <span className="w-1 h-1 rounded-full bg-neutral-300" />
           <span>{event.registrationCount} registered</span>
           {event.capacity && (
             <>
@@ -557,7 +558,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
   return (
     <div className="space-y-5">
       {/* ── Search & controls ── */}
-      <div className="rounded-2xl bg-gradient-to-r from-primary-50/80 via-white to-primary-50/60 border border-primary-100/60 p-4">
+      <div className="rounded-2xl bg-neutral-50 border border-neutral-100 p-4">
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <SearchBar value={search} onChange={setSearch} placeholder="Search by name or handle..." compact className="flex-1" />
           <div className="flex items-center gap-2">
@@ -568,8 +569,8 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                 'h-10 px-3.5 rounded-full text-xs font-semibold',
                 'active:scale-[0.95] transition-[color,background-color,transform] duration-200 cursor-pointer select-none',
                 showInactive
-                  ? 'bg-primary-700 text-white shadow-md'
-                  : 'bg-white text-primary-500 hover:bg-primary-50 shadow-sm',
+                  ? 'bg-primary-700 text-white shadow-sm'
+                  : 'bg-white text-neutral-500 hover:bg-neutral-50 shadow-sm',
               )}
             >
               {showInactive ? 'All statuses' : 'Active only'}
@@ -592,7 +593,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
             </Button>
           </div>
         </div>
-        <p className="text-xs text-primary-400 mt-3 pl-1">
+        <p className="text-xs text-neutral-400 mt-3 pl-1">
           {filteredMembers.length} member{filteredMembers.length !== 1 ? 's' : ''}
           {search && ` matching "${search}"`}
         </p>
@@ -618,7 +619,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                   'flex items-center gap-3 rounded-2xl px-4 py-3 transition-colors duration-200',
                   isInactive
                     ? 'opacity-50 bg-neutral-50/80'
-                    : 'bg-white shadow-sm hover:shadow-md',
+                    : 'bg-white shadow-sm hover:shadow',
                 )}
               >
                 <Avatar
@@ -628,7 +629,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                 />
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-primary-800 truncate">
+                  <p className="text-sm font-semibold text-neutral-900 truncate">
                     {member.profiles?.display_name ?? 'Unknown'}
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
@@ -642,7 +643,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                       {ROLE_LABELS[member.role ?? 'member']}
                     </span>
                     {member.profiles?.instagram_handle && (
-                      <span className="text-[11px] text-primary-400 truncate">
+                      <span className="text-[11px] text-neutral-400 truncate">
                         @{member.profiles.instagram_handle}
                       </span>
                     )}
@@ -660,7 +661,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                     <button
                       type="button"
                       onClick={() => handleRestore(member)}
-                      className="p-2.5 rounded-xl text-primary-400 hover:bg-primary-100 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
+                      className="p-2.5 rounded-xl text-neutral-400 hover:bg-neutral-50 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                       aria-label="Restore member"
                     >
                       <RotateCcw size={14} />
@@ -670,7 +671,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                       <button
                         type="button"
                         onClick={() => setRoleAssignMember(member)}
-                        className="p-2.5 rounded-xl text-primary-400 hover:bg-primary-100 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
+                        className="p-2.5 rounded-xl text-neutral-400 hover:bg-neutral-50 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                         aria-label="Change role"
                       >
                         <Shield size={14} />
@@ -678,7 +679,7 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                       <button
                         type="button"
                         onClick={() => setRemovingMember(member)}
-                        className="p-2.5 rounded-xl text-primary-400 hover:bg-error-50 hover:text-error-500 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
+                        className="p-2.5 rounded-xl text-neutral-400 hover:bg-error-50 hover:text-error-500 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                         aria-label="Remove member"
                       >
                         <UserMinus size={14} />
@@ -697,12 +698,12 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
         <BottomSheet open={!!roleAssignMember} onClose={() => setRoleAssignMember(null)}>
           <div className="space-y-4 pb-2">
             <div>
-              <h3 className="font-heading text-lg font-semibold text-primary-800">
+              <h3 className="font-heading text-lg font-semibold text-neutral-900">
                 Change Role
               </h3>
-              <p className="text-sm text-primary-500 mt-1">
+              <p className="text-sm text-neutral-500 mt-1">
                 {roleAssignMember.profiles?.display_name ?? 'Member'} is currently{' '}
-                <strong className="text-primary-700">{ROLE_LABELS[roleAssignMember.role ?? 'member']}</strong>
+                <strong className="text-neutral-700">{ROLE_LABELS[roleAssignMember.role ?? 'member']}</strong>
               </p>
             </div>
 
@@ -722,16 +723,16 @@ function MembersTab({ collectiveId }: { collectiveId: string }) {
                       'flex w-full items-center gap-3 rounded-xl px-4 py-3.5 min-h-11 text-sm',
                       'active:scale-[0.97] transition-[color,background-color,transform] duration-150 cursor-pointer select-none border',
                       isActive
-                        ? cn(accent.bg, accent.border, 'text-primary-700')
-                        : 'bg-white border-transparent text-primary-800 hover:bg-primary-50',
+                        ? cn(accent.bg, accent.border, 'text-neutral-700')
+                        : 'bg-white border-transparent text-neutral-900 hover:bg-neutral-50',
                     )}
                   >
-                    <span className={cn('flex items-center justify-center w-8 h-8 rounded-lg', isActive ? accent.icon : 'bg-primary-50 text-primary-400')}>
+                    <span className={cn('flex items-center justify-center w-8 h-8 rounded-lg', isActive ? accent.icon : 'bg-neutral-50 text-neutral-400')}>
                       <RoleIcon size={16} />
                     </span>
                     <span className="font-medium">{ROLE_LABELS[role]}</span>
                     {isActive && (
-                      <span className="ml-auto text-xs text-primary-500 font-semibold bg-white/80 px-2 py-0.5 rounded-full">
+                      <span className="ml-auto text-xs text-neutral-500 font-semibold bg-white/80 px-2 py-0.5 rounded-full">
                         Current
                       </span>
                     )}
@@ -804,10 +805,10 @@ function AddMemberModal({
     <BottomSheet open={open} onClose={onClose}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-heading text-lg font-semibold text-primary-800">Add Member</h2>
+        <h2 className="font-heading text-lg font-semibold text-neutral-900">Add Member</h2>
         <button
           onClick={onClose}
-          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-neutral-400 hover:bg-neutral-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
           aria-label="Close"
         >
           <X size={20} />
@@ -834,7 +835,7 @@ function AddMemberModal({
             {showLoading ? (
               <Skeleton variant="list-item" count={3} />
             ) : results.length === 0 ? (
-              <p className="text-sm text-primary-400 py-4 text-center">
+              <p className="text-sm text-neutral-400 py-4 text-center">
                 No users found for &quot;{query}&quot;
               </p>
             ) : (
@@ -846,7 +847,7 @@ function AddMemberModal({
                   disabled={addMember.isPending}
                   className={cn(
                     'flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left',
-                    'hover:bg-primary-50 active:scale-[0.98] transition-[color,background-color,transform] duration-150',
+                    'hover:bg-neutral-50 active:scale-[0.98] transition-[color,background-color,transform] duration-150',
                     'cursor-pointer select-none',
                   )}
                 >
@@ -856,14 +857,14 @@ function AddMemberModal({
                     size="sm"
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-primary-800 truncate">
+                    <p className="text-sm font-medium text-neutral-900 truncate">
                       {user.display_name ?? 'Unknown'}
                     </p>
                     {user.instagram_handle && (
-                      <p className="text-xs text-primary-400 truncate">@{user.instagram_handle}</p>
+                      <p className="text-xs text-neutral-400 truncate">@{user.instagram_handle}</p>
                     )}
                   </div>
-                  <UserPlus size={16} className="text-primary-400 shrink-0" />
+                  <UserPlus size={16} className="text-neutral-400 shrink-0" />
                 </button>
               ))
             )}
@@ -892,8 +893,8 @@ function EventsTab({ collectiveId, reducedMotion }: { collectiveId: string; redu
   const statuses = ['all', 'published', 'completed', 'draft', 'cancelled']
 
   const statusColors: Record<string, { active: string; inactive: string }> = {
-    all: { active: 'bg-primary-700 text-white', inactive: 'bg-white text-primary-500' },
-    published: { active: 'bg-primary-600 text-white', inactive: 'bg-white text-primary-500' },
+    all: { active: 'bg-primary-700 text-white', inactive: 'bg-white text-neutral-500' },
+    published: { active: 'bg-primary-600 text-white', inactive: 'bg-white text-neutral-500' },
     completed: { active: 'bg-success-600 text-white', inactive: 'bg-white text-success-600' },
     draft: { active: 'bg-neutral-600 text-white', inactive: 'bg-white text-neutral-500' },
     cancelled: { active: 'bg-error-600 text-white', inactive: 'bg-white text-error-500' },
@@ -917,7 +918,7 @@ function EventsTab({ collectiveId, reducedMotion }: { collectiveId: string; redu
                 'h-9 px-4 rounded-full text-xs font-semibold capitalize',
                 'active:scale-[0.95] transition-[color,background-color,transform] duration-200 cursor-pointer select-none shadow-sm',
                 isActive ? colors.active : colors.inactive,
-                isActive && 'shadow-md',
+                isActive && 'shadow-sm',
               )}
             >
               {s}
@@ -969,24 +970,27 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
   const [region, setRegion] = useState('')
   const [state, setState] = useState('')
   const [slug, setSlug] = useState('')
-  const [initialized, setInitialized] = useState(false)
+  const [initializedFor, setInitializedFor] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
+  const [fileInputKey, setFileInputKey] = useState(0)
 
-  // Initialize form when detail loads
-  if (detail && !initialized) {
+  // Initialize form when detail loads (or re-initialize when collectiveId changes)
+  if (detail && initializedFor !== collectiveId) {
     setName(detail.name)
     setDescription(detail.description ?? '')
     setRegion(detail.region ?? '')
     setState(detail.state ?? '')
     setSlug(detail.slug)
     setCoverPreview(detail.cover_image_url)
-    setInitialized(true)
+    setInitializedFor(collectiveId)
   }
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    // Force a fresh file input after each upload to avoid stale DOM state
+    setFileInputKey((k) => k + 1)
     try {
       const result = await upload(file)
       setCoverPreview(result.url)
@@ -1061,17 +1065,17 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
     <div className="space-y-6 max-w-xl">
       {/* ── Cover image ── */}
       <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-primary-50 via-white to-primary-50/60 px-5 py-3 border-b border-primary-100/60">
-          <h3 className="font-heading text-sm font-semibold text-primary-700">
+        <div className="bg-neutral-50 px-5 py-3 border-b border-neutral-100">
+          <h3 className="font-heading text-sm font-semibold text-neutral-700">
             Cover Image
           </h3>
         </div>
         <div className="p-5">
-          <div className="relative rounded-xl overflow-hidden bg-primary-50/50" style={{ aspectRatio: '16/9' }}>
+          <div className="relative rounded-xl overflow-hidden bg-neutral-50" style={{ aspectRatio: '16/9' }}>
             {coverPreview ? (
               <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-primary-300 gap-2">
+              <div className="flex flex-col items-center justify-center h-full text-neutral-300 gap-2">
                 <ImagePlus size={32} />
                 <span className="text-xs font-medium">No cover image</span>
               </div>
@@ -1079,21 +1083,35 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
             {uploading && (
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                 <div className="bg-white rounded-xl px-4 py-2 shadow-lg">
-                  <p className="text-xs font-semibold text-primary-700 tabular-nums">{progress ?? 0}%</p>
+                  <p className="text-xs font-semibold text-neutral-700 tabular-nums">{progress ?? 0}%</p>
                 </div>
               </div>
             )}
           </div>
           <div className="flex items-center gap-2 mt-3">
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={<Camera size={14} />}
-              disabled={uploading}
-              onClick={() => document.getElementById('admin-cover-upload')?.click()}
+            <label
+              className={cn(
+                'relative inline-flex items-center justify-center font-heading font-semibold',
+                'rounded-xl cursor-pointer select-none',
+                'transition-colors duration-150',
+                'min-h-11 px-4 text-sm gap-1.5',
+                'bg-neutral-100 text-neutral-900 shadow-sm hover:bg-neutral-200 hover:shadow',
+                uploading && 'opacity-50 cursor-not-allowed pointer-events-none',
+              )}
             >
-              {coverPreview ? 'Replace' : 'Upload'}
-            </Button>
+              <span className="flex items-center justify-center shrink-0">
+                <Camera size={14} />
+              </span>
+              <span>{coverPreview ? 'Replace' : 'Upload'}</span>
+              <input
+                key={fileInputKey}
+                type="file"
+                accept="image/*"
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                onChange={handleCoverUpload}
+                disabled={uploading}
+              />
+            </label>
             {coverPreview && (
               <Button
                 variant="ghost"
@@ -1105,15 +1123,8 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
                 Remove
               </Button>
             )}
-            <input
-              id="admin-cover-upload"
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleCoverUpload}
-            />
           </div>
-          <p className="text-[11px] text-primary-400 mt-2">
+          <p className="text-[11px] text-neutral-400 mt-2">
             Recommended: 1200x675px (16:9). Shown on the collective page and discovery cards.
           </p>
         </div>
@@ -1121,8 +1132,8 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
 
       {/* ── Edit form ── */}
       <div className="rounded-2xl bg-white shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-primary-50 via-white to-primary-50/60 px-5 py-3 border-b border-primary-100/60">
-          <h3 className="font-heading text-sm font-semibold text-primary-700">
+        <div className="bg-neutral-50 px-5 py-3 border-b border-neutral-100">
+          <h3 className="font-heading text-sm font-semibold text-neutral-700">
             Collective Details
           </h3>
         </div>
@@ -1150,10 +1161,17 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
             rows={4}
           />
 
-          <Input
+          <PlaceAutocomplete
             label="Region"
             value={region}
-            onChange={(e) => setRegion(e.target.value)}
+            onChange={(val, place) => {
+              setRegion(val)
+              if (place) {
+                const stateMatch = place.short_name.split(',').pop()?.trim()
+                const matched = AUSTRALIAN_STATES.find((s) => stateMatch?.includes(s))
+                if (matched) setState(matched)
+              }
+            }}
             placeholder="e.g. Byron Bay"
           />
 
@@ -1189,10 +1207,10 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
         <div className="p-5 space-y-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-primary-800">
+              <p className="text-sm font-semibold text-neutral-900">
                 {detail.is_active ? 'Archive Collective' : 'Restore Collective'}
               </p>
-              <p className="text-xs text-primary-400 mt-0.5 leading-relaxed">
+              <p className="text-xs text-neutral-400 mt-0.5 leading-relaxed">
                 {detail.is_active
                   ? 'Hide this collective from members. Data is preserved.'
                   : 'Make this collective active and visible again.'}
@@ -1392,7 +1410,7 @@ export default function AdminCollectiveDetailPage() {
         initial={rm ? {} : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, delay: 0.05 }}
-        className="rounded-2xl bg-gradient-to-r from-primary-50/80 via-white to-primary-50/60 border border-primary-100/60 p-1.5"
+        className="rounded-2xl bg-neutral-50 border border-neutral-100 p-1.5"
       >
         <div className="flex gap-1">
           {tabs.map((tab) => {
@@ -1406,11 +1424,11 @@ export default function AdminCollectiveDetailPage() {
                   'relative flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold',
                   'rounded-xl active:scale-[0.97] transition-[color,background-color,transform] duration-200 cursor-pointer select-none',
                   isActive
-                    ? 'bg-primary-700 text-white shadow-lg'
-                    : 'text-primary-400 hover:text-primary-600 hover:bg-white/80',
+                    ? 'bg-primary-700 text-white shadow-sm'
+                    : 'text-neutral-400 hover:text-neutral-600 hover:bg-white/80',
                 )}
               >
-                <span className={cn(isActive ? 'text-white/80' : 'text-primary-300')}>{tab.icon}</span>
+                <span className={cn(isActive ? 'text-white/80' : 'text-neutral-300')}>{tab.icon}</span>
                 <span className="hidden sm:inline">{tab.label}</span>
               </button>
             )
@@ -1430,7 +1448,7 @@ export default function AdminCollectiveDetailPage() {
           {activeTab === 'overview' && <OverviewTab collectiveId={collectiveId!} reducedMotion={rm} />}
           {activeTab === 'members' && <MembersTab collectiveId={collectiveId!} />}
           {activeTab === 'events' && <EventsTab collectiveId={collectiveId!} reducedMotion={rm} />}
-          {activeTab === 'settings' && <SettingsTab collectiveId={collectiveId!} />}
+          {activeTab === 'settings' && <SettingsTab key={collectiveId} collectiveId={collectiveId!} />}
         </motion.div>
       </AnimatePresence>
       </div>

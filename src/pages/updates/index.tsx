@@ -121,8 +121,8 @@ function RichContent({ text, className }: { text: string; className?: string }) 
 
 function _roleLabel(role: string | undefined) {
   switch (role) {
-    case 'super_admin': return 'Super Admin'
-    case 'national_admin': return 'Admin'
+    case 'admin': return 'Admin'
+    case 'manager': return 'Manager'
     case 'national_leader': return 'Staff'
     default: return ''
   }
@@ -156,29 +156,6 @@ function CardThumbnail({ images }: { images: string[] }) {
           )}
         </div>
       ))}
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Decorative background                                              */
-/* ------------------------------------------------------------------ */
-
-function DecorativeBackground() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <div className="absolute inset-0 bg-gradient-to-b from-primary-50/60 via-white via-40% to-primary-50/20" />
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[400px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-200/20 via-primary-100/8 to-transparent" />
-      {/* Ring cluster - top-right */}
-      <div className="absolute -top-20 -right-16 w-72 h-72 rounded-full border-[2.5px] border-primary-200/14" />
-      <div className="absolute -top-8 -right-4 w-48 h-48 rounded-full border-[1.5px] border-primary-200/10" />
-      {/* Ring - mid-left */}
-      <div className="absolute top-[40%] -left-14 w-52 h-52 rounded-full border-[2px] border-primary-200/10" />
-      {/* Accent orb - bottom-right */}
-      <div className="absolute bottom-[15%] right-[8%] w-32 h-32 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-100/18 to-transparent" />
-      {/* Small accents */}
-      <div className="absolute top-[20%] left-[25%] w-10 h-10 rounded-full border border-primary-200/12" />
-      <div className="absolute bottom-[30%] left-[15%] w-6 h-6 rounded-full bg-primary-100/20" />
     </div>
   )
 }
@@ -239,22 +216,22 @@ function UpdateDetailView({
         )}
 
         {/* Title */}
-        <h1 className="font-heading text-2xl lg:text-3xl font-bold text-primary-900 leading-tight mb-4">
+        <h1 className="font-heading text-2xl lg:text-3xl font-bold text-neutral-900 leading-tight mb-4">
           {update.title}
         </h1>
 
         {/* Author + time */}
-        <div className="flex items-center gap-3 mb-6 pb-5 border-b border-primary-100">
+        <div className="flex items-center gap-3 mb-6 pb-5 border-b border-neutral-100">
           <Avatar
             src={update.author?.avatar_url}
             name={update.author?.display_name ?? 'Staff'}
             size="sm"
           />
           <div className="flex-1 min-w-0">
-            <span className="text-sm font-semibold text-primary-800">
+            <span className="text-sm font-semibold text-neutral-800">
               {update.author?.display_name ?? 'Co-Exist Team'}
             </span>
-            <p className="text-xs text-primary-400 mt-0.5">
+            <p className="text-xs text-neutral-400 mt-0.5">
               {formatDate(update.created_at ?? '')}
             </p>
           </div>
@@ -263,7 +240,7 @@ function UpdateDetailView({
         {/* Content */}
         <RichContent
           text={update.content}
-          className="text-[15px] lg:text-base text-primary-700 leading-[1.8] whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
+          className="text-[15px] lg:text-base text-neutral-600 leading-[1.8] whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
         />
 
         {/* Additional images (after content, below the splash) */}
@@ -311,12 +288,9 @@ function UpdateCard({
         'group rounded-2xl overflow-hidden cursor-pointer',
         'transition-transform duration-200 active:scale-[0.985]',
         'bg-white',
-        'border border-primary-100/80',
-        'shadow-[0_1px_3px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]',
-        'hover:shadow-[0_4px_12px_rgba(0,0,0,0.06),0_1px_3px_rgba(0,0,0,0.04)]',
-        'hover:border-primary-200/60',
-        isUrgent && 'border-warning-200/60 bg-gradient-to-r from-white to-warning-50/30',
-        update.is_pinned && !isUrgent && 'border-primary-200/50 bg-gradient-to-r from-white to-primary-50/20',
+        'border border-neutral-100',
+        'shadow-sm',
+        isUrgent && 'border-warning-200',
         isUnread && 'border-l-[3px] border-l-primary-500',
       )}
       role="article"
@@ -332,7 +306,7 @@ function UpdateCard({
                 <span className="w-1.5 h-1.5 rounded-full bg-primary-500 shrink-0" aria-hidden="true" />
               )}
               {update.is_pinned && (
-                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary-500">
+                <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-neutral-500">
                   <Pin size={9} aria-hidden="true" />
                   Pinned
                 </span>
@@ -347,12 +321,12 @@ function UpdateCard({
           )}
 
           {/* Title */}
-          <h3 className="font-heading font-bold text-sm leading-snug text-primary-900 line-clamp-2 group-hover:text-primary-700 transition-colors">
+          <h3 className="font-heading font-bold text-sm leading-snug text-neutral-900 line-clamp-2 group-hover:text-neutral-700 transition-colors">
             {update.title}
           </h3>
 
           {/* Content preview */}
-          <p className="mt-1 text-xs leading-relaxed text-primary-500 line-clamp-2">
+          <p className="mt-1 text-xs leading-relaxed text-neutral-500 line-clamp-2">
             {update.content}
           </p>
 
@@ -363,14 +337,14 @@ function UpdateCard({
               name={update.author?.display_name ?? 'Staff'}
               size="xs"
             />
-            <span className="text-[11px] font-semibold text-primary-700 truncate">
+            <span className="text-[11px] font-semibold text-neutral-700 truncate">
               {update.author?.display_name ?? 'Co-Exist Team'}
             </span>
-            <span className="text-[10px] text-primary-300 shrink-0">
+            <span className="text-[10px] text-neutral-400 shrink-0">
               {formatDate(update.created_at ?? '')}
             </span>
             {images.length > 1 && (
-              <span className="inline-flex items-center gap-0.5 text-[10px] text-primary-300 shrink-0 ml-auto">
+              <span className="inline-flex items-center gap-0.5 text-[10px] text-neutral-400 shrink-0 ml-auto">
                 <ImageIcon size={10} />
                 {images.length}
               </span>
@@ -437,13 +411,11 @@ export default function UpdatesPage() {
     return (
       <Page
         noBackground
-        className="!px-0 bg-surface-1"
+        className="!px-0 bg-white"
         header={<Header title="Updates" back onBack={() => setSelectedUpdateId(null)} />}
       >
-        <div className="relative min-h-full">
-          <div className="relative z-10 px-4 lg:px-6">
-            <UpdateDetailView update={selectedUpdate} />
-          </div>
+        <div className="px-4 lg:px-6">
+          <UpdateDetailView update={selectedUpdate} />
         </div>
       </Page>
     )
@@ -451,12 +423,8 @@ export default function UpdatesPage() {
 
   // --- List view ---
   return (
-    <Page swipeBack noBackground className="!px-0 bg-surface-1" header={<Header title="Updates" back />}>
-      <div className="relative min-h-full before:absolute before:inset-x-0 before:bottom-full before:h-[300px] before:bg-[linear-gradient(to_bottom,var(--color-primary-50)_60%,transparent)]">
-        <DecorativeBackground />
-
-        {/* Page content */}
-        <div className="relative z-10 px-4 lg:px-6 pb-6 space-y-4">
+    <Page swipeBack noBackground className="!px-0 bg-white" header={<Header title="Updates" back />}>
+      <div className="px-4 lg:px-6 pb-6 space-y-4">
           {/* Title */}
           <motion.div
             initial={shouldReduceMotion ? false : { opacity: 0, y: 10 }}
@@ -464,10 +432,10 @@ export default function UpdatesPage() {
             transition={{ duration: 0.35 }}
             className="flex items-center gap-2.5"
           >
-            <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-primary-600 to-secondary-700 shadow-sm">
-              <Megaphone size={14} className="text-white" />
+            <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary-50 text-primary-600">
+              <Megaphone size={14} />
             </div>
-            <h1 className="font-heading text-xl font-bold text-primary-900 tracking-tight">
+            <h1 className="font-heading text-xl font-bold text-neutral-900 tracking-tight">
               Updates
             </h1>
           </motion.div>
@@ -490,7 +458,7 @@ export default function UpdatesPage() {
           {showLoading ? (
             <div className="space-y-3">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-[88px] rounded-2xl bg-white border border-primary-100/60 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+                <div key={i} className="h-[88px] rounded-2xl bg-white border border-neutral-100 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
               ))}
             </div>
           ) : isError ? (
@@ -531,11 +499,11 @@ export default function UpdatesPage() {
                 {/* Divider */}
                 {filteredPinned.length > 0 && filteredRegular.length > 0 && (
                   <motion.div variants={fadeUp} className="flex items-center gap-3 py-1.5">
-                    <div className="h-px flex-1 bg-primary-100" />
-                    <span className="text-[10px] font-bold text-primary-300 uppercase tracking-[0.15em]">
+                    <div className="h-px flex-1 bg-neutral-100" />
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.15em]">
                       Recent
                     </span>
-                    <div className="h-px flex-1 bg-primary-100" />
+                    <div className="h-px flex-1 bg-neutral-100" />
                   </motion.div>
                 )}
 
@@ -563,7 +531,6 @@ export default function UpdatesPage() {
               </motion.div>
             </PullToRefresh>
           )}
-        </div>
       </div>
     </Page>
   )

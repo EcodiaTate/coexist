@@ -37,31 +37,16 @@ export default function EmailVerificationPage() {
         description="Check your inbox to verify your Co-Exist account email address and start volunteering for conservation."
         noindex
       />
-      {/* Animated envelope */}
+      {/* Envelope icon */}
       <motion.div
         initial={shouldReduceMotion ? false : { scale: 0.5, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-        className="relative mb-8"
+        className="mb-8"
       >
-        <div className="w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center">
-          <Mail className="w-12 h-12 text-primary-400" />
+        <div className="w-24 h-24 rounded-full bg-neutral-50 flex items-center justify-center">
+          <Mail className="w-12 h-12 text-neutral-400" />
         </div>
-        {/* Animated ring pulse */}
-        <motion.div
-          className="absolute inset-0 rounded-full border-2 border-primary-300"
-          initial={shouldReduceMotion ? { opacity: 0 } : { scale: 1, opacity: 0.6 }}
-          animate={
-            shouldReduceMotion
-              ? { opacity: 0 }
-              : { scale: [1, 1.4, 1.4], opacity: [0.6, 0, 0] }
-          }
-          transition={
-            shouldReduceMotion
-              ? { duration: 0 }
-              : { duration: 2, repeat: Infinity, ease: 'easeOut' }
-          }
-        />
       </motion.div>
 
       <motion.div
@@ -70,13 +55,13 @@ export default function EmailVerificationPage() {
         transition={{ duration: 0.4, delay: 0.2 }}
         className="text-center max-w-sm"
       >
-        <h1 className="font-heading text-2xl font-bold text-primary-800">
+        <h1 className="font-heading text-2xl font-bold text-neutral-900">
           Check your inbox
         </h1>
-        <p className="mt-3 text-primary-400 leading-relaxed">
+        <p className="mt-3 text-neutral-500 leading-relaxed">
           We've sent a verification link to{' '}
           {email ? (
-            <span className="font-medium text-primary-800">{email}</span>
+            <span className="font-medium text-neutral-900">{email}</span>
           ) : (
             'your email'
           )}
@@ -118,7 +103,7 @@ export default function EmailVerificationPage() {
         </p>
       )}
 
-      <p className="mt-8 text-xs text-primary-400 text-center max-w-xs">
+      <p className="mt-8 text-xs text-neutral-400 text-center max-w-xs">
         Didn't receive the email? Check your spam folder or try a different email address.
       </p>
     </div>

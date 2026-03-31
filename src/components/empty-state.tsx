@@ -122,11 +122,11 @@ export function EmptyState({
         <div className="mb-6">{resolvedIllustration}</div>
       )}
 
-      <h3 className="font-heading text-lg font-semibold text-primary-800">
+      <h3 className="font-heading text-lg font-semibold text-neutral-900">
         {title}
       </h3>
 
-      <p className="mt-2 max-w-xs text-sm leading-relaxed text-primary-400">
+      <p className="mt-2 max-w-xs text-sm leading-relaxed text-neutral-500">
         {description}
       </p>
 

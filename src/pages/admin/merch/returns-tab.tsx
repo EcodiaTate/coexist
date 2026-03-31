@@ -61,7 +61,7 @@ export default function ReturnsTab() {
       {returns.map((ret) => (
         <StaggeredItem
           key={ret.id}
-          className="p-4 bg-gradient-to-br from-[#eef2e8] via-[#ebefe5] to-[#e6eadf] border border-primary-200/25 rounded-[20px] shadow-[0_4px_20px_-4px_rgba(61,77,51,0.10),0_1px_4px_rgba(61,77,51,0.04)]"
+          className="p-4 bg-white border border-neutral-100 rounded-2xl shadow-sm"
         >
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export default function ReturnsTab() {
                 name={ret.profiles?.display_name ?? 'User'}
                 size="xs"
               />
-              <span className="text-sm font-medium text-primary-800">
+              <span className="text-sm font-medium text-neutral-900">
                 {ret.profiles?.display_name ?? 'Unknown'}
               </span>
             </div>
@@ -83,11 +83,11 @@ export default function ReturnsTab() {
               {ret.status}
             </span>
           </div>
-          <p className="text-sm text-primary-400 mb-1">
+          <p className="text-sm text-neutral-500 mb-1">
             <span className="font-medium">Reason:</span> {ret.reason}
           </p>
           {ret.order && (
-            <p className="text-xs text-primary-400">
+            <p className="text-xs text-neutral-400">
               Order #{(ret.order as { id: string }).id.slice(0, 8)} ·{' '}
               {formatPrice((ret.order as { total_cents: number }).total_cents)}
             </p>

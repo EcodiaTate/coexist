@@ -2,6 +2,9 @@ import { useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { useToast } from '@/components/toast'
+import { queueOfflineAction } from '@/lib/offline-sync'
 import { getCurrentPeriodKey, getDueDate, type TaskTemplate, type TaskInstance } from '@/hooks/use-admin-tasks'
 import { resolveAndGenerateDynamicInstances } from '@/hooks/use-timeline-rules'
 
@@ -164,6 +167,8 @@ export function useCollectiveTasks(collectiveId: string | undefined) {
 export function useCompleteTask() {
   const queryClient = useQueryClient()
   const { user, profile } = useAuth()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async ({
@@ -174,6 +179,16 @@ export function useCompleteTask() {
       notes?: string
     }) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('task-complete', {
+          instanceId,
+          userId: user.id,
+          notes,
+          timestamp: new Date().toISOString(),
+        })
+        return
+      }
 
       const { error } = await supabase
         .from('task_instances')
@@ -210,10 +225,14 @@ export function useCompleteTask() {
       return { previousMyTasks }
     },
     onError: (_err, _, context) => {
-      if (context?.previousMyTasks) queryClient.setQueryData(['my-tasks', user?.id], context.previousMyTasks)
-      queryClient.invalidateQueries({ queryKey: ['collective-tasks'] })
+      if (!isOffline && context?.previousMyTasks) queryClient.setQueryData(['my-tasks', user?.id], context.previousMyTasks)
+      if (!isOffline) queryClient.invalidateQueries({ queryKey: ['collective-tasks'] })
+    },
+    onSuccess: () => {
+      if (isOffline) toast.info('Task completion saved offline — will sync when back online')
     },
     onSettled: () => {
+      if (isOffline) return
       queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
       queryClient.invalidateQueries({ queryKey: ['collective-tasks'] })
       queryClient.invalidateQueries({ queryKey: ['admin-kpi-dashboard'] })
@@ -227,9 +246,16 @@ export function useCompleteTask() {
 
 export function useSkipTask() {
   const queryClient = useQueryClient()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async (instanceId: string) => {
+      if (isOffline) {
+        queueOfflineAction('task-skip', { instanceId })
+        return
+      }
+
       const { error } = await supabase
         .from('task_instances')
         .update({ status: 'skipped' })
@@ -245,7 +271,11 @@ export function useSkipTask() {
       queryClient.setQueriesData<MyTask[]>({ queryKey: ['my-tasks'] }, updater)
       queryClient.setQueriesData<MyTask[]>({ queryKey: ['collective-tasks'] }, updater)
     },
+    onSuccess: () => {
+      if (isOffline) toast.info('Task skip saved offline — will sync when back online')
+    },
     onSettled: () => {
+      if (isOffline) return
       queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
       queryClient.invalidateQueries({ queryKey: ['collective-tasks'] })
     },

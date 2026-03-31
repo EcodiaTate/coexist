@@ -141,16 +141,16 @@ export default function ContactPage() {
     >
       {/* Hero – layered image parallax */}
       <div className="relative -mt-px">
-        <div className="relative w-full h-[480px] sm:h-auto overflow-hidden">
+        <div className="relative w-full h-[110vw] min-h-[480px] sm:h-auto overflow-hidden">
           {/* Background layer */}
           <div
             ref={rm ? undefined : bgRef}
-            className="absolute inset-0 sm:relative sm:inset-auto will-change-transform"
+            className="h-full will-change-transform"
           >
             <img
               src="/img/contact-hero-bg.webp"
               alt="Contact Co-Exist"
-              className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
+              className="w-full h-full object-cover object-center sm:h-auto sm:object-fill block"
             />
           </div>
 
@@ -162,7 +162,7 @@ export default function ContactPage() {
             <img
               src="/img/contact-hero-fg.webp"
               alt=""
-              className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
+              className="w-full h-full object-cover object-center sm:h-auto sm:object-fill block"
             />
           </div>
 
@@ -282,7 +282,7 @@ export default function ContactPage() {
                   'flex items-center gap-3.5 px-4 py-3.5',
                   'transition-colors duration-150',
                   'active:bg-surface-3',
-                  idx > 0 && 'border-t border-primary-100/20',
+                  idx > 0 && 'border-t border-neutral-100',
                 )}
               >
                 <span className="flex items-center justify-center w-8 h-8 rounded-lg shrink-0 bg-primary-50 text-primary-600">
@@ -300,7 +300,7 @@ export default function ContactPage() {
         {/* Location note */}
         <motion.div
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-primary-50/60"
+          className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-neutral-50"
         >
           <MapPin size={18} className="text-primary-500 mt-0.5 shrink-0" />
           <div>

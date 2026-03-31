@@ -69,12 +69,12 @@ export default function AdminCreateModulePage() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="max-w-3xl mx-auto space-y-6">
-      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6 space-y-4">
+      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2.5 mb-1">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg shadow-amber-600/20">
             <BookOpen size={16} className="text-white" />
           </div>
-          <h2 className="font-heading text-base font-bold text-primary-800">Module Details</h2>
+          <h2 className="font-heading text-base font-bold text-neutral-900">Module Details</h2>
         </div>
         <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Welcome to Co-Exist Leadership" required />
         <Input type="textarea" label="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
@@ -84,23 +84,23 @@ export default function AdminCreateModulePage() {
         </div>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6">
+      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5 sm:p-6">
         <div className="flex items-center gap-2.5 mb-3">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 shadow-lg shadow-primary-600/20">
             <Users size={16} className="text-white" />
           </div>
-          <h2 className="font-heading text-base font-bold text-primary-800">Target Audience</h2>
+          <h2 className="font-heading text-base font-bold text-neutral-900">Target Audience</h2>
         </div>
         <AudiencePicker selectedRoles={targetRoles} onRolesChange={setTargetRoles} />
       </motion.div>
 
       <motion.div variants={fadeUp}>
-        <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest mb-3">Content Blocks</h2>
+        <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-neutral-700/60 uppercase tracking-widest mb-3">Content Blocks</h2>
         <BlockEditor blocks={blocks} onChange={setBlocks} />
       </motion.div>
 
-      <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-6 -mb-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-t border-primary-100/60 flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold text-primary-400">
+      <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-6 -mb-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-t border-neutral-100 flex items-center justify-between gap-3">
+        <p className="text-[11px] font-semibold text-neutral-400">
           {blocks.length} block{blocks.length !== 1 ? 's' : ''}
           {targetRoles.length > 0 && ` · ${targetRoles.length} role${targetRoles.length !== 1 ? 's' : ''}`}
         </p>

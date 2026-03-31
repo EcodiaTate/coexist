@@ -1,16 +1,24 @@
-import { useEffect, useCallback, startTransition } from 'react'
+import { useEffect, useCallback, useState, useRef, startTransition } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
     Save,
     Lock,
     Pencil,
+    Ticket,
+    Plus,
+    Trash2,
 } from 'lucide-react'
 import {
     useEventDetail,
     useUpdateEvent,
 } from '@/hooks/use-events'
 import { useEventForm } from '@/hooks/use-event-form'
+import {
+    useEventTicketTypes,
+    useSaveTicketTypes,
+    type TicketTypeDraft,
+} from '@/hooks/use-event-tickets'
 import {
     BasicsFields,
     DateTimeFields,
@@ -22,6 +30,8 @@ import {
     Page,
     Header,
     Button,
+    Input,
+    Toggle,
     Skeleton,
     EmptyState,
 } from '@/components'
@@ -46,6 +56,14 @@ export default function EditEventPage() {
 
   const form = useEventForm({ mode: 'edit' })
 
+  // Ticket state
+  const { data: existingTicketTypes } = useEventTicketTypes(eventId)
+  const saveTickets = useSaveTicketTypes()
+  const [isTicketed, setIsTicketed] = useState(false)
+  const [ticketTiers, setTicketTiers] = useState<TicketTypeDraft[]>([])
+  const [removedTierIds, setRemovedTierIds] = useState<string[]>([])
+  const ticketsInitialised = useRef(false)
+
   // Pre-populate from event data
   useEffect(() => {
     if (!event) return
@@ -64,9 +82,27 @@ export default function EditEventPage() {
         cover_image_url: event.cover_image_url ?? '',
         is_public: event.is_public ?? true,
       })
+      setIsTicketed(event.is_ticketed ?? false)
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [event])
+
+  // Pre-populate ticket tiers from existing data (once loaded)
+  useEffect(() => {
+    if (!existingTicketTypes || ticketsInitialised.current) return
+    ticketsInitialised.current = true
+    setTicketTiers(
+      existingTicketTypes.map((t) => ({
+        id: t.id,
+        name: t.name,
+        description: t.description ?? '',
+        price_dollars: (t.price_cents / 100).toFixed(2).replace(/\.00$/, ''),
+        capacity: t.capacity != null ? String(t.capacity) : '',
+        is_active: t.is_active,
+        _persisted: true,
+      })),
+    )
+  }, [existingTicketTypes])
 
   const handleSave = useCallback(async () => {
     if (!eventId) return
@@ -98,10 +134,18 @@ export default function EditEventPage() {
         cover_image_url: form.fields.cover_image_url || null,
         is_public: form.fields.is_public,
       })
+
+      // Save ticket types
+      await saveTickets.mutateAsync({
+        eventId,
+        tiers: isTicketed ? ticketTiers : [],
+        removedIds: removedTierIds,
+        isTicketed,
+      })
     }
 
     navigate(`/events/${eventId}`, { replace: true })
-  }, [eventId, isDayOfMode, form, updateEvent, navigate])
+  }, [eventId, isDayOfMode, form, updateEvent, saveTickets, isTicketed, ticketTiers, removedTierIds, navigate])
 
   const stagger = {
     hidden: {},
@@ -153,7 +197,7 @@ export default function EditEventPage() {
           size="lg"
           fullWidth
           icon={<Save size={18} />}
-          loading={updateEvent.isPending}
+          loading={updateEvent.isPending || saveTickets.isPending}
           disabled={!canSave}
           onClick={handleSave}
         >
@@ -171,7 +215,7 @@ export default function EditEventPage() {
         <motion.div variants={fadeUp} className={cn(
           'space-y-4 rounded-2xl p-4 border',
           isDayOfMode
-            ? 'bg-primary-50/30 border-primary-100/40 opacity-60 pointer-events-none'
+            ? 'bg-neutral-50 border-neutral-200 opacity-60 pointer-events-none'
             : 'bg-white border-primary-100/40',
         )}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
@@ -241,7 +285,7 @@ export default function EditEventPage() {
         <motion.div variants={fadeUp} className={cn(
           'space-y-4 rounded-2xl p-4 border',
           isDayOfMode
-            ? 'bg-primary-50/30 border-primary-100/40 opacity-60 pointer-events-none'
+            ? 'bg-neutral-50 border-neutral-200 opacity-60 pointer-events-none'
             : 'bg-white border-primary-100/40',
         )}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
@@ -265,7 +309,7 @@ export default function EditEventPage() {
         <motion.div variants={fadeUp} className={cn(
           'space-y-3 rounded-2xl p-4 border',
           isDayOfMode
-            ? 'bg-primary-50/30 border-primary-100/40 opacity-60 pointer-events-none'
+            ? 'bg-neutral-50 border-neutral-200 opacity-60 pointer-events-none'
             : 'bg-white border-primary-100/40',
         )}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
@@ -288,6 +332,177 @@ export default function EditEventPage() {
             uploadError={form.uploadError}
             disabled={isDayOfMode}
           />
+        </motion.div>
+
+        {/* Ticketing */}
+        <motion.div variants={fadeUp} className={cn(
+          'space-y-4 rounded-2xl p-4 border',
+          isDayOfMode
+            ? 'bg-neutral-50 border-neutral-200 opacity-60 pointer-events-none'
+            : 'bg-white border-primary-100/40',
+        )}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold flex items-center gap-1.5">
+              {isDayOfMode ? (
+                <>
+                  <Lock size={13} className="text-primary-300" />
+                  <span className="text-primary-400">Ticketing</span>
+                </>
+              ) : (
+                <>
+                  <Ticket size={13} className="text-primary-600" />
+                  <span className="text-primary-800">Ticketing</span>
+                </>
+              )}
+            </h3>
+            {!isDayOfMode && (
+              <Toggle
+                checked={isTicketed}
+                onChange={(checked) => {
+                  setIsTicketed(checked)
+                  if (checked && ticketTiers.length === 0) {
+                    setTicketTiers([{
+                      id: crypto.randomUUID(),
+                      name: 'General Admission',
+                      description: '',
+                      price_dollars: '',
+                      capacity: '',
+                      is_active: true,
+                    }])
+                  }
+                }}
+              />
+            )}
+          </div>
+
+          {!isTicketed && (
+            <p className="text-xs text-neutral-400">Free event — no tickets required</p>
+          )}
+
+          {isTicketed && !isDayOfMode && (
+            <>
+              <p className="text-xs text-neutral-400">
+                Add ticket tiers with prices and optional capacity limits.
+              </p>
+
+              <div className="space-y-3">
+                {ticketTiers.map((tier, idx) => (
+                  <motion.div
+                    key={tier.id}
+                    layout
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, x: -16 }}
+                    className="rounded-xl bg-surface-1 border border-neutral-100 p-3.5 space-y-2.5"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-amber-100 text-amber-600 text-xs font-bold shrink-0">
+                        {idx + 1}
+                      </span>
+                      <Input
+                        value={tier.name}
+                        onChange={(e) =>
+                          setTicketTiers((prev) =>
+                            prev.map((t) => (t.id === tier.id ? { ...t, name: e.target.value } : t)),
+                          )
+                        }
+                        placeholder="Tier name (e.g. Early Bird)"
+                        compact
+                        className="flex-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (tier._persisted) setRemovedTierIds((prev) => [...prev, tier.id])
+                          setTicketTiers((prev) => prev.filter((t) => t.id !== tier.id))
+                        }}
+                        className="flex items-center justify-center min-w-9 min-h-9 rounded-lg text-neutral-300 hover:bg-error-50 hover:text-error-600 active:bg-error-100 transition-colors cursor-pointer"
+                        aria-label="Remove tier"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    <Input
+                      value={tier.description}
+                      onChange={(e) =>
+                        setTicketTiers((prev) =>
+                          prev.map((t) => (t.id === tier.id ? { ...t, description: e.target.value } : t)),
+                        )
+                      }
+                      placeholder="Description (optional)"
+                      compact
+                    />
+
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <label className="text-[11px] font-medium text-neutral-400 mb-0.5 block">Price (AUD)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-300">$</span>
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            step="0.01"
+                            value={tier.price_dollars}
+                            onChange={(e) =>
+                              setTicketTiers((prev) =>
+                                prev.map((t) => (t.id === tier.id ? { ...t, price_dollars: e.target.value } : t)),
+                              )
+                            }
+                            placeholder="0.00"
+                            className="w-full h-10 pl-7 pr-3 rounded-lg bg-surface-3 text-[16px] text-primary-800 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-400"
+                          />
+                        </div>
+                      </div>
+                      <div className="w-28">
+                        <label className="text-[11px] font-medium text-neutral-400 mb-0.5 block">Capacity</label>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min="1"
+                          value={tier.capacity}
+                          onChange={(e) =>
+                            setTicketTiers((prev) =>
+                              prev.map((t) => (t.id === tier.id ? { ...t, capacity: e.target.value } : t)),
+                            )
+                          }
+                          placeholder="∞"
+                          className="w-full h-10 px-3 rounded-lg bg-surface-3 text-[16px] text-primary-800 text-center focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<Plus size={14} />}
+                onClick={() =>
+                  setTicketTiers((prev) => [
+                    ...prev,
+                    {
+                      id: crypto.randomUUID(),
+                      name: '',
+                      description: '',
+                      price_dollars: '',
+                      capacity: '',
+                      is_active: true,
+                    },
+                  ])
+                }
+                className="w-full"
+              >
+                Add another tier
+              </Button>
+
+              <div className="px-3 py-2 rounded-lg bg-amber-50/60 text-amber-700 text-xs">
+                Attendees pay via Stripe. Revenue and sales are visible in the admin dashboard.
+              </div>
+            </>
+          )}
         </motion.div>
       </motion.div>
     </Page>

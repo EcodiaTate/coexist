@@ -65,10 +65,10 @@ export default function AdminEditQuizPage() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="max-w-3xl mx-auto space-y-6">
-      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6 space-y-4">
+      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2.5 mb-1">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-moss-500 to-moss-700 shadow-lg shadow-moss-600/20"><Settings size={16} className="text-white" /></div>
-          <h2 className="font-heading text-base font-bold text-primary-800">Quiz Settings</h2>
+          <h2 className="font-heading text-base font-bold text-neutral-900">Quiz Settings</h2>
         </div>
         <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
         <Input type="textarea" label="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} />
@@ -81,12 +81,12 @@ export default function AdminEditQuizPage() {
       </motion.div>
 
       <motion.div variants={fadeUp}>
-        <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest mb-3"><CircleDot size={14} className="text-moss-500" /> Questions</h2>
+        <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-neutral-700/60 uppercase tracking-widest mb-3"><CircleDot size={14} className="text-moss-500" /> Questions</h2>
         <QuestionBuilder questions={questions} onChange={setQuestions} />
       </motion.div>
 
-      <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-6 -mb-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-t border-primary-100/60 flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold text-primary-400">{questions.length} question{questions.length !== 1 ? 's' : ''} · {questions.reduce((s, q) => s + (q.points ?? 1), 0)} pts</p>
+      <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-6 -mb-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-t border-neutral-100 flex items-center justify-between gap-3">
+        <p className="text-[11px] font-semibold text-neutral-400">{questions.length} question{questions.length !== 1 ? 's' : ''} · {questions.reduce((s, q) => s + (q.points ?? 1), 0)} pts</p>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => navigate('/admin/development')}>Cancel</Button>
           <Button variant="primary" size="sm" icon={<Save size={14} />} onClick={handleSave} loading={isSaving} disabled={!title.trim()}>Save Quiz</Button>

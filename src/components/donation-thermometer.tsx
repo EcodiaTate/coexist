@@ -69,10 +69,10 @@ export function DonationThermometer({
 
       {/* Labels */}
       <div className="text-center">
-        <p className="font-heading text-xl font-bold text-primary-800">
+        <p className="font-heading text-xl font-bold text-neutral-900">
           ${current.toLocaleString()}
         </p>
-        <p className="text-sm text-primary-400">
+        <p className="text-sm text-neutral-500">
           of ${goal.toLocaleString()} goal
         </p>
       </div>

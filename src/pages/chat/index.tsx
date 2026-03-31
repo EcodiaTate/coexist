@@ -29,35 +29,27 @@ let hasRedirectedThisSession = false
 
 const CHANNEL_TYPE_CONFIG: Record<string, {
   icon: typeof Globe
-  cardBg: string
   iconBg: string
   badge: string
   label: string
-  border: string
 }> = {
   staff_national: {
     icon: Globe,
-    cardBg: 'bg-gradient-to-br from-plum-100/60 via-plum-100/40 to-plum-200/30',
-    iconBg: 'bg-gradient-to-br from-plum-500 to-plum-700 text-white shadow-md shadow-plum-400/30',
-    badge: 'bg-gradient-to-r from-plum-200/80 to-plum-100/60 text-plum-800 border border-plum-300/30',
+    iconBg: 'bg-plum-50 text-plum-600',
+    badge: 'bg-plum-50 text-plum-700',
     label: 'National',
-    border: 'border-plum-200/40',
   },
   staff_state: {
     icon: MapPin,
-    cardBg: 'bg-gradient-to-br from-info-100/60 via-info-100/40 to-info-200/30',
-    iconBg: 'bg-gradient-to-br from-info-500 to-info-700 text-white shadow-md shadow-info-400/30',
-    badge: 'bg-gradient-to-r from-info-200/80 to-info-100/60 text-info-800 border border-info-300/30',
+    iconBg: 'bg-info-50 text-info-600',
+    badge: 'bg-info-50 text-info-700',
     label: 'State',
-    border: 'border-info-200/40',
   },
   staff_collective: {
     icon: Users,
-    cardBg: 'bg-gradient-to-br from-primary-100/60 via-primary-100/40 to-primary-200/30',
-    iconBg: 'bg-gradient-to-br from-primary-500 to-primary-700 text-white shadow-md shadow-primary-400/30',
-    badge: 'bg-gradient-to-r from-primary-200/80 to-primary-100/60 text-primary-800 border border-primary-300/30',
+    iconBg: 'bg-primary-50 text-primary-600',
+    badge: 'bg-primary-50 text-primary-700',
     label: 'Staff',
-    border: 'border-primary-200/40',
   },
 }
 
@@ -84,46 +76,6 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 280, damping: 24 } },
 }
 
-/* ------------------------------------------------------------------ */
-/*  Decorative background - deep teal-plum palette                     */
-/* ------------------------------------------------------------------ */
-
-function DecorativeBackground() {
-  return (
-    <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden" aria-hidden="true">
-      {/* Multi-stop gradient - deep teal-plum forest feel */}
-      <div className="absolute inset-0 bg-gradient-to-b from-secondary-200/65 via-plum-100/30 via-30% to-primary-100/25 to-65%" />
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-secondary-100/20 to-plum-50/20" />
-
-      {/* Top hero glow - radial gradient instead of blur filter */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[350px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary-300/30 via-secondary-200/15 to-transparent" />
-
-      {/* Warm plum accent - top right */}
-      <div className="absolute -top-16 -right-16 w-[300px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-plum-200/25 to-transparent" />
-
-      {/* Deep moss glow - bottom left */}
-      <div className="absolute -bottom-20 -left-10 w-[280px] h-[260px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-200/18 to-transparent" />
-
-      {/* Static decorative rings - no animation, no blur */}
-      <div className="absolute -top-24 -right-20 w-72 h-72 rounded-full border-[3px] border-secondary-300/18 opacity-60" />
-      <div className="absolute -top-8 -right-4 w-44 h-44 rounded-full border-2 border-plum-200/14 opacity-40" />
-      <div className="absolute top-[32%] -left-14 w-52 h-52 rounded-full border-[2.5px] border-secondary-200/18 opacity-50" />
-      <div className="absolute top-[42%] -left-4 w-28 h-28 rounded-full border-[1.5px] border-plum-200/12" />
-      <div className="absolute bottom-[16%] right-2 w-36 h-36 rounded-full border-2 border-secondary-200/14" />
-
-      {/* Soft glows - radial gradient instead of blur filter */}
-      <div className="absolute top-[40%] -left-10 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-secondary-100/22 to-transparent opacity-35" />
-      <div className="absolute -bottom-16 left-1/3 w-64 h-64 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-plum-100/20 to-transparent opacity-35" />
-
-      {/* Static particles */}
-      <div className="absolute top-24 right-14 w-3 h-3 rounded-full bg-secondary-400/15" />
-      <div className="absolute top-[48%] left-8 w-2.5 h-2.5 rounded-full bg-plum-400/12" />
-      <div className="absolute bottom-[28%] right-[18%] w-2 h-2 rounded-full bg-secondary-400/12" />
-      <div className="absolute top-[62%] left-[22%] w-2 h-2 rounded-full bg-primary-400/10" />
-      <div className="absolute top-[35%] right-[28%] w-1.5 h-1.5 rounded-full bg-plum-300/12" />
-    </div>
-  )
-}
 
 /* ------------------------------------------------------------------ */
 /*  Staff channel row                                                  */
@@ -142,58 +94,53 @@ function StaffChannelRow({ channel, unread }: { channel: StaffChannel; unread: n
       <Link
         to={`/chat/channel/${channel.id}`}
         className={cn(
-          'group relative flex items-center gap-4 rounded-[20px] p-4',
+          'group relative flex items-center gap-4 rounded-2xl p-4',
+          'bg-white border border-neutral-100 shadow-sm',
           'transition-transform duration-200 active:scale-[0.97]',
-          'shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12),0_1px_4px_rgba(61,77,51,0.05)]',
-          'border',
-          config.cardBg,
-          config.border,
-          hasUnread
-            ? 'ring-2 ring-primary-400/70 shadow-[0_6px_28px_-4px_rgba(61,77,51,0.18)]'
-            : 'hover:shadow-[0_8px_32px_-6px_rgba(61,77,51,0.16)] hover:ring-1 hover:ring-primary-300/40',
+          hasUnread && 'ring-2 ring-primary-400/60',
         )}
       >
         {/* Channel type icon */}
         <div className="relative flex-shrink-0">
           <div className={cn(
-            'h-13 w-13 rounded-2xl flex items-center justify-center',
+            'h-12 w-12 rounded-xl flex items-center justify-center',
             config.iconBg,
           )}>
-            <Icon size={24} strokeWidth={2.5} />
+            <Icon size={22} strokeWidth={2} />
           </div>
           {/* Lock badge */}
-          <div className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-full bg-gradient-to-br from-white to-surface-2 flex items-center justify-center shadow-md ring-2 ring-white/80">
-            <Lock size={11} strokeWidth={2.5} className="text-primary-600" />
+          <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-white flex items-center justify-center shadow-sm ring-1 ring-neutral-100">
+            <Lock size={10} strokeWidth={2} className="text-neutral-500" />
           </div>
           {hasUnread && (
-            <div className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 ring-2 ring-white animate-pulse shadow-sm" />
+            <div className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-primary-500 ring-2 ring-white" />
           )}
         </div>
 
         {/* Name + label */}
         <div className="flex-1 min-w-0">
           <p className={cn(
-            'text-[15px] truncate leading-snug tracking-tight',
-            hasUnread ? 'font-extrabold text-secondary-900' : 'font-bold text-secondary-800',
+            'text-[15px] truncate leading-snug',
+            hasUnread ? 'font-bold text-neutral-900' : 'font-semibold text-neutral-800',
           )}>
             {cleanChannelName(channel.name)}
           </p>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className={cn('text-[11px] font-bold px-2.5 py-0.5 rounded-full', config.badge)}>
+          <div className="flex items-center gap-2 mt-1">
+            <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full', config.badge)}>
               {config.label}
             </span>
-            <span className="text-[11px] font-semibold text-primary-500/80">Staff only</span>
+            <span className="text-[11px] font-medium text-neutral-400">Staff only</span>
           </div>
         </div>
 
         {/* Unread / chevron */}
         <div className="flex items-center gap-2 shrink-0">
           {hasUnread ? (
-            <span className="flex h-7 min-w-[1.75rem] items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-primary-800 px-2.5 text-xs font-extrabold text-white shadow-md shadow-primary-500/30">
+            <span className="flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-primary-500 px-2 text-xs font-bold text-white">
               {unread > 99 ? '99+' : unread}
             </span>
           ) : (
-            <ChevronRight size={20} strokeWidth={2.5} className="text-primary-400 transition-transform duration-150 group-hover:translate-x-1" />
+            <ChevronRight size={18} strokeWidth={2} className="text-neutral-300 transition-transform duration-150 group-hover:translate-x-0.5" />
           )}
         </div>
       </Link>
@@ -233,24 +180,20 @@ function CollectiveChatRow({
       <Link
         to={`/chat/${collectiveId}`}
         className={cn(
-          'group relative flex items-center gap-4 rounded-[20px] p-4',
-          'bg-gradient-to-br from-primary-50/80 via-primary-50/60 to-moss-50/40',
-          'border border-primary-200/35',
-          'shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12),0_1px_4px_rgba(61,77,51,0.05)]',
+          'group relative flex items-center gap-4 rounded-2xl p-4',
+          'bg-white border border-neutral-100 shadow-sm',
           'transition-transform duration-200 active:scale-[0.97]',
-          hasUnread
-            ? 'ring-2 ring-primary-400/70 shadow-[0_6px_28px_-4px_rgba(61,77,51,0.18)]'
-            : 'hover:shadow-[0_8px_32px_-6px_rgba(61,77,51,0.16)] hover:ring-1 hover:ring-primary-300/40',
+          hasUnread && 'ring-2 ring-primary-400/60',
         )}
       >
         {/* Collective avatar */}
         <div className="relative flex-shrink-0">
           <div
             className={cn(
-              'h-13 w-13 overflow-hidden rounded-2xl',
+              'h-12 w-12 overflow-hidden rounded-xl',
               hasUnread
-                ? 'ring-[3px] ring-primary-500 ring-offset-2 ring-offset-[#eef2e8] shadow-lg shadow-primary-400/20'
-                : 'ring-2 ring-primary-300/60 shadow-md shadow-primary-300/15',
+                ? 'ring-2 ring-primary-500 ring-offset-2 ring-offset-white'
+                : 'ring-1 ring-neutral-100',
             )}
           >
             {collective.cover_image_url ? (
@@ -261,13 +204,13 @@ function CollectiveChatRow({
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-400 to-secondary-600">
-                <Leaf size={22} strokeWidth={2.5} className="text-white" />
+              <div className="flex h-full w-full items-center justify-center bg-primary-50">
+                <Leaf size={20} strokeWidth={2} className="text-primary-500" />
               </div>
             )}
           </div>
           {hasUnread && (
-            <div className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 ring-2 ring-[#eef2e8] animate-pulse shadow-sm" />
+            <div className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-primary-500 ring-2 ring-white" />
           )}
         </div>
 
@@ -275,22 +218,22 @@ function CollectiveChatRow({
         <div className="flex-1 min-w-0">
           <p
             className={cn(
-              'text-[15px] truncate leading-snug tracking-tight',
-              hasUnread ? 'font-extrabold text-secondary-900' : 'font-bold text-secondary-800',
+              'text-[15px] truncate leading-snug',
+              hasUnread ? 'font-bold text-neutral-900' : 'font-semibold text-neutral-800',
             )}
           >
             {collective.name}
           </p>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className="text-[11px] font-bold text-primary-600 flex items-center gap-1 bg-primary-100/60 px-2 py-0.5 rounded-full border border-primary-200/30">
-              <Users size={11} strokeWidth={2.5} className="shrink-0" />
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-[11px] font-medium text-neutral-500 flex items-center gap-1">
+              <Users size={11} strokeWidth={2} className="shrink-0" />
               {collective.member_count}
             </span>
             {(collective.region || collective.state) && (
               <>
-                <span className="w-1 h-1 rounded-full bg-primary-400" />
-                <span className="text-[11px] font-semibold text-moss-600 truncate flex items-center gap-1">
-                  <MapPin size={11} strokeWidth={2.5} className="shrink-0" />
+                <span className="w-1 h-1 rounded-full bg-neutral-300" />
+                <span className="text-[11px] font-medium text-neutral-500 truncate flex items-center gap-1">
+                  <MapPin size={11} strokeWidth={2} className="shrink-0" />
                   {collective.region ?? collective.state}
                 </span>
               </>
@@ -301,11 +244,11 @@ function CollectiveChatRow({
         {/* Unread / chevron */}
         <div className="flex items-center gap-2 shrink-0">
           {hasUnread ? (
-            <span className="flex h-7 min-w-[1.75rem] items-center justify-center rounded-full bg-gradient-to-br from-primary-600 to-primary-800 px-2.5 text-xs font-extrabold text-white shadow-md shadow-primary-500/30">
+            <span className="flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-primary-500 px-2 text-xs font-bold text-white">
               {unread > 99 ? '99+' : unread}
             </span>
           ) : (
-            <ChevronRight size={20} strokeWidth={2.5} className="text-primary-400 transition-transform duration-150 group-hover:translate-x-1" />
+            <ChevronRight size={18} strokeWidth={2} className="text-neutral-300 transition-transform duration-150 group-hover:translate-x-0.5" />
           )}
         </div>
       </Link>
@@ -319,15 +262,12 @@ function CollectiveChatRow({
 
 function SectionDivider({ icon: Icon, label }: { icon: typeof Lock; label: string }) {
   return (
-    <div className="flex items-center gap-3 px-1 mb-4">
-      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-secondary-300/40 to-transparent" />
-      <div className="flex items-center gap-2 bg-gradient-to-r from-secondary-100/60 to-secondary-50/40 px-3.5 py-1.5 rounded-full border border-secondary-200/30">
-        <Icon size={12} strokeWidth={2.5} className="text-secondary-600" />
-        <p className="text-[11px] uppercase tracking-[0.15em] text-secondary-700 font-extrabold">
-          {label}
-        </p>
-      </div>
-      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-secondary-300/40 to-transparent" />
+    <div className="flex items-center gap-2 px-1 mb-3">
+      <Icon size={12} strokeWidth={2} className="text-neutral-400" />
+      <p className="text-[11px] uppercase tracking-[0.15em] font-bold text-neutral-400">
+        {label}
+      </p>
+      <div className="h-px flex-1 bg-neutral-100" />
     </div>
   )
 }
@@ -399,27 +339,19 @@ export default function ChatListPage() {
 
   if (showLoading) {
     return (
-      <Page noBackground className="!px-0 bg-surface-1">
-        <div className="relative min-h-full">
-          <DecorativeBackground />
-          <div className="relative z-10 px-4 lg:px-6 pt-14 pb-4 space-y-4">
-            {/* Title skeleton */}
-            <div className="flex items-center gap-2.5 mb-2 animate-pulse">
-              <div className="w-8 h-8 rounded-lg bg-secondary-200/40" />
-              <div className="h-5 w-20 bg-secondary-200/30 rounded" />
-            </div>
-            {Array.from({ length: 4 }, (_, i) => (
-              <div key={i} className="rounded-[20px] bg-gradient-to-br from-primary-50/80 to-moss-50/40 border border-primary-200/25 p-4 animate-pulse">
-                <div className="flex items-center gap-4">
-                  <div className="w-13 h-13 rounded-2xl bg-primary-200/35" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-primary-200/30 rounded w-2/3" />
-                    <div className="h-3 bg-primary-200/20 rounded w-1/3" />
-                  </div>
+      <Page noBackground className="!px-0 bg-white">
+        <div className="px-4 lg:px-6 pt-14 pb-4 space-y-3">
+          {Array.from({ length: 4 }, (_, i) => (
+            <div key={i} className="rounded-2xl bg-white border border-neutral-100 p-4 animate-pulse">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-neutral-100" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-neutral-100 rounded w-2/3" />
+                  <div className="h-3 bg-neutral-100 rounded w-1/3" />
                 </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </Page>
     )
@@ -428,16 +360,13 @@ export default function ChatListPage() {
 
   if (isError && channelsError) {
     return (
-      <Page noBackground className="!px-0 bg-surface-1">
-        <div className="relative min-h-full">
-          <DecorativeBackground />
-          <div className="relative z-10 px-4 lg:px-6 pt-14">
-            <EmptyState
-              illustration="error"
-              title="Something went wrong"
-              description="We couldn't load your chats. Try again later."
-            />
-          </div>
+      <Page noBackground className="!px-0 bg-white">
+        <div className="px-4 lg:px-6 pt-14">
+          <EmptyState
+            illustration="error"
+            title="Something went wrong"
+            description="We couldn't load your chats. Try again later."
+          />
         </div>
       </Page>
     )
@@ -445,38 +374,25 @@ export default function ChatListPage() {
 
   if (!myCollectives?.length && !hasStaffChannels && !isGlobalStaff) {
     return (
-      <Page noBackground className="!px-0 bg-surface-1">
-        <div className="relative min-h-full">
-          <DecorativeBackground />
-          <div className="relative z-10 px-4 lg:px-6 pt-14">
-            {/* Title */}
-            <div className="flex items-center gap-2.5 mb-6">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-secondary-500 to-plum-600 shadow-sm">
-                <MessagesSquare size={15} className="text-white" />
-              </div>
-              <h1 className="font-heading text-[22px] font-bold text-secondary-900 tracking-tight">
-                Chat
-              </h1>
-            </div>
-            <EmptyState
-              illustration="empty"
-              title="No group chats yet"
-              description="Join a collective to access group chat with other members"
-              action={{ label: 'Explore Collectives', to: '/collectives' }}
-            />
-          </div>
+      <Page noBackground className="!px-0 bg-white">
+        <div className="px-4 lg:px-6 pt-14">
+          <h1 className="text-[11px] uppercase tracking-[0.15em] font-bold text-neutral-400 mb-6">
+            Chat
+          </h1>
+          <EmptyState
+            illustration="empty"
+            title="No group chats yet"
+            description="Join a collective to access group chat with other members"
+            action={{ label: 'Explore Collectives', to: '/collectives' }}
+          />
         </div>
       </Page>
     )
   }
 
   return (
-    <Page noBackground className="!px-0 bg-surface-1">
-      <div className="relative min-h-full">
-        <DecorativeBackground />
-
-        {/* Content layer */}
-        <div className="relative z-10 px-4 lg:px-6">
+    <Page noBackground className="!px-0 bg-white">
+        <div className="px-4 lg:px-6">
           <PullToRefresh onRefresh={handleRefresh}>
             <motion.div
               className="pt-14 pb-6 space-y-6"
@@ -484,15 +400,6 @@ export default function ChatListPage() {
               initial="hidden"
               animate="visible"
             >
-              {/* Hero title */}
-              <motion.div variants={fadeUp} className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-secondary-500 to-plum-600 shadow-sm shadow-secondary-400/25">
-                  <MessagesSquare size={15} className="text-white" />
-                </div>
-                <h1 className="font-heading text-[22px] font-bold text-secondary-900 tracking-tight">
-                  Chat
-                </h1>
-              </motion.div>
 
               {/* Staff Channels section */}
               {hasStaffChannels && (
@@ -578,7 +485,6 @@ export default function ChatListPage() {
             </motion.div>
           </PullToRefresh>
         </div>
-      </div>
     </Page>
   )
 }

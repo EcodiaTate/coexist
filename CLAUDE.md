@@ -218,8 +218,8 @@ const registerForEvent = useMutation({
 |------|--------|
 | `participant` | Default. Standard app features. |
 | `national_leader` | Admin dashboard with granular permissions via `staff_roles` table. |
-| `national_admin` | Full admin access. |
-| `super_admin` | Everything + staff management + impersonation + feature flags. |
+| `manager` | Manages assigned collectives (set via `staff_roles.managed_collectives`). Has most admin capabilities scoped to their collectives. |
+| `admin` | Everything + staff management + impersonation + feature flags. Sees all collectives. |
 
 **Collective roles** (on `collective_members.role`):
 | Role | Access |

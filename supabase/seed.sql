@@ -42,7 +42,7 @@ INSERT INTO profiles (id, display_name, role)
 VALUES (
   'a0000000-0000-0000-0000-000000000001',
   'Seed Admin',
-  'super_admin'
+  'admin'
 ) ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------

@@ -26,6 +26,8 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { queueOfflineAction } from '@/lib/offline-sync'
 import {
   useMyTasks,
   useCompleteTask,
@@ -46,6 +48,7 @@ function TaskCard({ task }: { task: MyTask }) {
   const [showSurvey, setShowSurvey] = useState(false)
   const { toast } = useToast()
   const { user } = useAuth()
+  const { isOffline } = useOffline()
   const completeMutation = useCompleteTask()
   const skipMutation = useSkipTask()
   const shouldReduceMotion = useReducedMotion()
@@ -55,6 +58,22 @@ function TaskCard({ task }: { task: MyTask }) {
   const surveySubmitMutation = useMutation({
     mutationFn: async (answers: Record<string, unknown>) => {
       if (!user || !task.template?.survey_id) return
+
+      if (isOffline) {
+        // Queue survey response
+        queueOfflineAction('survey-response', {
+          surveyId: task.template.survey_id,
+          userId: user.id,
+          answers,
+        })
+        // Queue task completion (useCompleteTask already handles offline)
+        await completeMutation.mutateAsync({
+          instanceId: task.id,
+          notes: notes || undefined,
+        })
+        return
+      }
+
       // Save survey response
       const { error } = await supabase.from('survey_responses').insert({
         survey_id: task.template.survey_id,
@@ -69,7 +88,7 @@ function TaskCard({ task }: { task: MyTask }) {
       })
     },
     onSuccess: () => {
-      toast.success('Survey submitted & task completed!')
+      toast.success(isOffline ? 'Survey & task saved offline — will sync when back online' : 'Survey submitted & task completed!')
       setShowSurvey(false)
       setExpanded(false)
       setNotes('')
@@ -96,8 +115,8 @@ function TaskCard({ task }: { task: MyTask }) {
       layout={!shouldReduceMotion}
       className={cn(
         'rounded-xl overflow-hidden transition-colors duration-150',
-        isCompleted ? 'bg-success-50/50' : isSkipped ? 'bg-surface-3' : 'bg-surface-2 shadow-sm',
-        isOverdue && 'bg-error-50/60 shadow-md',
+        isCompleted ? 'bg-white border border-neutral-100 shadow-sm' : isSkipped ? 'bg-white border border-neutral-100 shadow-sm' : 'bg-white border border-neutral-100 shadow-sm',
+        isOverdue && 'bg-white border border-error-200 shadow-sm',
       )}
     >
       <button
@@ -117,7 +136,7 @@ function TaskCard({ task }: { task: MyTask }) {
           ) : isOverdue ? (
             <AlertTriangle size={18} className="text-error-500" />
           ) : (
-            <Circle size={18} className="text-primary-300" />
+            <Circle size={18} className="text-neutral-300" />
           )}
         </div>
 
@@ -126,7 +145,7 @@ function TaskCard({ task }: { task: MyTask }) {
           <div className="flex items-center gap-2 mb-0.5">
             <p className={cn(
               'text-sm font-medium truncate',
-              isCompleted || isSkipped ? 'text-primary-400 line-through' : 'text-primary-800',
+              isCompleted || isSkipped ? 'text-neutral-400 line-through' : 'text-neutral-900',
             )}>
               {task.template?.title ?? 'Task'}
             </p>
@@ -137,7 +156,7 @@ function TaskCard({ task }: { task: MyTask }) {
             )}
           </div>
 
-          <div className="flex items-center gap-2 text-[11px] text-primary-400 flex-wrap">
+          <div className="flex items-center gap-2 text-[11px] text-neutral-500 flex-wrap">
             <span className={cn('flex items-center gap-1', isOverdue && 'text-error-500 font-medium')}>
               <Clock size={11} />
               {formattedDue}
@@ -151,7 +170,7 @@ function TaskCard({ task }: { task: MyTask }) {
             </span>
             {task.event && (
               <>
-                <span className="text-primary-200">·</span>
+                <span className="text-neutral-300">·</span>
                 <span className="flex items-center gap-1">
                   <Calendar size={11} />
                   {task.event.title}
@@ -160,7 +179,7 @@ function TaskCard({ task }: { task: MyTask }) {
             )}
             {isCompleted && task.completer?.display_name && (
               <>
-                <span className="text-primary-200">·</span>
+                <span className="text-neutral-300">·</span>
                 <span className="flex items-center gap-1 text-success-600">
                   <CheckCircle size={10} />
                   {task.completer.display_name}
@@ -169,8 +188,8 @@ function TaskCard({ task }: { task: MyTask }) {
             )}
             {!isCompleted && !isSkipped && (task.template?.assignment_mode ?? 'collective') === 'collective' && !task.assigned_user_id && (
               <>
-                <span className="text-primary-200">·</span>
-                <span className="flex items-center gap-1 text-primary-300">
+                <span className="text-neutral-300">·</span>
+                <span className="flex items-center gap-1 text-neutral-400">
                   <Users size={10} />
                   Team task
                 </span>
@@ -179,7 +198,7 @@ function TaskCard({ task }: { task: MyTask }) {
           </div>
 
           {task.template?.description && !isCompleted && !isSkipped && (
-            <p className="text-[11px] text-primary-400 mt-1 line-clamp-1">{task.template.description}</p>
+            <p className="text-[11px] text-neutral-500 mt-1 line-clamp-1">{task.template.description}</p>
           )}
         </div>
 
@@ -187,9 +206,9 @@ function TaskCard({ task }: { task: MyTask }) {
         {!isCompleted && !isSkipped && (
           <div className="shrink-0 mt-0.5">
             {expanded ? (
-              <ChevronDown size={16} className="text-primary-400" />
+              <ChevronDown size={16} className="text-neutral-400" />
             ) : (
-              <ChevronRight size={16} className="text-primary-300" />
+              <ChevronRight size={16} className="text-neutral-300" />
             )}
           </div>
         )}
@@ -312,13 +331,13 @@ function CollectiveGroup({
         className="flex items-center gap-2 w-full min-h-11 cursor-pointer active:scale-[0.98] transition-transform duration-150"
       >
         {collapsed ? (
-          <ChevronRight size={16} className="text-primary-400" />
+          <ChevronRight size={16} className="text-neutral-400" />
         ) : (
-          <ChevronDown size={16} className="text-primary-400" />
+          <ChevronDown size={16} className="text-neutral-400" />
         )}
-        <p className="text-sm font-semibold text-primary-800">{name}</p>
+        <p className="text-sm font-semibold text-neutral-900">{name}</p>
         {pendingCount > 0 && (
-          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-600">
+          <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-600">
             {pendingCount}
           </span>
         )}
@@ -336,7 +355,7 @@ function CollectiveGroup({
           ))}
           {completed.length > 0 && (
             <details className="group">
-              <summary className="text-[11px] text-primary-400 cursor-pointer py-1 select-none">
+              <summary className="text-[11px] text-neutral-500 cursor-pointer py-1 select-none">
                 {completed.length} completed
               </summary>
               <div className="space-y-1 mt-1">
@@ -405,7 +424,7 @@ export default function TasksPage() {
           {/* Summary bar */}
           {(totalPending > 0 || totalOverdue > 0) && (
             <div className="flex items-center gap-3 text-sm">
-              <span className="text-primary-600 font-medium">
+              <span className="text-neutral-600 font-medium">
                 {totalPending} pending
               </span>
               {totalOverdue > 0 && (

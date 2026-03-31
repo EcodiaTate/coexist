@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef, useEffect, startTransition } from 'react'
+import { useCallback, useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion, useInView } from 'framer-motion'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
@@ -32,6 +32,7 @@ import {
     useImpactStats,
     useMyUpcomingEvents,
     useCollectiveUpcomingEvents,
+    useNationalEvents,
     useRecentUpdates,
 } from '@/hooks/use-home-feed'
 import type { MyCollectiveSummary } from '@/hooks/use-home-feed'
@@ -46,6 +47,8 @@ import {
     CheckInSheet,
     EmptyState,
 } from '@/components'
+import { Card } from '@/components/card'
+import { BentoStatCard, BentoStatGrid } from '@/components/bento-stats'
 import { prefetchEventDetail } from '@/hooks/use-events'
 import { cn } from '@/lib/cn'
 import { ProximityCheckInBanner } from '@/components/proximity-check-in-banner'
@@ -82,7 +85,7 @@ function Section({
   return (
     <section className={cn(className)} aria-label={title}>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-heading text-sm font-bold text-primary-700/70 uppercase tracking-widest">
+        <h2 className="font-heading text-sm font-bold text-neutral-500 uppercase tracking-widest">
           {title}
         </h2>
         {action && (
@@ -101,7 +104,7 @@ function Section({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Horizontal scroll                                                  */
+/*  Horizontal scroll (no gradient fade edges)                         */
 /* ------------------------------------------------------------------ */
 
 function HScroll({
@@ -113,8 +116,6 @@ function HScroll({
 }) {
   return (
     <div className="relative -mx-6">
-      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-4 bg-gradient-to-r from-white/60 to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-white/60 to-transparent" />
       <div
         className={cn(
           'flex gap-3 overflow-x-auto pl-8 pr-6 pb-1',
@@ -262,7 +263,7 @@ function HomeHero({ rm }: { rm: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Your Next Event - prominent card with "Tap to Sign In" or CTA      */
+/*  Your Next Event - full-bleed overlay when cover image exists        */
 /* ------------------------------------------------------------------ */
 
 function NextEventCard({
@@ -330,130 +331,141 @@ function NextEventCard({
   const isToday = days === 0
   const isTomorrow = days === 1
 
+  /* Shared inner content for the next-event card */
+  const cardContent = (
+    <>
+      {/* Status badge */}
+      {happeningNow && (
+        <div className="flex items-center gap-2 mb-3">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
+          </span>
+          <span className="text-xs font-bold text-white uppercase tracking-wider">
+            {nextEvent.registration_status === 'attended' ? 'You\'re at this event' : 'Happening Now'}
+          </span>
+        </div>
+      )}
+
+      <h3 className="font-heading text-xl sm:text-2xl font-bold text-white">
+        {nextEvent.title}
+      </h3>
+
+      <div className="flex items-center gap-4 mt-3 text-sm text-white/70">
+        <span className="flex items-center gap-1.5">
+          <Calendar size={14} aria-hidden="true" />
+          {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : formatEventDate(nextEvent.date_start)}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Clock size={14} aria-hidden="true" />
+          {formatEventTime(nextEvent.date_start)}
+        </span>
+      </div>
+
+      {nextEvent.collectives && (
+        <p className="mt-2 text-xs text-white/50 flex items-center gap-1.5">
+          <MapPin size={12} aria-hidden="true" />
+          {nextEvent.collectives.name}
+        </p>
+      )}
+
+      {/* CTA */}
+      {nextEvent.registration_status === 'attended' && happeningNow ? (
+        /* Checked in - prompt to share photos */
+        <div className="mt-5 space-y-2.5">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/15 text-white/90 text-xs font-bold">
+            <CheckCircle2 size={14} className="text-sprout-300 shrink-0" />
+            You're checked in!
+          </div>
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            icon={<Camera size={20} />}
+            className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-lg"
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation()
+              navigate(`/chat/${nextEvent.collective_id}`)
+            }}
+          >
+            Share Photos with Collective
+          </Button>
+        </div>
+      ) : happeningNow ? (
+        <div className="mt-5 relative">
+          {/* Pulsing ring behind the button */}
+          <div className="absolute inset-0 rounded-xl bg-white/20 animate-pulse" />
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            icon={<QrCode size={20} />}
+            className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-lg"
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation()
+              setCheckIn({
+                eventId: nextEvent.id,
+                eventTitle: nextEvent.title,
+                collectiveName: nextEvent.collectives?.name ?? '',
+              })
+            }}
+          >
+            Tap to Sign In
+          </Button>
+        </div>
+      ) : (
+        <div className="mt-4 flex items-center text-sm font-semibold text-white/80">
+          View details
+          <ChevronRight size={16} className="ml-0.5" />
+        </div>
+      )}
+    </>
+  )
+
   return (
     <motion.div variants={rm ? undefined : fadeUp}>
       <Section title="Your Next Event">
-        <div
-          className={cn(
-            'relative rounded-2xl overflow-hidden',
-            'active:scale-[0.98] transition-transform duration-150 cursor-pointer',
-            happeningNow
-              ? 'bg-gradient-to-br from-primary-500 to-primary-700 ring-2 ring-primary-400/60 shadow-xl shadow-primary-500/30'
-              : 'bg-gradient-to-br from-primary-600 to-primary-800 shadow-md',
-          )}
-          onClick={() => {
-            navigate(`/events/${nextEvent.id}`)
-          }}
-          role="button"
-          tabIndex={0}
-          aria-label={nextEvent.title}
-        >
-          {/* Cover image */}
-          {nextEvent.cover_image_url && (
-            <div className="relative w-full h-32 sm:h-40">
-              <img
-                src={nextEvent.cover_image_url}
-                alt=""
-                loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        {nextEvent.cover_image_url ? (
+          /* Full-bleed overlay card when cover image exists */
+          <Card
+            variant="event"
+            watermark={nextEvent.activity_type}
+            className={cn(
+              happeningNow
+                ? 'ring-2 ring-primary-400/60 shadow-xl shadow-primary-500/30'
+                : 'shadow-md',
+            )}
+            onClick={() => navigate(`/events/${nextEvent.id}`)}
+            aria-label={nextEvent.title}
+          >
+            <Card.Overlay
+              src={nextEvent.cover_image_url}
+              alt=""
+              aspectRatio="4/3"
+            >
+              {cardContent}
+            </Card.Overlay>
+          </Card>
+        ) : (
+          /* Gradient card when no cover image */
+          <div
+            className={cn(
+              'relative rounded-2xl overflow-hidden',
+              'active:scale-[0.98] transition-transform duration-150 cursor-pointer',
+              happeningNow
+                ? 'bg-gradient-to-br from-primary-500 to-primary-700 ring-2 ring-primary-400/60 shadow-xl shadow-primary-500/30'
+                : 'bg-gradient-to-br from-primary-600 to-primary-800 shadow-md',
+            )}
+            onClick={() => navigate(`/events/${nextEvent.id}`)}
+            role="button"
+            tabIndex={0}
+            aria-label={nextEvent.title}
+          >
+            <div className="p-6">
+              {cardContent}
             </div>
-          )}
-
-          <div className="p-6">
-          {/* Decorative circle */}
-          {!nextEvent.cover_image_url && (
-            <div className="absolute -right-10 -top-10 w-36 h-36 rounded-full bg-white/10" />
-          )}
-
-          {/* Status badge */}
-          {happeningNow && (
-            <div className="flex items-center gap-2 mb-3">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white" />
-              </span>
-              <span className="text-xs font-bold text-white uppercase tracking-wider">
-                {nextEvent.registration_status === 'attended' ? 'You\'re at this event' : 'Happening Now'}
-              </span>
-            </div>
-          )}
-
-          <h3 className="font-heading text-xl sm:text-2xl font-bold text-white">
-            {nextEvent.title}
-          </h3>
-
-          <div className="flex items-center gap-4 mt-3 text-sm text-white/70">
-            <span className="flex items-center gap-1.5">
-              <Calendar size={14} aria-hidden="true" />
-              {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : formatEventDate(nextEvent.date_start)}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock size={14} aria-hidden="true" />
-              {formatEventTime(nextEvent.date_start)}
-            </span>
           </div>
-
-          {nextEvent.collectives && (
-            <p className="mt-2 text-xs text-white/50 flex items-center gap-1.5">
-              <MapPin size={12} aria-hidden="true" />
-              {nextEvent.collectives.name}
-            </p>
-          )}
-
-          {/* CTA */}
-          {nextEvent.registration_status === 'attended' && happeningNow ? (
-            /* Checked in - prompt to share photos */
-            <div className="mt-5 space-y-2.5">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/15 text-white/90 text-xs font-bold">
-                <CheckCircle2 size={14} className="text-sprout-300 shrink-0" />
-                You're checked in!
-              </div>
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                icon={<Camera size={20} />}
-                className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-lg"
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation()
-                  navigate(`/chat/${nextEvent.collective_id}`)
-                }}
-              >
-                Share Photos with Collective
-              </Button>
-            </div>
-          ) : happeningNow ? (
-            <div className="mt-5 relative">
-              {/* Pulsing ring behind the button */}
-              <div className="absolute inset-0 rounded-xl bg-white/20 animate-pulse" />
-              <Button
-                variant="primary"
-                size="lg"
-                fullWidth
-                icon={<QrCode size={20} />}
-                className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-lg"
-                onClick={(e: React.MouseEvent) => {
-                  e.stopPropagation()
-                  setCheckIn({
-                    eventId: nextEvent.id,
-                    eventTitle: nextEvent.title,
-                    collectiveName: nextEvent.collectives?.name ?? '',
-                  })
-                }}
-              >
-                Tap to Sign In
-              </Button>
-            </div>
-          ) : (
-            <div className="mt-4 flex items-center text-sm font-semibold text-white/80">
-              View details
-              <ChevronRight size={16} className="ml-0.5" />
-            </div>
-          )}
-          </div>
-        </div>
+        )}
       </Section>
 
       <CheckInSheet
@@ -469,7 +481,7 @@ function NextEventCard({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Upcoming Events carousel                                           */
+/*  Upcoming Events carousel — full-bleed overlay cards                */
 /* ------------------------------------------------------------------ */
 
 function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
@@ -507,55 +519,86 @@ function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
             const isSoon = days <= 3
 
             return (
-              <div
+              <Card
                 key={event.id}
-                className="shrink-0 w-56 snap-start rounded-2xl bg-gradient-to-br from-primary-400 to-sprout-500 shadow-lg overflow-hidden active:scale-[0.97] transition-transform duration-150 cursor-pointer"
+                variant="event"
+                watermark={event.activity_type}
+                className="shrink-0 w-56 snap-start shadow-lg"
                 onClick={() => navigate(`/events/${event.id}`)}
-                role="button"
-                tabIndex={0}
                 aria-label={event.title}
               >
-                {/* Cover image */}
-                {event.cover_image_url && (
-                  <img
+                {event.cover_image_url ? (
+                  <Card.Overlay
                     src={event.cover_image_url}
                     alt=""
-                    loading="lazy"
-                    className="w-full h-24 object-cover"
-                  />
+                    aspectRatio="4/3"
+                  >
+                    {/* Date badge */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={cn(
+                        'px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider',
+                        isToday ? 'bg-white/30 text-white'
+                          : isTomorrow ? 'bg-white/30 text-white'
+                          : isSoon ? 'bg-white/25 text-white/90'
+                          : 'bg-white/20 text-white/80',
+                      )}>
+                        {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : formatEventDate(event.date_start)}
+                      </span>
+                    </div>
+
+                    <p className="font-heading text-sm font-semibold text-white truncate">
+                      {event.title}
+                    </p>
+
+                    <div className="flex items-center gap-2 mt-1.5 text-xs text-white/70">
+                      <span className="flex items-center gap-1">
+                        <Clock size={11} aria-hidden="true" />
+                        {formatEventTime(event.date_start)}
+                      </span>
+                    </div>
+
+                    {event.collectives && (
+                      <p className="mt-1 text-[11px] text-white/50 truncate">
+                        {event.collectives.name}
+                      </p>
+                    )}
+                  </Card.Overlay>
+                ) : (
+                  /* Fallback gradient when no cover image */
+                  <div className="bg-gradient-to-br from-primary-400 to-sprout-500 p-4" style={{ aspectRatio: '4/3' }}>
+                    <div className="flex flex-col justify-end h-full">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className={cn(
+                          'px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider',
+                          isToday ? 'bg-white/20 text-white'
+                            : isTomorrow ? 'bg-white/20 text-white'
+                            : isSoon ? 'bg-white/15 text-white/90'
+                            : 'bg-white/10 text-white/70',
+                        )}>
+                          {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : formatEventDate(event.date_start)}
+                        </span>
+                      </div>
+
+                      <p className="font-heading text-sm font-semibold text-white truncate">
+                        {event.title}
+                      </p>
+
+                      <div className="flex items-center gap-2 mt-1.5 text-xs text-white/60">
+                        <span className="flex items-center gap-1">
+                          <Clock size={11} aria-hidden="true" />
+                          {formatEventTime(event.date_start)}
+                        </span>
+                      </div>
+
+                      {event.collectives && (
+                        <p className="mt-1 text-[11px] text-white/40 truncate">
+                          {event.collectives.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 )}
-                <div className="p-4">
-                {/* Date badge */}
-                <div className="flex items-center gap-2 mb-2">
-                  <span className={cn(
-                    'px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider',
-                    isToday ? 'bg-white/20 text-white'
-                      : isTomorrow ? 'bg-white/20 text-white'
-                      : isSoon ? 'bg-white/15 text-white/90'
-                      : 'bg-white/10 text-white/70',
-                  )}>
-                    {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : formatEventDate(event.date_start)}
-                  </span>
-                </div>
-
-                <p className="font-heading text-sm font-semibold text-white truncate">
-                  {event.title}
-                </p>
-
-                <div className="flex items-center gap-2 mt-2 text-xs text-white/60">
-                  <span className="flex items-center gap-1">
-                    <Clock size={11} aria-hidden="true" />
-                    {formatEventTime(event.date_start)}
-                  </span>
-                </div>
-
-                {event.collectives && (
-                  <p className="mt-1.5 text-[11px] text-white/40 truncate">
-                    {event.collectives.name}
-                  </p>
-                )}
-                </div>
-              </div>
+              </Card>
             )
           })}
         </HScroll>
@@ -565,7 +608,82 @@ function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Updates section (staff updates / community msgs)                   */
+/*  National Events — retreats, campouts, cross-collective            */
+/* ------------------------------------------------------------------ */
+
+function NationalEventsSection({ rm }: { rm: boolean }) {
+  const navigate = useNavigate()
+  const { data: events } = useNationalEvents()
+
+  if (!events?.length) return null
+
+  return (
+    <motion.div variants={rm ? undefined : fadeUp}>
+      <Section
+        title="Retreats & National Events"
+        action={{ label: 'Explore', to: '/explore' }}
+      >
+        <HScroll>
+          {events.map((event) => {
+            const days = daysUntil(event.date_start)
+            const isToday = days === 0
+            const isTomorrow = days === 1
+
+            return (
+              <Card
+                key={event.id}
+                variant="event"
+                watermark={event.activity_type}
+                className="shrink-0 w-64 snap-start shadow-lg"
+                onClick={() => navigate(`/events/${event.id}`)}
+                aria-label={event.title}
+              >
+                {event.cover_image_url ? (
+                  <Card.Overlay src={event.cover_image_url} alt="" aspectRatio="16/9">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white/90">
+                        {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : formatEventDate(event.date_start)}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-moss-500/80 text-white">
+                        National
+                      </span>
+                    </div>
+                    <p className="font-heading text-sm font-semibold text-white truncate">{event.title}</p>
+                    <div className="flex items-center gap-3 mt-1.5 text-xs text-white/70">
+                      <span className="flex items-center gap-1"><Clock size={11} />{formatEventTime(event.date_start)}</span>
+                      {event.address && <span className="flex items-center gap-1 truncate"><MapPin size={11} />{event.address}</span>}
+                    </div>
+                  </Card.Overlay>
+                ) : (
+                  <div className="bg-gradient-to-br from-moss-500 to-sprout-600 p-4" style={{ aspectRatio: '16/9' }}>
+                    <div className="flex flex-col justify-end h-full">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-white/15 text-white/80">
+                          {isToday ? 'Today' : isTomorrow ? 'Tomorrow' : formatEventDate(event.date_start)}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white">
+                          National
+                        </span>
+                      </div>
+                      <p className="font-heading text-sm font-semibold text-white truncate">{event.title}</p>
+                      <div className="flex items-center gap-3 mt-1.5 text-xs text-white/50">
+                        <span className="flex items-center gap-1"><Clock size={11} />{formatEventTime(event.date_start)}</span>
+                        {event.address && <span className="flex items-center gap-1 truncate"><MapPin size={11} />{event.address}</span>}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            )
+          })}
+        </HScroll>
+      </Section>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Updates section — full-bleed overlay cards                         */
 /* ------------------------------------------------------------------ */
 
 function UpdatesSection({ rm }: { rm: boolean }) {
@@ -597,67 +715,108 @@ function UpdatesSection({ rm }: { rm: boolean }) {
       >
         <HScroll>
           {updates.data.map((item) => (
-            <div
+            <Card
               key={item.id}
-              className="shrink-0 w-64 snap-start rounded-2xl bg-gradient-to-br from-sprout-600 to-primary-700 shadow-lg overflow-hidden active:scale-[0.97] transition-transform duration-150 cursor-pointer"
+              variant="announcement"
+              className="shrink-0 w-64 snap-start shadow-lg"
               onClick={() => navigate('/updates')}
-              role="button"
-              tabIndex={0}
               aria-label={item.title}
             >
-              {/* Cover image */}
-              {item.image_url && (
-                <img
+              {item.image_url ? (
+                <Card.Overlay
                   src={item.image_url}
                   alt=""
-                  loading="lazy"
-                  className="w-full h-24 object-cover"
-                />
-              )}
-              <div className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                {item.is_pinned && (
-                  <Badge variant="default" size="sm">Pinned</Badge>
-                )}
-                {item.priority === 'urgent' && (
-                  <Badge variant="default" size="sm">Urgent</Badge>
-                )}
-                <span className="text-[10px] text-white/40 ml-auto">
-                  {relativeTime(item.created_at ?? '')}
-                </span>
-              </div>
+                  aspectRatio="3/2"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    {item.is_pinned && (
+                      <Badge variant="default" size="sm">Pinned</Badge>
+                    )}
+                    {item.priority === 'urgent' && (
+                      <Badge variant="default" size="sm">Urgent</Badge>
+                    )}
+                    <span className="text-[10px] text-white/60 ml-auto">
+                      {relativeTime(item.created_at ?? '')}
+                    </span>
+                  </div>
 
-              <p className="font-heading text-sm font-semibold text-white line-clamp-2">
-                {item.title}
-              </p>
+                  <p className="font-heading text-sm font-semibold text-white line-clamp-2">
+                    {item.title}
+                  </p>
 
-              {item.content && (
-                <p className="mt-1 text-xs text-white/60 line-clamp-2">
-                  {item.content}
-                </p>
-              )}
+                  {item.content && (
+                    <p className="mt-1 text-xs text-white/70 line-clamp-2">
+                      {item.content}
+                    </p>
+                  )}
 
-              {item.author && (
-                <div className="flex items-center gap-2 mt-3">
-                  {item.author.avatar_url ? (
-                    <img
-                      src={item.author.avatar_url}
-                      alt=""
-                      loading="lazy"
-                      className="w-5 h-5 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                      <Megaphone size={10} className="text-white/70" />
+                  {item.author && (
+                    <div className="flex items-center gap-2 mt-2">
+                      {item.author.avatar_url ? (
+                        <img
+                          src={item.author.avatar_url}
+                          alt=""
+                          loading="lazy"
+                          className="w-5 h-5 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                          <Megaphone size={10} className="text-white/70" />
+                        </div>
+                      )}
+                      <span className="text-[11px] text-white/60 truncate">
+                        {item.author.display_name}
+                      </span>
                     </div>
                   )}
-                  <span className="text-[11px] text-white/50 truncate">
-                    {item.author.display_name}
-                  </span>
+                </Card.Overlay>
+              ) : (
+                /* Fallback gradient when no image */
+                <div className="bg-gradient-to-br from-sprout-600 to-primary-700 p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    {item.is_pinned && (
+                      <Badge variant="default" size="sm">Pinned</Badge>
+                    )}
+                    {item.priority === 'urgent' && (
+                      <Badge variant="default" size="sm">Urgent</Badge>
+                    )}
+                    <span className="text-[10px] text-white/40 ml-auto">
+                      {relativeTime(item.created_at ?? '')}
+                    </span>
+                  </div>
+
+                  <p className="font-heading text-sm font-semibold text-white line-clamp-2">
+                    {item.title}
+                  </p>
+
+                  {item.content && (
+                    <p className="mt-1 text-xs text-white/60 line-clamp-2">
+                      {item.content}
+                    </p>
+                  )}
+
+                  {item.author && (
+                    <div className="flex items-center gap-2 mt-3">
+                      {item.author.avatar_url ? (
+                        <img
+                          src={item.author.avatar_url}
+                          alt=""
+                          loading="lazy"
+                          className="w-5 h-5 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
+                          <Megaphone size={10} className="text-white/70" />
+                        </div>
+                      )}
+                      <span className="text-[11px] text-white/50 truncate">
+                        {item.author.display_name}
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
-              </div>
-            </div>
+            </Card>
           ))}
         </HScroll>
       </Section>
@@ -673,85 +832,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
 /*  Impact row components                                              */
 /* ------------------------------------------------------------------ */
 
-/* Animated count-up for numbers */
-function useCountUp(target: number, active: boolean, duration = 1200) {
-  const [display, setDisplay] = useState(0)
-  const rm = useReducedMotion()
-
-  useEffect(() => {
-    if (!active || target <= 0) { startTransition(() => setDisplay(target)); return }
-    if (rm) { startTransition(() => setDisplay(target)); return }
-
-    let raf: number
-    const start = performance.now()
-    const tick = (now: number) => {
-      const t = Math.min((now - start) / duration, 1)
-      // ease-out cubic
-      const eased = 1 - Math.pow(1 - t, 3)
-      startTransition(() => setDisplay(Math.round(eased * target)))
-      if (t < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [target, active, duration, rm])
-
-  return display
-}
-
-const statFadeUp = {
-  hidden: { opacity: 0, y: 18 },
-  show: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.07, duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] },
-  }),
-}
-
-function ImpactStat({
-  value,
-  label,
-  icon,
-  color,
-  inView,
-  index = 0,
-}: {
-  value: number | string
-  label: string
-  icon: React.ReactNode
-  color: string
-  inView: boolean
-  index?: number
-}) {
-  const isNum = typeof value === 'number'
-  const counted = useCountUp(isNum ? value : 0, inView)
-  const rm = useReducedMotion()
-
-  const formatted = isNum
-    ? (value > 0 ? counted.toLocaleString() : '-')
-    : value
-
-  return (
-    <motion.div
-      className="flex flex-col items-center text-center gap-2"
-      variants={rm ? undefined : statFadeUp}
-      initial="hidden"
-      animate={inView ? 'show' : 'hidden'}
-      custom={index}
-    >
-      <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0 shadow-sm', color)}>
-        <span className="text-white">{icon}</span>
-      </div>
-      <div className="min-w-0">
-        <span className="font-heading text-lg font-extrabold text-white tabular-nums leading-none block">
-          {formatted}
-        </span>
-        <span className="text-[10px] text-white/70 font-semibold uppercase tracking-wider leading-tight mt-1 block">
-          {label}
-        </span>
-      </div>
-    </motion.div>
-  )
-}
+/* (Impact stats now use BentoStatCard / BentoStatGrid from bento-stats.tsx) */
 
 function HomeImpactSection({
   collectives,
@@ -762,7 +843,7 @@ function HomeImpactSection({
 }) {
   const hasCollectives = collectives.length > 0
   const hasMultiple = collectives.length > 1
-  const [scope, setScope] = useState<'national' | 'collective'>(hasCollectives ? 'collective' : 'national')
+  const [scope, setScope] = useState<'national' | 'collective'>('national')
   const [selectedCollectiveId, setSelectedCollectiveId] = useState<string | undefined>(collectives[0]?.id)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [timeRange, setTimeRange] = useState<'all-time' | 'current-year'>('all-time')
@@ -932,83 +1013,35 @@ function HomeImpactSection({
               </div>
             </div>
           ) : data ? (
-            <>
-              {/* All stats in categorised rows — only show non-zero sections */}
-              <div className="space-y-3">
-                {/* Events — always show if any events exist */}
-                {(totalEvents > 0 || data.eventsAttended > 0 || data.volunteerHours > 0) && (
-                  <motion.div
-                    className="rounded-xl bg-white/10 p-4"
-                    initial={rm ? undefined : { opacity: 0, y: 16 }}
-                    animate={inView ? { opacity: 1, y: 0 } : undefined}
-                    transition={{ delay: 0.05, duration: 0.4, ease: 'easeOut' }}
-                  >
-                    <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
-                      Community Events
-                    </span>
-                    <div className="flex flex-wrap justify-evenly gap-y-3">
-                      {totalEvents > 0 && <ImpactStat inView={inView} index={0} value={totalEvents} label="Events" icon={<Calendar size={16} />} color="bg-warning-500" />}
-                      {data.eventsAttended > 0 && <ImpactStat inView={inView} index={1} value={data.eventsAttended} label="Attendances" icon={<Users size={16} />} color="bg-warning-600" />}
-                      {data.volunteerHours > 0 && <ImpactStat inView={inView} index={2} value={data.volunteerHours} label="Est. Vol. Hours" icon={<Clock size={16} />} color="bg-warning-700" />}
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Restoration */}
-                {(data.treesPlanted > 0 || data.invasiveWeedsPulled > 0) && (
-                  <motion.div
-                    className="rounded-xl bg-white/10 p-4"
-                    initial={rm ? undefined : { opacity: 0, y: 16 }}
-                    animate={inView ? { opacity: 1, y: 0 } : undefined}
-                    transition={{ delay: 0.2, duration: 0.4, ease: 'easeOut' }}
-                  >
-                    <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
-                      Land Restoration
-                    </span>
-                    <div className="flex flex-wrap justify-evenly gap-y-3">
-                      {data.treesPlanted > 0 && <ImpactStat inView={inView} index={3} value={data.treesPlanted} label="Trees Planted" icon={<TreePine size={16} />} color="bg-sprout-500" />}
-                      {data.invasiveWeedsPulled > 0 && <ImpactStat inView={inView} index={4} value={data.invasiveWeedsPulled} label="Weeds Pulled" icon={<Sprout size={16} />} color="bg-sprout-600" />}
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Cleanup */}
-                {(data.rubbishCollectedTonnes > 0 || data.cleanupSites > 0) && (
-                  <motion.div
-                    className="rounded-xl bg-white/10 p-4"
-                    initial={rm ? undefined : { opacity: 0, y: 16 }}
-                    animate={inView ? { opacity: 1, y: 0 } : undefined}
-                    transition={{ delay: 0.35, duration: 0.4, ease: 'easeOut' }}
-                  >
-                    <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
-                      Cleanup
-                    </span>
-                    <div className="flex flex-wrap justify-evenly gap-y-3">
-                      {data.rubbishCollectedTonnes > 0 && <ImpactStat inView={inView} index={5} value={`${data.rubbishCollectedTonnes}t`} label="Rubbish" icon={<Trash2 size={16} />} color="bg-sky-500" />}
-                      {data.cleanupSites > 0 && <ImpactStat inView={inView} index={6} value={data.cleanupSites} label="Sites" icon={<Trash2 size={16} />} color="bg-sky-600" />}
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* Community */}
-                {(data.collectivesCount > 0 || data.leadersEmpowered > 0) && (
-                  <motion.div
-                    className="rounded-xl bg-white/10 p-4"
-                    initial={rm ? undefined : { opacity: 0, y: 16 }}
-                    animate={inView ? { opacity: 1, y: 0 } : undefined}
-                    transition={{ delay: 0.5, duration: 0.4, ease: 'easeOut' }}
-                  >
-                    <span className="text-[10px] font-bold text-white/70 uppercase tracking-[0.18em] mb-3 block">
-                      Community
-                    </span>
-                    <div className="flex flex-wrap justify-evenly gap-y-3">
-                      {data.collectivesCount > 0 && <ImpactStat inView={inView} index={7} value={data.collectivesCount} label="Collectives" icon={<Users size={16} />} color="bg-moss-500" />}
-                      {data.leadersEmpowered > 0 && <ImpactStat inView={inView} index={8} value={data.leadersEmpowered} label="Leaders Empowered" icon={<GraduationCap size={16} />} color="bg-moss-600" />}
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            </>
+            <BentoStatGrid>
+              {totalEvents > 0 && (
+                <BentoStatCard value={totalEvents} label="Events" icon={<Calendar size={18} />} theme="warning" />
+              )}
+              {data.eventsAttended > 0 && (
+                <BentoStatCard value={data.eventsAttended} label="Attendances" icon={<Users size={16} />} theme="primary" />
+              )}
+              {data.volunteerHours > 0 && (
+                <BentoStatCard value={data.volunteerHours} label="Vol. Hours" icon={<Clock size={16} />} unit="hrs" theme="moss" />
+              )}
+              {data.treesPlanted > 0 && (
+                <BentoStatCard value={data.treesPlanted} label="Trees Planted" icon={<TreePine size={16} />} theme="sprout" />
+              )}
+              {data.invasiveWeedsPulled > 0 && (
+                <BentoStatCard value={data.invasiveWeedsPulled} label="Weeds Pulled" icon={<Sprout size={16} />} theme="bark" />
+              )}
+              {data.rubbishCollectedTonnes > 0 && (
+                <BentoStatCard value={data.rubbishCollectedTonnes} label="Rubbish" icon={<Trash2 size={16} />} unit="t" theme="sky" />
+              )}
+              {data.cleanupSites > 0 && (
+                <BentoStatCard value={data.cleanupSites} label="Cleanup Sites" icon={<Trash2 size={16} />} theme="info" />
+              )}
+              {data.collectivesCount > 0 && (
+                <BentoStatCard value={data.collectivesCount} label="Collectives" icon={<Users size={16} />} theme="plum" />
+              )}
+              {data.leadersEmpowered > 0 && (
+                <BentoStatCard value={data.leadersEmpowered} label="Leaders Empowered" icon={<GraduationCap size={16} />} theme="coral" />
+              )}
+            </BentoStatGrid>
           ) : null}
         </div>
 
@@ -1018,7 +1051,7 @@ function HomeImpactSection({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Donate + Shop CTA cards                                            */
+/*  Donate + Shop CTA cards — bento layout                             */
 /* ------------------------------------------------------------------ */
 
 function CtaCards({ rm }: { rm: boolean }) {
@@ -1026,11 +1059,11 @@ function CtaCards({ rm }: { rm: boolean }) {
 
   return (
     <motion.div variants={rm ? undefined : fadeUp}>
-      <div className="grid grid-cols-2 gap-3">
-        {/* Donate */}
+      <div className="grid grid-cols-3 grid-rows-2 gap-3" style={{ gridTemplateRows: 'auto auto' }}>
+        {/* Donate — spans 2 columns and 2 rows */}
         <div
           className={cn(
-            'relative rounded-2xl overflow-hidden p-5',
+            'relative rounded-2xl overflow-hidden p-6 col-span-2 row-span-2',
             'bg-gradient-to-br from-primary-500 to-primary-800',
             'shadow-lg',
             'active:scale-[0.97] transition-transform duration-150 cursor-pointer',
@@ -1040,22 +1073,21 @@ function CtaCards({ rm }: { rm: boolean }) {
           tabIndex={0}
           aria-label="Donate"
         >
-          <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-white/10" />
-          <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 text-white mb-3">
-            <Heart size={20} />
+          <span className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/20 text-white mb-4">
+            <Heart size={24} />
           </span>
-          <p className="font-heading text-base font-bold text-white">
+          <p className="font-heading text-lg font-bold text-white">
             Donate
           </p>
-          <p className="mt-1 text-xs text-white/70">
+          <p className="mt-1.5 text-sm text-white/70 leading-snug">
             Support young adults & conservation
           </p>
         </div>
 
-        {/* Shop Merch */}
+        {/* Shop Merch — spans 1 column and 2 rows */}
         <div
           className={cn(
-            'relative rounded-2xl overflow-hidden p-5',
+            'relative rounded-2xl overflow-hidden p-4 col-span-1 row-span-2 flex flex-col items-center justify-center text-center',
             'bg-gradient-to-br from-bark-500 to-bark-800',
             'shadow-lg',
             'active:scale-[0.97] transition-transform duration-150 cursor-pointer',
@@ -1065,14 +1097,13 @@ function CtaCards({ rm }: { rm: boolean }) {
           tabIndex={0}
           aria-label="Shop Merch"
         >
-          <div className="absolute -right-6 -bottom-6 w-20 h-20 rounded-full bg-white/10" />
           <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 text-white mb-3">
             <ShoppingBag size={20} />
           </span>
-          <p className="font-heading text-base font-bold text-white">
-            Shop Merch
+          <p className="font-heading text-sm font-bold text-white">
+            Shop
           </p>
-          <p className="mt-1 text-xs text-white/70">
+          <p className="mt-1 text-[11px] text-white/70">
             Wear Co-Exist
           </p>
         </div>
@@ -1122,29 +1153,11 @@ export default function HomePage() {
         className="min-h-full"
         background={
           <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-surface-1 via-white to-primary-50/30" />
-            <motion.div
-              initial={rm ? {} : { scale: 0.6, opacity: 0 }}
-              animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-              transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.5, ease: 'easeOut' } }}
-              className="absolute -right-[12%] -top-[8%] w-[60vw] h-[60vw] max-w-[550px] max-h-[550px] rounded-full bg-primary-100/30"
-            />
-            <motion.div
-              initial={rm ? {} : { scale: 0.5, opacity: 0 }}
-              animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-              transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.8, delay: 0.3, ease: 'easeOut' } }}
-              className="absolute -left-[18%] bottom-[8%] w-[70vw] h-[70vw] max-w-[680px] max-h-[680px] rounded-full border border-primary-200/30"
-            />
-            <motion.div
-              initial={rm ? {} : { opacity: 0 }}
-              animate={{ y: [0, -7, 0], opacity: [0.3, 0.55, 0.3] }}
-              transition={{ y: { duration: 4, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1 } }}
-              className="absolute left-[15%] top-[20%] w-2 h-2 rounded-full bg-primary-300/30"
-            />
+            <div className="absolute inset-0 bg-white" />
           </div>
         }
       >
-        {/* ── Content ── */}
+        {/* -- Content -- */}
         <div className="relative z-10">
           {/* 1. Parallax layered hero */}
           <HomeHero rm={rm} />
@@ -1221,6 +1234,9 @@ export default function HomePage() {
 
             {/* 3. Upcoming Events carousel */}
             <UpcomingEventsCarousel rm={rm} />
+
+            {/* 3b. National Events (retreats, campouts) */}
+            <NationalEventsSection rm={rm} />
 
             {/* 4. Updates section */}
             <UpdatesSection rm={rm} />

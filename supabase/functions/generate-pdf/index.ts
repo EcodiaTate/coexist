@@ -97,9 +97,9 @@ async function fetchExportData(
     case 'attendance': {
       let query = supabase
         .from('event_registrations')
-        .select('event_id, user_id, checked_in, checked_in_at, events(title), profiles(display_name, email)')
-        .order('checked_in_at', { ascending: false })
-      query = applyDateFilter(query)
+        .select('event_id, user_id, registered_at, checked_in_at, events(title), profiles(display_name, email)')
+        .order('registered_at', { ascending: false })
+      query = applyDateFilter(query, 'registered_at')
       const { data, error } = await query
       if (error) throw error
       return {
@@ -107,7 +107,7 @@ async function fetchExportData(
         headers: ['Event', 'Name', 'Email', 'Checked In', 'Check-in Time'],
         rows: (data ?? []).map((r: any) => [
           r.events?.title ?? '', r.profiles?.display_name ?? '', r.profiles?.email ?? '',
-          r.checked_in ? 'Yes' : 'No', r.checked_in_at?.slice(0, 16)?.replace('T', ' ') ?? '',
+          r.checked_in_at ? 'Yes' : 'No', r.checked_in_at?.slice(0, 16)?.replace('T', ' ') ?? '',
         ]),
       }
     }
@@ -134,17 +134,20 @@ async function fetchExportData(
     }
 
     case 'survey': {
-      const { data, error } = await supabase
+      let query = supabase
         .from('survey_responses')
-        .select('id, survey_id, user_id, answers, created_at, surveys(title)')
-        .order('created_at', { ascending: false })
+        .select('id, survey_id, event_id, user_id, answers, submitted_at, surveys(title), events(title), profiles(display_name)')
+        .order('submitted_at', { ascending: false })
+      query = applyDateFilter(query, 'submitted_at')
+      const { data, error } = await query
       if (error) throw error
       return {
         title: 'Survey Responses Report',
-        headers: ['Response ID', 'Survey', 'User ID', 'Answers', 'Submitted'],
+        headers: ['Response ID', 'Survey', 'Event', 'Respondent', 'Answers', 'Submitted'],
         rows: (data ?? []).map((r: any) => [
-          r.id ?? '', r.surveys?.title ?? r.survey_id ?? '', r.user_id ?? '',
-          JSON.stringify(r.answers ?? {}), r.created_at?.slice(0, 10) ?? '',
+          r.id ?? '', r.surveys?.title ?? r.survey_id ?? '', r.events?.title ?? r.event_id ?? '',
+          r.profiles?.display_name ?? r.user_id ?? '',
+          JSON.stringify(r.answers ?? {}), r.submitted_at?.slice(0, 10) ?? '',
         ]),
       }
     }
@@ -209,7 +212,7 @@ async function fetchExportData(
       let query = supabase
         .from('merch_orders')
         .select('id, total_cents, gst_cents, status, created_at')
-        .eq('status', 'completed')
+        .eq('status', 'delivered')
         .order('created_at', { ascending: false })
       query = applyDateFilter(query)
       const { data, error } = await query
@@ -297,7 +300,7 @@ Deno.serve(async (req: Request) => {
       .eq('id', caller.id)
       .single()
 
-    if (!callerProfile || !['national_leader', 'national_admin', 'super_admin'].includes(callerProfile.role)) {
+    if (!callerProfile || !['national_leader', 'manager', 'admin'].includes(callerProfile.role)) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

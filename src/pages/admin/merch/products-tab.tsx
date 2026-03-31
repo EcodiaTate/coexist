@@ -75,36 +75,36 @@ function VariantOptionRow({
   }, [inputValue, addValue])
 
   return (
-    <div className="p-3 bg-white/70 rounded-xl border border-primary-200/20 space-y-2">
+    <div className="p-3 bg-white/70 rounded-xl border border-neutral-100 space-y-2">
       <div className="flex items-center gap-2">
         <input
           type="text"
           value={option.name}
           onChange={(e) => onChange({ ...option, name: e.target.value })}
           placeholder="Option name (e.g. Size)"
-          className="flex-1 h-11 px-3 rounded-lg bg-surface-3 text-[16px] sm:text-sm font-semibold text-primary-800 placeholder:text-primary-400/50 outline-none focus:ring-2 focus:ring-primary-300/50"
+          className="flex-1 h-11 px-3 rounded-lg bg-neutral-50 text-[16px] sm:text-sm font-semibold text-neutral-900 placeholder:text-neutral-400/50 outline-none focus:ring-2 focus:ring-primary-300/50"
         />
         <button
           type="button"
           onClick={onRemove}
-          className="w-11 h-11 flex items-center justify-center rounded-lg text-primary-400 hover:text-error-600 hover:bg-error-50 active:bg-error-100 cursor-pointer transition-colors shrink-0"
+          className="w-11 h-11 flex items-center justify-center rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 active:bg-error-100 cursor-pointer transition-colors shrink-0"
         >
           <Trash2 size={16} />
         </button>
       </div>
 
       {/* Values as pills + inline input */}
-      <div className="flex flex-wrap items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-lg bg-white border border-primary-200/30 focus-within:ring-2 focus-within:ring-primary-300/50">
+      <div className="flex flex-wrap items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-lg bg-white border border-neutral-100 focus-within:ring-2 focus-within:ring-primary-300/50">
         {option.values.map((val, idx) => (
           <span
             key={val}
-            className="inline-flex items-center gap-1 h-7 px-2.5 bg-primary-100 text-primary-700 rounded-full text-xs font-medium"
+            className="inline-flex items-center gap-1 h-7 px-2.5 bg-neutral-100 text-neutral-700 rounded-full text-xs font-medium"
           >
             {val}
             <button
               type="button"
               onClick={() => removeValue(idx)}
-              className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-primary-200 active:bg-primary-300 cursor-pointer"
+              className="w-5 h-5 flex items-center justify-center rounded-full hover:bg-neutral-200 active:bg-neutral-300 cursor-pointer"
             >
               <X size={10} />
             </button>
@@ -117,7 +117,7 @@ function VariantOptionRow({
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           placeholder={option.values.length === 0 ? 'Type values, press Enter' : 'Add more...'}
-          className="flex-1 min-w-[80px] h-7 bg-transparent text-[16px] sm:text-sm text-primary-800 placeholder:text-primary-400/50 outline-none"
+          className="flex-1 min-w-[80px] h-7 bg-transparent text-[16px] sm:text-sm text-neutral-900 placeholder:text-neutral-400/50 outline-none"
         />
       </div>
     </div>
@@ -344,15 +344,15 @@ function ProductFormSheet({
   return (
     <BottomSheet open={open} onClose={onClose} snapPoints={SNAP_POINTS_FORM}>
       <div className="space-y-4" onKeyDown={handleKeyDown}>
-        <h3 className="font-heading font-semibold text-base text-primary-800">
+        <h3 className="font-heading font-semibold text-base text-neutral-900">
           {product ? 'Edit product' : 'New product'}
         </h3>
 
         {/* ---- Images ---- */}
         <div>
-          <p className="text-[11px] font-semibold text-primary-500 uppercase tracking-wider mb-2">
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-2">
             Images
-            {images.length > 0 && <span className="ml-1 text-primary-400 normal-case font-normal">({images.length})</span>}
+            {images.length > 0 && <span className="ml-1 text-neutral-400 normal-case font-normal">({images.length})</span>}
           </p>
           <div className="flex gap-2 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
             {images.map((url, idx) => (
@@ -360,7 +360,7 @@ function ProductFormSheet({
                 key={url + idx}
                 className={cn(
                   'relative group w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-colors',
-                  idx === 0 ? 'border-primary-400 shadow-md' : 'border-primary-200/30',
+                  idx === 0 ? 'border-primary-400 shadow-sm' : 'border-neutral-100',
                   dragIdx === idx && 'opacity-50 scale-95',
                 )}
                 draggable
@@ -397,8 +397,8 @@ function ProductFormSheet({
               disabled={uploading}
               className={cn(
                 'w-16 h-16 rounded-lg border-2 border-dashed border-primary-300/50 flex flex-col items-center justify-center gap-0.5 shrink-0',
-                'text-primary-400 hover:text-primary-600 hover:border-primary-400/60 hover:bg-primary-50/40',
-                'active:bg-primary-100/40 cursor-pointer transition-colors',
+                'text-neutral-400 hover:text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50',
+                'active:bg-neutral-100 cursor-pointer transition-colors',
                 uploading && 'opacity-60 pointer-events-none',
               )}
             >
@@ -422,7 +422,7 @@ function ProductFormSheet({
             />
           </div>
           {images.length > 1 && (
-            <p className="text-[10px] text-primary-400 mt-1">Drag to reorder. First = main photo.</p>
+            <p className="text-[10px] text-neutral-400 mt-1">Drag to reorder. First = main photo.</p>
           )}
         </div>
 
@@ -461,7 +461,7 @@ function ProductFormSheet({
 
         {/* Status selector */}
         <div>
-          <p className="text-[11px] font-semibold text-primary-500 uppercase tracking-wider mb-1.5">Status</p>
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">Status</p>
           <div className="flex gap-1.5">
             {(['draft', 'active', 'archived'] as ProductStatus[]).map((s) => (
               <button
@@ -473,7 +473,7 @@ function ProductFormSheet({
                   status === s && s === 'active' && 'bg-success-100 text-success-700 ring-2 ring-success-300 shadow-sm',
                   status === s && s === 'draft' && 'bg-warning-100 text-warning-700 ring-2 ring-warning-300 shadow-sm',
                   status === s && s === 'archived' && 'bg-primary-100 text-primary-600 ring-2 ring-primary-300 shadow-sm',
-                  status !== s && 'bg-primary-50/60 text-primary-400 hover:bg-primary-100/60 active:bg-primary-100',
+                  status !== s && 'bg-neutral-50 text-neutral-400 hover:bg-neutral-100 active:bg-neutral-100',
                 )}
               >
                 {s}
@@ -487,13 +487,13 @@ function ProductFormSheet({
         {/* ---- Variant options ---- */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <p className="text-[11px] font-semibold text-primary-500 uppercase tracking-wider">
+            <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">
               Variant options
             </p>
             <button
               type="button"
               onClick={() => setOptions((prev) => [...prev, { name: '', values: [] }])}
-              className="flex items-center gap-1 min-h-[36px] px-3 rounded-lg text-xs font-semibold text-primary-600 hover:bg-primary-100/60 active:bg-primary-100 cursor-pointer transition-colors"
+              className="flex items-center gap-1 min-h-[36px] px-3 rounded-lg text-xs font-semibold text-neutral-600 hover:bg-neutral-100 active:bg-neutral-100 cursor-pointer transition-colors"
             >
               <Plus size={14} />
               Add option
@@ -501,9 +501,9 @@ function ProductFormSheet({
           </div>
 
           {options.length === 0 ? (
-            <div className="py-3 px-4 rounded-xl bg-primary-50/40 text-center">
-              <p className="text-xs text-primary-400">No variant options yet</p>
-              <p className="text-[11px] text-primary-400/70 mt-0.5">Add Size, Colour, etc.</p>
+            <div className="py-3 px-4 rounded-xl bg-neutral-50 text-center">
+              <p className="text-xs text-neutral-400">No variant options yet</p>
+              <p className="text-[11px] text-neutral-400/70 mt-0.5">Add Size, Colour, etc.</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -522,9 +522,9 @@ function ProductFormSheet({
         {/* ---- Generated matrix preview ---- */}
         {generatedVariants.length > 0 && options.some((o) => o.values.length > 0) && (
           <div>
-            <p className="text-[11px] font-semibold text-primary-500 uppercase tracking-wider mb-1.5">
+            <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">
               Generated variants
-              <span className="ml-1 text-primary-400 normal-case font-normal">({generatedVariants.length})</span>
+              <span className="ml-1 text-neutral-400 normal-case font-normal">({generatedVariants.length})</span>
             </p>
             <div className="space-y-1 max-h-40 overflow-y-auto rounded-xl -mx-0.5 px-0.5">
               {generatedVariants.map((v) => (
@@ -533,10 +533,10 @@ function ProductFormSheet({
                   className="flex items-center justify-between min-h-[36px] px-3 py-1.5 bg-white/70 rounded-lg text-xs"
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="font-medium text-primary-800 truncate">{variantLabel(v)}</span>
-                    <span className="text-primary-400 font-mono text-[10px] hidden sm:inline">{v.sku}</span>
+                    <span className="font-medium text-neutral-900 truncate">{variantLabel(v)}</span>
+                    <span className="text-neutral-400 font-mono text-[10px] hidden sm:inline">{v.sku}</span>
                   </div>
-                  <span className="text-primary-500 tabular-nums font-semibold shrink-0">{formatPrice(v.price_cents)}</span>
+                  <span className="text-neutral-500 tabular-nums font-semibold shrink-0">{formatPrice(v.price_cents)}</span>
                 </div>
               ))}
             </div>
@@ -601,7 +601,7 @@ function VariantSummary({
             </div>
           )}
           {sizes.length > 0 && colours.length > 0 && (
-            <span className="text-primary-200">|</span>
+            <span className="text-neutral-200">|</span>
           )}
           {colours.length > 0 && (
             <div className="flex items-center gap-0.5">
@@ -612,7 +612,7 @@ function VariantSummary({
           )}
         </div>
         <div className="flex items-center gap-1 shrink-0 ml-1.5">
-          <span className="tabular-nums text-primary-600 font-bold">{totalStock}</span>
+          <span className="tabular-nums text-neutral-600 font-bold">{totalStock}</span>
           {lowStockCount > 0 && (
             <span className="w-2 h-2 rounded-full bg-warning-400" title={`${lowStockCount} low stock`} />
           )}
@@ -622,7 +622,7 @@ function VariantSummary({
           <ChevronDown
             size={13}
             className={cn(
-              'text-primary-400 transition-transform duration-200',
+              'text-neutral-400 transition-transform duration-200',
               expanded && 'rotate-180',
             )}
           />
@@ -652,12 +652,12 @@ function VariantSummary({
                 >
                   {/* Label */}
                   <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                    <span className="text-xs text-primary-800 font-medium truncate">{variantLabel(v)}</span>
-                    <span className="text-[10px] text-primary-300 font-mono truncate hidden sm:inline">{v.sku}</span>
+                    <span className="text-xs text-neutral-900 font-medium truncate">{variantLabel(v)}</span>
+                    <span className="text-[10px] text-neutral-300 font-mono truncate hidden sm:inline">{v.sku}</span>
                   </div>
 
                   {/* Price - desktop only */}
-                  <span className="text-[11px] text-primary-400 tabular-nums mr-2 hidden sm:block">
+                  <span className="text-[11px] text-neutral-400 tabular-nums mr-2 hidden sm:block">
                     {formatPrice(v.price_cents)}
                   </span>
 
@@ -667,7 +667,7 @@ function VariantSummary({
                       'text-xs tabular-nums font-semibold min-w-[32px] text-center px-1.5 py-0.5 rounded',
                       stockState === 'out' && 'bg-error-50 text-error-600',
                       stockState === 'low' && 'bg-warning-50 text-warning-600',
-                      stockState === 'ok' && 'text-primary-500',
+                      stockState === 'ok' && 'text-neutral-500',
                     )}
                   >
                     {v.stock}
@@ -677,7 +677,7 @@ function VariantSummary({
                   <button
                     type="button"
                     onClick={() => onAdjustStock(v.id, v.stock)}
-                    className="ml-1 min-h-[44px] px-3 text-[11px] font-semibold text-primary-500 hover:text-primary-700 active:bg-primary-100/60 cursor-pointer rounded-lg transition-colors"
+                    className="ml-1 min-h-[44px] px-3 text-[11px] font-semibold text-neutral-500 hover:text-neutral-700 active:bg-neutral-100 cursor-pointer rounded-lg transition-colors"
                   >
                     Adjust
                   </button>
@@ -728,8 +728,8 @@ function StockAdjustSheet({
   return (
     <BottomSheet open={open} onClose={onClose}>
       <div className="space-y-4">
-        <h3 className="font-heading font-semibold text-base text-primary-800">Adjust stock</h3>
-        <p className="text-sm text-primary-400">Current stock: <span className="font-semibold text-primary-600 tabular-nums">{currentStock}</span></p>
+        <h3 className="font-heading font-semibold text-base text-neutral-900">Adjust stock</h3>
+        <p className="text-sm text-neutral-400">Current stock: <span className="font-semibold text-neutral-600 tabular-nums">{currentStock}</span></p>
         <Input
           label="Adjustment (+/-)"
           value={adjustment}
@@ -843,7 +843,7 @@ export default function ProductsTab() {
 
       {/* Filters row */}
       <motion.div variants={fadeUp} className="flex items-center justify-between mb-2.5">
-        <p className="text-[11px] text-primary-400 tabular-nums">
+        <p className="text-[11px] text-neutral-400 tabular-nums">
           {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
           {search && ` of ${products?.length ?? 0}`}
         </p>
@@ -851,7 +851,7 @@ export default function ProductsTab() {
           <button
             type="button"
             onClick={() => setShowArchived((p) => !p)}
-            className="min-h-[32px] px-2 text-[11px] font-medium text-primary-400 hover:text-primary-600 active:bg-primary-50/60 cursor-pointer rounded-md transition-colors"
+            className="min-h-[32px] px-2 text-[11px] font-medium text-neutral-400 hover:text-neutral-600 active:bg-neutral-50 cursor-pointer rounded-md transition-colors"
           >
             {showArchived ? 'Hide' : 'Show'} {archivedCount} archived
           </button>
@@ -889,19 +889,19 @@ export default function ProductsTab() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', STATUS_DOT[product.status])} />
-                      <h3 className="text-sm font-semibold text-primary-800 truncate leading-tight">
+                      <h3 className="text-sm font-semibold text-neutral-900 truncate leading-tight">
                         {product.name}
                       </h3>
                     </div>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-sm font-bold text-primary-700 tabular-nums">
+                      <span className="text-sm font-bold text-neutral-700 tabular-nums">
                         {formatPrice(product.base_price_cents)}
                       </span>
-                      <span className="text-[11px] text-primary-400">
+                      <span className="text-[11px] text-neutral-400">
                         {product.variants.length} var{product.variants.length !== 1 ? 's' : ''}
                       </span>
                       {product.category && (
-                        <span className="px-1.5 py-px bg-primary-100/60 rounded text-[10px] font-medium text-primary-500 hidden sm:inline">
+                        <span className="px-1.5 py-px bg-neutral-100 rounded text-[10px] font-medium text-neutral-500 hidden sm:inline">
                           {product.category}
                         </span>
                       )}
@@ -923,7 +923,7 @@ export default function ProductsTab() {
                         setEditProduct(product)
                         setFormOpen(true)
                       }}
-                      className="w-10 h-10 flex items-center justify-center rounded-lg text-primary-400 hover:text-primary-700 hover:bg-primary-100/60 active:bg-primary-100 cursor-pointer transition-colors"
+                      className="w-10 h-10 flex items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 active:bg-neutral-100 cursor-pointer transition-colors"
                       aria-label={`Edit ${product.name}`}
                     >
                       <Edit3 size={15} />
@@ -932,7 +932,7 @@ export default function ProductsTab() {
                       <button
                         type="button"
                         onClick={() => setArchiveTarget(product)}
-                        className="w-10 h-10 flex items-center justify-center rounded-lg text-primary-300 hover:text-primary-600 hover:bg-primary-100/60 active:bg-primary-100 cursor-pointer transition-colors"
+                        className="w-10 h-10 flex items-center justify-center rounded-lg text-neutral-300 hover:text-neutral-600 hover:bg-neutral-100 active:bg-neutral-100 cursor-pointer transition-colors"
                         aria-label={`Archive ${product.name}`}
                       >
                         <Archive size={15} />

@@ -60,7 +60,7 @@ export default function CreateUpdatePage() {
   const createUpdate = useCreateUpdate()
   const annUpload = useImageUpload({ bucket: 'announcements' })
   const { data: myCollectives } = useMyCollectives()
-  const { data: allCollectives } = useCollectives()
+  const { data: allCollectives } = useCollectives({ includeNational: true })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
@@ -160,16 +160,16 @@ export default function CreateUpdatePage() {
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
         {/* ── Compose Card ── */}
-        <div className="rounded-2xl shadow-sm overflow-hidden ring-1 ring-primary-200/50">
-          {/* Coloured header band */}
-          <div className="bg-gradient-to-r from-primary-600 via-primary-700 to-secondary-700 px-5 py-4">
+        <div className="rounded-2xl shadow-sm overflow-hidden border border-neutral-100">
+          {/* Section header */}
+          <div className="border-b border-neutral-100 bg-white px-5 py-3">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20">
-                <Megaphone size={18} className="text-white" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary-50 text-primary-600">
+                <Megaphone size={18} />
               </div>
               <div>
-                <h3 className="text-[15px] font-bold text-white tracking-tight">Compose Update</h3>
-                <p className="text-xs text-white/60">Write your blog-post style update</p>
+                <h3 className="text-[15px] font-bold text-neutral-900 tracking-tight">Compose Update</h3>
+                <p className="text-xs text-neutral-500">Write your blog-post style update</p>
               </div>
             </div>
           </div>
@@ -204,16 +204,16 @@ export default function CreateUpdatePage() {
         </div>
 
         {/* ── Images Card ── */}
-        <div className="rounded-2xl shadow-sm overflow-hidden ring-1 ring-moss-200/50">
-          {/* Coloured header band */}
-          <div className="bg-gradient-to-r from-moss-500 via-moss-600 to-sprout-600 px-5 py-4">
+        <div className="rounded-2xl shadow-sm overflow-hidden border border-neutral-100">
+          {/* Section header */}
+          <div className="border-b border-neutral-100 bg-white px-5 py-3">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20">
-                <ImageIcon size={18} className="text-white" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-moss-50 text-moss-600">
+                <ImageIcon size={18} />
               </div>
               <div>
-                <h3 className="text-[15px] font-bold text-white tracking-tight">Images</h3>
-                <p className="text-xs text-white/60">{selectedFiles.length}/10 selected  photos, infographics, flyers</p>
+                <h3 className="text-[15px] font-bold text-neutral-900 tracking-tight">Images</h3>
+                <p className="text-xs text-neutral-500">{selectedFiles.length}/10 selected  photos, infographics, flyers</p>
               </div>
             </div>
           </div>
@@ -227,7 +227,7 @@ export default function CreateUpdatePage() {
                     key={i}
                     initial={rm ? false : { opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="relative aspect-square rounded-xl overflow-hidden group ring-1 ring-primary-100"
+                    className="relative aspect-square rounded-xl overflow-hidden group ring-1 ring-neutral-100"
                   >
                     <img
                       src={src}
@@ -261,11 +261,11 @@ export default function CreateUpdatePage() {
                 onClick={() => fileInputRef.current?.click()}
                 className={cn(
                   'flex items-center justify-center gap-2.5 w-full h-24 rounded-xl',
-                  'border-2 border-dashed border-moss-300/50 bg-moss-50/40',
-                  'text-sm text-moss-600 font-medium',
-                  'cursor-pointer hover:border-moss-400/60 hover:bg-moss-50/80',
+                  'border-2 border-dashed border-neutral-300 bg-neutral-50',
+                  'text-sm text-neutral-600 font-medium',
+                  'cursor-pointer hover:border-neutral-400 hover:bg-neutral-100',
                   'transition-transform duration-150 active:scale-[0.99]',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-moss-400',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 )}
               >
                 <ImageIcon size={20} aria-hidden="true" />
@@ -293,16 +293,16 @@ export default function CreateUpdatePage() {
         </div>
 
         {/* ── Settings Card ── */}
-        <div className="rounded-2xl shadow-sm overflow-hidden ring-1 ring-bark-200/40">
-          {/* Coloured header band */}
-          <div className="bg-gradient-to-r from-bark-500 via-bark-600 to-primary-700 px-5 py-4">
+        <div className="rounded-2xl shadow-sm overflow-hidden border border-neutral-100">
+          {/* Section header */}
+          <div className="border-b border-neutral-100 bg-white px-5 py-3">
             <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/20">
-                <FileText size={18} className="text-white" />
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-neutral-100 text-neutral-600">
+                <FileText size={18} />
               </div>
               <div>
-                <h3 className="text-[15px] font-bold text-white tracking-tight">Settings</h3>
-                <p className="text-xs text-white/60">Priority, audience, and pinning</p>
+                <h3 className="text-[15px] font-bold text-neutral-900 tracking-tight">Settings</h3>
+                <p className="text-xs text-neutral-500">Priority, audience, and pinning</p>
               </div>
             </div>
           </div>
@@ -351,7 +351,7 @@ export default function CreateUpdatePage() {
             </div>
 
             {/* Divider */}
-            <div className="border-t border-primary-100/60" />
+            <div className="border-t border-neutral-100" />
 
             {/* Target audience */}
             <div>
@@ -373,7 +373,7 @@ export default function CreateUpdatePage() {
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                         isSelected
                           ? 'bg-primary-50 ring-2 ring-primary-500 shadow-sm'
-                          : 'bg-primary-50/40 ring-1 ring-primary-100 hover:bg-primary-50 hover:ring-primary-200',
+                          : 'bg-neutral-50 ring-1 ring-neutral-200 hover:bg-neutral-100 hover:ring-neutral-300',
                       )}
                       aria-pressed={isSelected}
                     >
@@ -388,13 +388,13 @@ export default function CreateUpdatePage() {
                       <div>
                         <p className={cn(
                           'text-sm font-semibold',
-                          isSelected ? 'text-primary-800' : 'text-primary-700',
+                          isSelected ? 'text-primary-800' : 'text-neutral-700',
                         )}>
                           {opt.label}
                         </p>
                         <p className={cn(
                           'text-xs',
-                          isSelected ? 'text-primary-500' : 'text-primary-400',
+                          isSelected ? 'text-primary-500' : 'text-neutral-400',
                         )}>{opt.description}</p>
                       </div>
                     </button>
@@ -424,7 +424,7 @@ export default function CreateUpdatePage() {
                           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                           isSelected
                             ? 'bg-primary-50 ring-2 ring-primary-500 shadow-sm'
-                            : 'bg-primary-50/40 ring-1 ring-primary-100 hover:bg-primary-50 hover:ring-primary-200',
+                            : 'bg-neutral-50 ring-1 ring-neutral-200 hover:bg-neutral-100 hover:ring-neutral-300',
                         )}
                         aria-pressed={isSelected}
                       >
@@ -438,18 +438,18 @@ export default function CreateUpdatePage() {
                           />
                         ) : (
                           <div className="w-10 h-10 rounded-xl bg-primary-100 flex items-center justify-center shrink-0">
-                            <Users size={16} className="text-primary-400" />
+                            <Users size={16} className="text-neutral-400" />
                           </div>
                         )}
                         <div>
                           <p className={cn(
                             'text-sm font-semibold',
-                            isSelected ? 'text-primary-800' : 'text-primary-700',
+                            isSelected ? 'text-primary-800' : 'text-neutral-700',
                           )}>
                             {collective.name}
                           </p>
                           {collective.region && (
-                            <p className="text-xs text-primary-400">{collective.region}, {collective.state}</p>
+                            <p className="text-xs text-neutral-400">{collective.region}, {collective.state}</p>
                           )}
                         </div>
                       </button>
@@ -460,7 +460,7 @@ export default function CreateUpdatePage() {
             </div>
 
             {/* Divider */}
-            <div className="border-t border-primary-100/60" />
+            <div className="border-t border-neutral-100" />
 
             {/* Pin toggle */}
             <button
@@ -472,7 +472,7 @@ export default function CreateUpdatePage() {
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 isPinned
                   ? 'bg-primary-50 ring-2 ring-primary-500 shadow-sm'
-                  : 'bg-primary-50/40 ring-1 ring-primary-100 hover:bg-primary-50 hover:ring-primary-200',
+                  : 'bg-neutral-50 ring-1 ring-neutral-200 hover:bg-neutral-100 hover:ring-neutral-300',
               )}
               aria-pressed={isPinned}
             >
@@ -487,13 +487,13 @@ export default function CreateUpdatePage() {
               <div className="text-left">
                 <p className={cn(
                   'text-sm font-semibold',
-                  isPinned ? 'text-primary-800' : 'text-primary-700',
+                  isPinned ? 'text-primary-800' : 'text-neutral-700',
                 )}>
                   Pin to top
                 </p>
                 <p className={cn(
                   'text-xs',
-                  isPinned ? 'text-primary-500' : 'text-primary-400',
+                  isPinned ? 'text-primary-500' : 'text-neutral-400',
                 )}>Stays at the top of the feed</p>
               </div>
             </button>
@@ -546,12 +546,7 @@ export default function CreateUpdatePage() {
           </h3>
 
           <div
-            className={cn(
-              'rounded-2xl shadow-md overflow-hidden',
-              priority === 'urgent'
-                ? 'bg-gradient-to-br from-white to-warning-50'
-                : 'bg-white',
-            )}
+            className="rounded-2xl shadow-md overflow-hidden bg-white"
           >
             {isPinned && (
               <div className="flex items-center gap-1 px-4 pt-3">
@@ -608,7 +603,7 @@ export default function CreateUpdatePage() {
               <div className="mt-3 text-sm text-primary-600 leading-relaxed whitespace-pre-wrap">
                 {content || 'Update content will appear here...'}
               </div>
-              <div className="flex items-center gap-2.5 mt-4 pt-3 border-t border-primary-100">
+              <div className="flex items-center gap-2.5 mt-4 pt-3 border-t border-neutral-100">
                 <Avatar
                   src={profile?.avatar_url}
                   name={profile?.display_name ?? 'Staff'}

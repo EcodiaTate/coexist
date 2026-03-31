@@ -41,6 +41,7 @@ import {
 } from '@/hooks/use-collective'
 import type { Database } from '@/types/database.types'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { PlaceAutocomplete } from '@/components/place-autocomplete'
 
 type CollectiveRole = Database['public']['Enums']['collective_role']
 
@@ -120,7 +121,7 @@ function EditCollectiveSheet({
           <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
             Cover Image
           </label>
-          <div className="mt-1.5 relative rounded-xl overflow-hidden bg-primary-50/50" style={{ aspectRatio: '16/9' }}>
+          <div className="mt-1.5 relative rounded-xl overflow-hidden bg-neutral-100" style={{ aspectRatio: '16/9' }}>
             {coverPreview ? (
               <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
             ) : (
@@ -198,10 +199,18 @@ function EditCollectiveSheet({
             <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
               Region
             </label>
-            <Input
+            <PlaceAutocomplete
               label="Region"
               value={region}
-              onChange={(e) => setRegion(e.target.value)}
+              onChange={(val, place) => {
+                setRegion(val)
+                if (place) {
+                  // Auto-fill state from geocoded result
+                  const stateMatch = place.short_name.split(',').pop()?.trim()
+                  const matched = AUSTRALIAN_STATES.find((s) => stateMatch?.includes(s))
+                  if (matched) setState(matched)
+                }
+              }}
               placeholder="e.g. Byron Bay"
               className="mt-1"
             />

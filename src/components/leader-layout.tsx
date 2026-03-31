@@ -8,11 +8,15 @@ import {
     Home,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
-import { useAuth } from '@/hooks/use-auth'
 import { useCollective } from '@/hooks/use-collective'
 import { useLayout } from '@/hooks/use-layout'
 import { BottomTabBar, type Tab } from '@/components/bottom-tab-bar'
 import { useMenuSheet } from '@/hooks/use-menu-sheet'
+import { Dropdown } from '@/components/dropdown'
+import {
+    LeaderCollectiveScopeContext,
+    useLeaderCollectiveScopeProvider,
+} from '@/hooks/use-leader-collective-scope'
 
 /* ------------------------------------------------------------------ */
 /*  Leader header context - lets child pages set title + actions       */
@@ -220,25 +224,28 @@ function LeaderBottomTabs() {
 
 export function LeaderLayout() {
   const location = useLocation()
-  const { collectiveRoles } = useAuth()
   const { navMode } = useLayout()
   const showBottomTabs = navMode === 'bottom-tabs'
   const [header, setHeaderState] = useState<LeaderHeaderState>({ title: '' })
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Get user's primary collective where they are leader
-  const collectiveId = useMemo(() => {
-    const membership = collectiveRoles.find(
-      (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
-    )
-    return membership?.collective_id
-  }, [collectiveRoles])
+  // Collective scope - managers see managed collectives, admins see all, leaders see own
+  const scopeCtx = useLeaderCollectiveScopeProvider()
+  const collectiveId = scopeCtx.selectedCollectiveId
 
   const { data: collectiveDetail } = useCollective(collectiveId)
   const collectiveSlug = collectiveDetail?.slug ?? collectiveId
   const collectiveNameRaw = collectiveDetail?.name ?? 'My Collective'
   // Strip trailing "Collective" - e.g. "Byron Bay Collective" → "Byron Bay"
   const _collectiveName = collectiveNameRaw.replace(/\s+Collective$/i, '')
+
+  // Build dropdown options for collective selector
+  const collectiveScopeOptions = useMemo(() => {
+    return scopeCtx.availableCollectives.map((c) => ({
+      value: c.id,
+      label: c.name.replace(/\s+Collective$/i, '') + (c.state ? ` (${c.state})` : ''),
+    }))
+  }, [scopeCtx.availableCollectives])
 
   // Scroll content to top on route change  instant to avoid fighting
   // with page transition animations
@@ -263,6 +270,7 @@ export function LeaderLayout() {
   const headerCtx = useMemo(() => ({ setHeader, collectiveId, collectiveSlug }), [setHeader, collectiveId, collectiveSlug])
 
   return (
+    <LeaderCollectiveScopeContext.Provider value={scopeCtx}>
     <LeaderHeaderContext.Provider value={headerCtx}>
       <div className="flex flex-1 min-h-0">
         {/* Desktop sidebar is handled by UnifiedSidebar in AppShell */}
@@ -274,6 +282,19 @@ export function LeaderLayout() {
           'flex-1 flex flex-col min-w-0 min-h-0 bg-surface-1',
           showBottomTabs && 'overflow-y-auto overscroll-none',
         )}>
+          {/* Collective scope selector — floating overlay, always accessible */}
+          {scopeCtx.showCollectiveSelector && collectiveScopeOptions.length > 1 && (
+            <div className="absolute top-[var(--safe-top,0px)] right-4 mt-3 z-40">
+              <Dropdown
+                options={collectiveScopeOptions}
+                value={scopeCtx.selectedCollectiveId ?? ''}
+                onChange={scopeCtx.setSelectedCollectiveId}
+                className="w-48 sm:w-56 shadow-lg"
+                tone="dark"
+              />
+            </div>
+          )}
+
           {/* Shared hero bar - only for non-fullBleed pages */}
           {!header.fullBleed && header.title ? (() => {
             const cfg = PAGE_HERO_CONFIG[header.title] ?? DEFAULT_HERO
@@ -349,5 +370,6 @@ export function LeaderLayout() {
         )}
       </div>
     </LeaderHeaderContext.Provider>
+    </LeaderCollectiveScopeContext.Provider>
   )
 }

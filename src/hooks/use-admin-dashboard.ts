@@ -1,6 +1,6 @@
 import { useQuery, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { IMPACT_SELECT_COLUMNS, sumMetric, computeEstimatedHours } from '@/lib/impact-metrics'
+import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 
 /* ------------------------------------------------------------------ */
 /*  Admin dashboard data hooks                                         */
@@ -67,7 +67,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
     supabase.from('collectives').select('id', { count: 'exact', head: true }),
     supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
     (() => {
-      let q = supabase.from('event_impact').select(`${IMPACT_SELECT_COLUMNS}, events(date_start, date_end)`).range(0, 9999)
+      let q = supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).range(0, 9999)
       if (rangeStart) q = q.gte('logged_at', rangeStart)
       return q
     })(),
@@ -87,17 +87,12 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
   ])
 
   const impact = (totalImpactRes.data ?? []) as unknown as Record<string, unknown>[]
-  // Flatten nested events for computeEstimatedHours
-  const impactWithEvents = impact.map((r) => ({
-    ...r,
-    events: r.events as { date_start: string; date_end: string | null } | null,
-  }))
   return {
     totalMembers: totalMembersRes.count ?? 0,
     totalCollectives: totalCollectivesRes.count ?? 0,
     totalEvents: totalEventsRes.count ?? 0,
     totalTrees: sumMetric(impact, 'trees_planted'),
-    totalHours: computeEstimatedHours(impactWithEvents),
+    totalHours: Math.round(sumMetric(impact, 'hours_total')),
     totalRubbish: Math.round(sumMetric(impact, 'rubbish_kg')),
     totalArea: Math.round(sumMetric(impact, 'area_restored_sqm')),
     totalNativePlants: sumMetric(impact, 'native_plants'),

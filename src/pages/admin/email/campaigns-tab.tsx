@@ -237,8 +237,8 @@ function CampaignComposer({
             className={cn(
               'flex-1 min-h-11 flex items-center justify-center text-sm font-medium rounded-lg transition-colors duration-150 capitalize cursor-pointer',
               step === s
-                ? 'bg-primary-50 shadow-sm text-primary-800'
-                : 'text-primary-400 hover:text-primary-600',
+                ? 'bg-primary-50 shadow-sm text-neutral-900'
+                : 'text-neutral-400 hover:text-neutral-600',
             )}
           >
             {s}
@@ -251,7 +251,7 @@ function CampaignComposer({
         <div className="space-y-4">
           {/* Template selection */}
           <div>
-            <label className="block text-xs font-medium text-primary-400 mb-1.5">
+            <label className="block text-xs font-medium text-neutral-400 mb-1.5">
               Email Template
             </label>
             <Dropdown
@@ -264,7 +264,7 @@ function CampaignComposer({
               placeholder="Choose a template..."
             />
             {!templates?.length && (
-              <p className="text-[11px] text-primary-400 mt-1">
+              <p className="text-[11px] text-neutral-400 mt-1">
                 No templates yet - create one in the Templates tab with AI
               </p>
             )}
@@ -286,12 +286,12 @@ function CampaignComposer({
 
           {/* Template field inputs */}
           {templateVars.length > 0 && (
-            <div className="rounded-xl bg-white border border-primary-200 shadow-sm p-4 space-y-3">
+            <div className="rounded-xl bg-white border border-neutral-100 shadow-sm p-4 space-y-3">
               <div className="flex items-center gap-2 mb-1">
                 <Edit3 size={14} className="text-primary-500" />
-                <h4 className="text-sm font-semibold text-primary-800">Fill in template fields</h4>
+                <h4 className="text-sm font-semibold text-neutral-900">Fill in template fields</h4>
               </div>
-              <p className="text-xs text-primary-400">
+              <p className="text-xs text-neutral-400">
                 These fields come from your template. Fill them in for this campaign.
               </p>
               {templateVars.map((varName) => (
@@ -310,7 +310,7 @@ function CampaignComposer({
           {bodyHtml && (
             <button
               onClick={() => setShowHtmlEditor(!showHtmlEditor)}
-              className="text-xs font-medium text-primary-400 hover:text-primary-600 transition-colors cursor-pointer flex items-center gap-1"
+              className="text-xs font-medium text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer flex items-center gap-1"
             >
               <Edit3 size={12} />
               {showHtmlEditor ? 'Hide' : 'Edit'} raw HTML
@@ -343,9 +343,9 @@ function CampaignComposer({
           {/* Preview with field values applied - sanitized via DOMPurify */}
           {bodyHtml && !showHtmlEditor && (
             <div>
-              <label className="block text-xs font-medium text-primary-400 mb-1.5">Preview</label>
+              <label className="block text-xs font-medium text-neutral-400 mb-1.5">Preview</label>
               <div
-                className="prose prose-sm max-w-none text-primary-800 rounded-xl bg-white p-4 border border-primary-200 shadow-sm max-h-80 overflow-y-auto"
+                className="prose prose-sm max-w-none text-neutral-900 rounded-xl bg-white p-4 border border-neutral-100 shadow-sm max-h-80 overflow-y-auto"
                 dangerouslySetInnerHTML={{ __html: sanitizedResolvedHtml }}
               />
             </div>
@@ -356,7 +356,7 @@ function CampaignComposer({
       {/* Step: Audience */}
       {step === 'audience' && (
         <div className="space-y-4">
-          <div className="rounded-xl bg-white shadow-sm border border-primary-100 p-4">
+          <div className="rounded-xl bg-white shadow-sm border border-neutral-100 p-4">
             <Toggle
               checked={targetAll}
               onChange={setTargetAll}
@@ -367,9 +367,9 @@ function CampaignComposer({
 
           {!targetAll && (
             <>
-              <div className="rounded-xl bg-white shadow-sm border border-primary-100 p-4">
-                <h4 className="text-sm font-semibold text-primary-800 mb-2">Filter by tags</h4>
-                <p className="text-xs text-primary-400 mb-3">
+              <div className="rounded-xl bg-white shadow-sm border border-neutral-100 p-4">
+                <h4 className="text-sm font-semibold text-neutral-900 mb-2">Filter by tags</h4>
+                <p className="text-xs text-neutral-400 mb-3">
                   Recipients who have ANY of these tags will receive the email
                 </p>
                 {tags?.length ? (
@@ -395,13 +395,13 @@ function CampaignComposer({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-primary-400 italic">No tags created yet</p>
+                  <p className="text-xs text-neutral-400 italic">No tags created yet</p>
                 )}
               </div>
 
-              <div className="rounded-xl bg-white shadow-sm border border-primary-100 p-4">
-                <h4 className="text-sm font-semibold text-primary-800 mb-2">Filter by collectives</h4>
-                <p className="text-xs text-primary-400 mb-3">
+              <div className="rounded-xl bg-white shadow-sm border border-neutral-100 p-4">
+                <h4 className="text-sm font-semibold text-neutral-900 mb-2">Filter by collectives</h4>
+                <p className="text-xs text-neutral-400 mb-3">
                   Members of selected collectives will receive the email
                 </p>
                 {collectives?.length ? (
@@ -412,7 +412,7 @@ function CampaignComposer({
                         onClick={() => toggleCollective(c.id)}
                         className={cn(
                           'inline-flex items-center rounded-full text-sm font-medium px-3.5 min-h-11 transition-colors duration-150 cursor-pointer',
-                          'bg-primary-100 text-primary-600',
+                          'bg-neutral-100 text-neutral-600',
                           selectedCollectiveIds.includes(c.id)
                             ? 'ring-2 ring-primary-500 ring-offset-1 shadow-sm'
                             : 'opacity-60 hover:opacity-100',
@@ -426,7 +426,7 @@ function CampaignComposer({
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-primary-400 italic">No collectives found</p>
+                  <p className="text-xs text-neutral-400 italic">No collectives found</p>
                 )}
               </div>
             </>
@@ -437,34 +437,34 @@ function CampaignComposer({
       {/* Step: Preview - all HTML sanitized via DOMPurify */}
       {step === 'preview' && (
         <div className="space-y-4">
-          <div className="rounded-xl bg-white shadow-sm border border-primary-100 overflow-hidden">
-            <div className="bg-primary-50/50 px-4 py-3 border-b border-primary-100/40">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400 mb-0.5">
+          <div className="rounded-xl bg-white shadow-sm border border-neutral-100 overflow-hidden">
+            <div className="bg-neutral-50 px-4 py-3 border-b border-neutral-100">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-0.5">
                 Subject
               </p>
-              <p className="text-sm font-medium text-primary-800">{subject || 'No subject set'}</p>
+              <p className="text-sm font-medium text-neutral-900">{subject || 'No subject set'}</p>
             </div>
-            <div className="px-4 py-3 border-b border-primary-100/40">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400 mb-0.5">
+            <div className="px-4 py-3 border-b border-neutral-100">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-0.5">
                 Audience
               </p>
-              <p className="text-sm text-primary-600">
+              <p className="text-sm text-neutral-600">
                 {targetAll
                   ? 'All opted-in subscribers'
                   : `${selectedTagIds.length} tag(s), ${selectedCollectiveIds.length} collective(s)`}
               </p>
             </div>
             <div className="p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400 mb-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-2">
                 Email Preview
               </p>
               {resolvedHtml ? (
                 <div
-                  className="prose prose-sm max-w-none text-primary-800 rounded-lg bg-primary-50/30 p-4 border border-primary-100/50"
+                  className="prose prose-sm max-w-none text-neutral-900 rounded-lg bg-neutral-50 p-4 border border-neutral-100"
                   dangerouslySetInnerHTML={{ __html: sanitizedCampaignBodyHtml }}
                 />
               ) : (
-                <p className="text-sm text-primary-400 italic">No content to preview</p>
+                <p className="text-sm text-neutral-400 italic">No content to preview</p>
               )}
             </div>
           </div>
@@ -535,14 +535,14 @@ function CampaignDetailSheet({
     <BottomSheet open={open} onClose={onClose} snapPoints={[0.75]}>
       <div className="space-y-4">
         <div>
-          <h2 className="font-heading text-lg font-semibold text-primary-800">{campaign.name}</h2>
-          <p className="text-sm text-primary-400 mt-0.5">{campaign.subject}</p>
+          <h2 className="font-heading text-lg font-semibold text-neutral-900">{campaign.name}</h2>
+          <p className="text-sm text-neutral-400 mt-0.5">{campaign.subject}</p>
         </div>
 
         <div className="flex items-center gap-2">
           <StatusBadge status={campaign.status} />
           {campaign.sent_at && (
-            <span className="text-xs text-primary-400">Sent {formatDateTime(campaign.sent_at)}</span>
+            <span className="text-xs text-neutral-400">Sent {formatDateTime(campaign.sent_at)}</span>
           )}
         </div>
 
@@ -556,12 +556,12 @@ function CampaignDetailSheet({
               { label: 'Bounced', value: `${campaign.total_bounced} (${rate(campaign.total_bounced)})`, icon: <XCircle size={12} /> },
               { label: 'Unsub\'d', value: `${campaign.total_unsubscribed} (${rate(campaign.total_unsubscribed)})`, icon: <AlertTriangle size={12} /> },
             ].map(({ label, value, icon }) => (
-              <div key={label} className="rounded-xl bg-primary-50/50 p-3">
+              <div key={label} className="rounded-xl bg-neutral-50 p-3">
                 <div className="flex items-center gap-1 mb-0.5">
-                  <span className="text-primary-400">{icon}</span>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400">{label}</p>
+                  <span className="text-neutral-400">{icon}</span>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{label}</p>
                 </div>
-                <p className="text-sm font-bold text-primary-800 tabular-nums">{value}</p>
+                <p className="text-sm font-bold text-neutral-900 tabular-nums">{value}</p>
               </div>
             ))}
           </div>
@@ -569,11 +569,11 @@ function CampaignDetailSheet({
 
         {sanitizedBodyHtml && (
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400 mb-2">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-2">
               Content Preview
             </p>
             <div
-              className="prose prose-sm max-w-none text-primary-800 rounded-lg bg-primary-50/30 p-4 border border-primary-100/50 max-h-60 overflow-y-auto"
+              className="prose prose-sm max-w-none text-neutral-900 rounded-lg bg-neutral-50 p-4 border border-neutral-100 max-h-60 overflow-y-auto"
               dangerouslySetInnerHTML={{ __html: sanitizedBodyHtml }}
             />
           </div>
@@ -716,16 +716,16 @@ export function CampaignsTab() {
           {filtered.map((campaign) => (
             <StaggeredItem
               key={campaign.id}
-              className="bg-white rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-sm transition-shadow"
             >
               <div className="flex items-start justify-between gap-3" onClick={() => setViewing(campaign)}>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="text-sm font-semibold text-primary-800 truncate">{campaign.name}</p>
+                    <p className="text-sm font-semibold text-neutral-900 truncate">{campaign.name}</p>
                     <StatusBadge status={campaign.status} />
                   </div>
-                  <p className="text-xs text-primary-400 truncate">{campaign.subject}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-primary-400">
+                  <p className="text-xs text-neutral-400 truncate">{campaign.subject}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-neutral-400">
                     {campaign.status === 'sent' && (
                       <>
                         <span className="flex items-center gap-1"><Users size={11} />{campaign.total_recipients}</span>
@@ -738,14 +738,14 @@ export function CampaignsTab() {
                 </div>
                 <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                   {campaign.status === 'draft' && (
-                    <button onClick={() => setEditing(campaign)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Edit">
+                    <button onClick={() => setEditing(campaign)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-neutral-400 hover:bg-neutral-50 hover:text-neutral-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Edit">
                       <Edit3 size={14} />
                     </button>
                   )}
-                  <button onClick={() => duplicateCampaign(campaign)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Duplicate">
+                  <button onClick={() => duplicateCampaign(campaign)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-neutral-400 hover:bg-neutral-50 hover:text-neutral-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Duplicate">
                     <Copy size={14} />
                   </button>
-                  <button onClick={() => setDeletingId(campaign.id)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-error-100 hover:text-error-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Delete">
+                  <button onClick={() => setDeletingId(campaign.id)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-neutral-400 hover:bg-error-100 hover:text-error-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Delete">
                     <Trash2 size={14} />
                   </button>
                 </div>

@@ -1,9 +1,9 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
     Camera,
-    MapPin,
     User, Shield,
     Heart,
     Sparkles,
@@ -26,6 +26,7 @@ import { useProfile, useUpdateProfile } from '@/hooks/use-profile'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { PlaceAutocomplete } from '@/components/place-autocomplete'
 
 const INTEREST_OPTIONS = [
   'Tree Planting',
@@ -107,6 +108,7 @@ export default function EditProfilePage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { profile: authProfile } = useAuth()
+  const queryClient = useQueryClient()
   const { data: profile, isLoading } = useProfile()
   const showLoading = useDelayedLoading(isLoading)
   const updateProfile = useUpdateProfile()
@@ -138,6 +140,7 @@ export default function EditProfilePage() {
   const [emergencyContactPhone, setEmergencyContactPhone] = useState('')
   const [emergencyContactRelationship, setEmergencyContactRelationship] = useState('')
 
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [initialized, setInitialized] = useState(false)
 
   // Initialize form with profile data
@@ -177,6 +180,14 @@ export default function EditProfilePage() {
     const result = await pickFromGallery()
     if (!result || !authProfile?.id) return
 
+    // Show preview immediately (optimistic) — both local state and query cache
+    const previewUrl = URL.createObjectURL(result.blob)
+    setAvatarPreview(previewUrl)
+    const previousProfile = queryClient.getQueryData(['profile', authProfile.id])
+    queryClient.setQueryData(['profile', authProfile.id], (old: Record<string, unknown> | undefined) =>
+      old ? { ...old, avatar_url: previewUrl } : old,
+    )
+
     try {
       const path = `${authProfile.id}/avatar.jpg`
       const uploaded = await upload(result.blob, path)
@@ -185,7 +196,12 @@ export default function EditProfilePage() {
 
       toast.success('Avatar updated!')
     } catch {
+      // Revert preview on failure
+      setAvatarPreview(null)
+      queryClient.setQueryData(['profile', authProfile.id], previousProfile)
       toast.error('Failed to upload avatar')
+    } finally {
+      URL.revokeObjectURL(previewUrl)
     }
   }
 
@@ -272,9 +288,9 @@ export default function EditProfilePage() {
 
             <div className="relative z-10 flex flex-col items-center">
               <div className="relative">
-                <div className="ring-4 ring-white/30 rounded-full">
+                <div className="ring-4 ring-white/30 rounded-full overflow-hidden flex items-center justify-center aspect-square w-24">
                   <Avatar
-                    src={profile?.avatar_url}
+                    src={avatarPreview ?? profile?.avatar_url}
                     name={displayName || 'User'}
                     size="xl"
                   />
@@ -415,13 +431,11 @@ export default function EditProfilePage() {
                 maxLength={30}
                 className={inputStyle}
               />
-              <Input
+              <PlaceAutocomplete
                 label="Location"
                 value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                onChange={(val) => setLocation(val)}
                 placeholder="e.g. Byron Bay, NSW"
-                icon={<MapPin size={16} />}
-                maxLength={100}
                 className={inputStyle}
               />
               <Input

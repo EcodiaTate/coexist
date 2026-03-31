@@ -58,13 +58,13 @@ const TINT_COLORS = {
 
 function DetailRow({ icon, label, value, tint = 'primary' }: { icon: ReactNode; label: string; value: string; tint?: keyof typeof TINT_COLORS }) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 border-b border-primary-50 last:border-b-0">
+    <div className="flex items-center gap-3 px-4 py-3 border-b border-neutral-100 last:border-b-0">
       <div className={cn('flex items-center justify-center w-7 h-7 rounded-lg shrink-0', TINT_COLORS[tint])}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-medium text-primary-400 uppercase tracking-wider">{label}</p>
-        <p className="text-sm font-semibold text-primary-800 truncate">{value}</p>
+        <p className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">{label}</p>
+        <p className="text-sm font-semibold text-neutral-900 truncate">{value}</p>
       </div>
     </div>
   )
@@ -118,22 +118,22 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
           <motion.div variants={fadeUp} className="flex flex-col items-center pt-2 pb-4">
             <Avatar src={profile.avatar_url} name={profile.display_name ?? ''} size="xl" />
 
-            <h2 className="mt-3 font-heading text-xl font-bold text-primary-800">
+            <h2 className="mt-3 font-heading text-xl font-bold text-neutral-900">
               {profile.display_name}
             </h2>
             {profile.pronouns && (
-              <span className="text-sm text-primary-400">{profile.pronouns}</span>
+              <span className="text-sm text-neutral-500">{profile.pronouns}</span>
             )}
 
             {profile.bio && (
-              <p className="mt-3 text-center text-sm text-primary-400 max-w-xs leading-relaxed">
+              <p className="mt-3 text-center text-sm text-neutral-500 max-w-xs leading-relaxed">
                 {profile.bio}
               </p>
             )}
 
             <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
               {profile.location && (
-                <span className="flex items-center gap-1 text-sm text-primary-400">
+                <span className="flex items-center gap-1 text-sm text-neutral-500">
                   <MapPin size={14} />
                   {profile.location}
                 </span>
@@ -143,7 +143,7 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
                   href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-sm text-primary-400 hover:text-primary-400 transition-colors min-h-11"
+                  className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-600 transition-colors min-h-11"
                 >
                   <Instagram size={14} />
                   {profile.instagram_handle.startsWith('@')
@@ -153,13 +153,13 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
               )}
             </div>
 
-            <p className="mt-2 text-xs text-primary-400">Member since {memberSince}</p>
+            <p className="mt-2 text-xs text-neutral-500">Member since {memberSince}</p>
           </motion.div>
 
           {/* Mutual Connections */}
           {mutualData && (mutualData.sharedCollectives.length > 0 || mutualData.sharedEventCount > 0) && (
             <motion.div variants={fadeUp} className="mt-2 rounded-xl bg-surface-0 shadow-sm px-4 py-3">
-              <div className="flex items-center gap-2 text-sm text-primary-400">
+              <div className="flex items-center gap-2 text-sm text-neutral-500">
                 <Users size={16} />
                 <div>
                   {mutualData.sharedCollectives.length > 0 && (
@@ -204,13 +204,13 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
           {/* Personal Details */}
           {hasDetails && (
             <motion.section variants={fadeUp} className="mt-6">
-              <h3 className="font-heading text-base font-semibold text-primary-800 mb-3 flex items-center gap-2">
+              <h3 className="font-heading text-base font-semibold text-neutral-900 mb-3 flex items-center gap-2">
                 <div className="flex items-center justify-center w-6 h-6 rounded-md bg-primary-600 text-white">
                   <User size={13} />
                 </div>
                 Details
               </h3>
-              <div className="rounded-2xl bg-white shadow-sm border border-primary-100 overflow-hidden">
+              <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 overflow-hidden">
                 {(profile.first_name || profile.last_name) && (
                   <DetailRow icon={<User size={14} />} label="Name" value={[profile.first_name, profile.last_name].filter(Boolean).join(' ')} tint="primary" />
                 )}
@@ -241,20 +241,20 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
           {/* Emergency Contact */}
           {profile.emergency_contact_name && (
             <motion.section variants={fadeUp} className="mt-5">
-              <h3 className="font-heading text-base font-semibold text-primary-800 mb-3 flex items-center gap-2">
+              <h3 className="font-heading text-base font-semibold text-neutral-900 mb-3 flex items-center gap-2">
                 <div className="flex items-center justify-center w-6 h-6 rounded-md bg-warning-600 text-white">
                   <Shield size={13} />
                 </div>
                 Emergency Contact
               </h3>
-              <div className="rounded-2xl overflow-hidden shadow-sm">
-                <div className="bg-gradient-to-r from-warning-100 via-warning-50 to-white p-4 border border-warning-200">
+              <div className="rounded-2xl overflow-hidden bg-white border border-neutral-100 shadow-sm">
+                <div className="p-4">
                   <div className="flex items-start gap-3">
-                    <div className="shrink-0 w-10 h-10 rounded-full bg-warning-500 flex items-center justify-center shadow-sm">
-                      <Heart size={18} className="text-white" />
+                    <div className="shrink-0 w-10 h-10 rounded-full bg-warning-50 flex items-center justify-center">
+                      <Heart size={18} className="text-warning-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-primary-800">
+                      <p className="text-sm font-bold text-neutral-900">
                         {profile.emergency_contact_name}
                       </p>
                       {profile.emergency_contact_relationship && (
@@ -276,7 +276,7 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
           {/* Collectives */}
           {collectives && collectives.length > 0 && (
             <motion.section variants={fadeUp} className="mt-6">
-              <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
+              <h3 className="font-heading text-base font-semibold text-neutral-900 mb-3">
                 Collectives
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -293,7 +293,7 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
           {/* Interests */}
           {profile.interests && profile.interests.length > 0 && (
             <motion.section variants={fadeUp} className="mt-6">
-              <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
+              <h3 className="font-heading text-base font-semibold text-neutral-900 mb-3">
                 Interests
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -310,7 +310,7 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
             if (!pos) return null
             return (
               <motion.section variants={fadeUp} className="mt-6">
-                <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
+                <h3 className="font-heading text-base font-semibold text-neutral-900 mb-3">
                   Location
                 </h3>
                 <MapView

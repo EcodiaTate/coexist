@@ -101,7 +101,7 @@ export function ProgressiveImage({
       {/* Error fallback */}
       {error && (
         <div className="absolute inset-0 flex items-center justify-center bg-white">
-          <span className="text-sm text-primary-400">Image unavailable</span>
+          <span className="text-sm text-neutral-500">Image unavailable</span>
         </div>
       )}
     </div>

@@ -31,10 +31,10 @@ export function StepNameHandle({ displayName, instagramHandle, onChange, onNext,
         initial="hidden"
         animate="visible"
       >
-        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800">
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-neutral-900">
           What should we call you?
         </motion.h2>
-        <motion.p variants={fadeUp} className="mt-2 text-primary-400">
+        <motion.p variants={fadeUp} className="mt-2 text-neutral-500">
           This is how you'll appear in your collective.
         </motion.p>
 

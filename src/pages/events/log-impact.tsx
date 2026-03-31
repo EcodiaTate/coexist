@@ -75,9 +75,13 @@ function SpeciesTracker({
 
   const updateCount = useCallback(
     (index: number, count: number) => {
-      const updated = [...species]
-      updated[index] = { ...updated[index], count: Math.max(0, count) }
-      onChange(updated)
+      if (count <= 0) {
+        onChange(species.filter((_, i) => i !== index))
+      } else {
+        const updated = [...species]
+        updated[index] = { ...updated[index], count }
+        onChange(updated)
+      }
     },
     [species, onChange],
   )
@@ -195,10 +199,10 @@ function PhotoUploadSection({
             <button
               type="button"
               onClick={() => onRemove(i)}
-              className="absolute top-1 right-1 min-w-11 min-h-11 rounded-full bg-black/50 text-white flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
+              className="absolute top-1 right-1 min-w-8 min-h-8 rounded-full bg-black/50 text-white flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
               aria-label={`Remove photo ${i + 1}`}
             >
-              <X size={10} />
+              <X size={14} />
             </button>
           </div>
         ))}
@@ -208,7 +212,7 @@ function PhotoUploadSection({
           onClick={onAdd}
           disabled={uploading}
           className={cn(
-            'shrink-0 w-20 h-20 min-h-11 min-w-11 rounded-xl bg-primary-50/60',
+            'shrink-0 w-20 h-20 min-h-11 min-w-11 rounded-xl bg-neutral-50',
             'flex flex-col items-center justify-center text-primary-400',
             'hover:bg-primary-100 hover:text-primary-500',
             'cursor-pointer select-none',
@@ -248,9 +252,9 @@ export default function LogImpactPage() {
   const { data: attendees } = useEventAttendees(eventId)
   const logImpact = useLogImpact()
   const { isAssistLeader, isLoading: roleLoading } = useCollectiveRole(event?.collective_id)
-  const isStaff = profile?.role === 'national_leader' || profile?.role === 'national_admin' || profile?.role === 'super_admin'
+  const isStaff = profile?.role === 'national_leader' || profile?.role === 'manager' || profile?.role === 'admin'
 
-  const { validKeys } = useImpactMetricDefs()
+  const { validKeys, isPlaceholderData: metricDefsPlaceholder } = useImpactMetricDefs()
 
   // Load admin-created survey for this event's activity type
   const { data: surveyData, isLoading: surveyLoading } = useEventSurvey(eventId, event?.activity_type)
@@ -285,6 +289,7 @@ export default function LogImpactPage() {
   }
 
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // 48h edit window enforcement
   const { isEditWindowExpired, hoursRemaining: editHoursRemaining } = useMemo(() => {
@@ -327,6 +332,43 @@ export default function LogImpactPage() {
   const eventPhotosUpload = useImageUpload({ bucket: 'event-images', pathPrefix: 'impact' })
   const beforeUpload = useImageUpload({ bucket: 'event-images', pathPrefix: 'before' })
   const afterUpload = useImageUpload({ bucket: 'event-images', pathPrefix: 'after' })
+
+  // Unsaved changes guard
+  const isDirty = useMemo(() => {
+    if (submitted) return false
+    return (
+      Object.keys(surveyAnswers).length > 0 ||
+      photos.length > 0 ||
+      beforePhotos.length > 0 ||
+      afterPhotos.length > 0 ||
+      species.length > 0 ||
+      notes.length > 0 ||
+      drawnArea !== null
+    )
+  }, [submitted, surveyAnswers, photos, beforePhotos, afterPhotos, species, notes, drawnArea])
+
+  // Browser/tab close guard
+  useEffect(() => {
+    if (!isDirty) return
+    const handler = (e: BeforeUnloadEvent) => { e.preventDefault() }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
+
+  // Back-button navigation guard (works without data router)
+  useEffect(() => {
+    if (!isDirty) return
+    const handlePopState = () => {
+      if (!window.confirm('You have unsaved impact data. Leave this page?')) {
+        // Push state back to cancel the navigation
+        window.history.pushState(null, '', window.location.href)
+      }
+    }
+    // Push a dummy state so we can intercept the back button
+    window.history.pushState(null, '', window.location.href)
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [isDirty])
 
   const handleAddPhoto = async (
     setter: React.Dispatch<React.SetStateAction<string[]>>,
@@ -390,7 +432,31 @@ export default function LogImpactPage() {
   const activityType = event?.activity_type
 
   const handleSubmit = useCallback(async () => {
-    if (!eventId || !user) return
+    if (!eventId || !user || isSubmitting) return
+    setIsSubmitting(true)
+
+    try {
+    // 0. Race condition guard: re-check if someone else submitted while we were filling out
+    if (!existingImpact) {
+      const { data: freshImpact } = await supabase
+        .from('event_impact')
+        .select('logged_by, logged_at, profiles:logged_by(display_name)')
+        .eq('event_id', eventId)
+        .maybeSingle()
+      if (freshImpact) {
+        const who = (freshImpact.profiles as unknown as { display_name: string } | null)?.display_name ?? 'Another leader'
+        const when = freshImpact.logged_at
+          ? new Date(freshImpact.logged_at).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
+          : 'just now'
+        const proceed = window.confirm(
+          `${who} already logged impact for this event (${when}). Do you want to overwrite their submission?`,
+        )
+        if (!proceed) {
+          setIsSubmitting(false)
+          return
+        }
+      }
+    }
 
     // 1. Save survey response + sync impact-tagged answers
     if (surveyData?.surveyId && surveyQuestions.length > 0) {
@@ -406,7 +472,9 @@ export default function LogImpactPage() {
           { onConflict: 'survey_responses_unique_response' },
         )
 
-      await syncSurveyImpact(eventId, surveyQuestions, surveyAnswers as Record<string, Json>, user.id, validKeys)
+      // Pass undefined for validKeys when metric defs are still placeholder data,
+      // so custom metrics aren't silently dropped before the real defs load.
+      await syncSurveyImpact(eventId, surveyQuestions, surveyAnswers as Record<string, Json>, user.id, metricDefsPlaceholder ? undefined : validKeys)
     }
 
     // 2. Save leader sections (hours, photos, species, GPS, notes)
@@ -461,7 +529,10 @@ export default function LogImpactPage() {
     queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
 
     setSubmitted(true)
-  }, [eventId, user, surveyData, surveyQuestions, surveyAnswers, species, photos, beforePhotos, afterPhotos, drawnArea, existingImpact, logImpact, computedHoursTotal, notes, queryClient, validKeys])
+    } finally {
+      setIsSubmitting(false)
+    }
+  }, [eventId, user, isSubmitting, existingImpact, surveyData, surveyQuestions, surveyAnswers, species, photos, beforePhotos, afterPhotos, drawnArea, logImpact, computedHoursTotal, notes, queryClient, validKeys, metricDefsPlaceholder])
 
   const isLoading = eventLoading || impactLoading || roleLoading || surveyLoading
   const showLoading = useDelayedLoading(isLoading)
@@ -526,7 +597,7 @@ export default function LogImpactPage() {
             Impact Logged!
           </h2>
           <p className="text-primary-400 mt-2 max-w-xs">
-            The impact has been distributed to all attendees' profiles. Thank you
+            Your event's conservation impact has been recorded. Thank you
             for making a difference.
           </p>
 
@@ -569,8 +640,8 @@ export default function LogImpactPage() {
           size="lg"
           fullWidth
           icon={<Save size={18} />}
-          loading={logImpact.isPending}
-          disabled={!canEdit}
+          loading={isSubmitting || logImpact.isPending}
+          disabled={!canEdit || isSubmitting}
           onClick={handleSubmit}
         >
           {existingImpact ? 'Update Impact' : 'Submit Impact'}
@@ -609,7 +680,7 @@ export default function LogImpactPage() {
         {/* Est. Volunteer Hours - duration × checked-in attendees */}
         <motion.div variants={fadeUp} className="space-y-3">
           <h3 className="text-sm font-semibold text-primary-800">
-            Est. Volunteer Hours
+            Total Volunteer Hours
           </h3>
 
           <div className="rounded-xl bg-white border border-primary-100/40 p-4 space-y-3">
@@ -642,7 +713,7 @@ export default function LogImpactPage() {
             </div>
 
             {/* Calculation breakdown */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50/60 text-sm">
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-50 text-sm">
               <span className="font-semibold text-primary-700">
                 {eventDurationHours || '0'} hrs
               </span>
@@ -652,7 +723,7 @@ export default function LogImpactPage() {
               </span>
               <span className="text-primary-400">=</span>
               <span className="font-bold text-primary-800">
-                {computedHoursTotal} est. volunteer hours
+                {computedHoursTotal} total volunteer hours
               </span>
             </div>
 
@@ -685,11 +756,11 @@ export default function LogImpactPage() {
           </motion.div>
         )}
 
-        {/* No survey fallback info */}
+        {/* No survey fallback — leader sections (hours, photos, GPS, notes) still work */}
         {!surveyLoading && surveyQuestions.length === 0 && (
-          <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50/60 text-primary-500 text-sm">
+          <motion.div variants={fadeUp} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-50 text-neutral-500 text-sm">
             <ClipboardList size={16} />
-            No impact survey configured for this event type. Ask an admin to create one under Surveys.
+            No custom impact questions for this event type — fill in the sections below to log your impact.
           </motion.div>
         )}
 
@@ -746,9 +817,7 @@ export default function LogImpactPage() {
           </div>
           <Suspense
             fallback={
-              <div className="aspect-[16/10] rounded-lg bg-white animate-pulse flex items-center justify-center text-primary-400">
-                <span className="text-sm">Loading map...</span>
-              </div>
+              <Skeleton className="aspect-[16/10] rounded-lg" />
             }
           >
             <MapView

@@ -91,7 +91,7 @@ export function ExploreMapView({
             'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
             activeFilterCount > 0
               ? 'bg-primary-50 text-primary-600 shadow-sm'
-              : 'bg-primary-50/60 text-primary-400',
+              : 'bg-neutral-50 text-neutral-400',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
           )}
           aria-label={`Filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}

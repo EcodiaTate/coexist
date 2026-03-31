@@ -22,7 +22,7 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
   processing: { label: 'Processing', color: 'bg-info-100 text-info-800' },
   shipped: { label: 'Shipped', color: 'bg-plum-100 text-plum-800' },
   delivered: { label: 'Delivered', color: 'bg-success-100 text-success-800' },
-  cancelled: { label: 'Cancelled', color: 'bg-white text-primary-400' },
+  cancelled: { label: 'Cancelled', color: 'bg-white text-neutral-500' },
   refunded: { label: 'Refunded', color: 'bg-error-100 text-error-700' },
 }
 
@@ -81,12 +81,12 @@ export default function OrdersPage() {
                   onClick={() => navigate(`/shop/orders/${order.id}`)}
                   className={cn(
                     'w-full text-left p-4 rounded-2xl bg-white',
-                    'shadow-sm',
+                    'shadow-sm border border-neutral-100',
                     'hover:shadow-md transition-shadow duration-150 cursor-pointer',
                   )}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-primary-400 font-mono">
+                    <span className="text-xs text-neutral-500 font-mono">
                       #{order.id.slice(0, 8)}
                     </span>
                     <span
@@ -111,25 +111,25 @@ export default function OrdersPage() {
                         />
                       ))}
                       {order.items.length > 3 && (
-                        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-white border-2 border-white text-xs font-medium text-primary-400">
+                        <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-white border-2 border-white text-xs font-medium text-neutral-500">
                           +{order.items.length - 3}
                         </span>
                       )}
                     </div>
-                    <span className="text-sm text-primary-400">
+                    <span className="text-sm text-neutral-500">
                       {order.items.length} item{order.items.length > 1 ? 's' : ''}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-primary-400">
+                    <span className="text-xs text-neutral-500">
                       {formatDate(order.created_at)}
                     </span>
                     <div className="flex items-center gap-1">
-                      <span className="font-heading font-bold text-sm text-primary-800">
+                      <span className="font-heading font-bold text-sm text-neutral-900">
                         {formatPrice(order.total_cents ?? 0)}
                       </span>
-                      <ChevronRight size={16} className="text-primary-400" />
+                      <ChevronRight size={16} className="text-neutral-400" />
                     </div>
                   </div>
                 </motion.button>

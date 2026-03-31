@@ -27,13 +27,13 @@ function SortableModuleItem({ item, onToggleRequired, onRemove }: { item: Module
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item._key })
   const style = { transform: CSS.Transform.toString(transform), transition }
   return (
-    <div ref={setNodeRef} style={style} className={cn('group flex items-center gap-3 rounded-2xl bg-white p-3.5 shadow-sm transition-shadow', isDragging && 'shadow-lg ring-2 ring-primary-300/50 z-10')}>
-      <button type="button" className="cursor-grab touch-none text-primary-300 hover:text-primary-500 active:cursor-grabbing" {...attributes} {...listeners}><GripVertical size={18} /></button>
+    <div ref={setNodeRef} style={style} className={cn('group flex items-center gap-3 rounded-2xl bg-white p-3.5 shadow-sm transition-shadow', isDragging && 'shadow-lg ring-2 ring-neutral-300/50 z-10')}>
+      <button type="button" className="cursor-grab touch-none text-neutral-300 hover:text-neutral-500 active:cursor-grabbing" {...attributes} {...listeners}><GripVertical size={18} /></button>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-bold text-primary-800 truncate">{item.module.title}</p>
-        <span className="flex items-center gap-0.5 text-[11px] text-primary-400"><Clock size={10} />{item.module.estimated_minutes}m</span>
+        <p className="text-[13px] font-bold text-neutral-900 truncate">{item.module.title}</p>
+        <span className="flex items-center gap-0.5 text-[11px] text-neutral-400"><Clock size={10} />{item.module.estimated_minutes}m</span>
       </div>
-      <button type="button" onClick={onToggleRequired} className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors', item.is_required ? 'bg-moss-100 text-moss-700' : 'bg-primary-50 text-primary-400')}>
+      <button type="button" onClick={onToggleRequired} className={cn('inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors', item.is_required ? 'bg-moss-100 text-moss-700' : 'bg-neutral-50 text-neutral-400')}>
         {item.is_required && <Check size={10} />}
         {item.is_required ? 'Required' : 'Optional'}
       </button>
@@ -91,10 +91,10 @@ export default function AdminEditSectionPage() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="max-w-3xl mx-auto space-y-6">
-      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6 space-y-4">
+      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5 sm:p-6 space-y-4">
         <div className="flex items-center gap-2.5 mb-1">
           <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-secondary-500 to-secondary-700 shadow-lg shadow-secondary-600/20"><Layers size={16} className="text-white" /></div>
-          <h2 className="font-heading text-base font-bold text-primary-800">Section Details</h2>
+          <h2 className="font-heading text-base font-bold text-neutral-900">Section Details</h2>
         </div>
         <Input label="Title" value={title} onChange={(e) => setTitle(e.target.value)} required />
         <Input type="textarea" label="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
@@ -107,14 +107,14 @@ export default function AdminEditSectionPage() {
 
       <motion.div variants={fadeUp}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest">Modules</h2>
+          <h2 className="font-heading text-[13px] font-bold text-neutral-700/60 uppercase tracking-widest">Modules</h2>
           <Button variant="secondary" size="sm" icon={<Plus size={14} />} onClick={() => setShowPicker(!showPicker)}>Add</Button>
         </div>
         {showPicker && (
-          <div className="rounded-2xl bg-white shadow-md p-4 mb-4 max-h-60 overflow-y-auto space-y-1.5">
+          <div className="rounded-2xl bg-white shadow-sm p-4 mb-4 max-h-60 overflow-y-auto space-y-1.5">
             {allModules.filter((m) => m.status === 'published' && !selectedIds.has(m.id)).map((m) => (
-              <button key={m.id} type="button" onClick={() => setModuleItems((prev) => [...prev, { _key: `sm-${Date.now()}-${m.id}`, module: m, is_required: true }])} className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-primary-50 text-left transition-colors">
-                <span className="text-[13px] text-primary-800 truncate flex-1 font-semibold">{m.title}</span><Plus size={14} className="text-primary-400" />
+              <button key={m.id} type="button" onClick={() => setModuleItems((prev) => [...prev, { _key: `sm-${Date.now()}-${m.id}`, module: m, is_required: true }])} className="w-full flex items-center gap-3 p-2.5 rounded-xl hover:bg-neutral-50 text-left transition-colors">
+                <span className="text-[13px] text-neutral-900 truncate flex-1 font-semibold">{m.title}</span><Plus size={14} className="text-neutral-400" />
               </button>
             ))}
           </div>
@@ -126,8 +126,8 @@ export default function AdminEditSectionPage() {
         </DndContext>
       </motion.div>
 
-      <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-6 -mb-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-t border-primary-100/60 flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold text-primary-400">{moduleItems.length} module{moduleItems.length !== 1 ? 's' : ''}</p>
+      <motion.div variants={fadeUp} className="sticky bottom-0 z-20 -mx-6 -mb-6 px-6 py-3 bg-white/95 backdrop-blur-sm border-t border-neutral-100 flex items-center justify-between gap-3">
+        <p className="text-[11px] font-semibold text-neutral-400">{moduleItems.length} module{moduleItems.length !== 1 ? 's' : ''}</p>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => navigate('/admin/development')}>Cancel</Button>
           <Button variant="secondary" size="sm" icon={<Save size={14} />} onClick={() => handleSave('draft')} loading={isSaving}>Save Draft</Button>

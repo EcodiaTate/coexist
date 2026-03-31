@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import {
-  CalendarDays,
+  Compass,
   BarChart3,
   Shield,
   ShoppingBag,
@@ -24,7 +24,7 @@ const mainCategories: SidebarNavCategory[] = [
     items: [
       { label: 'Home', path: '/', icon: <Home size={17} strokeWidth={1.5} />, desktopOnly: true },
       { label: 'Updates', path: '/updates', icon: <Megaphone size={17} strokeWidth={1.5} /> },
-      { label: 'Events', path: '/events', icon: <CalendarDays size={17} strokeWidth={1.5} /> },
+      { label: 'Explore', path: '/explore', icon: <Compass size={17} strokeWidth={1.5} /> },
       { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true },
       { label: 'Notifications', path: '/notifications', icon: <Bell size={17} strokeWidth={1.5} /> },
     ],
@@ -76,7 +76,7 @@ export function SidebarNav({ className }: SidebarNavProps) {
       layoutId="sidebar-active"
       className={className}
       footer={(collapsed) => (
-        <div className="p-2.5 border-t border-primary-100/40">
+        <div className="p-2.5 border-t border-neutral-100">
           <Link
             to="/profile"
             className={cn(

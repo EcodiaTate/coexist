@@ -254,3 +254,56 @@ export function useUserResolvedCapabilities(userId: string | undefined) {
     staleTime: 30 * 1000,
   })
 }
+
+/* ------------------------------------------------------------------ */
+/*  useUserManagedCollectives — which collectives a manager oversees   */
+/* ------------------------------------------------------------------ */
+
+export function useUserManagedCollectives(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['admin-user-managed-collectives', userId],
+    queryFn: async () => {
+      if (!userId) return [] as string[]
+      const { data, error } = await supabase
+        .from('staff_roles')
+        .select('managed_collectives')
+        .eq('user_id', userId)
+        .maybeSingle()
+      if (error) return []
+      return ((data as Record<string, unknown>)?.managed_collectives ?? []) as string[]
+    },
+    enabled: !!userId,
+    staleTime: 30 * 1000,
+  })
+}
+
+/* ------------------------------------------------------------------ */
+/*  useAdminUpdateManagedCollectives — set which collectives a manager */
+/*  is responsible for                                                 */
+/* ------------------------------------------------------------------ */
+
+export function useAdminUpdateManagedCollectives() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      collectiveIds,
+    }: {
+      userId: string
+      collectiveIds: string[]
+    }) => {
+      const { error } = await supabase
+        .from('staff_roles')
+        .upsert(
+          { user_id: userId, managed_collectives: collectiveIds } as Record<string, unknown>,
+          { onConflict: 'user_id' },
+        )
+      if (error) throw error
+      await logAudit({ action: 'role_changed', target_type: 'user', target_id: userId, details: { managed_collectives: collectiveIds } })
+    },
+    onSettled: (_data, _err, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-user-managed-collectives', variables.userId] })
+      queryClient.invalidateQueries({ queryKey: ['staff-permissions'] })
+    },
+  })
+}

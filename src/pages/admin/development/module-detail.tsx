@@ -49,7 +49,7 @@ export default function AdminModuleDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg mb-4"><BookOpen size={24} strokeWidth={1.5} className="text-white" /></div>
-        <p className="text-[15px] font-bold text-primary-700">Module not found</p>
+        <p className="text-[15px] font-bold text-neutral-700">Module not found</p>
         <Button variant="ghost" size="sm" onClick={() => navigate('/admin/development')} className="mt-3">Back to Development</Button>
       </div>
     )
@@ -57,7 +57,7 @@ export default function AdminModuleDetailPage() {
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible" className="max-w-3xl mx-auto space-y-6">
-      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-md p-5 sm:p-6">
+      <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5 sm:p-6">
         <div className="flex items-start gap-4">
           {module.thumbnail_url ? (
             <img src={module.thumbnail_url} alt="" className="w-20 h-20 rounded-xl object-cover shrink-0" />

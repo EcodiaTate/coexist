@@ -1,5 +1,5 @@
 import {
-  CalendarDays,
+  Compass,
   ShoppingBag,
   Heart,
   Megaphone,
@@ -20,12 +20,12 @@ export const memberNavCategories: NavCategory[] = [
   {
     label: 'Browse',
     sectionHeader: 'Member',
-    sectionBorderColor: 'border-primary-400',
+    sectionBorderColor: 'border-neutral-200',
     labelColor: 'text-primary-400',
     dotColor: 'bg-primary-400',
     items: [
       { label: 'Updates', path: '/updates', icon: icon(Megaphone) },
-      { label: 'Events', path: '/events', icon: icon(CalendarDays) },
+      { label: 'Explore', path: '/explore', icon: icon(Compass) },
       { label: 'Chat', path: '/chat', icon: icon(MessageCircle), desktopOnly: true },
     ],
   },

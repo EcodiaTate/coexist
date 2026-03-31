@@ -45,7 +45,6 @@ export function StepProfilePhoto({ avatarUrl, onUpload, onNext, onSkip }: StepPr
       // error state is managed by the hook
     }
 
-    // Reset the input so re-selecting the same file triggers onChange
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -57,10 +56,10 @@ export function StepProfilePhoto({ avatarUrl, onUpload, onNext, onSkip }: StepPr
         initial="hidden"
         animate="visible"
       >
-        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800 text-center">
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-neutral-900 text-center">
           Add a profile photo
         </motion.h2>
-        <motion.p variants={fadeUp} className="mt-2 text-primary-400 text-center max-w-xs">
+        <motion.p variants={fadeUp} className="mt-2 text-neutral-500 text-center max-w-xs">
           Show your collective who you are. You can always change this later.
         </motion.p>
 
@@ -71,18 +70,18 @@ export function StepProfilePhoto({ avatarUrl, onUpload, onNext, onSkip }: StepPr
           whileTap={shouldReduceMotion ? undefined : { scale: 0.95 }}
           className={cn(
             'relative mt-10 rounded-full cursor-pointer',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-4',
+            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-4',
           )}
           aria-label="Upload profile photo"
         >
           {avatarUrl ? (
             <Avatar src={avatarUrl} name="You" size="xl" />
           ) : (
-            <div className="w-28 h-28 rounded-full bg-primary-100 flex items-center justify-center">
-              <Camera className="w-10 h-10 text-primary-400" />
+            <div className="w-28 h-28 rounded-full bg-neutral-50 border border-neutral-100 flex items-center justify-center">
+              <Camera className="w-10 h-10 text-neutral-400" />
             </div>
           )}
-          <span className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-primary-800 flex items-center justify-center shadow-md">
+          <span className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-neutral-900 flex items-center justify-center shadow-sm">
             <Upload size={14} className="text-white" />
           </span>
         </motion.button>

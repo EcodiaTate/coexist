@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { PartyPopper, Leaf, ArrowRight } from 'lucide-react'
+import { PartyPopper, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/button'
 import { APP_NAME } from '@/lib/constants'
 
@@ -20,7 +20,7 @@ interface StepCelebrationProps {
 
 // Confetti particle component
 function ConfettiParticle({ index }: { index: number }) {
-  const colors = ['text-primary-400', 'text-primary-400', 'text-primary-400', 'text-success', 'text-primary-300']
+  const colors = ['text-neutral-400', 'text-neutral-300', 'text-neutral-500', 'text-success', 'text-neutral-200']
   const color = colors[index % colors.length]
   const [rand] = useState(() => ({
     left: `${10 + Math.random() * 80}%`,
@@ -83,33 +83,31 @@ export function StepCelebration({ onContinue }: StepCelebrationProps) {
           visible: { scale: 1, opacity: 1, transition: { type: 'spring', stiffness: 200, damping: 15 } },
         }}
       >
-        <div className="w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center">
-          <PartyPopper className="w-12 h-12 text-primary-400" />
+        <div className="w-24 h-24 rounded-full bg-neutral-50 flex items-center justify-center">
+          <PartyPopper className="w-12 h-12 text-neutral-400" />
         </div>
       </motion.div>
 
       <motion.h1
         variants={fadeUp}
-        className="mt-8 font-heading text-3xl font-bold text-primary-800 text-center"
+        className="mt-8 font-heading text-3xl font-bold text-neutral-900 text-center"
       >
         You're all set!
       </motion.h1>
 
       <motion.p
         variants={fadeUp}
-        className="mt-3 text-primary-400 text-center max-w-xs leading-relaxed"
+        className="mt-3 text-neutral-500 text-center max-w-xs leading-relaxed"
       >
         Welcome to {APP_NAME}. You're now part of a movement protecting Australia's environment.
       </motion.p>
 
-      <motion.div
+      <motion.p
         variants={fadeUp}
-        className="mt-4 flex items-center gap-2 text-primary-400"
+        className="mt-4 text-sm font-medium text-neutral-400"
       >
-        <Leaf size={16} />
-        <span className="text-sm font-medium">Explore. Connect. Protect.</span>
-        <Leaf size={16} />
-      </motion.div>
+        Explore. Connect. Protect.
+      </motion.p>
 
       <motion.div
         variants={fadeUp}

@@ -10,6 +10,7 @@ import {
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
 import { useCheckIn } from '@/hooks/use-events'
+import { useTicketCheckIn } from '@/hooks/use-event-tickets'
 import { useOffline } from '@/hooks/use-offline'
 import { queueOfflineCheckIn } from '@/lib/offline-sync'
 import { supabase } from '@/lib/supabase'
@@ -60,6 +61,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
   const { isOffline } = useOffline()
   const { data: profileData } = useProfile()
   const checkInMutation = useCheckIn()
+  const ticketCheckIn = useTicketCheckIn()
 
   const needsDetails = profileData && !profileData.profile_details_completed
   const [step, setStep] = useState<Step>('checkin')
@@ -150,6 +152,28 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
     handleCheckIn(scannedEventId)
   }, [handleCheckIn])
 
+  // Ticket QR code scanned — check in via ticket code
+  const handleTicketScan = useCallback((ticketCode: string) => {
+    ticketCheckIn.mutate(
+      { ticketCode, eventId },
+      {
+        onSuccess: () => {
+          setStep('success')
+          setTimeout(() => setShowCelebration(true), 600)
+        },
+        onError: (err) => {
+          const msg = err instanceof Error ? err.message : ''
+          if (msg.includes('Already checked in')) {
+            setErrorKind('already_checked_in')
+          } else {
+            setErrorKind('generic')
+          }
+          setStep('error')
+        },
+      },
+    )
+  }, [ticketCheckIn, eventId])
+
   const handleInvalidQr = useCallback(() => {
     setErrorKind('invalid_qr')
     setStep('error')
@@ -230,6 +254,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                 onCameraError={handleCameraError}
                 onCancel={handleScanCancel}
                 onNativeScannerActive={setNativeScannerActive}
+                onTicketScan={handleTicketScan}
               />
               <div className="w-full space-y-2 mt-4">
                 <Button variant="secondary" fullWidth onClick={() => setStep('checkin')}>

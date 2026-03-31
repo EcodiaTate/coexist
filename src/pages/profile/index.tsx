@@ -22,6 +22,7 @@ import {
     Accessibility,
     Leaf,
     Waves,
+    Ticket,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Avatar } from '@/components/avatar'
@@ -34,7 +35,8 @@ import { EmptyState } from '@/components/empty-state'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile, useProfileCollectives, useProfileStats } from '@/hooks/use-profile'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
-import { useCountUp } from '@/components/stat-card'
+import { BentoStatCard, BentoStatGrid, bentoMixedTheme } from '@/components/bento-stats'
+import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
@@ -51,44 +53,10 @@ const fadeUp: Variants = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Colourful stat pill                                                */
+/*  Flat white stat pill                                               */
 /* ------------------------------------------------------------------ */
 
-const statColours = [
-  { bg: 'bg-primary-600', icon: 'text-primary-200', val: 'text-white', label: 'text-primary-200' },
-  { bg: 'bg-moss-600', icon: 'text-moss-200', val: 'text-white', label: 'text-moss-200' },
-  { bg: 'bg-sprout-600', icon: 'text-sprout-200', val: 'text-white', label: 'text-sprout-200' },
-  { bg: 'bg-sky-600', icon: 'text-sky-200', val: 'text-white', label: 'text-sky-200' },
-  { bg: 'bg-bark-600', icon: 'text-bark-200', val: 'text-white', label: 'text-bark-200' },
-  { bg: 'bg-plum-600', icon: 'text-plum-200', val: 'text-white', label: 'text-plum-200' },
-  { bg: 'bg-coral-600', icon: 'text-coral-200', val: 'text-white', label: 'text-coral-200' },
-  { bg: 'bg-moss-700', icon: 'text-moss-200', val: 'text-white', label: 'text-moss-200' },
-]
-
-function ColouredStat({ value, label, icon, index }: { value: number; label: string; icon: React.ReactNode; index: number }) {
-  const shouldReduceMotion = useReducedMotion()
-  const c = statColours[index % statColours.length]
-  const display = useCountUp(value, 1200, !shouldReduceMotion)
-
-  return (
-    <motion.div
-      initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 300, damping: 25 }}
-      className={`rounded-2xl ${c.bg} p-3.5 shadow-md`}
-    >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className={`font-heading text-2xl font-bold tabular-nums ${c.val}`}>
-            {display.toLocaleString()}
-          </p>
-          <p className={`text-xs font-medium mt-0.5 ${c.label}`}>{label}</p>
-        </div>
-        <span className={`${c.icon} opacity-80`}>{icon}</span>
-      </div>
-    </motion.div>
-  )
-}
+/* (Stats now use BentoStatCard / BentoStatGrid from bento-stats.tsx) */
 
 /* ------------------------------------------------------------------ */
 /*  Detail row                                                         */
@@ -105,8 +73,8 @@ const detailTints = {
 function DetailRow({ icon, label, value, tint = 'primary' }: { icon: React.ReactNode; label: string; value: string; tint?: keyof typeof detailTints }) {
   const t = detailTints[tint]
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 border-l-4 ${t.stripe}`}>
-      <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${t.iconBg} ${t.iconText}`}>
+    <div className={cn('flex items-center gap-3 px-4 py-3 border-l-4', t.stripe)}>
+      <div className={cn('shrink-0 w-8 h-8 rounded-lg flex items-center justify-center', t.iconBg, t.iconText)}>
         {icon}
       </div>
       <div className="flex-1 min-w-0">
@@ -126,7 +94,7 @@ function SectionHeading({ icon, iconBg, title, action }: { icon?: React.ReactNod
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-2.5">
         {icon && (
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${iconBg ?? 'bg-primary-500'} text-white`}>
+          <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center text-white', iconBg ?? 'bg-primary-500')}>
             {icon}
           </div>
         )}
@@ -229,15 +197,10 @@ export default function ProfilePage() {
       {/* Hero banner */}
       <div className="-mx-4 lg:-mx-6">
         <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-moss-600 pb-20 pt-8">
-          {/* Decorative shapes - bolder */}
+          {/* Decorative shapes - kept minimal */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-moss-400/15" />
-            <div className="absolute top-6 -left-12 w-40 h-40 rounded-full bg-sprout-400/10" />
             <div className="absolute -bottom-16 right-8 w-48 h-48 rounded-full bg-sky-400/10" />
-            <div className="absolute top-1/2 left-1/3 w-24 h-24 rounded-full border-2 border-white/10" />
-            <div className="absolute top-4 right-[20%] w-3 h-3 rounded-full bg-sprout-300/30" />
-            <div className="absolute bottom-10 left-[15%] w-2 h-2 rounded-full bg-moss-300/25" />
-            <div className="absolute top-[40%] right-4 w-1.5 h-1.5 rounded-full bg-white/20" />
           </div>
 
           {/* Settings button */}
@@ -259,7 +222,7 @@ export default function ProfilePage() {
             animate="visible"
           >
             <div className="rounded-full p-1 bg-gradient-to-br from-sprout-300/50 to-moss-300/50 shadow-xl">
-              <div className="rounded-full ring-3 ring-white/40">
+              <div className="rounded-full ring-3 ring-white/40 overflow-hidden flex items-center justify-center aspect-square w-24">
                 <Avatar
                   src={profile.avatar_url}
                   name={profile.display_name ?? ''}
@@ -319,6 +282,15 @@ export default function ProfilePage() {
           <Button
             variant="secondary"
             size="sm"
+            icon={<Ticket size={15} />}
+            onClick={() => navigate('/profile/tickets')}
+            className="shadow-lg bg-white !text-primary-700 hover:!bg-primary-50 border border-primary-200"
+          >
+            Tickets
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
             icon={<Settings size={15} />}
             onClick={() => navigate('/settings')}
             className="shadow-lg bg-primary-700 !text-white hover:!bg-primary-800 border-0"
@@ -336,7 +308,7 @@ export default function ProfilePage() {
           animate="visible"
           className="mt-6 mx-auto max-w-sm"
         >
-          <div className="rounded-2xl bg-gradient-to-br from-primary-100 to-moss-100 border border-primary-200/60 px-5 py-4 text-center shadow-sm">
+          <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm px-5 py-4 text-center">
             <p className="text-sm text-primary-700 leading-relaxed italic">
               &ldquo;{profile.bio}&rdquo;
             </p>
@@ -352,14 +324,13 @@ export default function ProfilePage() {
         animate="visible"
       >
 
-        {/* Colourful Stats */}
-        <motion.div
-          variants={fadeUp}
-          className="grid grid-cols-2 sm:grid-cols-3 gap-2.5"
-        >
-          {allStats.map((s, i) => (
-            <ColouredStat key={s.label} value={s.value} label={s.label} icon={s.icon} index={i} />
-          ))}
+        {/* Bento Impact Stats */}
+        <motion.div variants={fadeUp}>
+          <BentoStatGrid>
+            {allStats.map((s, i) => (
+              <BentoStatCard key={s.label} value={s.value} label={s.label} icon={s.icon} theme={bentoMixedTheme(i)} />
+            ))}
+          </BentoStatGrid>
         </motion.div>
 
         {/* Personal Details */}
@@ -371,13 +342,13 @@ export default function ProfilePage() {
             action={
               <button
                 onClick={() => navigate('/profile/edit')}
-                className="flex items-center gap-1 text-xs font-bold text-primary-600 bg-primary-100 hover:bg-primary-200 px-3 min-h-9 rounded-full active:scale-[0.95] transition-[colors,transform] duration-150 cursor-pointer"
+                className="flex items-center gap-1 text-xs font-bold text-neutral-600 bg-neutral-100 hover:bg-neutral-200 px-3 min-h-9 rounded-full active:scale-[0.95] transition-[colors,transform] duration-150 cursor-pointer"
               >
                 Edit <ChevronRight size={13} />
               </button>
             }
           />
-          <div className="rounded-2xl bg-white shadow-md border border-primary-100 overflow-hidden">
+          <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 overflow-hidden">
             {hasDetails ? (
               <>
                 {(profile.first_name || profile.last_name) && (
@@ -405,12 +376,12 @@ export default function ProfilePage() {
                 )}
               </>
             ) : (
-              <div className="px-4 py-6 text-center bg-gradient-to-br from-primary-50 to-moss-50">
-                <div className="w-12 h-12 rounded-full bg-primary-200 flex items-center justify-center mx-auto mb-3">
-                  <User size={20} className="text-primary-600" />
+              <div className="px-4 py-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-neutral-100 flex items-center justify-center mx-auto mb-3">
+                  <User size={20} className="text-neutral-500" />
                 </div>
-                <p className="text-sm text-primary-700 font-semibold">No details added yet</p>
-                <p className="text-xs text-primary-500 mt-0.5">Help event leaders know who you are</p>
+                <p className="text-sm text-neutral-800 font-semibold">No details added yet</p>
+                <p className="text-xs text-neutral-500 mt-0.5">Help event leaders know who you are</p>
                 <Button
                   variant="primary"
                   size="sm"
@@ -434,26 +405,26 @@ export default function ProfilePage() {
               profile.emergency_contact_name ? (
                 <button
                   onClick={() => navigate('/profile/edit')}
-                  className="flex items-center gap-1 text-xs font-bold text-warning-700 bg-warning-100 hover:bg-warning-200 px-3 min-h-9 rounded-full active:scale-[0.95] transition-[colors,transform] duration-150 cursor-pointer"
+                  className="flex items-center gap-1 text-xs font-bold text-neutral-600 bg-neutral-100 hover:bg-neutral-200 px-3 min-h-9 rounded-full active:scale-[0.95] transition-[colors,transform] duration-150 cursor-pointer"
                 >
                   Edit <ChevronRight size={13} />
                 </button>
               ) : undefined
             }
           />
-          <div className="rounded-2xl overflow-hidden shadow-md">
+          <div className="rounded-2xl overflow-hidden shadow-sm">
             {profile.emergency_contact_name ? (
-              <div className="bg-gradient-to-r from-warning-100 via-warning-50 to-white p-4 border border-warning-200">
+              <div className="bg-white p-4 border border-neutral-100 border-l-4 border-l-warning-400">
                 <div className="flex items-start gap-3">
-                  <div className="shrink-0 w-10 h-10 rounded-full bg-warning-500 flex items-center justify-center shadow-sm">
-                    <Heart size={18} className="text-white" />
+                  <div className="shrink-0 w-10 h-10 rounded-full bg-warning-100 flex items-center justify-center">
+                    <Heart size={18} className="text-warning-600" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-primary-800">
                       {profile.emergency_contact_name}
                     </p>
                     {profile.emergency_contact_relationship && (
-                      <p className="text-xs text-warning-700 font-medium">{profile.emergency_contact_relationship}</p>
+                      <p className="text-xs text-neutral-500 font-medium">{profile.emergency_contact_relationship}</p>
                     )}
                     {profile.emergency_contact_phone && (
                       <p className="text-sm text-primary-700 flex items-center gap-1.5 mt-1 font-medium">
@@ -465,12 +436,12 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <div className="bg-gradient-to-br from-warning-200 via-warning-100 to-warning-50 p-5 text-center border border-warning-200">
-                <div className="w-12 h-12 rounded-full bg-warning-500 flex items-center justify-center mx-auto mb-3 shadow-sm">
-                  <AlertTriangle size={20} className="text-white" />
+              <div className="bg-white p-5 text-center border border-neutral-100 border-l-4 border-l-warning-400">
+                <div className="w-12 h-12 rounded-full bg-warning-100 flex items-center justify-center mx-auto mb-3">
+                  <AlertTriangle size={20} className="text-warning-600" />
                 </div>
-                <p className="text-sm font-bold text-warning-800">No emergency contact set</p>
-                <p className="text-xs text-warning-700 mt-0.5">Event leaders need this for your safety</p>
+                <p className="text-sm font-bold text-neutral-800">No emergency contact set</p>
+                <p className="text-xs text-neutral-500 mt-0.5">Event leaders need this for your safety</p>
                 <Button
                   variant="secondary"
                   size="sm"
@@ -510,8 +481,9 @@ export default function ProfilePage() {
                   <Card
                     key={collective.id}
                     variant="collective"
+                    watermark
                     onClick={() => navigate(`/collectives/${collective.slug}`)}
-                    className="flex flex-row items-center gap-3 p-3 bg-gradient-to-r from-moss-100 via-moss-50 to-white shadow-md border border-moss-200/80"
+                    className="flex flex-row items-center gap-3 p-3 bg-white shadow-sm border border-neutral-100"
                   >
                     <div className="shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-moss-300 to-primary-300 shadow-sm">
                       {collective.cover_image_url ? (
@@ -563,7 +535,7 @@ export default function ProfilePage() {
               iconBg="bg-sprout-600"
               title="Interests"
             />
-            <div className="rounded-2xl bg-gradient-to-br from-sprout-200/80 via-sprout-100 to-primary-100/60 border border-sprout-200 p-4 shadow-sm">
+            <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm p-4">
               <div className="flex flex-wrap gap-2">
                 {profile.interests.map((interest) => (
                   <Chip key={interest} label={interest} selected />

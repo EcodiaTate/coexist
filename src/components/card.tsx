@@ -6,8 +6,42 @@ import {
   forwardRef,
 } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
+import {
+  TreePine,
+  Waves,
+  Sprout,
+  Compass,
+  Bird,
+  Flower2,
+  Droplets,
+  Leaf,
+} from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { OptimizedImage } from './optimized-image'
+
+/* ------------------------------------------------------------------ */
+/*  Nature watermarks — Lucide icons used as large, low-opacity marks  */
+/* ------------------------------------------------------------------ */
+
+/** Map activity types to their watermark Lucide icon */
+const ACTIVITY_WATERMARK_ICONS: Record<string, ReactNode> = {
+  shore_cleanup:      <Waves size={72} strokeWidth={1} />,
+  tree_planting:      <TreePine size={72} strokeWidth={1} />,
+  land_regeneration:  <Sprout size={72} strokeWidth={1} />,
+  nature_walk:        <Compass size={72} strokeWidth={1} />,
+  camp_out:           <Bird size={72} strokeWidth={1} />,
+  retreat:            <Flower2 size={72} strokeWidth={1} />,
+  film_screening:     <Leaf size={72} strokeWidth={1} />,
+  marine_restoration: <Droplets size={72} strokeWidth={1} />,
+  workshop:           <Sprout size={72} strokeWidth={1} />,
+}
+
+const DEFAULT_WATERMARK = <Leaf size={72} strokeWidth={1} />
+
+export function getWatermark(activityType?: string): ReactNode {
+  if (!activityType) return DEFAULT_WATERMARK
+  return ACTIVITY_WATERMARK_ICONS[activityType] ?? DEFAULT_WATERMARK
+}
 
 /* ------------------------------------------------------------------ */
 /*  Context                                                            */
@@ -36,13 +70,12 @@ function useCard() {
 /* ------------------------------------------------------------------ */
 
 const variantWrapper: Record<CardVariant, string> = {
-  event: 'bg-surface-0',
-  collective: 'bg-surface-2',
-  stat: 'bg-gradient-to-br from-surface-0 to-primary-100/60',
-  profile: 'bg-surface-2',
-  merch: 'bg-surface-0',
-  announcement:
-    'bg-gradient-to-br from-surface-0 to-accent-100',
+  event: 'bg-white',
+  collective: 'bg-white',
+  stat: 'bg-white',
+  profile: 'bg-white',
+  merch: 'bg-white',
+  announcement: 'bg-white',
 }
 
 /* ------------------------------------------------------------------ */
@@ -55,14 +88,21 @@ interface CardRootProps {
   className?: string
   onClick?: React.MouseEventHandler<HTMLDivElement>
   'aria-label'?: string
+  /** Activity type for nature watermark decoration */
+  watermark?: string | boolean
 }
 
 const CardRoot = forwardRef<HTMLDivElement, CardRootProps>(function CardRoot(
-  { variant = 'event', children, className, onClick, 'aria-label': ariaLabel },
+  { variant = 'event', children, className, onClick, 'aria-label': ariaLabel, watermark },
   ref,
 ) {
   const shouldReduceMotion = useReducedMotion()
   const isInteractive = !!onClick
+  const watermarkIcon = watermark === true
+    ? DEFAULT_WATERMARK
+    : typeof watermark === 'string'
+      ? (ACTIVITY_WATERMARK_ICONS[watermark] ?? DEFAULT_WATERMARK)
+      : null
 
   return (
     <CardContext.Provider value={{ variant }}>
@@ -89,7 +129,7 @@ const CardRoot = forwardRef<HTMLDivElement, CardRootProps>(function CardRoot(
         }
         transition={{ type: 'spring', stiffness: 400, damping: 26, mass: 0.7 }}
         className={cn(
-          'rounded-2xl shadow-md overflow-hidden',
+          'relative rounded-2xl shadow-sm overflow-hidden',
           isInteractive && 'cursor-pointer select-none',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
           variantWrapper[variant],
@@ -97,6 +137,14 @@ const CardRoot = forwardRef<HTMLDivElement, CardRootProps>(function CardRoot(
         )}
       >
         {children}
+        {watermarkIcon && (
+          <div
+            className="absolute -bottom-2 -right-2 opacity-[0.06] text-neutral-800 pointer-events-none"
+            aria-hidden="true"
+          >
+            {watermarkIcon}
+          </div>
+        )}
       </motion.div>
     </CardContext.Provider>
   )
@@ -133,10 +181,53 @@ function CardImage({
       />
       {hasGradient && (
         <div
-          className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"
+          className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"
           aria-hidden="true"
         />
       )}
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Card.Overlay — full-bleed image with text overlay                  */
+/* ------------------------------------------------------------------ */
+
+interface CardOverlayProps {
+  src: string
+  alt: string
+  aspectRatio?: string
+  children: ReactNode
+  className?: string
+  /** Gradient direction: 'bottom' (default) or 'top' */
+  gradientFrom?: 'bottom' | 'top'
+}
+
+function CardOverlay({
+  src,
+  alt,
+  aspectRatio = '3/2',
+  children,
+  className,
+  gradientFrom = 'bottom',
+}: CardOverlayProps) {
+  const gradientClass = gradientFrom === 'top'
+    ? 'bg-gradient-to-b from-black/60 via-black/25 to-transparent'
+    : 'bg-gradient-to-t from-black/65 via-black/30 to-transparent'
+
+  return (
+    <div className={cn('relative w-full overflow-hidden', className)} style={{ aspectRatio }}>
+      <OptimizedImage
+        src={src}
+        alt={alt}
+        aspectRatio={aspectRatio}
+        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        className="absolute inset-0"
+      />
+      <div className={cn('absolute inset-0', gradientClass)} aria-hidden="true" />
+      <div className="absolute inset-0 flex flex-col justify-end p-4">
+        {children}
+      </div>
     </div>
   )
 }
@@ -203,7 +294,7 @@ function CardTitle({ children, as: Tag = 'h3', className }: CardTitleProps) {
   return (
     <Tag
       className={cn(
-        'font-heading font-semibold text-primary-800 leading-tight',
+        'font-heading font-semibold text-neutral-900 leading-tight',
         className,
       )}
     >
@@ -223,7 +314,7 @@ interface CardMetaProps {
 
 function CardMeta({ children, className }: CardMetaProps) {
   return (
-    <p className={cn('text-caption text-primary-400 mt-1', className)}>
+    <p className={cn('text-caption text-neutral-500 mt-1', className)}>
       {children}
     </p>
   )
@@ -249,19 +340,19 @@ function CardSkeleton({
       role="status"
       aria-label="Loading card"
       className={cn(
-        'rounded-2xl shadow-md overflow-hidden bg-surface-0 animate-pulse',
+        'rounded-2xl shadow-sm overflow-hidden bg-white animate-pulse',
         className,
       )}
     >
       {hasImage && (
-        <div className="w-full bg-primary-100" style={{ aspectRatio: '16/9' }} />
+        <div className="w-full bg-neutral-100" style={{ aspectRatio: '16/9' }} />
       )}
       <div className="p-4 space-y-2.5">
         {Array.from({ length: lines }).map((_, i) => (
           <div
             key={i}
             className={cn(
-              'h-3.5 bg-primary-100 rounded',
+              'h-3.5 bg-neutral-100 rounded',
               i === 0 && 'w-3/4 h-4',
               i === lines - 1 && 'w-1/2',
             )}
@@ -279,6 +370,7 @@ function CardSkeleton({
 export const Card = Object.assign(CardRoot, {
   Root: CardRoot,
   Image: CardImage,
+  Overlay: CardOverlay,
   Badge: CardBadge,
   Content: CardContent,
   Title: CardTitle,

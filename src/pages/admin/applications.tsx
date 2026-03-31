@@ -121,25 +121,25 @@ const STATUS_CONFIG: Record<string, {
     label: 'Pending Review', color: 'text-warning-800', bg: 'bg-warning-100',
     border: 'border-warning-200', icon: <Clock size={12} />,
     strip: 'bg-gradient-to-r from-warning-400 to-warning-500',
-    glow: 'shadow-[0_0_0_1px_rgba(251,191,36,0.15)]',
+    glow: 'ring-1 ring-warning-100',
   },
   reviewed: {
     label: 'Under Review', color: 'text-info-800', bg: 'bg-info-100',
     border: 'border-info-200', icon: <Eye size={12} />,
     strip: 'bg-gradient-to-r from-info-400 to-info-500',
-    glow: 'shadow-[0_0_0_1px_rgba(96,165,250,0.15)]',
+    glow: 'ring-1 ring-info-100',
   },
   accepted: {
     label: 'Accepted', color: 'text-success-800', bg: 'bg-success-100',
     border: 'border-success-200', icon: <CheckCircle2 size={12} />,
     strip: 'bg-gradient-to-r from-success-500 to-sprout-500',
-    glow: 'shadow-[0_0_0_1px_rgba(74,222,128,0.15)]',
+    glow: 'ring-1 ring-success-100',
   },
   rejected: {
     label: 'Not Accepted', color: 'text-error-800', bg: 'bg-error-100',
     border: 'border-error-200', icon: <XCircle size={12} />,
     strip: 'bg-gradient-to-r from-error-400 to-error-500',
-    glow: 'shadow-[0_0_0_1px_rgba(248,113,113,0.15)]',
+    glow: 'ring-1 ring-error-100',
   },
 }
 
@@ -184,7 +184,7 @@ function useStaffUsers() {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, display_name')
-        .in('role', ['national_leader', 'super_admin'])
+        .in('role', ['national_leader', 'admin'])
         .order('display_name')
       if (error) throw error
       return data ?? []
@@ -210,14 +210,14 @@ const tabs = [
 /*  Section header helper                                              */
 /* ------------------------------------------------------------------ */
 
-function SectionHeader({ icon, label, color = 'text-primary-400' }: {
+function SectionHeader({ icon, label, color = 'text-neutral-400' }: {
   icon: React.ReactNode; label: string; color?: string
 }) {
   return (
     <div className="flex items-center gap-2 mb-2.5">
       <span className={cn('shrink-0', color)}>{icon}</span>
       <p className={cn('text-[11px] font-bold uppercase tracking-widest', color)}>{label}</p>
-      <div className="flex-1 h-px bg-primary-100/40" />
+      <div className="flex-1 h-px bg-neutral-100" />
     </div>
   )
 }
@@ -244,8 +244,8 @@ function ApplicationCard({
 
   return (
     <div className={cn(
-      'rounded-2xl bg-surface-0 overflow-hidden transition-shadow duration-200',
-      'shadow-md hover:shadow-lg',
+      'rounded-2xl bg-white border border-neutral-100 overflow-hidden transition-shadow duration-200',
+      'shadow-sm hover:shadow-md',
       statusCfg.glow,
     )}>
       {/* Colored status strip */}
@@ -257,7 +257,7 @@ function ApplicationCard({
         className={cn(
           'w-full flex items-center gap-3.5 px-4 py-3.5 text-left',
           'transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.99]',
-          'hover:bg-surface-1/50',
+          'hover:bg-neutral-50',
         )}
       >
         {/* Avatar with initials */}
@@ -274,7 +274,7 @@ function ApplicationCard({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-[15px] font-semibold text-primary-900 truncate">
+            <p className="text-[15px] font-semibold text-neutral-900 truncate">
               {app.first_name} {app.last_name}
             </p>
             {app.roles.includes('collective_leader') && (
@@ -282,12 +282,12 @@ function ApplicationCard({
             )}
           </div>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <MapPin size={11} className="text-primary-300 shrink-0" />
-            <p className="text-[12px] text-primary-400 truncate">
+            <MapPin size={11} className="text-neutral-300 shrink-0" />
+            <p className="text-[12px] text-neutral-400 truncate">
               {app.suburb}, {app.state}
             </p>
-            <span className="text-primary-200">&middot;</span>
-            <p className="text-[12px] text-primary-300 shrink-0">{timeLabel}</p>
+            <span className="text-neutral-200">&middot;</span>
+            <p className="text-[12px] text-neutral-300 shrink-0">{timeLabel}</p>
           </div>
         </div>
 
@@ -305,7 +305,7 @@ function ApplicationCard({
           transition={{ duration: 0.2 }}
           className="shrink-0"
         >
-          <ChevronDown size={16} className="text-primary-300" />
+          <ChevronDown size={16} className="text-neutral-300" />
         </motion.div>
       </button>
 
@@ -321,7 +321,7 @@ function ApplicationCard({
           >
             <div className="px-4 pb-5 space-y-5">
               {/* ── Contact & Details ── */}
-              <div className="rounded-xl bg-surface-1 p-4">
+              <div className="rounded-xl bg-neutral-50 p-4">
                 <SectionHeader icon={<Mail size={13} />} label="Contact & Details" color="text-info-500" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <DetailRow icon={<Mail size={14} />} label="Email" value={app.email} iconColor="text-info-400" />
@@ -335,8 +335,8 @@ function ApplicationCard({
               </div>
 
               {/* ── Roles & Skills ── */}
-              <div className="rounded-xl bg-gradient-to-br from-primary-50/80 to-sprout-50/60 p-4">
-                <SectionHeader icon={<Briefcase size={13} />} label="Roles & Skills" color="text-primary-500" />
+              <div className="rounded-xl bg-neutral-50 p-4">
+                <SectionHeader icon={<Briefcase size={13} />} label="Roles & Skills" color="text-neutral-500" />
                 <div className="space-y-3">
                   {/* Roles */}
                   <div className="flex flex-wrap gap-1.5">
@@ -346,7 +346,7 @@ function ApplicationCard({
                         r === 'collective_leader' ? 'bg-warning-100 text-warning-800 border border-warning-200' :
                         r === 'assistant_leader' ? 'bg-info-100 text-info-800 border border-info-200' :
                         r === 'social_media' ? 'bg-plum-100 text-plum-700 border border-plum-200' :
-                        'bg-primary-100 text-primary-700 border border-primary-200',
+                        'bg-neutral-100 text-neutral-700 border border-neutral-200',
                       )}>
                         {r === 'collective_leader' && <Star size={11} className="fill-warning-400" />}
                         {r === 'assistant_leader' && <Shield size={11} />}
@@ -370,16 +370,16 @@ function ApplicationCard({
               </div>
 
               {/* ── Motivation ── */}
-              <div className="rounded-xl bg-gradient-to-br from-moss-50/60 to-success-50/40 p-4">
+              <div className="rounded-xl bg-neutral-50 p-4">
                 <SectionHeader icon={<Heart size={13} />} label="Why They Want to Volunteer" color="text-success-500" />
-                <p className="text-[14px] text-primary-800 leading-relaxed">
+                <p className="text-[14px] text-neutral-900 leading-relaxed">
                   {app.why_volunteer}
                 </p>
               </div>
 
               {/* ── Resume & Additional ── */}
               {(app.resume_url || app.additional_info) && (
-                <div className="rounded-xl bg-surface-1 p-4 space-y-3">
+                <div className="rounded-xl bg-neutral-50 p-4 space-y-3">
                   <SectionHeader icon={<FileText size={13} />} label="Attachments & Notes" color="text-bark-400" />
                   {app.resume_url && (
                     <a
@@ -388,18 +388,18 @@ function ApplicationCard({
                       rel="noopener noreferrer"
                       className={cn(
                         'inline-flex items-center gap-2 text-[13px] font-semibold',
-                        'text-primary-600 hover:text-primary-800 transition-colors',
-                        'bg-surface-0 rounded-lg px-3.5 py-2.5 shadow-sm hover:shadow-md',
-                        'border border-primary-100',
+                        'text-neutral-600 hover:text-neutral-900 transition-colors',
+                        'bg-white rounded-lg px-3.5 py-2.5 shadow-sm hover:shadow-md',
+                        'border border-neutral-100',
                       )}
                     >
                       <FileText size={14} />
                       View Resume
-                      <ExternalLink size={12} className="text-primary-300" />
+                      <ExternalLink size={12} className="text-neutral-300" />
                     </a>
                   )}
                   {app.additional_info && (
-                    <p className="text-[14px] text-primary-700 leading-relaxed italic">
+                    <p className="text-[14px] text-neutral-700 leading-relaxed italic">
                       &ldquo;{app.additional_info}&rdquo;
                     </p>
                   )}
@@ -407,7 +407,7 @@ function ApplicationCard({
               )}
 
               {/* ── Staff Notes ── */}
-              <div className="rounded-xl bg-warning-50/40 border border-warning-100/60 p-4">
+              <div className="rounded-xl bg-warning-50 border border-warning-100 p-4">
                 <SectionHeader icon={<MessageSquare size={13} />} label="Staff Notes (Internal)" color="text-warning-600" />
                 <Input
                   type="textarea"
@@ -452,7 +452,7 @@ function ApplicationCard({
                   </Button>
                 )}
                 {app.reviewed_at && (
-                  <p className="ml-auto text-[11px] text-primary-300">
+                  <p className="ml-auto text-[11px] text-neutral-300">
                     Last updated {new Date(app.reviewed_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                   </p>
                 )}
@@ -465,15 +465,15 @@ function ApplicationCard({
   )
 }
 
-function DetailRow({ icon, label, value, iconColor = 'text-primary-400' }: {
+function DetailRow({ icon, label, value, iconColor = 'text-neutral-400' }: {
   icon: React.ReactNode; label: string; value: string; iconColor?: string
 }) {
   return (
     <div className="flex items-start gap-2.5">
       <span className={cn('mt-0.5 shrink-0', iconColor)}>{icon}</span>
       <div className="min-w-0">
-        <p className="text-[11px] font-medium text-primary-400 leading-tight">{label}</p>
-        <p className="text-[14px] text-primary-800 break-words leading-snug">{value}</p>
+        <p className="text-[11px] font-medium text-neutral-400 leading-tight">{label}</p>
+        <p className="text-[14px] text-neutral-900 break-words leading-snug">{value}</p>
       </div>
     </div>
   )
@@ -550,18 +550,18 @@ function NotificationSettingsTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl bg-surface-0 shadow-md overflow-hidden">
+      <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm overflow-hidden">
         {/* Header band */}
-        <div className="bg-gradient-to-r from-info-50 to-plum-50/40 px-5 py-4 border-b border-primary-100/30">
+        <div className="bg-white px-5 py-4 border-b border-neutral-100">
           <div className="flex items-center gap-2.5">
             <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-info-100 text-info-600">
               <Bell size={16} />
             </div>
             <div>
-              <h3 className="font-heading text-[15px] font-semibold text-primary-900">
+              <h3 className="font-heading text-[15px] font-semibold text-neutral-900">
                 Who gets notified?
               </h3>
-              <p className="text-[12px] text-primary-400 mt-0.5">
+              <p className="text-[12px] text-neutral-400 mt-0.5">
                 Staff members who receive alerts when new applications are submitted.
               </p>
             </div>
@@ -585,12 +585,12 @@ function NotificationSettingsTab() {
           ) : (
             <div className="space-y-2">
               {(recipients ?? []).map(r => (
-                <div key={r.id} className="flex items-center gap-3 rounded-xl bg-surface-1 border border-primary-100/40 px-4 py-3 hover:bg-surface-2/50 transition-colors">
-                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary-100 text-primary-600 shrink-0">
+                <div key={r.id} className="flex items-center gap-3 rounded-xl bg-neutral-50 border border-neutral-100 px-4 py-3 hover:bg-neutral-100 transition-colors">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-neutral-100 text-neutral-600 shrink-0">
                     <Users size={14} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-medium text-primary-800 truncate">
+                    <p className="text-[14px] font-medium text-neutral-900 truncate">
                       {(r as unknown as Record<string, Record<string, unknown>>).profile?.display_name as string ?? r.user_id.slice(0, 8)}
                     </p>
                   </div>
@@ -608,7 +608,7 @@ function NotificationSettingsTab() {
                   />
                   <button
                     onClick={() => removeRecipient.mutate(r.id)}
-                    className="text-primary-300 hover:text-error transition-[colors,transform] duration-150 cursor-pointer p-1 rounded-lg hover:bg-error-50 active:scale-[0.93]"
+                    className="text-neutral-300 hover:text-error transition-[colors,transform] duration-150 cursor-pointer p-1 rounded-lg hover:bg-error-50 active:scale-[0.93]"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -619,7 +619,7 @@ function NotificationSettingsTab() {
 
           {/* Add recipient */}
           {availableStaff.length > 0 && (
-            <div className="flex gap-2 pt-2 border-t border-primary-100/30">
+            <div className="flex gap-2 pt-2 border-t border-neutral-100">
               <div className="flex-1">
                 <Dropdown
                   options={availableStaff.map(s => ({ value: s.id, label: s.display_name ?? s.id }))}
@@ -803,8 +803,8 @@ export default function AdminApplicationsPage() {
                       isActive
                         ? cfg
                           ? `${cfg.bg} ${cfg.color} ${cfg.border}`
-                          : 'bg-primary-100 text-primary-800 border-primary-200'
-                        : 'bg-surface-0 text-primary-400 border-primary-100/50 hover:bg-surface-2 hover:text-primary-600',
+                          : 'bg-neutral-100 text-neutral-900 border-neutral-200'
+                        : 'bg-white text-neutral-400 border-neutral-100 hover:bg-neutral-50 hover:text-neutral-600',
                     )}
                   >
                     {f.label}
@@ -813,8 +813,8 @@ export default function AdminApplicationsPage() {
                       isActive
                         ? cfg
                           ? 'bg-white/60 text-inherit'
-                          : 'bg-primary-200/60 text-primary-700'
-                        : 'bg-primary-100/60 text-primary-400',
+                          : 'bg-neutral-200/60 text-neutral-700'
+                        : 'bg-neutral-100 text-neutral-400',
                     )}>
                       {count}
                     </span>

@@ -43,8 +43,6 @@ export default function LoginPage() {
     if (authError) {
       setError(authError.message)
     }
-    // Always reset  on success, onAuthStateChange handles navigation;
-    // if that's slow the user can retry rather than staring at a spinner.
     setIsSubmitting(false)
   }
 
@@ -70,7 +68,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col relative overflow-hidden">
+    <div className="min-h-dvh flex flex-col bg-white">
       <OGMeta
         title="Log In"
         description="Sign in to your Co-Exist account. Access conservation events, connect with your collective, and track your environmental impact across Australia."
@@ -78,67 +76,8 @@ export default function LoginPage() {
         noindex
       />
 
-      {/* ── Full-page branded background ── */}
-      <div className="absolute inset-0 bg-gradient-to-b from-primary-500 via-secondary-700 to-primary-950" />
-
-      {/* ── Bold geometric shapes ── */}
-      {/* Big filled circle - top-right */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.6, opacity: 0 }}
-        animate={{ scale: [1, 1.04, 1], opacity: 1 }}
-        transition={{ scale: { duration: 18, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.5, ease: 'easeOut' } }}
-        className="absolute -right-[15%] -top-[12%] w-[55vw] h-[55vw] max-w-[500px] max-h-[500px] rounded-full bg-white/[0.06]"
-      />
-      {/* Large ring - bottom-left */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.5, opacity: 0 }}
-        animate={{ scale: [1, 1.05, 1], opacity: 1 }}
-        transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 1.8, delay: 0.3, ease: 'easeOut' } }}
-        className="absolute -left-[20%] -bottom-[10%] w-[70vw] h-[70vw] max-w-[650px] max-h-[650px] rounded-full border border-white/[0.08]"
-      />
-      {/* Inner concentric ring */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.5, opacity: 0 }}
-        animate={{ scale: [1, 1.07, 1], opacity: 1 }}
-        transition={{ scale: { duration: 20, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }, opacity: { duration: 1.8, delay: 0.5, ease: 'easeOut' } }}
-        className="absolute -left-[14%] -bottom-[4%] w-[50vw] h-[50vw] max-w-[450px] max-h-[450px] rounded-full border border-white/[0.06]"
-      />
-      {/* Small ring - top-left accent */}
-      <motion.div
-        initial={rm ? {} : { scale: 0.5, opacity: 0 }}
-        animate={{ scale: [1, 1.06, 1], opacity: 1 }}
-        transition={{ scale: { duration: 16, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 2, delay: 0.8, ease: 'easeOut' } }}
-        className="absolute left-[8%] top-[6%] w-[25vw] h-[25vw] max-w-[200px] max-h-[200px] rounded-full border border-white/[0.05]"
-      />
-      {/* Small filled accent - mid-left */}
-      <motion.div
-        initial={rm ? {} : { scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 1.2, delay: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
-        className="absolute left-[5%] top-[45%] w-[60px] h-[60px] rounded-full bg-white/[0.04]"
-      />
-      {/* Floating dots */}
-      <motion.div
-        initial={rm ? {} : { opacity: 0 }}
-        animate={{ y: [0, -7, 0], opacity: [0.3, 0.55, 0.3] }}
-        transition={{ y: { duration: 4.5, repeat: Infinity, ease: 'easeInOut' }, opacity: { duration: 0.8, delay: 1.2 } }}
-        className="absolute right-[20%] top-[18%] w-2 h-2 rounded-full bg-white/30"
-      />
-      <motion.div
-        initial={rm ? {} : { opacity: 0 }}
-        animate={{ y: [0, 5, 0], opacity: [0.2, 0.45, 0.2] }}
-        transition={{ y: { duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 2 }, opacity: { duration: 0.8, delay: 1.6 } }}
-        className="absolute left-[15%] bottom-[25%] w-1.5 h-1.5 rounded-full bg-white/25"
-      />
-      <motion.div
-        initial={rm ? {} : { opacity: 0 }}
-        animate={{ y: [0, -5, 0], opacity: [0.2, 0.4, 0.2] }}
-        transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 3 }, opacity: { duration: 0.8, delay: 2 } }}
-        className="absolute right-[10%] bottom-[35%] w-2 h-2 rounded-full bg-white/20"
-      />
-
-      {/* ── Content ── */}
-      <div className="relative z-10 flex-1 flex flex-col w-full max-w-[440px] mx-auto overflow-y-auto">
+      {/* Content */}
+      <div className="flex-1 flex flex-col w-full max-w-[440px] mx-auto">
         <motion.form
           onSubmit={handleSubmit}
           className="flex-1 flex flex-col"
@@ -150,31 +89,23 @@ export default function LoginPage() {
           }}
         >
           {/* Back button */}
-          <Header title="" back onBack={() => navigate('/welcome')} transparent />
+          <Header title="" back onBack={() => navigate('/welcome')} />
 
-          {/* Wordmark + heading */}
-          <div className="px-6 pt-10 pb-2 flex flex-col items-center text-center">
-            <motion.img
-              src="/logos/white-wordmark.webp"
-              alt="Co-Exist"
-              initial={rm ? {} : { opacity: 0, y: 25, scale: 0.92 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: 1, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="h-16 sm:h-20 w-auto object-contain mb-8"
-            />
+          {/* Heading */}
+          <div className="px-6 pt-10 pb-2">
             <motion.h1
               initial={rm ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="text-[28px] font-bold text-white tracking-tight leading-tight"
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="text-[28px] font-bold text-neutral-900 tracking-tight leading-tight"
             >
               Welcome back
             </motion.h1>
             <motion.p
               initial={rm ? {} : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.8, ease: 'easeOut' }}
-              className="mt-2 text-[15px] text-white/40"
+              transition={{ duration: 0.4, delay: 0.25 }}
+              className="mt-2 text-[15px] text-neutral-500"
             >
               Sign in to continue
             </motion.p>
@@ -182,10 +113,10 @@ export default function LoginPage() {
 
           {/* Form body */}
           <motion.div
-            initial={rm ? {} : { opacity: 0, y: 30 }}
+            initial={rm ? {} : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="flex-1 px-5 pt-8"
+            transition={{ duration: 0.5, delay: 0.35 }}
+            className="flex-1 px-6 pt-8"
           >
             {/* Social sign-in */}
             <div className="flex gap-3">
@@ -195,10 +126,10 @@ export default function LoginPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2.5',
                   'h-[52px] rounded-2xl',
-                  'bg-white/[0.15]',
-                  'text-sm text-white font-semibold',
+                  'bg-white border border-neutral-100',
+                  'text-sm text-neutral-900 font-semibold',
                   'active:scale-[0.97] transition-transform duration-200',
-                  'cursor-pointer hover:bg-white/[0.18]',
+                  'cursor-pointer hover:bg-neutral-50',
                 )}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
@@ -216,10 +147,10 @@ export default function LoginPage() {
                 className={cn(
                   'flex-1 flex items-center justify-center gap-2.5',
                   'h-[52px] rounded-2xl',
-                  'bg-white/[0.15]',
-                  'text-sm text-white font-semibold',
+                  'bg-white border border-neutral-100',
+                  'text-sm text-neutral-900 font-semibold',
                   'active:scale-[0.97] transition-transform duration-200',
-                  'cursor-pointer hover:bg-white/[0.18]',
+                  'cursor-pointer hover:bg-neutral-50',
                 )}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -231,13 +162,13 @@ export default function LoginPage() {
 
             {/* Divider */}
             <div className="flex items-center gap-4 my-7">
-              <div className="flex-1 h-px bg-white/[0.10]" />
-              <span className="text-[11px] text-white/30 font-semibold uppercase tracking-[0.15em]">or</span>
-              <div className="flex-1 h-px bg-white/[0.10]" />
+              <div className="flex-1 h-px bg-neutral-100" />
+              <span className="text-[11px] text-neutral-400 font-semibold uppercase tracking-[0.15em]">or</span>
+              <div className="flex-1 h-px bg-neutral-100" />
             </div>
 
-            {/* Form card - glassmorphic */}
-            <div className="bg-white/[0.12] rounded-2xl p-5 space-y-4">
+            {/* Form card */}
+            <div className="bg-white rounded-2xl border border-neutral-100 p-5 space-y-4">
               <Input
                 type="email"
                 label="Email"
@@ -260,14 +191,14 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={handleMagicLink}
-                  className="flex items-center gap-1.5 text-xs text-white/50 font-semibold hover:text-white/70 active:scale-[0.97] transition-[colors,transform] duration-150 cursor-pointer"
+                  className="flex items-center gap-1.5 text-xs text-neutral-500 font-semibold hover:text-neutral-700 active:scale-[0.97] transition-[colors,transform] duration-150 cursor-pointer"
                 >
                   <Mail size={13} />
                   {magicLinkSent ? 'Link sent!' : 'Magic link'}
                 </button>
                 <Link
                   to="/forgot-password"
-                  className="text-xs text-white/50 font-semibold hover:text-white/70 transition-colors"
+                  className="text-xs text-neutral-500 font-semibold hover:text-neutral-700 transition-colors"
                 >
                   Forgot password?
                 </Link>
@@ -279,7 +210,7 @@ export default function LoginPage() {
               <motion.div
                 initial={rm ? false : { opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-4 px-4 py-3 bg-error-500/25 rounded-xl text-sm text-white text-center font-medium"
+                className="mt-4 px-4 py-3 bg-error-50 border border-error-100 rounded-xl text-sm text-error-600 text-center font-medium"
                 role="alert"
               >
                 {error}
@@ -291,8 +222,8 @@ export default function LoginPage() {
           <motion.div
             initial={rm ? {} : { opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 1.3, ease: 'easeOut' }}
-            className="px-5 pt-6 pb-6"
+            transition={{ duration: 0.5, delay: 0.45 }}
+            className="px-6 pt-6 pb-6"
             style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}
           >
             <Button
@@ -307,9 +238,9 @@ export default function LoginPage() {
               Log In
             </Button>
 
-            <p className="mt-6 text-center text-sm text-white/40">
+            <p className="mt-6 text-center text-sm text-neutral-500">
               New to Co-Exist?{' '}
-              <Link to="/signup" className="text-white/80 font-bold hover:text-white transition-colors">
+              <Link to="/signup" className="text-neutral-900 font-bold hover:underline transition-colors">
                 Create account
               </Link>
             </p>

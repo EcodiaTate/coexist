@@ -52,7 +52,7 @@ export function TabBar({
         aria-label={ariaLabel}
         className={cn(
           'flex overflow-x-auto overflow-y-hidden scrollbar-none',
-          'border-b border-primary-100/40',
+          'border-b border-neutral-100',
           className,
         )}
       >

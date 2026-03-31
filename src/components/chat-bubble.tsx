@@ -28,9 +28,9 @@ interface ChatBubbleProps {
 }
 
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
-  Leader: { bg: 'bg-primary-700', text: 'text-white' },
-  'Co-Leader': { bg: 'bg-primary-300', text: 'text-primary-900' },
-  'Assist Leader': { bg: 'bg-primary-200', text: 'text-primary-800' },
+  Leader: { bg: 'bg-primary-100', text: 'text-primary-700' },
+  'Co-Leader': { bg: 'bg-primary-50', text: 'text-primary-600' },
+  'Assist Leader': { bg: 'bg-primary-50', text: 'text-primary-600' },
 }
 
 function formatTime(date: Date): string {
@@ -129,7 +129,7 @@ export function ChatBubble({
             />
           ) : (
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-xs font-extrabold text-white ring-[2.5px] ring-white shadow-md"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-xs font-extrabold text-white ring-[2.5px] ring-white shadow-md"
               aria-hidden="true"
             >
               {senderName?.charAt(0)?.toUpperCase() ?? '?'}
@@ -150,7 +150,7 @@ export function ChatBubble({
           <div className="flex items-center gap-2 px-1 mb-1">
             <button
               type="button"
-              className="text-[13px] font-bold text-primary-700 hover:text-primary-800 min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
+              className="text-[13px] font-bold text-neutral-700 hover:text-neutral-900 min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
               onClick={() => senderId && onSenderTap?.(senderId)}
             >
               {senderName}
@@ -172,8 +172,8 @@ export function ChatBubble({
           className={cn(
             'rounded-2xl px-4 py-3 transition-colors duration-150',
             sent
-              ? 'rounded-br-md bg-gradient-to-br from-primary-600 to-primary-800 text-white shadow-lg shadow-primary-300/30'
-              : 'rounded-bl-md bg-white text-primary-900 ring-1 ring-primary-200/70 shadow-md',
+              ? 'rounded-br-md bg-primary-100 text-neutral-900'
+              : 'rounded-bl-md bg-neutral-50 text-neutral-900 ring-1 ring-neutral-100',
           )}
         >
           {/* Reply quote */}
@@ -182,14 +182,14 @@ export function ChatBubble({
               className={cn(
                 'mb-2.5 rounded-xl border-l-[3px] px-3 py-2',
                 sent
-                  ? 'border-white/60 bg-white/20'
-                  : 'border-primary-400 bg-primary-50',
+                  ? 'border-neutral-200 bg-neutral-50'
+                  : 'border-neutral-300 bg-white',
               )}
             >
               <p
                 className={cn(
                   'text-[11px] font-extrabold',
-                  sent ? 'text-white/90' : 'text-primary-700',
+                  sent ? 'text-neutral-700' : 'text-neutral-700',
                 )}
               >
                 {replyTo.senderName}
@@ -197,7 +197,7 @@ export function ChatBubble({
               <p
                 className={cn(
                   'line-clamp-2 text-xs mt-0.5',
-                  sent ? 'text-white/70' : 'text-primary-500',
+                  sent ? 'text-neutral-500' : 'text-neutral-500',
                 )}
               >
                 {replyTo.message}
@@ -226,7 +226,7 @@ export function ChatBubble({
           <p
             className={cn(
               'mt-1.5 text-[11px] font-medium tabular-nums',
-              sent ? 'text-white/50 text-right' : 'text-primary-400',
+              sent ? 'text-neutral-400 text-right' : 'text-neutral-400',
             )}
           >
             <time dateTime={timestamp.toISOString()}>
@@ -288,15 +288,14 @@ export function PollCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={cn(
-        'w-full max-w-[85%] rounded-2xl p-5 shadow-lg',
-        'bg-gradient-to-br from-primary-200 via-primary-100 to-primary-200/60',
-        'ring-1 ring-primary-300/40',
+        'w-full max-w-[85%] rounded-2xl p-5',
+        'bg-white border border-neutral-100 shadow-sm',
         sent ? 'ml-auto' : 'mr-auto',
       )}
     >
       {/* Poll icon + question */}
       <div className="flex items-start gap-3 mb-4">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary-600 text-white shadow-md">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary-50 text-primary-600">
           <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <rect x="1" y="8" width="3" height="6" rx="1" fill="currentColor" opacity="0.6" />
             <rect x="6" y="4" width="3" height="10" rx="1" fill="currentColor" opacity="0.8" />
@@ -304,9 +303,9 @@ export function PollCard({
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[15px] font-extrabold text-primary-950 leading-snug">{question}</p>
+          <p className="text-[15px] font-extrabold text-neutral-900 leading-snug">{question}</p>
           {creatorName && (
-            <p className="text-[11px] font-medium text-primary-500 mt-0.5">by {creatorName}</p>
+            <p className="text-[11px] font-medium text-neutral-500 mt-0.5">by {creatorName}</p>
           )}
         </div>
       </div>
@@ -334,8 +333,8 @@ export function PollCard({
                 'relative w-full overflow-hidden rounded-xl px-3.5 py-3 text-left transition-transform duration-200',
                 'min-h-11 cursor-pointer select-none',
                 isSelected
-                  ? 'bg-primary-600/20 shadow-md ring-2 ring-primary-400/40'
-                  : 'bg-white/80 hover:bg-white shadow-sm',
+                  ? 'bg-primary-50 ring-2 ring-primary-400/40'
+                  : 'bg-neutral-50 hover:bg-white',
                 isClosed && 'cursor-default opacity-80',
                 'active:scale-[0.97]',
               )}
@@ -348,7 +347,7 @@ export function PollCard({
                   transition={{ duration: 0.5, ease: 'easeOut' }}
                   className={cn(
                     'absolute inset-y-0 left-0 rounded-xl',
-                    isSelected ? 'bg-primary-200/60' : 'bg-primary-100/40',
+                    isSelected ? 'bg-primary-100' : 'bg-neutral-100',
                   )}
                 />
               )}
@@ -356,12 +355,12 @@ export function PollCard({
               <div className="relative flex items-center justify-between gap-2">
                 <span className={cn(
                   'text-sm',
-                  isSelected ? 'font-semibold text-primary-800' : 'text-primary-700',
+                  isSelected ? 'font-semibold text-neutral-900' : 'text-neutral-700',
                 )}>
                   {opt.text}
                 </span>
                 {hasVoted && (
-                  <span className="text-xs font-semibold text-primary-500 tabular-nums shrink-0">
+                  <span className="text-xs font-semibold text-neutral-500 tabular-nums shrink-0">
                     {pct}%
                   </span>
                 )}
@@ -373,14 +372,14 @@ export function PollCard({
 
       {/* Footer */}
       <div className="mt-3 flex items-center justify-between">
-        <p className="text-[11px] text-primary-400">
+        <p className="text-[11px] text-neutral-500">
           {totalVotes} vote{totalVotes !== 1 ? 's' : ''}
           {anonymous ? ' (anonymous)' : ''}
         </p>
         {isClosed ? (
-          <span className="text-[11px] font-semibold text-primary-400">Poll closed</span>
+          <span className="text-[11px] font-semibold text-neutral-500">Poll closed</span>
         ) : closesAt ? (
-          <span className="text-[11px] text-primary-400">
+          <span className="text-[11px] text-neutral-500">
             Closes {new Date(closesAt).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
           </span>
         ) : null}
@@ -418,11 +417,11 @@ interface AnnouncementCardProps {
   eventDetails?: EventDetailsForCard | null
 }
 
-const TYPE_META: Record<string, { icon: typeof Megaphone; label: string; gradient: string; iconBg: string; iconColor: string; labelColor: string }> = {
-  announcement: { icon: Megaphone, label: 'Announcement', gradient: 'from-accent-200 via-accent-100 to-accent-200/60', iconBg: 'bg-accent-600', iconColor: 'text-white', labelColor: 'text-accent-700' },
-  event_invite: { icon: CalendarPlus, label: 'Event Invite', gradient: 'from-info-200 via-info-100 to-info-200/60', iconBg: 'bg-info-600', iconColor: 'text-white', labelColor: 'text-info-700' },
-  rsvp: { icon: ClipboardCheck, label: 'RSVP', gradient: 'from-success-200 via-success-100 to-success-200/60', iconBg: 'bg-success-600', iconColor: 'text-white', labelColor: 'text-success-700' },
-  checklist: { icon: ListChecks, label: 'Checklist', gradient: 'from-warning-200 via-warning-100 to-warning-200/60', iconBg: 'bg-warning-600', iconColor: 'text-white', labelColor: 'text-warning-700' },
+const TYPE_META: Record<string, { icon: typeof Megaphone; label: string; iconBg: string; iconColor: string; labelColor: string }> = {
+  announcement: { icon: Megaphone, label: 'Announcement', iconBg: 'bg-accent-50', iconColor: 'text-accent-600', labelColor: 'text-accent-600' },
+  event_invite: { icon: CalendarPlus, label: 'Event Invite', iconBg: 'bg-info-50', iconColor: 'text-info-600', labelColor: 'text-info-600' },
+  rsvp: { icon: ClipboardCheck, label: 'RSVP', iconBg: 'bg-success-50', iconColor: 'text-success-600', labelColor: 'text-success-600' },
+  checklist: { icon: ListChecks, label: 'Checklist', iconBg: 'bg-warning-50', iconColor: 'text-warning-600', labelColor: 'text-warning-600' },
 }
 
 function formatCardDate(dateStr: string): string {
@@ -480,9 +479,8 @@ export function AnnouncementCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
       className={cn(
-        'w-full max-w-[85%] rounded-2xl shadow-lg overflow-hidden',
-        `bg-gradient-to-br ${typeInfo.gradient}`,
-        'ring-1 ring-black/5',
+        'w-full max-w-[85%] rounded-2xl overflow-hidden',
+        'bg-white border border-neutral-100 shadow-sm',
         sent ? 'ml-auto' : 'mr-auto',
       )}
     >
@@ -506,47 +504,47 @@ export function AnnouncementCard({
       <div className="p-5">
         {/* Header */}
         <div className="flex items-center gap-3 mb-3">
-          <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl shadow-md', typeInfo.iconBg, typeInfo.iconColor)}>
+          <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl', typeInfo.iconBg, typeInfo.iconColor)}>
             <IconComponent size={20} strokeWidth={2.5} />
           </div>
           <div className="flex-1 min-w-0">
             <p className={cn('text-[11px] font-extrabold uppercase tracking-wider', typeInfo.labelColor)}>{typeInfo.label}</p>
             {creatorName && (
-              <p className="text-[11px] font-medium text-primary-500">from {creatorName}</p>
+              <p className="text-[11px] font-medium text-neutral-500">from {creatorName}</p>
             )}
           </div>
         </div>
 
         {/* Content */}
-        <h4 className="text-[15px] font-extrabold text-primary-950 mb-1.5">{title}</h4>
+        <h4 className="text-[15px] font-extrabold text-neutral-900 mb-1.5">{title}</h4>
         {body && (
-          <p className="text-sm text-primary-700 leading-relaxed mb-2">{body}</p>
+          <p className="text-sm text-neutral-600 leading-relaxed mb-2">{body}</p>
         )}
 
         {/* Event details summary */}
         {eventDetails && (
-          <div className="rounded-xl bg-white/50 p-3 mb-3 space-y-1.5">
+          <div className="rounded-xl bg-neutral-50 p-3 mb-3 space-y-1.5">
             <div className="flex items-center gap-2">
-              <Calendar size={13} className="text-primary-500 shrink-0" />
-              <span className="text-xs font-semibold text-primary-700">
+              <Calendar size={13} className="text-neutral-400 shrink-0" />
+              <span className="text-xs font-semibold text-neutral-700">
                 {formatCardDate(eventDetails.dateStart)}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Clock size={13} className="text-primary-500 shrink-0" />
-              <span className="text-xs text-primary-600">
+              <Clock size={13} className="text-neutral-400 shrink-0" />
+              <span className="text-xs text-neutral-500">
                 {formatCardTime(eventDetails.dateStart)}
                 {eventDetails.dateEnd && ` - ${formatCardTime(eventDetails.dateEnd)}`}
               </span>
             </div>
             {eventDetails.address && (
               <div className="flex items-center gap-2">
-                <MapPin size={13} className="text-primary-500 shrink-0" />
-                <span className="text-xs text-primary-600 truncate">{eventDetails.address}</span>
+                <MapPin size={13} className="text-neutral-400 shrink-0" />
+                <span className="text-xs text-neutral-500 truncate">{eventDetails.address}</span>
               </div>
             )}
             {eventDetails.collectiveName && !hasEventImage && (
-              <p className="text-[11px] text-primary-400 mt-0.5">
+              <p className="text-[11px] text-neutral-400 mt-0.5">
                 Hosted by {eventDetails.collectiveName}
               </p>
             )}
@@ -581,15 +579,15 @@ export function AnnouncementCard({
                     'flex-1 rounded-xl py-2 text-center text-xs font-semibold transition-transform duration-150 min-h-11',
                     'active:scale-[0.95] cursor-pointer select-none',
                     isSelected
-                      ? 'bg-primary-600 text-white shadow-sm'
-                      : 'bg-white/60 text-primary-700 hover:bg-white/90',
+                      ? 'bg-primary-500 text-white'
+                      : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100',
                   )}
                 >
                   {label}
                   {count > 0 && (
                     <span className={cn(
                       'ml-1 text-[11px]',
-                      isSelected ? 'text-white/70' : 'text-primary-400',
+                      isSelected ? 'text-white/70' : 'text-neutral-400',
                     )}>
                       ({count})
                     </span>
@@ -602,7 +600,7 @@ export function AnnouncementCard({
 
         {/* Response summary */}
         {responses.length > 0 && (
-          <p className="text-[11px] text-primary-400">
+          <p className="text-[11px] text-neutral-500">
             {responses.length} response{responses.length !== 1 ? 's' : ''}
           </p>
         )}

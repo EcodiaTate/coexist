@@ -40,14 +40,14 @@ export default function DonorWallPage() {
           transition={{ duration: 0.3 }}
           className="flex items-center gap-3 mb-6"
         >
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-accent-100">
-            <Heart size={20} className="text-primary-400" />
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary-50">
+            <Heart size={20} className="text-primary-600" />
           </div>
           <div>
-            <h2 className="font-heading font-semibold text-primary-800">
+            <h2 className="font-heading font-semibold text-neutral-900">
               Our generous donors
             </h2>
-            <p className="text-sm text-primary-400">
+            <p className="text-sm text-neutral-500">
               People & organisations making conservation happen
             </p>
           </div>
@@ -86,7 +86,7 @@ export default function DonorWallPage() {
                 variants={fadeUp}
                 className={cn(
                   'flex items-center gap-3 p-3 rounded-xl',
-                  'bg-white border border-primary-100 shadow-sm',
+                  'bg-white border border-neutral-100 shadow-sm',
                 )}
               >
                 <Avatar
@@ -95,20 +95,20 @@ export default function DonorWallPage() {
                   size="sm"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-primary-800 truncate">
+                  <p className="text-sm font-medium text-neutral-900 truncate">
                     {donor.on_behalf_of ?? donor.display_name ?? 'Anonymous'}
                   </p>
                   {donor.message && (
-                    <p className="text-xs text-primary-400 line-clamp-1 mt-0.5">
+                    <p className="text-xs text-neutral-500 line-clamp-1 mt-0.5">
                       "{donor.message}"
                     </p>
                   )}
                 </div>
                 <div className="text-right shrink-0">
-                  <p className="text-sm font-semibold text-primary-400">
+                  <p className="text-sm font-semibold text-neutral-500">
                     ${Number(donor.amount).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                   </p>
-                  <p className="text-xs text-primary-400">
+                  <p className="text-xs text-neutral-500">
                     {formatRelativeDate(donor.created_at)}
                   </p>
                 </div>

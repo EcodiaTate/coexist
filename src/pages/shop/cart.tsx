@@ -167,23 +167,16 @@ export default function CartPage() {
     return (
       <Page swipeBack noBackground className="!px-0" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
         {/* Hero */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900">
-
-          {/* Decorative */}
-          <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-white/[0.04]" />
-          <div className="absolute -left-10 bottom-4 w-36 h-36 rounded-full bg-white/[0.04]" />
-          <div className="absolute right-12 bottom-12 w-20 h-20 rounded-full border border-white/[0.08]" />
-          <div className="absolute left-[30%] top-[20%] w-2 h-2 rounded-full bg-white/10" />
-          <div className="absolute right-[20%] top-[60%] w-1.5 h-1.5 rounded-full bg-white/10" />
+        <div className="relative overflow-hidden bg-white">
 
           <div className="relative z-10 px-6 pb-16 text-center" style={{ paddingTop: '5rem' }}>
             <motion.div
               initial={rm ? false : { opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 mb-5 ring-1 ring-white/10"
+              className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-neutral-100 mb-5"
             >
-              <ShoppingBag size={30} className="text-white/90" />
+              <ShoppingBag size={30} className="text-neutral-400" />
             </motion.div>
 
             <motion.div
@@ -191,33 +184,32 @@ export default function CartPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <h1 className="font-heading text-2xl font-bold text-white">
+              <h1 className="font-heading text-2xl font-bold text-neutral-900">
                 Your cart is empty
               </h1>
-              <p className="text-sm text-white/50 mt-2.5 max-w-[260px] mx-auto leading-relaxed">
+              <p className="text-sm text-neutral-500 mt-2.5 max-w-[260px] mx-auto leading-relaxed">
                 Gear that gives back - every purchase supports conservation across Australia
               </p>
             </motion.div>
           </div>
 
-          <WaveDivider />
         </div>
 
         {/* Body */}
-        <div className="bg-surface-1 px-5 pt-6 pb-10 flex flex-col items-center">
+        <div className="bg-white px-5 pt-6 pb-10 flex flex-col items-center">
           <Link to="/shop" tabIndex={-1}>
             <Button variant="primary" size="lg" icon={<ShoppingBag size={18} />}>
               Browse the shop
             </Button>
           </Link>
 
-          <div className="flex items-center gap-4 mt-8 px-5 py-3 rounded-2xl bg-surface-3/80">
-            <div className="flex items-center gap-1.5 text-primary-500">
+          <div className="flex items-center gap-4 mt-8 px-5 py-3 rounded-2xl bg-white border border-neutral-100 shadow-sm">
+            <div className="flex items-center gap-1.5 text-neutral-500">
               <Truck size={14} />
               <span className="text-xs font-medium">Free over $75</span>
             </div>
-            <div className="w-px h-4 bg-primary-200/50" />
-            <div className="flex items-center gap-1.5 text-primary-500">
+            <div className="w-px h-4 bg-neutral-200" />
+            <div className="flex items-center gap-1.5 text-neutral-500">
               <Shield size={14} />
               <span className="text-xs font-medium">Secure checkout</span>
             </div>
@@ -239,8 +231,8 @@ export default function CartPage() {
       footer={
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-primary-500">Total</span>
-            <span className="font-heading text-lg font-bold text-primary-800 tabular-nums">
+            <span className="text-sm font-medium text-neutral-500">Total</span>
+            <span className="font-heading text-lg font-bold text-neutral-900 tabular-nums">
               {formatPrice(totalCents)}
             </span>
           </div>
@@ -257,35 +249,29 @@ export default function CartPage() {
       }
     >
       {/* ── Hero ── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900">
-
-        {/* Decorative */}
-        <div className="absolute -right-12 -top-12 w-44 h-44 rounded-full bg-white/[0.04]" />
-        <div className="absolute -left-8 bottom-0 w-28 h-28 rounded-full bg-white/[0.04]" />
-        <div className="absolute right-10 bottom-10 w-14 h-14 rounded-full border border-white/[0.07]" />
+      <div className="relative overflow-hidden bg-white">
 
         <div
           className="relative z-10 px-6 pb-12 flex items-center gap-4"
           style={{ paddingTop: '3.5rem' }}
         >
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-white/10 shrink-0 ring-1 ring-white/10">
-            <ShoppingBag size={22} className="text-white/90" />
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-neutral-100 shrink-0">
+            <ShoppingBag size={22} className="text-neutral-400" />
           </div>
           <div>
-            <h1 className="font-heading text-lg font-bold text-white">
+            <h1 className="font-heading text-lg font-bold text-neutral-900">
               {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
             </h1>
-            <p className="text-xs text-white/50 mt-0.5">
+            <p className="text-xs text-neutral-500 mt-0.5">
               {formatPrice(subtotalCents)} subtotal
             </p>
           </div>
         </div>
 
-        <WaveDivider />
       </div>
 
       {/* ── Cart body ── */}
-      <div className="bg-surface-1 min-h-[50dvh]">
+      <div className="bg-white min-h-[50dvh]">
         <motion.div
           variants={rm ? undefined : stagger}
           initial="hidden"
@@ -302,11 +288,8 @@ export default function CartPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={rm ? undefined : { opacity: 0, x: -60, height: 0, marginBottom: 0 }}
                 transition={{ duration: 0.25 }}
-                className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-surface-2 to-surface-3/60 ring-1 ring-primary-200/25 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+                className="relative rounded-2xl overflow-hidden bg-white border border-neutral-100 shadow-sm"
               >
-                {/* Top edge accent line */}
-                <div className="h-[2px] bg-gradient-to-r from-primary-300/40 via-moss-300/30 to-transparent" />
-
                 <div className="flex gap-3.5 p-3.5">
                   {/* Image */}
                   <Link to={`/shop/${item.product.slug}`} className="shrink-0 group">
@@ -325,17 +308,17 @@ export default function CartPage() {
                   <div className="flex-1 min-w-0 flex flex-col">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="font-heading font-semibold text-sm text-primary-800 truncate leading-tight">
+                        <p className="font-heading font-semibold text-sm text-neutral-900 truncate leading-tight">
                           {item.product.name}
                         </p>
-                        <p className="text-xs text-primary-400 mt-0.5">
+                        <p className="text-xs text-neutral-500 mt-0.5">
                           {variantLabel(item.variant)}
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => handleRemove(item.variant.id)}
-                        className="flex items-center justify-center w-11 h-11 -mt-0.5 -mr-1 rounded-full text-primary-300 hover:text-error-500 hover:bg-error-50 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
+                        className="flex items-center justify-center w-11 h-11 -mt-0.5 -mr-1 rounded-full text-neutral-400 hover:text-error-500 hover:bg-error-50 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
                         aria-label={`Remove ${item.product.name}`}
                       >
                         <X size={16} />
@@ -346,26 +329,26 @@ export default function CartPage() {
 
                     {/* Price + Quantity */}
                     <div className="flex items-center justify-between mt-auto pt-2">
-                      <p className="font-heading font-bold text-[15px] text-primary-700 tabular-nums">
+                      <p className="font-heading font-bold text-[15px] text-neutral-900 tabular-nums">
                         {formatPrice(item.variant.price_cents * item.quantity)}
                       </p>
 
-                      <div className="inline-flex items-center gap-0 bg-gradient-to-b from-surface-3 to-primary-100/40 rounded-xl ring-1 ring-primary-200/40">
+                      <div className="inline-flex items-center gap-0 bg-neutral-50 rounded-xl border border-neutral-100">
                         <button
                           type="button"
                           onClick={() => handleUpdateQuantity(item, item.quantity - 1)}
-                          className="flex items-center justify-center w-11 h-11 rounded-l-xl text-primary-600 hover:bg-primary-100/60 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
+                          className="flex items-center justify-center w-11 h-11 rounded-l-xl text-neutral-600 hover:bg-neutral-100 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
                           aria-label="Decrease quantity"
                         >
                           <Minus size={14} />
                         </button>
-                        <span className="text-sm font-bold text-primary-800 tabular-nums min-w-[2.5ch] text-center">
+                        <span className="text-sm font-bold text-neutral-900 tabular-nums min-w-[2.5ch] text-center">
                           {item.quantity}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleUpdateQuantity(item, item.quantity + 1)}
-                          className="flex items-center justify-center w-11 h-11 rounded-r-xl text-primary-600 hover:bg-primary-100/60 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
+                          className="flex items-center justify-center w-11 h-11 rounded-r-xl text-neutral-600 hover:bg-neutral-100 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
                           aria-label="Increase quantity"
                         >
                           <Plus size={14} />
@@ -381,18 +364,18 @@ export default function CartPage() {
           {/* Promo code */}
           <motion.div variants={fadeUp} className="pt-1">
             {promoCode ? (
-              <div className="flex items-center gap-2.5 px-4 py-3 bg-gradient-to-r from-moss-100/80 to-moss-50/60 rounded-xl ring-1 ring-moss-200/60">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-moss-200/70">
-                  <Tag size={14} className="text-moss-700" />
+              <div className="flex items-center gap-2.5 px-4 py-3 bg-white border border-neutral-100 shadow-sm rounded-xl">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-neutral-100">
+                  <Tag size={14} className="text-neutral-500" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-moss-800">{promoCode.code}</p>
-                  <p className="text-xs text-moss-500">Promo applied</p>
+                  <p className="text-sm font-semibold text-neutral-900">{promoCode.code}</p>
+                  <p className="text-xs text-neutral-500">Promo applied</p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setPromoCode(null)}
-                  className="flex items-center justify-center w-11 h-11 rounded-full text-moss-400 hover:bg-moss-200/50 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
+                  className="flex items-center justify-center w-11 h-11 rounded-full text-neutral-400 hover:bg-neutral-100 cursor-pointer select-none active:scale-[0.92] transition-transform duration-150"
                   aria-label="Remove promo code"
                 >
                   <X size={14} />
@@ -424,22 +407,22 @@ export default function CartPage() {
           {/* Order summary */}
           <motion.div
             variants={fadeUp}
-            className="rounded-2xl overflow-hidden ring-1 ring-primary-200/25 shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
+            className="rounded-2xl overflow-hidden border border-neutral-100 shadow-sm"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-primary-200/50 to-surface-3 px-4 py-3 border-b border-primary-200/25">
-              <h3 className="font-heading font-semibold text-sm text-primary-800">Order summary</h3>
+            <div className="bg-white px-4 py-3 border-b border-neutral-100">
+              <h3 className="font-heading font-semibold text-sm text-neutral-900">Order summary</h3>
             </div>
 
             {/* Body */}
-            <div className="bg-gradient-to-b from-surface-2 to-surface-1 px-4 py-4 space-y-3">
+            <div className="bg-white px-4 py-4 space-y-3">
               <div className="space-y-2.5 text-sm">
-                <div className="flex justify-between text-primary-500">
+                <div className="flex justify-between text-neutral-500">
                   <span>Subtotal</span>
                   <span className="tabular-nums font-medium">{formatPrice(subtotalCents)}</span>
                 </div>
                 {memberDiscountCents > 0 && (
-                  <div className="flex justify-between text-moss-700">
+                  <div className="flex justify-between text-neutral-600">
                     <span className="flex items-center gap-1.5">
                       <Tag size={12} />
                       Member discount
@@ -448,7 +431,7 @@ export default function CartPage() {
                   </div>
                 )}
                 {discountCents > 0 && (
-                  <div className="flex justify-between text-moss-700">
+                  <div className="flex justify-between text-neutral-600">
                     <span className="flex items-center gap-1.5">
                       <Tag size={12} />
                       Promo discount
@@ -456,14 +439,14 @@ export default function CartPage() {
                     <span className="tabular-nums font-medium">-{formatPrice(discountCents)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-primary-500">
+                <div className="flex justify-between text-neutral-500">
                   <span className="flex items-center gap-1.5">
                     <Truck size={12} />
                     Shipping
                   </span>
                   <span className="tabular-nums font-medium">
                     {shippingCents === 0 ? (
-                      <span className="text-moss-600 font-semibold">Free</span>
+                      <span className="text-neutral-900 font-semibold">Free</span>
                     ) : (
                       formatPrice(shippingCents)
                     )}
@@ -472,9 +455,9 @@ export default function CartPage() {
               </div>
 
               {/* Total */}
-              <div className="-mx-4 px-4 py-3.5 bg-gradient-to-r from-primary-200/40 via-primary-100/30 to-surface-2 border-t border-primary-200/25 flex justify-between items-center">
-                <span className="font-heading font-bold text-primary-800">Total</span>
-                <span className="font-heading font-bold text-lg text-primary-800 tabular-nums">
+              <div className="-mx-4 px-4 py-3.5 bg-neutral-50 border-t border-neutral-100 flex justify-between items-center">
+                <span className="font-heading font-bold text-neutral-900">Total</span>
+                <span className="font-heading font-bold text-lg text-neutral-900 tabular-nums">
                   {formatPrice(totalCents)}
                 </span>
               </div>
@@ -483,17 +466,17 @@ export default function CartPage() {
 
           {/* Trust badges */}
           <motion.div variants={fadeUp} className="flex items-center justify-center gap-4 py-3">
-            <div className="flex items-center gap-1.5 text-primary-400">
+            <div className="flex items-center gap-1.5 text-neutral-400">
               <Truck size={13} />
               <span className="text-xs font-medium">Free over $75</span>
             </div>
-            <div className="w-px h-3.5 bg-primary-200/40" />
-            <div className="flex items-center gap-1.5 text-primary-400">
+            <div className="w-px h-3.5 bg-neutral-200" />
+            <div className="flex items-center gap-1.5 text-neutral-400">
               <Shield size={13} />
               <span className="text-xs font-medium">Secure</span>
             </div>
-            <div className="w-px h-3.5 bg-primary-200/40" />
-            <div className="flex items-center gap-1.5 text-primary-400">
+            <div className="w-px h-3.5 bg-neutral-200" />
+            <div className="flex items-center gap-1.5 text-neutral-400">
               <Leaf size={13} />
               <span className="text-xs font-medium">Eco packaging</span>
             </div>

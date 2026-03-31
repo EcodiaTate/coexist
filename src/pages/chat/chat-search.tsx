@@ -56,8 +56,8 @@ export function ChatSearch({ collectiveId, onClose }: ChatSearchProps) {
           className="flex-1"
           aria-label="Search messages"
         />
-        <button type="button" onClick={onClose} aria-label="Close search" className="flex items-center justify-center shrink-0 min-h-11 min-w-11 rounded-full hover:bg-primary-100/60 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none">
-          <X size={18} className="text-primary-400" />
+        <button type="button" onClick={onClose} aria-label="Close search" className="flex items-center justify-center shrink-0 min-h-11 min-w-11 rounded-full hover:bg-neutral-100 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none">
+          <X size={18} className="text-neutral-400" />
         </button>
       </div>
 
@@ -73,21 +73,21 @@ export function ChatSearch({ collectiveId, onClose }: ChatSearchProps) {
         ) : (
           <div className="space-y-2">
             {results.map((msg) => (
-              <div key={msg.id} className="rounded-2xl bg-white p-4 shadow-md ring-1 ring-primary-100/60">
+              <div key={msg.id} className="rounded-2xl bg-white p-4 shadow-sm border border-neutral-100">
                 <div className="flex items-center gap-2.5 mb-1.5">
                   <Avatar
                     src={msg.profiles?.avatar_url}
                     name={msg.profiles?.display_name}
                     size="xs"
                   />
-                  <span className="text-[13px] font-bold text-primary-800">
+                  <span className="text-[13px] font-bold text-neutral-800">
                     {msg.profiles?.display_name}
                   </span>
-                  <span className="text-[11px] font-medium text-primary-400 ml-auto">
+                  <span className="text-[11px] font-medium text-neutral-400 ml-auto">
                     {relativeTime(msg.created_at!)}
                   </span>
                 </div>
-                <p className="text-sm text-primary-600 leading-relaxed">{msg.content}</p>
+                <p className="text-sm text-neutral-600 leading-relaxed">{msg.content}</p>
               </div>
             ))}
           </div>

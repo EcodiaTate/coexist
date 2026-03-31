@@ -1,6 +1,9 @@
 import { type ReactNode, useState, useEffect, useRef, createContext, useContext, useCallback, useMemo, Suspense } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
+import { AdminCollectiveScopeContext, useAdminCollectiveScopeProvider } from '@/hooks/use-admin-collective-scope'
+import { useAuth } from '@/hooks/use-auth'
+import { Dropdown } from '@/components/dropdown'
 
 import {
     LayoutDashboard,
@@ -22,6 +25,7 @@ import {
     ArrowLeft,
     BarChart3,
     Leaf,
+    GraduationCap,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
@@ -267,13 +271,14 @@ const _adminNavCategories: NavCategory[] = [
     items: [
       { label: 'Collectives', path: '/admin/collectives', icon: <MapPin size={17} strokeWidth={1.5} />, capability: 'manage_collectives' },
       { label: 'Events', path: '/admin/events', icon: <CalendarDays size={17} strokeWidth={1.5} />, capability: 'manage_events' },
+      { label: 'Development', path: '/admin/development', icon: <GraduationCap size={17} strokeWidth={1.5} />, capability: 'manage_content' },
       { label: 'Partners', path: '/admin/partners', icon: <Handshake size={17} strokeWidth={1.5} />, capability: 'manage_partners' },
       { label: 'Shop', path: '/admin/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} />, capability: 'manage_merch' },
       { label: 'Contacts', path: '/admin/contacts', icon: <Phone size={17} strokeWidth={1.5} />, capability: 'manage_users' },
     ],
   },
   {
-    label: 'Create',
+    label: 'Engage',
     items: [
       { label: 'Tasks', path: '/admin/tasks', icon: <ClipboardCheck size={17} strokeWidth={1.5} />, capability: 'manage_workflows' },
       { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_surveys' },
@@ -282,10 +287,13 @@ const _adminNavCategories: NavCategory[] = [
     ],
   },
   {
-    label: 'Impact',
+    label: 'Insights',
     items: [
       { label: 'Impact Dashboard', path: '/admin/impact', icon: <Leaf size={17} strokeWidth={1.5} />, capability: 'view_reports' },
       { label: 'Metric Definitions', path: '/admin/impact-metrics', icon: <BarChart3 size={17} strokeWidth={1.5} />, capability: 'manage_system' },
+      { label: 'Reports', path: '/admin/reports', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_reports' },
+      { label: 'Exports', path: '/admin/exports', icon: <Download size={17} strokeWidth={1.5} />, capability: 'manage_exports' },
+      { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_audit_log' },
     ],
   },
   {
@@ -293,15 +301,8 @@ const _adminNavCategories: NavCategory[] = [
     items: [
       { label: 'Charity', path: '/admin/charity', icon: <Heart size={17} strokeWidth={1.5} />, capability: 'manage_charity' },
       { label: 'Branding', path: '/admin/branding', icon: <Image size={17} strokeWidth={1.5} />, capability: 'manage_system' },
+      { label: 'Legal Pages', path: '/admin/legal-pages', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'manage_system' },
       { label: 'System', path: '/admin/system', icon: <Settings size={17} strokeWidth={1.5} />, capability: 'manage_system' },
-    ],
-  },
-  {
-    label: 'Operations',
-    items: [
-      { label: 'Reports', path: '/admin/reports', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_reports' },
-      { label: 'Exports', path: '/admin/exports', icon: <Download size={17} strokeWidth={1.5} />, capability: 'manage_exports' },
-      { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_audit_log' },
       { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={17} strokeWidth={1.5} />, capability: 'manage_system' },
     ],
   },
@@ -401,6 +402,8 @@ export function AdminLayout() {
   const showBackButton = !TOP_LEVEL_ADMIN_PATHS.has(location.pathname)
   const [header, setHeaderState] = useState<AdminHeaderState>({ title: '' })
   const scrollRef = useRef<HTMLDivElement>(null)
+  const { isAdmin: isAdminUser } = useAuth()
+  const scopeCtx = useAdminCollectiveScopeProvider()
 
   // Scroll content to top on route change  instant to avoid fighting
   // with page transition animations
@@ -414,7 +417,21 @@ export function AdminLayout() {
 
   const headerCtx = useMemo(() => ({ setHeader }), [setHeader])
 
+  // Collective scope dropdown options
+  const collectiveScopeOptions = useMemo(() => {
+    const opts = scopeCtx.availableCollectives.map((c) => ({
+      value: c.id,
+      label: c.name + (c.state ? ` (${c.state})` : ''),
+    }))
+    // Only admins get the "All Collectives" option; managers must pick one
+    if (isAdminUser) {
+      opts.unshift({ value: 'all', label: 'All Collectives' })
+    }
+    return opts
+  }, [scopeCtx.availableCollectives, isAdminUser])
+
   return (
+    <AdminCollectiveScopeContext.Provider value={scopeCtx}>
     <AdminHeaderContext.Provider value={headerCtx}>
       <div className="flex flex-1 min-h-0">
         {/* Desktop sidebar is handled by UnifiedSidebar in AppShell */}
@@ -422,7 +439,7 @@ export function AdminLayout() {
         {/* Mobile drawer + hamburger removed - handled by UnifiedSidebar in AppShell */}
 
         {/* Main content */}
-        <div ref={scrollRef} className={cn(
+        <div ref={scrollRef} data-parallax-scroll className={cn(
           'flex-1 flex flex-col min-w-0 min-h-0 bg-surface-1',
           showBottomTabs && 'overflow-y-auto overscroll-none',
         )}>
@@ -483,9 +500,18 @@ export function AdminLayout() {
                         <p className="mt-1 text-sm text-white/40">{subtitle}</p>
                       )}
                     </div>
-                    {header.actions && (
-                      <div className="flex items-center gap-2 shrink-0">{header.actions}</div>
-                    )}
+                    <div className="flex items-center gap-2 shrink-0">
+                      {scopeCtx.showCollectiveSelector && collectiveScopeOptions.length > 1 && (
+                        <Dropdown
+                          options={collectiveScopeOptions}
+                          value={scopeCtx.selectedCollectiveId}
+                          onChange={scopeCtx.setSelectedCollectiveId}
+                          className="w-48 sm:w-56"
+                          tone="dark"
+                        />
+                      )}
+                      {header.actions}
+                    </div>
                   </div>
 
                   {/* Per-page hero content (stats, etc.) */}
@@ -530,5 +556,6 @@ export function AdminLayout() {
         )}
       </div>
     </AdminHeaderContext.Provider>
+    </AdminCollectiveScopeContext.Provider>
   )
 }

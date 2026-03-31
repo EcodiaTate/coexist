@@ -61,7 +61,7 @@ function ToolbarBtn({
         'flex items-center justify-center w-8 h-8 rounded-lg transition-colors duration-150 cursor-pointer',
         active
           ? 'bg-primary-100 text-primary-800'
-          : 'text-primary-400 hover:bg-primary-50 hover:text-primary-700',
+          : 'text-neutral-400 hover:bg-neutral-50 hover:text-neutral-700',
       )}
       title={label}
       aria-label={label}
@@ -126,24 +126,24 @@ function RichEditor({
   }, [doCommand])
 
   return (
-    <div className="rounded-2xl border border-primary-200 overflow-hidden bg-white">
+    <div className="rounded-2xl border border-neutral-100 overflow-hidden bg-white">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-primary-100 bg-primary-50/30">
+      <div className="flex flex-wrap items-center gap-0.5 px-3 py-2 border-b border-neutral-100 bg-neutral-50/30">
         <ToolbarBtn icon={<Undo2 size={15} />} label="Undo" onClick={() => doCommand('undo')} />
         <ToolbarBtn icon={<Redo2 size={15} />} label="Redo" onClick={() => doCommand('redo')} />
-        <div className="w-px h-5 bg-primary-200 mx-1" />
+        <div className="w-px h-5 bg-neutral-200 mx-1" />
         <ToolbarBtn icon={<Heading2 size={15} />} label="Heading 2" onClick={() => doCommand('formatBlock', 'h2')} />
         <ToolbarBtn icon={<Heading3 size={15} />} label="Heading 3" onClick={() => doCommand('formatBlock', 'h3')} />
         <ToolbarBtn icon={<AlignLeft size={15} />} label="Paragraph" onClick={() => doCommand('formatBlock', 'p')} />
-        <div className="w-px h-5 bg-primary-200 mx-1" />
+        <div className="w-px h-5 bg-neutral-200 mx-1" />
         <ToolbarBtn icon={<Bold size={15} />} label="Bold" onClick={() => doCommand('bold')} />
         <ToolbarBtn icon={<Italic size={15} />} label="Italic" onClick={() => doCommand('italic')} />
         <ToolbarBtn icon={<UnderlineIcon size={15} />} label="Underline" onClick={() => doCommand('underline')} />
-        <div className="w-px h-5 bg-primary-200 mx-1" />
+        <div className="w-px h-5 bg-neutral-200 mx-1" />
         <ToolbarBtn icon={<List size={15} />} label="Bullet list" onClick={() => doCommand('insertUnorderedList')} />
         <ToolbarBtn icon={<ListOrdered size={15} />} label="Numbered list" onClick={() => doCommand('insertOrderedList')} />
         <ToolbarBtn icon={<Quote size={15} />} label="Blockquote" onClick={() => doCommand('formatBlock', 'blockquote')} />
-        <div className="w-px h-5 bg-primary-200 mx-1" />
+        <div className="w-px h-5 bg-neutral-200 mx-1" />
         <ToolbarBtn icon={<Link2 size={15} />} label="Insert link" onClick={insertLink} />
         <ToolbarBtn icon={<Minus size={15} />} label="Horizontal rule" onClick={() => doCommand('insertHorizontalRule')} />
       </div>
@@ -152,7 +152,7 @@ function RichEditor({
       <div
         ref={editorRef}
         contentEditable
-        className="legal-content min-h-[400px] p-5 text-sm text-primary-700 leading-relaxed focus:outline-none"
+        className="legal-content min-h-[400px] p-5 text-sm text-neutral-700 leading-relaxed focus:outline-none"
         onInput={handleInput}
         onBlur={handleInput}
         role="textbox"
@@ -182,11 +182,11 @@ function PageCard({
     >
       <div className="flex items-start gap-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 group-hover:bg-primary-100 transition-colors">
-          <FileText size={18} className="text-primary-600" />
+          <FileText size={18} className="text-neutral-600" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-primary-900 truncate">
+            <h3 className="text-sm font-semibold text-neutral-900 truncate">
               {page.title}
             </h3>
             {page.is_published ? (
@@ -195,15 +195,15 @@ function PageCard({
                 Live
               </span>
             ) : (
-              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-50 text-primary-400 text-[11px] font-semibold uppercase tracking-wide shrink-0">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-neutral-50 text-neutral-400 text-[11px] font-semibold uppercase tracking-wide shrink-0">
                 Draft
               </span>
             )}
           </div>
           {page.summary && (
-            <p className="text-xs text-primary-400 mt-1 line-clamp-1">{page.summary}</p>
+            <p className="text-xs text-neutral-400 mt-1 line-clamp-1">{page.summary}</p>
           )}
-          <div className="flex items-center gap-1 mt-2 text-[11px] text-primary-300">
+          <div className="flex items-center gap-1 mt-2 text-[11px] text-neutral-300">
             <Clock size={10} />
             Updated {new Date(page.updated_at).toLocaleDateString('en-AU', {
               day: 'numeric',
@@ -212,7 +212,7 @@ function PageCard({
             })}
           </div>
         </div>
-        <Pencil size={14} className="text-primary-300 group-hover:text-primary-500 transition-colors shrink-0 mt-1" />
+        <Pencil size={14} className="text-neutral-300 group-hover:text-neutral-500 transition-colors shrink-0 mt-1" />
       </div>
     </button>
   )
@@ -341,10 +341,10 @@ export default function AdminLegalPagesPage() {
 
           {/* Slug badge */}
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-primary-300">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-neutral-300">
               Slug
             </span>
-            <code className="text-xs text-primary-500 bg-primary-50 px-2 py-0.5 rounded-lg">
+            <code className="text-xs text-neutral-500 bg-neutral-50 px-2 py-0.5 rounded-lg">
               /{editing.slug}
             </code>
           </div>
@@ -355,7 +355,7 @@ export default function AdminLegalPagesPage() {
               label="Page Title"
               value={form.title}
               onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-              className="[&_input]:bg-surface-3 [&_input]:pt-7"
+              className="[&_input]:bg-white [&_input]:pt-7"
             />
             <Input
               type="textarea"
@@ -364,7 +364,7 @@ export default function AdminLegalPagesPage() {
               onChange={(e) => setForm((p) => ({ ...p, summary: e.target.value }))}
               rows={2}
               helperText="Short description shown in search results and social previews"
-              className="[&_textarea]:bg-white [&_textarea]:border [&_textarea]:border-primary-200 [&_textarea]:pt-7"
+              className="[&_textarea]:bg-white [&_textarea]:border [&_textarea]:border-neutral-100 [&_textarea]:pt-7"
             />
           </div>
 
@@ -391,18 +391,18 @@ export default function AdminLegalPagesPage() {
                 transition={{ duration: 0.15 }}
                 className="rounded-2xl bg-white p-6 shadow-sm"
               >
-                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-primary-100">
-                  <Eye size={14} className="text-primary-400" />
-                  <span className="text-xs font-semibold text-primary-400 uppercase tracking-wide">Preview</span>
+                <div className="flex items-center gap-2 mb-4 pb-3 border-b border-neutral-100">
+                  <Eye size={14} className="text-neutral-400" />
+                  <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wide">Preview</span>
                 </div>
                 {previewHtml ? (
                   <div
-                    className="legal-content text-sm text-primary-700 leading-relaxed"
+                    className="legal-content text-sm text-neutral-700 leading-relaxed"
                     // Content is sanitised via DOMPurify in the sanitise() helper above
                     dangerouslySetInnerHTML={{ __html: previewHtml }}
                   />
                 ) : (
-                  <p className="text-sm text-primary-300 italic">No content yet</p>
+                  <p className="text-sm text-neutral-300 italic">No content yet</p>
                 )}
               </motion.div>
             ) : (
@@ -437,17 +437,17 @@ export default function AdminLegalPagesPage() {
         {/* Info banner */}
         <motion.div
           variants={fadeUp}
-          className="rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100/60 p-5 shadow-sm"
+          className="rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm"
         >
           <div className="flex items-start gap-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm">
-              <FileText size={20} className="text-primary-600" />
+              <FileText size={20} className="text-neutral-600" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-primary-900">
+              <h3 className="text-sm font-semibold text-neutral-900">
                 Legal & Policy Pages
               </h3>
-              <p className="mt-1 text-sm leading-relaxed text-primary-600">
+              <p className="mt-1 text-sm leading-relaxed text-neutral-600">
                 Manage your Terms of Service, Privacy Policy, and other legal pages.
                 Changes go live immediately when a page is published.
               </p>
@@ -464,7 +464,7 @@ export default function AdminLegalPagesPage() {
 
         {pages?.length === 0 && (
           <motion.div variants={fadeUp} className="text-center py-12">
-            <p className="text-sm text-primary-400">No legal pages found. Run the database migration to seed default pages.</p>
+            <p className="text-sm text-neutral-400">No legal pages found. Run the database migration to seed default pages.</p>
           </motion.div>
         )}
       </motion.div>

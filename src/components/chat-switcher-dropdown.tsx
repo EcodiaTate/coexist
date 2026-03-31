@@ -103,7 +103,7 @@ export function ChatSwitcherDropdown({
               {/* Collectives */}
               {collectives.length > 0 && (
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider font-extrabold text-primary-400 px-3.5 pt-2 pb-1">Collectives</p>
+                  <p className="text-[10px] uppercase tracking-wider font-extrabold text-neutral-400 px-3.5 pt-2 pb-1">Collectives</p>
                   {collectives.map((c) => {
                     const isPrimary = primaryChatId === c.id
                     const isCurrent = c.id === currentCollectiveId
@@ -151,7 +151,7 @@ export function ChatSwitcherDropdown({
                               'flex items-center justify-center min-h-9 min-w-9 rounded-full mr-1.5 transition-colors duration-150 cursor-pointer select-none',
                               isPrimary
                                 ? 'text-primary-500 hover:bg-primary-100'
-                                : 'text-primary-300 hover:text-primary-500 hover:bg-primary-50',
+                                : 'text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50',
                             )}
                             aria-label={isPrimary ? 'Remove as default chat' : 'Set as default chat'}
                             title={isPrimary ? 'Remove as default' : 'Set as default'}
@@ -169,7 +169,7 @@ export function ChatSwitcherDropdown({
               {channels.length > 0 && (
                 <div>
                   {collectives.length > 0 && <div className="h-px bg-primary-100 mx-3 my-1" />}
-                  <p className="text-[10px] uppercase tracking-wider font-extrabold text-primary-400 px-3.5 pt-2 pb-1">Staff Channels</p>
+                  <p className="text-[10px] uppercase tracking-wider font-extrabold text-neutral-400 px-3.5 pt-2 pb-1">Staff Channels</p>
                   {channels.map((ch) => (
                     <button
                       key={ch.id}
@@ -198,7 +198,7 @@ export function ChatSwitcherDropdown({
               {otherCollectives.length > 0 && (
                 <div>
                   {(collectives.length > 0 || channels.length > 0) && <div className="h-px bg-primary-100 mx-3 my-1" />}
-                  <p className="text-[10px] uppercase tracking-wider font-extrabold text-primary-400 px-3.5 pt-2 pb-1">All Collectives</p>
+                  <p className="text-[10px] uppercase tracking-wider font-extrabold text-neutral-400 px-3.5 pt-2 pb-1">All Collectives</p>
                   {otherCollectives.map((c) => {
                     const isCurrent = c.id === currentCollectiveId
                     return (

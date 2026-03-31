@@ -57,9 +57,12 @@ export function useParallaxEngine() {
     return () => mq.removeEventListener('change', handler)
   }, [])
 
-  // Grab container ref before paint
+  // Grab scroll container – prefer #main-content (Page), fall back to
+  // [data-parallax-scroll] (AdminLayout) so parallax works everywhere.
   useLayoutEffect(() => {
-    containerRef.current = document.getElementById('main-content')
+    containerRef.current =
+      document.getElementById('main-content') ??
+      document.querySelector<HTMLElement>('[data-parallax-scroll]')
   })
 
   // The animation tick – reads scroll, writes transforms

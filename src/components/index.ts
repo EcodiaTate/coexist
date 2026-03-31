@@ -3,7 +3,7 @@ export { Button } from './button'
 export type { ButtonProps } from './button'
 export { Input } from './input'
 export type { InputProps } from './input'
-export { Card } from './card'
+export { Card, getWatermark } from './card'
 export { Badge } from './badge'
 export { Avatar } from './avatar'
 export type { AvatarProps } from './avatar'
@@ -26,6 +26,8 @@ export { ListItem } from './list-item'
 export { Divider } from './divider'
 
 // Form & Navigation
+export { PlaceAutocomplete } from './place-autocomplete'
+export type { PlaceAutocompleteProps, PlaceResult } from './place-autocomplete'
 export { Header } from './header'
 export { Dropdown } from './dropdown'
 export { Toggle } from './toggle'
@@ -63,6 +65,9 @@ export { WebFooter } from './web-footer'
 export { ShareableCard } from './shareable-card'
 export { Page } from './page'
 export { PageTransition } from './page-transition'
+
+// Micro-visualizations
+export { MiniBar, MiniRing, MiniSparkline, DeltaMark } from './micro-viz'
 
 // Animation & Delight
 export { Confetti } from './confetti'

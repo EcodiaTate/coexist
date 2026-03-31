@@ -57,7 +57,7 @@ function activityLabel(type: string | null): string {
 }
 
 const statusBadgeStyles: Record<string, { label: string; className: string }> = {
-  draft: { label: 'Draft', className: 'bg-primary-100 text-primary-600' },
+  draft: { label: 'Draft', className: 'bg-neutral-100 text-neutral-600' },
   published: { label: 'Live', className: 'bg-success-100 text-success-700' },
   cancelled: { label: 'Cancelled', className: 'bg-error-100 text-error-700' },
   completed: { label: 'Completed', className: 'bg-info-100 text-info-700' },
@@ -140,7 +140,7 @@ function CountdownBadge({ dateStr }: { dateStr: string }) {
   }
   if (days <= 14) {
     return (
-      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-50 text-primary-500">
+      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-neutral-50 text-neutral-500">
         {days}d away
       </span>
     )
@@ -156,7 +156,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const isPast = new Date(event.date_start) < new Date()
-  const actColor = activityColors[event.activity_type ?? ''] ?? 'bg-primary-50 text-primary-600'
+  const actColor = activityColors[event.activity_type ?? ''] ?? 'bg-neutral-50 text-neutral-600'
 
   return (
     <motion.div
@@ -202,7 +202,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
         {/* Content */}
         <div className="p-3">
           <div className="flex items-center gap-1.5 mb-0.5">
-            <h4 className="font-heading text-sm font-semibold text-primary-800 truncate flex-1">
+            <h4 className="font-heading text-sm font-semibold text-neutral-900 truncate flex-1">
               {event.title}
             </h4>
             {event.status !== 'published' && (() => {
@@ -215,7 +215,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
             })()}
           </div>
 
-          <div className="flex items-center gap-3 mt-1.5 text-xs text-primary-400">
+          <div className="flex items-center gap-3 mt-1.5 text-xs text-neutral-400">
             <span className="flex items-center gap-1">
               <CalendarDays size={11} />
               {formatDate(event.date_start)}
@@ -227,7 +227,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
           </div>
 
           {event.address && (
-            <p className="flex items-center gap-1 mt-1 text-xs text-primary-400 truncate">
+            <p className="flex items-center gap-1 mt-1 text-xs text-neutral-400 truncate">
               <MapPin size={11} className="shrink-0" />
               {event.address}
             </p>
@@ -235,7 +235,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
 
           {/* Registration count + quick actions */}
           <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center gap-1.5 text-xs font-semibold text-primary-600">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-neutral-600">
               <Users size={12} />
               <span>{event.registrationCount} registered{event.capacity ? ` / ${event.capacity}` : ''}</span>
             </div>
@@ -243,7 +243,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/events/${event.id}/day`) }}
-                className="flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
+                className="flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-neutral-50 text-neutral-400 hover:text-neutral-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
                 title="Event Day"
               >
                 <ClipboardList size={16} />
@@ -251,7 +251,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); navigate(`/events/${event.id}/edit`) }}
-                className="flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-primary-100 text-primary-400 hover:text-primary-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
+                className="flex items-center justify-center min-w-11 min-h-11 rounded-lg hover:bg-neutral-50 text-neutral-400 hover:text-neutral-600 active:scale-[0.93] transition-[colors,transform] cursor-pointer"
                 title="Edit Event"
               >
                 <Pencil size={16} />
@@ -273,21 +273,21 @@ function CollectiveSection({ group, startIndex }: { group: CollectiveGroup; star
     <div>
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center">
             <MapPin size={14} className="text-primary-600" />
           </div>
           <div>
-            <h3 className="font-heading text-sm font-semibold text-primary-800">
+            <h3 className="font-heading text-sm font-semibold text-neutral-900">
               {group.collectiveName}
             </h3>
             {(group.region || group.state) && (
-              <p className="text-[11px] text-primary-400">
+              <p className="text-[11px] text-neutral-400">
                 {[group.region, group.state].filter(Boolean).join(', ')}
               </p>
             )}
           </div>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-primary-400">
+        <div className="flex items-center gap-1.5 text-xs text-neutral-400">
           <Users size={12} />
           <span className="tabular-nums font-medium">{group.totalRegistrations} total</span>
         </div>
@@ -312,48 +312,48 @@ function HottestEventSpotlight({ event }: { event: AdminEvent }) {
       to={`/events/${event.id}`}
       className={cn(
         'block rounded-2xl overflow-hidden',
-        'bg-gradient-to-br from-primary-200 to-primary-300/80',
+        'bg-white border border-neutral-100',
         'shadow-sm',
-        'shadow-md hover:shadow-lg active:scale-[0.99] transition-[shadow,transform] duration-150',
+        'hover:shadow-sm active:scale-[0.99] transition-[shadow,transform] duration-150',
       )}
     >
       <div className="flex items-center gap-4 p-5">
         {/* Image */}
-        <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-primary-300">
+        <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-neutral-200">
           {event.cover_image_url ? (
             <img src={event.cover_image_url} alt={event.title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <CalendarDays size={28} className="text-primary-500" />
+              <CalendarDays size={28} className="text-neutral-500" />
             </div>
           )}
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <span className="text-[11px] font-bold uppercase tracking-widest text-primary-500 mb-1 block">
+          <span className="text-[11px] font-bold uppercase tracking-widest text-neutral-500 mb-1 block">
             Biggest Event
           </span>
-          <h3 className="font-heading text-lg font-bold text-primary-900 truncate">
+          <h3 className="font-heading text-lg font-bold text-neutral-900 truncate">
             {event.title}
           </h3>
-          <p className="text-sm text-primary-600 mt-0.5">
+          <p className="text-sm text-neutral-600 mt-0.5">
             {event.collectives?.name} &middot; {formatDate(event.date_start)}
           </p>
           <div className="flex items-center gap-2 mt-2">
-            <span className="inline-flex items-center gap-1.5 text-sm font-bold text-primary-800 bg-white/60 rounded-full px-3 py-1">
+            <span className="inline-flex items-center gap-1.5 text-sm font-bold text-neutral-900 bg-neutral-50 rounded-full px-3 py-1">
               <Users size={14} />
               {event.registrationCount} registered
             </span>
             {event.capacity && (
-              <span className="text-xs font-medium text-primary-500">
+              <span className="text-xs font-medium text-neutral-500">
                 of {event.capacity}
               </span>
             )}
           </div>
         </div>
 
-        <ChevronRight size={20} className="text-primary-500 shrink-0" />
+        <ChevronRight size={20} className="text-neutral-500 shrink-0" />
       </div>
     </Link>
   )
@@ -387,14 +387,14 @@ function PastEventRow({ event, index }: { event: AdminEvent; index: number }) {
             className="w-10 h-10 rounded-lg object-cover shrink-0"
           />
         ) : (
-          <div className="w-10 h-10 rounded-lg bg-primary-50 flex items-center justify-center shrink-0">
-            <CalendarDays size={16} className="text-primary-300" />
+          <div className="w-10 h-10 rounded-lg bg-neutral-50 flex items-center justify-center shrink-0">
+            <CalendarDays size={16} className="text-neutral-300" />
           </div>
         )}
 
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-primary-700 truncate">{event.title}</p>
-          <p className="text-xs text-primary-400">
+          <p className="text-sm font-medium text-neutral-700 truncate">{event.title}</p>
+          <p className="text-xs text-neutral-400">
             {event.collectives?.name} &middot; {formatDate(event.date_start)}
           </p>
         </div>
@@ -408,12 +408,12 @@ function PastEventRow({ event, index }: { event: AdminEvent; index: number }) {
           ) : null
         })()}
 
-        <div className="flex items-center gap-1 text-xs text-primary-400 shrink-0 tabular-nums">
+        <div className="flex items-center gap-1 text-xs text-neutral-400 shrink-0 tabular-nums">
           <Users size={12} />
           {event.registrationCount}
         </div>
 
-        <ChevronRight size={14} className="text-primary-200 shrink-0" />
+        <ChevronRight size={14} className="text-neutral-200 shrink-0" />
       </Link>
     </motion.div>
   )
@@ -436,7 +436,7 @@ export default function AdminEventsPage() {
       <AdminHeroStat value={data?.stats?.upcoming ?? 0} label="Upcoming" icon={<Flame size={18} />} color="warning" delay={0} reducedMotion={false} />
       <AdminHeroStat value={data?.stats?.total ?? 0} label="Total Events" icon={<CalendarDays size={18} />} color="primary" delay={1} reducedMotion={false} />
       <AdminHeroStat value={data?.stats?.totalRegistrations ?? 0} label="Registrations" icon={<ClipboardList size={18} />} color="sprout" delay={2} reducedMotion={false} />
-      <AdminHeroStat value={data?.stats?.activeCollectives ?? 0} label="Active Collectives" icon={<MapPin size={18} />} color="moss" delay={3} reducedMotion={false} />
+      <AdminHeroStat value={data?.stats?.avgAttendance ?? 0} label="Avg Attendance" icon={<Users size={18} />} color="moss" delay={3} reducedMotion={false} />
     </AdminHeroStatRow>
   ), [data?.stats])
 
@@ -522,7 +522,7 @@ export default function AdminEventsPage() {
             <button
               type="button"
               onClick={() => navigate('/admin/events/create')}
-              className="w-full flex items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white shadow-lg shadow-[#869d61]/25 active:scale-[0.98] transition-transform duration-150 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white shadow-lg active:scale-[0.98] transition-transform duration-150 cursor-pointer"
               style={{ backgroundColor: '#869d61' }}
             >
               <Plus size={20} strokeWidth={2.5} />
@@ -557,8 +557,8 @@ export default function AdminEventsPage() {
                       'px-3.5 min-h-11 rounded-lg text-sm font-semibold capitalize',
                       'active:scale-[0.95] transition-[colors,transform] duration-150 cursor-pointer select-none',
                       statusFilter === s
-                        ? 'bg-primary-100 text-primary-800'
-                        : 'text-primary-400 hover:text-primary-600',
+                        ? 'bg-neutral-100 text-neutral-900'
+                        : 'text-neutral-400 hover:text-neutral-600',
                     )}
                   >
                     {s}
@@ -623,7 +623,7 @@ export default function AdminEventsPage() {
 
           {/* ── Summary footer ── */}
           <motion.div variants={fadeUp} className="text-center py-4">
-            <p className="text-xs text-primary-300">
+            <p className="text-xs text-neutral-300">
               {stats?.total ?? 0} total events &middot; {stats?.totalRegistrations ?? 0} total registrations
             </p>
           </motion.div>

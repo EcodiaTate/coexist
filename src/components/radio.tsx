@@ -73,7 +73,7 @@ export function Radio({
                 'peer-focus-visible:ring-2 peer-focus-visible:ring-primary-400 peer-focus-visible:ring-offset-2',
                 isSelected
                   ? 'border-primary-600'
-                  : 'border-primary-200',
+                  : 'border-neutral-300',
               )}
             >
               {isSelected && (

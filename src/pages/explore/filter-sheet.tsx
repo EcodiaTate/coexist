@@ -279,7 +279,7 @@ function DistanceSelector({
           ))}
           {/* Active fill circle */}
           <motion.div
-            className="absolute inset-0 rounded-full bg-primary-100/60"
+            className="absolute inset-0 rounded-full bg-neutral-100"
             animate={shouldReduceMotion ? undefined : { scale: 0.2 + fraction * 0.8 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             style={{ transformOrigin: 'center' }}
@@ -362,7 +362,7 @@ function StateSelector({
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               isSelected
                 ? 'bg-primary-50 ring-1.5 ring-primary-300'
-                : 'hover:bg-primary-50/50',
+                : 'hover:bg-neutral-50',
             )}
             aria-pressed={isSelected}
           >

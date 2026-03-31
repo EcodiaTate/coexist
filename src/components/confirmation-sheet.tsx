@@ -69,12 +69,12 @@ export function ConfirmationSheet({
         </div>
 
         {/* Title */}
-        <h3 className="font-heading text-lg font-semibold text-primary-800">
+        <h3 className="font-heading text-lg font-semibold text-neutral-900">
           {title}
         </h3>
 
         {/* Description */}
-        <p className="mt-2 text-sm leading-relaxed text-primary-400">
+        <p className="mt-2 text-sm leading-relaxed text-neutral-500">
           {description}
         </p>
 

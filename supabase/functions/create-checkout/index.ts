@@ -5,6 +5,7 @@
  *   - One-time donations
  *   - Recurring donations (Stripe Subscriptions)
  *   - Merch purchases (with promo code support)
+ *   - Event ticket purchases (with atomic capacity management)
  *   - Subscription cancellation
  *
  * Returns: `{ session_id: string, url: string }` for checkout types,
@@ -401,6 +402,102 @@ Deno.serve(async (req: Request) => {
         }
 
         return json({ session_id: session.id, url: session.url })
+      }
+
+      /* ---- Event ticket purchase ---- */
+      case 'event_ticket': {
+        // Validate required fields
+        const evtErr = validateUuid(body.event_id, 'event_id')
+        if (evtErr) return json({ error: evtErr }, 400)
+        const ttErr = validateUuid(body.ticket_type_id, 'ticket_type_id')
+        if (ttErr) return json({ error: ttErr }, 400)
+        const qty = typeof body.quantity === 'number' ? Math.max(1, Math.min(10, body.quantity)) : 1
+
+        // Verify event exists and is ticketed
+        const { data: evt, error: evtDbErr } = await supabase
+          .from('events')
+          .select('id, title, is_ticketed, status, date_start, cover_image_url')
+          .eq('id', body.event_id)
+          .single()
+
+        if (evtDbErr || !evt) return json({ error: 'Event not found' }, 404)
+        if (!evt.is_ticketed) return json({ error: 'This event does not require tickets' }, 400)
+        if (evt.status !== 'published') return json({ error: 'Event is not open for registration' }, 400)
+
+        // Verify ticket type and get price
+        const { data: ticketType, error: ttDbErr } = await supabase
+          .from('event_ticket_types')
+          .select('id, name, price_cents, capacity, sale_start, sale_end, is_active')
+          .eq('id', body.ticket_type_id)
+          .eq('event_id', body.event_id)
+          .single()
+
+        if (ttDbErr || !ticketType) return json({ error: 'Ticket type not found' }, 404)
+        if (!ticketType.is_active) return json({ error: 'This ticket type is no longer available' }, 400)
+
+        // Check sale window
+        const now = new Date()
+        if (ticketType.sale_start && now < new Date(ticketType.sale_start)) {
+          return json({ error: 'Tickets are not on sale yet' }, 400)
+        }
+        if (ticketType.sale_end && now > new Date(ticketType.sale_end)) {
+          return json({ error: 'Ticket sales have ended' }, 400)
+        }
+
+        // Reserve ticket atomically via RPC (checks capacity with FOR UPDATE)
+        const { data: ticketId, error: reserveErr } = await supabase.rpc('reserve_event_ticket', {
+          p_event_id: body.event_id,
+          p_ticket_type_id: body.ticket_type_id,
+          p_user_id: body.user_id,
+          p_quantity: qty,
+        })
+
+        if (reserveErr) {
+          const msg = reserveErr.message
+          if (msg.includes('Sold out')) return json({ error: msg }, 409)
+          if (msg.includes('not on sale')) return json({ error: msg }, 400)
+          return json({ error: 'Failed to reserve ticket' }, 500)
+        }
+
+        const customerEmail = await getUserEmail(body.user_id)
+        const unitPriceCents = ticketType.price_cents
+
+        // Create Stripe checkout session
+        const ticketSession = await stripe.checkout.sessions.create({
+          mode: 'payment',
+          customer_email: customerEmail,
+          line_items: [
+            {
+              price_data: {
+                currency: 'aud',
+                product_data: {
+                  name: `${evt.title} — ${ticketType.name}`,
+                  ...(evt.cover_image_url ? { images: [evt.cover_image_url] } : {}),
+                },
+                unit_amount: unitPriceCents,
+              },
+              quantity: qty,
+            },
+          ],
+          success_url: `${origin}/events/${body.event_id}/ticket-confirmation?ticket_id=${ticketId}`,
+          cancel_url: `${origin}/events/${body.event_id}`,
+          metadata: {
+            type: 'event_ticket',
+            ticket_id: String(ticketId),
+            event_id: body.event_id,
+            ticket_type_id: body.ticket_type_id,
+            user_id: body.user_id,
+            quantity: String(qty),
+          },
+        })
+
+        // Store the Stripe session ID on the ticket
+        await supabase
+          .from('event_tickets')
+          .update({ stripe_checkout_session_id: ticketSession.id })
+          .eq('id', ticketId)
+
+        return json({ session_id: ticketSession.id, url: ticketSession.url })
       }
 
       /* ---- Cancel subscription ---- */

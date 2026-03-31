@@ -28,7 +28,7 @@ export function EventAttendees({ event, accent, capacityText, capacityPercent, f
       variants={fadeUpVariants}
       className={cn(
         'rounded-2xl p-4.5 space-y-3 relative overflow-hidden',
-        'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
+        'border shadow-sm',
         accent.border,
       )}
     >
@@ -51,7 +51,7 @@ export function EventAttendees({ event, accent, capacityText, capacityPercent, f
         )}
       </div>
       {event.capacity && (
-        <div className="relative h-3 rounded-full bg-primary-100/50 overflow-hidden">
+        <div className="relative h-3 rounded-full bg-neutral-100 overflow-hidden">
           <motion.div
             className={cn(
               'h-full rounded-full shadow-sm',

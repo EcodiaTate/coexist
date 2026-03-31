@@ -276,7 +276,7 @@ export default function AdminImpactMetricsPage() {
       {/* Header */}
       <motion.div variants={adminVariants.fadeUp} className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-primary-400">
+          <p className="text-sm text-neutral-400">
             Configure which impact metrics are available across the app.
             Built-in metrics map to database columns. Custom metrics are stored in the event's custom data field.
           </p>
@@ -332,11 +332,11 @@ export default function AdminImpactMetricsPage() {
             ) : (
               <div
                 className={cn(
-                  'flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-primary-100/40',
+                  'flex items-center gap-3 px-4 py-3 rounded-xl bg-white border border-neutral-100',
                   !def.is_active && 'opacity-50',
                 )}
               >
-                <GripVertical size={14} className="text-primary-300 shrink-0" />
+                <GripVertical size={14} className="text-neutral-300 shrink-0" />
 
                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-50 shrink-0">
                   {iconComponents[def.icon] ?? <Leaf size={16} className="text-primary-400" />}
@@ -344,11 +344,11 @@ export default function AdminImpactMetricsPage() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm text-primary-800 truncate">
+                    <span className="font-medium text-sm text-neutral-900 truncate">
                       {def.label}
                     </span>
                     {isBuiltinMetric(def.key) && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary-100 text-primary-500 font-medium shrink-0">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-500 font-medium shrink-0">
                         built-in
                       </span>
                     )}
@@ -358,7 +358,7 @@ export default function AdminImpactMetricsPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-primary-400 truncate">
+                  <p className="text-xs text-neutral-400 truncate">
                     {def.key} · {def.unit}{def.decimal ? ' (decimal)' : ''}{!def.survey_linkable ? ' · not survey-linkable' : ''}
                   </p>
                 </div>
@@ -367,7 +367,7 @@ export default function AdminImpactMetricsPage() {
                   <button
                     onClick={() => moveUp(i)}
                     disabled={i === 0}
-                    className="min-w-8 min-h-8 flex items-center justify-center rounded text-primary-400 hover:text-primary-600 disabled:opacity-30 cursor-pointer"
+                    className="min-w-8 min-h-8 flex items-center justify-center rounded text-neutral-400 hover:text-neutral-600 disabled:opacity-30 cursor-pointer"
                     aria-label="Move up"
                   >
                     <ChevronUp size={14} />
@@ -375,7 +375,7 @@ export default function AdminImpactMetricsPage() {
                   <button
                     onClick={() => moveDown(i)}
                     disabled={i === metrics.length - 1}
-                    className="min-w-8 min-h-8 flex items-center justify-center rounded text-primary-400 hover:text-primary-600 disabled:opacity-30 cursor-pointer"
+                    className="min-w-8 min-h-8 flex items-center justify-center rounded text-neutral-400 hover:text-neutral-600 disabled:opacity-30 cursor-pointer"
                     aria-label="Move down"
                   >
                     <ChevronDown size={14} />
@@ -390,7 +390,7 @@ export default function AdminImpactMetricsPage() {
 
                   <button
                     onClick={() => startEdit(def)}
-                    className="min-w-8 min-h-8 flex items-center justify-center rounded text-primary-400 hover:text-primary-600 cursor-pointer"
+                    className="min-w-8 min-h-8 flex items-center justify-center rounded text-neutral-400 hover:text-neutral-600 cursor-pointer"
                     aria-label={`Edit ${def.label}`}
                   >
                     <Pencil size={14} />
@@ -399,7 +399,7 @@ export default function AdminImpactMetricsPage() {
                   {!isBuiltinMetric(def.key) && (
                     <button
                       onClick={() => handleDelete(def.key)}
-                      className="min-w-8 min-h-8 flex items-center justify-center rounded text-primary-400 hover:text-error-500 cursor-pointer"
+                      className="min-w-8 min-h-8 flex items-center justify-center rounded text-neutral-400 hover:text-error-500 cursor-pointer"
                       aria-label={`Delete ${def.label}`}
                     >
                       <Trash2 size={14} />
@@ -412,15 +412,15 @@ export default function AdminImpactMetricsPage() {
         ))}
 
         {metrics.length === 0 && (
-          <p className="text-sm text-primary-400 text-center py-8">
+          <p className="text-sm text-neutral-400 text-center py-8">
             No metrics configured. Add one to get started.
           </p>
         )}
       </motion.div>
 
       {/* Info */}
-      <motion.div variants={adminVariants.fadeUp} className="rounded-xl bg-primary-50/60 p-4 text-sm text-primary-500 space-y-1">
-        <p className="font-medium text-primary-700">How it works</p>
+      <motion.div variants={adminVariants.fadeUp} className="rounded-xl bg-neutral-50 p-4 text-sm text-neutral-500 space-y-1">
+        <p className="font-medium text-neutral-700">How it works</p>
         <p>Built-in metrics (trees planted, rubbish collected, etc.) are stored as dedicated database columns for fast aggregation.</p>
         <p>Custom metrics you add here are stored in a flexible data field on each event's impact log. They appear in the log-impact form, survey builder, and all dashboards automatically.</p>
         <p>Toggling a metric inactive hides it everywhere but preserves existing data.</p>
@@ -451,14 +451,14 @@ function MetricForm({
   const isBuiltin = isBuiltinMetric(form.key)
 
   return (
-    <div className="rounded-xl bg-white border-2 border-primary-200 p-4 space-y-3">
+    <div className="rounded-xl bg-white border-2 border-neutral-100 p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-primary-800">
+        <h3 className="text-sm font-semibold text-neutral-900">
           {isNew ? 'Add Metric' : 'Edit Metric'}
         </h3>
         <button
           onClick={onCancel}
-          className="min-w-8 min-h-8 flex items-center justify-center text-primary-400 hover:text-primary-600 cursor-pointer"
+          className="min-w-8 min-h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-600 cursor-pointer"
         >
           <X size={16} />
         </button>
@@ -494,23 +494,23 @@ function MetricForm({
           onChange={(v) => onChange({ ...form, icon: v })}
         />
         <div className="space-y-2">
-          <span className="text-xs font-medium text-primary-500">Options</span>
+          <span className="text-xs font-medium text-neutral-500">Options</span>
           <div className="space-y-1.5">
-            <label className="flex items-center gap-2 text-xs text-primary-600 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-neutral-600 cursor-pointer">
               <input
                 type="checkbox"
                 checked={form.decimal ?? false}
                 onChange={(e) => onChange({ ...form, decimal: e.target.checked })}
-                className="rounded border-primary-300"
+                className="rounded border-neutral-100"
               />
               Decimal values
             </label>
-            <label className="flex items-center gap-2 text-xs text-primary-600 cursor-pointer">
+            <label className="flex items-center gap-2 text-xs text-neutral-600 cursor-pointer">
               <input
                 type="checkbox"
                 checked={form.survey_linkable ?? true}
                 onChange={(e) => onChange({ ...form, survey_linkable: e.target.checked })}
-                className="rounded border-primary-300"
+                className="rounded border-neutral-100"
               />
               Survey-linkable
             </label>

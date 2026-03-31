@@ -46,7 +46,7 @@ function StatusBadge({ status }: { status: string }) {
         'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider',
         status === 'published' && 'bg-moss-100 text-moss-700',
         status === 'draft' && 'bg-bark-100 text-bark-700',
-        status === 'archived' && 'bg-primary-100 text-primary-500',
+        status === 'archived' && 'bg-neutral-100 text-neutral-500',
       )}
     >
       {status === 'published' && <CheckCircle2 size={10} />}
@@ -90,8 +90,8 @@ function SectionHeader({
           {icon}
         </div>
         <div>
-          <h2 className="text-[15px] font-bold text-primary-800">{label}</h2>
-          <p className="text-[11px] font-semibold text-primary-400 tabular-nums">{count} total</p>
+          <h2 className="text-[15px] font-bold text-neutral-900">{label}</h2>
+          <p className="text-[11px] font-semibold text-neutral-400 tabular-nums">{count} total</p>
         </div>
       </div>
       <Link to={newTo}>
@@ -119,7 +119,7 @@ function ModuleRow({ module, onDelete, compact }: { module: DevModule; onDelete:
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className={cn(
         'group flex items-center gap-3 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow',
-        compact ? 'p-2.5 ml-6 border border-primary-100/60' : 'p-3.5',
+        compact ? 'p-2.5 ml-6 border border-neutral-100' : 'p-3.5',
       )}
     >
       <div className={cn(
@@ -130,11 +130,11 @@ function ModuleRow({ module, onDelete, compact }: { module: DevModule; onDelete:
       </div>
       <Link to={`/admin/development/modules/${module.id}`} className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className={cn('font-bold text-primary-800 truncate', compact ? 'text-[12px]' : 'text-[13px]')}>{module.title}</span>
+          <span className={cn('font-bold text-neutral-900 truncate', compact ? 'text-[12px]' : 'text-[13px]')}>{module.title}</span>
           <StatusBadge status={module.status} />
         </div>
         {!compact && (
-          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-primary-400 font-medium">
+          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-neutral-400 font-medium">
             <CategoryBadge category={module.category} />
             <span className="flex items-center gap-0.5"><Clock size={10} />{module.estimated_minutes}m</span>
           </div>
@@ -171,12 +171,12 @@ function QuizRow({ quiz, onDelete }: { quiz: DevQuiz; onDelete: () => void }) {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[13px] font-bold text-primary-800 truncate">{quiz.title}</span>
-          <span className="text-[10px] font-bold text-primary-400 bg-primary-50 px-1.5 py-0.5 rounded-full">
+          <span className="text-[13px] font-bold text-neutral-900 truncate">{quiz.title}</span>
+          <span className="text-[10px] font-bold text-neutral-400 bg-neutral-50 px-1.5 py-0.5 rounded-full">
             {quiz.pass_score}% pass
           </span>
         </div>
-        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-primary-400 font-medium">
+        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-neutral-400 font-medium">
           {quiz.time_limit_minutes && (
             <span className="flex items-center gap-0.5"><Clock size={10} />{quiz.time_limit_minutes}m limit</span>
           )}
@@ -239,10 +239,10 @@ function SectionCard({
           className="flex-1 min-w-0 text-left"
         >
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[13px] font-bold text-primary-800 truncate">{section.title}</span>
+            <span className="text-[13px] font-bold text-neutral-900 truncate">{section.title}</span>
             <StatusBadge status={section.status} />
           </div>
-          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-primary-400 font-medium">
+          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-neutral-400 font-medium">
             <CategoryBadge category={section.category} />
             <span className="flex items-center gap-0.5">
               <BookOpen size={10} />
@@ -255,7 +255,7 @@ function SectionCard({
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center justify-center w-10 h-10 rounded-xl text-primary-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+              className="flex items-center justify-center w-10 h-10 rounded-xl text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50 transition-colors"
             >
               <motion.div
                 animate={{ rotate: expanded ? 180 : 0 }}
@@ -300,7 +300,7 @@ function SectionCard({
               <button
                 type="button"
                 onClick={() => setExpanded(true)}
-                className="ml-6 text-[11px] font-semibold text-primary-400 hover:text-primary-600 transition-colors py-1"
+                className="ml-6 text-[11px] font-semibold text-neutral-400 hover:text-neutral-600 transition-colors py-1"
               >
                 + {modules.length - VISIBLE_MODULES} more module{modules.length - VISIBLE_MODULES !== 1 ? 's' : ''}
               </button>
@@ -318,15 +318,15 @@ function SectionCard({
 
 function EmptyRow({ icon, label, to, cta }: { icon: React.ReactNode; label: string; to: string; cta: string }) {
   return (
-    <Link to={to} className="flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed border-primary-200/60 bg-gradient-to-br from-primary-50/30 to-secondary-50/20 hover:bg-primary-50/60 transition-colors">
-      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary-100/60 text-primary-400 shrink-0">
+    <Link to={to} className="flex items-center gap-3 p-4 rounded-2xl border-2 border-dashed border-neutral-200 bg-white hover:bg-neutral-50 transition-colors">
+      <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-neutral-100 text-neutral-400 shrink-0">
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-semibold text-primary-500">{label}</p>
-        <p className="text-[11px] text-primary-400 mt-0.5">{cta}</p>
+        <p className="text-[13px] font-semibold text-neutral-500">{label}</p>
+        <p className="text-[11px] text-neutral-400 mt-0.5">{cta}</p>
       </div>
-      <ChevronRight size={16} className="text-primary-300 shrink-0" />
+      <ChevronRight size={16} className="text-neutral-300 shrink-0" />
     </Link>
   )
 }
@@ -471,7 +471,7 @@ export default function AdminDevelopmentPage() {
       </motion.section>
 
       {/* ── Modules (nested under sections) ── */}
-      <motion.section variants={fadeUp} className="space-y-3 ml-4 border-l-2 border-primary-100 pl-4">
+      <motion.section variants={fadeUp} className="space-y-3 ml-4 border-l-2 border-neutral-100 pl-4">
         <SectionHeader
           icon={<BookOpen size={17} className="text-white" />}
           iconBg="bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm"
@@ -482,7 +482,7 @@ export default function AdminDevelopmentPage() {
         />
         {!isLoading && unassignedModules.length > 0 && (
           <>
-            <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Unassigned</p>
+            <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Unassigned</p>
             <div className="space-y-2">
               {unassignedModules.map((m) => (
                 <ModuleRow key={m.id} module={m} onDelete={() => deleteModule.mutate(m.id)} />

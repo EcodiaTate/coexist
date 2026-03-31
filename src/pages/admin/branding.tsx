@@ -177,7 +177,7 @@ function ImageSlotCard({
   return (
     <motion.div
       layout
-      className="rounded-2xl ring-1 ring-primary-100/60 bg-white overflow-hidden shadow-sm"
+      className="rounded-2xl border border-neutral-100 bg-white overflow-hidden shadow-sm"
     >
       {/* Preview area */}
       <div className="relative bg-neutral-100">
@@ -227,9 +227,9 @@ function ImageSlotCard({
 
       {/* Info + actions */}
       <div className="p-4">
-        <h3 className="text-sm font-bold text-primary-900">{slot.label}</h3>
-        <p className="text-xs text-primary-500 mt-0.5">{slot.description}</p>
-        <p className="text-[11px] text-primary-400 mt-1">
+        <h3 className="text-sm font-bold text-neutral-900">{slot.label}</h3>
+        <p className="text-xs text-neutral-500 mt-0.5">{slot.description}</p>
+        <p className="text-[11px] text-neutral-400 mt-1">
           {slot.aspectHint} · {slot.recommendedSize}px
         </p>
 
@@ -247,7 +247,7 @@ function ImageSlotCard({
             disabled={uploading}
             className={cn(
               'flex-1 flex items-center justify-center gap-2 h-12 rounded-xl text-sm font-semibold transition-colors active:scale-[0.97]',
-              'bg-primary-100 text-primary-700 active:bg-primary-200',
+              'bg-neutral-100 text-neutral-700 active:bg-neutral-200',
             )}
           >
             <Upload size={16} />
@@ -290,7 +290,7 @@ export default function AdminBrandingPage() {
     >
       <motion.p
         variants={fadeUp}
-        className="text-sm text-primary-500 mb-6"
+        className="text-sm text-neutral-500 mb-6"
       >
         Upload and manage the images used across the app. Changes take effect
         immediately for all users.

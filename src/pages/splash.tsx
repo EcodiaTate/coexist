@@ -53,7 +53,7 @@ export default function SplashPage({ onReady }: SplashProps) {
 
             {/* Tagline */}
             <motion.p
-              className="text-[11px] sm:text-xs text-primary-600 font-medium tracking-[0.2em] uppercase"
+              className="text-[11px] sm:text-xs text-neutral-400 font-medium tracking-[0.2em] uppercase"
               initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
@@ -61,16 +61,16 @@ export default function SplashPage({ onReady }: SplashProps) {
               {TAGLINE}
             </motion.p>
 
-            {/* Subtle leaf accent */}
+            {/* Subtle dot accent */}
             <motion.div
               className="mt-6 flex items-center gap-1.5"
               initial={shouldReduceMotion ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.9 }}
             >
-              <span className="block w-1.5 h-1.5 rounded-full bg-primary-300" />
-              <span className="block w-1.5 h-1.5 rounded-full bg-primary-400" />
-              <span className="block w-1.5 h-1.5 rounded-full bg-primary-500" />
+              <span className="block w-1 h-1 rounded-full bg-neutral-200" />
+              <span className="block w-1 h-1 rounded-full bg-neutral-300" />
+              <span className="block w-1 h-1 rounded-full bg-neutral-200" />
             </motion.div>
           </motion.div>
 

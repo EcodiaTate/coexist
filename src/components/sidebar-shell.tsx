@@ -159,7 +159,7 @@ export function SidebarShell({
   const headerV = reduced ? instantVariants : isFirstMount ? headerEnter : quickFadeHeader
 
   /* ---- Accent-driven classes ---- */
-  const borderColor = accent === 'moss' ? 'border-moss-100/40' : 'border-primary-100/40'
+  const borderColor = accent === 'moss' ? 'border-moss-100/40' : 'border-neutral-100'
   const dividerColor = accent === 'moss' ? 'bg-moss-100/30' : 'bg-primary-100/30'
   const activeClasses = accent === 'moss'
     ? 'bg-moss-50/70 text-moss-800 font-medium'

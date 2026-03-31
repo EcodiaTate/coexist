@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { subscribeWithReconnect } from '@/lib/realtime'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { queueOfflineAction } from '@/lib/offline-sync'
 import type { Tables } from '@/types/database.types'
 
 type Notification = Tables<'notifications'>
@@ -324,12 +326,23 @@ export function useUnreadCount() {
 export function useMarkRead() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const { isOffline } = useOffline()
 
   return useMutation({
     mutationFn: async (notificationId: string) => {
+      const now = new Date().toISOString()
+
+      if (isOffline) {
+        queueOfflineAction('mark-notification-read', {
+          notificationId,
+          timestamp: now,
+        })
+        return
+      }
+
       const { error } = await supabase
         .from('notifications')
-        .update({ read_at: new Date().toISOString() })
+        .update({ read_at: now })
         .eq('id', notificationId)
       if (error) throw error
     },
@@ -337,7 +350,6 @@ export function useMarkRead() {
       await queryClient.cancelQueries({ queryKey: ['notifications', user?.id] })
       const previous = queryClient.getQueryData<Notification[]>(['notifications', user?.id])
       const previousUnread = queryClient.getQueryData<number>(['notifications-unread', user?.id])
-      // Only decrement unread count if this notification was actually unread
       const wasUnread = previous?.find(n => n.id === notificationId && !n.read_at)
       queryClient.setQueryData<Notification[]>(['notifications', user?.id], (old) => {
         if (!old) return old
@@ -349,10 +361,13 @@ export function useMarkRead() {
       return { previous, previousUnread }
     },
     onError: (_err, _, context) => {
-      if (context?.previous) queryClient.setQueryData(['notifications', user?.id], context.previous)
-      if (context?.previousUnread !== undefined) queryClient.setQueryData(['notifications-unread', user?.id], context.previousUnread)
+      if (!isOffline) {
+        if (context?.previous) queryClient.setQueryData(['notifications', user?.id], context.previous)
+        if (context?.previousUnread !== undefined) queryClient.setQueryData(['notifications-unread', user?.id], context.previousUnread)
+      }
     },
     onSettled: () => {
+      if (isOffline) return
       queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] })
       queryClient.invalidateQueries({ queryKey: ['notifications-unread', user?.id] })
     },
@@ -363,14 +378,24 @@ export function useMarkRead() {
 export function useMarkAllRead() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const { isOffline } = useOffline()
 
   return useMutation({
     mutationFn: async () => {
       if (!user) return
+      const now = new Date().toISOString()
+
+      if (isOffline) {
+        queueOfflineAction('mark-all-notifications-read', {
+          userId: user.id,
+          timestamp: now,
+        })
+        return
+      }
 
       const { error } = await supabase
         .from('notifications')
-        .update({ read_at: new Date().toISOString() })
+        .update({ read_at: now })
         .eq('user_id', user.id)
         .is('read_at', null)
 
@@ -389,10 +414,13 @@ export function useMarkAllRead() {
       return { previous, previousUnread }
     },
     onError: (_err, _, context) => {
-      if (context?.previous) queryClient.setQueryData(['notifications', user?.id], context.previous)
-      if (context?.previousUnread !== undefined) queryClient.setQueryData(['notifications-unread', user?.id], context.previousUnread)
+      if (!isOffline) {
+        if (context?.previous) queryClient.setQueryData(['notifications', user?.id], context.previous)
+        if (context?.previousUnread !== undefined) queryClient.setQueryData(['notifications-unread', user?.id], context.previousUnread)
+      }
     },
     onSettled: () => {
+      if (isOffline) return
       queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] })
       queryClient.invalidateQueries({ queryKey: ['notifications-unread', user?.id] })
     },

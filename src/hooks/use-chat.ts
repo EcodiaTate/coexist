@@ -4,6 +4,9 @@ import { supabase } from '@/lib/supabase'
 import { subscribeWithReconnect } from '@/lib/realtime'
 import { MAX_MESSAGE_LENGTH as _IMPORTED_MAX_LEN } from '@/lib/validation'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { useToast } from '@/components/toast'
+import { queueOfflineAction } from '@/lib/offline-sync'
 import type { Tables, Json } from '@/types/database.types'
 
 type ChatMessage = Tables<'chat_messages'>
@@ -789,10 +792,22 @@ export function useCreatePoll() {
 export function usePollVote() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async ({ pollId, optionId, collectiveId }: { pollId: string; optionId: string; collectiveId: string }) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('poll-vote', {
+          pollId,
+          userId: user.id,
+          optionIds: [optionId],
+          allowMultiple: true,
+        })
+        return { pollId, collectiveId }
+      }
 
       const { error } = await supabase
         .from('chat_poll_votes')
@@ -818,9 +833,13 @@ export function usePollVote() {
       return { previous }
     },
     onError: (_err, { pollId }, context) => {
-      if (context?.previous) queryClient.setQueryData(['chat-poll', pollId], context.previous)
+      if (!isOffline && context?.previous) queryClient.setQueryData(['chat-poll', pollId], context.previous)
+    },
+    onSuccess: () => {
+      if (isOffline) toast.info('Vote saved offline — will sync when back online')
     },
     onSettled: (result) => {
+      if (isOffline) return
       if (result) {
         queryClient.invalidateQueries({ queryKey: ['chat-poll', result.pollId] })
         queryClient.invalidateQueries({ queryKey: ['chat-polls', result.collectiveId] })
@@ -1012,6 +1031,8 @@ export function useAnnouncementDetail(announcementId: string | undefined) {
 export function useRespondToAnnouncement() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async ({
@@ -1022,6 +1043,15 @@ export function useRespondToAnnouncement() {
       response: string
     }) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('announcement-response', {
+          announcementId,
+          userId: user.id,
+          response,
+        })
+        return
+      }
 
       // Remove existing response first (single-choice)
       const { error: deleteError } = await supabase
@@ -1061,9 +1091,13 @@ export function useRespondToAnnouncement() {
       return { previous }
     },
     onError: (_err, { announcementId }, context) => {
-      if (context?.previous) queryClient.setQueryData(['chat-announcement', announcementId], context.previous)
+      if (!isOffline && context?.previous) queryClient.setQueryData(['chat-announcement', announcementId], context.previous)
+    },
+    onSuccess: () => {
+      if (isOffline) toast.info('Response saved offline — will sync when back online')
     },
     onSettled: (_, __, { announcementId }) => {
+      if (isOffline) return
       queryClient.invalidateQueries({ queryKey: ['chat-announcement', announcementId] })
     },
   })

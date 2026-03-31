@@ -73,7 +73,7 @@ export function Header({
                   ? 'bg-black/40 text-white hover:bg-black/50'
                   : backDark
                     ? 'bg-primary-800 text-white hover:bg-primary-700 shadow-sm'
-                    : 'text-primary-800 hover:bg-primary-50/80',
+                    : 'text-neutral-900 hover:bg-neutral-100',
               )}
               aria-label="Go back"
             >

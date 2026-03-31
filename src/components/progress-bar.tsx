@@ -59,10 +59,10 @@ function LinearProgress({
       {(showLabel || label) && (
         <div className="flex items-center justify-between mb-1.5">
           {label && (
-            <span className="text-sm font-medium text-primary-800">{label}</span>
+            <span className="text-sm font-medium text-neutral-900">{label}</span>
           )}
           {showLabel && (
-            <span className="text-sm tabular-nums text-primary-400">
+            <span className="text-sm tabular-nums text-neutral-500">
               {Math.round(clamped)}%
             </span>
           )}
@@ -94,7 +94,7 @@ function LinearProgress({
               aria-hidden="true"
               className={cn(
                 'absolute top-1/2 -translate-y-1/2 -translate-x-1/2',
-                'rounded-full bg-white border-2 border-primary-200',
+                'rounded-full bg-white border-2 border-neutral-200',
                 size === 'sm' && 'w-2 h-2',
                 size === 'md' && 'w-3 h-3',
                 size === 'lg' && 'w-4 h-4',
@@ -186,12 +186,12 @@ function CircularProgress({
         />
       </svg>
       {showLabel && (
-        <span className={cn('tabular-nums font-semibold text-primary-800', circularFontSizes[size])}>
+        <span className={cn('tabular-nums font-semibold text-neutral-900', circularFontSizes[size])}>
           {Math.round(clamped)}%
         </span>
       )}
       {label && (
-        <span className="text-xs text-primary-400">{label}</span>
+        <span className="text-xs text-neutral-500">{label}</span>
       )}
     </div>
   )

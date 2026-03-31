@@ -32,6 +32,33 @@ export function useNearbyEvents(
   return useQuery({
     queryKey: ['nearby', 'events', location, radiusKm, activityTypes],
     queryFn: async () => {
+      // Use PostGIS distance filter when user location is available
+      if (location?.lat && location?.lng) {
+        const { data: rpcData, error: rpcError } = await supabase.rpc('get_events_within_radius', {
+          p_lat: location.lat,
+          p_lng: location.lng,
+          p_radius_km: radiusKm,
+          p_limit: 20,
+        })
+        if (rpcError) throw rpcError
+        if (!rpcData?.length) return [] as EventWithCollective[]
+
+        // Re-fetch with collective join (RPC returns raw events)
+        const eventIds = (rpcData as Event[]).map((e) => e.id)
+        let query = supabase
+          .from('events')
+          .select('*, collectives(id, name)')
+          .in('id', eventIds)
+          .order('date_start', { ascending: true })
+        if (activityTypes?.length) {
+          query = query.in('activity_type', activityTypes)
+        }
+        const { data, error } = await query
+        if (error) throw error
+        return (data ?? []) as EventWithCollective[]
+      }
+
+      // Fallback: no location — return all upcoming published events
       const now = new Date().toISOString()
       let query = supabase
         .from('events')
@@ -44,8 +71,6 @@ export function useNearbyEvents(
         query = query.in('activity_type', activityTypes)
       }
 
-      // If location available, PostGIS distance filter via RPC would be ideal.
-      // Fallback: return all published events, sorted by date.
       const { data, error } = await query.limit(20)
       if (error) throw error
       return (data ?? []) as EventWithCollective[]
@@ -69,6 +94,7 @@ export function useNearbyCollectives(
         .from('collectives')
         .select('*')
         .eq('is_active', true)
+        .or('is_national.is.null,is_national.eq.false')
         .order('member_count', { ascending: false })
         .limit(20)
       if (error) throw error

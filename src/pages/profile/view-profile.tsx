@@ -20,7 +20,7 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Avatar } from '@/components/avatar'
 import { Chip } from '@/components/chip'
-import { StatCard } from '@/components/stat-card'
+import { BentoStatCard, BentoStatGrid } from '@/components/bento-stats'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { ReportContentSheet } from '@/components/report-content-sheet'
@@ -182,60 +182,27 @@ export default function ViewProfilePage() {
         )}
 
         {/* Stats */}
-        <motion.div
-          variants={fadeUp}
-          className="mt-6 grid grid-cols-3 gap-3"
-        >
-          <StatCard
-            value={stats?.eventsAttended ?? 0}
-            label="Events"
-            icon={<Calendar size={20} />}
-          />
-          <StatCard
-            value={stats?.hoursVolunteered ?? 0}
-            label="Hours"
-            icon={<Clock size={20} />}
-          />
-          <StatCard
-            value={stats?.treesPlanted ?? 0}
-            label="Trees"
-            icon={<TreePine size={20} />}
-          />
-          {(stats?.rubbishCollectedKg ?? 0) > 0 && (
-            <StatCard
-              value={stats?.rubbishCollectedKg ?? 0}
-              label="kg Rubbish"
-              icon={<Trash2 size={20} />}
-            />
-          )}
-          {(stats?.areaRestoredSqm ?? 0) > 0 && (
-            <StatCard
-              value={stats?.areaRestoredSqm ?? 0}
-              label="Area (sqm)"
-              icon={<Ruler size={20} />}
-            />
-          )}
-          {(stats?.nativePlants ?? 0) > 0 && (
-            <StatCard
-              value={stats?.nativePlants ?? 0}
-              label="Native Plants"
-              icon={<Sprout size={20} />}
-            />
-          )}
-          {(stats?.wildlifeSightings ?? 0) > 0 && (
-            <StatCard
-              value={stats?.wildlifeSightings ?? 0}
-              label="Wildlife"
-              icon={<Bird size={20} />}
-            />
-          )}
-          {(stats?.coastlineCleanedM ?? 0) > 0 && (
-            <StatCard
-              value={stats?.coastlineCleanedM ?? 0}
-              label="Coastline (m)"
-              icon={<Waves size={20} />}
-            />
-          )}
+        <motion.div variants={fadeUp} className="mt-6">
+          <BentoStatGrid>
+            <BentoStatCard value={stats?.eventsAttended ?? 0} label="Events" icon={<Calendar size={18} />} theme="warning" />
+            <BentoStatCard value={stats?.hoursVolunteered ?? 0} label="Hours" icon={<Clock size={16} />} unit="hrs" theme="primary" />
+            <BentoStatCard value={stats?.treesPlanted ?? 0} label="Trees" icon={<TreePine size={16} />} theme="sprout" />
+            {(stats?.rubbishCollectedKg ?? 0) > 0 && (
+              <BentoStatCard value={stats?.rubbishCollectedKg ?? 0} label="Rubbish" icon={<Trash2 size={16} />} unit="kg" theme="sky" />
+            )}
+            {(stats?.areaRestoredSqm ?? 0) > 0 && (
+              <BentoStatCard value={stats?.areaRestoredSqm ?? 0} label="Area" icon={<Ruler size={16} />} unit="sqm" theme="bark" />
+            )}
+            {(stats?.nativePlants ?? 0) > 0 && (
+              <BentoStatCard value={stats?.nativePlants ?? 0} label="Native Plants" icon={<Sprout size={16} />} theme="moss" />
+            )}
+            {(stats?.wildlifeSightings ?? 0) > 0 && (
+              <BentoStatCard value={stats?.wildlifeSightings ?? 0} label="Wildlife" icon={<Bird size={16} />} theme="plum" />
+            )}
+            {(stats?.coastlineCleanedM ?? 0) > 0 && (
+              <BentoStatCard value={stats?.coastlineCleanedM ?? 0} label="Coastline" icon={<Waves size={16} />} unit="m" theme="info" />
+            )}
+          </BentoStatGrid>
         </motion.div>
 
         {/* Collectives */}
