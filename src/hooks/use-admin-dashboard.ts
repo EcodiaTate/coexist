@@ -67,9 +67,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
     supabase.from('collectives').select('id', { count: 'exact', head: true }),
     supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
     (() => {
-      let q = supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS)
-        .not('notes', 'like', 'Legacy import:%')
-        .range(0, 9999)
+      let q = supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).range(0, 9999)
       if (rangeStart) q = q.gte('logged_at', rangeStart)
       return q
     })(),
