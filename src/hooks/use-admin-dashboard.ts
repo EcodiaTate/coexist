@@ -52,8 +52,14 @@ export interface AdminOverviewData {
   periodEvents: number
 }
 
+const ADMIN_BASELINE_TREES      = 35000
+const ADMIN_BASELINE_RUBBISH_KG = 4900
+const ADMIN_BASELINE_DATE       = '2025-12-31'
+
 async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewData> {
   const rangeStart = getDateRangeStart(dateRange)
+  const baselineDate = new Date(ADMIN_BASELINE_DATE).toISOString()
+  const isAllTime = dateRange === 'all'
 
   const [
     totalMembersRes,
@@ -67,8 +73,13 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
     supabase.from('collectives').select('id', { count: 'exact', head: true }),
     supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
     (() => {
-      let q = supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).range(0, 9999)
-      if (rangeStart) q = q.gte('logged_at', rangeStart)
+      // Exclude legacy imports; for all-time add baseline constants on top
+      let q = supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS)
+        .not('notes', 'like', 'Legacy import:%')
+        .range(0, 9999)
+      // For scoped ranges use rangeStart; for all-time still only sum post-baseline app rows
+      const start = rangeStart ?? baselineDate
+      q = q.gte('logged_at', start)
       return q
     })(),
     rangeStart
@@ -91,9 +102,9 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
     totalMembers: totalMembersRes.count ?? 0,
     totalCollectives: totalCollectivesRes.count ?? 0,
     totalEvents: totalEventsRes.count ?? 0,
-    totalTrees: sumMetric(impact, 'trees_planted'),
+    totalTrees: sumMetric(impact, 'trees_planted') + (isAllTime ? ADMIN_BASELINE_TREES : 0),
     totalHours: Math.round(sumMetric(impact, 'hours_total')),
-    totalRubbish: Math.round(sumMetric(impact, 'rubbish_kg')),
+    totalRubbish: Math.round(sumMetric(impact, 'rubbish_kg') + (isAllTime ? ADMIN_BASELINE_RUBBISH_KG : 0)),
     totalArea: Math.round(sumMetric(impact, 'area_restored_sqm')),
     totalNativePlants: sumMetric(impact, 'native_plants'),
     totalWildlife: sumMetric(impact, 'wildlife_sightings'),
