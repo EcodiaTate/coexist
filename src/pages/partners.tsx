@@ -5,6 +5,7 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
+import { WaveTransition } from '@/components/wave-transition'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 
@@ -156,19 +157,7 @@ export default function PartnersPage() {
         </div>
 
         {/* Wave */}
-        <div className="absolute bottom-0 left-0 right-0 z-20">
-          <svg
-            viewBox="0 0 1440 70"
-            preserveAspectRatio="none"
-            className="w-full h-7 sm:h-10 block"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M0,28 C80,24 160,20 240,22 C320,24 360,12 400,14 L408,5 L414,3 L420,8 C460,16 540,26 640,24 C740,22 800,18 880,20 C960,22 1000,10 1040,12 L1048,4 L1054,2 L1060,7 C1100,16 1180,28 1280,26 C1360,24 1400,28 1440,26 L1440,70 L0,70 Z"
-              className="fill-white"
-            />
-          </svg>
-        </div>
+        <WaveTransition wave={2} />
       </div>
 
       {/* Content */}

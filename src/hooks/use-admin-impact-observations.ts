@@ -72,6 +72,11 @@ export interface DataQuality {
 /* ------------------------------------------------------------------ */
 
 const SEED_ADMIN = 'a0000000-0000-0000-0000-000000000001'
+const BASELINE_DATE       = '2026-01-01'
+const BASELINE_EVENTS     = 340
+const BASELINE_ATTENDEES  = 5500
+const BASELINE_TREES      = 35000
+const BASELINE_RUBBISH_KG = 4900
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -122,15 +127,19 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
     queryKey: ['admin-impact-observations', filters, metricDefs.map((d) => d.key)],
     queryFn: async () => {
       const rangeStart = getDateRangeStart(filters.dateRange)
+      const isAllTime = filters.dateRange === 'all'
+      const baselineDate = new Date(BASELINE_DATE).toISOString()
 
       let q = supabase
         .from('event_impact')
         .select(
           `${IMPACT_SELECT_COLUMNS}, event_id, events!inner(id, title, date_start, date_end, collective_id, activity_type, created_by, collectives(name))`,
         )
+        .not('notes', 'like', 'Legacy import:%')
+        .gte('events.date_start', rangeStart ?? baselineDate)
+        .lt('events.date_start', new Date().toISOString())
         .order('logged_at', { ascending: false })
 
-      if (rangeStart) q = q.gte('logged_at', rangeStart)
       if (filters.collectiveId) q = q.eq('events.collective_id', filters.collectiveId)
       if (filters.activityType) q = q.eq('events.activity_type', filters.activityType)
 
@@ -174,28 +183,34 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
         }
       })
 
-      // Summary — aggregate non-legacy rows only (legacy data is covered by baseline constants)
-      const nonLegacyFiltered = filtered.filter(
-        (r) => !((r.notes as string) ?? '').startsWith('Legacy import') && r.events.created_by !== SEED_ADMIN
-      )
+      // Summary — all rows are already non-legacy (filtered in query).
+      // Count unique events, not impact rows.
       const summaryMetrics: Record<string, number> = {}
       for (const key of metricKeys) {
-        summaryMetrics[key] = sumMetric(nonLegacyFiltered, key)
+        summaryMetrics[key] = sumMetric(filtered, key)
+      }
+      // Add baselines for all-time view
+      if (isAllTime) {
+        if ('trees_planted' in summaryMetrics || metricKeys.includes('trees_planted'))
+          summaryMetrics['trees_planted'] = (summaryMetrics['trees_planted'] ?? 0) + BASELINE_TREES
+        if ('rubbish_kg' in summaryMetrics || metricKeys.includes('rubbish_kg'))
+          summaryMetrics['rubbish_kg'] = (summaryMetrics['rubbish_kg'] ?? 0) + BASELINE_RUBBISH_KG
       }
 
-      const totalAttendees = rows.filter((r) => !r.isLegacy).reduce((s, r) => s + (r.attendance ?? 0), 0)
-      const totalEstimatedHours = Math.round(sumMetric(nonLegacyFiltered as unknown as Record<string, unknown>[], 'hours_total'))
+      const totalAttendees = rows.reduce((s, r) => s + (r.attendance ?? 0), 0)
+      const totalEstimatedHours = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'hours_total'))
+      const uniqueEventIds = new Set(rows.map((r) => r.eventId))
 
       const summary: ImpactSummary = {
-        totalEvents: rows.length,
-        totalAttendees,
+        totalEvents: uniqueEventIds.size + (isAllTime ? BASELINE_EVENTS : 0),
+        totalAttendees: totalAttendees + (isAllTime ? BASELINE_ATTENDEES : 0),
         totalEstimatedHours,
         metrics: summaryMetrics,
       }
 
-      // Collective breakdown — exclude legacy rows from metric totals
+      // Collective breakdown — all rows are already non-legacy
       const byCollective = new Map<string, CollectiveBreakdown>()
-      for (const r of rows.filter((r) => !r.isLegacy)) {
+      for (const r of rows) {
         const existing = byCollective.get(r.collectiveId)
         if (existing) {
           existing.eventCount++
@@ -237,9 +252,13 @@ export function useYearOverYear(metricDefs: ImpactMetricDef[]) {
   return useQuery({
     queryKey: ['admin-impact-yoy', metricDefs.map((d) => d.key)],
     queryFn: async () => {
+      const baselineDate = new Date(BASELINE_DATE).toISOString()
       const { data, error } = await supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, logged_at, events(date_start, date_end)`)
+        .select(`${IMPACT_SELECT_COLUMNS}, logged_at, events!inner(date_start, date_end)`)
+        .not('notes', 'like', 'Legacy import:%')
+        .gte('events.date_start', baselineDate)
+        .lt('events.date_start', new Date().toISOString())
 
       if (error) throw error
 
@@ -252,7 +271,8 @@ export function useYearOverYear(metricDefs: ImpactMetricDef[]) {
       const byYear = new Map<number, Row[]>()
 
       for (const r of rows) {
-        const year = new Date(r.logged_at as string).getFullYear()
+        // Group by event date, not logged_at
+        const year = new Date(r.events?.date_start ?? (r.logged_at as string)).getFullYear()
         const arr = byYear.get(year) ?? []
         arr.push(r)
         byYear.set(year, arr)

@@ -19,6 +19,9 @@ export { EmptyState } from './empty-state'
 
 // Display
 export { TabBar } from './tab-bar'
+export { SegmentedControl } from './segmented-control'
+export type { Segment } from './segmented-control'
+export { WaveTransition, WAVE_PATHS, WAVE_PATHS_TALL, WAVE_PATHS_SMALL } from './wave-transition'
 export { Chip } from './chip'
 export { ProgressBar } from './progress-bar'
 export { StatCard } from './stat-card'

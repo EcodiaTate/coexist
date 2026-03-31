@@ -10,9 +10,6 @@ import {
     TrendingUp,
     Package,
     Heart,
-    TreePine,
-    Clock,
-    Trash2,
     Shirt,
     Backpack,
     StickyNote,
@@ -26,9 +23,9 @@ import { EmptyState } from '@/components/empty-state'
 import { useProducts } from '@/hooks/use-merch'
 import { useCart } from '@/hooks/use-cart'
 import { formatPrice, type Product } from '@/types/merch'
-import { useNationalImpact } from '@/hooks/use-impact'
 import { useLayout } from '@/hooks/use-layout'
 import { Header } from '@/components/header'
+import { WaveTransition } from '@/components/wave-transition'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -205,35 +202,7 @@ function ShopHero({
       </div>
 
       {/* Smooth transition into content - sits on top of the overflowing bg */}
-      <div className="relative z-20">
-        <svg
-          viewBox="0 0 1440 70"
-          preserveAspectRatio="none"
-          className="w-full h-7 sm:h-10 block"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M0,25
-               C60,22 100,18 140,20
-               C180,22 200,15 220,18
-               L228,8 L234,5 L240,10
-               C280,18 340,24 400,20
-               C440,16 470,22 510,25
-               C560,28 600,20 640,22
-               C670,24 690,18 710,20
-               L718,10 L722,6 L728,12
-               C760,20 820,26 880,22
-               C920,18 950,24 990,26
-               C1020,28 1050,20 1080,18
-               C1100,16 1120,22 1140,24
-               L1148,12 L1153,7 L1158,9 L1165,16
-               C1200,22 1260,26 1320,22
-               C1360,18 1400,24 1440,22
-               L1440,70 L0,70 Z"
-            className="fill-white"
-          />
-        </svg>
-      </div>
+      <WaveTransition position="inline" />
     </div>
   )
 }
@@ -362,71 +331,6 @@ function FeaturedProduct({ product, onClick }: { product: Product; onClick: () =
 }
 
 /* ------------------------------------------------------------------ */
-/*  Impact banner - gradient card, not white                           */
-/* ------------------------------------------------------------------ */
-
-/* ------------------------------------------------------------------ */
-/*  Impact strip - live community stats, every purchase contributes    */
-/* ------------------------------------------------------------------ */
-
-function formatStat(n: number | undefined | null): string {
-  if (n == null) return '0'
-  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k`
-  return n.toLocaleString()
-}
-
-function ImpactStrip() {
-  const { data: impact } = useNationalImpact()
-
-  const stats = useMemo(() => {
-    if (!impact) return null
-    return [
-      impact.treesPlanted > 0 && { icon: TreePine, value: formatStat(impact.treesPlanted), label: 'Trees planted' },
-      impact.volunteerHours > 0 && { icon: Clock, value: formatStat(impact.volunteerHours), label: 'Est. volunteer hours' },
-      impact.rubbishCollectedTonnes > 0 && { icon: Trash2, value: `${impact.rubbishCollectedTonnes}t`, label: 'Rubbish collected' },
-    ].filter(Boolean) as { icon: React.ElementType; value: string; label: string }[]
-  }, [impact])
-
-  return (
-    <motion.div variants={fadeUp}>
-      <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm">
-        <div className="p-5 pb-6">
-          {/* Header */}
-          <div className="mb-4">
-            <p className="text-[11px] uppercase tracking-[0.15em] font-bold text-neutral-400">Community Impact</p>
-          </div>
-
-          {/* Live stats row */}
-          {stats && stats.length > 0 ? (
-            <div className={`grid divide-x divide-neutral-100 ${stats.length === 1 ? 'grid-cols-1' : stats.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-              {stats.map(({ icon: Icon, value, label }) => (
-                <div key={label} className="py-3 text-center">
-                  <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 text-primary-600 mx-auto mb-1.5">
-                    <Icon size={14} />
-                  </div>
-                  <p className="font-heading text-lg font-extrabold text-neutral-900 leading-none">{value}</p>
-                  <p className="text-[11px] text-neutral-500 mt-1 leading-tight">{label}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 divide-x divide-neutral-100">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="py-3 text-center">
-                  <div className="w-4 h-4 rounded bg-neutral-100 mx-auto mb-1.5" />
-                  <div className="w-10 h-5 rounded bg-neutral-100 mx-auto" />
-                  <div className="w-14 h-2.5 rounded bg-neutral-100 mx-auto mt-1" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </motion.div>
-  )
-}
-
-
 /* ------------------------------------------------------------------ */
 /*  Section header - with gradient icon badge                          */
 /* ------------------------------------------------------------------ */
@@ -599,9 +503,6 @@ export default function ShopPage() {
 
                 {/* Content below hero - padded */}
                 <div className="px-5 lg:px-6 space-y-6 -mt-1">
-                  {/* Impact banner */}
-                  {!search && <ImpactStrip />}
-
                   {/* Search */}
                   <motion.div variants={rm ? undefined : fadeUp}>
                     <div className="relative">

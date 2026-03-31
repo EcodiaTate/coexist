@@ -12,7 +12,8 @@ export interface PublicStats {
 // live counts on top for the metrics tracked in app_settings.
 const BASELINE_VOLUNTEERS = 5500
 const BASELINE_TREES = 35000
-const BASELINE_DATE = '2025-12-31'
+const BASELINE_EVENTS = 340
+const BASELINE_DATE = '2026-01-01'
 
 const FALLBACK_STATS: PublicStats = {
   volunteers: BASELINE_VOLUNTEERS,
@@ -34,9 +35,11 @@ export function usePublicStats() {
         supabase.from('events').select('id', { count: 'exact', head: true })
           .lt('date_start', new Date().toISOString())
           .gte('date_start', baselineDate),
-        // Only sum native_plants/trees from post-baseline, non-legacy impact rows
-        supabase.from('event_impact').select('native_plants, trees_planted')
-          .gte('logged_at', baselineDate)
+        // Only sum native_plants/trees from post-baseline, non-legacy impact rows.
+        // Filter by event date_start so backfilled rows with old logged_at are included.
+        supabase.from('event_impact').select('native_plants, trees_planted, events!inner(date_start)')
+          .gte('events.date_start', baselineDate)
+          .lt('events.date_start', new Date().toISOString())
           .not('notes', 'like', 'Legacy import:%'),
       ])
 
@@ -55,8 +58,7 @@ export function usePublicStats() {
         collectives: collectivesRes.count ?? FALLBACK_STATS.collectives,
         // trees: baseline + post-baseline trees_planted + native_plants logged
         nativePlants: BASELINE_TREES + postBaselineTrees + totalNativePlants || FALLBACK_STATS.nativePlants,
-        // events since baseline (no reliable historical event count)
-        events: eventsRes.count ?? 0,
+        events: BASELINE_EVENTS + (eventsRes.count ?? 0),
       }
     },
     staleTime: 30 * 60 * 1000,

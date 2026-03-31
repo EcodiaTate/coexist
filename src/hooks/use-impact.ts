@@ -54,7 +54,7 @@ type TimeRange = 'all-time' | 'current-year'
 
 // Baseline checkpoint date — impact rows before this date are replaced by
 // the seeded baseline numbers in app_settings.
-const IMPACT_BASELINE_DATE = '2025-12-31'
+const IMPACT_BASELINE_DATE = '2026-01-01'
 
 export function useNationalImpact(timeRange: TimeRange = 'all-time') {
   return useQuery({
@@ -82,17 +82,18 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       const baselineTrees     = baselineMap['impact_baseline_trees'] ?? 0
       const baselineRubbishKg = baselineMap['impact_baseline_rubbish_kg'] ?? 0
 
-      // Only sum event_impact rows logged on/after the baseline date, excluding legacy imports
-      // (legacy rows have recent logged_at timestamps from when they were bulk-imported)
+      // Filter by event date_start (not logged_at) so backfilled rows are included.
+      // Legacy bulk-import rows are excluded by notes filter.
+      const impactDateStart = timeRange === 'current-year'
+        ? (yearStart > baselineDate ? yearStart : baselineDate)
+        : baselineDate
       let impactQuery = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id`)
-        .gte('logged_at', baselineDate)
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(date_start)`)
         .not('notes', 'like', 'Legacy import:%')
+        .gte('events.date_start', impactDateStart)
+        .lt('events.date_start', new Date().toISOString())
         .range(0, 9999)
-      if (timeRange === 'current-year') {
-        impactQuery = impactQuery.gte('logged_at', yearStart > baselineDate ? yearStart : baselineDate)
-      }
 
       // Only count events on/after the baseline date
       let eventsQuery = supabase
@@ -189,16 +190,17 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
       const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString()
       const baselineDate = new Date(IMPACT_BASELINE_DATE).toISOString()
 
-      // Only sum event_impact rows logged on/after the baseline date, excluding legacy imports
-      let impactQuery = supabase
+      // Filter by event date_start (not logged_at) so backfilled rows are included.
+      const impactDateStart = timeRange === 'current-year'
+        ? (yearStart > baselineDate ? yearStart : baselineDate)
+        : baselineDate
+      const impactQuery = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id)`)
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id, date_start)`)
         .eq('events.collective_id', collectiveId)
-        .gte('logged_at', baselineDate)
         .not('notes', 'like', 'Legacy import:%')
-      if (timeRange === 'current-year') {
-        impactQuery = impactQuery.gte('logged_at', yearStart > baselineDate ? yearStart : baselineDate)
-      }
+        .gte('events.date_start', impactDateStart)
+        .lt('events.date_start', new Date().toISOString())
 
       let cleanupQuery = supabase
         .from('events')
@@ -380,6 +382,7 @@ export function useImpactStats(userId?: string) {
             .from('event_impact')
             .select(IMPACT_SELECT_COLUMNS)
             .in('event_id', chunk)
+            .not('notes', 'like', 'Legacy import:%')
           if (data) rows.push(...(data as unknown as Record<string, number | null>[]))
         }
         return rows

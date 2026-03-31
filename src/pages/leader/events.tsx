@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-    ArrowLeft,
     CalendarDays,
     MapPin,
     Users,
@@ -16,6 +15,7 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader, useLeaderContext } from '@/components/leader-layout'
 import { useLeaderCollectiveScope } from '@/hooks/use-leader-collective-scope'
 import { Dropdown } from '@/components/dropdown'
+import { Header } from '@/components/header'
 import { SearchBar } from '@/components/search-bar'
 import { Badge } from '@/components/badge'
 import { cn } from '@/lib/cn'
@@ -49,7 +49,6 @@ const FILTERS = [
   { id: 'all', label: 'All' },
 ] as const
 
-const backButtonCn = 'absolute top-[var(--safe-top,0px)] left-4 mt-3 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-black/40 text-white cursor-pointer'
 
 export default function LeaderEventsPage() {
   const navigate = useNavigate()
@@ -84,7 +83,7 @@ export default function LeaderEventsPage() {
   if (showLoading) {
     return (
       <div className="relative min-h-dvh overflow-x-hidden bg-gradient-to-b from-moss-50 via-white to-primary-50/30">
-        <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
+        <Header title="Events" back transparent className="absolute left-0 right-0 z-30" />
         <div className="relative z-10 px-6 pt-14 space-y-6">
           <div className="flex flex-col items-center gap-2 pb-2">
             <div className="h-3 w-16 rounded-full bg-moss-200/40 animate-pulse" />
@@ -110,7 +109,7 @@ export default function LeaderEventsPage() {
     <div className="relative min-h-dvh overflow-x-hidden">
       {/* ── Bright airy background ── */}
       <div className="absolute inset-0 bg-gradient-to-b from-moss-50 via-white to-primary-50/30" />
-      <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
+      <Header title="Events" back transparent className="absolute left-0 right-0 z-30" />
 
 
       {/* ── Content ── */}

@@ -13,6 +13,7 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
+import { WaveTransition } from '@/components/wave-transition'
 import { ProgressRing } from '@/components/development/progress-ring'
 import { cn } from '@/lib/cn'
 import { useDevSection, useDevSectionModules } from '@/hooks/use-admin-development'
@@ -138,14 +139,7 @@ export default function LearnSectionPage() {
         </div>
 
         {/* Wave divider */}
-        <div className="absolute bottom-0 left-0 right-0 z-20">
-          <svg viewBox="0 0 1440 70" preserveAspectRatio="none" className="w-full h-7 sm:h-10 block">
-            <path
-              d="M0,28 C80,24 160,20 240,22 C320,24 360,12 400,14 L408,5 L414,3 L420,8 C460,16 540,26 640,24 C740,22 800,18 880,20 C960,22 1000,10 1040,12 L1048,4 L1054,2 L1060,7 C1100,16 1180,28 1280,26 C1360,24 1400,28 1440,26 L1440,70 L0,70 Z"
-              className="fill-white"
-            />
-          </svg>
-        </div>
+        <WaveTransition wave={2} />
       </div>
 
       {/* ── Module list ── */}

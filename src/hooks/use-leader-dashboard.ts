@@ -173,8 +173,9 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
   const [impactRes, membersRes, eventsRes, pastEventsRes, cleanupRes, leadersCountRes] = await Promise.all([
     supabase
       .from('event_impact')
-      .select(`${IMPACT_SELECT_COLUMNS}, events!inner(collective_id)`)
+      .select(`${IMPACT_SELECT_COLUMNS}, events!inner(collective_id, date_start)`)
       .eq('events.collective_id', collectiveId)
+      .lt('events.date_start', now.toISOString())
       .not('notes', 'like', 'Legacy import:%'),
     supabase
       .from('collective_members')
@@ -184,12 +185,17 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
     supabase
       .from('events')
       .select('id', { count: 'exact', head: true })
-      .eq('collective_id', collectiveId),
+      .eq('collective_id', collectiveId)
+      .lt('date_start', now.toISOString())
+      .neq('status', 'cancelled')
+      .neq('status', 'draft'),
     supabase
       .from('events')
       .select('id')
       .eq('collective_id', collectiveId)
-      .lt('date_start', now.toISOString()),
+      .lt('date_start', now.toISOString())
+      .neq('status', 'cancelled')
+      .neq('status', 'draft'),
     supabase
       .from('events')
       .select('id', { count: 'exact', head: true })
