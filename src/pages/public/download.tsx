@@ -6,7 +6,6 @@ import { Capacitor } from '@capacitor/core'
 import { cn } from '@/lib/cn'
 import { OGMeta } from '@/components/og-meta'
 import { APP_NAME, TAGLINE, WEBSITE_URL, INSTAGRAM_URL } from '@/lib/constants'
-import { useAppImage } from '@/hooks/use-app-images'
 import { WebFooter } from '@/components/web-footer'
 import { usePublicStats } from '@/hooks/use-public-stats'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
@@ -158,7 +157,6 @@ export default function DownloadPage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
-  const heroDownload = useAppImage('hero_download')
   const platform = getDevicePlatform()
   const { data: liveStats } = usePublicStats()
 
@@ -202,11 +200,7 @@ export default function DownloadPage() {
       <div className="relative overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0" aria-hidden="true">
-          {heroDownload ? (
-            <img src={heroDownload} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="h-full w-full bg-gradient-to-br from-moss-600 via-primary-700 to-primary-900" />
-          )}
+          <img src="/img/hero-download.jpg" alt="" className="h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/70" />
         </div>
 

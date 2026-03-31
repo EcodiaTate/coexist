@@ -128,10 +128,7 @@ const AdminSurveysPage = lazy(() => import('@/pages/admin/surveys'))
 const AdminApplicationsPage = lazy(() => import('@/pages/admin/applications'))
 const AdminCreateSurveyPage = lazy(() => import('@/pages/admin/create-survey'))
 const AdminAuditLogPage = lazy(() => import('@/pages/admin/audit-log'))
-const AdminSystemPage = lazy(() => import('@/pages/admin/system'))
-const AdminBrandingPage = lazy(() => import('@/pages/admin/branding'))
 const AdminEmailPage = lazy(() => import('@/pages/admin/email'))
-const AdminCharityPage = lazy(() => import('@/pages/admin/charity'))
 const AdminExportsPage = lazy(() => import('@/pages/admin/exports'))
 const AdminWorkflowsPage = lazy(() => import('@/pages/admin/workflows'))
 const AdminCreatePage = lazy(() => import('@/pages/admin/create'))
@@ -141,8 +138,7 @@ const AdminChallengesPage = lazy(() => import('@/pages/admin/challenges'))
 const ModerationQueuePage = lazy(() => import('@/pages/admin/moderation/index'))
 const AdminContactsPage = lazy(() => import('@/pages/admin/contacts'))
 const AdminLegalPagesPage = lazy(() => import('@/pages/admin/legal-pages'))
-const AdminImpactMetricsPage = lazy(() => import('@/pages/admin/impact-metrics'))
-const AdminImpactObservationsPage = lazy(() => import('@/pages/admin/impact-observations'))
+const AdminImpactPage = lazy(() => import('@/pages/admin/impact'))
 
 // Admin Development (L&D)
 const AdminDevelopmentPage = lazy(() => import('@/pages/admin/development/index'))
@@ -441,13 +437,9 @@ function App() {
             <Route path="reports" element={<RequireCapability cap="view_reports"><ReportsPage /></RequireCapability>} />
             <Route path="national-impact" element={<RequireCapability cap="view_reports"><NationalImpactPage /></RequireCapability>} />
             <Route path="email" element={<RequireCapability cap="manage_email"><AdminEmailPage /></RequireCapability>} />
-            <Route path="charity" element={<RequireCapability cap="manage_charity"><AdminCharityPage /></RequireCapability>} />
             <Route path="exports" element={<RequireCapability cap="manage_exports"><AdminExportsPage /></RequireCapability>} />
             <Route path="audit-log" element={<RequireCapability cap="view_audit_log"><AdminAuditLogPage /></RequireCapability>} />
-            <Route path="system" element={<RequireCapability cap="manage_system"><AdminSystemPage /></RequireCapability>} />
-            <Route path="branding" element={<RequireCapability cap="manage_system"><AdminBrandingPage /></RequireCapability>} />
-            <Route path="impact-metrics" element={<RequireCapability cap="manage_system"><AdminImpactMetricsPage /></RequireCapability>} />
-            <Route path="impact" element={<RequireCapability cap="view_reports"><AdminImpactObservationsPage /></RequireCapability>} />
+            <Route path="impact" element={<RequireCapability cap="view_reports"><AdminImpactPage /></RequireCapability>} />
             <Route path="shop" element={<RequireCapability cap="manage_merch"><AdminMerchPage /></RequireCapability>} />
             <Route path="partners" element={<RequireCapability cap="manage_partners"><AdminPartnersPage /></RequireCapability>} />
             <Route path="challenges" element={<RequireCapability cap="manage_challenges"><AdminChallengesPage /></RequireCapability>} />

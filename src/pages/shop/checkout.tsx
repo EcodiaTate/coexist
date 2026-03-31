@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { MapPin, CreditCard, Clock, Truck, Tag, Shield, Lock } from 'lucide-react'
-import { useAppImage } from '@/hooks/use-app-images'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
@@ -51,8 +50,6 @@ export default function CheckoutPage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const { toast } = useToast()
-  const placeholderMerch = useAppImage('placeholder_merch')
-
   const items = useCart((s) => s.items)
   const subtotalCents = useCart((s) => s.subtotalCents())
   const memberDiscountCents = useCart((s) => s.memberDiscountCents())
@@ -350,7 +347,7 @@ export default function CheckoutPage() {
                   <div key={item.variant.id} className="flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-neutral-50 transition-colors">
                     <div className="relative rounded-lg overflow-hidden ring-1 ring-neutral-900/[0.06] shrink-0">
                       <img
-                        src={item.product.images[0] ?? placeholderMerch}
+                        src={item.product.images[0] ?? '/img/placeholder-merch.jpg'}
                         alt={item.product.name}
                         className="w-12 h-12 object-cover"
                       />
