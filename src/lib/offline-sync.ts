@@ -529,7 +529,7 @@ async function processLogImpact(action: OfflineAction): Promise<{ ok: boolean; c
   const { error } = await supabase
     .from('event_impact')
     .upsert(
-      { ...impactData, logged_by: userId },
+      { ...impactData, logged_by: userId } as any,
       { onConflict: 'event_id' },
     )
   if (error) return { ok: false, conflict: 'Impact data failed to sync. Please try again from the event page.' }
@@ -572,7 +572,7 @@ async function processSurveyResponse(action: OfflineAction): Promise<{ ok: boole
 
   const { error } = await supabase
     .from('survey_responses')
-    .insert(row)
+    .insert(row as any)
   if (error) return { ok: false, conflict: 'Survey response failed to sync.' }
   return { ok: true }
 }
@@ -665,14 +665,14 @@ async function processModuleProgress(action: OfflineAction): Promise<{ ok: boole
   if (existing) {
     const { error } = await supabase
       .from('dev_user_module_progress')
-      .update(row)
+      .update(row as any)
       .eq('id', existing.id)
     if (error) return { ok: false, conflict: 'Module progress sync failed.' }
   } else {
     row.started_at = now
     const { error } = await supabase
       .from('dev_user_module_progress')
-      .insert(row)
+      .insert(row as any)
     if (error) return { ok: false, conflict: 'Module progress sync failed.' }
   }
   return { ok: true }
@@ -702,7 +702,7 @@ async function processSectionProgress(action: OfflineAction): Promise<{ ok: bool
 
   const { error } = await supabase
     .from('dev_user_section_progress')
-    .upsert(row, { onConflict: 'user_id,section_id' })
+    .upsert(row as any, { onConflict: 'user_id,section_id' })
   if (error) return { ok: false, conflict: 'Section progress sync failed.' }
   return { ok: true }
 }

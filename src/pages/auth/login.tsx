@@ -228,12 +228,11 @@ export default function LoginPage() {
           >
             <Button
               type="submit"
-              variant="primary"
+              variant="auth"
               size="lg"
               fullWidth
               loading={isSubmitting}
               disabled={!canSubmit}
-              variant="auth"
             >
               Log In
             </Button>

@@ -323,12 +323,11 @@ export default function SignUpPage() {
           >
             <Button
               type="submit"
-              variant="primary"
+              variant="auth"
               size="lg"
               fullWidth
               loading={isSubmitting}
               disabled={!canSubmit}
-              variant="auth"
             >
               Create Account
             </Button>
