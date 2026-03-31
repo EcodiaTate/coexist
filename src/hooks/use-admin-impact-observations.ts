@@ -174,14 +174,17 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
         }
       })
 
-      // Summary — aggregate all active metrics
+      // Summary — aggregate non-legacy rows only (legacy data is covered by baseline constants)
+      const nonLegacyFiltered = filtered.filter(
+        (r) => !((r.notes as string) ?? '').startsWith('Legacy import') && r.events.created_by !== SEED_ADMIN
+      )
       const summaryMetrics: Record<string, number> = {}
       for (const key of metricKeys) {
-        summaryMetrics[key] = sumMetric(filtered, key)
+        summaryMetrics[key] = sumMetric(nonLegacyFiltered, key)
       }
 
-      const totalAttendees = rows.reduce((s, r) => s + (r.attendance ?? 0), 0)
-      const totalEstimatedHours = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'hours_total'))
+      const totalAttendees = rows.filter((r) => !r.isLegacy).reduce((s, r) => s + (r.attendance ?? 0), 0)
+      const totalEstimatedHours = Math.round(sumMetric(nonLegacyFiltered as unknown as Record<string, unknown>[], 'hours_total'))
 
       const summary: ImpactSummary = {
         totalEvents: rows.length,
@@ -190,9 +193,9 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
         metrics: summaryMetrics,
       }
 
-      // Collective breakdown
+      // Collective breakdown — exclude legacy rows from metric totals
       const byCollective = new Map<string, CollectiveBreakdown>()
-      for (const r of rows) {
+      for (const r of rows.filter((r) => !r.isLegacy)) {
         const existing = byCollective.get(r.collectiveId)
         if (existing) {
           existing.eventCount++
