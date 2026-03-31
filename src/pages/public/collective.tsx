@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/skeleton'
 import { OGMeta, SITE_URL } from '@/components/og-meta'
 import { APP_NAME, TAGLINE } from '@/lib/constants'
 import { WebFooter } from '@/components/web-footer'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Platform detection                                                 */
@@ -29,19 +30,6 @@ function getDevicePlatform(): 'ios' | 'android' | 'web' {
 const APP_STORE_URL = '#'
 const PLAY_STORE_URL = '#'
 
-/* ------------------------------------------------------------------ */
-/*  Animation                                                          */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const } },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Store badge components (real badge styling)                        */
@@ -181,10 +169,10 @@ export default function PublicCollectivePage() {
       <div className="flex min-h-dvh flex-col items-center justify-center bg-gradient-to-b from-moss-50 to-white p-6 text-center">
         <OGMeta title="Collective Not Found" description="This collective doesn't exist or is no longer active." />
         <div className="w-16 h-16 rounded-2xl bg-primary-100 flex items-center justify-center mb-4">
-          <Users size={28} className="text-primary-400" />
+          <Users size={28} className="text-neutral-400" />
         </div>
-        <h1 className="font-heading text-2xl font-bold text-primary-800">Collective not found</h1>
-        <p className="mt-2 text-primary-400 max-w-xs">This collective doesn't exist or is no longer active.</p>
+        <h1 className="font-heading text-2xl font-bold text-neutral-900">Collective not found</h1>
+        <p className="mt-2 text-neutral-500 max-w-xs">This collective doesn't exist or is no longer active.</p>
         <button
           type="button"
           onClick={() => navigate('/download')}
@@ -350,8 +338,8 @@ export default function PublicCollectivePage() {
         {/* Description */}
         {collective.description && (
           <motion.div variants={fadeUp} className="mb-6">
-            <h2 className="font-heading text-lg font-semibold text-primary-800 mb-2">About</h2>
-            <p className="whitespace-pre-line text-primary-500 leading-relaxed text-[15px]">
+            <h2 className="font-heading text-lg font-semibold text-neutral-900 mb-2">About</h2>
+            <p className="whitespace-pre-line text-neutral-500 leading-relaxed text-[15px]">
               {collective.description}
             </p>
           </motion.div>
@@ -360,7 +348,7 @@ export default function PublicCollectivePage() {
         {/* Upcoming events */}
         {upcomingEvents && upcomingEvents.length > 0 && (
           <motion.div variants={fadeUp} className="mb-8">
-            <h2 className="font-heading text-lg font-semibold text-primary-800 mb-3">Upcoming Events</h2>
+            <h2 className="font-heading text-lg font-semibold text-neutral-900 mb-3">Upcoming Events</h2>
             <div className="space-y-2.5">
               {upcomingEvents.map((evt) => {
                 const d = new Date(evt.date_start)
@@ -378,18 +366,18 @@ export default function PublicCollectivePage() {
                       <span className="text-[11px] font-semibold text-moss-500 uppercase leading-none">
                         {d.toLocaleDateString('en-AU', { month: 'short' })}
                       </span>
-                      <span className="text-lg font-bold text-primary-800 leading-tight">
+                      <span className="text-lg font-bold text-neutral-900 leading-tight">
                         {d.getDate()}
                       </span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-primary-800 truncate text-[15px]">{evt.title}</p>
-                      <p className="text-xs text-primary-400 mt-0.5 truncate">
+                      <p className="font-medium text-neutral-900 truncate text-[15px]">{evt.title}</p>
+                      <p className="text-xs text-neutral-500 mt-0.5 truncate">
                         {d.toLocaleDateString('en-AU', { weekday: 'short' })}
                         {evt.address ? ` · ${evt.address}` : ''}
                       </p>
                     </div>
-                    <ArrowRight size={16} className="text-primary-300 shrink-0" />
+                    <ArrowRight size={16} className="text-neutral-400 shrink-0" />
                   </div>
                 )
               })}
@@ -474,7 +462,7 @@ export default function PublicCollectivePage() {
 
         {/* What is Co-Exist */}
         <motion.div variants={fadeUp} className="mt-8 mb-4 text-center">
-          <p className="text-xs text-primary-400">
+          <p className="text-xs text-neutral-500">
             <span className="font-semibold">{APP_NAME}</span> is Australia's youth conservation movement.
             {' '}Join 5,500+ volunteers planting native trees, cleaning beaches, and restoring habitats.
           </p>

@@ -73,7 +73,7 @@ function QuestionCard({
             </span>
           </div>
 
-          <p className="text-sm text-primary-800 font-medium">{question.question_text}</p>
+          <p className="text-sm text-neutral-900 font-medium">{question.question_text}</p>
 
           {/* Options preview */}
           {question.options && question.options.length > 0 && (
@@ -100,7 +100,7 @@ function QuestionCard({
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="flex items-center gap-1 mt-2 text-xs text-primary-400 hover:text-primary-600 transition-colors"
+              className="flex items-center gap-1 mt-2 text-xs text-neutral-500 hover:text-neutral-700 transition-colors"
             >
               {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               Explanation
@@ -230,13 +230,13 @@ function QuestionForm({
       exit={{ opacity: 0, y: -8 }}
       className="rounded-xl border-2 border-neutral-200 bg-neutral-50 p-5 space-y-4"
     >
-      <p className="text-sm font-semibold text-primary-700">
+      <p className="text-sm font-semibold text-neutral-900">
         {initial ? 'Edit Question' : 'Add Question'}
       </p>
 
       {/* Type picker */}
       <div>
-        <label className="block text-sm font-medium text-primary-700 mb-1.5">Question Type</label>
+        <label className="block text-sm font-medium text-neutral-900 mb-1.5">Question Type</label>
         <div className="flex flex-wrap gap-2">
           {QUESTION_TYPES.map((qt) => (
             <button

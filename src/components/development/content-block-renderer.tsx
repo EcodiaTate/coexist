@@ -19,7 +19,7 @@ export function ContentBlockRenderer({ block, className }: ContentBlockRendererP
     <div className={cn('space-y-2', className)}>
       {/* Optional block title */}
       {block.title && (
-        <h3 className="font-heading text-lg font-bold text-primary-800">{block.title}</h3>
+        <h3 className="font-heading text-lg font-bold text-neutral-900">{block.title}</h3>
       )}
 
       {/* Text block */}

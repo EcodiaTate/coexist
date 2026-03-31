@@ -177,7 +177,7 @@ export default function PartnersPage() {
           <PartnersSkeleton />
         ) : !partners?.length ? (
           <EmptyState
-            illustration={<Handshake size={40} className="text-primary-300" />}
+            illustration={<Handshake size={40} className="text-neutral-300" />}
             title="No partners yet"
             description="Check back soon - we're growing our network of conservation partners."
           />
@@ -208,7 +208,7 @@ export default function PartnersPage() {
                     <div
                       className={cn(
                         'w-14 h-14 rounded-xl flex items-center justify-center shrink-0 overflow-hidden',
-                        useRichCard ? 'bg-white/15' : 'bg-primary-50',
+                        useRichCard ? 'bg-white/15' : 'bg-neutral-50',
                       )}
                     >
                       {partner.logo_url ? (
@@ -218,7 +218,7 @@ export default function PartnersPage() {
                           className="w-full h-full object-contain p-1.5"
                         />
                       ) : (
-                        <Handshake size={24} className={useRichCard ? 'text-white/70' : 'text-primary-300'} />
+                        <Handshake size={24} className={useRichCard ? 'text-white/70' : 'text-neutral-300'} />
                       )}
                     </div>
 
@@ -228,7 +228,7 @@ export default function PartnersPage() {
                         <h3
                           className={cn(
                             'font-heading text-[15px] font-semibold leading-tight',
-                            useRichCard ? 'text-white' : 'text-primary-900',
+                            useRichCard ? 'text-white' : 'text-neutral-900',
                           )}
                         >
                           {partner.name}
@@ -245,7 +245,7 @@ export default function PartnersPage() {
                         <p
                           className={cn(
                             'text-[13px] leading-relaxed line-clamp-3',
-                            useRichCard ? 'text-white/70' : 'text-primary-500',
+                            useRichCard ? 'text-white/70' : 'text-neutral-500',
                           )}
                         >
                           {partner.description}
@@ -262,7 +262,7 @@ export default function PartnersPage() {
                             'text-[12px] font-medium transition-colors',
                             useRichCard
                               ? 'text-white/60 hover:text-white/90'
-                              : 'text-primary-600 hover:text-primary-800',
+                              : 'text-neutral-600 hover:text-neutral-800',
                           )}
                         >
                           <Globe size={13} />

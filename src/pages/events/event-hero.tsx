@@ -5,22 +5,7 @@ import { OptimizedImage } from '@/components/optimized-image'
 import { ACTIVITY_TYPE_LABELS, getCountdown } from '@/hooks/use-events'
 import { cn } from '@/lib/cn'
 import type { EventDetailData } from '@/hooks/use-events'
-
-/* ------------------------------------------------------------------ */
-/*  Activity badge map                                                 */
-/* ------------------------------------------------------------------ */
-
-const activityToBadge: Record<string, 'shore-cleanup' | 'tree-planting' | 'land-regeneration' | 'nature-walk' | 'camp-out' | 'retreat' | 'film-screening' | 'marine-restoration' | 'workshop'> = {
-  shore_cleanup: 'shore-cleanup',
-  tree_planting: 'tree-planting',
-  land_regeneration: 'land-regeneration',
-  nature_walk: 'nature-walk',
-  camp_out: 'camp-out',
-  retreat: 'retreat',
-  film_screening: 'film-screening',
-  marine_restoration: 'marine-restoration',
-  workshop: 'workshop',
-}
+import { activityToBadge } from '@/lib/activity-types'
 
 export { activityToBadge }
 
@@ -157,7 +142,7 @@ export function EventHero({ event, past, userStatus, accent, onShare }: EventHer
                 </span>
               )}
             </div>
-            <h1 className="font-heading text-2xl font-bold text-primary-800 mt-2.5">
+            <h1 className="font-heading text-2xl font-bold text-neutral-900 mt-2.5">
               {event.title}
             </h1>
             {event.collectives && (

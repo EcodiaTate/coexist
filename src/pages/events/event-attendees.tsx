@@ -39,7 +39,7 @@ export function EventAttendees({ event, accent, capacityText, capacityPercent, f
           <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shadow-sm bg-gradient-to-br text-white', accent.gradient)}>
             <Users size={15} />
           </div>
-          <span className="text-[15px] font-bold text-primary-800">{capacityText}</span>
+          <span className="text-[15px] font-bold text-neutral-900">{capacityText}</span>
         </div>
         {event.capacity && (
           <span className={cn(

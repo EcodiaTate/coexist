@@ -91,7 +91,7 @@ export function OptimizedImage({
         )}
         style={aspectRatio ? { aspectRatio } : undefined}
       >
-        <span className="text-sm text-primary-400">Image unavailable</span>
+        <span className="text-sm text-neutral-500">Image unavailable</span>
       </div>
     )
   }

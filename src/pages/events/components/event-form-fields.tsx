@@ -226,7 +226,7 @@ export function CoverImageFields({
             'cursor-pointer select-none',
             'active:scale-[0.97] transition-transform duration-150',
             'flex flex-col items-center justify-center',
-            'text-primary-400 hover:text-primary-500',
+            'text-neutral-500 hover:text-neutral-600',
             'disabled:opacity-50 disabled:cursor-not-allowed',
           )}
           aria-label="Upload cover image"

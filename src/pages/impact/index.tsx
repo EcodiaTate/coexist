@@ -18,7 +18,6 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { CountUp } from '@/components/count-up'
 import { EmptyState } from '@/components/empty-state'
-import { PullToRefresh } from '@/components/pull-to-refresh'
 import { Button } from '@/components/button'
 import { cn } from '@/lib/cn'
 import { MiniBar } from '@/components/micro-viz'
@@ -370,7 +369,6 @@ export default function ImpactDashboardPage() {
 
   return (
     <Page swipeBack noBackground className="!px-0 bg-white" header={<Header title="Impact" back />}>
-      <PullToRefresh onRefresh={handleRefresh}>
         <div className="relative min-h-full bg-white">
           {/* ─── Content ─── */}
           <div className="relative z-10 px-4 lg:px-6 pb-4 space-y-5">
@@ -589,7 +587,6 @@ export default function ImpactDashboardPage() {
 
           </div>
         </div>
-      </PullToRefresh>
     </Page>
   )
 }

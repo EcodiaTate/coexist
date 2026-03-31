@@ -76,7 +76,7 @@ export function QuizQuestionCard({
     <div className={cn('space-y-4', className)}>
       {/* Question text */}
       <div>
-        <p className="text-base font-semibold text-primary-800 leading-relaxed">
+        <p className="text-base font-semibold text-neutral-900 leading-relaxed">
           {question.question_text}
         </p>
         {question.image_url && (
@@ -144,7 +144,7 @@ export function QuizQuestionCard({
             'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-transform',
             canSubmit
               ? 'bg-primary-600 text-white hover:bg-primary-700 active:scale-[0.98]'
-              : 'bg-primary-200 text-primary-400 cursor-not-allowed',
+              : 'bg-neutral-200 text-neutral-400 cursor-not-allowed',
           )}
         >
           Check Answer

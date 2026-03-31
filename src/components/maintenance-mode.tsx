@@ -61,15 +61,15 @@ export function MaintenanceMode({
           <rect x="78" y="52" width="10" height="6" rx="2" fill="var(--color-primary-400)" transform="rotate(-15 80 55)" />
         </svg>
 
-        <h2 className="font-heading text-xl font-semibold text-primary-800">
+        <h2 className="font-heading text-xl font-semibold text-neutral-900">
           Under Maintenance
         </h2>
 
-        <p className="text-sm text-primary-400 leading-relaxed">
+        <p className="text-sm text-neutral-500 leading-relaxed">
           {message}
         </p>
 
-        <p className="mt-4 text-xs text-primary-400 font-medium">
+        <p className="mt-4 text-xs text-neutral-400 font-medium">
           {TAGLINE}
         </p>
       </motion.div>

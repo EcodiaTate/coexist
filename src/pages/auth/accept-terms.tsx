@@ -6,17 +6,8 @@ import { Button } from '@/components/button'
 import { Checkbox } from '@/components/checkbox'
 import { Header } from '@/components/header'
 import { useAuth } from '@/hooks/use-auth'
-import { CURRENT_TOS_VERSION } from '@/lib/constants'
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-}
+import { CURRENT_TOS_VERSION, TOS_CHANGE_SUMMARY, TOS_CHANGE_HIGHLIGHTS, TOS_COMMUNITY_STANDARDS } from '@/lib/constants'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 export default function AcceptTermsPage() {
   const navigate = useNavigate()
@@ -79,24 +70,19 @@ export default function AcceptTermsPage() {
             Summary of Changes
           </h2>
           <ul className="space-y-2 text-xs text-neutral-500 list-disc pl-4">
-            <li>Updated data privacy practices in line with GDPR and Australian Privacy Act</li>
-            <li>Added data export and account deletion rights</li>
-            <li>Clarified content moderation and reporting policies</li>
-            <li>Updated age verification requirements (18+)</li>
-            <li>Added cookie consent and analytics disclosure</li>
-            <li><strong className="text-neutral-900">Zero tolerance for objectionable content</strong> &mdash; users who post abusive, offensive, or objectionable content will have the content removed and their account suspended or terminated</li>
-            <li><strong className="text-neutral-900">User-generated content policy</strong> &mdash; added guidelines for acceptable use, content reporting, and user blocking</li>
+            {TOS_CHANGE_SUMMARY.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+            {TOS_CHANGE_HIGHLIGHTS.map((h) => (
+              <li key={h.label}><strong className="text-neutral-900">{h.label}</strong> &mdash; {h.detail}</li>
+            ))}
           </ul>
 
           <h2 className="font-heading text-sm font-semibold text-neutral-900 mt-4 mb-2">
             Community Standards
           </h2>
           <p className="text-xs text-neutral-500 leading-relaxed">
-            Co-Exist has zero tolerance for objectionable content or abusive behaviour.
-            Content that is offensive, hateful, discriminatory, sexually explicit, violent, or
-            otherwise inappropriate will be removed, and the responsible user may be
-            permanently banned. All users can report content and block other users.
-            Reports are reviewed within 24 hours.
+            {TOS_COMMUNITY_STANDARDS}
           </p>
         </motion.div>
 

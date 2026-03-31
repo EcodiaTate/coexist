@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { MapPin, Loader2 } from 'lucide-react'
+import { MapPin, Loader2, WifiOff } from 'lucide-react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Input } from '@/components/input'
 import { cn } from '@/lib/cn'
+import { useOffline } from '@/hooks/use-offline'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -64,6 +65,49 @@ function buildShortName(addr: NominatimResult['address']): string {
   return ''
 }
 
+/* ------------------------------------------------------------------ */
+/*  Recent results cache (localStorage, last 10)                       */
+/* ------------------------------------------------------------------ */
+
+const CACHE_KEY = 'coexist_place_cache'
+const CACHE_MAX = 10
+
+function getCachedResults(): PlaceResult[] {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY)
+    return raw ? (JSON.parse(raw) as PlaceResult[]) : []
+  } catch {
+    return []
+  }
+}
+
+function cacheResult(place: PlaceResult) {
+  try {
+    const existing = getCachedResults()
+    // Deduplicate by lat/lng
+    const filtered = existing.filter(
+      (p) => !(p.lat === place.lat && p.lng === place.lng),
+    )
+    const updated = [place, ...filtered].slice(0, CACHE_MAX)
+    localStorage.setItem(CACHE_KEY, JSON.stringify(updated))
+  } catch {
+    // Storage full — silently skip
+  }
+}
+
+function searchCachedResults(query: string): PlaceResult[] {
+  const q = query.toLowerCase()
+  return getCachedResults().filter(
+    (p) =>
+      p.short_name.toLowerCase().includes(q) ||
+      p.display_name.toLowerCase().includes(q),
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Nominatim fetch                                                    */
+/* ------------------------------------------------------------------ */
+
 async function searchPlaces(
   query: string,
   countryCode: string,
@@ -81,7 +125,10 @@ async function searchPlaces(
     `https://nominatim.openstreetmap.org/search?${params}`,
     {
       signal,
-      headers: { 'Accept-Language': 'en' },
+      headers: {
+        'Accept-Language': 'en',
+        'User-Agent': 'CoExistApp/1.0 (hello@coexistaus.org)',
+      },
     },
   )
 
@@ -179,18 +226,18 @@ function DropdownPortal({
                 i === highlightIndex ? 'bg-primary-50' : 'hover:bg-primary-50/50',
               )}
             >
-              <MapPin size={16} className="mt-0.5 shrink-0 text-primary-400" />
+              <MapPin size={16} className="mt-0.5 shrink-0 text-neutral-400" />
               <div className="min-w-0">
-                <p className="text-sm font-medium text-primary-800 truncate">
+                <p className="text-sm font-medium text-neutral-900 truncate">
                   {place.short_name}
                 </p>
-                <p className="text-xs text-primary-400 truncate">
+                <p className="text-xs text-neutral-500 truncate">
                   {place.display_name}
                 </p>
               </div>
             </li>
           ))}
-          <li className="px-4 py-1.5 text-[10px] text-primary-300 text-right">
+          <li className="px-4 py-1.5 text-[10px] text-neutral-400 text-right">
             Powered by OpenStreetMap
           </li>
         </motion.ul>
@@ -223,6 +270,7 @@ export function PlaceAutocomplete({
   const abortRef = useRef<AbortController | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const { isOffline } = useOffline()
 
   // Close dropdown on outside click / touch
   useEffect(() => {
@@ -249,6 +297,16 @@ export function PlaceAutocomplete({
         return
       }
 
+      // When offline, search cached results only
+      if (isOffline) {
+        const cached = searchCachedResults(query)
+        setResults(cached)
+        setOpen(cached.length > 0)
+        setHighlightIndex(-1)
+        setLoading(false)
+        return
+      }
+
       setLoading(true)
 
       debounceRef.current = setTimeout(async () => {
@@ -270,12 +328,13 @@ export function PlaceAutocomplete({
         }
       }, 350)
     },
-    [countryCode],
+    [countryCode, isOffline],
   )
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const val = e.target.value
+      // Always accept freeform text — place is null until a suggestion is selected
       onChange(val, null)
       doSearch(val)
     },
@@ -285,6 +344,7 @@ export function PlaceAutocomplete({
   const handleSelect = useCallback(
     (place: PlaceResult) => {
       onChange(place.short_name, place)
+      cacheResult(place)
       setOpen(false)
       setResults([])
     },
@@ -316,12 +376,14 @@ export function PlaceAutocomplete({
       <Input
         label={label}
         compact={compact}
-        placeholder={placeholder}
+        placeholder={isOffline ? 'Type your location manually' : placeholder}
         value={value}
         onChange={handleInputChange}
         icon={
           loading ? (
-            <Loader2 size={18} className="animate-spin text-primary-400" />
+            <Loader2 size={18} className="animate-spin text-neutral-400" />
+          ) : isOffline ? (
+            <WifiOff size={18} className="text-neutral-400" />
           ) : (
             icon ?? <MapPin size={18} />
           )
@@ -330,6 +392,13 @@ export function PlaceAutocomplete({
         disabled={disabled}
         autoComplete="off"
       />
+
+      {isOffline && value.trim().length >= 2 && results.length === 0 && (
+        <p className="mt-1 text-xs text-neutral-500 flex items-center gap-1.5">
+          <WifiOff size={12} className="shrink-0" />
+          No internet — type your location manually
+        </p>
+      )}
 
       <DropdownPortal
         anchorRef={containerRef}

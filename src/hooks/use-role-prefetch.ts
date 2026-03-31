@@ -52,7 +52,6 @@ const SECONDARY: ChunkImport[] = [
   () => import('@/pages/profile/index'),
   () => import('@/pages/notifications/index'),
   () => import('@/pages/settings/index'),
-  () => import('@/pages/collectives/discover'),
   () => import('@/pages/events/event-detail'),
   () => import('@/pages/collectives/collective-detail'),
   () => import('@/pages/donate/index'),

@@ -605,15 +605,15 @@ export default function AdminImpactObservationsPage() {
                       className="border-b border-neutral-50 last:border-b-0 hover:bg-neutral-50 transition-colors cursor-pointer"
                       onClick={() => setCollectiveId(c.collectiveId)}
                     >
-                      <td className="px-4 py-3 text-left font-semibold text-primary-800 text-sm">{c.name}</td>
-                      <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{c.eventCount}</td>
-                      <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtNum(c.attendees)}</td>
+                      <td className="px-4 py-3 text-left font-semibold text-neutral-900 text-sm">{c.name}</td>
+                      <td className="px-3 py-3 text-center font-medium text-neutral-900 tabular-nums">{c.eventCount}</td>
+                      <td className="px-3 py-3 text-center font-medium text-neutral-900 tabular-nums">{fmtNum(c.attendees)}</td>
                       {visibleDefs.map((def) => (
-                        <td key={def.key} className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">
+                        <td key={def.key} className="px-3 py-3 text-center font-medium text-neutral-900 tabular-nums">
                           {fmtMetric(c.metrics[def.key] ?? 0, def)}
                         </td>
                       ))}
-                      <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">{fmtNum(c.estimatedHours)}</td>
+                      <td className="px-3 py-3 text-center font-medium text-neutral-900 tabular-nums">{fmtNum(c.estimatedHours)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -626,9 +626,9 @@ export default function AdminImpactObservationsPage() {
       {/* ── Event impact log ── */}
       <motion.div variants={v.fadeUp}>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest">Event Impact Log</h2>
+          <h2 className="font-heading text-[13px] font-bold text-neutral-500/60 uppercase tracking-widest">Event Impact Log</h2>
           {sortedEvents.length > 0 && (
-            <span className="text-xs text-primary-400 font-medium">{sortedEvents.length} event{sortedEvents.length !== 1 ? 's' : ''}</span>
+            <span className="text-xs text-neutral-500 font-medium">{sortedEvents.length} event{sortedEvents.length !== 1 ? 's' : ''}</span>
           )}
         </div>
         <div className="rounded-2xl bg-white shadow-md border border-primary-100/50 overflow-hidden">
@@ -646,7 +646,7 @@ export default function AdminImpactObservationsPage() {
                     <SortHeader label="Collective" field="collective" currentField={eventSort} currentDir={eventDir} onSort={(f) => toggleSort(f, eventSort, setEventSort, eventDir, setEventDir)} />
                   </th>
                   <th className="px-3 py-3 text-center">
-                    <span className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Type</span>
+                    <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Type</span>
                   </th>
                   {visibleDefs.map((def) => (
                     <th key={def.key} className="px-3 py-3 text-center">
@@ -668,36 +668,36 @@ export default function AdminImpactObservationsPage() {
               <tbody>
                 {displayEvents.length === 0 ? (
                   <tr>
-                    <td colSpan={4 + visibleDefs.length + 1} className="px-4 py-12 text-center text-sm text-primary-400">
+                    <td colSpan={4 + visibleDefs.length + 1} className="px-4 py-12 text-center text-sm text-neutral-500">
                       No impact data matches your filters
                     </td>
                   </tr>
                 ) : (
                   displayEvents.map((row) => (
                     <tr key={row.eventId} className="border-b border-neutral-50 last:border-b-0 hover:bg-neutral-50 transition-colors group">
-                      <td className="px-4 py-3 text-xs text-primary-500 tabular-nums whitespace-nowrap">{fmtDate(row.date)}</td>
+                      <td className="px-4 py-3 text-xs text-neutral-500 tabular-nums whitespace-nowrap">{fmtDate(row.date)}</td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
-                          <Link to={`/events/${row.eventId}`} className="text-sm font-medium text-primary-800 hover:text-primary-600 transition-colors line-clamp-1">
+                          <Link to={`/events/${row.eventId}`} className="text-sm font-medium text-neutral-900 hover:text-neutral-700 transition-colors line-clamp-1">
                             {row.title}
                           </Link>
-                          <ExternalLink size={12} className="text-primary-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                          <ExternalLink size={12} className="text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                           {row.isLegacy && <Badge variant="default" size="sm">Legacy</Badge>}
                         </div>
-                        {row.attendance != null && <span className="text-[11px] text-primary-400">{row.attendance} attendees</span>}
+                        {row.attendance != null && <span className="text-[11px] text-neutral-500">{row.attendance} attendees</span>}
                       </td>
-                      <td className="px-3 py-3 text-xs text-primary-500 whitespace-nowrap">{row.collectiveName}</td>
+                      <td className="px-3 py-3 text-xs text-neutral-500 whitespace-nowrap">{row.collectiveName}</td>
                       <td className="px-3 py-3 text-center">
                         <Badge variant="activity" activity={activityToBadge(row.activityType)} size="sm">
                           {ACTIVITY_TYPE_LABELS[row.activityType] ?? row.activityType}
                         </Badge>
                       </td>
                       {visibleDefs.map((def) => (
-                        <td key={def.key} className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">
+                        <td key={def.key} className="px-3 py-3 text-center font-medium text-neutral-900 tabular-nums">
                           {fmtMetric(row.metrics[def.key] ?? null, def)}
                         </td>
                       ))}
-                      <td className="px-3 py-3 text-center font-medium text-primary-700 tabular-nums">
+                      <td className="px-3 py-3 text-center font-medium text-neutral-900 tabular-nums">
                         {row.estimatedVolHours != null ? `${row.estimatedVolHours.toLocaleString()} hrs` : '-'}
                       </td>
                     </tr>

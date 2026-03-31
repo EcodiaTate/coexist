@@ -141,8 +141,8 @@ export async function uploadWithProgress({
     xhr.open('POST', `${supabaseUrl}/storage/v1/object/${bucket}/${path}`)
     xhr.setRequestHeader('Authorization', `Bearer ${token}`)
     xhr.setRequestHeader('x-upsert', 'true')
-    xhr.timeout = 30000
-    xhr.addEventListener('timeout', () => reject(new Error('Upload timed out. Please try again.')))
+    xhr.timeout = 120000
+    xhr.addEventListener('timeout', () => reject(new Error('Upload timed out — check your connection and try again.')))
     xhr.send(file)
   })
 }

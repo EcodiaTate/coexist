@@ -7,18 +7,9 @@ import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { cn } from '@/lib/cn'
 import type { Database } from '@/types/database.types'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 type Collective = Database['public']['Tables']['collectives']['Row']
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-}
 
 interface StepCollectiveProps {
   selectedId: string | null

@@ -1,5 +1,5 @@
 import { type ReactNode, memo, Suspense, useMemo, createContext, useContext } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { cn } from '@/lib/cn'
 import { useLayout } from '@/hooks/use-layout'
@@ -7,6 +7,7 @@ import { BottomTabBar } from '@/components/bottom-tab-bar'
 import { UnifiedSidebar } from '@/components/unified-sidebar'
 import { WebFooter } from '@/components/web-footer'
 import { OfflineBanner } from '@/components/offline-banner'
+import { SyncStatusBanner } from '@/components/sync-status-banner'
 import { MenuSheetProvider, useMenuSheet } from '@/hooks/use-menu-sheet'
 import { useSyncManager } from '@/hooks/use-sync-manager'
 import { usePushRegistration } from '@/hooks/use-push'
@@ -79,7 +80,7 @@ const MobileSidebar = memo(function MobileSidebar() {
  * Location-aware chrome (footer, bottom tabs) - isolated so that
  * pathname changes only re-render this leaf, not the sidebar.
  */
-function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
+function LocationAwareChrome({ showBottomTabs, syncWarning }: { showBottomTabs: boolean; syncWarning: boolean }) {
   const { isMobile, isWeb } = useLayout()
   const location = useLocation()
   const { openMenu } = useMenuSheet()
@@ -102,7 +103,7 @@ function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
 
       {/* Bottom tab bar (mobile + native) - hidden on admin/leader pages, and when keyboard is open */}
       {showBottomTabs && !isAdminRoute && !isLeaderRoute && !keyboardOpen && (
-        <BottomTabBar onMorePress={openMenu} chatBadge={totalUnread} />
+        <BottomTabBar onMorePress={openMenu} chatBadge={totalUnread} syncWarning={syncWarning} />
       )}
     </>
   )
@@ -110,9 +111,10 @@ function LocationAwareChrome({ showBottomTabs }: { showBottomTabs: boolean }) {
 
 function AppShellInner({ children }: { children: ReactNode }) {
   const { navMode } = useLayout()
+  const navigate = useNavigate()
 
-  // Handles auto-sync on reconnect + toast notifications
-  useSyncManager()
+  // Handles auto-sync on reconnect + toast notifications + persistent sync issue state
+  const { syncIssue, pendingCount } = useSyncManager()
 
   // Push notification registration - sets up FCM/APNs listeners,
   // stores token in DB, handles deep-link routing on tap,
@@ -147,6 +149,13 @@ function AppShellInner({ children }: { children: ReactNode }) {
       {/* Offline connectivity banner */}
       <OfflineBanner />
 
+      {/* Persistent sync issue banner (auth expired / storage full) */}
+      <SyncStatusBanner
+        issue={syncIssue}
+        pendingCount={pendingCount}
+        onSignIn={() => navigate('/login')}
+      />
+
       {/* Sidebar + content row */}
       <div className="flex flex-1 min-h-0">
         {/* Unified sidebar - desktop: permanent left sidebar (stable, no remount) */}
@@ -159,7 +168,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
       </div>
 
       {/* Location-aware chrome (footer + bottom tabs) - isolated to prevent sidebar re-renders */}
-      <LocationAwareChrome showBottomTabs={showBottomTabs} />
+      <LocationAwareChrome showBottomTabs={showBottomTabs} syncWarning={syncIssue !== null} />
 
       {/* Mobile sidebar overlay (opened via "More" tab in bottom bar) */}
       {showBottomTabs && <MobileSidebar />}

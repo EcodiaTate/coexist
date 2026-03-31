@@ -249,66 +249,6 @@ export function useIsAdminLayout() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Nav items                                                          */
-/* ------------------------------------------------------------------ */
-
-const _adminNavCategories: NavCategory[] = [
-  {
-    label: 'Overview',
-    items: [
-      { label: 'Overview', path: '/admin', icon: <LayoutDashboard size={17} strokeWidth={1.5} /> },
-    ],
-  },
-  {
-    label: 'People',
-    items: [
-      { label: 'Users', path: '/admin/users', icon: <Users size={17} strokeWidth={1.5} />, capability: 'manage_users' },
-      { label: 'Applications', path: '/admin/applications', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_users' },
-    ],
-  },
-  {
-    label: 'Programme',
-    items: [
-      { label: 'Collectives', path: '/admin/collectives', icon: <MapPin size={17} strokeWidth={1.5} />, capability: 'manage_collectives' },
-      { label: 'Events', path: '/admin/events', icon: <CalendarDays size={17} strokeWidth={1.5} />, capability: 'manage_events' },
-      { label: 'Development', path: '/admin/development', icon: <GraduationCap size={17} strokeWidth={1.5} />, capability: 'manage_content' },
-      { label: 'Partners', path: '/admin/partners', icon: <Handshake size={17} strokeWidth={1.5} />, capability: 'manage_partners' },
-      { label: 'Shop', path: '/admin/shop', icon: <ShoppingBag size={17} strokeWidth={1.5} />, capability: 'manage_merch' },
-      { label: 'Contacts', path: '/admin/contacts', icon: <Phone size={17} strokeWidth={1.5} />, capability: 'manage_users' },
-    ],
-  },
-  {
-    label: 'Engage',
-    items: [
-      { label: 'Tasks', path: '/admin/tasks', icon: <ClipboardCheck size={17} strokeWidth={1.5} />, capability: 'manage_workflows' },
-      { label: 'Surveys', path: '/admin/surveys', icon: <ClipboardList size={17} strokeWidth={1.5} />, capability: 'manage_surveys' },
-      { label: 'Email', path: '/admin/email', icon: <Mail size={17} strokeWidth={1.5} />, capability: 'manage_email' },
-      { label: 'Updates', path: '/admin/updates', icon: <Megaphone size={17} strokeWidth={1.5} />, capability: 'send_announcements' },
-    ],
-  },
-  {
-    label: 'Insights',
-    items: [
-      { label: 'Impact Dashboard', path: '/admin/impact', icon: <Leaf size={17} strokeWidth={1.5} />, capability: 'view_reports' },
-      { label: 'Metric Definitions', path: '/admin/impact-metrics', icon: <BarChart3 size={17} strokeWidth={1.5} />, capability: 'manage_system' },
-      { label: 'Reports', path: '/admin/reports', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_reports' },
-      { label: 'Exports', path: '/admin/exports', icon: <Download size={17} strokeWidth={1.5} />, capability: 'manage_exports' },
-      { label: 'Audit Log', path: '/admin/audit-log', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'view_audit_log' },
-    ],
-  },
-  {
-    label: 'Settings',
-    items: [
-      { label: 'Charity', path: '/admin/charity', icon: <Heart size={17} strokeWidth={1.5} />, capability: 'manage_charity' },
-      { label: 'Branding', path: '/admin/branding', icon: <Image size={17} strokeWidth={1.5} />, capability: 'manage_system' },
-      { label: 'Legal Pages', path: '/admin/legal-pages', icon: <FileText size={17} strokeWidth={1.5} />, capability: 'manage_system' },
-      { label: 'System', path: '/admin/system', icon: <Settings size={17} strokeWidth={1.5} />, capability: 'manage_system' },
-      { label: 'Dev Tools', path: '/admin/dev-tools', icon: <Bug size={17} strokeWidth={1.5} />, capability: 'manage_system' },
-    ],
-  },
-]
-
-/* ------------------------------------------------------------------ */
 /*  Mobile bottom tab bar tabs for admin suite                         */
 /* ------------------------------------------------------------------ */
 

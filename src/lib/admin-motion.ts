@@ -1,11 +1,11 @@
 /**
- * Shared animation variants + helpers for admin pages.
+ * Shared animation variants + helpers — used app-wide.
  *
  * Goals:
  *  - GPU-composited only (transform + opacity) — no layout-triggering properties
  *  - Silky 60 fps with short, optimistic durations
  *  - Respect prefers-reduced-motion via `useReducedMotion`
- *  - Single source of truth so every admin page animates consistently
+ *  - Single source of truth so every page animates consistently
  */
 
 import type { Variants, Transition } from 'framer-motion'
@@ -107,12 +107,12 @@ export function rmSafe<T extends Variants>(v: T, reduced: boolean): T | undefine
 /**
  * Returns stagger + fadeUp paired correctly for reduced-motion.
  * Usage:
- *   const { stagger, fadeUp } = useAdminVariants(shouldReduceMotion)
+ *   const { stagger, fadeUp } = motionVariants(shouldReduceMotion)
  *   <motion.div variants={stagger} initial="hidden" animate="visible">
  *     <motion.div variants={fadeUp}>…</motion.div>
  *   </motion.div>
  */
-export function adminVariants(reducedMotion: boolean) {
+export function motionVariants(reducedMotion: boolean) {
   return {
     stagger: reducedMotion ? undefined : adminStagger,
     fadeUp: reducedMotion ? undefined : fadeUp,
@@ -120,3 +120,6 @@ export function adminVariants(reducedMotion: boolean) {
     expandCollapse: reducedMotion ? undefined : expandCollapse,
   } as const
 }
+
+/** @deprecated Use `motionVariants` instead. */
+export const adminVariants = motionVariants

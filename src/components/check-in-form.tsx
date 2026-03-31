@@ -91,10 +91,10 @@ export function ProfileDetails({ onComplete }: ProfileDetailsProps) {
         <div className="w-12 h-12 rounded-full bg-warning-100 flex items-center justify-center mx-auto mb-3">
           <AlertTriangle size={22} className="text-warning-600" />
         </div>
-        <h3 className="font-heading text-lg font-bold text-primary-800">
+        <h3 className="font-heading text-lg font-bold text-neutral-900">
           Safety details required
         </h3>
-        <p className="text-sm text-primary-400 mt-1 max-w-xs mx-auto">
+        <p className="text-sm text-neutral-500 mt-1 max-w-xs mx-auto">
           We need a few details before you can check in. Your emergency info is only visible to event leaders.
         </p>
       </div>
@@ -103,8 +103,8 @@ export function ProfileDetails({ onComplete }: ProfileDetailsProps) {
         {/* Personal */}
         <div>
           <div className="flex items-center gap-2 mb-2.5">
-            <User size={14} className="text-primary-500" />
-            <h4 className="text-[11px] font-bold text-primary-500 uppercase tracking-wider">Your Details</h4>
+            <User size={14} className="text-neutral-500" />
+            <h4 className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Your Details</h4>
           </div>
           <div className="space-y-2.5">
             <div className="grid grid-cols-2 gap-2.5">
@@ -160,9 +160,9 @@ export function ProfileDetails({ onComplete }: ProfileDetailsProps) {
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <AlertTriangle size={14} className="text-warning-600" />
-            <h4 className="text-[11px] font-bold text-primary-500 uppercase tracking-wider">Emergency Contact *</h4>
+            <h4 className="text-[11px] font-bold text-neutral-500 uppercase tracking-wider">Emergency Contact *</h4>
           </div>
-          <p className="text-[11px] text-primary-400 mb-2.5">Only visible to event leaders for safety.</p>
+          <p className="text-[11px] text-neutral-500 mb-2.5">Only visible to event leaders for safety.</p>
           <div className="space-y-2.5">
             <Input
               label="Contact Name *"
@@ -205,7 +205,7 @@ export function ProfileDetails({ onComplete }: ProfileDetailsProps) {
           Save & Continue to Check In
         </Button>
         {!detailsValid && (
-          <p className="text-[11px] text-center text-primary-400">
+          <p className="text-[11px] text-center text-neutral-500">
             Fill in starred (*) fields to continue
           </p>
         )}
@@ -277,7 +277,7 @@ export function CheckInModeView({
             <button
               type="button"
               onClick={() => { setMode('idle'); setManualCode('') }}
-              className="flex items-center gap-1 text-caption font-semibold text-primary-400 mb-4 min-h-11 cursor-pointer select-none active:scale-[0.97] transition-[colors,transform] duration-150"
+              className="flex items-center gap-1 text-caption font-semibold text-neutral-500 mb-4 min-h-11 cursor-pointer select-none active:scale-[0.97] transition-[colors,transform] duration-150"
             >
               <ChevronLeft size={16} />
               Back
@@ -318,14 +318,14 @@ export function CheckInModeView({
               <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
                 <QrCode size={26} className="text-primary-500" />
               </div>
-              <h3 className="font-heading text-lg font-bold text-primary-800">
+              <h3 className="font-heading text-lg font-bold text-neutral-900">
                 Check In
               </h3>
-              <p className="text-sm text-primary-400 mt-1">
+              <p className="text-sm text-neutral-500 mt-1">
                 {eventTitle}
               </p>
               {collectiveName && (
-                <p className="text-caption text-primary-300 mt-0.5">{collectiveName}</p>
+                <p className="text-caption text-neutral-400 mt-0.5">{collectiveName}</p>
               )}
             </div>
 
@@ -350,7 +350,7 @@ export function CheckInModeView({
 
             <div className="flex items-center gap-3 my-4">
               <div className="flex-1 h-px bg-primary-100" />
-              <span className="text-caption text-primary-400 uppercase tracking-wider">or</span>
+              <span className="text-caption text-neutral-400 uppercase tracking-wider">or</span>
               <div className="flex-1 h-px bg-primary-100" />
             </div>
 

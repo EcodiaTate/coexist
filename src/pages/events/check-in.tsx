@@ -9,11 +9,14 @@ import {
     Sparkles,
     XCircle,
     WifiOff,
+    Clock,
+    UserCheck,
 } from 'lucide-react'
 import { Capacitor } from '@capacitor/core'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
 import { useEventDetail, useCheckIn } from '@/hooks/use-events'
+import { useCollectiveRole } from '@/hooks/use-collective-role'
 import { useOffline } from '@/hooks/use-offline'
 import { queueOfflineCheckIn } from '@/lib/offline-sync'
 import { supabase } from '@/lib/supabase'
@@ -92,7 +95,7 @@ function Confetti() {
 /*  Check-in states                                                    */
 /* ------------------------------------------------------------------ */
 
-type CheckInState = 'idle' | 'scanning' | 'manual' | 'success' | 'error'
+type CheckInState = 'idle' | 'scanning' | 'manual' | 'success' | 'error' | 'waitlisted'
 
 type ErrorKind = 'not_registered' | 'already_checked_in' | 'invalid_qr' | 'event_cancelled' | 'event_not_active' | 'generic'
 
@@ -112,7 +115,7 @@ const ERROR_MESSAGES: Record<ErrorKind, string> = {
 export default function CheckInPage() {
   const { id: eventId } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, isStaff: isGlobalStaff } = useAuth()
   const shouldReduceMotion = useReducedMotion()
   const { isOffline } = useOffline()
 
@@ -120,12 +123,15 @@ export default function CheckInPage() {
   const { data: event, isLoading } = useEventDetail(eventId)
   const showLoading = useDelayedLoading(isLoading)
   const checkInMutation = useCheckIn()
+  const collectiveRole = useCollectiveRole(event?.collective_id)
+  const isLeaderOrAbove = collectiveRole.isCoLeader || collectiveRole.isLeader || isGlobalStaff
 
   const [state, setState] = useState<CheckInState>('idle')
   const [manualCode, setManualCode] = useState('')
   const [errorKind, setErrorKind] = useState<ErrorKind>('generic')
   const [showCelebration, setShowCelebration] = useState(false)
   const [checkedInOffline, setCheckedInOffline] = useState(false)
+  const [promotingFromWaitlist, setPromotingFromWaitlist] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Focus manual input when switching to manual mode
@@ -176,6 +182,11 @@ export default function CheckInPage() {
         return
       }
 
+      if (registration.status === 'waitlisted') {
+        setState('waitlisted')
+        return
+      }
+
       if (registration.status !== 'registered' && registration.status !== 'invited') {
         setErrorKind('not_registered')
         setState('error')
@@ -220,6 +231,10 @@ export default function CheckInPage() {
         if (cached.data.status === 'attended' && cached.data.checked_in_at) {
           setErrorKind('already_checked_in')
           setState('error')
+          return
+        }
+        if (cached.data.status === 'waitlisted') {
+          setState('waitlisted')
           return
         }
         if (cached.data.status !== 'registered' && cached.data.status !== 'invited') {
@@ -326,6 +341,28 @@ export default function CheckInPage() {
     }
   }, [eventId, user, manualCode, isOffline, validateAndCheckIn, handleOfflineCheckIn])
 
+  /* ---- Promote from waitlist (leader action) ---- */
+  const handlePromoteFromWaitlist = useCallback(async () => {
+    if (!eventId || !user) return
+    setPromotingFromWaitlist(true)
+    try {
+      const { error } = await supabase
+        .from('event_registrations')
+        .update({ status: 'registered' })
+        .eq('event_id', eventId)
+        .eq('user_id', user.id)
+        .eq('status', 'waitlisted')
+      if (error) throw error
+      // Now proceed with check-in
+      await validateAndCheckIn(eventId)
+    } catch {
+      setErrorKind('generic')
+      setState('error')
+    } finally {
+      setPromotingFromWaitlist(false)
+    }
+  }, [eventId, user, validateAndCheckIn])
+
   if (showLoading) {
     return (
       <Page swipeBack header={<Header title="Check In" back />}>
@@ -375,7 +412,7 @@ export default function CheckInPage() {
               initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.3 }}
-              className="font-heading text-2xl font-bold text-primary-800"
+              className="font-heading text-2xl font-bold text-neutral-900"
             >
               You're checked in!
             </motion.h2>
@@ -384,7 +421,7 @@ export default function CheckInPage() {
               initial={shouldReduceMotion ? undefined : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.4 }}
-              className="text-primary-400 mt-2 max-w-xs"
+              className="text-neutral-500 mt-2 max-w-xs"
             >
               Welcome to {event.title}. Have a great time making an impact!
             </motion.p>
@@ -412,10 +449,10 @@ export default function CheckInPage() {
                 className="mt-6 w-full max-w-xs"
               >
                 <div className="rounded-xl bg-primary-50 border border-primary-200 p-4 text-center">
-                  <p className="text-sm font-semibold text-primary-800">
+                  <p className="text-sm font-semibold text-neutral-900">
                     Quick profile setup
                   </p>
-                  <p className="text-xs text-primary-400 mt-1">
+                  <p className="text-xs text-neutral-500 mt-1">
                     Help us keep you safe - takes 1 minute
                   </p>
                   <Button
@@ -456,6 +493,41 @@ export default function CheckInPage() {
               />
             </motion.div>
           </motion.div>
+        ) : state === 'waitlisted' ? (
+          <motion.div
+            key="waitlisted"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center"
+          >
+            <div className="w-16 h-16 rounded-full bg-warning-100 flex items-center justify-center mb-4">
+              <Clock size={32} className="text-warning-600" />
+            </div>
+            <h2 className="font-heading text-xl font-bold text-neutral-900">
+              You're on the Waitlist
+            </h2>
+            <p className="text-neutral-500 mt-2 max-w-xs">
+              {isLeaderOrAbove
+                ? 'This person is waitlisted. You can confirm their spot and check them in.'
+                : "You're on the waitlist \u2014 the coordinator can confirm your spot."}
+            </p>
+            <div className="mt-6 w-full max-w-xs space-y-2">
+              {isLeaderOrAbove && (
+                <Button
+                  variant="primary"
+                  fullWidth
+                  icon={<UserCheck size={18} />}
+                  loading={promotingFromWaitlist}
+                  onClick={handlePromoteFromWaitlist}
+                >
+                  Move from Waitlist & Check In
+                </Button>
+              )}
+              <Button variant="ghost" fullWidth onClick={() => navigate(`/events/${event.id}`)}>
+                View Event
+              </Button>
+            </div>
+          </motion.div>
         ) : state === 'error' ? (
           <motion.div
             key="error"
@@ -466,10 +538,10 @@ export default function CheckInPage() {
             <div className="w-16 h-16 rounded-full bg-error-100 flex items-center justify-center mb-4">
               <XCircle size={32} className="text-error-600" />
             </div>
-            <h2 className="font-heading text-xl font-bold text-primary-800">
+            <h2 className="font-heading text-xl font-bold text-neutral-900">
               {errorKind === 'already_checked_in' ? 'Already Checked In' : 'Check-in Failed'}
             </h2>
-            <p className="text-primary-400 mt-2 max-w-xs">
+            <p className="text-neutral-500 mt-2 max-w-xs">
               {ERROR_MESSAGES[errorKind]}
             </p>
             <div className="mt-6 w-full max-w-xs space-y-2">
@@ -495,19 +567,19 @@ export default function CheckInPage() {
             className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center"
           >
             <div className="relative w-64 h-64 rounded-2xl bg-neutral-50 shadow-sm flex items-center justify-center mb-6">
-              <Camera size={48} className="text-primary-300" />
+              <Camera size={48} className="text-neutral-400" />
               {/* Scanning animation line */}
               <motion.div
                 className="absolute left-4 right-4 h-0.5 bg-primary-500 rounded-full"
                 animate={{ top: ['20%', '80%', '20%'] }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
               />
-              <p className="absolute bottom-4 text-caption text-primary-400">
+              <p className="absolute bottom-4 text-caption text-neutral-500">
                 Point camera at event QR code
               </p>
             </div>
 
-            <p className="text-sm text-primary-400 mb-6">
+            <p className="text-sm text-neutral-500 mb-6">
               Scanning...
             </p>
 
@@ -528,18 +600,18 @@ export default function CheckInPage() {
             className="pt-6 pb-8"
           >
             <div className="text-center mb-8">
-              <h2 className="font-heading text-xl font-bold text-primary-800">
+              <h2 className="font-heading text-xl font-bold text-neutral-900">
                 Check In to Event
               </h2>
-              <p className="text-sm text-primary-400 mt-1 max-w-xs mx-auto">
+              <p className="text-sm text-neutral-500 mt-1 max-w-xs mx-auto">
                 Scan the event QR code shown by your leader, or enter the check-in code manually.
               </p>
             </div>
 
             {/* Event card preview */}
             <div className="rounded-xl bg-white p-4 mb-6">
-              <p className="text-sm font-semibold text-primary-800">{event.title}</p>
-              <p className="text-caption text-primary-400 mt-0.5">
+              <p className="text-sm font-semibold text-neutral-900">{event.title}</p>
+              <p className="text-caption text-neutral-500 mt-0.5">
                 {event.collectives?.name}
               </p>
             </div>
@@ -605,7 +677,7 @@ export default function CheckInPage() {
                 </Button>
                 <div className="flex items-center gap-3 my-6">
                   <div className="flex-1 h-px bg-white" />
-                  <span className="text-caption text-primary-400 uppercase tracking-wider">or</span>
+                  <span className="text-caption text-neutral-500 uppercase tracking-wider">or</span>
                   <div className="flex-1 h-px bg-white" />
                 </div>
                 <Button
@@ -634,7 +706,7 @@ export default function CheckInPage() {
                 </Button>
                 <div className="flex items-center gap-3 my-6">
                   <div className="flex-1 h-px bg-white" />
-                  <span className="text-caption text-primary-400 uppercase tracking-wider">or</span>
+                  <span className="text-caption text-neutral-500 uppercase tracking-wider">or</span>
                   <div className="flex-1 h-px bg-white" />
                 </div>
                 <Button

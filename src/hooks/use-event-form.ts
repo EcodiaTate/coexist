@@ -101,6 +101,8 @@ export function useEventForm({ initial }: UseEventFormOptions) {
   /* Validation: minimum required fields */
   const isBasicsValid = fields.title.trim().length > 0 && fields.activity_type !== ''
   const isDateValid = fields.date_start !== null
+  const isDateInPast = fields.date_start !== null && fields.date_start < new Date()
+  const hasLocation = fields.address.trim().length > 0 || (fields.location_lat !== null && fields.location_lng !== null)
 
   /** Build PostGIS-compatible POINT string from lat/lng */
   const buildLocationPoint = useCallback(() => {
@@ -132,6 +134,8 @@ export function useEventForm({ initial }: UseEventFormOptions) {
     // Validation
     isBasicsValid,
     isDateValid,
+    isDateInPast,
+    hasLocation,
 
     // Helpers
     buildLocationPoint,

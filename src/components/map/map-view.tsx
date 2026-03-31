@@ -64,7 +64,7 @@ function MapPlaceholder({ className, ariaLabel }: { className?: string; ariaLabe
       <div className="absolute inset-0 animate-pulse">
         <div className="h-full w-full bg-gradient-to-br from-primary-200 via-primary-100 to-primary-200" />
       </div>
-      <div className="flex h-full min-h-[200px] w-full flex-col items-center justify-center gap-2 text-primary-400">
+      <div className="flex h-full min-h-[200px] w-full flex-col items-center justify-center gap-2 text-neutral-400">
         <MapPinLucide size={32} strokeWidth={1.5} aria-hidden="true" />
         <span className="text-sm font-medium">Loading map...</span>
       </div>

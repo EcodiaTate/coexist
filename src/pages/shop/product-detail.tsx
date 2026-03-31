@@ -29,21 +29,7 @@ import { useCart } from '@/hooks/use-cart'
 import { useAvailableStock, useReserveStock } from '@/hooks/use-stock-reservation'
 import { formatPrice, type ProductVariant, type Product } from '@/types/merch'
 import { cn } from '@/lib/cn'
-
-/* ------------------------------------------------------------------ */
-/*  Animation variants                                                 */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 28 } },
-}
-
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Swipeable image gallery                                            */

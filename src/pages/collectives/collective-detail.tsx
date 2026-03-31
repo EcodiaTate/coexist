@@ -337,10 +337,10 @@ export default function CollectiveDetailPage() {
                     size="sm"
                   />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-primary-800 truncate">
+                    <p className="text-sm font-semibold text-neutral-900 truncate">
                       {leader.profiles?.display_name ?? 'Unknown'}
                     </p>
-                    <p className="text-[10px] text-primary-400 font-bold uppercase tracking-wider">
+                    <p className="text-[10px] text-neutral-400 font-bold uppercase tracking-wider">
                       {leader.role!.replace('_', ' ')}
                     </p>
                   </div>
@@ -387,7 +387,7 @@ export default function CollectiveDetailPage() {
             <h2 className="font-heading text-2xl font-extrabold text-primary-900 tracking-tight">
               Members
             </h2>
-            <span className="text-sm font-bold text-primary-400 tabular-nums">{collective.member_count}</span>
+            <span className="text-sm font-bold text-neutral-500 tabular-nums">{collective.member_count}</span>
           </div>
           <div className="rounded-2xl bg-white p-4 shadow-sm">
             <div className="flex flex-wrap gap-1.5">
@@ -472,7 +472,7 @@ export default function CollectiveDetailPage() {
                           {event.title}
                         </p>
                         {event.address && (
-                          <p className="text-xs text-primary-400 mt-0.5 truncate">{event.address}</p>
+                          <p className="text-xs text-neutral-500 mt-0.5 truncate">{event.address}</p>
                         )}
                       </div>
                     </div>
@@ -488,14 +488,14 @@ export default function CollectiveDetailPage() {
                         </span>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-primary-800 truncate">
+                        <p className="text-sm font-semibold text-neutral-900 truncate">
                           {event.title}
                         </p>
                         {event.address && (
-                          <p className="text-xs text-primary-400 truncate">{event.address}</p>
+                          <p className="text-xs text-neutral-500 truncate">{event.address}</p>
                         )}
                       </div>
-                      <ChevronRight size={16} className="text-primary-300 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                      <ChevronRight size={16} className="text-neutral-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
                     </div>
                   )}
                 </Link>
@@ -507,7 +507,7 @@ export default function CollectiveDetailPage() {
         {/* ── Past Events — compact, muted ── */}
         {pastEvents.length > 0 && (
           <motion.section variants={fadeUp} aria-label="Past events">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-primary-300 mb-2.5">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-2.5">
               Past Events
             </h3>
             <div className="space-y-1.5">
@@ -526,11 +526,11 @@ export default function CollectiveDetailPage() {
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-primary-500 truncate">
+                    <p className="text-sm font-medium text-neutral-500 truncate">
                       {event.title}
                     </p>
                   </div>
-                  <ChevronRight size={14} className="text-primary-200 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                  <ChevronRight size={14} className="text-neutral-400 shrink-0 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               ))}
             </div>

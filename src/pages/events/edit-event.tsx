@@ -216,16 +216,16 @@ export default function EditEventPage() {
           'space-y-4 rounded-2xl p-4 border',
           isDayOfMode
             ? 'bg-neutral-50 border-neutral-200 opacity-60 pointer-events-none'
-            : 'bg-white border-primary-100/40',
+            : 'bg-white border-neutral-100',
         )}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
             {isDayOfMode ? (
               <>
-                <Lock size={13} className="text-primary-300" />
-                <span className="text-primary-400">Basics</span>
+                <Lock size={13} className="text-neutral-400" />
+                <span className="text-neutral-500">Basics</span>
               </>
             ) : (
-              <span className="text-primary-800">Basics</span>
+              <span className="text-neutral-900">Basics</span>
             )}
           </h3>
           <BasicsFields
@@ -240,7 +240,7 @@ export default function EditEventPage() {
           'space-y-4 rounded-2xl p-4 border',
           isDayOfMode
             ? 'bg-moss-50/60 border-moss-300 ring-2 ring-moss-200'
-            : 'bg-white border-primary-100/40',
+            : 'bg-white border-neutral-100',
         )}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
             {isDayOfMode ? (
@@ -249,7 +249,7 @@ export default function EditEventPage() {
                 <span className="text-moss-700">Date & Time</span>
               </>
             ) : (
-              <span className="text-primary-800">Date & Time</span>
+              <span className="text-neutral-900">Date & Time</span>
             )}
           </h3>
           <DateTimeFields
@@ -263,7 +263,7 @@ export default function EditEventPage() {
           'space-y-4 rounded-2xl p-4 border',
           isDayOfMode
             ? 'bg-moss-50/60 border-moss-300 ring-2 ring-moss-200'
-            : 'bg-white border-primary-100/40',
+            : 'bg-white border-neutral-100',
         )}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
             {isDayOfMode ? (
@@ -272,7 +272,7 @@ export default function EditEventPage() {
                 <span className="text-moss-700">Location</span>
               </>
             ) : (
-              <span className="text-primary-800">Location</span>
+              <span className="text-neutral-900">Location</span>
             )}
           </h3>
           <LocationFields
@@ -286,16 +286,16 @@ export default function EditEventPage() {
           'space-y-4 rounded-2xl p-4 border',
           isDayOfMode
             ? 'bg-neutral-50 border-neutral-200 opacity-60 pointer-events-none'
-            : 'bg-white border-primary-100/40',
+            : 'bg-white border-neutral-100',
         )}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
             {isDayOfMode ? (
               <>
-                <Lock size={13} className="text-primary-300" />
-                <span className="text-primary-400">Details</span>
+                <Lock size={13} className="text-neutral-400" />
+                <span className="text-neutral-500">Details</span>
               </>
             ) : (
-              <span className="text-primary-800">Details</span>
+              <span className="text-neutral-900">Details</span>
             )}
           </h3>
           <DetailsFields
@@ -310,16 +310,16 @@ export default function EditEventPage() {
           'space-y-3 rounded-2xl p-4 border',
           isDayOfMode
             ? 'bg-neutral-50 border-neutral-200 opacity-60 pointer-events-none'
-            : 'bg-white border-primary-100/40',
+            : 'bg-white border-neutral-100',
         )}>
           <h3 className="text-sm font-semibold flex items-center gap-1.5">
             {isDayOfMode ? (
               <>
-                <Lock size={13} className="text-primary-300" />
-                <span className="text-primary-400">Cover Image</span>
+                <Lock size={13} className="text-neutral-400" />
+                <span className="text-neutral-500">Cover Image</span>
               </>
             ) : (
-              <span className="text-primary-800">Cover Image</span>
+              <span className="text-neutral-900">Cover Image</span>
             )}
           </h3>
           <CoverImageFields
@@ -339,19 +339,19 @@ export default function EditEventPage() {
           'space-y-4 rounded-2xl p-4 border',
           isDayOfMode
             ? 'bg-neutral-50 border-neutral-200 opacity-60 pointer-events-none'
-            : 'bg-white border-primary-100/40',
+            : 'bg-white border-neutral-100',
         )}>
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold flex items-center gap-1.5">
               {isDayOfMode ? (
                 <>
-                  <Lock size={13} className="text-primary-300" />
-                  <span className="text-primary-400">Ticketing</span>
+                  <Lock size={13} className="text-neutral-400" />
+                  <span className="text-neutral-500">Ticketing</span>
                 </>
               ) : (
                 <>
                   <Ticket size={13} className="text-primary-600" />
-                  <span className="text-primary-800">Ticketing</span>
+                  <span className="text-neutral-900">Ticketing</span>
                 </>
               )}
             </h3>
@@ -451,7 +451,7 @@ export default function EditEventPage() {
                               )
                             }
                             placeholder="0.00"
-                            className="w-full h-10 pl-7 pr-3 rounded-lg bg-surface-3 text-[16px] text-primary-800 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-400"
+                            className="w-full h-10 pl-7 pr-3 rounded-lg bg-surface-3 text-[16px] text-neutral-900 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-400"
                           />
                         </div>
                       </div>
@@ -468,7 +468,7 @@ export default function EditEventPage() {
                             )
                           }
                           placeholder="∞"
-                          className="w-full h-10 px-3 rounded-lg bg-surface-3 text-[16px] text-primary-800 text-center focus:outline-none focus:ring-2 focus:ring-primary-400"
+                          className="w-full h-10 px-3 rounded-lg bg-surface-3 text-[16px] text-neutral-900 text-center focus:outline-none focus:ring-2 focus:ring-primary-400"
                         />
                       </div>
                     </div>

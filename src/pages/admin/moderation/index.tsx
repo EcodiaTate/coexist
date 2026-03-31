@@ -21,7 +21,6 @@ import { TabBar } from '@/components/tab-bar'
 import { EmptyState } from '@/components/empty-state'
 import { Skeleton } from '@/components/skeleton'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
-import { PullToRefresh } from '@/components/pull-to-refresh'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
@@ -327,7 +326,6 @@ export default function ModerationQueuePage() {
           }
         />
       ) : (
-        <PullToRefresh onRefresh={handleRefresh}>
           <div className="space-y-4">
             {/* Stats header for pending */}
             {activeStatus === 'pending' && (
@@ -349,7 +347,6 @@ export default function ModerationQueuePage() {
               />
             ))}
           </div>
-        </PullToRefresh>
       )}
       </motion.div>
     </motion.div>

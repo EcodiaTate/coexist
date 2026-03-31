@@ -243,6 +243,7 @@ export default function AdminCreateSectionPage() {
           {moduleItems.length === 0 ? (
             <motion.div key="empty" initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
               className="flex flex-col items-center justify-center py-14 rounded-2xl bg-neutral-50"
+            >
               <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-secondary-500 to-secondary-700 shadow-lg mb-3">
                 <Layers size={24} strokeWidth={1.5} className="text-white" />
               </div>

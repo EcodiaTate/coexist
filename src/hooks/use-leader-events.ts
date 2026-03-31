@@ -14,6 +14,7 @@ export interface LeaderEvent {
   activity_type: Event['activity_type']
   status: Event['status']
   event_registrations: { count: number }[]
+  checked_in_count: number
 }
 
 /* ------------------------------------------------------------------ */
@@ -41,8 +42,26 @@ async function fetchLeaderCollectiveEvents(collectiveId: string, filter: string)
     q = q.eq('status', 'draft')
   }
 
-  const { data } = await q.limit(50)
-  return (data ?? []) as LeaderEvent[]
+  const { data: events } = await q.limit(50)
+  if (!events?.length) return [] as LeaderEvent[]
+
+  // Fetch checked-in counts for all events in one query
+  const eventIds = events.map((e) => e.id)
+  const { data: checkedInRows } = await supabase
+    .from('event_registrations')
+    .select('event_id')
+    .in('event_id', eventIds)
+    .not('checked_in_at', 'is', null)
+
+  const checkedInMap = new Map<string, number>()
+  for (const row of checkedInRows ?? []) {
+    checkedInMap.set(row.event_id, (checkedInMap.get(row.event_id) ?? 0) + 1)
+  }
+
+  return events.map((e) => ({
+    ...e,
+    checked_in_count: checkedInMap.get(e.id) ?? 0,
+  })) as LeaderEvent[]
 }
 
 export function useLeaderCollectiveEvents(collectiveId: string | undefined, filter: string) {

@@ -5,7 +5,7 @@ import { Preferences } from '@capacitor/preferences'
 import { SocialLogin } from '@capgo/capacitor-social-login'
 import { supabase } from '@/lib/supabase'
 import { resolveCapabilities } from '@/lib/capabilities'
-import { CURRENT_TOS_VERSION } from '@/lib/constants'
+import { CURRENT_TOS_VERSION, GLOBAL_ROLE_RANK, COLLECTIVE_ROLE_RANK } from '@/lib/constants'
 import type { Database } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
@@ -33,26 +33,6 @@ type Profile = Database['public']['Tables']['profiles']['Row']
 type UserRole = Database['public']['Enums']['user_role']
 type CollectiveRole = Database['public']['Enums']['collective_role']
 
-/* ------------------------------------------------------------------ */
-/*  Role hierarchy helpers                                             */
-/* ------------------------------------------------------------------ */
-
-const GLOBAL_ROLE_RANK: Record<string, number> = {
-  participant: 0,
-  national_leader: 1,
-  national_staff: 1,   // legacy alias (pre-migration 074)
-  manager: 2,
-  national_admin: 2,   // legacy alias (pre-migration 076)
-  admin: 3,
-  super_admin: 3,      // legacy alias (pre-migration 076)
-}
-
-const COLLECTIVE_ROLE_RANK: Record<CollectiveRole, number> = {
-  member: 0,
-  assist_leader: 1,
-  co_leader: 2,
-  leader: 3,
-}
 
 /* ------------------------------------------------------------------ */
 /*  Capacitor persistence helpers                                      */
@@ -241,19 +221,10 @@ export function useAuthProvider(): AuthContextValue {
   /* ---- load user data (profile + collective roles) ---- */
   const loadUserData = useCallback(async (userId: string) => {
     console.log('[auth] loadUserData start', userId)
-    const timeout = new Promise<[null, CollectiveMembership[], { permissions: Record<string, boolean> | null; managedCollectives: string[] }]>((resolve) =>
-      setTimeout(() => {
-        console.warn('[auth] loadUserData timed out after 8s')
-        resolve([null, [], { permissions: null, managedCollectives: [] }])
-      }, 8000),
-    )
-    const [profileData, roles, staffData] = await Promise.race([
-      Promise.all([
-        fetchProfile(userId),
-        fetchCollectiveRoles(userId),
-        fetchStaffData(userId),
-      ]),
-      timeout,
+    const [profileData, roles, staffData] = await Promise.all([
+      fetchProfile(userId),
+      fetchCollectiveRoles(userId),
+      fetchStaffData(userId),
     ])
     const permOverrides = staffData.permissions
     const managedCols = staffData.managedCollectives

@@ -25,15 +25,15 @@ export function QueryErrorFallback({ error, resetErrorBoundary }: QueryErrorFall
 
   return (
     <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 p-6 text-center">
-      <AlertTriangle className="h-8 w-8 text-amber-500" />
-      <p className="text-sm font-medium text-gray-700">
+      <AlertTriangle className="h-8 w-8 text-warning-500" />
+      <p className="text-sm font-medium text-neutral-700">
         {isNetworkError
           ? 'Unable to connect. Please check your internet connection.'
           : 'Something went wrong loading this data.'}
       </p>
       <button
         onClick={handleRetry}
-        className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 transition-colors"
+        className="inline-flex items-center gap-1.5 rounded-full bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 transition-colors"
       >
         <RefreshCw className="h-4 w-4" />
         Try again
@@ -59,7 +59,7 @@ export function QueryError({
     return (
       <button
         onClick={refetch}
-        className="inline-flex items-center gap-1 text-xs text-amber-600 hover:text-amber-700"
+        className="inline-flex items-center gap-1 text-xs text-warning-600 hover:text-warning-700"
       >
         <AlertTriangle className="h-3 w-3" />
         Failed to load

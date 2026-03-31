@@ -59,7 +59,7 @@ export default function ShippingTab() {
       animate="visible"
     >
       <motion.div variants={fadeUp}>
-        <h2 className="font-heading font-semibold text-primary-800">Shipping configuration</h2>
+        <h2 className="font-heading font-semibold text-neutral-900">Shipping configuration</h2>
       </motion.div>
       <motion.div variants={fadeUp}>
       <Input

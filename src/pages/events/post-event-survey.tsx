@@ -238,8 +238,8 @@ export default function PostEventSurveyPage() {
             <div className="flex items-center justify-center w-16 h-16 rounded-full bg-success-100 text-success-600 mx-auto">
               <CheckCircle2 size={32} />
             </div>
-            <h2 className="font-heading text-xl font-bold text-primary-800">Thanks for your feedback!</h2>
-            <p className="text-sm text-primary-400 max-w-xs mx-auto">
+            <h2 className="font-heading text-xl font-bold text-neutral-900">Thanks for your feedback!</h2>
+            <p className="text-sm text-neutral-500 max-w-xs mx-auto">
               Your response helps us improve future {ACTIVITY_TYPE_LABELS[event.activity_type] ?? 'events'}.
             </p>
           </motion.div>
@@ -277,13 +277,13 @@ export default function PostEventSurveyPage() {
       <div className="p-4 space-y-6 pb-6">
         {/* Event context */}
         <div className="rounded-2xl bg-gradient-to-br from-primary-50 to-white p-4 border border-primary-100/40">
-          <p className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
             {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
           </p>
-          <h2 className="font-heading text-lg font-bold text-primary-800 mt-1">
+          <h2 className="font-heading text-lg font-bold text-neutral-900 mt-1">
             {event.title}
           </h2>
-          <p className="text-xs text-primary-400 mt-1">
+          <p className="text-xs text-neutral-500 mt-1">
             How was it? Your feedback helps us improve.
           </p>
         </div>

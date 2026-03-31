@@ -230,7 +230,7 @@ export function SubscribersTab() {
                 {sub.avatar_url ? (
                   <img src={sub.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover" />
                 ) : (
-                  <Users size={16} className="text-primary-400" />
+                  <Users size={16} className="text-neutral-400" />
                 )}
               </div>
               <div className="flex-1 min-w-0">

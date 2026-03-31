@@ -29,6 +29,7 @@ import { supabase } from '@/lib/supabase'
 import { parseLocationPoint } from '@/lib/geo'
 import { MapView } from '@/components'
 import type { MapMarker } from '@/components'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Extra data hooks (not canonical metrics)                           */
@@ -144,19 +145,6 @@ function useByActivity() {
   })
 }
 
-/* ------------------------------------------------------------------ */
-/*  Animation variants                                                 */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Section heading                                                    */

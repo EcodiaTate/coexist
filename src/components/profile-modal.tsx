@@ -28,6 +28,7 @@ import { parseLocationPoint } from '@/lib/geo'
 import { MapView } from '@/components'
 import { useProfile, useProfileCollectives, useProfileStats, useMutualConnections } from '@/hooks/use-profile'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 function ProfileModalSkeleton() {
   return (
@@ -84,15 +85,6 @@ export function ProfileModal({ userId, open, onClose }: ProfileModalProps) {
   const { data: mutualData } = useMutualConnections(userId ?? '')
   const shouldReduceMotion = useReducedMotion()
 
-  const stagger = {
-    hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
-  }
-
-  const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-  }
 
   const memberSince = profile
     ? new Date(profile.created_at ?? '').toLocaleDateString('en-AU', {

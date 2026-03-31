@@ -67,14 +67,14 @@ export default function AdminModuleDetailPage() {
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <h1 className="font-heading text-lg font-bold text-primary-800">{module.title}</h1>
-            {module.description && <p className="text-[13px] text-primary-600 mt-1 line-clamp-2 leading-relaxed">{module.description}</p>}
+            <h1 className="font-heading text-lg font-bold text-neutral-900">{module.title}</h1>
+            {module.description && <p className="text-[13px] text-neutral-500 mt-1 line-clamp-2 leading-relaxed">{module.description}</p>}
             <div className="flex items-center gap-2 mt-2.5 flex-wrap">
               <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider', module.status === 'published' ? 'bg-moss-100 text-moss-700' : 'bg-bark-100 text-bark-700')}>
                 {module.status === 'published' && <CheckCircle2 size={10} />}{module.status}
               </span>
-              <span className="text-[11px] text-primary-500 capitalize font-medium">{module.category.replace(/_/g, ' ')}</span>
-              <span className="flex items-center gap-0.5 text-[11px] text-primary-400"><Clock size={10} />{module.estimated_minutes}m</span>
+              <span className="text-[11px] text-neutral-500 capitalize font-medium">{module.category.replace(/_/g, ' ')}</span>
+              <span className="flex items-center gap-0.5 text-[11px] text-neutral-400"><Clock size={10} />{module.estimated_minutes}m</span>
             </div>
           </div>
         </div>
@@ -82,14 +82,14 @@ export default function AdminModuleDetailPage() {
 
       <motion.div variants={fadeUp}>
         <div className="flex items-center gap-2 mb-3">
-          <Eye size={14} className="text-primary-400" />
-          <h2 className="font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest">Content Preview</h2>
-          <span className="text-[11px] font-bold text-primary-400 tabular-nums bg-primary-100/60 px-1.5 py-0.5 rounded-full">{blocks.length}</span>
+          <Eye size={14} className="text-neutral-400" />
+          <h2 className="font-heading text-[13px] font-bold text-neutral-500 uppercase tracking-widest">Content Preview</h2>
+          <span className="text-[11px] font-bold text-neutral-400 tabular-nums bg-neutral-100 px-1.5 py-0.5 rounded-full">{blocks.length}</span>
         </div>
         {blocks.length === 0 ? (
-          <div className="flex flex-col items-center py-12 rounded-2xl bg-primary-50/60">
+          <div className="flex flex-col items-center py-12 rounded-2xl bg-neutral-50">
             <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg mb-3"><BookOpen size={24} strokeWidth={1.5} className="text-white" /></div>
-            <p className="text-[13px] font-semibold text-primary-500">No content blocks</p>
+            <p className="text-[13px] font-semibold text-neutral-500">No content blocks</p>
             <Link to={`/admin/development/modules/${moduleId}/edit`} className="mt-3"><Button variant="secondary" size="sm" icon={<Pencil size={12} />}>Add Content</Button></Link>
           </div>
         ) : (

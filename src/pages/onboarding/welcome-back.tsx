@@ -8,16 +8,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-}
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 export default function WelcomeBackPage() {
   const navigate = useNavigate()

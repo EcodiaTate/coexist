@@ -108,11 +108,42 @@ export function useEventProximity(): UseEventProximityReturn {
           }
         }
 
-        const coords = await Geolocation.getCurrentPosition({
-          enableHighAccuracy: true,
-          timeout: 10000,
-        })
-        position = coords as GeolocationPosition
+        // Two-phase approach: fast coarse fix first, then optional high-accuracy refinement
+        try {
+          // Phase 1: fast cell/wifi positioning
+          const coarseCoords = await Geolocation.getCurrentPosition({
+            enableHighAccuracy: false,
+            timeout: 8000,
+          })
+          position = coarseCoords as GeolocationPosition
+
+          // If accuracy is good enough (<500m), use it and optionally refine in background
+          if (coarseCoords.coords.accuracy > 500) {
+            // Phase 2: try high-accuracy in background, but don't block
+            Geolocation.getCurrentPosition({
+              enableHighAccuracy: true,
+              timeout: 30000,
+            }).then((precise) => {
+              // Re-run proximity check with better coords on next interval
+              // For now we proceed with the coarse fix
+            }).catch(() => {
+              // High-accuracy failed, coarse fix is fine
+            })
+          }
+        } catch {
+          // Coarse fix failed — try high-accuracy as last resort with longer timeout
+          try {
+            const fallbackCoords = await Geolocation.getCurrentPosition({
+              enableHighAccuracy: true,
+              timeout: 30000,
+            })
+            position = fallbackCoords as GeolocationPosition
+          } catch {
+            setLocationError("Couldn't get your location — check GPS settings are enabled.")
+            setNearbyEvent(null)
+            return
+          }
+        }
       } else {
         // Check if geolocation API exists
         if (!navigator.geolocation) {
@@ -121,13 +152,41 @@ export function useEventProximity(): UseEventProximityReturn {
           return
         }
 
-        position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 60000,
+        // Two-phase: try coarse first, then refine
+        try {
+          position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: false,
+              timeout: 8000,
+              maximumAge: 60000,
+            })
           })
-        })
+
+          // If coarse accuracy is poor, try high-accuracy with longer timeout
+          if (position.coords.accuracy > 500) {
+            try {
+              const precise = await new Promise<GeolocationPosition>((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                  enableHighAccuracy: true,
+                  timeout: 30000,
+                  maximumAge: 0,
+                })
+              })
+              position = precise
+            } catch {
+              // Use the coarse position — it's better than nothing
+            }
+          }
+        } catch {
+          // Coarse failed — try high-accuracy as last resort
+          position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: true,
+              timeout: 30000,
+              maximumAge: 60000,
+            })
+          })
+        }
       }
 
       // Clear any previous location error on success
@@ -205,7 +264,7 @@ export function useEventProximity(): UseEventProximityReturn {
         setLocationError('Location unavailable. Check that location services are enabled.')
       } else if (e?.code === 3) {
         // TIMEOUT
-        setLocationError('Location request timed out. Try again in a moment.')
+        setLocationError("Couldn't get your location — check GPS settings are enabled.")
       } else {
         setLocationError(null) // transient/unknown — don't persist
       }

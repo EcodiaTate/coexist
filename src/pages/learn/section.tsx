@@ -17,20 +17,7 @@ import { ProgressRing } from '@/components/development/progress-ring'
 import { cn } from '@/lib/cn'
 import { useDevSection, useDevSectionModules } from '@/hooks/use-admin-development'
 import { useMyModuleProgress, useUpsertSectionProgress } from '@/hooks/use-development-progress'
-
-/* ------------------------------------------------------------------ */
-/*  Animation                                                          */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.15 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as const } },
-}
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Page                                                               */

@@ -13,6 +13,11 @@ import {
     Save,
     Calendar,
     ClipboardList,
+    WifiOff,
+    RefreshCw,
+    AlertTriangle,
+    Bird,
+    ChevronDown,
 } from 'lucide-react'
 import {
     useEventDetail,
@@ -30,6 +35,7 @@ import { syncSurveyImpact } from '@/lib/survey-impact'
 import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import { useCamera } from '@/hooks/use-camera'
 import { useImageUpload } from '@/hooks/use-image-upload'
+import { useOffline } from '@/hooks/use-offline'
 import type { Json } from '@/types/database.types'
 import {
     Page,
@@ -40,6 +46,7 @@ import {
     EmptyState,
     UploadProgress,
     WhatsNext,
+    ConfirmationSheet,
 } from '@/components'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
@@ -61,9 +68,11 @@ interface SpeciesEntry {
 function SpeciesTracker({
   species,
   onChange,
+  activityType,
 }: {
   species: SpeciesEntry[]
   onChange: (species: SpeciesEntry[]) => void
+  activityType?: string
 }) {
   const [newName, setNewName] = useState('')
 
@@ -95,30 +104,30 @@ function SpeciesTracker({
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-semibold text-primary-800 flex items-center gap-2">
+      <h3 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
         <Leaf size={16} className="text-primary-600" />
-        Species Planted
+        {activityType === 'tree_planting' ? 'Species Planted' : 'Species'}
       </h3>
 
       {species.map((s, i) => (
         <div key={i} className="flex items-center gap-2">
-          <span className="flex-1 text-sm text-primary-800 truncate">{s.name}</span>
+          <span className="flex-1 text-sm text-neutral-900 truncate">{s.name}</span>
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => updateCount(i, s.count - 1)}
-              className="min-w-11 min-h-11 rounded-full bg-white flex items-center justify-center text-primary-400 hover:bg-primary-50 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-transform duration-150"
+              className="min-w-11 min-h-11 rounded-full bg-white flex items-center justify-center text-neutral-500 hover:bg-neutral-50 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-transform duration-150"
               aria-label={`Decrease ${s.name} count`}
             >
               −
             </button>
-            <span className="w-8 text-center text-sm font-semibold text-primary-800">
+            <span className="w-8 text-center text-sm font-semibold text-neutral-900">
               {s.count}
             </span>
             <button
               type="button"
               onClick={() => updateCount(i, s.count + 1)}
-              className="min-w-11 min-h-11 rounded-full bg-white flex items-center justify-center text-primary-400 hover:bg-primary-50 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-transform duration-150"
+              className="min-w-11 min-h-11 rounded-full bg-white flex items-center justify-center text-neutral-500 hover:bg-neutral-50 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-transform duration-150"
               aria-label={`Increase ${s.name} count`}
             >
               +
@@ -127,7 +136,7 @@ function SpeciesTracker({
           <button
             type="button"
             onClick={() => removeSpecies(i)}
-            className="min-w-11 min-h-11 flex items-center justify-center text-primary-400 hover:text-error-500 cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
+            className="min-w-11 min-h-11 flex items-center justify-center text-neutral-400 hover:text-error-500 cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
             aria-label={`Remove ${s.name}`}
           >
             <X size={14} />
@@ -146,7 +155,7 @@ function SpeciesTracker({
             'flex-1 rounded-lg bg-surface-3',
             'px-3 py-2 text-[16px]',
             'focus:outline-none focus:ring-2 focus:ring-primary-400',
-            'placeholder:text-primary-400',
+            'placeholder:text-neutral-400',
           )}
         />
         <Button
@@ -154,6 +163,168 @@ function SpeciesTracker({
           size="md"
           icon={<Plus size={16} />}
           onClick={addSpecies}
+          disabled={!newName.trim()}
+        >
+          Add
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/*  Wildlife sighting entry                                            */
+/* ------------------------------------------------------------------ */
+
+export interface WildlifeSighting {
+  species_name: string
+  scientific_name?: string
+  count: number
+  confidence: 'certain' | 'probable' | 'possible'
+  location_approximate?: boolean
+}
+
+const CONFIDENCE_OPTIONS: { value: WildlifeSighting['confidence']; label: string }[] = [
+  { value: 'certain', label: 'Certain' },
+  { value: 'probable', label: 'Probable' },
+  { value: 'possible', label: 'Possible' },
+]
+
+function WildlifeSightingTracker({
+  sightings,
+  onChange,
+}: {
+  sightings: WildlifeSighting[]
+  onChange: (sightings: WildlifeSighting[]) => void
+}) {
+  const [newName, setNewName] = useState('')
+
+  const addSighting = useCallback(() => {
+    if (!newName.trim()) return
+    onChange([...sightings, { species_name: newName.trim(), count: 1, confidence: 'probable' }])
+    setNewName('')
+  }, [newName, sightings, onChange])
+
+  const updateSighting = useCallback(
+    (index: number, patch: Partial<WildlifeSighting>) => {
+      const updated = [...sightings]
+      updated[index] = { ...updated[index], ...patch }
+      if (patch.count !== undefined && patch.count <= 0) {
+        onChange(sightings.filter((_, i) => i !== index))
+      } else {
+        onChange(updated)
+      }
+    },
+    [sightings, onChange],
+  )
+
+  const removeSighting = useCallback(
+    (index: number) => {
+      onChange(sightings.filter((_, i) => i !== index))
+    },
+    [sightings, onChange],
+  )
+
+  return (
+    <div className="space-y-3">
+      <h3 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
+        <Bird size={16} className="text-primary-600" />
+        Wildlife Sightings
+      </h3>
+
+      {sightings.map((s, i) => (
+        <div key={i} className="rounded-lg bg-white border border-neutral-100 p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="flex-1 text-sm font-medium text-neutral-900 truncate">{s.species_name}</span>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => updateSighting(i, { count: s.count - 1 })}
+                className="min-w-11 min-h-11 rounded-full bg-neutral-50 flex items-center justify-center text-neutral-500 hover:bg-neutral-100 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-transform duration-150"
+                aria-label={`Decrease ${s.species_name} count`}
+              >
+                −
+              </button>
+              <span className="w-8 text-center text-sm font-semibold text-neutral-900">
+                {s.count}
+              </span>
+              <button
+                type="button"
+                onClick={() => updateSighting(i, { count: s.count + 1 })}
+                className="min-w-11 min-h-11 rounded-full bg-neutral-50 flex items-center justify-center text-neutral-500 hover:bg-neutral-100 cursor-pointer select-none text-sm font-bold active:scale-[0.97] transition-transform duration-150"
+                aria-label={`Increase ${s.species_name} count`}
+              >
+                +
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => removeSighting(i)}
+              className="min-w-11 min-h-11 flex items-center justify-center text-neutral-400 hover:text-error-500 cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
+              aria-label={`Remove ${s.species_name}`}
+            >
+              <X size={14} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
+            <div className="relative">
+              <select
+                value={s.confidence}
+                onChange={(e) => updateSighting(i, { confidence: e.target.value as WildlifeSighting['confidence'] })}
+                className="appearance-none rounded-md bg-neutral-50 pl-2 pr-6 py-1.5 text-xs text-neutral-700 focus:outline-none focus:ring-2 focus:ring-primary-400 cursor-pointer"
+                aria-label={`Confidence for ${s.species_name}`}
+              >
+                {CONFIDENCE_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+            </div>
+            <input
+              type="text"
+              placeholder="Scientific name (optional)"
+              value={s.scientific_name ?? ''}
+              onChange={(e) => updateSighting(i, { scientific_name: e.target.value || undefined })}
+              className={cn(
+                'flex-1 rounded-md bg-neutral-50',
+                'px-2 py-1.5 text-xs text-neutral-700',
+                'focus:outline-none focus:ring-2 focus:ring-primary-400',
+                'placeholder:text-neutral-400',
+              )}
+            />
+            <label className="flex items-center gap-1.5 text-neutral-600 cursor-pointer select-none whitespace-nowrap">
+              <input
+                type="checkbox"
+                checked={s.location_approximate ?? false}
+                onChange={(e) => updateSighting(i, { location_approximate: e.target.checked || undefined })}
+                className="rounded border-neutral-300 text-primary-600 focus:ring-primary-400 w-4 h-4"
+              />
+              Approx. location
+            </label>
+          </div>
+        </div>
+      ))}
+
+      <div className="flex gap-2">
+        <input
+          type="text"
+          placeholder="Add species name..."
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && addSighting()}
+          className={cn(
+            'flex-1 rounded-lg bg-surface-3',
+            'px-3 py-2 text-[16px]',
+            'focus:outline-none focus:ring-2 focus:ring-primary-400',
+            'placeholder:text-neutral-400',
+          )}
+        />
+        <Button
+          variant="secondary"
+          size="md"
+          icon={<Plus size={16} />}
+          onClick={addSighting}
           disabled={!newName.trim()}
         >
           Add
@@ -175,6 +346,10 @@ function PhotoUploadSection({
   uploading,
   progress,
   error,
+  failedUploads,
+  onRetry,
+  onClearFailed,
+  isOffline,
 }: {
   photos: string[]
   onAdd: () => void
@@ -183,13 +358,24 @@ function PhotoUploadSection({
   uploading?: boolean
   progress?: number | null
   error?: string | null
+  failedUploads?: { blob: Blob; error: string }[]
+  onRetry?: (index: number) => void
+  onClearFailed?: (index: number) => void
+  isOffline?: boolean
 }) {
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold text-primary-800 flex items-center gap-2">
-        <Camera size={16} className="text-primary-400" />
+      <h3 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
+        <Camera size={16} className="text-neutral-400" />
         {label}
       </h3>
+
+      {isOffline && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning-50 text-warning-700 text-sm">
+          <WifiOff size={14} />
+          You're offline — photos can't be uploaded right now. Save your other impact data and add photos when you have signal.
+        </div>
+      )}
 
       <div className="-mx-4 lg:-mx-6">
       <div className="flex gap-2 overflow-x-auto px-4 lg:px-6 pb-1 scrollbar-none">
@@ -207,14 +393,39 @@ function PhotoUploadSection({
           </div>
         ))}
 
+        {/* Failed uploads with retry */}
+        {failedUploads?.map((f, i) => (
+          <div key={`failed-${i}`} className="relative shrink-0 w-20 h-20 rounded-xl bg-error-50 border border-error-200 flex flex-col items-center justify-center gap-1">
+            <AlertTriangle size={16} className="text-error-500" />
+            <button
+              type="button"
+              onClick={() => onRetry?.(i)}
+              disabled={uploading || isOffline}
+              className="flex items-center gap-1 text-[10px] font-medium text-error-600 hover:text-error-700 cursor-pointer select-none disabled:opacity-50"
+              aria-label={`Retry failed upload ${i + 1}`}
+            >
+              <RefreshCw size={10} />
+              Retry
+            </button>
+            <button
+              type="button"
+              onClick={() => onClearFailed?.(i)}
+              className="absolute top-0.5 right-0.5 min-w-6 min-h-6 rounded-full text-error-400 hover:text-error-600 flex items-center justify-center cursor-pointer select-none"
+              aria-label={`Dismiss failed upload ${i + 1}`}
+            >
+              <X size={10} />
+            </button>
+          </div>
+        ))}
+
         <button
           type="button"
           onClick={onAdd}
-          disabled={uploading}
+          disabled={uploading || isOffline}
           className={cn(
             'shrink-0 w-20 h-20 min-h-11 min-w-11 rounded-xl bg-neutral-50',
-            'flex flex-col items-center justify-center text-primary-400',
-            'hover:bg-primary-100 hover:text-primary-500',
+            'flex flex-col items-center justify-center text-neutral-400',
+            'hover:bg-neutral-100 hover:text-neutral-500',
             'cursor-pointer select-none',
             'active:scale-[0.97] transition-transform duration-150',
             'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -222,7 +433,7 @@ function PhotoUploadSection({
           aria-label="Add photo"
         >
           <Camera size={20} />
-          <span className="text-[11px] mt-0.5">Add</span>
+          <span className="text-[11px] mt-0.5">{isOffline ? 'Offline' : 'Add'}</span>
         </button>
       </div>
       </div>
@@ -291,6 +502,11 @@ export default function LogImpactPage() {
   const [submitted, setSubmitted] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Confirmation sheet states (replaces window.confirm which fails in Capacitor WebView)
+  const [showLeaveSheet, setShowLeaveSheet] = useState(false)
+  const [overwriteInfo, setOverwriteInfo] = useState<{ who: string; when: string } | null>(null)
+  const [pendingOverwriteResolve, setPendingOverwriteResolve] = useState<((proceed: boolean) => void) | null>(null)
+
   // 48h edit window enforcement
   const { isEditWindowExpired, hoursRemaining: editHoursRemaining } = useMemo(() => {
     if (!existingImpact) return { isEditWindowExpired: false, hoursRemaining: 48 }
@@ -322,6 +538,7 @@ export default function LogImpactPage() {
   const [eventDurationHours, setEventDurationHours] = useState('')
   const [notes, setNotes] = useState('')
   const [species, setSpecies] = useState<SpeciesEntry[]>([])
+  const [wildlifeSightings, setWildlifeSightings] = useState<WildlifeSighting[]>([])
   const [photos, setPhotos] = useState<string[]>([])
   const [beforePhotos, setBeforePhotos] = useState<string[]>([])
   const [afterPhotos, setAfterPhotos] = useState<string[]>([])
@@ -332,6 +549,11 @@ export default function LogImpactPage() {
   const eventPhotosUpload = useImageUpload({ bucket: 'event-images', pathPrefix: 'impact' })
   const beforeUpload = useImageUpload({ bucket: 'event-images', pathPrefix: 'before' })
   const afterUpload = useImageUpload({ bucket: 'event-images', pathPrefix: 'after' })
+  const { isOffline } = useOffline()
+
+  // Whether any photo upload is in a failed or pending state
+  const anyPhotoFailed = eventPhotosUpload.hasFailed || beforeUpload.hasFailed || afterUpload.hasFailed
+  const anyPhotoUploading = eventPhotosUpload.uploading || beforeUpload.uploading || afterUpload.uploading
 
   // Unsaved changes guard
   const isDirty = useMemo(() => {
@@ -342,10 +564,11 @@ export default function LogImpactPage() {
       beforePhotos.length > 0 ||
       afterPhotos.length > 0 ||
       species.length > 0 ||
+      wildlifeSightings.length > 0 ||
       notes.length > 0 ||
       drawnArea !== null
     )
-  }, [submitted, surveyAnswers, photos, beforePhotos, afterPhotos, species, notes, drawnArea])
+  }, [submitted, surveyAnswers, photos, beforePhotos, afterPhotos, species, wildlifeSightings, notes, drawnArea])
 
   // Browser/tab close guard
   useEffect(() => {
@@ -356,13 +579,13 @@ export default function LogImpactPage() {
   }, [isDirty])
 
   // Back-button navigation guard (works without data router)
+  // Uses in-app BottomSheet instead of window.confirm (which silently fails in Capacitor WebView)
   useEffect(() => {
     if (!isDirty) return
     const handlePopState = () => {
-      if (!window.confirm('You have unsaved impact data. Leave this page?')) {
-        // Push state back to cancel the navigation
-        window.history.pushState(null, '', window.location.href)
-      }
+      // Always cancel the navigation first, then ask the user
+      window.history.pushState(null, '', window.location.href)
+      setShowLeaveSheet(true)
     }
     // Push a dummy state so we can intercept the back button
     window.history.pushState(null, '', window.location.href)
@@ -370,17 +593,37 @@ export default function LogImpactPage() {
     return () => window.removeEventListener('popstate', handlePopState)
   }, [isDirty])
 
+  const handleConfirmLeave = useCallback(() => {
+    setShowLeaveSheet(false)
+    // Navigate back, bypassing the guard by temporarily clearing dirty state
+    navigate(-1)
+  }, [navigate])
+
   const handleAddPhoto = async (
     setter: React.Dispatch<React.SetStateAction<string[]>>,
     uploader: ReturnType<typeof useImageUpload>,
   ) => {
+    if (isOffline) return // blocked by UI, but guard anyway
     const result = await camera.pickFromGallery()
     if (!result) return
     try {
       const uploaded = await uploader.upload(result.blob)
       setter((prev) => [...prev, uploaded.url])
     } catch {
-      // error handled by hook
+      // error tracked by hook's failedUploads state
+    }
+  }
+
+  const handleRetryPhoto = async (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    uploader: ReturnType<typeof useImageUpload>,
+    failedIndex: number,
+  ) => {
+    try {
+      const uploaded = await uploader.retry(failedIndex)
+      setter((prev) => [...prev, uploaded.url])
+    } catch {
+      // re-failure tracked by hook
     }
   }
 
@@ -401,6 +644,7 @@ export default function LogImpactPage() {
           if (Array.isArray(cm.photos)) setPhotos(cm.photos as string[])
           if (Array.isArray(cm.before_photos)) setBeforePhotos(cm.before_photos as string[])
           if (Array.isArray(cm.after_photos)) setAfterPhotos(cm.after_photos as string[])
+          if (Array.isArray(cm.wildlife_sightings_detail)) setWildlifeSightings(cm.wildlife_sightings_detail as WildlifeSighting[])
           if (cm.drawn_area && typeof cm.drawn_area === 'object') setDrawnArea(cm.drawn_area as Record<string, unknown>)
         }
         // Back-calculate duration from stored hours_total
@@ -437,6 +681,7 @@ export default function LogImpactPage() {
 
     try {
     // 0. Race condition guard: re-check if someone else submitted while we were filling out
+    // Uses in-app BottomSheet instead of window.confirm (which silently fails in Capacitor WebView)
     if (!existingImpact) {
       const { data: freshImpact } = await supabase
         .from('event_impact')
@@ -448,9 +693,10 @@ export default function LogImpactPage() {
         const when = freshImpact.logged_at
           ? new Date(freshImpact.logged_at).toLocaleString('en-AU', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
           : 'just now'
-        const proceed = window.confirm(
-          `${who} already logged impact for this event (${when}). Do you want to overwrite their submission?`,
-        )
+        const proceed = await new Promise<boolean>((resolve) => {
+          setOverwriteInfo({ who, when })
+          setPendingOverwriteResolve(() => resolve)
+        })
         if (!proceed) {
           setIsSubmitting(false)
           return
@@ -490,6 +736,7 @@ export default function LogImpactPage() {
     // photos) actually removes it rather than leaving the old value in place.
     const customMetricsPayload: Record<string, unknown> = {
       species: species.length > 0 ? species : undefined,
+      wildlife_sightings_detail: wildlifeSightings.length > 0 ? wildlifeSightings : undefined,
       photos: photos.length > 0 ? photos : undefined,
       before_photos: beforePhotos.length > 0 ? beforePhotos : undefined,
       after_photos: afterPhotos.length > 0 ? afterPhotos : undefined,
@@ -504,7 +751,7 @@ export default function LogImpactPage() {
     // then layer in the current leader sections. This ensures a cleared field
     // (e.g. all photos deleted) actually disappears rather than re-appearing.
     const existingCm = { ...(postSyncImpact?.custom_metrics as Record<string, unknown>) ?? {} }
-    for (const key of ['species', 'photos', 'before_photos', 'after_photos', 'drawn_area']) {
+    for (const key of ['species', 'wildlife_sightings_detail', 'photos', 'before_photos', 'after_photos', 'drawn_area']) {
       delete existingCm[key]
     }
     const mergedCustom = { ...existingCm, ...leaderSections }
@@ -519,7 +766,10 @@ export default function LogImpactPage() {
       rubbish_kg: postSyncImpact?.rubbish_kg ?? null,
       area_restored_sqm: postSyncImpact?.area_restored_sqm ?? null,
       native_plants: postSyncImpact?.native_plants ?? null,
-      wildlife_sightings: postSyncImpact?.wildlife_sightings ?? null,
+      // Structured sightings → backward-compatible integer total
+      wildlife_sightings: wildlifeSightings.length > 0
+        ? wildlifeSightings.reduce((sum, s) => sum + s.count, 0)
+        : postSyncImpact?.wildlife_sightings ?? null,
       invasive_weeds_pulled: postSyncImpact?.invasive_weeds_pulled ?? null,
       coastline_cleaned_m: postSyncImpact?.coastline_cleaned_m ?? null,
     })
@@ -532,7 +782,7 @@ export default function LogImpactPage() {
     } finally {
       setIsSubmitting(false)
     }
-  }, [eventId, user, isSubmitting, existingImpact, surveyData, surveyQuestions, surveyAnswers, species, photos, beforePhotos, afterPhotos, drawnArea, logImpact, computedHoursTotal, notes, queryClient, validKeys, metricDefsPlaceholder])
+  }, [eventId, user, isSubmitting, existingImpact, surveyData, surveyQuestions, surveyAnswers, species, wildlifeSightings, photos, beforePhotos, afterPhotos, drawnArea, logImpact, computedHoursTotal, notes, queryClient, validKeys, metricDefsPlaceholder])
 
   const isLoading = eventLoading || impactLoading || roleLoading || surveyLoading
   const showLoading = useDelayedLoading(isLoading)
@@ -593,10 +843,10 @@ export default function LogImpactPage() {
             <CheckCircle2 size={32} className="text-success-600" />
           </motion.div>
 
-          <h2 className="font-heading text-xl font-bold text-primary-800">
+          <h2 className="font-heading text-xl font-bold text-neutral-900">
             Impact Logged!
           </h2>
-          <p className="text-primary-400 mt-2 max-w-xs">
+          <p className="text-neutral-500 mt-2 max-w-xs">
             Your event's conservation impact has been recorded. Thank you
             for making a difference.
           </p>
@@ -635,30 +885,44 @@ export default function LogImpactPage() {
       swipeBack
       header={<Header title="Log Impact" back />}
       footer={
-        <Button
-          variant="primary"
-          size="lg"
-          fullWidth
-          icon={<Save size={18} />}
-          loading={isSubmitting || logImpact.isPending}
-          disabled={!canEdit || isSubmitting}
-          onClick={handleSubmit}
-        >
-          {existingImpact ? 'Update Impact' : 'Submit Impact'}
-        </Button> as React.ReactNode
+        <div className="space-y-2">
+          {anyPhotoFailed && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-error-50 text-error-600 text-sm">
+              <AlertTriangle size={14} />
+              Some photos failed to upload — retry or dismiss them before submitting.
+            </div>
+          )}
+          {anyPhotoUploading && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50 text-primary-700 text-sm">
+              <RefreshCw size={14} className="animate-spin" />
+              Photo upload in progress...
+            </div>
+          )}
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            icon={<Save size={18} />}
+            loading={isSubmitting || logImpact.isPending}
+            disabled={!canEdit || isSubmitting || anyPhotoFailed || anyPhotoUploading}
+            onClick={handleSubmit}
+          >
+            {existingImpact ? 'Update Impact' : 'Submit Impact'}
+          </Button>
+        </div> as React.ReactNode
       }
     >
       <div className="pt-4 pb-8 space-y-6">
         {/* Event header */}
         <div>
-          <h2 className="font-heading text-lg font-bold text-primary-800">
+          <h2 className="font-heading text-lg font-bold text-neutral-900">
             {event.title}
           </h2>
-          <p className="text-caption text-primary-400 mt-0.5">
+          <p className="text-caption text-neutral-500 mt-0.5">
             {ACTIVITY_TYPE_LABELS[event.activity_type]} · {checkedInCount} checked in / {event.registration_count} registered
           </p>
           {event.date_end && (
-            <p className="text-caption text-primary-400 mt-0.5">
+            <p className="text-caption text-neutral-500 mt-0.5">
               Duration: {getEventDuration(event.date_start, event.date_end)}
             </p>
           )}
@@ -679,17 +943,17 @@ export default function LogImpactPage() {
 
         {/* Est. Volunteer Hours - duration × checked-in attendees */}
         <motion.div variants={fadeUp} className="space-y-3">
-          <h3 className="text-sm font-semibold text-primary-800">
+          <h3 className="text-sm font-semibold text-neutral-900">
             Total Volunteer Hours
           </h3>
 
-          <div className="rounded-xl bg-white border border-primary-100/40 p-4 space-y-3">
+          <div className="rounded-xl bg-white border border-neutral-100 p-4 space-y-3">
             <div className="flex items-center gap-3">
               <span className="flex items-center justify-center w-9 h-9 rounded-full bg-primary-50 shrink-0">
-                <Clock size={18} className="text-primary-400" />
+                <Clock size={18} className="text-neutral-400" />
               </span>
               <div className="flex-1 min-w-0">
-                <label className="block text-caption text-primary-400 mb-0.5">
+                <label className="block text-caption text-neutral-500 mb-0.5">
                   How long was the event?
                 </label>
                 <div className="flex items-center gap-1.5">
@@ -701,13 +965,13 @@ export default function LogImpactPage() {
                     placeholder="0"
                     className={cn(
                       'w-24 rounded-lg bg-surface-3',
-                      'px-3 py-2 text-[16px] text-right font-semibold text-primary-800',
+                      'px-3 py-2 text-[16px] text-right font-semibold text-neutral-900',
                       'focus:outline-none focus:ring-2 focus:ring-primary-400',
                     )}
                     min="0"
                     step="0.5"
                   />
-                  <span className="text-caption text-primary-400">hours</span>
+                  <span className="text-caption text-neutral-500">hours</span>
                 </div>
               </div>
             </div>
@@ -717,12 +981,12 @@ export default function LogImpactPage() {
               <span className="font-semibold text-primary-700">
                 {eventDurationHours || '0'} hrs
               </span>
-              <span className="text-primary-400">&times;</span>
+              <span className="text-neutral-500">&times;</span>
               <span className="font-semibold text-primary-700">
                 {checkedInCount} checked in
               </span>
-              <span className="text-primary-400">=</span>
-              <span className="font-bold text-primary-800">
+              <span className="text-neutral-500">=</span>
+              <span className="font-bold text-neutral-900">
                 {computedHoursTotal} total volunteer hours
               </span>
             </div>
@@ -740,12 +1004,12 @@ export default function LogImpactPage() {
           <motion.div variants={fadeUp} className="space-y-3">
             <div className="flex items-center gap-2">
               <ClipboardList size={16} className="text-primary-500" />
-              <h3 className="text-sm font-semibold text-primary-800">
+              <h3 className="text-sm font-semibold text-neutral-900">
                 {surveyData?.title ?? 'Impact Survey'}
               </h3>
             </div>
 
-            <div className="rounded-xl bg-white border border-primary-100/40 p-4">
+            <div className="rounded-xl bg-white border border-neutral-100 p-4">
               <SurveyQuestionRenderer
                 questions={surveyQuestions}
                 answers={surveyAnswers}
@@ -768,8 +1032,13 @@ export default function LogImpactPage() {
         <motion.div variants={fadeUp}>
         {(activityType === 'tree_planting' ||
           activityType === 'land_regeneration') && (
-          <SpeciesTracker species={species} onChange={setSpecies} />
+          <SpeciesTracker species={species} onChange={setSpecies} activityType={activityType} />
         )}
+        </motion.div>
+
+        {/* Wildlife sightings (available for all activity types) */}
+        <motion.div variants={fadeUp}>
+          <WildlifeSightingTracker sightings={wildlifeSightings} onChange={setWildlifeSightings} />
         </motion.div>
 
         {/* Photo uploads */}
@@ -782,6 +1051,10 @@ export default function LogImpactPage() {
           uploading={eventPhotosUpload.uploading}
           progress={eventPhotosUpload.progress}
           error={eventPhotosUpload.error}
+          failedUploads={eventPhotosUpload.failedUploads}
+          onRetry={(i) => handleRetryPhoto(setPhotos, eventPhotosUpload, i)}
+          onClearFailed={(i) => eventPhotosUpload.clearFailed(i)}
+          isOffline={isOffline}
         />
         </motion.div>
 
@@ -795,6 +1068,10 @@ export default function LogImpactPage() {
             uploading={beforeUpload.uploading}
             progress={beforeUpload.progress}
             error={beforeUpload.error}
+            failedUploads={beforeUpload.failedUploads}
+            onRetry={(i) => handleRetryPhoto(setBeforePhotos, beforeUpload, i)}
+            onClearFailed={(i) => beforeUpload.clearFailed(i)}
+            isOffline={isOffline}
           />
           <PhotoUploadSection
             photos={afterPhotos}
@@ -804,14 +1081,18 @@ export default function LogImpactPage() {
             uploading={afterUpload.uploading}
             progress={afterUpload.progress}
             error={afterUpload.error}
+            failedUploads={afterUpload.failedUploads}
+            onRetry={(i) => handleRetryPhoto(setAfterPhotos, afterUpload, i)}
+            onClearFailed={(i) => afterUpload.clearFailed(i)}
+            isOffline={isOffline}
           />
         </motion.div>
 
         {/* GPS area - draw polygon/circle */}
         <motion.div variants={fadeUp} className="rounded-xl bg-white shadow-sm p-4">
           <div className="flex items-center gap-2 mb-2">
-            <MapPin size={16} className="text-primary-400" />
-            <h3 className="text-sm font-semibold text-primary-800">
+            <MapPin size={16} className="text-neutral-400" />
+            <h3 className="text-sm font-semibold text-neutral-900">
               Area Worked
             </h3>
           </div>
@@ -843,6 +1124,40 @@ export default function LogImpactPage() {
         />
         </motion.div>
       </div>
+
+      {/* Leave without saving confirmation (replaces window.confirm) */}
+      <ConfirmationSheet
+        open={showLeaveSheet}
+        onClose={() => setShowLeaveSheet(false)}
+        onConfirm={handleConfirmLeave}
+        title="Leave without saving?"
+        description="You have unsaved impact data that will be lost."
+        confirmLabel="Discard changes"
+        variant="warning"
+      />
+
+      {/* Overwrite existing impact confirmation (replaces window.confirm) */}
+      <ConfirmationSheet
+        open={!!overwriteInfo}
+        onClose={() => {
+          pendingOverwriteResolve?.(false)
+          setOverwriteInfo(null)
+          setPendingOverwriteResolve(null)
+        }}
+        onConfirm={() => {
+          pendingOverwriteResolve?.(true)
+          setOverwriteInfo(null)
+          setPendingOverwriteResolve(null)
+        }}
+        title="Impact already logged"
+        description={
+          overwriteInfo
+            ? `${overwriteInfo.who} already logged impact for this event (${overwriteInfo.when}). Replace their submission?`
+            : ''
+        }
+        confirmLabel="Replace"
+        variant="warning"
+      />
     </Page>
   )
 }

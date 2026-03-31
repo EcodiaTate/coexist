@@ -56,7 +56,7 @@ function MenuSection({
     <motion.section
       variants={shouldReduceMotion ? undefined : fadeUp}
     >
-      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-primary-400/70 mb-1.5 px-1">
+      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400 mb-1.5 px-1">
         {title}
       </h3>
       <div className="rounded-2xl bg-surface-0 shadow-sm overflow-hidden">
@@ -72,7 +72,7 @@ function MenuSection({
               'active:bg-surface-3 active:scale-[0.99]',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
               'cursor-pointer select-none',
-              idx > 0 && 'border-t border-primary-100/20',
+              idx > 0 && 'border-t border-neutral-100',
             )}
           >
             <span
@@ -85,9 +85,9 @@ function MenuSection({
               {icon}
             </span>
             <div className="flex-1 min-w-0">
-              <p className="text-[15px] font-medium text-primary-900 leading-tight">{label}</p>
+              <p className="text-[15px] font-medium text-neutral-900 leading-tight">{label}</p>
             </div>
-            <ChevronRight size={16} className="text-primary-300/60 shrink-0" />
+            <ChevronRight size={16} className="text-neutral-300 shrink-0" />
           </button>
         ))}
       </div>
@@ -105,7 +105,7 @@ export default function MorePage() {
 
   const updatesLinks: MenuLink[] = [
     { label: 'Updates', to: '/updates', icon: <Megaphone size={17} />, iconBg: 'bg-plum-50', iconColor: 'text-plum-600' },
-    { label: 'Explore', to: '/explore', icon: <Compass size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
+    { label: 'Explore', to: '/explore', icon: <Compass size={17} />, iconBg: 'bg-neutral-50', iconColor: 'text-neutral-600' },
     { label: 'Notifications', to: '/notifications', icon: <Bell size={17} />, iconBg: 'bg-error-50', iconColor: 'text-error-500' },
   ]
 
@@ -117,16 +117,16 @@ export default function MorePage() {
 
   const shopLinks: MenuLink[] = [
     { label: 'Donate', to: '/donate', icon: <Heart size={17} />, iconBg: 'bg-coral-50', iconColor: 'text-coral-500' },
-    { label: 'Shop', to: '/shop', icon: <ShoppingBag size={17} />, iconBg: 'bg-primary-100/80', iconColor: 'text-primary-700' },
+    { label: 'Shop', to: '/shop', icon: <ShoppingBag size={17} />, iconBg: 'bg-neutral-100', iconColor: 'text-neutral-600' },
   ]
 
   const accountLinks: MenuLink[] = [
-    { label: 'Settings', to: '/settings', icon: <Settings size={17} />, iconBg: 'bg-primary-100/80', iconColor: 'text-primary-600' },
+    { label: 'Settings', to: '/settings', icon: <Settings size={17} />, iconBg: 'bg-neutral-100', iconColor: 'text-neutral-600' },
   ]
 
   const leaderLinks: MenuLink[] = [
-    { label: 'Leader Dashboard', to: '/leader', icon: <BarChart3 size={17} />, iconBg: 'bg-primary-200/60', iconColor: 'text-primary-800' },
-    { label: 'Create Event', to: '/events/create', icon: <Plus size={17} />, iconBg: 'bg-primary-200/60', iconColor: 'text-primary-800' },
+    { label: 'Leader Dashboard', to: '/leader', icon: <BarChart3 size={17} />, iconBg: 'bg-neutral-100', iconColor: 'text-neutral-600' },
+    { label: 'Create Event', to: '/events/create', icon: <Plus size={17} />, iconBg: 'bg-neutral-100', iconColor: 'text-neutral-600' },
   ]
 
   const adminLinks: MenuLink[] = [
@@ -134,13 +134,13 @@ export default function MorePage() {
   ]
 
   const legalLinks: MenuLink[] = [
-    { label: 'About', to: '/about', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
-    { label: 'Terms of Service', to: '/terms', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
-    { label: 'Privacy Policy', to: '/privacy', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
-    { label: 'Data Policy', to: '/data-policy', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
-    { label: 'Disclaimer', to: '/disclaimer', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
-    { label: 'Accessibility', to: '/accessibility', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
-    { label: 'Cookie Policy', to: '/cookies', icon: <FileText size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-500' },
+    { label: 'About', to: '/about', icon: <FileText size={17} />, iconBg: 'bg-neutral-50', iconColor: 'text-neutral-400' },
+    { label: 'Terms of Service', to: '/terms', icon: <FileText size={17} />, iconBg: 'bg-neutral-50', iconColor: 'text-neutral-400' },
+    { label: 'Privacy Policy', to: '/privacy', icon: <FileText size={17} />, iconBg: 'bg-neutral-50', iconColor: 'text-neutral-400' },
+    { label: 'Data Policy', to: '/data-policy', icon: <FileText size={17} />, iconBg: 'bg-neutral-50', iconColor: 'text-neutral-400' },
+    { label: 'Disclaimer', to: '/disclaimer', icon: <FileText size={17} />, iconBg: 'bg-neutral-50', iconColor: 'text-neutral-400' },
+    { label: 'Accessibility', to: '/accessibility', icon: <FileText size={17} />, iconBg: 'bg-neutral-50', iconColor: 'text-neutral-400' },
+    { label: 'Cookie Policy', to: '/cookies', icon: <FileText size={17} />, iconBg: 'bg-neutral-50', iconColor: 'text-neutral-400' },
   ]
 
   return (
@@ -151,7 +151,7 @@ export default function MorePage() {
           style={{ top: 'var(--safe-top)' }}
           aria-label="More page header"
         >
-          <h1 className="font-heading text-2xl font-bold text-primary-900">
+          <h1 className="font-heading text-2xl font-bold text-neutral-900">
             More
           </h1>
         </header>
@@ -216,8 +216,8 @@ export default function MorePage() {
           variants={shouldReduceMotion ? undefined : fadeUp}
           className="flex flex-col items-center gap-2 pt-4 pb-2"
         >
-          <Leaf size={18} className="text-primary-300/50" />
-          <p className="text-[11px] font-medium text-primary-400/50 tracking-wide">
+          <Leaf size={18} className="text-neutral-300" />
+          <p className="text-[11px] font-medium text-neutral-400 tracking-wide">
             Explore. Connect. Protect.
           </p>
           <EcodiaAttribution className="mt-1" />

@@ -69,8 +69,8 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
             <BarChart3 size={20} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-primary-900">Create Poll</h3>
-            <p className="text-xs text-primary-400">Ask your collective a question</p>
+            <h3 className="text-base font-bold text-neutral-900">Create Poll</h3>
+            <p className="text-xs text-neutral-500">Ask your collective a question</p>
           </div>
         </div>
 
@@ -87,7 +87,7 @@ export function CreatePollSheet({ open, onClose, onSubmit, loading }: CreatePoll
 
         {/* Options */}
         <div className="mb-4">
-          <p className="text-xs font-semibold text-primary-600 mb-1.5">
+          <p className="text-xs font-semibold text-neutral-900 mb-1.5">
             Options (min 2, max 8)
           </p>
           <div className="space-y-2">

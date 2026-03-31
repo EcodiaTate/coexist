@@ -148,10 +148,10 @@ export class SentryErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoun
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
           </div>
-          <h2 className="font-heading text-xl font-bold text-primary-800 mb-2">
+          <h2 className="font-heading text-xl font-bold text-neutral-900 mb-2">
             Something went wrong
           </h2>
-          <p className="text-sm text-primary-400 mb-6 max-w-xs leading-relaxed">
+          <p className="text-sm text-neutral-500 mb-6 max-w-xs leading-relaxed">
             We&apos;ve been notified and are looking into it.
             Try refreshing or going back.
           </p>

@@ -53,7 +53,6 @@ import { useCollective } from '@/hooks/use-collective'
 import { useLeaderHeader, useLeaderContext, useIsLeaderLayout } from '@/components/leader-layout'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
-import { PullToRefresh } from '@/components/pull-to-refresh'
 import { TaskSurveyModal } from '@/components/task-survey-modal'
 import { useToast } from '@/components/toast'
 import { supabase } from '@/lib/supabase'
@@ -84,6 +83,7 @@ import {
 import { useMyModuleProgress } from '@/hooks/use-development-progress'
 import { useMyTargetedContent } from '@/hooks/use-development-assignments'
 import { BentoStatCard, BentoStatGrid } from '@/components/bento-stats'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -445,19 +445,6 @@ function TaskCard({ task }: { task: MyTask }) {
   )
 }
 
-/* ------------------------------------------------------------------ */
-/*  Animation variants                                                 */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const } },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Section heading                                                    */
@@ -580,7 +567,7 @@ const TIME_GROUP_CONFIG: Record<TodoTimeGroup, { label: string; color: string; d
   today:     { label: 'Today',      color: 'text-warning-700', dotColor: 'bg-warning-500',  icon: <Clock size={11} /> },
   tomorrow:  { label: 'Tomorrow',   color: 'text-amber-600',   dotColor: 'bg-amber-400',   icon: <Calendar size={11} /> },
   this_week: { label: 'This Week',  color: 'text-moss-600',    dotColor: 'bg-moss-400',    icon: <CalendarDays size={11} /> },
-  later:     { label: 'Later',      color: 'text-primary-500', dotColor: 'bg-primary-300',  icon: <CalendarDays size={11} /> },
+  later:     { label: 'Later',      color: 'text-neutral-500', dotColor: 'bg-neutral-400',  icon: <CalendarDays size={11} /> },
   no_date:   { label: 'No Due Date',color: 'text-neutral-400', dotColor: 'bg-neutral-300',  icon: <Circle size={11} /> },
 }
 
@@ -655,7 +642,7 @@ function TodoItem({ todo, reducedMotion }: { todo: LeaderTodo; reducedMotion: bo
               'inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md',
               todo.priority === 'urgent' && 'bg-error-50 text-error-600',
               todo.priority === 'high' && 'bg-warning-50 text-warning-600',
-              todo.priority === 'low' && 'bg-primary-50 text-primary-400',
+              todo.priority === 'low' && 'bg-neutral-50 text-neutral-500',
             )}>
               <span className={cn('w-1.5 h-1.5 rounded-full', priorityCfg.dot)} />
               {priorityCfg.label}
@@ -779,7 +766,7 @@ function UpcomingTodosWidget() {
     return (
       <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 p-6 text-center">
         <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-3">
-          <ListTodo size={22} className="text-primary-400" />
+          <ListTodo size={22} className="text-neutral-400" />
         </div>
         <p className="text-sm font-semibold text-neutral-900 mb-1">All caught up</p>
         <p className="text-xs text-neutral-500 mb-3">No pending todos right now</p>
@@ -880,10 +867,10 @@ function UpcomingTodosWidget() {
         to="/leader/tasks"
         className="flex items-center justify-center gap-1.5 px-4 py-3 border-t border-neutral-100 hover:bg-neutral-50 active:scale-[0.99] transition-all duration-150 group"
       >
-        <span className="text-xs font-semibold text-primary-500 group-hover:text-primary-700 transition-colors">
+        <span className="text-xs font-semibold text-neutral-500 group-hover:text-neutral-700 transition-colors">
           View all tasks & todos
         </span>
-        <ArrowRight size={13} className="text-primary-400 group-hover:translate-x-0.5 transition-transform" />
+        <ArrowRight size={13} className="text-neutral-400 group-hover:translate-x-0.5 transition-transform" />
       </Link>
     </div>
   )
@@ -1081,7 +1068,7 @@ export default function LeaderDashboardPage() {
 
   return (
     <Wrapper>
-      <PullToRefresh onRefresh={handleRefresh} className="min-h-full bg-white">
+      <div className="relative min-h-full bg-white">
         {/* ── Hero with collective cover image + rocky wave overlay ── */}
         <div className={cn('relative', !isInLeaderLayout && '-mx-4 lg:-mx-6')}>
           <div className="relative w-full overflow-hidden">
@@ -1465,7 +1452,7 @@ export default function LeaderDashboardPage() {
           </motion.div>
 
         </motion.div>
-      </PullToRefresh>
+      </div>
     </Wrapper>
   )
 }

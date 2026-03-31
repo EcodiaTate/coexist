@@ -47,11 +47,11 @@ function TicketCard({ ticket }: { ticket: EventTicket }) {
 
         {/* Content */}
         <div className="flex-1 min-w-0 p-4">
-          <p className="text-sm font-semibold text-primary-800 truncate">
+          <p className="text-sm font-semibold text-neutral-900 truncate">
             {ticket.event_title ?? 'Event'}
           </p>
 
-          <div className="flex items-center gap-2 mt-1.5 text-[11px] text-primary-400">
+          <div className="flex items-center gap-2 mt-1.5 text-[11px] text-neutral-500">
             {ticket.event_date && (
               <span className="flex items-center gap-1">
                 <Calendar size={10} />
@@ -81,13 +81,13 @@ function TicketCard({ ticket }: { ticket: EventTicket }) {
               {ticket.status === 'checked_in' ? 'Checked In' : ticket.status}
             </span>
             {ticket.ticket_code && (
-              <span className="font-mono text-[10px] text-primary-300">{ticket.ticket_code}</span>
+              <span className="font-mono text-[10px] text-neutral-400">{ticket.ticket_code}</span>
             )}
           </div>
         </div>
 
         <div className="flex items-center pr-3 shrink-0">
-          <ChevronRight size={16} className="text-primary-200" />
+          <ChevronRight size={16} className="text-neutral-300" />
         </div>
       </button>
     </StaggeredItem>
@@ -122,7 +122,7 @@ export default function MyTicketsPage() {
           <>
             {upcoming.length > 0 && (
               <div>
-                <h3 className="text-xs font-bold text-primary-400 uppercase tracking-wider mb-3 px-1">
+                <h3 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3 px-1">
                   Upcoming
                 </h3>
                 <StaggeredList className="space-y-2">
@@ -135,7 +135,7 @@ export default function MyTicketsPage() {
 
             {past.length > 0 && (
               <div>
-                <h3 className="text-xs font-bold text-primary-300 uppercase tracking-wider mb-3 px-1">
+                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider mb-3 px-1">
                   Past
                 </h3>
                 <StaggeredList className="space-y-2">

@@ -16,8 +16,8 @@ export function getAccentClasses(suite: Suite) {
       ? 'bg-moss-50/70 text-moss-800 font-medium'
       : 'bg-primary-50/80 text-primary-700 font-medium',
     hoverClasses: isMoss
-      ? 'text-primary-400 hover:bg-moss-50/40 hover:text-moss-700'
-      : 'text-primary-400 hover:bg-primary-50/50 hover:text-primary-700',
+      ? 'text-neutral-500 hover:bg-moss-50/40 hover:text-moss-700'
+      : 'text-neutral-500 hover:bg-neutral-50/50 hover:text-neutral-900',
     indicatorFrom: isMoss ? 'from-moss-400' : 'from-primary-500',
     indicatorTo: isMoss ? 'to-moss-600' : 'to-primary-700',
     dotColor: isMoss ? 'bg-moss-500' : 'bg-primary-600',
@@ -102,7 +102,7 @@ export function SidebarNavList({
                   {!collapsed && (
                     <p className={cn(
                       'flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] px-2.5 mt-4 mb-1.5',
-                      cat.labelColor ?? 'text-primary-300',
+                      cat.labelColor ?? 'text-neutral-400',
                     )}>
                       {cat.dotColor && <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', cat.dotColor)} />}
                       {cat.label}

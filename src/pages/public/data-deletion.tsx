@@ -11,20 +11,8 @@ import { Input } from '@/components/input'
 import { OGMeta } from '@/components/og-meta'
 import { WebFooter } from '@/components/web-footer'
 import { APP_NAME, CONTACT_EMAIL } from '@/lib/constants'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
-/* ------------------------------------------------------------------ */
-/*  Animation                                                          */
-/* ------------------------------------------------------------------ */
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const } },
-}
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Data categories                                                    */
@@ -201,12 +189,12 @@ export default function DataDeletionPage() {
       />
 
       {/* Header bar */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-primary-100/50">
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-neutral-100">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
-          <a href="/" className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-primary-50 transition-colors" aria-label="Back to home">
+          <a href="/" className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-neutral-50 transition-colors" aria-label="Back to home">
             <ArrowLeft size={20} className="text-primary-700" />
           </a>
-          <h1 className="font-heading text-lg font-semibold text-primary-800">{APP_NAME}</h1>
+          <h1 className="font-heading text-lg font-semibold text-neutral-900">{APP_NAME}</h1>
         </div>
       </div>
 
@@ -227,29 +215,29 @@ export default function DataDeletionPage() {
                   <div className="mx-auto w-14 h-14 rounded-2xl bg-primary-100 flex items-center justify-center">
                     <Database size={28} className="text-primary-700" />
                   </div>
-                  <h2 className="font-heading text-2xl font-bold text-primary-800">Delete Your Data</h2>
-                  <p className="text-primary-500 text-sm leading-relaxed max-w-md mx-auto">
+                  <h2 className="font-heading text-2xl font-bold text-neutral-900">Delete Your Data</h2>
+                  <p className="text-neutral-500 text-sm leading-relaxed max-w-md mx-auto">
                     Request deletion of some or all of your {APP_NAME} data while keeping your account active.
                   </p>
                 </motion.div>
 
-                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 p-5 space-y-4">
-                  <h3 className="font-heading font-semibold text-primary-800">How it works</h3>
-                  <ul className="space-y-3 text-sm text-primary-600">
+                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="bg-white/90 rounded-2xl shadow-sm border border-neutral-100 p-5 space-y-4">
+                  <h3 className="font-heading font-semibold text-neutral-900">How it works</h3>
+                  <ul className="space-y-3 text-sm text-neutral-600">
                     <li className="flex gap-3">
-                      <Shield size={18} className="text-primary-400 shrink-0 mt-0.5" />
+                      <Shield size={18} className="text-neutral-400 shrink-0 mt-0.5" />
                       <span>Sign in to verify your identity, then choose which data to delete.</span>
                     </li>
                     <li className="flex gap-3">
-                      <Database size={18} className="text-primary-400 shrink-0 mt-0.5" />
+                      <Database size={18} className="text-neutral-400 shrink-0 mt-0.5" />
                       <span>Selected data is <strong className="text-primary-700">permanently deleted</strong> from our servers. This action cannot be undone.</span>
                     </li>
                     <li className="flex gap-3">
-                      <CheckCircle size={18} className="text-primary-400 shrink-0 mt-0.5" />
+                      <CheckCircle size={18} className="text-neutral-400 shrink-0 mt-0.5" />
                       <span>Your account, profile, and memberships remain active. Only the selected data categories are removed.</span>
                     </li>
                   </ul>
-                  <p className="text-xs text-primary-400">
+                  <p className="text-xs text-neutral-500">
                     Financial records (donations, orders) are retained in anonymised form for legal and accounting compliance.
                     To delete your entire account, visit <a href="/account-deletion" className="text-primary-600 underline underline-offset-2">account deletion</a>.
                   </p>
@@ -267,7 +255,7 @@ export default function DataDeletionPage() {
             {step === 'processing' && (
               <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="text-center space-y-4 py-12">
                 <div className="mx-auto w-10 h-10 rounded-full border-2 border-primary-200 border-t-primary-600 animate-spin" />
-                <p className="text-primary-500 text-sm">Verifying your identity...</p>
+                <p className="text-neutral-500 text-sm">Verifying your identity...</p>
               </motion.div>
             )}
 
@@ -278,8 +266,8 @@ export default function DataDeletionPage() {
                   <div className="mx-auto w-14 h-14 rounded-2xl bg-primary-100 flex items-center justify-center">
                     <Lock size={28} className="text-primary-700" />
                   </div>
-                  <h2 className="font-heading text-2xl font-bold text-primary-800">Confirm Your Identity</h2>
-                  <p className="text-primary-500 text-sm leading-relaxed max-w-md mx-auto">
+                  <h2 className="font-heading text-2xl font-bold text-neutral-900">Confirm Your Identity</h2>
+                  <p className="text-neutral-500 text-sm leading-relaxed max-w-md mx-auto">
                     Sign in to verify your identity before deleting data.
                   </p>
                 </motion.div>
@@ -288,7 +276,7 @@ export default function DataDeletionPage() {
                 <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="space-y-3">
                   <button
                     type="button"
-                    className="w-full h-12 rounded-xl border border-primary-200 bg-white flex items-center justify-center gap-3 text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border border-neutral-200 bg-white flex items-center justify-center gap-3 text-sm font-medium text-neutral-700 hover:bg-primary-50 transition-colors disabled:opacity-50"
                     onClick={() => handleOAuthLogin('google')}
                     disabled={loading}
                   >
@@ -302,7 +290,7 @@ export default function DataDeletionPage() {
                   </button>
                   <button
                     type="button"
-                    className="w-full h-12 rounded-xl border border-primary-200 bg-black flex items-center justify-center gap-3 text-sm font-medium text-white hover:bg-neutral-800 transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border border-neutral-200 bg-black flex items-center justify-center gap-3 text-sm font-medium text-white hover:bg-neutral-800 transition-colors disabled:opacity-50"
                     onClick={() => handleOAuthLogin('apple')}
                     disabled={loading}
                   >
@@ -314,9 +302,9 @@ export default function DataDeletionPage() {
                 </motion.div>
 
                 <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-primary-100" />
-                  <span className="text-xs text-primary-400 uppercase tracking-wider">or with email</span>
-                  <div className="flex-1 h-px bg-primary-100" />
+                  <div className="flex-1 h-px bg-neutral-100" />
+                  <span className="text-xs text-neutral-500 uppercase tracking-wider">or with email</span>
+                  <div className="flex-1 h-px bg-neutral-100" />
                 </motion.div>
 
                 <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="space-y-4">
@@ -363,7 +351,7 @@ export default function DataDeletionPage() {
 
                   <button
                     type="button"
-                    className="w-full text-center text-sm text-primary-500 hover:text-primary-700 transition-colors py-2"
+                    className="w-full text-center text-sm text-neutral-500 hover:text-primary-700 transition-colors py-2"
                     onClick={() => { setStep('info'); setError(''); setPassword('') }}
                   >
                     Go back
@@ -379,8 +367,8 @@ export default function DataDeletionPage() {
                   <div className="mx-auto w-14 h-14 rounded-2xl bg-primary-100 flex items-center justify-center">
                     <Database size={28} className="text-primary-700" />
                   </div>
-                  <h2 className="font-heading text-2xl font-bold text-primary-800">Choose Data to Delete</h2>
-                  <p className="text-primary-500 text-sm leading-relaxed max-w-md mx-auto">
+                  <h2 className="font-heading text-2xl font-bold text-neutral-900">Choose Data to Delete</h2>
+                  <p className="text-neutral-500 text-sm leading-relaxed max-w-md mx-auto">
                     Select the data categories you want to permanently remove. Your account will remain active.
                   </p>
                 </motion.div>
@@ -389,24 +377,24 @@ export default function DataDeletionPage() {
                   {/* Select all */}
                   <button
                     type="button"
-                    className="w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-primary-50/60 hover:bg-primary-100/60 transition-colors"
+                    className="w-full flex items-center gap-3 px-4 py-3 mb-2 rounded-xl bg-neutral-50 hover:bg-neutral-100 transition-colors"
                     onClick={toggleAll}
                   >
                     <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${allSelected ? 'bg-primary-700 border-primary-700' : 'border-primary-300 bg-white'}`}>
                       {allSelected && <CheckCircle size={14} className="text-white" />}
                     </div>
-                    <span className="text-sm font-medium text-primary-700">Select all</span>
+                    <span className="text-sm font-medium text-neutral-700">Select all</span>
                   </button>
 
                   {/* Category list */}
-                  <div className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 overflow-hidden divide-y divide-primary-50">
+                  <div className="bg-white/90 rounded-2xl shadow-sm border border-neutral-100 overflow-hidden divide-y divide-neutral-100">
                     {DATA_CATEGORIES.map((cat) => {
                       const isSelected = selected.has(cat.id)
                       return (
                         <button
                           key={cat.id}
                           type="button"
-                          className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-primary-50/40 transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-neutral-50 transition-colors text-left"
                           onClick={() => toggleCategory(cat.id)}
                         >
                           <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'bg-primary-700 border-primary-700' : 'border-primary-300 bg-white'}`}>
@@ -416,8 +404,8 @@ export default function DataDeletionPage() {
                             <span className="text-primary-500">{cat.icon}</span>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-primary-700">{cat.label}</p>
-                            <p className="text-xs text-primary-400 truncate">{cat.description}</p>
+                            <p className="text-sm font-medium text-neutral-700">{cat.label}</p>
+                            <p className="text-xs text-neutral-500 truncate">{cat.description}</p>
                           </div>
                         </button>
                       )
@@ -448,7 +436,7 @@ export default function DataDeletionPage() {
                     Delete {selected.size === 0 ? 'selected data' : selected.size === DATA_CATEGORIES.length ? 'all data' : `${selected.size} categor${selected.size === 1 ? 'y' : 'ies'}`}
                   </Button>
 
-                  <p className="text-center text-xs text-primary-400">
+                  <p className="text-center text-xs text-neutral-500">
                     This action is permanent and cannot be undone.
                   </p>
                 </motion.div>
@@ -462,15 +450,15 @@ export default function DataDeletionPage() {
                   <div className="mx-auto w-14 h-14 rounded-2xl bg-primary-100 flex items-center justify-center">
                     <CheckCircle size={28} className="text-primary-700" />
                   </div>
-                  <h2 className="font-heading text-2xl font-bold text-primary-800">Data Deleted</h2>
-                  <p className="text-primary-500 text-sm leading-relaxed max-w-md mx-auto">
+                  <h2 className="font-heading text-2xl font-bold text-neutral-900">Data Deleted</h2>
+                  <p className="text-neutral-500 text-sm leading-relaxed max-w-md mx-auto">
                     The selected data has been permanently removed from our servers. Your account remains active.
                   </p>
                 </motion.div>
 
-                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 p-5 space-y-3">
-                  <h3 className="font-heading font-semibold text-primary-800">What was deleted</h3>
-                  <ul className="space-y-1.5 text-sm text-primary-600">
+                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="bg-white/90 rounded-2xl shadow-sm border border-neutral-100 p-5 space-y-3">
+                  <h3 className="font-heading font-semibold text-neutral-900">What was deleted</h3>
+                  <ul className="space-y-1.5 text-sm text-neutral-600">
                     {deletedCategories.map((cat) => (
                       <li key={cat} className="flex items-center gap-2">
                         <CheckCircle size={14} className="text-primary-500 shrink-0" />
@@ -480,25 +468,25 @@ export default function DataDeletionPage() {
                   </ul>
                 </motion.div>
 
-                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 p-5 space-y-3">
-                  <h3 className="font-heading font-semibold text-primary-800">What was retained</h3>
-                  <ul className="space-y-1.5 text-sm text-primary-600">
+                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="bg-white/90 rounded-2xl shadow-sm border border-neutral-100 p-5 space-y-3">
+                  <h3 className="font-heading font-semibold text-neutral-900">What was retained</h3>
+                  <ul className="space-y-1.5 text-sm text-neutral-600">
                     <li className="flex items-center gap-2">
-                      <Shield size={14} className="text-primary-400 shrink-0" />
+                      <Shield size={14} className="text-neutral-400 shrink-0" />
                       Your account and profile
                     </li>
                     <li className="flex items-center gap-2">
-                      <Shield size={14} className="text-primary-400 shrink-0" />
+                      <Shield size={14} className="text-neutral-400 shrink-0" />
                       Collective memberships
                     </li>
                     <li className="flex items-center gap-2">
-                      <Shield size={14} className="text-primary-400 shrink-0" />
+                      <Shield size={14} className="text-neutral-400 shrink-0" />
                       Anonymised financial records (donations, orders)
                     </li>
                   </ul>
                 </motion.div>
 
-                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="text-center text-sm text-primary-500">
+                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="text-center text-sm text-neutral-500">
                   Questions? Contact us at{' '}
                   <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary-700 underline underline-offset-2">
                     {CONTACT_EMAIL}

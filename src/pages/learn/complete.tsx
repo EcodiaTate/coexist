@@ -79,7 +79,7 @@ export default function LearnCompletePage() {
             initial={rm ? {} : { opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="font-heading text-3xl font-bold text-primary-800 mb-2"
+            className="font-heading text-3xl font-bold text-neutral-900 mb-2"
           >
             {isModule ? 'Module Complete!' : 'Section Complete!'}
           </motion.h1>
@@ -109,7 +109,7 @@ export default function LearnCompletePage() {
               )}
             </div>
             <div className="text-left">
-              <p className="text-[13px] font-bold text-primary-800">{title}</p>
+              <p className="text-[13px] font-bold text-neutral-900">{title}</p>
               <div className="flex items-center gap-1 mt-0.5">
                 <Sparkles size={11} className="text-moss-500" />
                 <p className="text-[11px] text-moss-600 font-bold">Completed</p>

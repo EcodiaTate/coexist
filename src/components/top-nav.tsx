@@ -46,11 +46,9 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
   }, [dropdownOpen])
 
   // Close dropdown on route change
-  const [prevPath, setPrevPath] = useState(location.pathname)
-  if (location.pathname !== prevPath) {
-    setPrevPath(location.pathname)
-    if (dropdownOpen) setDropdownOpen(false)
-  }
+  useEffect(() => {
+    setDropdownOpen(false)
+  }, [location.pathname])
 
   return (
     <header
@@ -89,8 +87,8 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                   'transition-colors duration-150',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                   active
-                    ? 'text-primary-400'
-                    : 'text-primary-400 hover:text-primary-800 hover:bg-primary-50',
+                    ? 'text-primary-800'
+                    : 'text-neutral-400 hover:text-neutral-900 hover:bg-neutral-50',
                 )}
                 aria-current={active ? 'page' : undefined}
               >
@@ -116,7 +114,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
             className={cn(
               'relative flex items-center justify-center',
               'min-w-11 min-h-11 w-11 h-11 rounded-full',
-              'text-primary-400 hover:text-primary-800 hover:bg-primary-50',
+              'text-neutral-400 hover:text-neutral-900 hover:bg-neutral-50',
               'active:scale-[0.97] transition-transform duration-150',
               'cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
@@ -164,7 +162,7 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
               <ChevronDown
                 size={14}
                 className={cn(
-                  'text-primary-400 transition-transform duration-150',
+                  'text-neutral-400 transition-transform duration-150',
                   dropdownOpen && 'rotate-180',
                 )}
               />
@@ -187,10 +185,10 @@ export function TopNav({ notificationCount = 0, className }: TopNavProps) {
                 >
                   {/* User info */}
                   <div className="px-4 py-3 bg-primary-50/40">
-                    <p className="font-heading text-sm font-semibold text-primary-800 truncate">
+                    <p className="font-heading text-sm font-semibold text-neutral-900 truncate">
                       {profile?.display_name}
                     </p>
-                    <p className="text-caption text-primary-400 truncate">
+                    <p className="text-caption text-neutral-500 truncate">
                       @{(profile as Record<string, unknown>)?.handle as string}
                     </p>
                   </div>
@@ -270,7 +268,7 @@ function DropdownItem({
         'focus-visible:outline-none focus-visible:bg-white',
         danger
           ? 'text-error hover:bg-error-50'
-          : 'text-primary-800 hover:bg-primary-50',
+          : 'text-neutral-900 hover:bg-neutral-50',
       )}
     >
       <span className="flex items-center justify-center shrink-0">{icon}</span>

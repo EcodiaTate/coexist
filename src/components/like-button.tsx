@@ -64,7 +64,7 @@ export function LikeButton({
         'cursor-pointer select-none',
         'transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-        liked ? 'text-primary-400' : 'text-primary-400',
+        liked ? 'text-primary-400' : 'text-neutral-400',
         className,
       )}
       aria-label={liked ? 'Unlike' : 'Like'}

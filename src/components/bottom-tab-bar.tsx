@@ -70,6 +70,8 @@ export const MORE_TAB: Tab = {
 interface BottomTabBarProps {
   /** Badge count for the chat tab (unread messages) */
   chatBadge?: number
+  /** Show a warning dot on the Home tab when sync is paused */
+  syncWarning?: boolean
   /** Override tab set (for leader/admin layouts) */
   tabs?: Tab[]
   /** layoutId prefix for animations - use unique value per tab bar instance */
@@ -83,6 +85,7 @@ interface BottomTabBarProps {
 
 export function BottomTabBar({
   chatBadge = 0,
+  syncWarning = false,
   tabs: customTabs,
   layoutPrefix = 'tab',
   accent = 'primary',
@@ -174,6 +177,14 @@ export function BottomTabBar({
                 {/* Icon */}
                 <span className="relative flex items-center justify-center z-10">
                   {active ? tab.activeIcon : tab.icon}
+
+                  {/* Sync warning dot on Home tab */}
+                  {tab.key === 'home' && syncWarning && (
+                    <span
+                      className="absolute -top-0.5 -right-1.5 w-2.5 h-2.5 rounded-full bg-warning-500 ring-2 ring-white/90"
+                      aria-label="Sync paused"
+                    />
+                  )}
 
                   {/* Chat badge */}
                   {tab.key === 'chat' && chatBadge > 0 && (

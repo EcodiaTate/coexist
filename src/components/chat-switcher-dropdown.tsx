@@ -30,7 +30,7 @@ export function ChatSwitcherDropdown({
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const primaryChatId = (profile as unknown as Record<string, unknown> | null)?.primary_chat_id as string | undefined
+  const primaryChatId = profile?.primary_chat_id ?? undefined
 
   // Close on outside click
   useEffect(() => {
@@ -66,7 +66,7 @@ export function ChatSwitcherDropdown({
     const newPrimary = primaryChatId === collectiveId ? null : collectiveId
     const { error } = await supabase
       .from('profiles')
-      .update({ primary_chat_id: newPrimary } as Record<string, unknown>)
+      .update({ primary_chat_id: newPrimary })
       .eq('id', user.id)
     if (error) {
       toast.error('Failed to update default chat')

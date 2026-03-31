@@ -7,6 +7,7 @@ import { useToast } from '@/components/toast'
 import { queueOfflineAction } from '@/lib/offline-sync'
 import { getCurrentPeriodKey, getDueDate, type TaskTemplate, type TaskInstance } from '@/hooks/use-admin-tasks'
 import { resolveAndGenerateDynamicInstances } from '@/hooks/use-timeline-rules'
+import { COLLECTIVE_ROLE_RANK } from '@/lib/constants'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -35,19 +36,9 @@ export interface CollectiveTaskGroup {
   overdueCount: number
 }
 
-/* ------------------------------------------------------------------ */
-/*  Role hierarchy helper                                              */
-/* ------------------------------------------------------------------ */
-
-const ROLE_RANK: Record<string, number> = {
-  assist_leader: 0,
-  co_leader: 1,
-  leader: 2,
-}
-
 /** Returns true if the user's role in a collective meets the template's minimum */
 function meetsRoleRequirement(userRole: string, requiredRole: string): boolean {
-  return (ROLE_RANK[userRole] ?? -1) >= (ROLE_RANK[requiredRole] ?? 99)
+  return (COLLECTIVE_ROLE_RANK[userRole] ?? -1) >= (COLLECTIVE_ROLE_RANK[requiredRole] ?? 99)
 }
 
 /* ------------------------------------------------------------------ */

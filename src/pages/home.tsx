@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, useReducedMotion, useInView } from 'framer-motion'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
@@ -41,7 +41,6 @@ import type { CanonicalImpact } from '@/hooks/use-impact'
 import { usePendingSurveys } from '@/hooks/use-auto-survey'
 import {
     Page,
-    PullToRefresh,
     Badge,
     Button,
     CheckInSheet,
@@ -52,20 +51,8 @@ import { BentoStatCard, BentoStatGrid } from '@/components/bento-stats'
 import { prefetchEventDetail } from '@/hooks/use-events'
 import { cn } from '@/lib/cn'
 import { ProximityCheckInBanner } from '@/components/proximity-check-in-banner'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
-/* ------------------------------------------------------------------ */
-/*  Animation helpers                                                  */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] } },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Section wrapper                                                    */
@@ -91,7 +78,7 @@ function Section({
         {action && (
           <Link
             to={action.to}
-            className="flex items-center gap-0.5 text-xs font-semibold text-primary-600 hover:text-primary-800 active:scale-[0.97] transition-[colors,transform] duration-150"
+            className="flex items-center gap-0.5 text-xs font-semibold text-neutral-600 hover:text-neutral-900 active:scale-[0.97] transition-[colors,transform] duration-150"
           >
             {action.label}
             <ChevronRight size={14} />
@@ -179,16 +166,54 @@ function relativeTime(iso: string): string {
 /*  Parallax Hero (two-layer photo parallax, nature/conservation)      */
 /* ------------------------------------------------------------------ */
 
+function useIsCoarsePointer() {
+  const [coarse, setCoarse] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: coarse)')
+    const handler = (e: MediaQueryListEvent) => setCoarse(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return coarse
+}
+
 function HomeHero({ rm }: { rm: boolean }) {
-  const { bgRef, fgRef, textRef } = useParallaxLayers({ withScale: !rm })
+  const isTouchDevice = useIsCoarsePointer()
+  const disableParallax = rm || isTouchDevice
+  const { bgRef, fgRef, textRef } = useParallaxLayers({ withScale: !disableParallax })
+
+  // Only apply will-change during active scroll to reduce GPU memory on low-end devices
+  const [isScrolling, setIsScrolling] = useState(false)
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (disableParallax) return
+    const onScroll = () => {
+      setIsScrolling(true)
+      if (scrollTimer.current) clearTimeout(scrollTimer.current)
+      scrollTimer.current = setTimeout(() => setIsScrolling(false), 150)
+    }
+    const container = document.getElementById('main-content')
+    window.addEventListener('scroll', onScroll, { passive: true })
+    container?.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      container?.removeEventListener('scroll', onScroll)
+      if (scrollTimer.current) clearTimeout(scrollTimer.current)
+    }
+  }, [disableParallax])
+
+  const wcTransform = !disableParallax && isScrolling ? 'will-change-transform' : ''
 
   return (
     <div className="relative">
       <div className="relative w-full h-[110vw] min-h-[480px] sm:h-auto overflow-hidden">
         {/* Layer 0: Background landscape - slowest parallax */}
         <div
-          ref={rm ? undefined : bgRef}
-          className="h-full will-change-transform"
+          ref={disableParallax ? undefined : bgRef}
+          className={cn('h-full', wcTransform)}
         >
           <img
             src="/img/home-hero-bg.webp"
@@ -199,8 +224,8 @@ function HomeHero({ rm }: { rm: boolean }) {
 
         {/* Layer 1: Foreground elements - medium parallax */}
         <div
-          ref={rm ? undefined : fgRef}
-          className="absolute bottom-0 inset-x-0 z-[3] flex justify-center will-change-transform"
+          ref={disableParallax ? undefined : fgRef}
+          className={cn('absolute bottom-0 inset-x-0 z-[3] flex justify-center', wcTransform)}
         >
           <div className="w-[120%] -ml-[10%] sm:w-[70%] sm:ml-0">
             <img
@@ -213,8 +238,8 @@ function HomeHero({ rm }: { rm: boolean }) {
 
         {/* Hero text - fastest parallax, recedes behind fg */}
         <div
-          ref={rm ? undefined : textRef}
-          className="absolute inset-x-0 top-[18%] sm:top-[7%] z-[2] flex flex-col items-center px-6 will-change-transform"
+          ref={disableParallax ? undefined : textRef}
+          className={cn('absolute inset-x-0 top-[18%] sm:top-[7%] z-[2] flex flex-col items-center px-6', wcTransform)}
         >
           <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-white/80 mb-0.5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
             Welcome to
@@ -947,7 +972,7 @@ function HomeImpactSection({
 
                   {/* Dropdown for multiple collectives */}
                   {hasMultiple && dropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1.5 min-w-[180px] rounded-xl bg-white shadow-lg border border-primary-100 overflow-hidden z-50">
+                    <div className="absolute top-full left-0 mt-1.5 min-w-[180px] rounded-xl bg-white shadow-lg border border-neutral-100 overflow-hidden z-50">
                       {collectives.map((c) => (
                         <button
                           key={c.id}
@@ -961,7 +986,7 @@ function HomeImpactSection({
                             'w-full px-4 py-2.5 text-left text-xs font-medium transition-colors duration-100 cursor-pointer',
                             c.id === selectedCollectiveId
                               ? 'bg-primary-50 text-primary-800 font-semibold'
-                              : 'text-primary-700 hover:bg-primary-50/60',
+                              : 'text-neutral-700 hover:bg-neutral-50',
                           )}
                         >
                           {c.name}
@@ -1142,21 +1167,13 @@ export default function HomePage() {
 
   const firstName = profile?.display_name?.split(' ')[0]
 
-  const handleRefresh = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ['home'] })
-  }, [queryClient])
-
   return (
     <Page noBackground className="!px-0 bg-white">
-      <PullToRefresh
-        onRefresh={handleRefresh}
-        className="min-h-full"
-        background={
-          <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
-            <div className="absolute inset-0 bg-white" />
-          </div>
-        }
-      >
+      <div className={cn('relative', 'min-h-full')}>
+        <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
+          <div className="absolute inset-0 bg-white" />
+        </div>
+        <div className="relative">
         {/* -- Content -- */}
         <div className="relative z-10">
           {/* 1. Parallax layered hero */}
@@ -1168,7 +1185,7 @@ export default function HomePage() {
               initial={rm ? {} : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-              className="font-heading text-xl sm:text-2xl font-bold text-primary-900"
+              className="font-heading text-xl sm:text-2xl font-bold text-neutral-900"
             >
               {getGreeting(firstName)}
             </motion.p>
@@ -1251,7 +1268,8 @@ export default function HomePage() {
             <CtaCards rm={rm} />
           </motion.div>
         </div>
-      </PullToRefresh>
+        </div>
+      </div>
     </Page>
   )
 }

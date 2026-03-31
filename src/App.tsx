@@ -59,7 +59,6 @@ const HomePage = lazy(() => import('@/pages/home'))
 
 // Collectives
 const CollectiveDetailPage = lazy(() => import('@/pages/collectives/collective-detail'))
-const DiscoverCollectivesPage = lazy(() => import('@/pages/collectives/discover'))
 const CollectiveManagePage = lazy(() => import('@/pages/collectives/manage'))
 
 // Chat
@@ -71,6 +70,9 @@ const TasksPage = lazy(() => import('@/pages/tasks/index'))
 
 // Settings
 const SettingsPage = lazy(() => import('@/pages/settings/index'))
+const SettingsNotificationsPage = lazy(() => import('@/pages/settings/notifications'))
+const SettingsPrivacyPage = lazy(() => import('@/pages/settings/privacy'))
+const SettingsAccountPage = lazy(() => import('@/pages/settings/account'))
 
 // Profile, Impact
 const ProfilePage = lazy(() => import('@/pages/profile/index'))
@@ -385,6 +387,9 @@ function App() {
           <Route path="/notifications" element={<PageTransition><NotificationsPage /></PageTransition>} />
           <Route path="/updates" element={<PageTransition><UpdatesPage /></PageTransition>} />
           <Route path="/settings" element={<PageTransition><SettingsPage /></PageTransition>} />
+          <Route path="/settings/notifications" element={<PageTransition><SettingsNotificationsPage /></PageTransition>} />
+          <Route path="/settings/privacy" element={<PageTransition><SettingsPrivacyPage /></PageTransition>} />
+          <Route path="/settings/account" element={<PageTransition><SettingsAccountPage /></PageTransition>} />
 
           <Route path="/contact" element={<PageTransition><ContactPage /></PageTransition>} />
           <Route path="/partners" element={<PageTransition><PartnersPage /></PageTransition>} />

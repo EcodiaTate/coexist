@@ -154,14 +154,14 @@ const COLLECTIVE_ROLE_ICONS: Record<CollectiveRole, typeof Crown> = {
 
 const COLLECTIVE_ROLE_COLORS: Record<CollectiveRole, string> = {
   leader: 'bg-warning-200 text-warning-800',
-  co_leader: 'bg-primary-200 text-primary-800',
+  co_leader: 'bg-neutral-200 text-neutral-800',
   assist_leader: 'bg-info-200 text-info-800',
   member: 'bg-neutral-200 text-neutral-700',
 }
 
 const COLLECTIVE_ROLE_SURFACE: Record<CollectiveRole, string> = {
   leader: 'bg-warning-50 ring-1 ring-warning-200/60',
-  co_leader: 'bg-primary-50 ring-1 ring-primary-200/60',
+  co_leader: 'bg-neutral-50 ring-1 ring-neutral-200/60',
   assist_leader: 'bg-info-50 ring-1 ring-info-200/60',
   member: 'bg-white ring-1 ring-primary-100/50',
 }

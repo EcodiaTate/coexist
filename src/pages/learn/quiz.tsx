@@ -344,13 +344,13 @@ export default function LearnQuizPage() {
             {timeRemaining !== null ? (
               <span className={cn(
                 'flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg tabular-nums',
-                timeRemaining <= 60 ? 'text-error-600 bg-error-50 animate-pulse' : 'text-primary-400 bg-primary-50',
+                timeRemaining <= 60 ? 'text-error-600 bg-error-50 animate-pulse' : 'text-neutral-500 bg-neutral-50',
               )}>
                 <Clock size={11} />
                 {formatTime(timeRemaining)}
               </span>
             ) : quiz.time_limit_minutes ? (
-              <span className="flex items-center gap-1 text-[11px] font-bold text-primary-400 bg-primary-50 px-2 py-1 rounded-lg">
+              <span className="flex items-center gap-1 text-[11px] font-bold text-neutral-500 bg-neutral-50 px-2 py-1 rounded-lg">
                 <Clock size={11} />
                 {quiz.time_limit_minutes}m
               </span>
@@ -383,7 +383,7 @@ export default function LearnQuizPage() {
                   ? 'bg-primary-600 text-white shadow-sm'
                   : answered
                     ? 'bg-moss-100 text-moss-700'
-                    : 'bg-primary-50 text-primary-400 hover:bg-primary-100',
+                    : 'bg-neutral-50 text-neutral-500 hover:bg-neutral-100',
               )}
             >
               {i + 1}

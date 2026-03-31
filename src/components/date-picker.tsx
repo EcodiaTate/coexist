@@ -123,7 +123,7 @@ export function DatePicker({
       {label && (
         <label
           htmlFor={id}
-          className="block mb-1.5 text-sm font-medium text-primary-800"
+          className="block mb-1.5 text-sm font-medium text-neutral-900"
         >
           {label}
         </label>
@@ -149,13 +149,13 @@ export function DatePicker({
         >
           <IconComponent
             size={18}
-            className="shrink-0 mr-3 text-primary-400"
+            className="shrink-0 mr-3 text-neutral-400"
             aria-hidden="true"
           />
           <span
             className={cn(
               'flex-1 truncate',
-              value ? 'text-primary-800' : 'text-primary-400',
+              value ? 'text-neutral-900' : 'text-neutral-400',
             )}
           >
             {value ? formatDate(value, mode) : defaultPlaceholder}

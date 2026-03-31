@@ -392,8 +392,8 @@ export default function AdminContactsPage() {
                   'px-3 min-h-11 rounded-lg text-sm font-semibold whitespace-nowrap',
                   'transition-colors duration-150 cursor-pointer select-none',
                   categoryFilter === cat.id
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-primary-400 hover:text-primary-600',
+                    ? 'bg-neutral-100 text-neutral-900'
+                    : 'text-neutral-500 hover:text-neutral-700',
                 )}
               >
                 {cat.label.split(' ')[0]}

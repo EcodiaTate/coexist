@@ -10,6 +10,7 @@ import { Input } from '@/components/input'
 import { Checkbox } from '@/components/checkbox'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Password strength                                                  */
@@ -40,15 +41,6 @@ function calculateAge(dob: string): number {
   const m = today.getMonth() - birth.getMonth()
   if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
   return age
-}
-
-const stagger = {
-  animate: { transition: { staggerChildren: 0.05 } },
-}
-
-const fadeUp = {
-  initial: { opacity: 0, y: 14 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] } },
 }
 
 export default function SignUpPage() {
@@ -336,7 +328,7 @@ export default function SignUpPage() {
               fullWidth
               loading={isSubmitting}
               disabled={!canSubmit}
-              className="!rounded-2xl !h-[54px] !text-[15px] !font-bold"
+              variant="auth"
             >
               Create Account
             </Button>

@@ -4,7 +4,6 @@ import { motion, AnimatePresence, useReducedMotion, type PanInfo, type Variants 
 import { CheckCheck, Bell } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
-import { PullToRefresh } from '@/components/pull-to-refresh'
 import { EmptyState } from '@/components/empty-state'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
@@ -353,7 +352,6 @@ export default function NotificationsPage() {
     >
       <div className="px-4 lg:px-6">
           {isError ? (
-            <PullToRefresh onRefresh={handleRefresh}>
               <div className="py-12">
                 <EmptyState
                   illustration="error"
@@ -362,7 +360,6 @@ export default function NotificationsPage() {
                   action={{ label: 'Try again', onClick: () => refetch() }}
                 />
               </div>
-            </PullToRefresh>
           ) : showLoading ? (
             <div className="space-y-4 py-6">
               {Array.from({ length: 5 }, (_, i) => (
@@ -379,7 +376,6 @@ export default function NotificationsPage() {
           ) : !hasNotifications ? (
             <AllCaughtUp />
           ) : (
-            <PullToRefresh onRefresh={handleRefresh}>
               <motion.div
                 className="py-4 space-y-6"
                 variants={shouldReduceMotion ? undefined : stagger}
@@ -421,7 +417,6 @@ export default function NotificationsPage() {
                 {/* All caught up footer when everything is read */}
                 {allRead && <AllCaughtUp />}
               </motion.div>
-            </PullToRefresh>
           )}
       </div>
     </Page>

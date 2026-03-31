@@ -37,23 +37,23 @@ export function ListItem({
     <>
       {(icon || avatar) && (
         <span
-          className="flex items-center justify-center shrink-0 mr-3 text-primary-400"
+          className="flex items-center justify-center shrink-0 mr-3 text-neutral-400"
           aria-hidden="true"
         >
           {avatar ?? icon}
         </span>
       )}
       <span className="flex-1 min-w-0">
-        <span className="block text-sm font-medium text-primary-800 truncate">
+        <span className="block text-sm font-medium text-neutral-900 truncate">
           {title}
         </span>
         {subtitle && (
-          <span className="block text-xs text-primary-400 truncate mt-0.5">
+          <span className="block text-xs text-neutral-500 truncate mt-0.5">
             {subtitle}
           </span>
         )}
       </span>
-      <span className="flex items-center shrink-0 ml-3 text-primary-400">
+      <span className="flex items-center shrink-0 ml-3 text-neutral-400">
         {rightContent ?? (
           isInteractive && (
             <ChevronRight className="w-5 h-5" aria-hidden="true" />

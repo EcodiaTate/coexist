@@ -91,8 +91,8 @@ export default function TicketConfirmationPage() {
             >
               <CheckCircle2 size={32} className="text-success-600" />
             </motion.div>
-            <h2 className="font-heading text-xl font-bold text-primary-800">You're going!</h2>
-            <p className="text-sm text-primary-400 mt-1">Your ticket for {event.title} is confirmed.</p>
+            <h2 className="font-heading text-xl font-bold text-neutral-900">You're going!</h2>
+            <p className="text-sm text-neutral-500 mt-1">Your ticket for {event.title} is confirmed.</p>
           </motion.div>
         )}
 
@@ -111,12 +111,12 @@ export default function TicketConfirmationPage() {
           initial={shouldReduceMotion ? undefined : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="rounded-2xl bg-white border border-primary-100/40 shadow-sm overflow-hidden"
+          className="rounded-2xl bg-white border border-neutral-100 shadow-sm overflow-hidden"
         >
           {/* Event info header */}
-          <div className="bg-gradient-to-br from-primary-50 to-white p-5 border-b border-primary-100/30">
-            <h3 className="font-heading text-base font-bold text-primary-800">{event.title}</h3>
-            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-primary-400">
+          <div className="bg-neutral-50 p-5 border-b border-neutral-100">
+            <h3 className="font-heading text-base font-bold text-neutral-900">{event.title}</h3>
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-neutral-500">
               <span className="flex items-center gap-1">
                 <Calendar size={12} />
                 {formatEventDate(event.date_start)}
@@ -137,7 +137,7 @@ export default function TicketConfirmationPage() {
           {/* QR code */}
           {ticket.ticket_code && !isPending && (
             <div className="flex flex-col items-center py-6 px-5">
-              <div className="bg-white p-3 rounded-xl shadow-sm border border-primary-100/20">
+              <div className="bg-white p-3 rounded-xl shadow-sm border border-neutral-100">
                 <QRCodeSVG
                   value={`coexist://ticket/${ticket.ticket_code}`}
                   size={180}
@@ -150,35 +150,35 @@ export default function TicketConfirmationPage() {
                 onClick={copyCode}
                 className="flex items-center gap-2 mt-4 px-4 py-2 rounded-xl bg-primary-50 hover:bg-primary-100 active:scale-[0.97] transition-all cursor-pointer"
               >
-                <span className="font-mono text-lg font-bold text-primary-800 tracking-wider">
+                <span className="font-mono text-lg font-bold text-neutral-900 tracking-wider">
                   {ticket.ticket_code}
                 </span>
-                <Copy size={14} className="text-primary-400" />
+                <Copy size={14} className="text-neutral-400" />
               </button>
-              <p className="text-[11px] text-primary-300 mt-2">Show this at the event for check-in</p>
+              <p className="text-[11px] text-neutral-400 mt-2">Show this at the event for check-in</p>
             </div>
           )}
 
           {/* Ticket details */}
           <div className="px-5 pb-5 space-y-2">
             {ticket.ticket_type_name && (
-              <div className="flex items-center justify-between py-2 border-t border-primary-100/20">
-                <span className="text-xs text-primary-400">Ticket type</span>
-                <span className="text-sm font-medium text-primary-800">{ticket.ticket_type_name}</span>
+              <div className="flex items-center justify-between py-2 border-t border-neutral-100">
+                <span className="text-xs text-neutral-500">Ticket type</span>
+                <span className="text-sm font-medium text-neutral-900">{ticket.ticket_type_name}</span>
               </div>
             )}
-            <div className="flex items-center justify-between py-2 border-t border-primary-100/20">
-              <span className="text-xs text-primary-400">Quantity</span>
-              <span className="text-sm font-medium text-primary-800">{ticket.quantity}</span>
+            <div className="flex items-center justify-between py-2 border-t border-neutral-100">
+              <span className="text-xs text-neutral-500">Quantity</span>
+              <span className="text-sm font-medium text-neutral-900">{ticket.quantity}</span>
             </div>
-            <div className="flex items-center justify-between py-2 border-t border-primary-100/20">
-              <span className="text-xs text-primary-400">Total paid</span>
-              <span className="text-sm font-bold text-primary-800">
+            <div className="flex items-center justify-between py-2 border-t border-neutral-100">
+              <span className="text-xs text-neutral-500">Total paid</span>
+              <span className="text-sm font-bold text-neutral-900">
                 ${(ticket.price_cents / 100).toFixed(2)} AUD
               </span>
             </div>
-            <div className="flex items-center justify-between py-2 border-t border-primary-100/20">
-              <span className="text-xs text-primary-400">Status</span>
+            <div className="flex items-center justify-between py-2 border-t border-neutral-100">
+              <span className="text-xs text-neutral-500">Status</span>
               <span className={cn(
                 'text-sm font-semibold',
                 ticket.status === 'confirmed' ? 'text-success-600'

@@ -193,7 +193,7 @@ export function TagsTab() {
               </div>
               <button
                 onClick={() => setDeletingId(tag.id)}
-                className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-error-100 hover:text-error-600 transition-colors cursor-pointer shrink-0"
+                className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-neutral-400 hover:bg-error-100 hover:text-error-600 transition-colors cursor-pointer shrink-0"
                 aria-label="Delete tag"
               >
                 <Trash2 size={14} />

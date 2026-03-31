@@ -86,7 +86,7 @@ export default function CreateUpdatePage() {
         <div className="w-16 h-16 rounded-2xl bg-primary-100 flex items-center justify-center mb-5">
           <Shield size={28} className="text-primary-400" />
         </div>
-        <h2 className="font-heading text-lg font-bold text-primary-800 mb-2">Admin Only</h2>
+        <h2 className="font-heading text-lg font-bold text-neutral-900 mb-2">Admin Only</h2>
         <p className="text-sm text-primary-500 text-center max-w-xs">
           Only admin staff can create updates. Contact your admin if you need to post an update.
         </p>
@@ -197,7 +197,7 @@ export default function CreateUpdatePage() {
                 helperText="Write your update, invite, recap, or anything you'd like to share."
               />
               <div className="flex justify-end mt-1">
-                <span className="text-xs text-primary-300">{content.length}/10,000</span>
+                <span className="text-xs text-neutral-400">{content.length}/10,000</span>
               </div>
             </div>
           </div>
@@ -311,7 +311,7 @@ export default function CreateUpdatePage() {
           <div className="bg-white px-5 py-5 space-y-5">
             {/* Priority */}
             <div>
-              <label className="block text-sm font-semibold text-primary-800 mb-2">
+              <label className="block text-sm font-semibold text-neutral-900 mb-2">
                 Priority
               </label>
               <div className="flex gap-2.5">
@@ -355,7 +355,7 @@ export default function CreateUpdatePage() {
 
             {/* Target audience */}
             <div>
-              <label className="block text-sm font-semibold text-primary-800 mb-2.5">
+              <label className="block text-sm font-semibold text-neutral-900 mb-2.5">
                 Target Audience
               </label>
               <div className="space-y-2">
@@ -388,7 +388,7 @@ export default function CreateUpdatePage() {
                       <div>
                         <p className={cn(
                           'text-sm font-semibold',
-                          isSelected ? 'text-primary-800' : 'text-neutral-700',
+                          isSelected ? 'text-neutral-900' : 'text-neutral-700',
                         )}>
                           {opt.label}
                         </p>
@@ -405,7 +405,7 @@ export default function CreateUpdatePage() {
               {/* Collective picker */}
               {targetAudience === 'collective_specific' && (
                 <div className="mt-3 space-y-2">
-                  <label className="block text-xs font-bold text-primary-500 uppercase tracking-wider">
+                  <label className="block text-xs font-bold text-neutral-500 uppercase tracking-wider">
                     Select collective
                   </label>
                   {(isAdmin ? (allCollectives ?? []).map(c => ({ id: c.id, name: c.name, cover_image_url: c.cover_image_url, region: c.region, state: c.state })) : (myCollectives ?? []).map(m => {
@@ -444,7 +444,7 @@ export default function CreateUpdatePage() {
                         <div>
                           <p className={cn(
                             'text-sm font-semibold',
-                            isSelected ? 'text-primary-800' : 'text-neutral-700',
+                            isSelected ? 'text-neutral-900' : 'text-neutral-700',
                           )}>
                             {collective.name}
                           </p>
@@ -487,7 +487,7 @@ export default function CreateUpdatePage() {
               <div className="text-left">
                 <p className={cn(
                   'text-sm font-semibold',
-                  isPinned ? 'text-primary-800' : 'text-neutral-700',
+                  isPinned ? 'text-neutral-900' : 'text-neutral-700',
                 )}>
                   Pin to top
                 </p>
@@ -541,7 +541,7 @@ export default function CreateUpdatePage() {
         snapPoints={[0.85]}
       >
         <div className="space-y-4 max-h-[75vh] overflow-y-auto">
-          <h3 className="font-heading text-lg font-bold text-primary-800 text-center">
+          <h3 className="font-heading text-lg font-bold text-neutral-900 text-center">
             Preview
           </h3>
 
@@ -550,8 +550,8 @@ export default function CreateUpdatePage() {
           >
             {isPinned && (
               <div className="flex items-center gap-1 px-4 pt-3">
-                <Pin size={12} className="text-primary-400" aria-hidden="true" />
-                <span className="text-xs font-semibold text-primary-400">Pinned</span>
+                <Pin size={12} className="text-neutral-500" aria-hidden="true" />
+                <span className="text-xs font-semibold text-neutral-500">Pinned</span>
               </div>
             )}
 
@@ -597,10 +597,10 @@ export default function CreateUpdatePage() {
             )}
 
             <div className="px-4 pt-3 pb-4">
-              <h4 className="font-heading font-bold text-lg text-primary-800 leading-tight">
+              <h4 className="font-heading font-bold text-lg text-neutral-900 leading-tight">
                 {title || 'Update title'}
               </h4>
-              <div className="mt-3 text-sm text-primary-600 leading-relaxed whitespace-pre-wrap">
+              <div className="mt-3 text-sm text-neutral-600 leading-relaxed whitespace-pre-wrap">
                 {content || 'Update content will appear here...'}
               </div>
               <div className="flex items-center gap-2.5 mt-4 pt-3 border-t border-neutral-100">
@@ -609,10 +609,10 @@ export default function CreateUpdatePage() {
                   name={profile?.display_name ?? 'Staff'}
                   size="xs"
                 />
-                <span className="text-xs font-semibold text-primary-800">
+                <span className="text-xs font-semibold text-neutral-900">
                   {profile?.display_name ?? 'You'}
                 </span>
-                <span className="text-xs text-primary-400">Just now</span>
+                <span className="text-xs text-neutral-500">Just now</span>
               </div>
             </div>
           </div>

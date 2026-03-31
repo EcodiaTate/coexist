@@ -233,7 +233,7 @@ export default function LoginPage() {
               fullWidth
               loading={isSubmitting}
               disabled={!canSubmit}
-              className="!rounded-2xl !h-[54px] !text-[15px] !font-bold"
+              variant="auth"
             >
               Log In
             </Button>
