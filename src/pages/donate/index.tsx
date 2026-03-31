@@ -32,7 +32,7 @@ function useDonateNationalStats() {
     queryKey: ['national-impact'],
     queryFn: async () => {
       const [impactRes, eventsRes, membersRes, collectivesRes] = await Promise.all([
-        supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS),
+        supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).not('notes', 'like', 'Legacy import:%'),
         supabase.from('events').select('id', { count: 'exact', head: true }).lt('date_start', new Date().toISOString()),
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('collectives').select('id', { count: 'exact', head: true }),

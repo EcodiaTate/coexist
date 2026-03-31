@@ -174,7 +174,8 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
     supabase
       .from('event_impact')
       .select(`${IMPACT_SELECT_COLUMNS}, events!inner(collective_id)`)
-      .eq('events.collective_id', collectiveId),
+      .eq('events.collective_id', collectiveId)
+      .not('notes', 'like', 'Legacy import:%'),
     supabase
       .from('collective_members')
       .select('id', { count: 'exact', head: true })
