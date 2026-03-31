@@ -69,6 +69,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         .select('key, value')
         .in('key', [
           'impact_baseline_attendees',
+          'impact_baseline_events',
           'impact_baseline_trees',
           'impact_baseline_rubbish_kg',
         ])
@@ -77,6 +78,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         baselineMap[row.key] = (row.value as { count?: number })?.count ?? 0
       }
       const baselineAttendees = baselineMap['impact_baseline_attendees'] ?? 0
+      const baselineEvents    = baselineMap['impact_baseline_events'] ?? 0
       const baselineTrees     = baselineMap['impact_baseline_trees'] ?? 0
       const baselineRubbishKg = baselineMap['impact_baseline_rubbish_kg'] ?? 0
 
@@ -160,7 +162,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       return {
         eventsAttended: (attendanceCount ?? 0) + (isAllTime ? baselineAttendees : 0),
         volunteerHours: Math.round(sumMetric(logs, 'hours_total')),
-        eventsHeld: eventsRes.count ?? 0,
+        eventsHeld: (eventsRes.count ?? 0) + (isAllTime ? baselineEvents : 0),
         treesPlanted: sumMetric(logs, 'trees_planted') + (isAllTime ? baselineTrees : 0),
         invasiveWeedsPulled: sumMetric(logs, 'invasive_weeds_pulled'),
         rubbishCollectedTonnes: Math.round(((sumMetric(logs, 'rubbish_kg') + (isAllTime ? baselineRubbishKg : 0)) / 1000) * 100) / 100,
