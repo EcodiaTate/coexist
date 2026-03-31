@@ -206,20 +206,18 @@ export default function AdminCollectivesPage() {
   const stats = useMemo(() => {
     if (!collectives) return null
     const total = collectives.length
-    const active = collectives.filter((c) => c.is_active).length
     const totalMembers = collectives.reduce((acc, c) => acc + c.memberCount, 0)
     const totalEvents = collectives.reduce((acc, c) => acc + c.eventCount, 0)
-    return { total, active, totalMembers, totalEvents }
+    return { total, totalMembers, totalEvents }
   }, [collectives])
 
   const rm = !!shouldReduceMotion
 
   const heroStats = useMemo(() => (
     <AdminHeroStatRow>
-      <AdminHeroStat value={stats?.total ?? 0} label="Total" icon={<MapPin size={18} />} color="primary" delay={0} reducedMotion={rm} />
-      <AdminHeroStat value={stats?.active ?? 0} label="Active" icon={<Users size={18} />} color="success" delay={1} reducedMotion={rm} />
-      <AdminHeroStat value={stats?.totalMembers ?? 0} label="Members" icon={<Users size={18} />} color="info" delay={2} reducedMotion={rm} />
-      <AdminHeroStat value={stats?.totalEvents ?? 0} label="Events" icon={<CalendarDays size={18} />} color="sprout" delay={3} reducedMotion={rm} />
+      <AdminHeroStat value={stats?.total ?? 0} label="Collectives" icon={<MapPin size={18} />} color="primary" delay={0} reducedMotion={rm} />
+      <AdminHeroStat value={stats?.totalMembers ?? 0} label="Members" icon={<Users size={18} />} color="info" delay={1} reducedMotion={rm} />
+      <AdminHeroStat value={stats?.totalEvents ?? 0} label="Events" icon={<CalendarDays size={18} />} color="sprout" delay={2} reducedMotion={rm} />
     </AdminHeroStatRow>
   ), [stats, rm])
 

@@ -7,20 +7,8 @@ import { Input } from '@/components/input'
 import { OGMeta } from '@/components/og-meta'
 import { WebFooter } from '@/components/web-footer'
 import { APP_NAME, CONTACT_EMAIL } from '@/lib/constants'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
-/* ------------------------------------------------------------------ */
-/*  Animation                                                          */
-/* ------------------------------------------------------------------ */
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const } },
-}
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Steps                                                              */
@@ -188,12 +176,12 @@ export default function AccountDeletionPage() {
       />
 
       {/* Header bar */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-primary-100/50">
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-neutral-100">
         <div className="max-w-2xl mx-auto px-4 h-14 flex items-center gap-3">
-          <a href="/" className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-primary-50 transition-colors" aria-label="Back to home">
+          <a href="/" className="flex items-center justify-center w-9 h-9 rounded-full hover:bg-neutral-50 transition-colors" aria-label="Back to home">
             <ArrowLeft size={20} className="text-primary-700" />
           </a>
-          <h1 className="font-heading text-lg font-semibold text-primary-800">{APP_NAME}</h1>
+          <h1 className="font-heading text-lg font-semibold text-neutral-900">{APP_NAME}</h1>
         </div>
       </div>
 
@@ -214,17 +202,17 @@ export default function AccountDeletionPage() {
                   <div className="mx-auto w-14 h-14 rounded-2xl bg-error/10 flex items-center justify-center">
                     <Trash2 size={28} className="text-error" />
                   </div>
-                  <h2 className="font-heading text-2xl font-bold text-primary-800">Delete Your Account</h2>
-                  <p className="text-primary-500 text-sm leading-relaxed max-w-md mx-auto">
+                  <h2 className="font-heading text-2xl font-bold text-neutral-900">Delete Your Account</h2>
+                  <p className="text-neutral-500 text-sm leading-relaxed max-w-md mx-auto">
                     Request deletion of your {APP_NAME} account and all associated personal data.
                   </p>
                 </motion.div>
 
-                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 p-5 space-y-4">
-                  <h3 className="font-heading font-semibold text-primary-800">What happens when you delete your account</h3>
-                  <ul className="space-y-3 text-sm text-primary-600">
+                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="bg-white/90 rounded-2xl shadow-sm border border-neutral-100 p-5 space-y-4">
+                  <h3 className="font-heading font-semibold text-neutral-900">What happens when you delete your account</h3>
+                  <ul className="space-y-3 text-sm text-neutral-600">
                     <li className="flex gap-3">
-                      <Shield size={18} className="text-primary-400 shrink-0 mt-0.5" />
+                      <Shield size={18} className="text-neutral-400 shrink-0 mt-0.5" />
                       <span>Your account will be marked for deletion with a <strong className="text-primary-700">30-day grace period</strong>. During this time, you can recover your account by simply logging back in.</span>
                     </li>
                     <li className="flex gap-3">
@@ -232,7 +220,7 @@ export default function AccountDeletionPage() {
                       <span>After 30 days, all your personal data will be <strong className="text-primary-700">permanently removed</strong>, including your profile, event history, chat messages, points, and badges.</span>
                     </li>
                     <li className="flex gap-3">
-                      <Mail size={18} className="text-primary-400 shrink-0 mt-0.5" />
+                      <Mail size={18} className="text-neutral-400 shrink-0 mt-0.5" />
                       <span>Financial records (donations, orders) will be anonymised for accounting compliance but will no longer be linked to you.</span>
                     </li>
                   </ul>
@@ -266,8 +254,8 @@ export default function AccountDeletionPage() {
                   <div className="mx-auto w-14 h-14 rounded-2xl bg-primary-100 flex items-center justify-center">
                     <Lock size={28} className="text-primary-700" />
                   </div>
-                  <h2 className="font-heading text-2xl font-bold text-primary-800">Confirm Your Identity</h2>
-                  <p className="text-primary-500 text-sm leading-relaxed max-w-md mx-auto">
+                  <h2 className="font-heading text-2xl font-bold text-neutral-900">Confirm Your Identity</h2>
+                  <p className="text-neutral-500 text-sm leading-relaxed max-w-md mx-auto">
                     Sign in to confirm the deletion request. Use the same method you used to create your account.
                   </p>
                 </motion.div>
@@ -276,7 +264,7 @@ export default function AccountDeletionPage() {
                 <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="space-y-3">
                   <button
                     type="button"
-                    className="w-full h-12 rounded-xl border border-primary-200 bg-white flex items-center justify-center gap-3 text-sm font-medium text-primary-700 hover:bg-primary-50 transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border border-neutral-200 bg-white flex items-center justify-center gap-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors disabled:opacity-50"
                     onClick={() => handleOAuthDelete('google')}
                     disabled={loading}
                   >
@@ -291,7 +279,7 @@ export default function AccountDeletionPage() {
 
                   <button
                     type="button"
-                    className="w-full h-12 rounded-xl border border-primary-200 bg-black flex items-center justify-center gap-3 text-sm font-medium text-white hover:bg-neutral-800 transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border border-neutral-200 bg-black flex items-center justify-center gap-3 text-sm font-medium text-white hover:bg-neutral-800 transition-colors disabled:opacity-50"
                     onClick={() => handleOAuthDelete('apple')}
                     disabled={loading}
                   >
@@ -304,9 +292,9 @@ export default function AccountDeletionPage() {
 
                 {/* Divider */}
                 <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-primary-100" />
-                  <span className="text-xs text-primary-400 uppercase tracking-wider">or with email</span>
-                  <div className="flex-1 h-px bg-primary-100" />
+                  <div className="flex-1 h-px bg-neutral-100" />
+                  <span className="text-xs text-neutral-500 uppercase tracking-wider">or with email</span>
+                  <div className="flex-1 h-px bg-neutral-100" />
                 </motion.div>
 
                 {/* Email + password form */}
@@ -355,13 +343,13 @@ export default function AccountDeletionPage() {
 
                   <button
                     type="button"
-                    className="w-full text-center text-sm text-primary-500 hover:text-primary-700 transition-colors py-2"
+                    className="w-full text-center text-sm text-neutral-500 hover:text-primary-700 transition-colors py-2"
                     onClick={() => { setStep('info'); setError(''); setPassword('') }}
                   >
                     Go back
                   </button>
 
-                  <p className="text-center text-xs text-primary-400">
+                  <p className="text-center text-xs text-neutral-500">
                     Forgot your password? <a href="/forgot-password" className="text-primary-600 underline underline-offset-2">Reset it first</a>, then return here.
                   </p>
                 </motion.div>
@@ -375,31 +363,31 @@ export default function AccountDeletionPage() {
                   <div className="mx-auto w-14 h-14 rounded-2xl bg-primary-100 flex items-center justify-center">
                     <CheckCircle size={28} className="text-primary-700" />
                   </div>
-                  <h2 className="font-heading text-2xl font-bold text-primary-800">Account Deletion Requested</h2>
-                  <p className="text-primary-500 text-sm leading-relaxed max-w-md mx-auto">
+                  <h2 className="font-heading text-2xl font-bold text-neutral-900">Account Deletion Requested</h2>
+                  <p className="text-neutral-500 text-sm leading-relaxed max-w-md mx-auto">
                     Your account has been marked for deletion. You have <strong className="text-primary-700">30 days</strong> to change your mind by logging back in.
                   </p>
                 </motion.div>
 
-                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="bg-white/90 rounded-2xl shadow-sm border border-primary-100/50 p-5 space-y-3">
-                  <h3 className="font-heading font-semibold text-primary-800">What happens next</h3>
-                  <ul className="space-y-2 text-sm text-primary-600">
+                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="bg-white/90 rounded-2xl shadow-sm border border-neutral-100 p-5 space-y-3">
+                  <h3 className="font-heading font-semibold text-neutral-900">What happens next</h3>
+                  <ul className="space-y-2 text-sm text-neutral-600">
                     <li className="flex gap-2">
-                      <span className="text-primary-400">1.</span>
+                      <span className="text-neutral-500">1.</span>
                       Your account is immediately deactivated.
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-primary-400">2.</span>
+                      <span className="text-neutral-500">2.</span>
                       Within 30 days, you can recover your account by logging in.
                     </li>
                     <li className="flex gap-2">
-                      <span className="text-primary-400">3.</span>
+                      <span className="text-neutral-500">3.</span>
                       After 30 days, all personal data is permanently removed.
                     </li>
                   </ul>
                 </motion.div>
 
-                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="text-center text-sm text-primary-500">
+                <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="text-center text-sm text-neutral-500">
                   Questions? Contact us at{' '}
                   <a href={`mailto:${CONTACT_EMAIL}`} className="text-primary-700 underline underline-offset-2">
                     {CONTACT_EMAIL}

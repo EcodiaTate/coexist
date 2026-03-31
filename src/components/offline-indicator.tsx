@@ -31,7 +31,7 @@ export function OfflineIndicator({
 
   if (isFetching && !isOffline) {
     return (
-      <span className={cn('inline-flex items-center gap-1 text-xs text-primary-400', className)}>
+      <span className={cn('inline-flex items-center gap-1 text-xs text-neutral-500', className)}>
         <RefreshCw size={12} className="animate-spin" />
         {!compact && <span>Updating…</span>}
       </span>
@@ -54,7 +54,7 @@ export function OfflineIndicator({
       const mins = Math.round(age / 60_000)
       const label = mins >= 60 ? `${Math.round(mins / 60)}h ago` : `${mins}m ago`
       return (
-        <span className={cn('inline-flex items-center gap-1 text-xs text-primary-400', className)}>
+        <span className={cn('inline-flex items-center gap-1 text-xs text-neutral-500', className)}>
           <Clock size={12} />
           {!compact ? <span>Updated {label}</span> : null}
         </span>

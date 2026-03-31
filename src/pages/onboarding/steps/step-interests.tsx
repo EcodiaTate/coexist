@@ -2,16 +2,7 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Trees, Waves, Bird, Sprout, Flower2, Droplets, Fence, Leaf } from 'lucide-react'
 import { Chip } from '@/components/chip'
 import { Button } from '@/components/button'
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-}
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 const INTERESTS = [
   { id: 'shore_cleanup', label: 'Shore Cleanup', icon: <Waves size={16} /> },

@@ -19,20 +19,7 @@ import { cn } from '@/lib/cn'
 import { useMyTargetedContent } from '@/hooks/use-development-assignments'
 import { useMyModuleProgress, useMySectionProgress } from '@/hooks/use-development-progress'
 import type { DevModule, DevSection } from '@/hooks/use-admin-development'
-
-/* ------------------------------------------------------------------ */
-/*  Animation                                                          */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 14 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] as const } },
-}
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Content card                                                       */

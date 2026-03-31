@@ -241,7 +241,7 @@ export function QrScanner({
   // Web: live camera feed with jsQR scanning
   return (
     <>
-      <p className="text-sm font-semibold text-primary-700 mb-3">
+      <p className="text-sm font-semibold text-neutral-900 mb-3">
         Point your camera at the QR code
       </p>
       <WebQrScanner onScan={handleWebQrScan} onError={onCameraError} />

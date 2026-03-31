@@ -8,6 +8,8 @@ import { OGMeta } from '@/components/og-meta'
 import { APP_NAME, TAGLINE, WEBSITE_URL, INSTAGRAM_URL } from '@/lib/constants'
 import { useAppImage } from '@/hooks/use-app-images'
 import { WebFooter } from '@/components/web-footer'
+import { usePublicStats } from '@/hooks/use-public-stats'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Platform detection                                                 */
@@ -30,29 +32,14 @@ const PLAY_STORE_URL = '#'
 const WEB_APP_URL = '/'
 
 /* ------------------------------------------------------------------ */
-/*  Stats                                                              */
+/*  Stats helper                                                       */
 /* ------------------------------------------------------------------ */
 
-const stats = [
-  { value: '5,500+', label: 'Volunteers', icon: Users },
-  { value: '13', label: 'Collectives', icon: MapPin },
-  { value: '35,500+', label: 'Native Plants', icon: Leaf },
-  { value: '850+', label: 'Events', icon: Calendar },
-]
-
-/* ------------------------------------------------------------------ */
-/*  Animation                                                          */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.15 } },
+function formatStat(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(n >= 10000 ? 1 : 1).replace(/\.0$/, '')}k+`
+  return `${n}+`
 }
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const } },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Store badges (authentic styling)                                   */
@@ -132,8 +119,8 @@ function FeatureCard({ icon: Icon, title, desc, accent }: {
       <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center mb-3', accent)}>
         <Icon size={20} className="text-white" />
       </div>
-      <h3 className="font-heading text-[15px] font-semibold text-primary-800 mb-1">{title}</h3>
-      <p className="text-xs text-primary-400 leading-relaxed">{desc}</p>
+      <h3 className="font-heading text-[15px] font-semibold text-neutral-900 mb-1">{title}</h3>
+      <p className="text-xs text-neutral-500 leading-relaxed">{desc}</p>
     </div>
   )
 }
@@ -173,6 +160,14 @@ export default function DownloadPage() {
   const rm = !!shouldReduceMotion
   const heroDownload = useAppImage('hero_download')
   const platform = getDevicePlatform()
+  const { data: liveStats } = usePublicStats()
+
+  const stats = [
+    { value: liveStats ? formatStat(liveStats.volunteers) : '...', label: 'Volunteers', icon: Users },
+    { value: liveStats ? String(liveStats.collectives) : '...', label: 'Collectives', icon: MapPin },
+    { value: liveStats ? formatStat(liveStats.nativePlants) : '...', label: 'Native Plants', icon: Leaf },
+    { value: liveStats ? formatStat(liveStats.events) : '...', label: 'Events', icon: Calendar },
+  ]
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
@@ -345,11 +340,11 @@ export default function DownloadPage() {
               variants={fadeUp}
               className="text-center"
             >
-              <div className="w-10 h-10 rounded-xl bg-moss-100/60 flex items-center justify-center mx-auto mb-2">
+              <div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center mx-auto mb-2">
                 <stat.icon size={18} className="text-moss-600" />
               </div>
-              <p className="font-heading text-xl font-bold text-primary-800">{stat.value}</p>
-              <p className="text-[11px] text-primary-400 font-medium">{stat.label}</p>
+              <p className="font-heading text-xl font-bold text-neutral-900">{stat.value}</p>
+              <p className="text-[11px] text-neutral-500 font-medium">{stat.label}</p>
             </motion.div>
           ))}
         </div>
@@ -366,8 +361,8 @@ export default function DownloadPage() {
         viewport={{ once: true, margin: '-40px' }}
       >
         <motion.div variants={fadeUp} className="text-center mb-6">
-          <h2 className="font-heading text-xl font-bold text-primary-800">What you can do</h2>
-          <p className="text-sm text-primary-400 mt-1">Everything to be part of the movement</p>
+          <h2 className="font-heading text-xl font-bold text-neutral-900">What you can do</h2>
+          <p className="text-sm text-neutral-500 mt-1">Everything to be part of the movement</p>
         </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -435,7 +430,7 @@ export default function DownloadPage() {
         </div>
 
         {/* Links */}
-        <div className="mt-6 flex items-center justify-center gap-4 text-sm text-primary-400">
+        <div className="mt-6 flex items-center justify-center gap-4 text-sm text-neutral-500">
           <a
             href={WEBSITE_URL}
             target="_blank"

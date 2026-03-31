@@ -74,8 +74,8 @@ export function TabBar({
                 'transition-colors duration-200',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1',
                 isActive
-                  ? 'text-primary-800'
-                  : 'text-primary-400/70 hover:text-primary-600',
+                  ? 'text-neutral-900'
+                  : 'text-neutral-500/70 hover:text-neutral-700',
               )}
             >
               {/* Animated underline indicator */}

@@ -17,12 +17,7 @@ import type { BroadcastLogEntry } from '@/hooks/use-chat'
 /*  Member management sheet (collective mode only)                     */
 /* ------------------------------------------------------------------ */
 
-const MANAGE_ROLE_RANK: Record<string, number> = {
-  member: 0,
-  assist_leader: 1,
-  co_leader: 2,
-  leader: 3,
-}
+import { COLLECTIVE_ROLE_RANK as MANAGE_ROLE_RANK } from '@/lib/constants'
 
 function ManageMembersSheet({
   open,

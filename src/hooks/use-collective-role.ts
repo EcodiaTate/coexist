@@ -1,16 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './use-auth'
+import { COLLECTIVE_ROLE_RANK } from '@/lib/constants'
 import type { Database } from '@/types/database.types'
 
 type CollectiveRole = Database['public']['Enums']['collective_role']
 
-const ROLE_RANK: Record<CollectiveRole, number> = {
-  member: 0,
-  assist_leader: 1,
-  co_leader: 2,
-  leader: 3,
-}
+const ROLE_RANK = COLLECTIVE_ROLE_RANK as Record<CollectiveRole, number>
 
 interface UseCollectiveRoleReturn {
   role: CollectiveRole | null

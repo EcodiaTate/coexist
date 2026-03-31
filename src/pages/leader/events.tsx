@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
@@ -9,9 +9,12 @@ import {
     Clock,
     ChevronRight,
     Search,
+    UserCheck,
+    AlertTriangle,
 } from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader, useLeaderContext } from '@/components/leader-layout'
+import { SearchBar } from '@/components/search-bar'
 import { Badge } from '@/components/badge'
 import { cn } from '@/lib/cn'
 import {
@@ -19,20 +22,8 @@ import {
     formatEventDate,
 } from '@/hooks/use-events'
 import { useLeaderCollectiveEvents as useCollectiveEvents, useLeaderEventStats as useEventStats } from '@/hooks/use-leader-events'
-
-/* ------------------------------------------------------------------ */
-/*  Animation                                                          */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number] } },
-}
+import { activityToBadge } from '@/lib/activity-types'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Status badge                                                       */
@@ -43,22 +34,6 @@ const statusStyles: Record<string, string> = {
   live: 'bg-success-100 text-success-700',
   cancelled: 'bg-error-100 text-error-700',
   completed: 'bg-primary-50 text-primary-400',
-}
-
-/* ------------------------------------------------------------------ */
-/*  Activity badge mapping                                             */
-/* ------------------------------------------------------------------ */
-
-const activityToBadge: Record<string, 'shore-cleanup' | 'tree-planting' | 'land-regeneration' | 'nature-walk' | 'camp-out' | 'retreat' | 'film-screening' | 'marine-restoration' | 'workshop'> = {
-  shore_cleanup: 'shore-cleanup',
-  tree_planting: 'tree-planting',
-  land_regeneration: 'land-regeneration',
-  nature_walk: 'nature-walk',
-  camp_out: 'camp-out',
-  retreat: 'retreat',
-  film_screening: 'film-screening',
-  marine_restoration: 'marine-restoration',
-  workshop: 'workshop',
 }
 
 /* ------------------------------------------------------------------ */
@@ -80,10 +55,17 @@ export default function LeaderEventsPage() {
   const rm = !!shouldReduceMotion
   const { collectiveId } = useLeaderContext()
   const [filter, setFilter] = useState<string>('upcoming')
+  const [searchQuery, setSearchQuery] = useState('')
 
   useLeaderHeader('Events', { fullBleed: true })
 
-  const { data: events, isLoading } = useCollectiveEvents(collectiveId, filter)
+  const { data: allEvents, isLoading } = useCollectiveEvents(collectiveId, filter)
+
+  const events = useMemo(() => {
+    if (!allEvents || !searchQuery.trim()) return allEvents
+    const q = searchQuery.toLowerCase()
+    return allEvents.filter((e) => e.title.toLowerCase().includes(q))
+  }, [allEvents, searchQuery])
   const showLoading = useDelayedLoading(isLoading)
   const { data: stats } = useEventStats(collectiveId)
 
@@ -144,7 +126,7 @@ export default function LeaderEventsPage() {
         <motion.div variants={rm ? undefined : fadeUp} className="flex justify-center gap-3">
           {[
             { value: stats?.upcoming ?? 0, label: 'Upcoming', color: 'text-moss-700' },
-            { value: stats?.past ?? 0, label: 'Past', color: 'text-primary-600' },
+            { value: stats?.past ?? 0, label: 'Past', color: 'text-neutral-900' },
             { value: stats?.drafts ?? 0, label: 'Drafts', color: 'text-primary-500' },
           ].map((s) => (
             <div key={s.label} className="flex flex-col items-center rounded-2xl bg-white shadow-sm border border-neutral-100 px-5 py-3 min-w-[80px]">
@@ -175,6 +157,11 @@ export default function LeaderEventsPage() {
           </div>
         </motion.div>
 
+        {/* ── Search ── */}
+        <motion.div variants={rm ? undefined : fadeUp}>
+          <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search events..." compact />
+        </motion.div>
+
         {/* ── Event list ── */}
         {!events || events.length === 0 ? (
           <motion.div
@@ -195,6 +182,10 @@ export default function LeaderEventsPage() {
           <div className="space-y-3">
             {events.map((event, idx) => {
               const regCount = event.event_registrations?.[0]?.count ?? 0
+              const checkedIn = event.checked_in_count ?? 0
+              const isPast = event.date_start && new Date(event.date_start) < new Date()
+              const attendanceRate = isPast && regCount > 0 ? Math.round((checkedIn / regCount) * 100) : null
+              const lowAttendance = attendanceRate !== null && attendanceRate < 50
 
               return (
                 <motion.div
@@ -204,7 +195,10 @@ export default function LeaderEventsPage() {
                 >
                   <Link
                     to={`/events/${event.id}`}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-white shadow-sm border border-neutral-100 hover:shadow-md hover:border-neutral-200 active:scale-[0.99] transition-[border-color,transform] duration-200"
+                    className={cn(
+                      'flex items-center gap-4 p-4 rounded-2xl bg-white shadow-sm border hover:shadow-md active:scale-[0.99] transition-[border-color,transform] duration-200',
+                      lowAttendance ? 'border-warning-200' : 'border-neutral-100 hover:border-neutral-200',
+                    )}
                   >
                     {/* Cover thumbnail */}
                     {event.cover_image_url ? (
@@ -249,6 +243,19 @@ export default function LeaderEventsPage() {
                           <Users size={11} />
                           {regCount} registered
                         </span>
+                        {(isPast || checkedIn > 0) && (
+                          <span className={cn(
+                            'text-[11px] font-semibold flex items-center gap-1',
+                            lowAttendance ? 'text-warning-600' : 'text-moss-500',
+                          )}>
+                            <UserCheck size={11} />
+                            {checkedIn} checked in
+                            {attendanceRate !== null && (
+                              <span className="ml-0.5">({attendanceRate}%)</span>
+                            )}
+                            {lowAttendance && <AlertTriangle size={10} className="ml-0.5" />}
+                          </span>
+                        )}
                         {event.activity_type && (
                           <Badge
                             variant="activity"

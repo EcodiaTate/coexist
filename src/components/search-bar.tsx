@@ -166,7 +166,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
               size={compact ? 16 : 18}
               className={cn(
                 'transition-colors duration-200',
-                focused ? 'text-primary-500' : 'text-primary-400/70',
+                focused ? 'text-primary-500' : 'text-neutral-400',
               )}
             />
           </motion.div>
@@ -187,7 +187,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
               'flex-1 bg-transparent outline-none ring-0 border-none',
               'focus:outline-none focus:ring-0 focus:border-none',
               'appearance-none [&::-webkit-search-cancel-button]:hidden',
-              'text-primary-800 placeholder:text-primary-600',
+              'text-neutral-900 placeholder:text-neutral-500',
               'caret-primary-500',
               // 16px on mobile prevents iOS zoom, smaller on desktop
               'text-[16px] sm:text-sm',
@@ -204,7 +204,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
                 aria-label="Clear search"
                 className={cn(
                   'flex items-center justify-center shrink-0 rounded-full',
-                  'text-primary-400 hover:text-primary-600',
+                  'text-neutral-400 hover:text-neutral-600',
                   'hover:bg-primary-100/60 active:bg-primary-200/60',
                   'transition-colors duration-150',
                   compact ? 'w-11 h-11 mr-0.5' : 'w-11 h-11 mr-0.5',
@@ -236,7 +236,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
                     : { type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }
                 }
               >
-                <Sparkles size={compact ? 14 : 16} className="text-primary-400/50" />
+                <Sparkles size={compact ? 14 : 16} className="text-neutral-400/50" />
               </motion.div>
             ) : (
               /* Spacer so input padding stays consistent */

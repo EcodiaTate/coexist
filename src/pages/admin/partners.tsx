@@ -329,7 +329,7 @@ export default function AdminPartnersPage() {
                       className="w-10 h-10 rounded-lg object-contain bg-white shrink-0"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-primary-50/60 shadow-sm flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-neutral-50 shadow-sm flex items-center justify-center shrink-0">
                       <Building2 size={18} className="text-neutral-400" />
                     </div>
                   )}

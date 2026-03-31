@@ -114,22 +114,22 @@ export default function ViewProfilePage() {
             size="xl"
           />
 
-          <h2 className="mt-3 font-heading text-xl font-bold text-primary-800">
+          <h2 className="mt-3 font-heading text-xl font-bold text-neutral-900">
             {profile.display_name}
           </h2>
           {profile.pronouns && (
-            <span className="text-sm text-primary-400">{profile.pronouns}</span>
+            <span className="text-sm text-neutral-500">{profile.pronouns}</span>
           )}
 
           {profile.bio && (
-            <p className="mt-3 text-center text-sm text-primary-400 max-w-xs leading-relaxed">
+            <p className="mt-3 text-center text-sm text-neutral-500 max-w-xs leading-relaxed">
               {profile.bio}
             </p>
           )}
 
           <div className="mt-3 flex flex-wrap items-center justify-center gap-3">
             {profile.location && (
-              <span className="flex items-center gap-1 text-sm text-primary-400">
+              <span className="flex items-center gap-1 text-sm text-neutral-500">
                 <MapPin size={14} />
                 {profile.location}
               </span>
@@ -139,7 +139,7 @@ export default function ViewProfilePage() {
                 href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-sm text-primary-400 hover:text-primary-400 transition-colors"
+                className="flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-600 transition-colors"
               >
                 <Instagram size={14} />
                 {profile.instagram_handle.startsWith('@')
@@ -149,7 +149,7 @@ export default function ViewProfilePage() {
             )}
           </div>
 
-          <p className="mt-2 text-xs text-primary-400">Member since {memberSince}</p>
+          <p className="mt-2 text-xs text-neutral-500">Member since {memberSince}</p>
         </motion.div>
 
         {/* Mutual Connections */}
@@ -158,7 +158,7 @@ export default function ViewProfilePage() {
             variants={fadeUp}
             className="mt-2 rounded-xl bg-surface-0 shadow-sm px-4 py-3"
           >
-            <div className="flex items-center gap-2 text-sm text-primary-400">
+            <div className="flex items-center gap-2 text-sm text-neutral-500">
               <Users size={16} />
               <div>
                 {mutualData.sharedCollectives.length > 0 && (
@@ -211,7 +211,7 @@ export default function ViewProfilePage() {
             variants={fadeUp}
             className="mt-6"
           >
-            <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
+            <h3 className="font-heading text-base font-semibold text-neutral-900 mb-3">
               Collectives
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -236,7 +236,7 @@ export default function ViewProfilePage() {
             variants={fadeUp}
             className="mt-6"
           >
-            <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
+            <h3 className="font-heading text-base font-semibold text-neutral-900 mb-3">
               Interests
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -256,7 +256,7 @@ export default function ViewProfilePage() {
               variants={fadeUp}
               className="mt-6"
             >
-              <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
+              <h3 className="font-heading text-base font-semibold text-neutral-900 mb-3">
                 Location
               </h3>
               <MapView

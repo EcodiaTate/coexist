@@ -117,17 +117,17 @@ function EventPicker({
               )}
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-primary-800 truncate">{event.title}</p>
+                <p className="text-sm font-semibold text-neutral-900 truncate">{event.title}</p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <Calendar size={11} className="text-primary-400 shrink-0" />
-                  <span className="text-[11px] text-primary-500">
+                  <Calendar size={11} className="text-neutral-400 shrink-0" />
+                  <span className="text-[11px] text-neutral-500">
                     {formatEventDate(event.date_start)} at {formatEventTime(event.date_start)}
                   </span>
                 </div>
                 {event.address && (
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <MapPin size={11} className="text-primary-400 shrink-0" />
-                    <span className="text-[11px] text-primary-400 truncate">{event.address}</span>
+                    <MapPin size={11} className="text-neutral-400 shrink-0" />
+                    <span className="text-[11px] text-neutral-400 truncate">{event.address}</span>
                   </div>
                 )}
               </div>
@@ -191,9 +191,9 @@ function CollectivePicker({
       {/* List */}
       <div className="max-h-40 overflow-y-auto overscroll-contain rounded-xl ring-1 ring-primary-200/60 bg-white">
         {isLoading ? (
-          <div className="px-3.5 py-3 text-xs text-primary-400">Loading collectives...</div>
+          <div className="px-3.5 py-3 text-xs text-neutral-500">Loading collectives...</div>
         ) : filtered.length === 0 ? (
-          <div className="px-3.5 py-3 text-xs text-primary-400">
+          <div className="px-3.5 py-3 text-xs text-neutral-500">
             {search ? 'No collectives match your search' : 'No other collectives available'}
           </div>
         ) : (
@@ -217,9 +217,9 @@ function CollectivePicker({
                   size="sm"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-primary-800 truncate">{collective.name}</p>
+                  <p className="text-sm font-semibold text-neutral-900 truncate">{collective.name}</p>
                   {(collective.region || collective.state) && (
-                    <p className="text-[11px] text-primary-400 truncate">
+                    <p className="text-[11px] text-neutral-400 truncate">
                       {[collective.region, collective.state].filter(Boolean).join(', ')}
                     </p>
                   )}
@@ -354,14 +354,14 @@ export function CreateAnnouncementSheet({
             <Megaphone size={20} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-primary-900">Create Announcement</h3>
-            <p className="text-xs text-primary-400">Share something with your collective</p>
+            <h3 className="text-base font-bold text-neutral-900">Create Announcement</h3>
+            <p className="text-xs text-neutral-500">Share something with your collective</p>
           </div>
         </div>
 
         {/* Type selector */}
         <div className="mb-4">
-          <label className="text-xs font-semibold text-primary-600 mb-1.5 block">Type</label>
+          <label className="text-xs font-semibold text-neutral-900 mb-1.5 block">Type</label>
           <div className="flex gap-2">
             {typeOptions.map((opt) => (
               <button
@@ -386,7 +386,7 @@ export function CreateAnnouncementSheet({
         {/* Event picker (for event invites) */}
         {type === 'event_invite' && (
           <div className="mb-3">
-            <label className="text-xs font-semibold text-primary-600 mb-1 block">
+            <label className="text-xs font-semibold text-neutral-900 mb-1 block">
               Event
             </label>
             <EventPicker
@@ -432,11 +432,11 @@ export function CreateAnnouncementSheet({
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-1.5">
               <Users2 size={14} className="text-primary-500" />
-              <label className="text-xs font-semibold text-primary-600">
+              <label className="text-xs font-semibold text-neutral-900">
                 Invite collectives to collaborate (optional)
               </label>
             </div>
-            <p className="text-[11px] text-primary-400 mb-2">
+            <p className="text-[11px] text-neutral-500 mb-2">
               Invite other collectives to co-host this event. Their leaders will be notified and can accept the collaboration.
             </p>
             <CollectivePicker

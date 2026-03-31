@@ -27,6 +27,7 @@ import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
+import { COLLECTIVE_ROLE_RANK } from '@/lib/constants'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import { useImageUpload } from '@/hooks/use-image-upload'
@@ -112,20 +113,20 @@ function EditCollectiveSheet({
   return (
     <BottomSheet open={open} onClose={onClose} snapPoints={[0.85]}>
       <div className="space-y-4">
-        <h3 className="font-heading text-lg font-semibold text-primary-800">
+        <h3 className="font-heading text-lg font-semibold text-neutral-900">
           Edit Collective
         </h3>
 
         {/* Cover image */}
         <div>
-          <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
             Cover Image
           </label>
           <div className="mt-1.5 relative rounded-xl overflow-hidden bg-neutral-100" style={{ aspectRatio: '16/9' }}>
             {coverPreview ? (
               <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-primary-300 gap-1.5">
+              <div className="flex flex-col items-center justify-center h-full text-neutral-400 gap-1.5">
                 <ImagePlus size={28} />
                 <span className="text-[11px] font-medium">Add a cover photo</span>
               </div>
@@ -171,7 +172,7 @@ function EditCollectiveSheet({
 
         {/* Name */}
         <div>
-          <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+          <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
             Name
           </label>
           <Input
@@ -196,7 +197,7 @@ function EditCollectiveSheet({
         {/* Region + State */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs font-semibold text-primary-400 uppercase tracking-wider">
+            <label className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
               Region
             </label>
             <PlaceAutocomplete
@@ -243,12 +244,7 @@ function EditCollectiveSheet({
 /*  Role assignment sheet                                              */
 /* ------------------------------------------------------------------ */
 
-const ROLE_RANK: Record<CollectiveRole, number> = {
-  member: 0,
-  assist_leader: 1,
-  co_leader: 2,
-  leader: 3,
-}
+const ROLE_RANK = COLLECTIVE_ROLE_RANK as Record<CollectiveRole, number>
 
 function RoleAssignSheet({
   member,
@@ -263,18 +259,18 @@ function RoleAssignSheet({
 }) {
   if (!member) return null
   const myRank = myRole ? ROLE_RANK[myRole] : -1
-  // Can only assign roles strictly below own rank
+  // Leaders can assign up to co_leader; co-leaders can assign up to assist_leader
   const assignableRoles = (['member', 'assist_leader', 'co_leader'] as CollectiveRole[]).filter(
-    (r) => ROLE_RANK[r] < myRank,
+    (r) => myRole === 'leader' ? ROLE_RANK[r] <= ROLE_RANK.co_leader : ROLE_RANK[r] < myRank,
   )
 
   return (
     <BottomSheet open={!!member} onClose={onClose}>
       <div className="space-y-3 pb-2">
-        <h3 className="font-heading text-lg font-semibold text-primary-800">
+        <h3 className="font-heading text-lg font-semibold text-neutral-900">
           Change Role
         </h3>
-        <p className="text-sm text-primary-400">
+        <p className="text-sm text-neutral-500">
           {member.profiles?.display_name ?? 'Member'} is currently <strong>{ROLE_LABELS[member.role!]}</strong>
         </p>
 
@@ -293,7 +289,7 @@ function RoleAssignSheet({
                   'flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                   isActive
                     ? 'bg-white text-primary-400'
-                    : 'text-primary-800 hover:bg-primary-50',
+                    : 'text-neutral-900 hover:bg-neutral-50',
                 )}
               >
                 <Icon size={18} className={isActive ? 'text-primary-500' : 'text-primary-400'} />
@@ -349,18 +345,30 @@ export default function CollectiveManagePage() {
   }
 
   const [searchQuery, setSearchQuery] = useState('')
+  const [roleFilter, setRoleFilter] = useState<CollectiveRole | 'all'>('all')
   const [showEdit, setShowEdit] = useState(false)
   const [roleAssignMember, setRoleAssignMember] = useState<CollectiveMemberWithProfile | null>(null)
   const [removingMember, setRemovingMember] = useState<CollectiveMemberWithProfile | null>(null)
   const [selectedUser, setSelectedUser] = useState<CollectiveMemberWithProfile | null>(null)
 
   const filteredMembers = useMemo(() => {
-    if (!searchQuery.trim()) return members
-    const q = searchQuery.toLowerCase()
-    return members.filter((m) =>
-      m.profiles?.display_name?.toLowerCase().includes(q),
-    )
-  }, [members, searchQuery])
+    let result = members
+    if (roleFilter !== 'all') {
+      result = result.filter((m) => m.role === roleFilter)
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase()
+      result = result.filter((m) => {
+        const p = m.profiles
+        return (
+          p?.display_name?.toLowerCase().includes(q) ||
+          p?.email?.toLowerCase().includes(q) ||
+          p?.instagram_handle?.toLowerCase().includes(q)
+        )
+      })
+    }
+    return result
+  }, [members, searchQuery, roleFilter])
 
   const handleSaveCollective = async (updates: { name: string; description: string; region: string; state: string; cover_image_url: string | null }) => {
     if (!collectiveId) return
@@ -452,7 +460,7 @@ export default function CollectiveManagePage() {
               type="button"
               onClick={handleExportCSV}
               aria-label="Export members CSV"
-              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+              className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-400 hover:bg-neutral-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
             >
               <Download size={20} />
             </button>
@@ -474,10 +482,10 @@ export default function CollectiveManagePage() {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-heading text-base font-semibold text-primary-800 truncate">
+              <h3 className="font-heading text-base font-semibold text-neutral-900 truncate">
                 {collective.name}
               </h3>
-              <p className="text-xs text-primary-400">
+              <p className="text-xs text-neutral-500">
                 {collective.member_count} members
               </p>
             </div>
@@ -495,13 +503,32 @@ export default function CollectiveManagePage() {
         {/* Member search */}
         <motion.div variants={fadeUp}>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider">
+            <h3 className="font-heading text-sm font-semibold text-neutral-500 uppercase tracking-wider">
               Members ({members.length})
             </h3>
           </div>
 
           <div className="mb-3">
-            <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search members..." compact />
+            <SearchBar value={searchQuery} onChange={setSearchQuery} placeholder="Search by name, email, or Instagram..." compact />
+          </div>
+
+          {/* Role filter pills */}
+          <div className="flex gap-1.5 mb-3 overflow-x-auto scrollbar-none">
+            {(['all', 'leader', 'co_leader', 'assist_leader', 'member'] as const).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRoleFilter(r)}
+                className={cn(
+                  'px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors duration-150 cursor-pointer select-none',
+                  roleFilter === r
+                    ? 'bg-moss-600 text-white shadow-sm'
+                    : 'bg-white text-neutral-500 border border-neutral-100 hover:bg-neutral-50',
+                )}
+              >
+                {r === 'all' ? 'All' : ROLE_LABELS[r]}
+              </button>
+            ))}
           </div>
 
           {/* Member list */}
@@ -515,7 +542,7 @@ export default function CollectiveManagePage() {
                   key={member.id}
                   variants={fadeUp}
                   layout
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-primary-50 transition-colors"
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-neutral-50 transition-colors"
                 >
                   {/* Avatar - tappable to user card */}
                   <button
@@ -537,10 +564,10 @@ export default function CollectiveManagePage() {
                     onClick={() => setSelectedUser(member)}
                     className="flex-1 min-w-0 min-h-11 text-left active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                   >
-                    <p className="text-sm font-medium text-primary-800 truncate">
+                    <p className="text-sm font-medium text-neutral-900 truncate">
                       {member.profiles?.display_name ?? 'Unknown'}
                       {isCurrentUser && (
-                        <span className="text-xs text-primary-400 ml-1">(you)</span>
+                        <span className="text-xs text-neutral-500 ml-1">(you)</span>
                       )}
                     </p>
                     <div className="flex items-center gap-1.5 mt-0.5">
@@ -554,14 +581,14 @@ export default function CollectiveManagePage() {
                     </div>
                   </button>
 
-                  {/* Actions: not for self, and only for members ranked below you */}
-                  {!isCurrentUser && ROLE_RANK[member.role!] < (myRole ? ROLE_RANK[myRole] : -1) && (
+                  {/* Actions: not for self; leaders can manage up to co_leader, others only below their rank */}
+                  {!isCurrentUser && (myRole === 'leader' ? ROLE_RANK[member.role!] <= ROLE_RANK.co_leader : ROLE_RANK[member.role!] < (myRole ? ROLE_RANK[myRole] : -1)) && (
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => setRoleAssignMember(member)}
                         aria-label="Change role"
-                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-400 hover:bg-neutral-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                       >
                         <Shield size={16} />
                       </button>
@@ -569,7 +596,7 @@ export default function CollectiveManagePage() {
                         type="button"
                         onClick={() => setRemovingMember(member)}
                         aria-label="Remove member"
-                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-error-50 hover:text-error-500 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+                        className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-400 hover:bg-error-50 hover:text-error-500 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                       >
                         <UserMinus size={16} />
                       </button>
@@ -619,11 +646,11 @@ export default function CollectiveManagePage() {
               name={selectedUser.profiles?.display_name}
               size="xl"
             />
-            <h3 className="mt-3 font-heading text-lg font-bold text-primary-800">
+            <h3 className="mt-3 font-heading text-lg font-bold text-neutral-900">
               {selectedUser.profiles?.display_name}
             </h3>
             {selectedUser.profiles?.pronouns && (
-              <span className="text-xs text-primary-400">{selectedUser.profiles.pronouns}</span>
+              <span className="text-xs text-neutral-500">{selectedUser.profiles.pronouns}</span>
             )}
             <div className="flex items-center gap-2 mt-2">
               <span className={cn(
@@ -633,7 +660,7 @@ export default function CollectiveManagePage() {
                 {ROLE_LABELS[selectedUser.role!]}
               </span>
               {selectedUser.profiles?.location && (
-                <span className="text-xs text-primary-400">{selectedUser.profiles.location}</span>
+                <span className="text-xs text-neutral-500">{selectedUser.profiles.location}</span>
               )}
             </div>
             <div className="mt-4 w-full">

@@ -16,7 +16,7 @@ import {
     persistQueryCache,
 } from '@/lib/offline-sync'
 import { CookieConsentBanner } from '@/components/cookie-consent'
-import { SentryErrorBoundary } from '@/lib/sentry'
+import { initSentry, SentryErrorBoundary } from '@/lib/sentry'
 import App from './App'
 import './styles/globals.css'
 import '@/lib/i18n'
@@ -74,6 +74,9 @@ document.addEventListener('visibilitychange', () => {
 
 // Auto-sync offline check-ins when connectivity is restored
 attachOfflineSyncListener()
+
+// Initialize Sentry error reporting (no-op if VITE_SENTRY_DSN is not set)
+initSentry()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

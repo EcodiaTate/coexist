@@ -5,7 +5,6 @@ import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Avatar } from '@/components/avatar'
 import { EmptyState } from '@/components/empty-state'
-import { PullToRefresh } from '@/components/pull-to-refresh'
 import { SearchBar } from '@/components/search-bar'
 import { cn } from '@/lib/cn'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -475,8 +474,7 @@ export default function UpdatesPage() {
               action={{ label: 'Go Home', to: '/' }}
             />
           ) : (
-            <PullToRefresh onRefresh={handleRefresh}>
-              <motion.div
+            <motion.div
                 variants={shouldReduceMotion ? undefined : stagger}
                 initial="hidden"
                 animate="visible"
@@ -529,7 +527,6 @@ export default function UpdatesPage() {
                   />
                 )}
               </motion.div>
-            </PullToRefresh>
           )}
       </div>
     </Page>

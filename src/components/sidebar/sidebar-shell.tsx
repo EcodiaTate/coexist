@@ -88,7 +88,7 @@ export function SidebarShell({ collapsed, onToggleCollapse, children }: SidebarS
               !collapsed && 'flex-1',
               location.pathname.startsWith('/profile')
                 ? 'bg-primary-50 text-primary-800'
-                : 'text-primary-500 hover:text-primary-800 hover:bg-primary-50/60',
+                : 'text-neutral-500 hover:text-neutral-900 hover:bg-neutral-50/60',
             )}
             aria-label="View profile"
             title={collapsed ? profile?.display_name || 'Profile' : undefined}
@@ -99,7 +99,7 @@ export function SidebarShell({ collapsed, onToggleCollapse, children }: SidebarS
               size="sm"
             />
             {!collapsed && (
-              <span className="font-heading text-[13px] font-semibold text-primary-800 truncate">
+              <span className="font-heading text-[13px] font-semibold text-neutral-900 truncate">
                 {profile?.display_name}
               </span>
             )}
@@ -116,7 +116,7 @@ export function SidebarShell({ collapsed, onToggleCollapse, children }: SidebarS
               dAccent.focusRing,
               location.pathname.startsWith('/settings')
                 ? dAccent.activeClasses
-                : 'text-primary-300 hover:text-primary-500 hover:bg-primary-50/60',
+                : 'text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50/60',
             )}
             title="Settings"
           >

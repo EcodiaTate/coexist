@@ -98,6 +98,7 @@ interface CreateExtraFields {
   partner_name: string
   is_ticketed: boolean
   ticket_tiers: TicketTierDraft[]
+  checkin_window_minutes: number
 }
 
 const INITIAL_EXTRA: CreateExtraFields = {
@@ -115,6 +116,7 @@ const INITIAL_EXTRA: CreateExtraFields = {
   partner_name: '',
   is_ticketed: false,
   ticket_tiers: [],
+  checkin_window_minutes: 60,
 }
 
 /* ------------------------------------------------------------------ */
@@ -273,7 +275,7 @@ function StepCard({
     <div
       className={cn(
         'rounded-2xl shadow-sm',
-        'border border-primary-100/60',
+        'border border-neutral-100',
         'border-l-[3px]',
         cardBorder,
         cardGlow,
@@ -300,11 +302,11 @@ function SectionLabel({
     <div
       className={cn(
         'flex items-center gap-2 mb-4',
-        'text-overline tracking-wider text-primary-400',
+        'text-overline tracking-wider text-neutral-500',
         className,
       )}
     >
-      {icon && <span className="text-primary-300">{icon}</span>}
+      {icon && <span className="text-neutral-400">{icon}</span>}
       {children}
     </div>
   )
@@ -344,17 +346,17 @@ function StepCollective({
     <div className="space-y-4">
       <StepCard>
         <SectionLabel icon={<Leaf size={14} />}>Select Collectives</SectionLabel>
-        <p className="text-sm text-primary-400 mb-4">
+        <p className="text-sm text-neutral-500 mb-4">
           Choose one or more collectives this event belongs to. The first
           selected collective is the primary host.
         </p>
 
         {isLoading ? (
-          <div className="flex items-center justify-center py-8 text-primary-400 text-sm">
+          <div className="flex items-center justify-center py-8 text-neutral-500 text-sm">
             Loading collectives...
           </div>
         ) : !collectives?.length ? (
-          <div className="flex items-center justify-center py-8 text-primary-400 text-sm">
+          <div className="flex items-center justify-center py-8 text-neutral-500 text-sm">
             No active collectives found
           </div>
         ) : (
@@ -373,7 +375,7 @@ function StepCollective({
                     'border',
                     isSelected
                       ? 'border-sprout-400 bg-gradient-to-r from-sprout-50 to-moss-50 ring-1 ring-sprout-300/50'
-                      : 'border-primary-100 bg-surface-0 hover:bg-surface-1',
+                      : 'border-neutral-100 bg-surface-0 hover:bg-surface-1',
                   )}
                 >
                   {c.cover_image_url ? (
@@ -385,15 +387,15 @@ function StepCollective({
                   ) : (
                     <div className={cn(
                       'w-10 h-10 rounded-lg flex items-center justify-center shrink-0',
-                      isSelected ? 'bg-sprout-500 text-white' : 'bg-surface-2 text-primary-400',
+                      isSelected ? 'bg-sprout-500 text-white' : 'bg-surface-2 text-neutral-400',
                     )}>
                       <Leaf size={18} />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-primary-800 truncate">{c.name}</p>
+                    <p className="text-sm font-semibold text-neutral-900 truncate">{c.name}</p>
                     {(c.region || c.state) && (
-                      <p className="text-caption text-primary-400 truncate">
+                      <p className="text-caption text-neutral-500 truncate">
                         {[c.region, c.state].filter(Boolean).join(', ')}
                       </p>
                     )}
@@ -498,6 +500,12 @@ function StepDateTime({
         <SectionLabel icon={<Clock size={14} />}>Schedule</SectionLabel>
         <div className="space-y-5">
           <DateTimeFields fields={fields} onChange={onChange} minStart={new Date()} />
+          {fields.date_start && fields.date_start < new Date() && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning-50 text-warning-700 text-caption">
+              <Clock size={14} className="shrink-0" />
+              Start date is in the past — please choose a future date
+            </div>
+          )}
         </div>
       </StepCard>
 
@@ -602,7 +610,7 @@ function StepLocation({
       </StepCard>
 
       {/* Map with draggable pin */}
-      <div className="rounded-2xl overflow-hidden shadow-md border border-primary-100/40">
+      <div className="rounded-2xl overflow-hidden shadow-md border border-neutral-100">
         <MapView
           center={
             fields.location_lat != null && fields.location_lng != null
@@ -617,7 +625,7 @@ function StepLocation({
           aria-label="Drag the pin to set event location"
           className="aspect-[16/10]"
         />
-        <div className="px-4 py-2.5 bg-surface-0 text-caption text-primary-400 flex items-center gap-2">
+        <div className="px-4 py-2.5 bg-surface-0 text-caption text-neutral-500 flex items-center gap-2">
           <MapPin size={13} className="text-sprout-500" />
           Drag the pin to set the exact location
         </div>
@@ -657,6 +665,24 @@ function StepDetails({
           value={fields.capacity}
           onChange={(e) => onChange({ capacity: e.target.value })}
         />
+      </StepCard>
+
+      <StepCard>
+        <SectionLabel icon={<Clock size={14} />}>Check-in Window</SectionLabel>
+        <Dropdown
+          label="Open check-in before event starts"
+          value={String(extra.checkin_window_minutes)}
+          onChange={(v) => onExtraChange({ checkin_window_minutes: parseInt(v, 10) })}
+          options={[
+            { value: '30', label: '30 minutes before' },
+            { value: '60', label: '1 hour before (default)' },
+            { value: '90', label: '1.5 hours before' },
+            { value: '120', label: '2 hours before' },
+          ]}
+        />
+        <p className="text-caption text-neutral-500 mt-2">
+          Leaders can always override this and open check-in early from the event page.
+        </p>
       </StepCard>
 
       <StepCard>
@@ -785,12 +811,12 @@ function StepCoverImage({
           ) : (
             <div className="flex flex-col items-center">
               <div className="w-16 h-16 rounded-2xl bg-primary-100 flex items-center justify-center mb-4">
-                <Upload size={28} className="text-primary-400" />
+                <Upload size={28} className="text-neutral-400" />
               </div>
               <p className="text-sm font-semibold text-primary-700">
                 Tap to upload a cover photo
               </p>
-              <p className="text-caption text-primary-400 mt-1">
+              <p className="text-caption text-neutral-500 mt-1">
                 JPG or PNG, recommended 16:9
               </p>
             </div>
@@ -832,12 +858,12 @@ function StepCoverImage({
           </>
         ) : (
           <StepCard className="w-full flex items-center gap-3 !p-3.5">
-            <span className="text-primary-400 shrink-0"><Image size={18} /></span>
+            <span className="text-neutral-400 shrink-0"><Image size={18} /></span>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-primary-700">
                 Take a photo instead
               </p>
-              <p className="text-caption text-primary-400">
+              <p className="text-caption text-neutral-500">
                 Use your camera to capture the location
               </p>
             </div>
@@ -853,6 +879,16 @@ function StepCoverImage({
           </StepCard>
         )}
       </div>
+
+      {/* Soft warning when no cover image */}
+      {!coverImageUrl && !uploading && (
+        <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-amber-50 border border-amber-200/60">
+          <Image size={16} className="text-amber-500 shrink-0" />
+          <p className="text-caption text-amber-700">
+            Events with cover images get more registrations — consider adding one
+          </p>
+        </div>
+      )}
     </div>
   )
 }
@@ -866,7 +902,7 @@ function StepVisibility({
 }) {
   return (
     <div className="space-y-3">
-      <p className="text-sm text-primary-400 mb-1">
+      <p className="text-sm text-neutral-500 mb-1">
         Choose who can discover and register for this event.
       </p>
 
@@ -880,7 +916,7 @@ function StepVisibility({
           'border',
           fields.is_public
             ? 'border-primary-400 shadow-md bg-gradient-to-r from-primary-50 to-sprout-50 ring-1 ring-primary-300/50'
-            : 'border-primary-100 bg-surface-0 hover:bg-surface-1',
+            : 'border-neutral-100 bg-surface-0 hover:bg-surface-1',
         )}
       >
         <div
@@ -888,14 +924,14 @@ function StepVisibility({
             'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors',
             fields.is_public
               ? 'bg-primary-500 text-white'
-              : 'bg-surface-2 text-primary-400',
+              : 'bg-surface-2 text-neutral-400',
           )}
         >
           <Eye size={20} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-primary-800">Public</p>
-          <p className="text-caption text-primary-400 mt-0.5">
+          <p className="text-sm font-semibold text-neutral-900">Public</p>
+          <p className="text-caption text-neutral-500 mt-0.5">
             Anyone can find and register for this event
           </p>
         </div>
@@ -916,7 +952,7 @@ function StepVisibility({
           'border',
           !fields.is_public
             ? 'border-plum-400 shadow-md bg-gradient-to-r from-plum-50 to-primary-50 ring-1 ring-plum-300/50'
-            : 'border-primary-100 bg-surface-0 hover:bg-surface-1',
+            : 'border-neutral-100 bg-surface-0 hover:bg-surface-1',
         )}
       >
         <div
@@ -924,16 +960,16 @@ function StepVisibility({
             'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors',
             !fields.is_public
               ? 'bg-plum-500 text-white'
-              : 'bg-surface-2 text-primary-400',
+              : 'bg-surface-2 text-neutral-400',
           )}
         >
           <EyeOff size={20} />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-primary-800">
+          <p className="text-sm font-semibold text-neutral-900">
             Collective Only
           </p>
-          <p className="text-caption text-primary-400 mt-0.5">
+          <p className="text-caption text-neutral-500 mt-0.5">
             Only members of the selected collectives can see and register
           </p>
         </div>
@@ -985,7 +1021,7 @@ function StepTicketing({
         <div className="flex items-center justify-between">
           <div>
             <SectionLabel>Require tickets?</SectionLabel>
-            <p className="text-xs text-primary-400 mt-0.5">
+            <p className="text-xs text-neutral-500 mt-0.5">
               Ticketed events use Stripe for secure payment
             </p>
           </div>
@@ -1003,7 +1039,7 @@ function StepTicketing({
         <>
           <StepCard>
             <SectionLabel>Ticket tiers</SectionLabel>
-            <p className="text-xs text-primary-400 mb-3">
+            <p className="text-xs text-neutral-500 mb-3">
               Add one or more ticket types. Set price to $0 for free tiers.
             </p>
 
@@ -1058,7 +1094,7 @@ function StepTicketing({
                           value={tier.price_dollars}
                           onChange={(e) => updateTier(tier.id, { price_dollars: e.target.value })}
                           placeholder="0.00"
-                          className="w-full h-10 pl-7 pr-3 rounded-lg bg-surface-3 text-[16px] text-primary-800 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-400"
+                          className="w-full h-10 pl-7 pr-3 rounded-lg bg-surface-3 text-[16px] text-neutral-900 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-400"
                         />
                       </div>
                     </div>
@@ -1071,7 +1107,7 @@ function StepTicketing({
                         value={tier.capacity}
                         onChange={(e) => updateTier(tier.id, { capacity: e.target.value })}
                         placeholder="∞"
-                        className="w-full h-10 px-3 rounded-lg bg-surface-3 text-[16px] text-primary-800 text-center focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        className="w-full h-10 px-3 rounded-lg bg-surface-3 text-[16px] text-neutral-900 text-center focus:outline-none focus:ring-2 focus:ring-primary-400"
                       />
                     </div>
                   </div>
@@ -1110,7 +1146,7 @@ function StepInvite({
     <div className="space-y-4">
       <StepCard>
         <SectionLabel icon={<Send size={14} />}>Notifications</SectionLabel>
-        <p className="text-sm text-primary-400 mb-4">
+        <p className="text-sm text-neutral-500 mb-4">
           Optionally invite all members of the selected collectives. They'll
           receive a push notification and the event will appear in their
           "Invited" tab.
@@ -1160,7 +1196,7 @@ function StepPartner({
         <SectionLabel icon={<Building2 size={14} />}>
           Partner Organisation
         </SectionLabel>
-        <p className="text-sm text-primary-400 mb-4">
+        <p className="text-sm text-neutral-500 mb-4">
           If this event is co-hosted or sponsored by an external organisation,
           add them here. Their name will appear on the event page.
         </p>
@@ -1174,8 +1210,8 @@ function StepPartner({
       </StepCard>
 
       {!extra.partner_name && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-surface-2/60 text-primary-400">
-          <HelpCircle size={16} className="shrink-0 text-primary-300" />
+        <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-surface-2/60 text-neutral-500">
+          <HelpCircle size={16} className="shrink-0 text-neutral-400" />
           <p className="text-caption italic">
             You can skip this step - partners are optional.
           </p>
@@ -1197,7 +1233,7 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
   return (
     <div className="space-y-4">
       {/* Preview card */}
-      <div className="rounded-2xl overflow-hidden shadow-md border border-primary-100/40">
+      <div className="rounded-2xl overflow-hidden shadow-md border border-neutral-100">
         <Card variant="event">
           {fields.cover_image_url && (
             <Card.Image
@@ -1225,12 +1261,12 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
 
       {/* Detail summary */}
       <StepCard className="!p-0 overflow-hidden">
-        <div className="px-5 py-3 bg-gradient-to-r from-primary-50 to-surface-1 border-b border-primary-100/60">
+        <div className="px-5 py-3 bg-neutral-50 border-b border-neutral-100">
           <p className="text-overline tracking-wider text-primary-500">
             Event Summary
           </p>
         </div>
-        <div className="px-5 py-2 divide-y divide-primary-50">
+        <div className="px-5 py-2 divide-y divide-neutral-100">
           <SummaryRow
             icon={<Leaf size={15} />}
             label="Collectives"
@@ -1324,6 +1360,41 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
         </div>
       </StepCard>
 
+      {/* Missing fields checklist */}
+      {(() => {
+        const warnings: { label: string; icon: React.ReactNode }[] = []
+        if (!fields.address && fields.location_lat == null)
+          warnings.push({ label: 'No location set', icon: <MapPin size={14} /> })
+        if (!fields.cover_image_url)
+          warnings.push({ label: 'No cover image', icon: <Image size={14} /> })
+        if (!fields.capacity)
+          warnings.push({ label: 'No capacity limit', icon: <Users size={14} /> })
+        if (!fields.description)
+          warnings.push({ label: 'No description', icon: <Type size={14} /> })
+
+        if (warnings.length === 0) return null
+        return (
+          <StepCard className="!p-0 overflow-hidden">
+            <div className="px-5 py-3 bg-amber-50 border-b border-amber-200/60">
+              <p className="text-overline tracking-wider text-amber-600">
+                Recommended
+              </p>
+            </div>
+            <div className="px-5 py-2 space-y-1">
+              {warnings.map((w) => (
+                <div key={w.label} className="flex items-center gap-2.5 py-2 text-caption text-amber-700">
+                  <span className="text-amber-400 shrink-0">{w.icon}</span>
+                  {w.label}
+                </div>
+              ))}
+              <p className="text-caption text-neutral-500 py-1">
+                You can still publish — these are optional but recommended.
+              </p>
+            </div>
+          </StepCard>
+        )
+      })()}
+
       {/* Ready banner */}
       <div className="flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-r from-success-50 to-sprout-50 border border-success-200/60">
         <div className="w-9 h-9 rounded-xl bg-success-500 flex items-center justify-center shrink-0">
@@ -1353,11 +1424,11 @@ function SummaryRow({
 }) {
   return (
     <div className="flex items-center gap-3 py-3">
-      <span className="text-primary-300 shrink-0">{icon}</span>
-      <span className="text-caption text-primary-400 shrink-0 w-20">
+      <span className="text-neutral-400 shrink-0">{icon}</span>
+      <span className="text-caption text-neutral-500 shrink-0 w-20">
         {label}
       </span>
-      <span className="text-sm text-primary-800 font-medium text-right flex-1 min-w-0 truncate">
+      <span className="text-sm text-neutral-900 font-medium text-right flex-1 min-w-0 truncate">
         {value}
       </span>
     </div>
@@ -1434,11 +1505,14 @@ export default function CreateEventPage() {
       case 1:
         return form.isBasicsValid
       case 2:
-        return form.isDateValid
+        return form.isDateValid && !form.isDateInPast
+      case 3:
+        // Location is soft-required: allow proceed but the review step will flag it
+        return true
       default:
         return true
     }
-  }, [step, extra.selected_collective_ids.length, form.isBasicsValid, form.isDateValid])
+  }, [step, extra.selected_collective_ids.length, form.isBasicsValid, form.isDateValid, form.isDateInPast])
 
   // We need the user's collective - use the first one they're a leader of
   const handlePublish = useCallback(
@@ -1447,7 +1521,11 @@ export default function CreateEventPage() {
 
       const isDraft = asDraft || saveAsDraft
 
-      // Validate date_end > date_start if both set
+      // Validate dates
+      if (form.fields.date_start && form.fields.date_start < new Date()) {
+        toastApi.error('Start date cannot be in the past')
+        return
+      }
       if (
         form.fields.date_start &&
         form.fields.date_end &&
@@ -1481,7 +1559,13 @@ export default function CreateEventPage() {
           cover_image_url: form.fields.cover_image_url || null,
           is_public: form.fields.is_public,
           is_ticketed: extra.is_ticketed,
+          checkin_window_minutes: extra.checkin_window_minutes,
           status: isDraft ? 'draft' : 'published',
+          ...(extra.is_recurring && {
+            is_recurring: true,
+            recurring_type: extra.recurring_type,
+            recurring_count: extra.recurring_count,
+          }),
         })
 
         // Insert ticket types if ticketed
@@ -1728,7 +1812,7 @@ export default function CreateEventPage() {
                 <h2 className="text-lg font-bold text-primary-900">
                   {currentStep.title}
                 </h2>
-                <span className="text-caption text-primary-400 font-medium">
+                <span className="text-caption text-neutral-500 font-medium">
                   {step + 1}/{STEPS.length}
                 </span>
               </div>

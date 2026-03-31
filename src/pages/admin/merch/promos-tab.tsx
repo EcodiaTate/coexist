@@ -106,7 +106,7 @@ function PromoFormSheet({
   return (
     <BottomSheet open={open} onClose={onClose} snapPoints={SNAP_POINTS_75}>
       <div className="space-y-5" onKeyDown={handleKeyDown}>
-        <h3 className="font-heading font-semibold text-lg text-primary-800">
+        <h3 className="font-heading font-semibold text-lg text-neutral-900">
           {promo ? 'Edit promo' : 'New promo code'}
         </h3>
         <Input
@@ -118,7 +118,7 @@ function PromoFormSheet({
 
         {/* Type selector with richer colours */}
         <div>
-          <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider mb-2">Type</p>
+          <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Type</p>
           <div className="flex gap-2">
             {(['percentage', 'flat', 'free_shipping'] as PromoType[]).map((t) => (
               <button
@@ -183,9 +183,9 @@ export default function PromosTab() {
   return (
     <motion.div variants={stagger} initial="hidden" animate="visible">
       <motion.div variants={fadeUp} className="flex justify-between items-center mb-5">
-        <h2 className="font-heading font-semibold text-primary-800">
+        <h2 className="font-heading font-semibold text-neutral-900">
           Promo Codes
-          <span className="ml-2 text-sm font-normal text-primary-400">{promos?.length ?? 0}</span>
+          <span className="ml-2 text-sm font-normal text-neutral-500">{promos?.length ?? 0}</span>
         </h2>
         <Button
           variant="primary"

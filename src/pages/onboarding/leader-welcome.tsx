@@ -5,16 +5,7 @@ import { Crown, CalendarPlus, Users, MessageSquare, BarChart3, ArrowRight } from
 import { Button } from '@/components/button'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/cn'
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] as const } },
-}
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 const LEADER_TOOLS = [
   {

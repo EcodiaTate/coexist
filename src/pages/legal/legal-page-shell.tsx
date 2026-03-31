@@ -44,7 +44,7 @@ export default function LegalPageShell({ slug, fallbackTitle, fallbackDescriptio
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        <h1 className="font-heading text-2xl font-bold text-primary-800 text-center">
+        <h1 className="font-heading text-2xl font-bold text-neutral-900 text-center">
           {title}
         </h1>
 
@@ -57,7 +57,7 @@ export default function LegalPageShell({ slug, fallbackTitle, fallbackDescriptio
         )}
 
         {error && (
-          <p className="text-sm text-primary-400 leading-relaxed text-center">
+          <p className="text-sm text-neutral-500 leading-relaxed text-center">
             {fallbackDescription} For questions contact{' '}
             <a
               href="mailto:hello@coexistaus.org"
@@ -69,7 +69,7 @@ export default function LegalPageShell({ slug, fallbackTitle, fallbackDescriptio
         )}
 
         {page && !page.content && (
-          <p className="text-sm text-primary-400 leading-relaxed text-center">
+          <p className="text-sm text-neutral-500 leading-relaxed text-center">
             This page is being updated. For questions contact{' '}
             <a
               href="mailto:hello@coexistaus.org"
@@ -88,7 +88,7 @@ export default function LegalPageShell({ slug, fallbackTitle, fallbackDescriptio
         )}
 
         {page && (
-          <p className="text-xs text-primary-300 text-center pt-4 border-t border-primary-100">
+          <p className="text-xs text-neutral-400 text-center pt-4 border-t border-primary-100">
             Last updated: {new Date(page.updated_at).toLocaleDateString('en-AU', {
               day: 'numeric',
               month: 'long',

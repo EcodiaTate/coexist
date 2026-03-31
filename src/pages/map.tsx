@@ -4,7 +4,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
     MapPin,
     Users,
-    TreePine,
+    Calendar,
     ArrowRight,
     Navigation,
     X,
@@ -13,155 +13,7 @@ import { Header } from '@/components/header'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { cn } from '@/lib/cn'
-
-/* ------------------------------------------------------------------ */
-/*  Collective data - hardcoded for now                                */
-/* ------------------------------------------------------------------ */
-
-interface Collective {
-  id: string
-  name: string
-  location: string
-  lat: number
-  lng: number
-  members: number
-  nextEvent?: string
-  image?: string
-  description: string
-}
-
-const COLLECTIVES: Collective[] = [
-  {
-    id: 'perth',
-    name: 'Perth Collective',
-    location: 'Perth, WA',
-    lat: -31.9505,
-    lng: 115.8605,
-    members: 124,
-    nextEvent: 'Beach Clean - Apr 5',
-    description: 'Protecting the stunning coastline and bushlands of Western Australia.',
-  },
-  {
-    id: 'adelaide',
-    name: 'Adelaide Collective',
-    location: 'Adelaide, SA',
-    lat: -34.9285,
-    lng: 138.6007,
-    members: 89,
-    nextEvent: 'River Restoration - Apr 12',
-    description: 'Restoring native habitats along the Torrens and across Adelaide\'s parks.',
-  },
-  {
-    id: 'geelong',
-    name: 'Geelong Collective',
-    location: 'Geelong, VIC',
-    lat: -38.1499,
-    lng: 144.3617,
-    members: 67,
-    nextEvent: 'Dune Planting - Apr 8',
-    description: 'Caring for the Bellarine coast and Barwon River corridors.',
-  },
-  {
-    id: 'mornington',
-    name: 'Mornington Peninsula Collective',
-    location: 'Mornington Peninsula, VIC',
-    lat: -38.3833,
-    lng: 145.0167,
-    members: 53,
-    nextEvent: 'Mangrove Monitoring - Apr 19',
-    description: "Protecting the unique ecosystems of the Peninsula's coastline.",
-  },
-  {
-    id: 'melbourne',
-    name: 'Melbourne City Collective',
-    location: 'Melbourne, VIC',
-    lat: -37.8136,
-    lng: 144.9631,
-    members: 312,
-    nextEvent: 'Urban Greening - Apr 2',
-    description: "Greening Melbourne's inner city through planting, litter removal and advocacy.",
-  },
-  {
-    id: 'hobart',
-    name: 'Hobart Collective',
-    location: 'Hobart, TAS',
-    lat: -42.8821,
-    lng: 147.3272,
-    members: 48,
-    nextEvent: 'Habitat Survey - Apr 15',
-    description: "Conserving Tasmania's unique wilderness and waterways.",
-  },
-  {
-    id: 'sydney',
-    name: 'Sydney Collective',
-    location: 'Sydney, NSW',
-    lat: -33.8688,
-    lng: 151.2093,
-    members: 287,
-    nextEvent: 'Harbour Clean-up - Apr 6',
-    description: "From the harbour to the Blue Mountains - protecting Sydney's natural heritage.",
-  },
-  {
-    id: 'northern-rivers',
-    name: 'Northern Rivers Collective',
-    location: 'Northern Rivers, NSW',
-    lat: -28.8131,
-    lng: 153.2760,
-    members: 95,
-    nextEvent: 'Rainforest Regen - Apr 20',
-    description: 'Restoring the lush subtropical rainforests and river systems of the Northern Rivers.',
-  },
-  {
-    id: 'gold-coast',
-    name: 'Gold Coast Collective',
-    location: 'Gold Coast, QLD',
-    lat: -28.0167,
-    lng: 153.4000,
-    members: 143,
-    nextEvent: 'Dune Restoration - Apr 10',
-    description: "Protecting the Gold Coast's beaches, hinterland and waterways.",
-  },
-  {
-    id: 'brisbane',
-    name: 'Brisbane Collective',
-    location: 'Brisbane, QLD',
-    lat: -27.4698,
-    lng: 153.0251,
-    members: 198,
-    nextEvent: 'Creek Clean - Apr 3',
-    description: "Revitalising Brisbane's creeks, parks and urban bushland.",
-  },
-  {
-    id: 'sunshine-coast',
-    name: 'Sunshine Coast Collective',
-    location: 'Sunshine Coast, QLD',
-    lat: -26.6500,
-    lng: 153.0667,
-    members: 76,
-    nextEvent: 'Turtle Nesting Watch - Apr 22',
-    description: "Guardians of the Sunshine Coast's beaches, reefs and hinterland.",
-  },
-  {
-    id: 'townsville',
-    name: 'Townsville Collective',
-    location: 'Townsville, QLD',
-    lat: -19.2590,
-    lng: 146.8169,
-    members: 42,
-    nextEvent: 'Reef Monitoring - Apr 18',
-    description: 'Protecting tropical ecosystems from reef to rainforest in North Queensland.',
-  },
-  {
-    id: 'cairns',
-    name: 'Cairns Collective',
-    location: 'Cairns, QLD',
-    lat: -16.9186,
-    lng: 145.7781,
-    members: 61,
-    nextEvent: 'Mangrove Planting - Apr 25',
-    description: 'Where the rainforest meets the reef - conservation in tropical Far North Queensland.',
-  },
-]
+import { useCollectiveMapData, type MapCollective } from '@/hooks/use-collective-map'
 
 /* ------------------------------------------------------------------ */
 /*  Custom pin SVG                                                     */
@@ -256,6 +108,17 @@ const TILE_URL = 'https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r
 const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
 
 /* ------------------------------------------------------------------ */
+/*  Helpers                                                            */
+/* ------------------------------------------------------------------ */
+
+function formatNextEvent(ev: { title: string; date_start: string }): string {
+  const d = new Date(ev.date_start)
+  const month = d.toLocaleString('en-AU', { month: 'short' })
+  const day = d.getDate()
+  return `${ev.title} — ${month} ${day}`
+}
+
+/* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -276,7 +139,9 @@ export default function MapPage() {
   const mapRef = useRef<L.Map | null>(null)
   const markersRef = useRef<Map<string, L.Marker>>(new Map())
 
-  const [selected, setSelected] = useState<Collective | null>(null)
+  const { data: collectives = [], isLoading } = useCollectiveMapData()
+
+  const [selected, setSelected] = useState<MapCollective | null>(null)
   const [mapReady, setMapReady] = useState(false)
 
   /* ---------- Initialize Leaflet map ---------- */
@@ -326,16 +191,16 @@ export default function MapPage() {
     }
   }, [])
 
-  /* ---------- Add markers ---------- */
+  /* ---------- Add markers when data loads ---------- */
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !mapReady) return
+    if (!map || !mapReady || !collectives.length) return
 
     // Clear old
     markersRef.current.forEach((m) => map.removeLayer(m))
     markersRef.current.clear()
 
-    for (const c of COLLECTIVES) {
+    for (const c of collectives) {
       const icon = createCollectiveIcon(false)
       const marker = L.marker([c.lat, c.lng], { icon })
 
@@ -354,7 +219,7 @@ export default function MapPage() {
       marker.addTo(map)
       markersRef.current.set(c.id, marker)
     }
-  }, [mapReady, shouldReduceMotion])
+  }, [mapReady, collectives, shouldReduceMotion])
 
   /* ---------- Close card ---------- */
   const handleClose = useCallback(() => {
@@ -388,8 +253,8 @@ export default function MapPage() {
 
   /* ---------- Total members ---------- */
   const totalMembers = useMemo(
-    () => COLLECTIVES.reduce((sum, c) => sum + c.members, 0),
-    [],
+    () => collectives.reduce((sum, c) => sum + (c.member_count ?? 0), 0),
+    [collectives],
   )
 
   return (
@@ -411,7 +276,7 @@ export default function MapPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-secondary-700">
-                  {COLLECTIVES.length} Collectives
+                  {collectives.length} Collectives
                 </p>
                 <p className="text-xs text-secondary-500">
                   {totalMembers.toLocaleString()} members across Australia
@@ -431,7 +296,7 @@ export default function MapPage() {
 
       {/* ---- Map loading state ---- */}
       <AnimatePresence>
-        {!mapReady && (
+        {(!mapReady || isLoading) && (
           <motion.div
             className="absolute inset-0 z-[400] flex items-center justify-center bg-primary-50"
             initial={{ opacity: 1 }}
@@ -440,7 +305,7 @@ export default function MapPage() {
           >
             <div className="flex flex-col items-center gap-3">
               <div className="h-10 w-10 rounded-full border-3 border-primary-200 border-t-primary-500 animate-spin" />
-              <p className="text-sm font-medium text-primary-600">Loading map...</p>
+              <p className="text-sm font-medium text-neutral-500">Loading map...</p>
             </div>
           </motion.div>
         )}
@@ -474,7 +339,7 @@ export default function MapPage() {
                     </h3>
                     <div className="mt-1 flex items-center gap-1.5 text-sm text-secondary-500">
                       <Navigation size={13} />
-                      <span>{selected.location}</span>
+                      <span>{selected.region ?? selected.state ?? 'Australia'}</span>
                     </div>
                   </div>
                   <button
@@ -490,9 +355,11 @@ export default function MapPage() {
                 </div>
 
                 {/* Description */}
-                <p className="mt-3 text-sm leading-relaxed text-secondary-600">
-                  {selected.description}
-                </p>
+                {selected.description && (
+                  <p className="mt-3 text-sm leading-relaxed text-secondary-600">
+                    {selected.description}
+                  </p>
+                )}
 
                 {/* Stats row */}
                 <div className="mt-4 flex items-center gap-4">
@@ -500,22 +367,22 @@ export default function MapPage() {
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-50">
                       <Users size={14} className="text-primary-600" />
                     </div>
-                    <span className="font-semibold text-secondary-700">{selected.members}</span>
+                    <span className="font-semibold text-secondary-700">{selected.member_count ?? 0}</span>
                     <span className="text-secondary-400">members</span>
                   </div>
                   {selected.nextEvent && (
                     <div className="flex items-center gap-1.5 text-sm">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-50">
-                        <TreePine size={14} className="text-primary-600" />
+                        <Calendar size={14} className="text-primary-600" />
                       </div>
-                      <span className="text-secondary-500">{selected.nextEvent}</span>
+                      <span className="text-secondary-500">{formatNextEvent(selected.nextEvent)}</span>
                     </div>
                   )}
                 </div>
 
                 {/* CTA */}
                 <button
-                  onClick={() => navigate(`/collectives/${selected.id}`)}
+                  onClick={() => navigate(`/collectives/${selected.slug}`)}
                   className={cn(
                     'mt-4 flex w-full items-center justify-center gap-2',
                     'rounded-2xl bg-primary-400 px-5 py-3.5',
@@ -534,7 +401,7 @@ export default function MapPage() {
 
       {/* ---- Floating list of collectives (scrollable chips at bottom when nothing selected) ---- */}
       <AnimatePresence>
-        {!selected && mapReady && (
+        {!selected && mapReady && collectives.length > 0 && (
           <motion.div
             className={cn(
               'absolute bottom-0 left-0 right-0 z-[500]',
@@ -552,7 +419,7 @@ export default function MapPage() {
                 'pb-1 pt-1',
               )}
             >
-              {COLLECTIVES.map((c) => (
+              {collectives.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => {

@@ -73,24 +73,8 @@ import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import { useEventTicketTypes, useMyEventTicket, useCreateTicketCheckout, useCancelPendingTicket, useTicketSalesSummary, useEventTickets } from '@/hooks/use-event-tickets'
 import { getStripe } from '@/lib/stripe'
 import { MapView } from '@/components'
-
-/* ------------------------------------------------------------------ */
-/*  Activity colour accents                                            */
-/* ------------------------------------------------------------------ */
-
-const activityAccent: Record<string, { gradient: string; glow: string; bg: string; text: string; border: string }> = {
-  shore_cleanup:      { gradient: 'from-sky-400 to-cyan-500',         glow: 'shadow-sky-400/25',    bg: 'bg-sky-50',        text: 'text-sky-700',      border: 'border-sky-200/50' },
-  tree_planting:      { gradient: 'from-emerald-400 to-green-500',    glow: 'shadow-emerald-400/25', bg: 'bg-emerald-50',    text: 'text-emerald-700',  border: 'border-emerald-200/50' },
-  land_regeneration:  { gradient: 'from-lime-400 to-green-500',       glow: 'shadow-lime-400/25',   bg: 'bg-lime-50',       text: 'text-lime-700',     border: 'border-lime-200/50' },
-  nature_walk:        { gradient: 'from-teal-400 to-emerald-500',     glow: 'shadow-teal-400/25',   bg: 'bg-teal-50',       text: 'text-teal-700',     border: 'border-teal-200/50' },
-  camp_out:           { gradient: 'from-amber-400 to-orange-500',     glow: 'shadow-amber-400/25',  bg: 'bg-amber-50',      text: 'text-amber-700',    border: 'border-amber-200/50' },
-  retreat:            { gradient: 'from-violet-400 to-purple-500',    glow: 'shadow-violet-400/25', bg: 'bg-violet-50',     text: 'text-violet-700',   border: 'border-violet-200/50' },
-  film_screening:     { gradient: 'from-rose-400 to-pink-500',        glow: 'shadow-rose-400/25',   bg: 'bg-rose-50',       text: 'text-rose-700',     border: 'border-rose-200/50' },
-  marine_restoration: { gradient: 'from-blue-400 to-indigo-500',      glow: 'shadow-blue-400/25',   bg: 'bg-blue-50',       text: 'text-blue-700',     border: 'border-blue-200/50' },
-  workshop:           { gradient: 'from-fuchsia-400 to-purple-500',   glow: 'shadow-fuchsia-400/25', bg: 'bg-fuchsia-50',   text: 'text-fuchsia-700',  border: 'border-fuchsia-200/50' },
-}
-
-const defaultAccent = { gradient: 'from-primary-400 to-sprout-500', glow: 'shadow-primary-400/25', bg: 'bg-primary-50', text: 'text-primary-700', border: 'border-primary-200/50' }
+import { activityAccent, defaultAccent } from '@/lib/activity-types'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Difficulty config                                                  */
@@ -102,19 +86,6 @@ const difficultyConfig = {
   challenging: { label: 'Challenging', color: 'text-error-600 bg-error-100', icon: Mountain },
 }
 
-/* ------------------------------------------------------------------ */
-/*  Animation variants                                                 */
-/* ------------------------------------------------------------------ */
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 26 } },
-}
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Skeleton                                                           */
@@ -357,6 +328,7 @@ export default function EventDetailPage() {
   const [inviteMessage, setInviteMessage] = useState('')
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
   const [now, setNow] = useState(() => Date.now())
+  const [checkInForcedOpen, setCheckInForcedOpen] = useState(false)
 
   // Re-evaluate active state every 60s so "Check In Now" appears on time
   useEffect(() => {
@@ -368,14 +340,23 @@ export default function EventDetailPage() {
   const past = event ? isPastEvent(event) : false
   const isAtCapacity = event?.capacity ? event.registration_count >= event.capacity : false
 
-  // Event is "active" if it started (or starts within 1 hour) and hasn't ended
+  // Event is "active" if it started (or starts within the check-in window) and hasn't ended
+  const checkinWindowMinutes = (event as Record<string, unknown>)?.checkin_window_minutes as number | undefined ?? 60
   const isEventActive = useMemo(() => {
+    if (checkInForcedOpen) return true
     if (!event) return false
     const start = new Date(event.date_start).getTime()
     const end = event.date_end ? new Date(event.date_end).getTime() : start + 3 * 60 * 60 * 1000
-    const earlyWindow = start - 60 * 60 * 1000 // 1 hour before
+    const earlyWindow = start - checkinWindowMinutes * 60 * 1000
     return now >= earlyWindow && now <= end
-  }, [event, now])
+  }, [event, now, checkinWindowMinutes, checkInForcedOpen])
+
+  // Calculate when check-in opens (for display to volunteers)
+  const checkInOpensAt = useMemo(() => {
+    if (!event) return null
+    const start = new Date(event.date_start).getTime()
+    return new Date(start - checkinWindowMinutes * 60 * 1000)
+  }, [event, checkinWindowMinutes])
   const userStatus = event?.user_registration?.status ?? null
   // Only show leader tools if user has a role in THIS event's collective (or is global staff)
   const belongsToCollective = collectiveRole.role !== null
@@ -582,6 +563,24 @@ export default function EventDetailPage() {
             <CheckCircle2 size={18} />
             You're registered
           </div>
+          {/* Show when check-in opens */}
+          {!past && checkInOpensAt && now < checkInOpensAt.getTime() && (
+            <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-50 text-neutral-500 text-sm">
+              <Clock size={15} className="shrink-0" />
+              Check-in opens at {checkInOpensAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+            </div>
+          )}
+          {/* Leader override: open check-in early */}
+          {!past && !isEventActive && isLeaderOrAbove && (
+            <Button
+              variant="secondary"
+              fullWidth
+              icon={<QrCode size={18} />}
+              onClick={() => setCheckInForcedOpen(true)}
+            >
+              Open Check-in Now
+            </Button>
+          )}
           <Button
             variant="ghost"
             fullWidth
@@ -735,17 +734,17 @@ export default function EventDetailPage() {
                 )}
               >
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-primary-800">{tt.name}</p>
-                  {tt.description && <p className="text-xs text-primary-400 mt-0.5">{tt.description}</p>}
+                  <p className="text-sm font-semibold text-neutral-900">{tt.name}</p>
+                  {tt.description && <p className="text-xs text-neutral-500 mt-0.5">{tt.description}</p>}
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-sm font-bold text-primary-800">
+                    <span className="text-sm font-bold text-neutral-900">
                       {tt.price_cents === 0 ? 'Free' : `$${(tt.price_cents / 100).toFixed(2)}`}
                     </span>
                     {tt.remaining !== null && !soldOut && (
-                      <span className="text-[11px] text-primary-400">{tt.remaining} left</span>
+                      <span className="text-[11px] text-neutral-500">{tt.remaining} left</span>
                     )}
                     {soldOut && <span className="text-[11px] font-semibold text-error-500">Sold out</span>}
-                    {notOnSale && !soldOut && <span className="text-[11px] text-primary-400">Not on sale</span>}
+                    {notOnSale && !soldOut && <span className="text-[11px] text-neutral-500">Not on sale</span>}
                   </div>
                 </div>
                 <div className={cn(
@@ -1001,6 +1000,28 @@ export default function EventDetailPage() {
               </div>
               <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">Leader Actions</span>
             </div>
+            {/* Leader override: force-open check-in before the window */}
+            {!past && !checkInForcedOpen && !isEventActive && event.status !== 'cancelled' && (
+              <div className="mb-2.5 flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-warning-50 border border-warning-200/40">
+                <Clock size={14} className="text-warning-600 shrink-0" />
+                <p className="text-xs text-warning-700 flex-1">
+                  Check-in opens at {checkInOpensAt?.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) ?? '—'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setCheckInForcedOpen(true)}
+                  className="text-xs font-bold text-warning-700 underline underline-offset-2 cursor-pointer shrink-0"
+                >
+                  Open now
+                </button>
+              </div>
+            )}
+            {checkInForcedOpen && (
+              <div className="mb-2.5 flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-success-50 border border-success-200/40">
+                <CheckCircle2 size={14} className="text-success-600 shrink-0" />
+                <p className="text-xs text-success-700">Check-in is open (manual override)</p>
+              </div>
+            )}
             <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
@@ -1270,15 +1291,15 @@ export default function EventDetailPage() {
               fgColor="#1a1a1a"
             />
           </div>
-          <p className="text-sm font-medium text-primary-800 mt-4 text-center">
+          <p className="text-sm font-medium text-neutral-900 mt-4 text-center">
             {event.title}
           </p>
-          <p className="text-caption text-primary-400 mt-1">
+          <p className="text-caption text-neutral-500 mt-1">
             Show this to participants to scan
           </p>
           <div className="mt-3 px-4 py-2 rounded-lg bg-white">
-            <p className="text-[11px] uppercase tracking-wider text-primary-400 text-center">Manual code</p>
-            <p className="text-lg font-heading font-bold text-primary-800 tracking-[0.3em] text-center">
+            <p className="text-[11px] uppercase tracking-wider text-neutral-500 text-center">Manual code</p>
+            <p className="text-lg font-heading font-bold text-neutral-900 tracking-[0.3em] text-center">
               {event.id.replace(/-/g, '').slice(0, 6).toUpperCase()}
             </p>
           </div>
@@ -1291,7 +1312,7 @@ export default function EventDetailPage() {
         onClose={() => setShowCalendarSheet(false)}
         snapPoints={[0.35]}
       >
-        <h3 className="font-heading text-base font-semibold text-primary-800 mb-4">
+        <h3 className="font-heading text-base font-semibold text-neutral-900 mb-4">
           Add to Calendar
         </h3>
         <div className="space-y-2">
@@ -1301,12 +1322,12 @@ export default function EventDetailPage() {
               downloadIcsFile(event)
               setShowCalendarSheet(false)
             }}
-            className="flex items-center gap-3 w-full min-h-11 px-4 py-3 rounded-xl hover:bg-primary-50 cursor-pointer select-none text-left active:scale-[0.97] transition-transform duration-150"
+            className="flex items-center gap-3 w-full min-h-11 px-4 py-3 rounded-xl hover:bg-neutral-50 cursor-pointer select-none text-left active:scale-[0.97] transition-transform duration-150"
           >
-            <CalendarPlus size={20} className="text-primary-400 shrink-0" />
+            <CalendarPlus size={20} className="text-neutral-400 shrink-0" />
             <div>
-              <p className="text-sm font-medium text-primary-800">Download .ics file</p>
-              <p className="text-caption text-primary-400">Works with Apple Calendar & others</p>
+              <p className="text-sm font-medium text-neutral-900">Download .ics file</p>
+              <p className="text-caption text-neutral-500">Works with Apple Calendar & others</p>
             </div>
           </button>
           <button
@@ -1315,12 +1336,12 @@ export default function EventDetailPage() {
               window.open(getGoogleCalendarUrl(event), '_blank')
               setShowCalendarSheet(false)
             }}
-            className="flex items-center gap-3 w-full min-h-11 px-4 py-3 rounded-xl hover:bg-primary-50 cursor-pointer select-none text-left active:scale-[0.97] transition-transform duration-150"
+            className="flex items-center gap-3 w-full min-h-11 px-4 py-3 rounded-xl hover:bg-neutral-50 cursor-pointer select-none text-left active:scale-[0.97] transition-transform duration-150"
           >
-            <Calendar size={20} className="text-primary-400 shrink-0" />
+            <Calendar size={20} className="text-neutral-400 shrink-0" />
             <div>
-              <p className="text-sm font-medium text-primary-800">Google Calendar</p>
-              <p className="text-caption text-primary-400">Opens in your browser</p>
+              <p className="text-sm font-medium text-neutral-900">Google Calendar</p>
+              <p className="text-caption text-neutral-500">Opens in your browser</p>
             </div>
           </button>
         </div>
@@ -1334,10 +1355,10 @@ export default function EventDetailPage() {
       >
         <div className="space-y-4">
           <div>
-            <h3 className="font-heading text-base font-semibold text-primary-800">
+            <h3 className="font-heading text-base font-semibold text-neutral-900">
               Cancel Event
             </h3>
-            <p className="text-caption text-primary-400 mt-1">
+            <p className="text-caption text-neutral-500 mt-1">
               All registered and invited attendees will be notified. This cannot be undone.
             </p>
           </div>
@@ -1384,11 +1405,11 @@ export default function EventDetailPage() {
               )}>
                 {alreadyInvited ? <Bell size={15} className="text-white" /> : <Send size={15} className="text-white" />}
               </div>
-              <h3 className="font-heading text-base font-semibold text-primary-800">
+              <h3 className="font-heading text-base font-semibold text-neutral-900">
                 {alreadyInvited ? 'Send Reminder' : 'Invite Collective'}
               </h3>
             </div>
-            <p className="text-caption text-primary-400 mt-1">
+            <p className="text-caption text-neutral-500 mt-1">
               {alreadyInvited
                 ? 'This will post a rich event card to the collective chat as a reminder.'
                 : 'This will invite all members, send notifications, and post to the collective chat.'}

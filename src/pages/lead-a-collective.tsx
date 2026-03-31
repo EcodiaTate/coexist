@@ -441,14 +441,14 @@ export default function LeadACollectivePage() {
             value={addressLine1}
             onChange={(e) => setAddressLine1(e.target.value)}
             required
-            inputClassName="border border-primary-200/50"
+            inputClassName="border border-neutral-200"
           />
 
           <Input
             label="Address Line 2"
             value={addressLine2}
             onChange={(e) => setAddressLine2(e.target.value)}
-            inputClassName="border border-primary-200/50"
+            inputClassName="border border-neutral-200"
           />
 
           <div className="grid grid-cols-2 gap-3">
@@ -457,7 +457,7 @@ export default function LeadACollectivePage() {
               value={suburb}
               onChange={(e) => setSuburb(e.target.value)}
               required
-              inputClassName="border border-primary-200/50"
+              inputClassName="border border-neutral-200"
             />
             <Dropdown
               label="State"
@@ -465,7 +465,7 @@ export default function LeadACollectivePage() {
               value={state}
               onChange={setState}
               placeholder="Select state"
-              triggerClassName="border border-primary-200/50"
+              triggerClassName="border border-neutral-200"
             />
           </div>
 
@@ -474,7 +474,7 @@ export default function LeadACollectivePage() {
             value={postcode}
             onChange={(e) => setPostcode(e.target.value)}
             required
-            inputClassName="border border-primary-200/50"
+            inputClassName="border border-neutral-200"
           />
           </div>
         </motion.section>
@@ -506,7 +506,7 @@ export default function LeadACollectivePage() {
             <label className="block text-[13px] font-medium text-primary-700 mb-1.5">
               What Role/s are you interested in? <span className="text-error">*</span>
             </label>
-            <p className="text-[12px] text-primary-400 mb-3">
+            <p className="text-[12px] text-neutral-500 mb-3">
               Please read the Position Descriptions before applying. Select all that apply.
             </p>
             <div className="space-y-2">
@@ -584,22 +584,22 @@ export default function LeadACollectivePage() {
           {resumeFile ? (
             <div className="flex items-center gap-3 rounded-xl bg-neutral-50 border border-neutral-200 px-4 py-3">
               <FileText size={18} className="text-primary-600 shrink-0" />
-              <span className="text-[14px] text-primary-800 truncate flex-1">{resumeFile.name}</span>
+              <span className="text-[14px] text-neutral-900 truncate flex-1">{resumeFile.name}</span>
               <button
                 type="button"
                 onClick={() => setResumeFile(null)}
-                className="text-primary-400 hover:text-primary-700 active:scale-[0.90] transition-[colors,transform] duration-150 cursor-pointer"
+                className="text-neutral-400 hover:text-neutral-700 active:scale-[0.90] transition-[colors,transform] duration-150 cursor-pointer"
               >
                 <X size={16} />
               </button>
             </div>
           ) : (
             <label className={cn(
-              'relative flex items-center gap-3 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50',
+              'relative flex items-center gap-3 rounded-xl border-2 border-dashed border-neutral-300 bg-neutral-50',
               'px-4 py-4 cursor-pointer transition-colors',
               'hover:border-neutral-300 hover:bg-neutral-50',
             )}>
-              <Upload size={18} className="text-primary-400" />
+              <Upload size={18} className="text-neutral-400" />
               <span className="text-[14px] text-primary-500 font-medium">Attach your resume</span>
               <input
                 type="file"
@@ -642,7 +642,7 @@ export default function LeadACollectivePage() {
             value={howHeard}
             onChange={setHowHeard}
             placeholder="Select an option"
-            triggerClassName="bg-white border border-primary-200/50"
+            triggerClassName="bg-white border border-neutral-200"
           />
           </div>
         </motion.section>
@@ -667,8 +667,8 @@ export default function LeadACollectivePage() {
           variants={shouldReduceMotion ? undefined : fadeUp}
           className="flex items-start gap-3 px-4 py-3.5 rounded-2xl bg-neutral-50"
         >
-          <TreePine size={18} className="text-primary-400 mt-0.5 shrink-0" />
-          <p className="text-[12px] text-primary-400 leading-relaxed">
+          <TreePine size={18} className="text-neutral-400 mt-0.5 shrink-0" />
+          <p className="text-[12px] text-neutral-400 leading-relaxed">
             We respectfully acknowledge the Traditional Custodians of the lands on which we live,
             work, and gather, paying our respects to their elders past, present, and emerging.
           </p>

@@ -23,7 +23,6 @@ import { MessageInput } from '@/components/message-input'
 import { MessageActionsSheet } from '@/components/message-actions-sheet'
 import { ReportContentSheet } from '@/components/report-content-sheet'
 import { BlockUserSheet } from '@/components/block-user-sheet'
-import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { useToast } from '@/components/toast'
@@ -79,6 +78,7 @@ import type { Json } from '@/types/database.types'
 import { ChatMessageList, type AnyMessage } from './chat-message-list'
 import { ChatSearch } from './chat-search'
 import { ChatLeaderPanel } from './chat-leader-panel'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Chat mode                                                          */
@@ -193,14 +193,6 @@ function PinnedMessageBar({
   )
 }
 
-/* ------------------------------------------------------------------ */
-/*  Animation variants                                                 */
-/* ------------------------------------------------------------------ */
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Main unified chat room                                             */
@@ -322,8 +314,6 @@ export default function ChatRoomPage() {
   const [selectedMessage, setSelectedMessage] = useState<AnyMessage | null>(null)
   const [showSearch, setShowSearch] = useState(false)
   const [showScrollDown, setShowScrollDown] = useState(false)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<AnyMessage | null>(null)
   const [showPollSheet, setShowPollSheet] = useState(false)
   const [showAnnouncementSheet, setShowAnnouncementSheet] = useState(false)
   const [announcementType, setAnnouncementType] = useState<'announcement' | 'event_invite' | 'rsvp'>('announcement')
@@ -489,24 +479,19 @@ export default function ChatRoomPage() {
     }
   }, [selectedMessage, isCollective])
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (!selectedMessage) return
-    setDeleteTarget(selectedMessage)
+    const target = selectedMessage
     setSelectedMessage(null)
-    setShowDeleteConfirm(true)
-  }, [selectedMessage])
-
-  const confirmDelete = useCallback(async () => {
-    if (!deleteTarget) return
     try {
       if (isCollective && collectiveId) {
         await collectiveDelete.mutateAsync({
-          messageId: deleteTarget.id,
+          messageId: target.id,
           collectiveId,
         })
       } else if (channelId) {
         await channelDelete.mutateAsync({
-          messageId: deleteTarget.id,
+          messageId: target.id,
           channelId,
         })
       }
@@ -514,9 +499,7 @@ export default function ChatRoomPage() {
     } catch {
       toast.error('Failed to delete message')
     }
-    setShowDeleteConfirm(false)
-    setDeleteTarget(null)
-  }, [deleteTarget, isCollective, collectiveId, channelId, collectiveDelete, channelDelete, toast])
+  }, [selectedMessage, isCollective, collectiveId, channelId, collectiveDelete, channelDelete, toast])
 
   const handlePin = useCallback(async () => {
     if (!selectedMessage) return
@@ -857,7 +840,7 @@ export default function ChatRoomPage() {
                   type="button"
                   onClick={() => { setEditingMessage(null); setEditText('') }}
                   aria-label="Cancel edit"
-                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-400 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <X size={16} />
                 </button>
@@ -997,17 +980,6 @@ export default function ChatRoomPage() {
           userName={blockTarget.name}
         />
       )}
-
-      {/* Delete message confirmation */}
-      <ConfirmationSheet
-        open={showDeleteConfirm}
-        onClose={() => { setShowDeleteConfirm(false); setDeleteTarget(null) }}
-        onConfirm={confirmDelete}
-        title="Delete this message?"
-        description="This message will be permanently removed for everyone in the chat."
-        confirmLabel="Delete Message"
-        variant="danger"
-      />
 
       {/* Leader panels: polls, announcements, broadcast, manage members */}
       <ChatLeaderPanel

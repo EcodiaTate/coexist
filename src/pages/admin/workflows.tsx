@@ -244,7 +244,7 @@ function DynamicTimelineBuilder({
               className={cn(
                 'w-full text-left px-3 py-2.5 rounded-xl transition-colors cursor-pointer',
                 anchor === opt.value
-                  ? 'bg-primary-100 border border-primary-200'
+                  ? 'bg-primary-100 border border-neutral-200'
                   : 'bg-white border border-neutral-100 hover:bg-neutral-50',
               )}
             >
@@ -512,7 +512,7 @@ function TemplateModal({
               className={cn(
                 'flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-left',
                 assignmentMode === 'collective'
-                  ? 'bg-primary-100 border border-primary-200'
+                  ? 'bg-primary-100 border border-neutral-200'
                   : 'bg-white border border-neutral-100 hover:bg-neutral-50',
               )}
             >
@@ -530,7 +530,7 @@ function TemplateModal({
               className={cn(
                 'flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-left',
                 assignmentMode === 'individual'
-                  ? 'bg-primary-100 border border-primary-200'
+                  ? 'bg-primary-100 border border-neutral-200'
                   : 'bg-white border border-neutral-100 hover:bg-neutral-50',
               )}
             >
@@ -548,7 +548,7 @@ function TemplateModal({
               className={cn(
                 'flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-left',
                 assignmentMode === 'assigned'
-                  ? 'bg-primary-100 border border-primary-200'
+                  ? 'bg-primary-100 border border-neutral-200'
                   : 'bg-white border border-neutral-100 hover:bg-neutral-50',
               )}
             >
@@ -836,31 +836,31 @@ function KpiDashboard() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-4 rounded-xl bg-white shadow-sm">
               <div className="flex items-center gap-2 mb-1">
-                <Target size={14} className="text-primary-400" />
-                <p className="text-xs text-primary-400">Total Tasks</p>
+                <Target size={14} className="text-neutral-400" />
+                <p className="text-xs text-neutral-500">Total Tasks</p>
               </div>
-              <p className="text-2xl font-bold text-primary-800">{data.totals.total}</p>
+              <p className="text-2xl font-bold text-neutral-900">{data.totals.total}</p>
             </div>
             <div className="p-4 rounded-xl bg-white shadow-sm">
               <div className="flex items-center gap-2 mb-1">
                 <CheckCircle size={14} className="text-success-500" />
-                <p className="text-xs text-primary-400">Completed</p>
+                <p className="text-xs text-neutral-500">Completed</p>
               </div>
               <p className="text-2xl font-bold text-success-600">{data.totals.completed}</p>
             </div>
             <div className="p-4 rounded-xl bg-white shadow-sm">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle size={14} className="text-error-500" />
-                <p className="text-xs text-primary-400">Overdue</p>
+                <p className="text-xs text-neutral-500">Overdue</p>
               </div>
               <p className="text-2xl font-bold text-error-600">{data.totals.overdue}</p>
             </div>
             <div className="p-4 rounded-xl bg-white shadow-sm">
               <div className="flex items-center gap-2 mb-1">
-                <BarChart3 size={14} className="text-primary-400" />
-                <p className="text-xs text-primary-400">Completion Rate</p>
+                <BarChart3 size={14} className="text-neutral-400" />
+                <p className="text-xs text-neutral-500">Completion Rate</p>
               </div>
-              <p className="text-2xl font-bold text-primary-800">{data.totals.rate}%</p>
+              <p className="text-2xl font-bold text-neutral-900">{data.totals.rate}%</p>
             </div>
           </div>
 
@@ -869,18 +869,18 @@ function KpiDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-primary-100/40">
-                    <th className="text-left py-3 px-3 text-primary-400 font-medium">Collective</th>
-                    <th className="text-center py-3 px-2 text-primary-400 font-medium">Total</th>
-                    <th className="text-center py-3 px-2 text-primary-400 font-medium">Done</th>
-                    <th className="text-center py-3 px-2 text-primary-400 font-medium">Overdue</th>
-                    <th className="text-center py-3 px-2 text-primary-400 font-medium">Rate</th>
+                  <tr className="border-b border-neutral-100">
+                    <th className="text-left py-3 px-3 text-neutral-500 font-medium">Collective</th>
+                    <th className="text-center py-3 px-2 text-neutral-500 font-medium">Total</th>
+                    <th className="text-center py-3 px-2 text-neutral-500 font-medium">Done</th>
+                    <th className="text-center py-3 px-2 text-neutral-500 font-medium">Overdue</th>
+                    <th className="text-center py-3 px-2 text-neutral-500 font-medium">Rate</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.stats.map((stat) => (
-                    <tr key={stat.collective_id} className="border-b border-primary-100/40 hover:bg-primary-50">
-                      <td className="py-2.5 px-3 font-medium text-primary-800">{stat.collective_name}</td>
+                    <tr key={stat.collective_id} className="border-b border-neutral-100 hover:bg-neutral-50">
+                      <td className="py-2.5 px-3 font-medium text-neutral-900">{stat.collective_name}</td>
                       <td className="text-center py-2.5 px-2 text-primary-600">{stat.total}</td>
                       <td className="text-center py-2.5 px-2 text-success-600">{stat.completed}</td>
                       <td className="text-center py-2.5 px-2 text-error-600">{stat.overdue}</td>
@@ -1055,7 +1055,7 @@ export default function AdminWorkflowsPage() {
                       <div className="flex items-start gap-3">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="text-sm font-semibold text-primary-800 truncate">
+                            <p className="text-sm font-semibold text-neutral-900 truncate">
                               {template.title}
                             </p>
                             <span className={cn('text-[11px] font-medium px-1.5 py-0.5 rounded-full shrink-0', CATEGORY_COLORS[template.category])}>
@@ -1063,9 +1063,9 @@ export default function AdminWorkflowsPage() {
                             </span>
                           </div>
                           {template.description && (
-                            <p className="text-xs text-primary-400 line-clamp-1 mb-1.5">{template.description}</p>
+                            <p className="text-xs text-neutral-500 line-clamp-1 mb-1.5">{template.description}</p>
                           )}
-                          <div className="flex flex-wrap items-center gap-2 text-[11px] text-primary-400">
+                          <div className="flex flex-wrap items-center gap-2 text-[11px] text-neutral-400">
                             <span className="flex items-center gap-1">
                               <ScheduleIcon size={12} />
                               {formatSchedule(template)}
@@ -1127,7 +1127,7 @@ export default function AdminWorkflowsPage() {
                           <button
                             type="button"
                             onClick={() => setEditTemplate(template)}
-                            className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer"
+                            className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-neutral-400 hover:bg-neutral-50 cursor-pointer"
                             title="Edit"
                           >
                             <Pencil size={14} />
@@ -1135,7 +1135,7 @@ export default function AdminWorkflowsPage() {
                           <button
                             type="button"
                             onClick={() => setDeleteTarget(template.id)}
-                            className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
+                            className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-neutral-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                             title="Delete"
                           >
                             <Trash2 size={14} />

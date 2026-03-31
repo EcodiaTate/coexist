@@ -1,20 +1,23 @@
-import { type ReactNode, useState, useEffect, startTransition } from 'react'
+import { type ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import type { Database } from '@/types/database.types'
+import { GLOBAL_ROLE_RANK as _GLOBAL_RANK } from '@/lib/constants'
 
 type UserRole = Database['public']['Enums']['user_role']
 type CollectiveRole = Database['public']['Enums']['collective_role']
 
-const _GLOBAL_RANK: Record<string, number> = {
-  participant: 0,
-  national_leader: 1,
-  national_staff: 1,   // legacy alias (pre-migration 074)
-  manager: 2,
-  national_admin: 2,   // legacy alias (pre-migration 076)
-  admin: 3,
-  super_admin: 3,      // legacy alias (pre-migration 076)
+/* ------------------------------------------------------------------ */
+/*  Shared loading spinner for all guard components                    */
+/* ------------------------------------------------------------------ */
+
+function GuardSpinner() {
+  return (
+    <div className="min-h-dvh bg-white flex items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary-200 border-t-primary-600" />
+    </div>
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -29,21 +32,8 @@ export function RequireAuth({ children }: RequireAuthProps) {
   const { user, profile, isLoading, isSuspended, needsTosAcceptance, onboardingDone } = useAuth()
   const location = useLocation()
 
-  // Safety timeout: if we have a user but profile never arrives,
-  // don't hang on a blank screen forever - show the app anyway
-  // (onboardingDone flag will prevent false onboarding redirect).
-  const [profileTimeout, setProfileTimeout] = useState(false)
-  useEffect(() => {
-    if (profile || !user) {
-      startTransition(() => setProfileTimeout(false))
-      return
-    }
-    const timer = setTimeout(() => startTransition(() => setProfileTimeout(true)), 8000)
-    return () => clearTimeout(timer)
-  }, [profile, user])
-
   if (isLoading) {
-    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
+    return <GuardSpinner />
   }
 
   if (!user) {
@@ -61,10 +51,11 @@ export function RequireAuth({ children }: RequireAuthProps) {
   }
 
   // Profile not loaded yet - wait rather than flashing onboarding.
-  // If we already know onboarding is done (local flag), skip the wait
-  // and render children immediately.
-  if (!profile && !profileTimeout && !onboardingDone) {
-    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
+  // The auth hook's loadUserData handles retry + profile creation,
+  // so the profile will always arrive. If we already know onboarding
+  // is done (local flag), skip the wait and render children immediately.
+  if (!profile && !onboardingDone) {
+    return <GuardSpinner />
   }
 
   // Redirect to onboarding ONLY if:
@@ -93,7 +84,7 @@ export function RequireRole({ minRole, children }: RequireRoleProps) {
   const location = useLocation()
 
   if (isLoading) {
-    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
+    return <GuardSpinner />
   }
 
   // Must be authenticated first
@@ -128,7 +119,7 @@ export function RequireLeaderAccess({ children }: RequireLeaderAccessProps) {
   const location = useLocation()
 
   if (isLoading) {
-    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
+    return <GuardSpinner />
   }
 
   if (!user) {
@@ -175,7 +166,7 @@ export function RequireCapability({ cap, children }: RequireCapabilityProps) {
   const location = useLocation()
 
   if (isLoading) {
-    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
+    return <GuardSpinner />
   }
 
   if (!user) {
@@ -203,7 +194,7 @@ export function RequireCollectiveRole({
   const location = useLocation()
 
   if (authLoading || isLoading) {
-    return <div className="min-h-dvh bg-white flex items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" /></div>
+    return <GuardSpinner />
   }
 
   // Must be authenticated first

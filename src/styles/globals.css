@@ -13,6 +13,7 @@ html {
   /* Collapse all animation durations for reduced motion */
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
@@ -282,17 +283,6 @@ body {
   --safe-right: env(safe-area-inset-right, 0px);
 }
 
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
 /* Typography utilities */
 h1, .h1 { font-family: var(--font-heading); font-size: var(--text-h1); font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
 h2, .h2 { font-family: var(--font-heading); font-size: var(--text-h2); font-weight: 700; line-height: 1.25; letter-spacing: -0.015em; }
@@ -465,15 +455,6 @@ select:focus-visible {
   scrollbar-width: none;
 }
 *::-webkit-scrollbar {
-  display: none;
-}
-
-/* Legacy utility class (kept for clarity in markup) */
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 

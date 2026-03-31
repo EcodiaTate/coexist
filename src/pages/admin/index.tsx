@@ -22,6 +22,7 @@ import { BentoStatCard, BentoStatGrid, type BentoTheme } from '@/components/bent
 import { cn } from '@/lib/cn'
 import { Link } from 'react-router-dom'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 import {
     useAdminOverview,
     useTrendData,
@@ -30,19 +31,6 @@ import {
     dateRangeOptions,
 } from '@/hooks/use-admin-dashboard'
 
-/* ------------------------------------------------------------------ */
-/*  Animation helpers                                                  */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 18 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] as const } },
-}
 
 const scaleIn = {
   hidden: { opacity: 0, scale: 0.96 },

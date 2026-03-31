@@ -291,7 +291,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                 initial={rm ? undefined : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={rm ? { duration: 0 } : { delay: 0.3 }}
-                className="font-heading text-xl font-bold text-primary-800"
+                className="font-heading text-xl font-bold text-neutral-900"
               >
                 You're checked in!
               </motion.h3>
@@ -300,7 +300,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                 initial={rm ? undefined : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={rm ? { duration: 0 } : { delay: 0.4 }}
-                className="text-primary-400 mt-1.5 max-w-xs text-sm"
+                className="text-neutral-500 mt-1.5 max-w-xs text-sm"
               >
                 Welcome to {eventTitle}. Have a great time making an impact!
               </motion.p>
@@ -358,10 +358,10 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
               <div className="w-14 h-14 rounded-full bg-error-100 flex items-center justify-center mb-4">
                 <XCircle size={28} className="text-error-600" />
               </div>
-              <h3 className="font-heading text-lg font-bold text-primary-800">
+              <h3 className="font-heading text-lg font-bold text-neutral-900">
                 {errorKind === 'already_checked_in' ? 'Already Checked In' : 'Check-in Failed'}
               </h3>
-              <p className="text-primary-400 mt-1.5 max-w-xs text-sm">
+              <p className="text-neutral-500 mt-1.5 max-w-xs text-sm">
                 {ERROR_MESSAGES[errorKind]}
               </p>
               <div className="mt-5 w-full space-y-2">

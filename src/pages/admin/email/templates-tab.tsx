@@ -187,14 +187,14 @@ function TemplateEditor({
       />
 
       {/* AI Generator */}
-      <div className="rounded-xl bg-gradient-to-br from-primary-50 via-white to-secondary-50/30 border border-primary-200 p-4 space-y-3">
+      <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-4 space-y-3">
         <div className="flex items-center gap-2">
           <Sparkles size={16} className="text-primary-500" />
-          <h4 className="text-sm font-semibold text-primary-800">
+          <h4 className="text-sm font-semibold text-neutral-900">
             {bodyHtml ? 'Regenerate with AI' : 'Generate Template with AI'}
           </h4>
         </div>
-        <p className="text-xs text-primary-400 leading-relaxed">
+        <p className="text-xs text-neutral-500 leading-relaxed">
           Describe the email template you need. AI knows Co-Exist&apos;s brand, colours, logos, links and will create editable {'{{fields}}'} you can fill in each time you send.
         </p>
         <Input
@@ -221,16 +221,16 @@ function TemplateEditor({
         <>
           {/* Editable fields extracted from template */}
           {templateVars.length > 0 && (
-            <div className="rounded-xl bg-white border border-primary-200 shadow-sm p-4">
-              <h4 className="text-sm font-semibold text-primary-800 mb-1">
+            <div className="rounded-xl bg-white border border-neutral-200 shadow-sm p-4">
+              <h4 className="text-sm font-semibold text-neutral-900 mb-1">
                 Editable Fields
               </h4>
-              <p className="text-xs text-primary-400 mb-3">
+              <p className="text-xs text-neutral-500 mb-3">
                 These {'{{fields}}'} will appear as form inputs when creating a campaign from this template.
               </p>
               <div className="flex flex-wrap gap-2">
                 <span className="inline-flex items-center text-xs font-medium px-2.5 py-1 rounded-full bg-primary-100 text-primary-600">
-                  {'{{name}}'} <span className="ml-1 text-primary-400 font-normal">auto-filled</span>
+                  {'{{name}}'} <span className="ml-1 text-neutral-400 font-normal">auto-filled</span>
                 </span>
                 {templateVars.map((v) => (
                   <span
@@ -250,7 +250,7 @@ function TemplateEditor({
               onClick={() => setActiveView('preview')}
               className={cn(
                 'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer',
-                activeView === 'preview' ? 'bg-primary-50 shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
+                activeView === 'preview' ? 'bg-primary-50 shadow-sm text-neutral-900' : 'text-neutral-500 hover:text-neutral-700',
               )}
             >
               <Eye size={14} /> Preview
@@ -259,7 +259,7 @@ function TemplateEditor({
               onClick={() => setActiveView('html')}
               className={cn(
                 'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer',
-                activeView === 'html' ? 'bg-primary-50 shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
+                activeView === 'html' ? 'bg-primary-50 shadow-sm text-neutral-900' : 'text-neutral-500 hover:text-neutral-700',
               )}
             >
               <Edit3 size={14} /> Edit HTML
@@ -268,7 +268,7 @@ function TemplateEditor({
 
           {activeView === 'preview' ? (
             <div
-              className="prose prose-sm max-w-none text-primary-800 rounded-xl bg-white p-4 border border-primary-200 shadow-sm max-h-[500px] overflow-y-auto"
+              className="prose prose-sm max-w-none text-neutral-900 rounded-xl bg-white p-4 border border-neutral-200 shadow-sm max-h-[500px] overflow-y-auto"
               dangerouslySetInnerHTML={{ __html: sanitizedBodyHtml }}
             />
           ) : (
@@ -383,20 +383,20 @@ export function TemplatesTab() {
             >
               <div className="flex items-start justify-between gap-2" onClick={() => setEditing(tpl)}>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-primary-800 truncate">{tpl.name}</p>
-                  <p className="text-xs text-primary-400 truncate mt-0.5">{tpl.subject}</p>
+                  <p className="text-sm font-semibold text-neutral-900 truncate">{tpl.name}</p>
+                  <p className="text-xs text-neutral-500 truncate mt-0.5">{tpl.subject}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary-100 text-primary-500 capitalize">
                       {tpl.category}
                     </span>
-                    <span className="text-[11px] text-primary-400">Updated {formatDate(tpl.updated_at)}</span>
+                    <span className="text-[11px] text-neutral-400">Updated {formatDate(tpl.updated_at)}</span>
                   </div>
                 </div>
                 <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => setEditing(tpl)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Edit">
+                  <button onClick={() => setEditing(tpl)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-neutral-400 hover:bg-primary-100 hover:text-primary-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Edit">
                     <Edit3 size={14} />
                   </button>
-                  <button onClick={() => setDeletingId(tpl.id)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-error-100 hover:text-error-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Delete">
+                  <button onClick={() => setDeletingId(tpl.id)} className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-neutral-400 hover:bg-error-100 hover:text-error-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]" aria-label="Delete">
                     <Trash2 size={14} />
                   </button>
                 </div>

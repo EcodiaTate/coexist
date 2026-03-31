@@ -53,7 +53,7 @@ export function Toggle({
               id={id}
               htmlFor={`${id}-switch`}
               className={cn(
-                'block text-sm font-medium text-primary-800 cursor-pointer',
+                'block text-sm font-medium text-neutral-900 cursor-pointer',
                 disabled && 'opacity-50 cursor-not-allowed',
               )}
             >
@@ -64,7 +64,7 @@ export function Toggle({
             <p
               id={descriptionId}
               className={cn(
-                'text-caption text-primary-400 mt-0.5',
+                'text-caption text-neutral-500 mt-0.5',
                 disabled && 'opacity-50',
               )}
             >

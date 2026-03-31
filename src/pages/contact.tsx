@@ -205,7 +205,7 @@ export default function ContactPage() {
         animate="visible"
         variants={shouldReduceMotion ? undefined : stagger}
       >
-        <p className="text-sm text-primary-500 text-center">
+        <p className="text-sm text-neutral-500 text-center">
           We'd love to hear from you - questions, ideas, or just to say hi.
         </p>
         {/* Contact form */}
@@ -268,7 +268,7 @@ export default function ContactPage() {
 
         {/* Contact details */}
         <motion.section variants={shouldReduceMotion ? undefined : fadeUp}>
-          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-primary-400/70 mb-1.5 px-1">
+          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400/70 mb-1.5 px-1">
             Get in touch
           </h3>
           <div className="rounded-2xl bg-surface-0 shadow-sm overflow-hidden">
@@ -289,7 +289,7 @@ export default function ContactPage() {
                   {icon}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-medium text-primary-400 leading-tight">{label}</p>
+                  <p className="text-[11px] font-medium text-neutral-500 leading-tight">{label}</p>
                   <p className="text-[15px] font-medium text-primary-900 truncate">{value}</p>
                 </div>
               </a>

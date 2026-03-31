@@ -107,9 +107,9 @@ function DropZone({
           uploading && 'pointer-events-none opacity-70',
         )}
       >
-        <Upload size={24} className="text-primary-400 mb-2" />
-        <p className="text-sm font-semibold text-primary-600">{label}</p>
-        {hint && <p className="text-xs text-primary-400 mt-0.5 text-center">{hint}</p>}
+        <Upload size={24} className="text-neutral-400 mb-2" />
+        <p className="text-sm font-semibold text-neutral-900">{label}</p>
+        {hint && <p className="text-xs text-neutral-500 mt-0.5 text-center">{hint}</p>}
         <input
           ref={inputRef}
           type="file"
@@ -161,7 +161,7 @@ function SlideCard({
         className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover shrink-0 bg-primary-100"
       />
       <div className="flex-1 min-w-0 flex flex-col justify-center gap-1.5">
-        <p className="text-[11px] text-primary-400 font-medium">Slide {index + 1}</p>
+        <p className="text-[11px] text-neutral-500 font-medium">Slide {index + 1}</p>
         <Input
           label="Caption"
           value={slide.caption}
@@ -221,11 +221,11 @@ function QuizPicker({
     <div className="space-y-2">
       <SearchBar value={search} onChange={setSearch} placeholder="Search quizzes..." compact />
       {isLoading ? (
-        <p className="text-xs text-primary-400 text-center py-4">Loading quizzes...</p>
+        <p className="text-xs text-neutral-500 text-center py-4">Loading quizzes...</p>
       ) : filtered.length === 0 ? (
         <div className="text-center py-6 rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50">
-          <CircleDot size={24} className="text-primary-300 mx-auto mb-1" />
-          <p className="text-xs text-primary-500">
+          <CircleDot size={24} className="text-neutral-400 mx-auto mb-1" />
+          <p className="text-xs text-neutral-500">
             {quizzes.length === 0 ? 'No quizzes yet  create one first' : 'No matching quizzes'}
           </p>
         </div>
@@ -243,8 +243,8 @@ function QuizPicker({
             >
               <CircleDot size={14} className="text-moss-500 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-primary-800 truncate">{q.title}</p>
-                <p className="text-xs text-primary-400">Pass: {q.pass_score}%</p>
+                <p className="text-sm font-medium text-neutral-900 truncate">{q.title}</p>
+                <p className="text-xs text-neutral-500">Pass: {q.pass_score}%</p>
               </div>
               {value === q.id && <Check size={14} className="text-moss-600 shrink-0" />}
             </button>
@@ -311,9 +311,9 @@ function SortableBlock({
             {meta.icon}
             {meta.label}
           </span>
-          <span className="text-xs text-primary-400 tabular-nums">#{index + 1}</span>
+          <span className="text-xs text-neutral-500 tabular-nums">#{index + 1}</span>
           {block.title && (
-            <span className="text-sm font-medium text-primary-700 truncate">{block.title}</span>
+            <span className="text-sm font-medium text-neutral-900 truncate">{block.title}</span>
           )}
         </div>
         {preview && (
@@ -438,7 +438,7 @@ function BlockEditForm({
             {meta.icon}
             {meta.label}
           </span>
-          <span className="text-sm font-semibold text-primary-700">Edit Block</span>
+          <span className="text-sm font-semibold text-neutral-900">Edit Block</span>
         </div>
         <button type="button" onClick={onCancel} className="flex items-center justify-center w-9 h-9 rounded-lg text-primary-400 hover:text-primary-600 hover:bg-primary-100/60 transition-colors">
           <X size={18} />
@@ -463,7 +463,7 @@ function BlockEditForm({
         <div className="space-y-3">
           {/* Source toggle */}
           <div>
-            <label className="block text-sm font-medium text-primary-700 mb-1.5">Video Source</label>
+            <label className="block text-sm font-medium text-neutral-900 mb-1.5">Video Source</label>
             <div className="flex gap-2">
               {([
                 { key: 'upload', label: 'Upload', icon: <Upload size={14} /> },
@@ -556,7 +556,7 @@ function BlockEditForm({
               error={fileUpload.error}
             />
           )}
-          <p className="text-xs text-primary-400">
+          <p className="text-xs text-neutral-500">
             Supports PDF, PowerPoint, and Google Slides (export as .pptx first)
           </p>
         </div>
@@ -568,7 +568,7 @@ function BlockEditForm({
           {/* Existing slides */}
           {slides.length > 0 && (
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-primary-700">
+              <label className="block text-sm font-medium text-neutral-900">
                 Slides ({slides.length})
               </label>
               <AnimatePresence mode="popLayout">
@@ -607,7 +607,7 @@ function BlockEditForm({
       {/* ─── QUIZ ─── */}
       {draft.content_type === 'quiz' && (
         <div>
-          <label className="block text-sm font-medium text-primary-700 mb-2">Select a Quiz</label>
+          <label className="block text-sm font-medium text-neutral-900 mb-2">Select a Quiz</label>
           <QuizPicker
             value={draft.quiz_id ?? null}
             onChange={(id) => setDraft({ ...draft, quiz_id: id })}
@@ -745,7 +745,7 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
           animate={{ opacity: 1 }}
           className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50"
         >
-          <FileText size={32} className="text-primary-300 mb-3" />
+          <FileText size={32} className="text-neutral-400 mb-3" />
           <p className="text-sm font-medium text-neutral-500 mb-1">No content blocks yet</p>
           <p className="text-xs text-neutral-400 mb-4">Add blocks to build your module</p>
           <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => setShowTypePicker(true)}>
@@ -777,16 +777,16 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
                     {bt.icon}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-primary-800">{bt.label}</p>
-                    <p className="text-xs text-primary-400">{bt.desc}</p>
+                    <p className="text-sm font-semibold text-neutral-900">{bt.label}</p>
+                    <p className="text-xs text-neutral-500">{bt.desc}</p>
                   </div>
-                  <Plus size={16} className="text-primary-400 shrink-0" />
+                  <Plus size={16} className="text-neutral-400 shrink-0" />
                 </button>
               ))}
               <button
                 type="button"
                 onClick={() => setShowTypePicker(false)}
-                className="w-full flex items-center justify-center gap-1 min-h-[44px] rounded-xl text-sm text-primary-400 hover:text-primary-600 transition-colors"
+                className="w-full flex items-center justify-center gap-1 min-h-[44px] rounded-xl text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
               >
                 <X size={14} />
                 Cancel

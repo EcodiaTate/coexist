@@ -4,16 +4,7 @@ import { MapPin } from 'lucide-react'
 import { Button } from '@/components/button'
 import { PlaceAutocomplete } from '@/components/place-autocomplete'
 import type { PlaceResult } from '@/components/place-autocomplete'
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
-}
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 interface StepLocationProps {
   location: string

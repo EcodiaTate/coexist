@@ -1339,7 +1339,7 @@ export default function CreateSurveyPage() {
                 className={cn(
                   'w-full flex items-start gap-3 px-4 py-3.5 rounded-xl border text-left transition-colors cursor-pointer',
                   !autoSendAfterEvent && !isImpactForm
-                    ? 'border-primary-400 bg-primary-50/60'
+                    ? 'border-primary-400 bg-primary-50'
                     : 'border-neutral-100 bg-neutral-50/30 hover:bg-neutral-50',
                 )}
               >
@@ -1362,7 +1362,7 @@ export default function CreateSurveyPage() {
                 className={cn(
                   'w-full flex items-start gap-3 px-4 py-3.5 rounded-xl border text-left transition-colors cursor-pointer',
                   autoSendAfterEvent && !isImpactForm
-                    ? 'border-plum-400 bg-plum-50/60'
+                    ? 'border-plum-400 bg-plum-50'
                     : 'border-neutral-100 bg-neutral-50/30 hover:bg-neutral-50',
                 )}
               >
@@ -1385,7 +1385,7 @@ export default function CreateSurveyPage() {
                 className={cn(
                   'w-full flex items-start gap-3 px-4 py-3.5 rounded-xl border text-left transition-colors cursor-pointer',
                   isImpactForm
-                    ? 'border-moss-400 bg-moss-50/60'
+                    ? 'border-moss-400 bg-moss-50'
                     : 'border-neutral-100 bg-neutral-50/30 hover:bg-neutral-50',
                 )}
               >
@@ -1483,8 +1483,8 @@ export default function CreateSurveyPage() {
       </section>
 
       {/* Add question buttons */}
-      <section className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-primary-50/80 to-white overflow-hidden shadow-sm mb-6">
-        <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-primary-100 bg-neutral-50/50">
+      <section className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-neutral-50 to-white overflow-hidden shadow-sm mb-6">
+        <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-neutral-100 bg-neutral-50/50">
           <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-500 text-white">
             <Plus size={15} />
           </div>
@@ -1502,7 +1502,7 @@ export default function CreateSurveyPage() {
                 className={cn(
                   'flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-center',
                   'bg-white border border-neutral-100/60',
-                  'active:bg-primary-100/50 active:scale-[0.96]',
+                  'active:bg-neutral-100 active:scale-[0.96]',
                   'transition-[colors,transform] duration-150 cursor-pointer group select-none',
                 )}
               >
@@ -1524,7 +1524,7 @@ export default function CreateSurveyPage() {
                 className={cn(
                   'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left',
                   'bg-white border border-neutral-100/60 hover:border-primary-200 hover:bg-neutral-50/50',
-                  'active:bg-primary-100/50 active:scale-[0.98]',
+                  'active:bg-neutral-100 active:scale-[0.98]',
                   'transition-[colors,transform] duration-150 cursor-pointer group select-none',
                 )}
               >

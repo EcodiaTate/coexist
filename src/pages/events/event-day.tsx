@@ -64,15 +64,15 @@ function QrCodeDisplay({ eventId, title }: { eventId: string; title: string }) {
           fgColor="#1a1a1a"
         />
       </div>
-      <p className="text-sm font-medium text-primary-800 mt-4 text-center">
+      <p className="text-sm font-medium text-neutral-900 mt-4 text-center">
         {title}
       </p>
-      <p className="text-caption text-primary-400 mt-1">
+      <p className="text-caption text-neutral-500 mt-1">
         Show this to participants to scan
       </p>
       <div className="mt-3 px-4 py-2 rounded-lg bg-white">
-        <p className="text-[11px] uppercase tracking-wider text-primary-400 text-center">Manual code</p>
-        <p className="text-lg font-heading font-bold text-primary-800 tracking-[0.3em] text-center">
+        <p className="text-[11px] uppercase tracking-wider text-neutral-500 text-center">Manual code</p>
+        <p className="text-lg font-heading font-bold text-neutral-900 tracking-[0.3em] text-center">
           {checkInCode}
         </p>
       </div>
@@ -129,7 +129,7 @@ function AttendeeRow({
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <p className="text-sm font-medium text-primary-800 truncate">
+          <p className="text-sm font-medium text-neutral-900 truncate">
             {attendee.profiles?.display_name ?? 'Unknown User'}
           </p>
           {hasEmergencyInfo && (
@@ -138,7 +138,7 @@ function AttendeeRow({
         </div>
         <p className={cn(
           'text-caption font-medium',
-          isCheckedIn ? 'text-success-600' : isWaitlisted ? 'text-amber-600' : 'text-primary-400',
+          isCheckedIn ? 'text-success-600' : isWaitlisted ? 'text-amber-600' : 'text-neutral-500',
         )}>
           {isCheckedIn
             ? `Checked in ${attendee.checked_in_at ? new Intl.DateTimeFormat('en-AU', { hour: 'numeric', minute: '2-digit' }).format(new Date(attendee.checked_in_at)) : ''}`
@@ -205,11 +205,11 @@ function AttendeeSafetySheet({
             size="lg"
           />
           <div>
-            <p className="font-heading text-lg font-bold text-primary-800">
+            <p className="font-heading text-lg font-bold text-neutral-900">
               {p.display_name ?? 'Unknown User'}
             </p>
             {(p.age || p.gender) && (
-              <p className="text-sm text-primary-400">
+              <p className="text-sm text-neutral-500">
                 {[p.age && `Age ${p.age}`, p.gender].filter(Boolean).join(' · ')}
               </p>
             )}
@@ -222,7 +222,7 @@ function AttendeeSafetySheet({
             <Phone size={16} className="text-primary-500 mt-0.5 shrink-0" />
             <div>
               <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider">Phone</p>
-              <a href={`tel:${p.phone}`} className="text-sm font-medium text-primary-800 underline">
+              <a href={`tel:${p.phone}`} className="text-sm font-medium text-neutral-900 underline">
                 {p.phone}
               </a>
             </div>
@@ -235,7 +235,7 @@ function AttendeeSafetySheet({
             <Accessibility size={16} className="text-sky-600 mt-0.5 shrink-0" />
             <div>
               <p className="text-xs font-semibold text-sky-600 uppercase tracking-wider">Accessibility Needs</p>
-              <p className="text-sm text-primary-800 mt-0.5">{p.accessibility_requirements}</p>
+              <p className="text-sm text-neutral-900 mt-0.5">{p.accessibility_requirements}</p>
             </div>
           </div>
         )}
@@ -250,10 +250,10 @@ function AttendeeSafetySheet({
           </div>
           {p.emergency_contact_name ? (
             <div className="space-y-1.5">
-              <p className="text-sm font-medium text-primary-800">
+              <p className="text-sm font-medium text-neutral-900">
                 {p.emergency_contact_name}
                 {p.emergency_contact_relationship && (
-                  <span className="text-primary-400 font-normal"> ({p.emergency_contact_relationship})</span>
+                  <span className="text-neutral-500 font-normal"> ({p.emergency_contact_relationship})</span>
                 )}
               </p>
               {p.emergency_contact_phone && (
@@ -439,10 +439,10 @@ export default function EventDayPage() {
       <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="pt-4 pb-6">
         {/* Event header */}
         <motion.div variants={fadeUp} className="mb-4">
-          <h2 className="font-heading text-lg font-bold text-primary-800">
+          <h2 className="font-heading text-lg font-bold text-neutral-900">
             {event.title}
           </h2>
-          <p className="text-caption text-primary-400 mt-0.5">
+          <p className="text-caption text-neutral-500 mt-0.5">
             {formatEventDate(event.date_start)}
           </p>
         </motion.div>
@@ -476,11 +476,11 @@ export default function EventDayPage() {
         {stats.registered > 0 && (
           <motion.div variants={fadeUp} className="mb-5 rounded-xl bg-white ring-1 ring-primary-100 p-3 shadow-sm">
             <div className="flex items-center justify-between text-caption mb-2">
-              <span className="text-primary-500 font-medium flex items-center gap-1.5">
+              <span className="text-neutral-500 font-medium flex items-center gap-1.5">
                 <Sparkles size={13} className="text-success-500" />
                 Check-in progress
               </span>
-              <span className="font-bold text-primary-800">
+              <span className="font-bold text-neutral-900">
                 {stats.checkedIn}/{stats.registered}
               </span>
             </div>
@@ -506,7 +506,7 @@ export default function EventDayPage() {
               'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-bold transition-all duration-150',
               activeTab === 'attendees'
                 ? 'bg-white text-primary-800 shadow-md ring-1 ring-primary-200/40'
-                : 'text-primary-400 active:bg-white/50',
+                : 'text-neutral-500 active:bg-white/50',
             )}
           >
             <Users size={15} />
@@ -518,7 +518,7 @@ export default function EventDayPage() {
               'flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-sm font-bold transition-all duration-150',
               activeTab === 'contacts'
                 ? 'bg-white text-primary-800 shadow-md ring-1 ring-primary-200/40'
-                : 'text-primary-400 active:bg-white/50',
+                : 'text-neutral-500 active:bg-white/50',
             )}
           >
             <BookOpen size={15} />

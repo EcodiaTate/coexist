@@ -92,7 +92,18 @@ function safeSet(key: string, value: unknown): boolean {
     localStorage.setItem(key, JSON.stringify(value))
     return true
   } catch {
-    // Storage full
+    // Storage full — try evicting query cache first (action queue is higher priority)
+    if (key !== CACHE_KEY) {
+      try {
+        localStorage.removeItem(CACHE_KEY)
+        localStorage.setItem(key, JSON.stringify(value))
+        return true
+      } catch {
+        // Still full even after cache eviction
+      }
+    }
+    // Dispatch event so UI can show a warning
+    window.dispatchEvent(new CustomEvent('coexist:storage-full'))
     return false
   }
 }
@@ -840,9 +851,13 @@ export async function syncAllOfflineActions(): Promise<SyncResult> {
     if (totalPending > 0) {
       result.failed = totalPending
       result.conflicts.push('Session expired. Please sign in again to sync your pending actions.')
+      onSyncIssue?.('auth-expired')
     }
     return result
   }
+
+  // Auth is good — clear any previous auth-expired issue
+  onSyncIssue?.(null)
 
   // Sync legacy check-in queue first
   const checkinsSynced = await syncOfflineCheckIns()
@@ -932,10 +947,16 @@ export function getLastSyncTime(): string | null {
 
 let syncListenerAttached = false
 let onSyncComplete: ((result: SyncResult) => void) | null = null
+let onSyncIssue: ((issue: 'auth-expired' | 'storage-full' | null) => void) | null = null
 
 /** Register a callback for when sync completes (used by the sync provider) */
 export function onSyncResult(callback: (result: SyncResult) => void) {
   onSyncComplete = callback
+}
+
+/** Register a callback for persistent sync issues (auth expired, storage full) */
+export function onSyncIssueChange(callback: (issue: 'auth-expired' | 'storage-full' | null) => void) {
+  onSyncIssue = callback
 }
 
 /**

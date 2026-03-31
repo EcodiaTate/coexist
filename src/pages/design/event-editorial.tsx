@@ -6,6 +6,7 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Mock data                                                          */
@@ -95,19 +96,6 @@ const difficultyConfig = {
   challenging: { label: 'Challenging', color: 'bg-error-100 text-error-700' },
 }
 
-/* ------------------------------------------------------------------ */
-/*  Animations                                                         */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 260, damping: 24 } },
-}
 
 const fadeIn = {
   hidden: { opacity: 0 },

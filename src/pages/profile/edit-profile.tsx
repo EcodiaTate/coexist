@@ -75,15 +75,15 @@ function SectionCard({
   children: React.ReactNode
 }) {
   return (
-    <div className="rounded-2xl bg-white shadow-sm border border-primary-100/60 overflow-hidden">
+    <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 overflow-hidden">
       {/* Section header - tinted */}
       <div className={cn('flex items-center gap-3 px-4 pt-4 pb-3', headerBg)}>
         <div className={cn('shrink-0 w-9 h-9 rounded-xl flex items-center justify-center', iconBg)}>
           {icon}
         </div>
         <div>
-          <h3 className="font-heading text-sm font-bold text-primary-800">{title}</h3>
-          {description && <p className="text-[11px] text-primary-400 mt-0.5">{description}</p>}
+          <h3 className="font-heading text-sm font-bold text-neutral-900">{title}</h3>
+          {description && <p className="text-[11px] text-neutral-500 mt-0.5">{description}</p>}
         </div>
       </div>
       {/* Content */}
@@ -328,7 +328,7 @@ export default function EditProfilePage() {
             <SectionCard
               icon={<User size={17} className="text-primary-600" />}
               iconBg="bg-primary-200/80"
-              headerBg="bg-primary-50/60"
+              headerBg="bg-neutral-50"
               title="Personal Details"
               description="Your identity info - visible to event leaders"
             >
@@ -410,7 +410,7 @@ export default function EditProfilePage() {
             <SectionCard
               icon={<Sparkles size={17} className="text-sprout-600" />}
               iconBg="bg-sprout-200/80"
-              headerBg="bg-sprout-50/60"
+              headerBg="bg-neutral-50"
               title="About You"
               description="Express yourself - shown on your public profile"
             >
@@ -476,7 +476,7 @@ export default function EditProfilePage() {
             <SectionCard
               icon={<Heart size={17} className="text-moss-600" />}
               iconBg="bg-moss-200/80"
-              headerBg="bg-moss-50/60"
+              headerBg="bg-neutral-50"
               title="Conservation Interests"
               description="Select what excites you most"
             >
@@ -577,14 +577,14 @@ export default function EditProfilePage() {
                     className={cn(
                       'w-full flex items-start gap-3 rounded-xl px-4 py-3 text-left transition-transform duration-150 active:scale-[0.98]',
                       visibility === opt.value
-                        ? 'ring-2 ring-primary-500 bg-primary-50/60 shadow-sm'
-                        : 'bg-surface-1 border border-primary-100 hover:border-primary-200',
+                        ? 'ring-2 ring-primary-500 bg-primary-50 shadow-sm'
+                        : 'bg-surface-1 border border-neutral-200 hover:border-neutral-300',
                     )}
                   >
                     <div
                       className={cn(
                         'mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors',
-                        visibility === opt.value ? 'border-primary-500' : 'border-primary-200',
+                        visibility === opt.value ? 'border-primary-500' : 'border-neutral-300',
                       )}
                     >
                       {visibility === opt.value && (
@@ -592,8 +592,8 @@ export default function EditProfilePage() {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-primary-800">{opt.label}</p>
-                      <p className="text-xs text-primary-400">{opt.desc}</p>
+                      <p className="text-sm font-medium text-neutral-900">{opt.label}</p>
+                      <p className="text-xs text-neutral-500">{opt.desc}</p>
                     </div>
                   </button>
                 ))}

@@ -138,10 +138,10 @@ export function TaskSurveyModal({
     <BottomSheet open={open} onClose={onClose}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-heading text-lg font-semibold text-primary-800">{survey?.title ?? 'Survey'}</h2>
+        <h2 className="font-heading text-lg font-semibold text-neutral-900">{survey?.title ?? 'Survey'}</h2>
         <button
           onClick={onClose}
-          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-neutral-400 hover:bg-neutral-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
           aria-label="Close"
         >
           <X size={20} />
@@ -150,10 +150,10 @@ export function TaskSurveyModal({
       {isLoading ? (
         <Skeleton variant="list-item" count={4} />
       ) : !questions.length ? (
-        <p className="text-sm text-primary-400 py-4">No questions found in this survey.</p>
+        <p className="text-sm text-neutral-500 py-4">No questions found in this survey.</p>
       ) : (
         <div className="space-y-5">
-          <p className="text-xs text-primary-400">
+          <p className="text-xs text-neutral-500">
             Please complete this survey to finish the task.
           </p>
 

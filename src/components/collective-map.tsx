@@ -644,7 +644,7 @@ export function CollectiveMap({ className }: CollectiveMapProps) {
                     />
                   ) : (
                     <div className="h-16 w-full bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-                      <TreePine size={18} className="text-primary-400" />
+                      <TreePine size={18} className="text-neutral-400" />
                     </div>
                   )}
                   <div className="px-2 py-1.5">

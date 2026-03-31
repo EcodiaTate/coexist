@@ -26,7 +26,9 @@ export interface MapMarker {
 export const TILE_URL = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
 export const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 
-export const DEFAULT_CENTER: MapCenter = { lat: -33.8688, lng: 151.2093 } // Sydney
+/** Centre of Australia — sensible fallback instead of defaulting to Sydney */
+export const DEFAULT_CENTER: MapCenter = { lat: -25.0, lng: 134.0 }
+export const DEFAULT_ZOOM_FALLBACK = 4 // zoom out to show all of Australia
 
 /* ------------------------------------------------------------------ */
 /*  Global CSS overrides for Co-Exist styling                          */
@@ -99,9 +101,10 @@ export function useMap({
     injectStyles()
 
     const c = center ?? DEFAULT_CENTER
+    const z = center ? zoom : DEFAULT_ZOOM_FALLBACK
     const map = L.map(containerRef.current, {
       center: [c.lat, c.lng],
-      zoom,
+      zoom: z,
       zoomControl: interactive,
       dragging: interactive,
       touchZoom: interactive,
@@ -140,7 +143,8 @@ export function useMap({
   useEffect(() => {
     if (!mapRef.current || !mapReady) return
     const c = center ?? DEFAULT_CENTER
-    updateView(c, zoom)
+    const z = center ? zoom : DEFAULT_ZOOM_FALLBACK
+    updateView(c, z)
   }, [center, zoom, mapReady, updateView])
 
   return { containerRef, mapRef, mapReady }

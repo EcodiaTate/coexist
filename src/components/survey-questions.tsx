@@ -97,13 +97,13 @@ export function SurveyQuestionRenderer({
       {questions.map((q, i) => (
         <div key={q.id} className="space-y-2">
           <div>
-            <p className="text-sm font-medium text-primary-800">
-              {numbered && <span className="text-primary-400 mr-1.5">{i + 1}.</span>}
+            <p className="text-sm font-medium text-neutral-900">
+              {numbered && <span className="text-neutral-500 mr-1.5">{i + 1}.</span>}
               {q.text}
               {q.required && <span className="text-error-500 ml-0.5">*</span>}
             </p>
             {q.description && (
-              <p className="text-xs text-primary-400 mt-0.5 ml-5">{q.description}</p>
+              <p className="text-xs text-neutral-500 mt-0.5 ml-5">{q.description}</p>
             )}
           </div>
 
@@ -119,7 +119,7 @@ export function SurveyQuestionRenderer({
                     'flex items-center justify-center w-10 h-10 rounded-lg cursor-pointer transition-colors',
                     (answers[q.id] as number) >= n
                       ? 'bg-warning-100 text-warning-600'
-                      : 'bg-primary-50 text-primary-300 hover:bg-primary-100',
+                      : 'bg-neutral-50 text-neutral-400 hover:bg-neutral-100',
                   )}
                 >
                   <Star size={18} fill={(answers[q.id] as number) >= n ? 'currentColor' : 'none'} />
@@ -133,7 +133,7 @@ export function SurveyQuestionRenderer({
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 {q.min_label && (
-                  <span className="text-[11px] text-primary-400 shrink-0">{q.min_label}</span>
+                  <span className="text-[11px] text-neutral-500 shrink-0">{q.min_label}</span>
                 )}
                 <div className="flex gap-1 flex-wrap">
                   {Array.from(
@@ -156,7 +156,7 @@ export function SurveyQuestionRenderer({
                   ))}
                 </div>
                 {q.max_label && (
-                  <span className="text-[11px] text-primary-400 shrink-0">{q.max_label}</span>
+                  <span className="text-[11px] text-neutral-500 shrink-0">{q.max_label}</span>
                 )}
               </div>
             </div>
@@ -309,7 +309,7 @@ export function SurveyQuestionRenderer({
                 maxLength={q.text_max_length}
               />
               {(q.text_min_length || q.text_max_length) && (
-                <p className="text-[10px] text-primary-400">
+                <p className="text-[10px] text-neutral-500">
                   {((answers[q.id] as string) ?? '').length}
                   {q.text_max_length ? ` / ${q.text_max_length}` : ''}
                   {' characters'}
@@ -331,7 +331,7 @@ export function SurveyQuestionRenderer({
                 max={q.number_max != null ? String(q.number_max) : undefined}
               />
               {(q.number_min != null || q.number_max != null) && (
-                <p className="text-[10px] text-primary-400">
+                <p className="text-[10px] text-neutral-500">
                   {q.number_min != null ? `Min: ${q.number_min}` : ''}
                   {q.number_min != null && q.number_max != null ? ' · ' : ''}
                   {q.number_max != null ? `Max: ${q.number_max}` : ''}
@@ -380,12 +380,12 @@ export function SurveyQuestionRenderer({
                   <p className="text-xs text-plum-400">
                     {PROFILE_FIELD_LABELS[q.profile_field ?? ''] ?? 'Profile field'}
                   </p>
-                  <p className="text-sm font-medium text-primary-800 truncate">
+                  <p className="text-sm font-medium text-neutral-900 truncate">
                     {(answers[q.id] as string) || ''}
                   </p>
                 </div>
               </div>
-              <p className="text-[11px] text-primary-400 px-1">
+              <p className="text-[11px] text-neutral-500 px-1">
                 Auto-filled from your profile
               </p>
             </div>

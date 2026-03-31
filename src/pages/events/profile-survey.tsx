@@ -156,10 +156,10 @@ function ProfileSurveyForm({ profile }: { profile: Profile | null }) {
           <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mx-auto mb-3">
             <Heart size={24} className="text-primary-600" />
           </div>
-          <h2 className="font-heading text-lg font-bold text-primary-800">
+          <h2 className="font-heading text-lg font-bold text-neutral-900">
             Welcome to your first event!
           </h2>
-          <p className="text-sm text-primary-400 mt-1.5 max-w-xs mx-auto">
+          <p className="text-sm text-neutral-500 mt-1.5 max-w-xs mx-auto">
             Help us keep you safe by filling in a few quick details. Your emergency info is only visible to event leaders.
           </p>
         </motion.div>
@@ -167,8 +167,8 @@ function ProfileSurveyForm({ profile }: { profile: Profile | null }) {
         {/* Personal details */}
         <motion.div variants={fadeUp}>
           <div className="flex items-center gap-2 mb-3">
-            <User size={16} className="text-primary-500" />
-            <h3 className="font-heading text-sm font-semibold text-primary-800 uppercase tracking-wider">
+            <User size={16} className="text-neutral-500" />
+            <h3 className="font-heading text-sm font-semibold text-neutral-900 uppercase tracking-wider">
               Your Details
             </h3>
           </div>
@@ -276,11 +276,11 @@ function ProfileSurveyForm({ profile }: { profile: Profile | null }) {
         <motion.div variants={fadeUp}>
           <div className="flex items-center gap-2 mb-2">
             <AlertTriangle size={16} className="text-warning-600" />
-            <h3 className="font-heading text-sm font-semibold text-primary-800 uppercase tracking-wider">
+            <h3 className="font-heading text-sm font-semibold text-neutral-900 uppercase tracking-wider">
               Emergency Contact
             </h3>
           </div>
-          <p className="text-xs text-primary-400 mb-3">
+          <p className="text-xs text-neutral-500 mb-3">
             Only visible to event leaders for safety purposes.
           </p>
           <div className="space-y-3">

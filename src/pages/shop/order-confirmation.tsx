@@ -43,7 +43,7 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string }> = {
   processing: { label: 'Processing', color: 'bg-info-100 text-info-800' },
   shipped: { label: 'Shipped', color: 'bg-plum-100 text-plum-800' },
   delivered: { label: 'Delivered', color: 'bg-success-100 text-success-800' },
-  cancelled: { label: 'Cancelled', color: 'bg-white text-primary-400' },
+  cancelled: { label: 'Cancelled', color: 'bg-white text-neutral-400' },
   refunded: { label: 'Refunded', color: 'bg-error-100 text-error-700' },
 }
 

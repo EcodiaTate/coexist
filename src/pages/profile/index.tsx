@@ -78,8 +78,8 @@ function DetailRow({ icon, label, value, tint = 'primary' }: { icon: React.React
         {icon}
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400">{label}</p>
-        <p className="text-sm font-medium text-primary-800 truncate">{value}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{label}</p>
+        <p className="text-sm font-medium text-neutral-900 truncate">{value}</p>
       </div>
     </div>
   )
@@ -98,7 +98,7 @@ function SectionHeading({ icon, iconBg, title, action }: { icon?: React.ReactNod
             {icon}
           </div>
         )}
-        <h3 className="font-heading text-base font-bold text-primary-800">{title}</h3>
+        <h3 className="font-heading text-base font-bold text-neutral-900">{title}</h3>
       </div>
       {action}
     </div>
@@ -275,7 +275,7 @@ export default function ProfilePage() {
             size="sm"
             icon={<Pencil size={15} />}
             onClick={() => navigate('/profile/edit')}
-            className="shadow-lg bg-white !text-primary-700 hover:!bg-primary-50 border border-primary-200"
+            className="shadow-lg bg-white !text-neutral-700 hover:!bg-neutral-50 border border-neutral-200"
           >
             Edit Profile
           </Button>
@@ -284,7 +284,7 @@ export default function ProfilePage() {
             size="sm"
             icon={<Ticket size={15} />}
             onClick={() => navigate('/profile/tickets')}
-            className="shadow-lg bg-white !text-primary-700 hover:!bg-primary-50 border border-primary-200"
+            className="shadow-lg bg-white !text-neutral-700 hover:!bg-neutral-50 border border-neutral-200"
           >
             Tickets
           </Button>
@@ -420,7 +420,7 @@ export default function ProfilePage() {
                     <Heart size={18} className="text-warning-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-primary-800">
+                    <p className="text-sm font-bold text-neutral-900">
                       {profile.emergency_contact_name}
                     </p>
                     {profile.emergency_contact_relationship && (
@@ -499,7 +499,7 @@ export default function ProfilePage() {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-heading font-bold text-sm text-primary-800 truncate">
+                      <p className="font-heading font-bold text-sm text-neutral-900 truncate">
                         {collective.name}
                       </p>
                       <p className="text-xs text-moss-600 font-medium">

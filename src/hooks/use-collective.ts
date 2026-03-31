@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, escapeIlike } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { IMPACT_SELECT_COLUMNS } from '@/lib/impact-metrics'
+import { COLLECTIVE_ROLE_RANK } from '@/lib/constants'
 import type {
   Database,
   Tables,
@@ -23,7 +24,7 @@ export interface CollectiveWithLeader extends Collective {
 }
 
 export interface CollectiveMemberWithProfile extends CollectiveMember {
-  profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'instagram_handle' | 'pronouns' | 'location' | 'membership_level'> | null
+  profiles: Pick<Profile, 'id' | 'display_name' | 'avatar_url' | 'instagram_handle' | 'pronouns' | 'location' | 'membership_level' | 'email'> | null
 }
 
 export interface CollectiveStats {
@@ -132,7 +133,7 @@ export function useCollectiveMembers(collectiveId: string | undefined) {
       if (!collectiveId) throw new Error('No collective ID')
       const { data, error } = await supabase
         .from('collective_members')
-        .select('*, profiles(id, display_name, avatar_url, instagram_handle, pronouns, location, membership_level)')
+        .select('*, profiles(id, display_name, avatar_url, instagram_handle, pronouns, location, membership_level, email)')
         .eq('collective_id', collectiveId)
         .eq('status', 'active')
         .order('role', { ascending: false })
@@ -522,12 +523,7 @@ export function useRemoveMember() {
 /*  Update member role (leader)                                        */
 /* ------------------------------------------------------------------ */
 
-const ROLE_RANK: Record<CollectiveRole, number> = {
-  member: 0,
-  assist_leader: 1,
-  co_leader: 2,
-  leader: 3,
-}
+const ROLE_RANK = COLLECTIVE_ROLE_RANK as Record<CollectiveRole, number>
 
 export function useUpdateMemberRole() {
   const queryClient = useQueryClient()
@@ -558,13 +554,16 @@ export function useUpdateMemberRole() {
       const actorRank = actorRow ? ROLE_RANK[actorRow.role as CollectiveRole] : -1
       const targetRank = targetRow ? ROLE_RANK[targetRow.role as CollectiveRole] : -1
 
-      // Can only change roles of members ranked strictly below you
-      if (targetRank >= actorRank) {
+      const isLeader = actorRank === ROLE_RANK.leader
+      // Leaders can manage co-leaders and below; others only strictly below their rank
+      const maxManageableRank = isLeader ? ROLE_RANK.co_leader : actorRank - 1
+      if (targetRank > maxManageableRank) {
         throw new Error('Cannot change the role of a member at or above your rank')
       }
-      // Can only assign roles strictly below your own
-      if (ROLE_RANK[role] >= actorRank) {
-        throw new Error('Cannot promote a member to your rank or above')
+      // Leaders can assign up to co_leader; others only strictly below their rank
+      const maxAssignableRank = isLeader ? ROLE_RANK.co_leader : actorRank - 1
+      if (ROLE_RANK[role] > maxAssignableRank) {
+        throw new Error('Cannot promote a member to that role')
       }
 
       const { error } = await supabase

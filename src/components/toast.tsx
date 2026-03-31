@@ -193,10 +193,10 @@ const ToastCard = memo(function ToastCard({
       )}
     >
       <Icon size={20} className={cn('shrink-0 mt-0.5', config.iconClass)} aria-hidden="true" />
-      <p className="flex-1 text-sm font-medium text-primary-800">{message}</p>
+      <p className="flex-1 text-sm font-medium text-neutral-900">{message}</p>
       <button
         onClick={handleDismiss}
-        className="shrink-0 rounded-full p-0.5 text-primary-400 transition-[colors,transform] duration-150 hover:bg-black/5 hover:text-primary-400 active:scale-[0.90] cursor-pointer"
+        className="shrink-0 rounded-full p-0.5 text-neutral-400 transition-[colors,transform] duration-150 hover:bg-black/5 hover:text-neutral-500 active:scale-[0.90] cursor-pointer"
         aria-label="Dismiss notification"
       >
         <X size={16} />

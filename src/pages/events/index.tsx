@@ -24,13 +24,14 @@ import { useCollectives, useMyCollectives, type CollectiveWithLeader } from '@/h
 import { useNationalImpact } from '@/hooks/use-impact'
 import {
   Page,
-  PullToRefresh,
   Card,
   Badge, EmptyState, ConfirmationSheet, Dropdown, CountUp, Skeleton,
 } from '@/components'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
+import { activityToBadge, ACTIVITY_META } from '@/lib/activity-types'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { OfflineIndicator } from '@/components/offline-indicator'
 import { PendingSyncBadge } from '@/components/pending-sync-badge'
@@ -67,47 +68,6 @@ function useHeroStats() {
   })
 }
 
-/* ------------------------------------------------------------------ */
-/*  Animation                                                          */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 22 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 280, damping: 24 } },
-}
-
-/* ------------------------------------------------------------------ */
-/*  Activity badge mapping                                             */
-/* ------------------------------------------------------------------ */
-
-const activityToBadge: Record<string, 'shore-cleanup' | 'tree-planting' | 'land-regeneration' | 'nature-walk' | 'camp-out' | 'retreat' | 'film-screening' | 'marine-restoration' | 'workshop'> = {
-  shore_cleanup: 'shore-cleanup',
-  tree_planting: 'tree-planting',
-  land_regeneration: 'land-regeneration',
-  nature_walk: 'nature-walk',
-  camp_out: 'camp-out',
-  retreat: 'retreat',
-  film_screening: 'film-screening',
-  marine_restoration: 'marine-restoration',
-  workshop: 'workshop',
-}
-
-const ACTIVITY_META: Record<string, { gradient: string }> = {
-  shore_cleanup: { gradient: 'from-sky-400 to-moss-500' },
-  tree_planting: { gradient: 'from-success-400 to-primary-500' },
-  land_regeneration: { gradient: 'from-sprout-400 to-success-500' },
-  nature_walk: { gradient: 'from-bark-400 to-bark-500' },
-  camp_out: { gradient: 'from-moss-400 to-primary-500' },
-  retreat: { gradient: 'from-plum-400 to-plum-500' },
-  film_screening: { gradient: 'from-coral-400 to-coral-500' },
-  marine_restoration: { gradient: 'from-primary-400 to-moss-500' },
-  workshop: { gradient: 'from-bark-400 to-warning-500' },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Status badge styles                                                */
@@ -374,9 +334,9 @@ function CollectiveCard({ collective, onClick }: { collective: CollectiveWithLea
         )}
       </div>
       <div className="flex-1 min-w-0 flex flex-col justify-center">
-        <h3 className="font-heading text-sm font-semibold text-primary-800 truncate">{collective.name}</h3>
+        <h3 className="font-heading text-sm font-semibold text-neutral-900 truncate">{collective.name}</h3>
         {collective.region && (
-          <div className="flex items-center gap-1 mt-0.5 text-xs text-primary-400">
+          <div className="flex items-center gap-1 mt-0.5 text-xs text-neutral-500">
             <MapPin size={11} />
             <span className="truncate">{collective.region}{collective.state ? `, ${collective.state}` : ''}</span>
           </div>
@@ -386,11 +346,11 @@ function CollectiveCard({ collective, onClick }: { collective: CollectiveWithLea
             <Users size={11} /> {collective.member_count ?? 0}
           </span>
           {collective.profiles?.display_name && (
-            <span className="text-[11px] text-primary-400 truncate">Led by {collective.profiles.display_name}</span>
+            <span className="text-[11px] text-neutral-500 truncate">Led by {collective.profiles.display_name}</span>
           )}
         </div>
       </div>
-      <ChevronRight size={16} className="self-center text-primary-200 flex-shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
+      <ChevronRight size={16} className="self-center text-neutral-400 flex-shrink-0 transition-transform duration-200 group-hover:translate-x-0.5" />
     </button>
   )
 }
@@ -502,7 +462,7 @@ export default function ExplorePage() {
 
           {/* Status bar */}
           <div className="flex items-center justify-end gap-1.5 px-4 lg:px-6 pt-1 pb-1">
-            <OfflineIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} className="text-primary-400" />
+            <OfflineIndicator dataUpdatedAt={dataUpdatedAt} isFetching={isFetching} className="text-neutral-500" />
             <PendingSyncBadge />
           </div>
 
@@ -518,7 +478,7 @@ export default function ExplorePage() {
                     'flex-1 flex items-center justify-center gap-2 min-h-11 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer select-none',
                     activeTab === tab
                       ? 'bg-primary-600 text-white shadow-md'
-                      : 'text-primary-400 hover:text-primary-600',
+                      : 'text-neutral-500 hover:text-neutral-700',
                   )}
                 >
                   {tab === 'events' ? <Calendar size={15} /> : <Users size={15} />}
@@ -528,7 +488,6 @@ export default function ExplorePage() {
             </div>
           </div>
 
-          <PullToRefresh onRefresh={handleRefresh}>
             <AnimatePresence mode="wait">
 
               {/* ======================================================== */}
@@ -654,7 +613,7 @@ export default function ExplorePage() {
 
                     {/* Filters */}
                     <div className="flex items-center gap-2 mb-4">
-                      <Filter size={14} className="text-primary-400 shrink-0" />
+                      <Filter size={14} className="text-neutral-400 shrink-0" />
                       <Dropdown
                         value={activityFilter}
                         onChange={(v) => setActivityFilter(v as ActivityType | '')}
@@ -809,8 +768,8 @@ export default function ExplorePage() {
                                   </div>
                                 </div>
                                 <div className="p-3.5">
-                                  <p className="text-sm font-semibold text-primary-800 truncate">{c.name}</p>
-                                  <p className="text-xs text-primary-400 mt-0.5 flex items-center gap-1">
+                                  <p className="text-sm font-semibold text-neutral-900 truncate">{c.name}</p>
+                                  <p className="text-xs text-neutral-500 mt-0.5 flex items-center gap-1">
                                     <MapPin size={10} />
                                     {[c.region, c.state].filter(Boolean).join(', ')}
                                   </p>
@@ -895,7 +854,6 @@ export default function ExplorePage() {
                 </motion.div>
               )}
             </AnimatePresence>
-          </PullToRefresh>
         </div>
       </div>
 

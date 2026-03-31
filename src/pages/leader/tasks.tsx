@@ -17,7 +17,6 @@ import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { Skeleton } from '@/components/skeleton'
-import { PullToRefresh } from '@/components/pull-to-refresh'
 import { TaskSurveyModal } from '@/components/task-survey-modal'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
@@ -745,19 +744,18 @@ function TasksTabContent({ rm }: { rm: boolean }) {
         )}>
           <p className={cn(
             'font-heading text-2xl font-extrabold tabular-nums leading-none',
-            totalOverdue > 0 ? 'text-error-600' : 'text-primary-300',
+            totalOverdue > 0 ? 'text-error-600' : 'text-neutral-400',
           )}>
             {totalOverdue}
           </p>
           <p className={cn(
             'text-[11px] font-semibold uppercase tracking-wider mt-1.5',
-            totalOverdue > 0 ? 'text-error-400' : 'text-primary-300',
+            totalOverdue > 0 ? 'text-error-400' : 'text-neutral-400',
           )}>Overdue</p>
         </div>
       </motion.div>
 
       {/* Impact form tasks + regular task groups */}
-      <PullToRefresh onRefresh={handleRefresh}>
         <div className="space-y-6">
           {/* Impact form tasks — shown above regular tasks with high priority */}
           {(pendingImpactForms.length > 0 || completedImpactForms.length > 0) && (
@@ -829,7 +827,6 @@ function TasksTabContent({ rm }: { rm: boolean }) {
             </motion.div>
           ))}
         </div>
-      </PullToRefresh>
     </div>
   )
 }
@@ -1011,7 +1008,7 @@ function TodoItem({
     >
       {/* Edit mode grip */}
       {editMode && (
-        <div className="flex items-center self-center text-primary-300 cursor-grab">
+        <div className="flex items-center self-center text-neutral-400 cursor-grab">
           <GripVertical size={16} />
         </div>
       )}
@@ -1029,7 +1026,7 @@ function TodoItem({
         }}
         className={cn(
           'mt-0.5 shrink-0 cursor-pointer transition-all duration-200',
-          completed ? 'text-moss-500' : overdue ? 'text-error-400 hover:text-error-500' : 'text-primary-300 hover:text-primary-500',
+          completed ? 'text-moss-500' : overdue ? 'text-error-400 hover:text-error-500' : 'text-neutral-400 hover:text-neutral-600',
         )}
       >
         {completed ? (
@@ -1347,11 +1344,11 @@ function TodosTabContent({ rm }: { rm: boolean }) {
         )}>
           <p className={cn(
             'font-heading text-xl font-extrabold tabular-nums',
-            overdueCount > 0 ? 'text-error-600' : 'text-primary-300',
+            overdueCount > 0 ? 'text-error-600' : 'text-neutral-400',
           )}>{overdueCount}</p>
           <p className={cn(
             'text-[11px] font-semibold uppercase tracking-wider',
-            overdueCount > 0 ? 'text-error-400' : 'text-primary-300',
+            overdueCount > 0 ? 'text-error-400' : 'text-neutral-400',
           )}>Overdue</p>
         </div>
         <div className="rounded-2xl bg-neutral-50 p-3 text-center shadow-sm">

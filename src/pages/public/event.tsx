@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/skeleton'
 import { OGMeta, SITE_URL } from '@/components/og-meta'
 import { APP_NAME } from '@/lib/constants'
 import { WebFooter } from '@/components/web-footer'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
 function formatDate(date: string) {
   return new Date(date).toLocaleDateString('en-AU', {
@@ -37,16 +38,6 @@ const ACTIVITY_LABELS: Record<string, string> = {
   film_screening: 'Film Screening',
   marine_restoration: 'Marine Restoration',
   workshop: 'Workshop',
-}
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.04 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
 }
 
 export default function PublicEventPage() {
@@ -85,8 +76,8 @@ export default function PublicEventPage() {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center bg-white p-6">
         <OGMeta title="Event Not Found" description="This event doesn't exist or is no longer available." />
-        <h1 className="font-heading text-2xl font-bold text-primary-800">Event not found</h1>
-        <p className="mt-2 text-primary-400">This event doesn't exist or is no longer public.</p>
+        <h1 className="font-heading text-2xl font-bold text-neutral-900">Event not found</h1>
+        <p className="mt-2 text-neutral-500">This event doesn't exist or is no longer public.</p>
         <Button variant="primary" className="mt-6" onClick={() => navigate('/download')}>
           Get the {APP_NAME} App
         </Button>
@@ -164,7 +155,7 @@ export default function PublicEventPage() {
           animate={{ y: 0, opacity: 1 }}
           className="absolute bottom-4 left-4"
         >
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-sm font-semibold text-primary-400 shadow-md">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-sm font-semibold text-neutral-500 shadow-md">
             <TreePine size={14} />
             {ACTIVITY_LABELS[event.activity_type] || event.activity_type}
           </span>
@@ -180,12 +171,12 @@ export default function PublicEventPage() {
       >
         {/* Title */}
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-          <h1 className="font-heading text-2xl font-bold text-primary-800 sm:text-3xl">
+          <h1 className="font-heading text-2xl font-bold text-neutral-900 sm:text-3xl">
             {event.title}
           </h1>
 
           {collectiveName && (
-            <p className="mt-1 text-sm font-medium text-primary-400">
+            <p className="mt-1 text-sm font-medium text-neutral-500">
               Hosted by {collectiveName}
             </p>
           )}
@@ -196,8 +187,8 @@ export default function PublicEventPage() {
           <div className="flex items-start gap-3">
             <Calendar size={20} className="mt-0.5 shrink-0 text-primary-500" />
             <div>
-              <p className="font-medium text-primary-800">{formatDate(event.date_start)}</p>
-              <p className="text-sm text-primary-400">
+              <p className="font-medium text-neutral-900">{formatDate(event.date_start)}</p>
+              <p className="text-sm text-neutral-500">
                 {formatTime(event.date_start)}
                 {event.date_end && ` - ${formatTime(event.date_end)}`}
               </p>
@@ -207,14 +198,14 @@ export default function PublicEventPage() {
           {event.address && (
             <div className="flex items-start gap-3">
               <MapPin size={20} className="mt-0.5 shrink-0 text-primary-500" />
-              <p className="text-primary-800">{event.address}</p>
+              <p className="text-neutral-900">{event.address}</p>
             </div>
           )}
 
           {event.capacity && (
             <div className="flex items-start gap-3">
               <Users size={20} className="mt-0.5 shrink-0 text-primary-500" />
-              <p className="text-primary-800">{event.capacity} spots</p>
+              <p className="text-neutral-900">{event.capacity} spots</p>
             </div>
           )}
         </motion.div>
@@ -222,8 +213,8 @@ export default function PublicEventPage() {
         {/* Description */}
         {event.description && (
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="mt-6">
-            <h2 className="font-heading text-lg font-semibold text-primary-800">About this event</h2>
-            <p className="mt-2 whitespace-pre-line text-primary-400 leading-relaxed">
+            <h2 className="font-heading text-lg font-semibold text-neutral-900">About this event</h2>
+            <p className="mt-2 whitespace-pre-line text-neutral-500 leading-relaxed">
               {event.description}
             </p>
           </motion.div>

@@ -58,10 +58,10 @@ export function ReportContentSheet({
             <Flag size={16} />
           </div>
           <div>
-            <h3 className="font-heading text-base font-semibold text-primary-800">
+            <h3 className="font-heading text-base font-semibold text-neutral-900">
               Report content
             </h3>
-            <p className="text-xs text-primary-400">
+            <p className="text-xs text-neutral-500">
               Select a reason for reporting
             </p>
           </div>
@@ -75,8 +75,8 @@ export function ReportContentSheet({
               onClick={() => setSelectedReason(reason)}
               className={`flex w-full items-center rounded-xl px-4 py-3 min-h-11 text-sm transition-colors duration-150 cursor-pointer select-none ${
                 selectedReason === reason
-                  ? 'bg-primary-100 text-primary-800 font-medium'
-                  : 'text-primary-600 hover:bg-primary-50'
+                  ? 'bg-primary-100 text-neutral-900 font-medium'
+                  : 'text-neutral-500 hover:bg-primary-50'
               }`}
             >
               {reason}

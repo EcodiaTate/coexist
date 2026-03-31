@@ -24,7 +24,6 @@ import { Page } from '@/components/page'
 import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
-import { PullToRefresh } from '@/components/pull-to-refresh'
 import { useProducts } from '@/hooks/use-merch'
 import { useCart } from '@/hooks/use-cart'
 import { formatPrice, type Product } from '@/types/merch'
@@ -572,7 +571,9 @@ export default function ShopPage() {
 
   return (
     <Page className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
-      <PullToRefresh onRefresh={handleRefresh} background={<ShopBackground rm={rm} />}>
+      <div className="relative">
+        <ShopBackground rm={rm} />
+        <div className="relative">
         <div className="relative min-h-dvh">
           {/* Main content */}
           <div className="relative z-10">
@@ -683,7 +684,8 @@ export default function ShopPage() {
             )}
           </div>
         </div>
-      </PullToRefresh>
+        </div>
+      </div>
 
       {/* Floating action buttons */}
       {isOnShopPage && (

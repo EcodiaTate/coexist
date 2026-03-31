@@ -144,7 +144,7 @@ export function NatureLoader({
         aria-label={label}
       >
         <div className={cn(s.container, 'rounded-full bg-primary-100')} />
-        <span className="text-sm text-primary-400">{label}</span>
+        <span className="text-sm text-neutral-500">{label}</span>
         <span className="sr-only">{label}</span>
       </div>
     )
@@ -166,7 +166,7 @@ export function NatureLoader({
         <Loader size={s.svg} />
       </div>
       <motion.span
-        className="text-sm text-primary-400 font-medium"
+        className="text-sm text-neutral-500 font-medium"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}

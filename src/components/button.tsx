@@ -11,6 +11,8 @@ const variantStyles = {
     'bg-transparent text-primary-800 hover:bg-primary-50 focus-visible:ring-primary-400',
   danger:
     'bg-error text-white hover:opacity-90 focus-visible:ring-error',
+  auth:
+    'bg-primary-800 text-white hover:bg-primary-950 focus-visible:ring-primary-400 rounded-2xl h-[54px] text-[15px] font-bold',
 } as const
 
 const sizeStyles = {

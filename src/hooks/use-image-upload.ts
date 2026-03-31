@@ -8,6 +8,12 @@ interface UseImageUploadOptions {
   pathPrefix?: string
 }
 
+/** A photo that failed to upload and can be retried */
+export interface FailedUpload {
+  blob: Blob
+  error: string
+}
+
 interface UseImageUploadReturn {
   /** Upload a single file. Returns URLs on success. */
   upload: (file: Blob, customPath?: string) => Promise<UploadImageResult>
@@ -19,6 +25,14 @@ interface UseImageUploadReturn {
   uploading: boolean
   /** Last error, cleared on next upload */
   error: string | null
+  /** Photos that failed to upload (available for retry) */
+  failedUploads: FailedUpload[]
+  /** Retry a specific failed upload by index */
+  retry: (index: number) => Promise<UploadImageResult>
+  /** Clear a specific failed upload entry */
+  clearFailed: (index: number) => void
+  /** Whether any uploads are in a failed state */
+  hasFailed: boolean
   /** Reset state */
   reset: () => void
 }
@@ -41,11 +55,13 @@ export function useImageUpload({
   const [progress, setProgress] = useState<number | null>(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [failedUploads, setFailedUploads] = useState<FailedUpload[]>([])
 
   const reset = useCallback(() => {
     setProgress(null)
     setUploading(false)
     setError(null)
+    setFailedUploads([])
   }, [])
 
   const buildPath = useCallback(
@@ -77,6 +93,7 @@ export function useImageUpload({
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Upload failed'
         setError(msg)
+        setFailedUploads((prev) => [...prev, { blob: file, error: msg }])
         throw e
       } finally {
         setUploading(false)
@@ -133,5 +150,22 @@ export function useImageUpload({
     [user, bucket, buildPath],
   )
 
-  return { upload, uploadMultiple, progress, uploading, error, reset }
+  const retry = useCallback(
+    async (index: number): Promise<UploadImageResult> => {
+      const failed = failedUploads[index]
+      if (!failed) throw new Error('No failed upload at this index')
+      // Remove from failed list before retrying
+      setFailedUploads((prev) => prev.filter((_, i) => i !== index))
+      return upload(failed.blob)
+    },
+    [failedUploads, upload],
+  )
+
+  const clearFailed = useCallback((index: number) => {
+    setFailedUploads((prev) => prev.filter((_, i) => i !== index))
+  }, [])
+
+  const hasFailed = failedUploads.length > 0
+
+  return { upload, uploadMultiple, progress, uploading, error, failedUploads, retry, clearFailed, hasFailed, reset }
 }

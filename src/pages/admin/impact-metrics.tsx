@@ -38,6 +38,7 @@ import { isBuiltinMetric } from '@/lib/impact-metrics'
 import { supabase } from '@/lib/supabase'
 import type { ImpactMetricDef } from '@/lib/impact-metrics'
 import { useAdminHeader } from '@/components/admin-layout'
+import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Dropdown } from '@/components/dropdown'
@@ -77,7 +78,7 @@ const iconComponents: Record<string, React.ReactNode> = {
   eye: <Eye size={16} className="text-warning-500" />,
   area: <Ruler size={16} className="text-plum-500" />,
   weed: <Sprout size={16} className="text-moss-600" />,
-  clock: <Clock size={16} className="text-primary-400" />,
+  clock: <Clock size={16} className="text-neutral-400" />,
   sparkle: <Sparkles size={16} className="text-warning-400" />,
   droplet: <Droplets size={16} className="text-info-400" />,
   mountain: <Mountain size={16} className="text-bark-500" />,
@@ -85,7 +86,7 @@ const iconComponents: Record<string, React.ReactNode> = {
   bug: <Bug size={16} className="text-moss-500" />,
   flame: <Flame size={16} className="text-error-400" />,
   fish: <Fish size={16} className="text-info-600" />,
-  wind: <Wind size={16} className="text-primary-300" />,
+  wind: <Wind size={16} className="text-neutral-400" />,
 }
 
 /* ------------------------------------------------------------------ */
@@ -121,6 +122,14 @@ export default function AdminImpactMetricsPage() {
   const [editing, setEditing] = useState<string | null>(null)
   const [form, setForm] = useState<ReturnType<typeof emptyForm>>(emptyForm())
   const [showAdd, setShowAdd] = useState(false)
+
+  // Confirmation sheet state (replaces window.confirm which fails in Capacitor WebView)
+  const [confirmAction, setConfirmAction] = useState<{
+    title: string
+    description: string
+    confirmLabel: string
+    onConfirm: () => void
+  } | null>(null)
 
   const metrics = defs ?? []
 
@@ -182,12 +191,20 @@ export default function AdminImpactMetricsPage() {
 
     if (orphanedSurveys.length > 0) {
       const names = orphanedSurveys.map((s) => `"${s.title}"`).join(', ')
-      const confirmed = window.confirm(
-        `Warning: ${orphanedSurveys.length} active survey(s) still reference "${key}": ${names}.\n\n` +
-        `Deleting this metric will cause those questions to silently stop recording impact data.\n\n` +
-        `Delete anyway?`,
-      )
-      if (!confirmed) return
+      setConfirmAction({
+        title: 'Delete metric?',
+        description: `${orphanedSurveys.length} active survey(s) still reference "${key}": ${names}. Deleting will cause those questions to silently stop recording impact data.`,
+        confirmLabel: 'Delete anyway',
+        onConfirm: async () => {
+          try {
+            await deleteMutation.mutateAsync(key)
+            toast.success('Metric deleted')
+          } catch {
+            toast.error('Failed to delete metric')
+          }
+        },
+      })
+      return
     }
 
     try {
@@ -213,12 +230,19 @@ export default function AdminImpactMetricsPage() {
 
       if (orphanedSurveys.length > 0) {
         const names = orphanedSurveys.map((s) => `"${s.title}"`).join(', ')
-        const confirmed = window.confirm(
-          `Warning: ${orphanedSurveys.length} active survey(s) still reference "${def.key}": ${names}.\n\n` +
-          `Deactivating will cause those questions to stop recording impact data.\n\n` +
-          `Deactivate anyway?`,
-        )
-        if (!confirmed) return
+        setConfirmAction({
+          title: 'Deactivate metric?',
+          description: `${orphanedSurveys.length} active survey(s) still reference "${def.key}": ${names}. Deactivating will cause those questions to stop recording impact data.`,
+          confirmLabel: 'Deactivate anyway',
+          onConfirm: async () => {
+            try {
+              await upsertMutation.mutateAsync({ ...def, is_active: false })
+            } catch {
+              toast.error('Failed to update metric')
+            }
+          },
+        })
+        return
       }
     }
 
@@ -425,6 +449,17 @@ export default function AdminImpactMetricsPage() {
         <p>Custom metrics you add here are stored in a flexible data field on each event's impact log. They appear in the log-impact form, survey builder, and all dashboards automatically.</p>
         <p>Toggling a metric inactive hides it everywhere but preserves existing data.</p>
       </motion.div>
+
+      {/* Confirmation sheet for destructive metric actions */}
+      <ConfirmationSheet
+        open={!!confirmAction}
+        onClose={() => setConfirmAction(null)}
+        onConfirm={() => confirmAction?.onConfirm()}
+        title={confirmAction?.title ?? ''}
+        description={confirmAction?.description ?? ''}
+        confirmLabel={confirmAction?.confirmLabel ?? 'Confirm'}
+        variant="warning"
+      />
     </motion.div>
   )
 }

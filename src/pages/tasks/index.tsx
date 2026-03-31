@@ -20,7 +20,6 @@ import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
-import { PullToRefresh } from '@/components/pull-to-refresh'
 import { TaskSurveyModal } from '@/components/task-survey-modal'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
@@ -419,7 +418,6 @@ export default function TasksPage() {
 
   return (
     <Page swipeBack header={<Header title="" back />}>
-      <PullToRefresh onRefresh={handleRefresh}>
         <div className="py-4 space-y-6">
           {/* Summary bar */}
           {(totalPending > 0 || totalOverdue > 0) && (
@@ -446,7 +444,6 @@ export default function TasksPage() {
             />
           ))}
         </div>
-      </PullToRefresh>
     </Page>
   )
 }

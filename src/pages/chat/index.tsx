@@ -5,27 +5,16 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { MessageCircle, Users, ChevronRight, Lock, Globe, MapPin, Leaf, MessagesSquare, Shield } from 'lucide-react'
 import { Page } from '@/components/page'
 import { EmptyState } from '@/components/empty-state'
-import { PullToRefresh } from '@/components/pull-to-refresh'
 import { cn } from '@/lib/cn'
 import { useMyCollectives, useCollectives } from '@/hooks/use-collective'
 import { useUnreadCounts } from '@/hooks/use-chat'
 import { useMyStaffChannels, useChannelUnreadCounts, type StaffChannel } from '@/hooks/use-staff-channels'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useAuth } from '@/hooks/use-auth'
+import { COLLECTIVE_ROLE_RANK as ROLE_RANK } from '@/lib/constants'
+import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
-/* ------------------------------------------------------------------ */
-/*  Staff channel type config                                          */
-/* ------------------------------------------------------------------ */
-
-const ROLE_RANK: Record<string, number> = {
-  member: 0,
-  assist_leader: 1,
-  co_leader: 2,
-  leader: 3,
-}
-
-/** Session-level flag - redirect to primary chat only once per session */
-let hasRedirectedThisSession = false
+const CHAT_REDIRECTED_KEY = 'coexist-chat-redirected'
 
 const CHANNEL_TYPE_CONFIG: Record<string, {
   icon: typeof Globe
@@ -61,21 +50,6 @@ function cleanChannelName(name: string): string {
     .trim()
     || name
 }
-
-/* ------------------------------------------------------------------ */
-/*  Animations                                                         */
-/* ------------------------------------------------------------------ */
-
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
-}
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 280, damping: 24 } },
-}
-
 
 /* ------------------------------------------------------------------ */
 /*  Staff channel row                                                  */
@@ -297,15 +271,15 @@ export default function ChatListPage() {
 
   // Auto-redirect to primary collective chat (once per session)
   useEffect(() => {
-    if (hasRedirectedThisSession) return
+    if (sessionStorage.getItem(CHAT_REDIRECTED_KEY)) return
     if (isLoading || !myCollectives?.length) return
 
     const myCollectiveIds = new Set(myCollectives.map((m) => m.collective_id))
 
     // Use user's chosen primary chat if they've set one and still belong to that collective
-    const userPrimary = (profile as unknown as { primary_chat_id?: string } | null)?.primary_chat_id
+    const userPrimary = profile?.primary_chat_id
     if (userPrimary && myCollectiveIds.has(userPrimary)) {
-      hasRedirectedThisSession = true
+      sessionStorage.setItem(CHAT_REDIRECTED_KEY, '1')
       navigate(`/chat/${userPrimary}`, { replace: true })
       return
     }
@@ -320,7 +294,7 @@ export default function ChatListPage() {
 
     const primaryId = sorted[0]?.collective_id
     if (primaryId) {
-      hasRedirectedThisSession = true
+      sessionStorage.setItem(CHAT_REDIRECTED_KEY, '1')
       navigate(`/chat/${primaryId}`, { replace: true })
     }
   }, [isLoading, myCollectives, navigate, profile])
@@ -393,7 +367,6 @@ export default function ChatListPage() {
   return (
     <Page noBackground className="!px-0 bg-white">
         <div className="px-4 lg:px-6">
-          <PullToRefresh onRefresh={handleRefresh}>
             <motion.div
               className="pt-14 pb-6 space-y-6"
               variants={shouldReduceMotion ? undefined : stagger}
@@ -483,7 +456,6 @@ export default function ChatListPage() {
                 </motion.div>
               )}
             </motion.div>
-          </PullToRefresh>
         </div>
     </Page>
   )

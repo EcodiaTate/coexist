@@ -17,7 +17,7 @@ function downloadCsv(filename: string, headers: string[], rows: string[][]) {
 function SectionHeader({ icon, label, action }: { icon: React.ReactNode; label: string; action?: { label: string; onClick: () => void } }) {
   return (
     <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2"><span className="text-primary-400">{icon}</span><h2 className="font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest">{label}</h2></div>
+      <div className="flex items-center gap-2"><span className="text-neutral-400">{icon}</span><h2 className="font-heading text-[13px] font-bold text-neutral-500/60 uppercase tracking-widest">{label}</h2></div>
       {action && <Button variant="ghost" size="sm" icon={<Download size={12} />} onClick={action.onClick}>{action.label}</Button>}
     </div>
   )
@@ -70,12 +70,12 @@ export default function AdminDevelopmentResultsPage() {
         <>
           <motion.section variants={fadeUp} className="space-y-3">
             <SectionHeader icon={<BookOpen size={14} />} label="Module Performance" action={moduleStats.length > 0 ? { label: 'CSV', onClick: () => downloadCsv('module-results.csv', ['Module','Category','Assigned','Completed','Rate','Avg Time'], moduleStats.map((m) => [m.title, m.category, String(m.assigned), String(m.completed), `${m.completionRate}%`, String(m.avgTimeMin)])) } : undefined} />
-            {moduleStats.length === 0 ? <p className="text-sm text-primary-400 text-center py-8">No module progress data yet</p> : (
+            {moduleStats.length === 0 ? <p className="text-sm text-neutral-500 text-center py-8">No module progress data yet</p> : (
               <div className="space-y-2">{moduleStats.map((m) => (
                 <div key={m.id} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-md shrink-0"><BookOpen size={16} className="text-white" /></div>
-                  <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-primary-800 truncate">{m.title}</p><p className="text-[11px] text-primary-400 capitalize">{m.category.replace(/_/g, ' ')}</p></div>
-                  <div className="flex items-center gap-3 sm:gap-4 text-center shrink-0"><div><p className="text-sm font-bold text-primary-700 tabular-nums">{m.assigned}</p><p className="text-[9px] text-primary-400 font-medium">Assigned</p></div><div><p className="text-sm font-bold text-moss-600 tabular-nums">{m.completionRate}%</p><p className="text-[9px] text-primary-400 font-medium">Rate</p></div><div className="hidden sm:block"><p className="text-sm font-bold text-sky-600 tabular-nums">{m.avgTimeMin}m</p><p className="text-[9px] text-primary-400 font-medium">Avg Time</p></div></div>
+                  <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-neutral-900 truncate">{m.title}</p><p className="text-[11px] text-neutral-500 capitalize">{m.category.replace(/_/g, ' ')}</p></div>
+                  <div className="flex items-center gap-3 sm:gap-4 text-center shrink-0"><div><p className="text-sm font-bold text-neutral-900 tabular-nums">{m.assigned}</p><p className="text-[9px] text-neutral-500 font-medium">Assigned</p></div><div><p className="text-sm font-bold text-moss-600 tabular-nums">{m.completionRate}%</p><p className="text-[9px] text-neutral-500 font-medium">Rate</p></div><div className="hidden sm:block"><p className="text-sm font-bold text-sky-600 tabular-nums">{m.avgTimeMin}m</p><p className="text-[9px] text-neutral-500 font-medium">Avg Time</p></div></div>
                 </div>
               ))}</div>
             )}
@@ -83,12 +83,12 @@ export default function AdminDevelopmentResultsPage() {
 
           <motion.section variants={fadeUp} className="space-y-3">
             <SectionHeader icon={<CircleDot size={14} />} label="Quiz Performance" action={quizStats.length > 0 ? { label: 'CSV', onClick: () => downloadCsv('quiz-results.csv', ['Quiz','Attempts','Pass Rate','Avg Score'], quizStats.map((q) => [q.title, String(q.totalAttempts), `${q.passRate}%`, `${q.avgScore}%`])) } : undefined} />
-            {quizStats.length === 0 ? <p className="text-sm text-primary-400 text-center py-8">No quiz attempt data yet</p> : (
+            {quizStats.length === 0 ? <p className="text-sm text-neutral-500 text-center py-8">No quiz attempt data yet</p> : (
               <div className="space-y-2">{quizStats.map((q) => (
                 <div key={q.id} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-moss-500 to-moss-700 shadow-md shrink-0"><CircleDot size={16} className="text-white" /></div>
-                  <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-primary-800 truncate">{q.title}</p><p className="text-[11px] text-primary-400">Pass threshold: {q.pass_score}%</p></div>
-                  <div className="flex items-center gap-3 sm:gap-4 text-center shrink-0"><div><p className="text-sm font-bold text-primary-700 tabular-nums">{q.totalAttempts}</p><p className="text-[9px] text-primary-400 font-medium">Attempts</p></div><div><p className="text-sm font-bold text-moss-600 tabular-nums">{q.passRate}%</p><p className="text-[9px] text-primary-400 font-medium">Pass</p></div><div><p className="text-sm font-bold text-sky-600 tabular-nums">{q.avgScore}%</p><p className="text-[9px] text-primary-400 font-medium">Avg</p></div></div>
+                  <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-neutral-900 truncate">{q.title}</p><p className="text-[11px] text-neutral-500">Pass threshold: {q.pass_score}%</p></div>
+                  <div className="flex items-center gap-3 sm:gap-4 text-center shrink-0"><div><p className="text-sm font-bold text-neutral-900 tabular-nums">{q.totalAttempts}</p><p className="text-[9px] text-neutral-500 font-medium">Attempts</p></div><div><p className="text-sm font-bold text-moss-600 tabular-nums">{q.passRate}%</p><p className="text-[9px] text-neutral-500 font-medium">Pass</p></div><div><p className="text-sm font-bold text-sky-600 tabular-nums">{q.avgScore}%</p><p className="text-[9px] text-neutral-500 font-medium">Avg</p></div></div>
                 </div>
               ))}</div>
             )}
@@ -96,7 +96,7 @@ export default function AdminDevelopmentResultsPage() {
 
           <motion.section variants={fadeUp} className="space-y-3">
             <SectionHeader icon={<Users size={14} />} label="Learner Progress" action={learnerStats.length > 0 ? { label: 'CSV', onClick: () => downloadCsv('learner-results.csv', ['Name','Completed','Total','Avg Quiz','Last Active'], learnerStats.map((l) => [l.displayName, String(l.modulesCompleted), String(l.modulesTotal), l.avgQuizScore !== null ? `${l.avgQuizScore}%` : 'N/A', l.lastActive ? new Date(l.lastActive).toLocaleDateString() : 'N/A'])) } : undefined} />
-            {learnerStats.length === 0 ? <p className="text-sm text-primary-400 text-center py-8">No learner data yet</p> : (
+            {learnerStats.length === 0 ? <p className="text-sm text-neutral-500 text-center py-8">No learner data yet</p> : (
               <div className="space-y-2">{learnerStats.map((l) => (
                 <div key={l.userId} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow">
                   {l.avatarUrl ? (
@@ -104,8 +104,8 @@ export default function AdminDevelopmentResultsPage() {
                   ) : (
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-[11px] font-bold text-white shrink-0 shadow-md">{l.displayName.slice(0, 2).toUpperCase()}</div>
                   )}
-                  <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-primary-800 truncate">{l.displayName}</p><p className="text-[11px] text-primary-400">Last active: {l.lastActive ? new Date(l.lastActive).toLocaleDateString() : 'N/A'}</p></div>
-                  <div className="flex items-center gap-3 sm:gap-4 text-center shrink-0"><div><p className="text-sm font-bold text-primary-700 tabular-nums">{l.modulesCompleted}/{l.modulesTotal}</p><p className="text-[9px] text-primary-400 font-medium">Modules</p></div><div><p className="text-sm font-bold text-sky-600 tabular-nums">{l.avgQuizScore ?? ''}%</p><p className="text-[9px] text-primary-400 font-medium">Quiz Avg</p></div></div>
+                  <div className="flex-1 min-w-0"><p className="text-[13px] font-bold text-neutral-900 truncate">{l.displayName}</p><p className="text-[11px] text-neutral-500">Last active: {l.lastActive ? new Date(l.lastActive).toLocaleDateString() : 'N/A'}</p></div>
+                  <div className="flex items-center gap-3 sm:gap-4 text-center shrink-0"><div><p className="text-sm font-bold text-neutral-900 tabular-nums">{l.modulesCompleted}/{l.modulesTotal}</p><p className="text-[9px] text-neutral-500 font-medium">Modules</p></div><div><p className="text-sm font-bold text-sky-600 tabular-nums">{l.avgQuizScore ?? ''}%</p><p className="text-[9px] text-neutral-500 font-medium">Quiz Avg</p></div></div>
                 </div>
               ))}</div>
             )}

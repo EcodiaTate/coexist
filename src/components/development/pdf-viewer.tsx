@@ -61,11 +61,11 @@ export function PdfViewer({ url, fileName, fileSizeBytes, className }: PdfViewer
             {fileIcon(type)}
           </div>
           <p className="text-xs font-medium text-bark-500 mb-1">{fileLabel(type)}</p>
-          <p className="text-sm font-semibold text-primary-800 text-center max-w-xs truncate">
+          <p className="text-sm font-semibold text-neutral-900 text-center max-w-xs truncate">
             {fileName ?? 'Document'}
           </p>
           {fileSizeBytes && (
-            <p className="text-xs text-primary-400 mt-0.5">{formatFileSize(fileSizeBytes)}</p>
+            <p className="text-xs text-neutral-500 mt-0.5">{formatFileSize(fileSizeBytes)}</p>
           )}
         </div>
       )}
@@ -76,11 +76,11 @@ export function PdfViewer({ url, fileName, fileSizeBytes, className }: PdfViewer
           {fileIcon(type)}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-primary-800 truncate">
+          <p className="text-sm font-medium text-neutral-900 truncate">
             {fileName ?? 'Document'}
           </p>
           {fileSizeBytes && (
-            <p className="text-xs text-primary-400">{formatFileSize(fileSizeBytes)}</p>
+            <p className="text-xs text-neutral-500">{formatFileSize(fileSizeBytes)}</p>
           )}
         </div>
         <a
