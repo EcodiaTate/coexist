@@ -85,7 +85,7 @@ export function DateRangeSelector({
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 isActive
                   ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-white text-primary-600 ring-1 ring-primary-100 hover:ring-primary-200 hover:bg-primary-50/50',
+                  : 'bg-white text-primary-600 ring-1 ring-neutral-200 hover:ring-neutral-300 hover:bg-neutral-50',
               )}
               aria-pressed={isActive}
             >

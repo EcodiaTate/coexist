@@ -1,15 +1,15 @@
 /**
  * stripe-webhook - Supabase Edge Function
  *
- * Handles Stripe webhook events for the Co-Exist donation and merch systems.
+ * Handles Stripe webhook events for the Co-Exist donation, merch, and ticketing systems.
  *
  * Events handled:
- *   - checkout.session.completed (donations + merch)
+ *   - checkout.session.completed (donations + merch + event tickets)
  *   - customer.subscription.created (recurring donations)
  *   - customer.subscription.deleted (cancellation)
  *   - invoice.payment_succeeded (recurring charge)
  *   - invoice.payment_failed (notify user)
- *   - charge.refunded (update status, restore inventory)
+ *   - charge.refunded (update status, restore inventory, cancel ticket)
  */
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
@@ -228,6 +228,89 @@ Deno.serve(async (req: Request) => {
 
           console.log('Merch checkout completed:', session.id, `order: ${orderId}`)
         }
+
+        if (metadata.type === 'event_ticket') {
+          const ticketId = metadata.ticket_id
+
+          // Idempotency: only process if ticket is still 'pending'
+          const { data: ticket } = await supabase
+            .from('event_tickets')
+            .select('id, status, event_id, user_id, quantity, ticket_code')
+            .eq('id', ticketId)
+            .single()
+
+          if (!ticket) {
+            console.error('Event ticket not found:', ticketId)
+            break
+          }
+
+          if (ticket.status !== 'pending') {
+            console.log('Ticket already processed, skipping:', ticketId, ticket.status)
+            break
+          }
+
+          // 1. Confirm the ticket
+          const { error: confirmErr } = await supabase
+            .from('event_tickets')
+            .update({
+              status: 'confirmed',
+              stripe_payment_intent_id: paymentIntentId,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', ticketId)
+            .eq('status', 'pending') // optimistic lock
+
+          if (confirmErr) {
+            console.error('Failed to confirm ticket:', confirmErr.message)
+            break
+          }
+
+          // 2. Create event_registration so the user appears as registered
+          //    (integrates with existing check-in, attendee, and impact flows)
+          await supabase
+            .from('event_registrations')
+            .upsert(
+              {
+                event_id: ticket.event_id,
+                user_id: ticket.user_id,
+                status: 'registered',
+              },
+              { onConflict: 'event_id,user_id' },
+            )
+
+          // 3. Award points (1 point per dollar spent)
+          const ticketDollars = Math.floor(amountDollars)
+          if (ticketDollars > 0) {
+            await supabase.rpc('award_points', {
+              p_user_id: ticket.user_id,
+              p_amount: ticketDollars,
+              p_reason: 'event_ticket',
+            })
+          }
+
+          // 4. Send ticket confirmation email
+          const { data: ticketEvent } = await supabase
+            .from('events')
+            .select('title, date_start, address')
+            .eq('id', ticket.event_id)
+            .single()
+
+          await sendTemplateEmail(supabase, 'ticket_confirmation', ticket.user_id, {
+            name: '',
+            event_title: ticketEvent?.title ?? 'Event',
+            event_date: ticketEvent?.date_start
+              ? new Date(ticketEvent.date_start).toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+              : '',
+            event_location: ticketEvent?.address ?? '',
+            ticket_code: ticket.ticket_code ?? '',
+            quantity: ticket.quantity,
+            amount: amountDollars.toFixed(2),
+            currency: 'AUD',
+            ticket_url: `https://app.coexistaus.org/events/${ticket.event_id}/ticket-confirmation?ticket_id=${ticketId}`,
+          })
+
+          console.log('Event ticket confirmed:', ticketId, `$${amountDollars}`, `code: ${ticket.ticket_code}`)
+        }
         break
       }
 
@@ -430,6 +513,38 @@ Deno.serve(async (req: Request) => {
           .select('id, items, user_id')
           .eq('stripe_payment_id', paymentIntentId)
           .single()
+
+        // Try event ticket refund first
+        const { data: refundTicket } = await supabase
+          .from('event_tickets')
+          .select('id, event_id, user_id')
+          .eq('stripe_payment_intent_id', paymentIntentId)
+          .maybeSingle()
+
+        if (refundTicket) {
+          await supabase
+            .from('event_tickets')
+            .update({ status: 'refunded', updated_at: new Date().toISOString() })
+            .eq('id', refundTicket.id)
+
+          // Cancel the event registration
+          await supabase
+            .from('event_registrations')
+            .update({ status: 'cancelled' })
+            .eq('event_id', refundTicket.event_id)
+            .eq('user_id', refundTicket.user_id)
+
+          const refundAmount = (charge.amount_refunded ?? 0) / 100
+          await sendTemplateEmail(supabase, 'refund_confirmation', refundTicket.user_id, {
+            name: '',
+            order_id: refundTicket.id.slice(0, 8),
+            refund_amount: refundAmount.toFixed(2),
+            currency: 'AUD',
+          })
+
+          console.log('Event ticket refunded:', refundTicket.id)
+          break
+        }
 
         if (order) {
           // Update order status to refunded

@@ -129,50 +129,8 @@ function ConfettiLayer({ rm }: { rm: boolean }) {
 /*  Breathing decorative elements                                      */
 /* ------------------------------------------------------------------ */
 
-function DepthElements({ rm }: { rm: boolean }) {
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {/* Large ring - upper right */}
-      <motion.div
-        className="absolute -top-20 -right-16 w-64 h-64 rounded-full border-[3px] border-primary-300/15"
-        animate={rm ? undefined : { scale: [1, 1.06, 1], opacity: [0.4, 0.7, 0.4] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute -top-6 -right-2 w-40 h-40 rounded-full border-2 border-sprout-200/20"
-        animate={rm ? undefined : { scale: [1, 1.04, 1], opacity: [0.3, 0.55, 0.3] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-
-      {/* Left ring */}
-      <motion.div
-        className="absolute top-[40%] -left-14 w-48 h-48 rounded-full border-[2.5px] border-primary-200/15"
-        animate={rm ? undefined : { scale: [1, 1.08, 1], opacity: [0.35, 0.65, 0.35] }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      />
-
-      {/* Floating particles */}
-      <motion.div
-        className="absolute top-[20%] right-[14%] w-3.5 h-3.5 rounded-full bg-sprout-400/15"
-        animate={rm ? undefined : { y: [-6, 6, -6], x: [0, 4, 0] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-[55%] left-[8%] w-3 h-3 rounded-full bg-primary-400/12"
-        animate={rm ? undefined : { y: [4, -5, 4] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-      />
-      <motion.div
-        className="absolute top-[30%] left-[70%] w-2.5 h-2.5 rounded-full bg-[#c4a86b]/15"
-        animate={rm ? undefined : { y: [-4, 5, -4], x: [2, -2, 2] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-      />
-
-      {/* Rich blurred orbs */}
-      <div className="absolute -top-16 left-1/2 -translate-x-1/2 w-[500px] h-[300px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-200/15 via-primary-100/8 to-transparent" />
-      <div className="absolute -top-8 -left-12 w-[250px] h-[240px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-200/12 to-transparent" />
-    </div>
-  )
+function DepthElements({ rm: _rm }: { rm: boolean }) {
+  return null
 }
 
 /* ------------------------------------------------------------------ */
@@ -192,20 +150,7 @@ function CelebrationHero({ rm }: { rm: boolean }) {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 200, damping: 14, delay: 0.15 }}
         >
-          {/* Outer breathing ring */}
-          <motion.div
-            className="absolute inset-0 -m-4 rounded-full border-2 border-sprout-300/30"
-            animate={rm ? undefined : { scale: [1, 1.15, 1], opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          {/* Middle breathing ring */}
-          <motion.div
-            className="absolute inset-0 -m-2 rounded-full border border-primary-300/20"
-            animate={rm ? undefined : { scale: [1, 1.1, 1], opacity: [0.2, 0.5, 0.2] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-          />
-
-          <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-primary-500 via-sprout-500 to-moss-500 flex items-center justify-center shadow-xl shadow-primary-500/25">
+          <div className="relative w-20 h-20 rounded-full bg-primary-500 flex items-center justify-center">
             <CheckCircle size={36} className="text-white" strokeWidth={2.5} />
           </div>
         </motion.div>
@@ -215,7 +160,7 @@ function CelebrationHero({ rm }: { rm: boolean }) {
           initial={rm ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.4 }}
-          className="font-heading text-2xl sm:text-3xl font-extrabold text-secondary-900"
+          className="font-heading text-2xl sm:text-3xl font-extrabold text-neutral-900"
         >
           Order confirmed!
         </motion.h1>
@@ -224,7 +169,7 @@ function CelebrationHero({ rm }: { rm: boolean }) {
           initial={rm ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45, duration: 0.35 }}
-          className="mt-2 text-sm text-primary-500 max-w-xs leading-relaxed"
+          className="mt-2 text-sm text-neutral-500 max-w-xs leading-relaxed"
         >
           You&apos;ll receive a confirmation email shortly with your order details.
         </motion.p>
@@ -250,8 +195,7 @@ function OrderSummaryCard({
 
   if (showLoading) {
     return (
-      <div className="rounded-[24px] bg-white shadow-[0_8px_32px_-8px_rgba(93,77,51,0.12),0_2px_8px_rgba(93,77,51,0.04)] overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-primary-400 via-sprout-400 to-moss-400" />
+      <div className="bg-white border border-neutral-100 shadow-sm rounded-2xl overflow-hidden">
         <div className="p-5 space-y-4">
           <div className="flex items-center justify-between">
             <Skeleton variant="text" className="w-32" />
@@ -266,7 +210,7 @@ function OrderSummaryCard({
               </div>
             </div>
           ))}
-          <div className="h-px bg-primary-100/40" />
+          <div className="h-px bg-neutral-100" />
           <div className="flex justify-between">
             <Skeleton variant="text" className="w-16" />
             <Skeleton variant="text" className="w-20" />
@@ -278,16 +222,15 @@ function OrderSummaryCard({
 
   if (isError || !order) {
     return (
-      <div className="rounded-[24px] bg-white shadow-[0_8px_32px_-8px_rgba(93,77,51,0.12),0_2px_8px_rgba(93,77,51,0.04)] overflow-hidden">
-        <div className="h-1.5 bg-gradient-to-r from-primary-400 via-sprout-400 to-moss-400" />
+      <div className="bg-white border border-neutral-100 shadow-sm rounded-2xl overflow-hidden">
         <div className="p-5 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-50 border border-primary-100/40">
-            <Package size={16} className="text-primary-400" />
-            <span className="text-sm font-mono text-primary-600">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-50 border border-neutral-100">
+            <Package size={16} className="text-neutral-500" />
+            <span className="text-sm font-mono text-neutral-900">
               #{orderId.slice(0, 8)}
             </span>
           </div>
-          <p className="mt-3 text-sm text-primary-400">
+          <p className="mt-3 text-sm text-neutral-500">
             Order details will appear here once ready.
           </p>
         </div>
@@ -303,17 +246,14 @@ function OrderSummaryCard({
       initial={rm ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.5, duration: 0.4 }}
-      className="rounded-[24px] bg-white shadow-[0_8px_32px_-8px_rgba(93,77,51,0.12),0_2px_8px_rgba(93,77,51,0.04)] overflow-hidden"
+      className="bg-white border border-neutral-100 shadow-sm rounded-2xl overflow-hidden"
     >
-      {/* Top accent gradient */}
-      <div className="h-1.5 bg-gradient-to-r from-primary-400 via-sprout-400 to-moss-400" />
-
       <div className="p-5">
         {/* Order ID + Status */}
         <div className="flex items-center justify-between mb-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50/80 border border-primary-100/40">
-            <Package size={13} className="text-primary-400" />
-            <span className="text-xs font-mono font-semibold text-primary-600">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-neutral-50 border border-neutral-100">
+            <Package size={13} className="text-neutral-500" />
+            <span className="text-xs font-mono font-semibold text-neutral-900">
               #{orderId.slice(0, 8)}
             </span>
           </div>
@@ -334,20 +274,20 @@ function OrderSummaryCard({
               <img
                 src={item.image_url ?? placeholderMerch}
                 alt={item.product_name}
-                className="w-12 h-12 rounded-xl object-cover border border-primary-100/30 shadow-sm"
+                className="w-12 h-12 rounded-xl object-cover border border-neutral-100 shadow-sm"
               />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-secondary-800 truncate">
+                <p className="text-sm font-semibold text-neutral-900 truncate">
                   {item.product_name}
                 </p>
-                <p className="text-xs text-primary-400 mt-0.5">
+                <p className="text-xs text-neutral-500 mt-0.5">
                   {item.variant_label && (
                     <span>{item.variant_label} &middot; </span>
                   )}
                   Qty {item.quantity}
                 </p>
               </div>
-              <span className="text-sm font-heading font-bold text-secondary-800 tabular-nums shrink-0">
+              <span className="text-sm font-heading font-bold text-neutral-900 tabular-nums shrink-0">
                 {formatPrice(item.price_cents * item.quantity)}
               </span>
             </div>
@@ -355,7 +295,7 @@ function OrderSummaryCard({
         </div>
 
         {/* Divider */}
-        <div className="h-px bg-gradient-to-r from-transparent via-primary-100 to-transparent mb-3" />
+        <div className="h-px bg-gradient-to-r from-transparent via-neutral-100 to-transparent mb-3" />
 
         {/* Shipping + total */}
         <div className="space-y-2">
@@ -367,13 +307,13 @@ function OrderSummaryCard({
             const location = [city, state].filter(Boolean).join(', ')
             if (!location) return null
             return (
-              <div className="flex items-center gap-2 text-xs text-primary-400">
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
                 <MapPin size={13} className="shrink-0" />
                 <span>Shipping to {location}</span>
               </div>
             )
           })()}
-          <div className="flex items-center gap-2 text-xs text-primary-400">
+          <div className="flex items-center gap-2 text-xs text-neutral-500">
             <Calendar size={13} className="shrink-0" />
             <span>
               Ordered {new Date(order.created_at).toLocaleDateString('en-AU', {
@@ -386,11 +326,11 @@ function OrderSummaryCard({
         </div>
 
         {/* Total row */}
-        <div className="mt-4 flex items-center justify-between px-4 py-3 rounded-2xl bg-gradient-to-r from-primary-50/80 to-sprout-50/60 border border-primary-100/30">
-          <span className="text-sm font-semibold text-primary-600">
+        <div className="mt-4 flex items-center justify-between px-4 py-3 rounded-2xl bg-neutral-50">
+          <span className="text-sm font-semibold text-neutral-900">
             Total ({itemCount} item{itemCount !== 1 ? 's' : ''})
           </span>
-          <span className="font-heading text-lg font-extrabold text-secondary-900 tabular-nums">
+          <span className="font-heading text-lg font-extrabold text-neutral-900 tabular-nums">
             {formatPrice(order.total_cents ?? 0)}
           </span>
         </div>
@@ -409,20 +349,16 @@ function ImpactCard({ rm }: { rm: boolean }) {
       initial={rm ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.6, duration: 0.4 }}
-      className={cn(
-        'flex items-start gap-3 p-4 rounded-[20px]',
-        'bg-gradient-to-r from-sprout-50 to-primary-50',
-        'border border-sprout-200/40',
-      )}
+      className="flex items-start gap-3 p-4 rounded-2xl bg-white border border-neutral-100 shadow-sm"
     >
-      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sprout-500 to-primary-600 flex items-center justify-center shrink-0 shadow-md shadow-sprout-400/25">
+      <div className="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center shrink-0">
         <Leaf size={18} className="text-white" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-secondary-800">
+        <p className="text-sm font-semibold text-neutral-900">
           Thanks for supporting Co-Exist!
         </p>
-        <p className="text-xs text-primary-500 mt-1 leading-relaxed">
+        <p className="text-xs text-neutral-500 mt-1 leading-relaxed">
           Every purchase funds conservation events and habitat restoration across Australia.
         </p>
       </div>
@@ -455,36 +391,7 @@ export default function OrderConfirmationPage() {
       className="!bg-transparent"
       stickyOverlay={<Header title="" back transparent className="!fixed pointer-events-none [&_button]:pointer-events-auto" />}
     >
-      <div className="relative min-h-[80dvh]">
-        {/* ── Rich layered background ── */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#f2ece0] via-[#eef5e8] via-40% to-[#f0f4ec] to-70%" />
-          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-sprout-50/15 to-primary-50/20" />
-
-          {/* Topo pattern */}
-          <svg
-            className="absolute inset-0 w-full h-full opacity-[0.03]"
-            aria-hidden="true"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <pattern
-                id="confirm-topo"
-                x="0" y="0"
-                width="200" height="200"
-                patternUnits="userSpaceOnUse"
-              >
-                <path d="M20 100c30-40 70-60 100-40s60 50 80 20" fill="none" stroke="currentColor" strokeWidth="1" />
-                <path d="M10 140c40-30 80-50 120-30s50 40 70 10" fill="none" stroke="currentColor" strokeWidth="1" />
-                <path d="M30 60c25-35 55-45 85-25s45 35 65 5" fill="none" stroke="currentColor" strokeWidth="0.8" />
-                <circle cx="160" cy="30" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" />
-                <circle cx="160" cy="30" r="25" fill="none" stroke="currentColor" strokeWidth="0.5" />
-              </pattern>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#confirm-topo)" className="text-primary-900" />
-          </svg>
-        </div>
-
+      <div className="relative min-h-[80dvh] bg-white">
         <DepthElements rm={rm} />
 
         {/* ── Content ── */}
@@ -522,7 +429,7 @@ export default function OrderConfirmationPage() {
                       size="lg"
                       fullWidth
                       icon={<Truck size={18} />}
-                      className="shadow-lg shadow-primary-600/20 !rounded-2xl"
+                      className="!rounded-2xl"
                     >
                       Track your order
                     </Button>
@@ -541,7 +448,7 @@ export default function OrderConfirmationPage() {
               </motion.div>
 
               {/* ── Divider ── */}
-              <div className="h-px bg-gradient-to-r from-transparent via-primary-100 to-transparent" />
+              <div className="h-px bg-gradient-to-r from-transparent via-neutral-100 to-transparent" />
 
               {/* ── What's next ── */}
               <motion.div variants={fadeUp}>

@@ -155,7 +155,7 @@ function CollectivePicker({
   selectedIds: string[]
   onToggle: (id: string) => void
 }) {
-  const { data: allCollectives = [], isLoading } = useCollectives()
+  const { data: allCollectives = [], isLoading } = useCollectives({ includeNational: true })
   const [search, setSearch] = useState('')
 
   const otherCollectives = useMemo(
@@ -229,7 +229,7 @@ function CollectivePicker({
                     'flex items-center justify-center h-5 w-5 rounded-md border-2 transition-colors duration-150 shrink-0',
                     isSelected
                       ? 'bg-primary-600 border-primary-600'
-                      : 'border-primary-300 bg-white',
+                      : 'border-neutral-300 bg-white',
                   )}
                 >
                   {isSelected && <Check size={12} className="text-white" />}

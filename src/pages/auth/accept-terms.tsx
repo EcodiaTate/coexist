@@ -38,7 +38,6 @@ export default function AcceptTermsPage() {
       await acceptTos(CURRENT_TOS_VERSION)
       navigate('/', { replace: true })
     } catch {
-      // TOS acceptance failed - don't navigate, let user retry
       setIsSubmitting(false)
     }
   }
@@ -59,40 +58,40 @@ export default function AcceptTermsPage() {
         animate="visible"
       >
         <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="flex items-center gap-3 mb-4">
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-white text-primary-400">
+          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-neutral-50 text-neutral-400">
             <FileText size={24} />
           </div>
           <div>
-            <h1 className="font-heading text-xl font-bold text-primary-800">
+            <h1 className="font-heading text-xl font-bold text-neutral-900">
               Terms & Conditions Updated
             </h1>
-            <p className="text-sm text-primary-400">Version {CURRENT_TOS_VERSION}</p>
+            <p className="text-sm text-neutral-500">Version {CURRENT_TOS_VERSION}</p>
           </div>
         </motion.div>
 
-        <motion.p variants={shouldReduceMotion ? undefined : fadeUp} className="text-sm text-primary-400 leading-relaxed mb-4">
+        <motion.p variants={shouldReduceMotion ? undefined : fadeUp} className="text-sm text-neutral-500 leading-relaxed mb-4">
           We've updated our Terms of Service and Privacy Policy. Please review and accept
           the updated terms to continue using Co-Exist.
         </motion.p>
 
-        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="flex-1 overflow-y-auto rounded-xl border border-primary-200 bg-white p-4 mb-4 max-h-[50vh]">
-          <h2 className="font-heading text-sm font-semibold text-primary-800 mb-2">
+        <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="flex-1 overflow-y-auto rounded-xl border border-neutral-100 bg-white p-4 mb-4 max-h-[50vh]">
+          <h2 className="font-heading text-sm font-semibold text-neutral-900 mb-2">
             Summary of Changes
           </h2>
-          <ul className="space-y-2 text-xs text-primary-400 list-disc pl-4">
+          <ul className="space-y-2 text-xs text-neutral-500 list-disc pl-4">
             <li>Updated data privacy practices in line with GDPR and Australian Privacy Act</li>
             <li>Added data export and account deletion rights</li>
             <li>Clarified content moderation and reporting policies</li>
             <li>Updated age verification requirements (18+)</li>
             <li>Added cookie consent and analytics disclosure</li>
-            <li><strong className="text-primary-600">Zero tolerance for objectionable content</strong> &mdash; users who post abusive, offensive, or objectionable content will have the content removed and their account suspended or terminated</li>
-            <li><strong className="text-primary-600">User-generated content policy</strong> &mdash; added guidelines for acceptable use, content reporting, and user blocking</li>
+            <li><strong className="text-neutral-900">Zero tolerance for objectionable content</strong> &mdash; users who post abusive, offensive, or objectionable content will have the content removed and their account suspended or terminated</li>
+            <li><strong className="text-neutral-900">User-generated content policy</strong> &mdash; added guidelines for acceptable use, content reporting, and user blocking</li>
           </ul>
 
-          <h2 className="font-heading text-sm font-semibold text-primary-800 mt-4 mb-2">
+          <h2 className="font-heading text-sm font-semibold text-neutral-900 mt-4 mb-2">
             Community Standards
           </h2>
-          <p className="text-xs text-primary-400 leading-relaxed">
+          <p className="text-xs text-neutral-500 leading-relaxed">
             Co-Exist has zero tolerance for objectionable content or abusive behaviour.
             Content that is offensive, hateful, discriminatory, sexually explicit, violent, or
             otherwise inappropriate will be removed, and the responsible user may be
@@ -130,7 +129,7 @@ export default function AcceptTermsPage() {
             size="sm"
             fullWidth
             onClick={handleDecline}
-            className="text-primary-400"
+            className="text-neutral-500"
           >
             Decline & Log Out
           </Button>

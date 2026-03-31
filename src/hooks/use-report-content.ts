@@ -1,6 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { useToast } from '@/components/toast'
+import { queueOfflineAction } from '@/lib/offline-sync'
 
 interface ReportContentParams {
   contentId: string
@@ -11,10 +14,22 @@ interface ReportContentParams {
 export function useReportContent() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async ({ contentId, contentType, reason }: ReportContentParams) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('report-content', {
+          contentId,
+          contentType,
+          reason,
+          reporterId: user.id,
+        })
+        return
+      }
 
       const { data, error } = await supabase
         .from('content_reports')
@@ -48,6 +63,10 @@ export function useReportContent() {
       }
     },
     onSuccess: () => {
+      if (isOffline) {
+        toast.info('Report saved offline — will be submitted when back online')
+        return
+      }
       queryClient.invalidateQueries({ queryKey: ['moderation-queue'] })
     },
   })

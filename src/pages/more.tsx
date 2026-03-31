@@ -14,7 +14,7 @@ import {
   Mail,
   ChevronRight,
   Leaf,
-  CalendarDays,
+  Compass,
   FileText,
 } from 'lucide-react'
 import { Page } from '@/components/page'
@@ -105,7 +105,7 @@ export default function MorePage() {
 
   const updatesLinks: MenuLink[] = [
     { label: 'Updates', to: '/updates', icon: <Megaphone size={17} />, iconBg: 'bg-plum-50', iconColor: 'text-plum-600' },
-    { label: 'Events', to: '/events', icon: <CalendarDays size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
+    { label: 'Explore', to: '/explore', icon: <Compass size={17} />, iconBg: 'bg-primary-50', iconColor: 'text-primary-600' },
     { label: 'Notifications', to: '/notifications', icon: <Bell size={17} />, iconBg: 'bg-error-50', iconColor: 'text-error-500' },
   ]
 
@@ -174,8 +174,7 @@ export default function MorePage() {
             className={cn(
               'w-full flex items-center gap-4 p-4',
               'rounded-2xl',
-              'bg-gradient-to-br from-primary-800 via-primary-700 to-secondary-700',
-              'shadow-lg',
+              'bg-white border border-neutral-100 shadow-sm',
               'active:scale-[0.98] transition-transform duration-150',
               'cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
@@ -189,11 +188,11 @@ export default function MorePage() {
               />
             </div>
             <div className="flex-1 min-w-0 text-left">
-              <p className="font-heading text-lg font-bold text-white truncate">
+              <p className="font-heading text-lg font-bold text-neutral-900 truncate">
                 {profile?.display_name}
               </p>
             </div>
-            <ChevronRight size={20} className="text-primary-300/80 shrink-0" />
+            <ChevronRight size={20} className="text-neutral-400 shrink-0" />
           </button>
         </motion.div>
 

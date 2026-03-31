@@ -189,7 +189,7 @@ export function SurveyQuestionRenderer({
                       'px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors border border-dashed',
                       answers[q.id] === '__other__'
                         ? 'bg-primary-600 text-white border-primary-600'
-                        : 'bg-white text-primary-500 border-primary-300 hover:bg-primary-50',
+                        : 'bg-white text-neutral-600 border-neutral-300 hover:bg-neutral-50',
                     )}
                   >
                     Other...
@@ -237,7 +237,7 @@ export function SurveyQuestionRenderer({
                       'px-3 py-1.5 rounded-full text-xs font-medium cursor-pointer transition-colors border border-dashed',
                       ((answers[q.id] as string[]) ?? []).includes('__other__')
                         ? 'bg-primary-600 text-white border-primary-600'
-                        : 'bg-white text-primary-500 border-primary-300 hover:bg-primary-50',
+                        : 'bg-white text-neutral-600 border-neutral-300 hover:bg-neutral-50',
                     )}
                   >
                     Other...

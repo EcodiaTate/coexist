@@ -118,6 +118,8 @@ export interface QrScannerProps {
   onCancel: () => void
   /** Called to set native scanner active state (for body class management) */
   onNativeScannerActive?: (active: boolean) => void
+  /** Called when a ticket code is scanned (coexist://ticket/{code}) */
+  onTicketScan?: (ticketCode: string) => void
 }
 
 export function QrScanner({
@@ -128,27 +130,38 @@ export function QrScanner({
   onCameraError,
   onCancel,
   onNativeScannerActive,
+  onTicketScan,
 }: QrScannerProps) {
   const isNative = Capacitor.isNativePlatform()
 
-  const parseQrValue = useCallback((value: string): string | null => {
-    const match = value.match(/^coexist:\/\/event\/(.+)$/)
-    if (!match) return null
-    return match[1]
+  const parseQrValue = useCallback((value: string): { type: 'event'; eventId: string } | { type: 'ticket'; code: string } | null => {
+    const eventMatch = value.match(/^coexist:\/\/event\/(.+)$/)
+    if (eventMatch) return { type: 'event', eventId: eventMatch[1] }
+    const ticketMatch = value.match(/^coexist:\/\/ticket\/(.+)$/)
+    if (ticketMatch) return { type: 'ticket', code: ticketMatch[1] }
+    return null
   }, [])
 
   const handleWebQrScan = useCallback((value: string) => {
-    const scannedEventId = parseQrValue(value)
-    if (!scannedEventId) {
+    const parsed = parseQrValue(value)
+    if (!parsed) {
       onInvalidQr()
       return
     }
-    if (scannedEventId !== eventId) {
+    if (parsed.type === 'ticket') {
+      if (onTicketScan) {
+        onTicketScan(parsed.code)
+      } else {
+        onInvalidQr()
+      }
+      return
+    }
+    if (parsed.eventId !== eventId) {
       onInvalidQr()
       return
     }
-    onScan(scannedEventId)
-  }, [eventId, parseQrValue, onScan, onInvalidQr])
+    onScan(parsed.eventId)
+  }, [eventId, parseQrValue, onScan, onInvalidQr, onTicketScan])
 
   // Native: launch Capacitor barcode scanner on mount
   useEffect(() => {
@@ -183,11 +196,16 @@ export function QrScanner({
         if (cancelled) return
 
         if (barcodes.length > 0 && barcodes[0].rawValue) {
-          const scannedEventId = parseQrValue(barcodes[0].rawValue)
-          if (!scannedEventId || scannedEventId !== eventId) {
+          const parsed = parseQrValue(barcodes[0].rawValue)
+          if (!parsed) {
+            onInvalidQr()
+          } else if (parsed.type === 'ticket') {
+            if (onTicketScan) onTicketScan(parsed.code)
+            else onInvalidQr()
+          } else if (parsed.eventId !== eventId) {
             onInvalidQr()
           } else {
-            onScan(scannedEventId)
+            onScan(parsed.eventId)
           }
         } else {
           onCancel()

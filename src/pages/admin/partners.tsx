@@ -330,27 +330,27 @@ export default function AdminPartnersPage() {
                     />
                   ) : (
                     <div className="w-10 h-10 rounded-lg bg-primary-50/60 shadow-sm flex items-center justify-center shrink-0">
-                      <Building2 size={18} className="text-primary-400" />
+                      <Building2 size={18} className="text-neutral-400" />
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-semibold text-primary-800 truncate">
+                      <p className="text-sm font-semibold text-neutral-900 truncate">
                         {org.name}
                       </p>
-                      <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-white text-primary-400 shrink-0">
+                      <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-white text-neutral-400 shrink-0">
                         {org.type}
                       </span>
                     </div>
-                    <div className="flex items-center gap-3 mt-0.5 text-xs text-primary-400">
+                    <div className="flex items-center gap-3 mt-0.5 text-xs text-neutral-400">
                       {org.contact_name && <span>{org.contact_name}</span>}
                       {org.website && (
                         <a
                           href={org.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-0.5 hover:text-primary-400"
+                          className="flex items-center gap-0.5 hover:text-neutral-400"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <Globe size={10} /> Website
@@ -362,7 +362,7 @@ export default function AdminPartnersPage() {
                   <button
                     type="button"
                     onClick={() => setDeleteTarget({ id: org.id, type: 'org' })}
-                    className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
+                    className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-neutral-400 hover:bg-error-50 hover:text-error-600 cursor-pointer"
                     aria-label={`Delete ${org.name}`}
                   >
                     <Trash2 size={16} />
@@ -409,11 +409,11 @@ export default function AdminPartnersPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-heading text-sm font-semibold text-primary-800">
+                      <h3 className="font-heading text-sm font-semibold text-neutral-900">
                         {offer.title}
                       </h3>
                       {offer.organisations?.name && (
-                        <p className="text-xs text-primary-400 mt-0.5">
+                        <p className="text-xs text-neutral-400 mt-0.5">
                           by {offer.organisations.name}
                         </p>
                       )}
@@ -421,19 +421,19 @@ export default function AdminPartnersPage() {
                     <button
                       type="button"
                       onClick={() => setDeleteTarget({ id: offer.id, type: 'offer' })}
-                      className="p-1 rounded text-primary-400 hover:text-error-600 cursor-pointer"
+                      className="p-1 rounded text-neutral-400 hover:text-error-600 cursor-pointer"
                       aria-label="Delete offer"
                     >
                       <Trash2 size={14} />
                     </button>
                   </div>
                   {offer.description && (
-                    <p className="text-xs text-primary-400 mt-2 line-clamp-2">
+                    <p className="text-xs text-neutral-400 mt-2 line-clamp-2">
                       {offer.description}
                     </p>
                   )}
                   {offer.category && (
-                    <span className="inline-flex items-center gap-1 mt-2 text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-primary-50/60 shadow-sm text-primary-800">
+                    <span className="inline-flex items-center gap-1 mt-2 text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-neutral-50 shadow-sm text-neutral-900">
                       <Tag size={10} />
                       {offer.category}
                     </span>
@@ -448,33 +448,33 @@ export default function AdminPartnersPage() {
       {/* Corporate Programs tab */}
       {activeTab === 'corporate' && (
         <div className="space-y-4">
-          <div className="p-6 rounded-xl bg-gradient-to-br from-white to-secondary-100 shadow-sm">
-            <h3 className="font-heading text-base font-semibold text-primary-800 mb-2">
+          <div className="p-6 rounded-xl bg-white border border-neutral-100 shadow-sm">
+            <h3 className="font-heading text-base font-semibold text-neutral-900 mb-2">
               Corporate Volunteer Programs
             </h3>
-            <p className="text-sm text-primary-800 mb-4">
+            <p className="text-sm text-neutral-900 mb-4">
               Track corporate partner volunteering, generate CSR reports, and manage
               sponsored challenges.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="p-3 rounded-lg bg-white/70">
-                <Handshake size={18} className="text-primary-400 mb-1" />
-                <p className="text-sm font-medium text-primary-800">Corporate Events</p>
-                <p className="text-xs text-primary-400">
+                <Handshake size={18} className="text-neutral-400 mb-1" />
+                <p className="text-sm font-medium text-neutral-900">Corporate Events</p>
+                <p className="text-xs text-neutral-400">
                   Tag events with corporate partners for separate tracking
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-white/70">
-                <Receipt size={18} className="text-primary-400 mb-1" />
-                <p className="text-sm font-medium text-primary-800">Invoice Generation</p>
-                <p className="text-xs text-primary-400">
+                <Receipt size={18} className="text-neutral-400 mb-1" />
+                <p className="text-sm font-medium text-neutral-900">Invoice Generation</p>
+                <p className="text-xs text-neutral-400">
                   Generate branded invoices for corporate sponsors
                 </p>
               </div>
               <div className="p-3 rounded-lg bg-white/70">
-                <Trophy size={18} className="text-primary-400 mb-1" />
-                <p className="text-sm font-medium text-primary-800">Sponsored Challenges</p>
-                <p className="text-xs text-primary-400">
+                <Trophy size={18} className="text-neutral-400 mb-1" />
+                <p className="text-sm font-medium text-neutral-900">Sponsored Challenges</p>
+                <p className="text-xs text-neutral-400">
                   Link challenges to sponsor organisations
                 </p>
               </div>
@@ -487,10 +487,10 @@ export default function AdminPartnersPage() {
       <BottomSheet open={showCreateOrg} onClose={() => setShowCreateOrg(false)}>
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-heading text-lg font-semibold text-primary-800">Add Organisation</h2>
+          <h2 className="font-heading text-lg font-semibold text-neutral-900">Add Organisation</h2>
           <button
             onClick={() => setShowCreateOrg(false)}
-            className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+            className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-neutral-400 hover:bg-neutral-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
             aria-label="Close"
           >
             <X size={20} />
@@ -556,10 +556,10 @@ export default function AdminPartnersPage() {
       <BottomSheet open={showCreateOffer} onClose={() => setShowCreateOffer(false)}>
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-heading text-lg font-semibold text-primary-800">Add Partner Offer</h2>
+          <h2 className="font-heading text-lg font-semibold text-neutral-900">Add Partner Offer</h2>
           <button
             onClick={() => setShowCreateOffer(false)}
-            className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+            className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-neutral-400 hover:bg-neutral-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
             aria-label="Close"
           >
             <X size={20} />

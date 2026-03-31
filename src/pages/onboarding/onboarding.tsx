@@ -39,8 +39,6 @@ export default function OnboardingPage() {
   const [showCelebration, setShowCelebration] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  // Track whether the user who just completed onboarding is a leader,
-  // so the celebration screen routes them to /leader-welcome.
   const isLeaderAfterComplete = useRef(false)
 
   // Shared onboarding data
@@ -66,9 +64,6 @@ export default function OnboardingPage() {
     setSubmitError(null)
 
     try {
-      // Build profile payload - upsert guarantees the row exists even if the
-      // auth trigger hasn't fired yet, preventing the FK violation on
-      // collective_members when we insert below.
       const profilePayload: Record<string, unknown> = {
         id: user.id,
         onboarding_completed: true,
@@ -91,14 +86,29 @@ export default function OnboardingPage() {
         return
       }
 
-      // Join collective if selected - profile row is now guaranteed to exist.
-      // Use upsert with onConflict to handle re-onboarding (user already a member).
-      if (data.collectiveId) {
+      // Auto-join the national (Australia) collective so every user
+      // has access to the org-wide group chat and national events.
+      const { data: nationalCollective } = await supabase
+        .from('collectives')
+        .select('id')
+        .eq('is_national', true)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle()
+
+      const collectiveIds = [
+        ...(data.collectiveId ? [data.collectiveId] : []),
+        ...(nationalCollective?.id && nationalCollective.id !== data.collectiveId
+          ? [nationalCollective.id]
+          : []),
+      ]
+
+      for (const cId of collectiveIds) {
         const { error: memberError } = await supabase
           .from('collective_members')
           .upsert(
             {
-              collective_id: data.collectiveId,
+              collective_id: cId,
               user_id: user.id,
               role: 'member',
               status: 'active',
@@ -107,15 +117,13 @@ export default function OnboardingPage() {
           )
 
         if (memberError) {
-          console.error('[onboarding] Failed to join collective:', memberError)
-          // Non-fatal  don't block onboarding completion
+          console.error(`[onboarding] Failed to join collective ${cId}:`, memberError)
         }
       }
 
       markOnboardingComplete()
       await refreshProfile()
 
-      // Check if user holds a leader-tier collective role
       const hasLeaderRole = collectiveRoles.some(
         (m) => m.role === 'leader' || m.role === 'co_leader' || m.role === 'assist_leader',
       )
@@ -210,7 +218,7 @@ export default function OnboardingPage() {
             key={i}
             className={cn(
               'h-1.5 rounded-full transition-colors duration-300',
-              i === step ? 'bg-primary-500 w-6' : i < step ? 'bg-primary-300 w-1.5' : 'bg-white w-1.5',
+              i === step ? 'bg-neutral-900 w-6' : i < step ? 'bg-neutral-300 w-1.5' : 'bg-neutral-100 w-1.5',
             )}
             layout={!shouldReduceMotion}
           />
@@ -222,7 +230,7 @@ export default function OnboardingPage() {
         <button
           type="button"
           onClick={goBack}
-          className="self-start ml-4 mb-2 text-sm text-primary-400 hover:text-primary-800 active:scale-[0.97] transition-[colors,transform] duration-150 cursor-pointer"
+          className="self-start ml-4 mb-2 text-sm text-neutral-500 hover:text-neutral-900 active:scale-[0.97] transition-[colors,transform] duration-150 cursor-pointer"
         >
           &larr; Back
         </button>
@@ -249,7 +257,7 @@ export default function OnboardingPage() {
       {/* Error banner + retry */}
       {submitError && (
         <div className="px-6 pb-4">
-          <p className="text-sm text-red-600 text-center mb-2">{submitError}</p>
+          <p className="text-sm text-error-600 text-center mb-2">{submitError}</p>
           <Button
             variant="primary"
             size="lg"

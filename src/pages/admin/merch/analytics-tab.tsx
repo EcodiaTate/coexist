@@ -16,13 +16,13 @@ const PERIODS = [
   { value: 'year' as const, label: 'This year' },
 ]
 
-const PRODUCT_GRADIENTS = [
-  'from-primary-600/90 to-primary-800',
-  'from-moss-600/90 to-moss-800',
-  'from-sky-500/90 to-sky-700',
-  'from-sprout-600/90 to-sprout-800',
-  'from-plum-500/90 to-plum-700',
-  'from-bark-500/90 to-bark-700',
+const PRODUCT_ICON_STYLES = [
+  'bg-primary-50 text-primary-600',
+  'bg-moss-50 text-moss-600',
+  'bg-sky-50 text-sky-600',
+  'bg-sprout-50 text-sprout-600',
+  'bg-plum-50 text-plum-600',
+  'bg-bark-50 text-bark-600',
 ]
 
 export default function AnalyticsTab() {
@@ -89,16 +89,21 @@ export default function AnalyticsTab() {
       {/* By product - rich colored cards */}
       {analytics.by_product.length > 0 && (
         <motion.div variants={fadeUp}><section>
-          <h3 className="font-heading font-semibold text-primary-800 mb-3">By product</h3>
+          <h3 className="font-heading font-semibold text-neutral-900 mb-3">By product</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {analytics.by_product.map((row, idx) => (
               <div
                 key={row.product_id}
-                className={`rounded-2xl p-5 shadow-lg bg-gradient-to-br ${PRODUCT_GRADIENTS[idx % PRODUCT_GRADIENTS.length]}`}
+                className="rounded-2xl p-5 bg-white border border-neutral-100 shadow-sm"
               >
-                <p className="text-sm font-bold text-white">{row.product_name}</p>
-                <p className="text-xs text-white/60 mt-0.5">{row.units} units sold</p>
-                <p className="font-heading font-bold text-lg text-white mt-2 tabular-nums">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${PRODUCT_ICON_STYLES[idx % PRODUCT_ICON_STYLES.length]}`}>
+                    <ShoppingBag size={14} />
+                  </div>
+                  <p className="text-sm font-bold text-neutral-900">{row.product_name}</p>
+                </div>
+                <p className="text-xs text-neutral-500 mt-0.5">{row.units} units sold</p>
+                <p className="font-heading font-bold text-lg text-neutral-900 mt-2 tabular-nums">
                   {formatPrice(row.revenue_cents)}
                 </p>
               </div>
@@ -110,21 +115,17 @@ export default function AnalyticsTab() {
       {/* By period - alternating warm tones */}
       {analytics.by_period.length > 0 && (
         <motion.div variants={fadeUp}><section>
-          <h3 className="font-heading font-semibold text-primary-800 mb-3">Timeline</h3>
+          <h3 className="font-heading font-semibold text-neutral-900 mb-3">Timeline</h3>
           <div className="space-y-1.5">
             {analytics.by_period.map((row, idx) => (
               <div
                 key={row.date}
-                className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm border shadow-sm ${
-                  idx % 2 === 0
-                    ? 'bg-gradient-to-r from-sprout-50 to-primary-50/60 border-sprout-200/30'
-                    : 'bg-gradient-to-r from-moss-50 to-primary-50/60 border-moss-200/30'
-                }`}
+                className="flex items-center justify-between px-4 py-3 rounded-xl text-sm bg-white border border-neutral-100 shadow-sm"
               >
-                <span className="text-primary-500 font-medium">{row.date}</span>
+                <span className="text-neutral-500 font-medium">{row.date}</span>
                 <div className="flex gap-3">
-                  <span className="text-primary-400">{row.orders} orders</span>
-                  <span className="font-semibold text-primary-800 tabular-nums">{formatPrice(row.revenue_cents)}</span>
+                  <span className="text-neutral-400">{row.orders} orders</span>
+                  <span className="font-semibold text-neutral-900 tabular-nums">{formatPrice(row.revenue_cents)}</span>
                 </div>
               </div>
             ))}

@@ -92,7 +92,7 @@ export function AudiencePicker({
                 'flex items-center gap-2.5 px-3.5 min-h-[48px] rounded-xl border-2 text-left transition-transform active:scale-[0.97]',
                 isSelected
                   ? ROLE_COLORS[role.value]
-                  : 'border-primary-200 bg-white text-primary-500 hover:border-primary-300',
+                  : 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-300',
               )}
             >
               <span className={cn(
@@ -121,7 +121,7 @@ export function AudiencePicker({
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
-          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-primary-50 border border-primary-100"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg bg-neutral-50 border border-neutral-100"
         >
           <Users size={12} className="text-primary-500 shrink-0" />
           <p className="text-xs text-primary-600 flex-1">

@@ -32,6 +32,10 @@ import {
     Send,
     Upload,
     HelpCircle,
+    Ticket,
+    Plus,
+    Trash2,
+    DollarSign,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useQuery } from '@tanstack/react-query'
@@ -64,10 +68,20 @@ import {
 import { useToast } from '@/components/toast'
 import type { MapCenter } from '@/components'
 import { cn } from '@/lib/cn'
+import { PlaceAutocomplete } from '@/components/place-autocomplete'
+import type { PlaceResult } from '@/components/place-autocomplete'
 
 /* ------------------------------------------------------------------ */
 /*  Create-only form data (extends shared fields)                      */
 /* ------------------------------------------------------------------ */
+
+interface TicketTierDraft {
+  id: string
+  name: string
+  description: string
+  price_dollars: string
+  capacity: string
+}
 
 interface CreateExtraFields {
   selected_collective_ids: string[]
@@ -82,6 +96,8 @@ interface CreateExtraFields {
   what_to_wear: string
   invite_collective: boolean
   partner_name: string
+  is_ticketed: boolean
+  ticket_tiers: TicketTierDraft[]
 }
 
 const INITIAL_EXTRA: CreateExtraFields = {
@@ -97,6 +113,8 @@ const INITIAL_EXTRA: CreateExtraFields = {
   what_to_wear: '',
   invite_collective: false,
   partner_name: '',
+  is_ticketed: false,
+  ticket_tiers: [],
 }
 
 /* ------------------------------------------------------------------ */
@@ -112,7 +130,7 @@ const STEPS = [
     accentColor: 'text-sprout-600',
     accentBg: 'bg-sprout-500',
     cardBorder: 'border-l-sprout-400',
-    cardGlow: 'bg-sprout-50/40',
+    cardGlow: 'bg-white',
   },
   {
     title: 'Basics',
@@ -122,7 +140,7 @@ const STEPS = [
     accentColor: 'text-primary-600',
     accentBg: 'bg-primary-500',
     cardBorder: 'border-l-primary-400',
-    cardGlow: 'bg-primary-50/40',
+    cardGlow: 'bg-white',
   },
   {
     title: 'Date & Time',
@@ -132,7 +150,7 @@ const STEPS = [
     accentColor: 'text-sky-600',
     accentBg: 'bg-sky-500',
     cardBorder: 'border-l-sky-400',
-    cardGlow: 'bg-sky-50/40',
+    cardGlow: 'bg-white',
   },
   {
     title: 'Location',
@@ -142,7 +160,7 @@ const STEPS = [
     accentColor: 'text-sprout-600',
     accentBg: 'bg-sprout-500',
     cardBorder: 'border-l-sprout-400',
-    cardGlow: 'bg-sprout-50/40',
+    cardGlow: 'bg-white',
   },
   {
     title: 'Details',
@@ -152,7 +170,7 @@ const STEPS = [
     accentColor: 'text-bark-600',
     accentBg: 'bg-bark-500',
     cardBorder: 'border-l-bark-400',
-    cardGlow: 'bg-bark-50/40',
+    cardGlow: 'bg-white',
   },
   {
     title: 'Cover Image',
@@ -162,7 +180,7 @@ const STEPS = [
     accentColor: 'text-coral-600',
     accentBg: 'bg-coral-500',
     cardBorder: 'border-l-coral-400',
-    cardGlow: 'bg-coral-50/40',
+    cardGlow: 'bg-white',
   },
   {
     title: 'Visibility',
@@ -172,7 +190,17 @@ const STEPS = [
     accentColor: 'text-plum-600',
     accentBg: 'bg-plum-500',
     cardBorder: 'border-l-plum-400',
-    cardGlow: 'bg-plum-50/40',
+    cardGlow: 'bg-white',
+  },
+  {
+    title: 'Ticketing',
+    subtitle: 'Free or paid? Set up tickets',
+    icon: <Ticket size={20} />,
+    gradient: 'from-amber-400/15 via-warning-400/10 to-transparent',
+    accentColor: 'text-amber-600',
+    accentBg: 'bg-amber-500',
+    cardBorder: 'border-l-amber-400',
+    cardGlow: 'bg-white',
   },
   {
     title: 'Invite',
@@ -182,7 +210,7 @@ const STEPS = [
     accentColor: 'text-moss-600',
     accentBg: 'bg-moss-500',
     cardBorder: 'border-l-moss-400',
-    cardGlow: 'bg-moss-50/40',
+    cardGlow: 'bg-white',
   },
   {
     title: 'Partner',
@@ -192,7 +220,7 @@ const STEPS = [
     accentColor: 'text-bark-600',
     accentBg: 'bg-bark-500',
     cardBorder: 'border-l-bark-400',
-    cardGlow: 'bg-bark-50/40',
+    cardGlow: 'bg-white',
   },
   {
     title: 'Review',
@@ -202,7 +230,7 @@ const STEPS = [
     accentColor: 'text-success-600',
     accentBg: 'bg-success-500',
     cardBorder: 'border-l-success-400',
-    cardGlow: 'bg-success-50/40',
+    cardGlow: 'bg-white',
   },
 ]
 
@@ -555,12 +583,21 @@ function StepLocation({
     <div className="space-y-4">
       <StepCard>
         <SectionLabel icon={<MapPin size={14} />}>Address</SectionLabel>
-        <Input
+        <PlaceAutocomplete
           label="Address"
           placeholder="Search for an address..."
           value={fields.address}
-          onChange={(e) => onChange({ address: e.target.value })}
-          icon={<MapPin size={18} />}
+          onChange={(_value: string, place: PlaceResult | null) => {
+            if (place) {
+              onChange({
+                address: place.short_name,
+                location_lat: place.lat,
+                location_lng: place.lng,
+              })
+            } else {
+              onChange({ address: _value })
+            }
+          }}
         />
       </StepCard>
 
@@ -910,6 +947,158 @@ function StepVisibility({
   )
 }
 
+function StepTicketing({
+  extra,
+  onExtraChange,
+}: {
+  extra: CreateExtraFields
+  onExtraChange: (partial: Partial<CreateExtraFields>) => void
+}) {
+  const addTier = () => {
+    onExtraChange({
+      ticket_tiers: [
+        ...extra.ticket_tiers,
+        {
+          id: crypto.randomUUID(),
+          name: extra.ticket_tiers.length === 0 ? 'General Admission' : '',
+          description: '',
+          price_dollars: '',
+          capacity: '',
+        },
+      ],
+    })
+  }
+
+  const updateTier = (id: string, patch: Partial<TicketTierDraft>) => {
+    onExtraChange({
+      ticket_tiers: extra.ticket_tiers.map((t) => (t.id === id ? { ...t, ...patch } : t)),
+    })
+  }
+
+  const removeTier = (id: string) => {
+    onExtraChange({ ticket_tiers: extra.ticket_tiers.filter((t) => t.id !== id) })
+  }
+
+  return (
+    <div className="space-y-4">
+      <StepCard>
+        <div className="flex items-center justify-between">
+          <div>
+            <SectionLabel>Require tickets?</SectionLabel>
+            <p className="text-xs text-primary-400 mt-0.5">
+              Ticketed events use Stripe for secure payment
+            </p>
+          </div>
+          <Toggle
+            checked={extra.is_ticketed}
+            onChange={(checked) => {
+              onExtraChange({ is_ticketed: checked })
+              if (checked && extra.ticket_tiers.length === 0) addTier()
+            }}
+          />
+        </div>
+      </StepCard>
+
+      {extra.is_ticketed && (
+        <>
+          <StepCard>
+            <SectionLabel>Ticket tiers</SectionLabel>
+            <p className="text-xs text-primary-400 mb-3">
+              Add one or more ticket types. Set price to $0 for free tiers.
+            </p>
+
+            <div className="space-y-3">
+              {extra.ticket_tiers.map((tier, idx) => (
+                <motion.div
+                  key={tier.id}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, x: -16 }}
+                  className="rounded-xl bg-white border border-neutral-100 p-3.5 space-y-2.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-amber-100 text-amber-600 text-xs font-bold shrink-0">
+                      {idx + 1}
+                    </span>
+                    <Input
+                      value={tier.name}
+                      onChange={(e) => updateTier(tier.id, { name: e.target.value })}
+                      placeholder="Tier name (e.g. Early Bird)"
+                      compact
+                      className="flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeTier(tier.id)}
+                      className="flex items-center justify-center min-w-9 min-h-9 rounded-lg text-neutral-300 hover:bg-error-50 hover:text-error-600 active:bg-error-100 transition-colors cursor-pointer"
+                      aria-label="Remove tier"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+
+                  <Input
+                    value={tier.description}
+                    onChange={(e) => updateTier(tier.id, { description: e.target.value })}
+                    placeholder="Description (optional)"
+                    compact
+                  />
+
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <label className="text-[11px] font-medium text-neutral-400 mb-0.5 block">Price (AUD)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-300">$</span>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="0.01"
+                          value={tier.price_dollars}
+                          onChange={(e) => updateTier(tier.id, { price_dollars: e.target.value })}
+                          placeholder="0.00"
+                          className="w-full h-10 pl-7 pr-3 rounded-lg bg-surface-3 text-[16px] text-primary-800 font-semibold focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        />
+                      </div>
+                    </div>
+                    <div className="w-28">
+                      <label className="text-[11px] font-medium text-neutral-400 mb-0.5 block">Capacity</label>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        min="1"
+                        value={tier.capacity}
+                        onChange={(e) => updateTier(tier.id, { capacity: e.target.value })}
+                        placeholder="∞"
+                        className="w-full h-10 px-3 rounded-lg bg-surface-3 text-[16px] text-primary-800 text-center focus:outline-none focus:ring-2 focus:ring-primary-400"
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              icon={<Plus size={14} />}
+              onClick={addTier}
+              className="mt-3 w-full"
+            >
+              Add another tier
+            </Button>
+          </StepCard>
+
+          <div className="px-3 py-2 rounded-lg bg-amber-50/60 text-amber-700 text-xs">
+            Attendees will be redirected to Stripe to complete payment. You'll see revenue and ticket sales in the admin dashboard.
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 function StepInvite({
   extra,
   onExtraChange,
@@ -1095,6 +1284,15 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
             value={fields.is_public ? 'Public' : 'Collective Only'}
           />
           <SummaryRow
+            icon={<Ticket size={15} />}
+            label="Ticketing"
+            value={
+              extra.is_ticketed
+                ? `${extra.ticket_tiers.length} tier${extra.ticket_tiers.length !== 1 ? 's' : ''} — ${extra.ticket_tiers.map((t) => t.price_dollars ? `$${t.price_dollars}` : 'Free').join(', ')}`
+                : 'Free — no ticket required'
+            }
+          />
+          <SummaryRow
             icon={<Mountain size={15} />}
             label="Difficulty"
             value={
@@ -1180,7 +1378,7 @@ function ProgressStepper({
   return (
     <div className="flex items-center gap-1.5">
       {Array.from({ length: totalSteps }).map((_, i) => (
-        <div key={i} className="flex-1 h-2 rounded-full overflow-hidden bg-primary-100/80">
+        <div key={i} className="flex-1 h-2 rounded-full overflow-hidden bg-neutral-100">
           <motion.div
             className={cn(
               'h-full rounded-full',
@@ -1282,8 +1480,31 @@ export default function CreateEventPage() {
           capacity: form.parsedCapacity(),
           cover_image_url: form.fields.cover_image_url || null,
           is_public: form.fields.is_public,
+          is_ticketed: extra.is_ticketed,
           status: isDraft ? 'draft' : 'published',
         })
+
+        // Insert ticket types if ticketed
+        if (extra.is_ticketed && extra.ticket_tiers.length > 0) {
+          const ticketTypeRows = extra.ticket_tiers
+            .filter((t) => t.name.trim())
+            .map((t, idx) => ({
+              event_id: event.id,
+              name: t.name.trim(),
+              description: t.description.trim() || null,
+              price_cents: Math.round(parseFloat(t.price_dollars || '0') * 100),
+              capacity: t.capacity ? parseInt(t.capacity, 10) : null,
+              sort_order: idx,
+              is_active: true,
+            }))
+
+          if (ticketTypeRows.length > 0) {
+            const { error: ttErr } = await supabase
+              .from('event_ticket_types')
+              .insert(ticketTypeRows)
+            if (ttErr) console.error('[create-event] ticket type insert error:', ttErr)
+          }
+        }
 
         // Link additional collectives as accepted collaborators
         if (additionalCollectiveIds.length > 0) {
@@ -1409,6 +1630,7 @@ export default function CreateEventPage() {
       uploadError={form.uploadError}
     />,
     <StepVisibility fields={form.fields} onChange={form.updateFields} />,
+    <StepTicketing extra={extra} onExtraChange={updateExtra} />,
     <StepInvite extra={extra} onExtraChange={updateExtra} />,
     <StepPartner extra={extra} onExtraChange={updateExtra} />,
     <StepReview fields={form.fields} extra={extra} />,

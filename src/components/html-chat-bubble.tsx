@@ -20,9 +20,9 @@ interface HtmlChatBubbleProps {
 }
 
 const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
-  Leader: { bg: 'bg-primary-700', text: 'text-white' },
-  'Co-Leader': { bg: 'bg-primary-300', text: 'text-primary-900' },
-  'Assist Leader': { bg: 'bg-primary-200', text: 'text-primary-800' },
+  Leader: { bg: 'bg-primary-100', text: 'text-primary-700' },
+  'Co-Leader': { bg: 'bg-primary-50', text: 'text-primary-600' },
+  'Assist Leader': { bg: 'bg-primary-50', text: 'text-primary-600' },
 }
 
 function formatTime(date: Date): string {
@@ -131,17 +131,17 @@ export function HtmlChatBubble({
         transition={{ duration: 0.2 }}
       >
         {/* Toolbar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-primary-100 bg-white/95 backdrop-blur-sm safe-top">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 bg-white/95 backdrop-blur-sm safe-top">
           <div className="flex items-center gap-2">
             {senderName && (
-              <span className="text-sm font-bold text-primary-700">{senderName}</span>
+              <span className="text-sm font-bold text-neutral-700">{senderName}</span>
             )}
-            <span className="text-xs text-primary-400">HTML Content</span>
+            <span className="text-xs text-neutral-400">HTML Content</span>
           </div>
           <button
             type="button"
             onClick={toggleExpand}
-            className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-100 text-primary-700 active:bg-primary-200 transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600 active:bg-neutral-200 transition-colors"
             aria-label="Exit fullscreen"
           >
             <Minimize2 size={20} />
@@ -195,7 +195,7 @@ export function HtmlChatBubble({
             />
           ) : (
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-primary-400 to-primary-600 text-xs font-extrabold text-white ring-[2.5px] ring-white shadow-md"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-xs font-extrabold text-white ring-[2.5px] ring-white shadow-md"
               aria-hidden="true"
             >
               {senderName?.charAt(0)?.toUpperCase() ?? '?'}
@@ -217,7 +217,7 @@ export function HtmlChatBubble({
           <div className="flex items-center gap-2 px-1 mb-1">
             <button
               type="button"
-              className="text-[13px] font-bold text-primary-700 hover:text-primary-800 min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
+              className="text-[13px] font-bold text-neutral-700 hover:text-neutral-900 min-h-11 flex items-center justify-center cursor-pointer select-none active:scale-[0.97] transition-transform duration-150"
               onClick={() => senderId && onSenderTap?.(senderId)}
             >
               {senderName}
@@ -239,22 +239,22 @@ export function HtmlChatBubble({
           className={cn(
             'w-full rounded-2xl overflow-hidden transition-colors duration-150',
             sent
-              ? 'rounded-br-md bg-white shadow-lg ring-1 ring-primary-200/60'
-              : 'rounded-bl-md bg-white shadow-md ring-1 ring-primary-200/70',
+              ? 'rounded-br-md bg-white shadow-sm ring-1 ring-neutral-100'
+              : 'rounded-bl-md bg-white shadow-sm ring-1 ring-neutral-100',
           )}
         >
           {/* Expand button bar */}
           <div className={cn(
-            'flex items-center justify-between px-3 py-2 border-b border-primary-100/60',
-            'bg-gradient-to-r from-primary-50/80 to-transparent',
+            'flex items-center justify-between px-3 py-2 border-b border-neutral-100',
+            'bg-neutral-50',
           )}>
-            <span className="text-[11px] font-semibold text-primary-500 uppercase tracking-wider">
+            <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
               Rich Content
             </span>
             <button
               type="button"
               onClick={toggleExpand}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-primary-500 active:bg-primary-100 transition-colors cursor-pointer"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-neutral-400 active:bg-neutral-100 transition-colors cursor-pointer"
               aria-label="Expand to fullscreen"
             >
               <Maximize2 size={15} />
@@ -282,7 +282,7 @@ export function HtmlChatBubble({
           )}>
             <time
               dateTime={timestamp.toISOString()}
-              className="text-[11px] font-medium tabular-nums text-primary-400"
+              className="text-[11px] font-medium tabular-nums text-neutral-400"
             >
               {formatTime(timestamp)}
             </time>

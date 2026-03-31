@@ -37,11 +37,14 @@ type CollectiveRole = Database['public']['Enums']['collective_role']
 /*  Role hierarchy helpers                                             */
 /* ------------------------------------------------------------------ */
 
-const GLOBAL_ROLE_RANK: Record<UserRole, number> = {
+const GLOBAL_ROLE_RANK: Record<string, number> = {
   participant: 0,
   national_leader: 1,
-  national_admin: 2,
-  super_admin: 3,
+  national_staff: 1,   // legacy alias (pre-migration 074)
+  manager: 2,
+  national_admin: 2,   // legacy alias (pre-migration 076)
+  admin: 3,
+  super_admin: 3,      // legacy alias (pre-migration 076)
 }
 
 const COLLECTIVE_ROLE_RANK: Record<CollectiveRole, number> = {
@@ -140,8 +143,10 @@ interface AuthContextValue {
   capabilities: Set<string>
   hasCapability: (key: string) => boolean
   isStaff: boolean
+  isManager: boolean
   isAdmin: boolean
   isSuperAdmin: boolean
+  managedCollectiveIds: string[]
   signUp: (email: string, password: string, displayName: string, dateOfBirth?: string) => Promise<{ error: AuthError | null }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>
   signInWithGoogle: () => Promise<{ error: AuthError | null }>
@@ -173,6 +178,7 @@ export function useAuthProvider(): AuthContextValue {
   const [session, setSession] = useState<Session | null>(null)
   const [collectiveRoles, setCollectiveRoles] = useState<CollectiveMembership[]>([])
   const [permissionOverrides, setPermissionOverrides] = useState<Record<string, boolean> | null>(null)
+  const [managedCollectiveIds, setManagedCollectiveIds] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [onboardingDone, setOnboardingDone] = useState(getOnboardingDoneSync)
 
@@ -195,18 +201,21 @@ export function useAuthProvider(): AuthContextValue {
     }
   }, [])
 
-  /* ---- fetch staff permission overrides ---- */
-  const fetchPermissionOverrides = useCallback(async (userId: string) => {
+  /* ---- fetch staff permission overrides + managed collectives ---- */
+  const fetchStaffData = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('staff_roles')
-        .select('permissions')
+        .select('permissions, managed_collectives')
         .eq('user_id', userId)
         .maybeSingle()
-      if (error) return null
-      return (data?.permissions ?? null) as Record<string, boolean> | null
+      if (error) return { permissions: null, managedCollectives: [] as string[] }
+      return {
+        permissions: (data?.permissions ?? null) as Record<string, boolean> | null,
+        managedCollectives: ((data as Record<string, unknown>)?.managed_collectives ?? []) as string[],
+      }
     } catch {
-      return null
+      return { permissions: null, managedCollectives: [] as string[] }
     }
   }, [])
 
@@ -232,21 +241,33 @@ export function useAuthProvider(): AuthContextValue {
   /* ---- load user data (profile + collective roles) ---- */
   const loadUserData = useCallback(async (userId: string) => {
     console.log('[auth] loadUserData start', userId)
-    const timeout = new Promise<[null, CollectiveMembership[], Record<string, boolean> | null]>((resolve) =>
+    const timeout = new Promise<[null, CollectiveMembership[], { permissions: Record<string, boolean> | null; managedCollectives: string[] }]>((resolve) =>
       setTimeout(() => {
         console.warn('[auth] loadUserData timed out after 8s')
-        resolve([null, [], null])
+        resolve([null, [], { permissions: null, managedCollectives: [] }])
       }, 8000),
     )
-    const [profileData, roles, permOverrides] = await Promise.race([
+    const [profileData, roles, staffData] = await Promise.race([
       Promise.all([
         fetchProfile(userId),
         fetchCollectiveRoles(userId),
-        fetchPermissionOverrides(userId),
+        fetchStaffData(userId),
       ]),
       timeout,
     ])
+    const permOverrides = staffData.permissions
+    const managedCols = staffData.managedCollectives
     console.log('[auth] loadUserData done', { hasProfile: !!profileData, rolesCount: roles.length })
+
+    // Helper to apply all fetched state
+    const applyState = (p: Profile) => {
+      setProfile(p)
+      setCollectiveRoles(roles as CollectiveMembership[])
+      setPermissionOverrides(permOverrides)
+      setManagedCollectiveIds(managedCols)
+      persistProfile(p)
+      if (p.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
+    }
 
     // If no profile row exists, it likely means the fetch timed out or
     // the auth trigger hasn't fired yet. Retry once before creating.
@@ -255,11 +276,7 @@ export function useAuthProvider(): AuthContextValue {
       const retried = await fetchProfile(userId)
       if (retried) {
         console.log('[auth] Profile found on retry')
-        setProfile(retried)
-        setCollectiveRoles(roles as CollectiveMembership[])
-        setPermissionOverrides(permOverrides)
-        persistProfile(retried)
-        if (retried.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
+        applyState(retried)
         return retried
       }
 
@@ -281,11 +298,7 @@ export function useAuthProvider(): AuthContextValue {
         }
         if (created) {
           console.log('[auth] Profile created successfully')
-          setProfile(created)
-          setCollectiveRoles(roles as CollectiveMembership[])
-          setPermissionOverrides(permOverrides)
-          persistProfile(created)
-          if (created.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
+          applyState(created)
           return created
         }
       } catch (err) {
@@ -316,10 +329,11 @@ export function useAuthProvider(): AuthContextValue {
     setProfile(profileData)
     setCollectiveRoles(roles as CollectiveMembership[])
     setPermissionOverrides(permOverrides)
+    setManagedCollectiveIds(managedCols)
     persistProfile(profileData)
     if (profileData?.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
     return profileData
-  }, [fetchProfile, fetchCollectiveRoles, fetchPermissionOverrides])
+  }, [fetchProfile, fetchCollectiveRoles, fetchStaffData])
 
   /* ---- refresh profile (public) ---- */
   const refreshProfile = useCallback(async () => {
@@ -396,6 +410,7 @@ export function useAuthProvider(): AuthContextValue {
           setProfile(null)
           setCollectiveRoles([])
           setPermissionOverrides(null)
+          setManagedCollectiveIds([])
           persistProfile(null)
           setIsLoading(false)
         }
@@ -496,9 +511,11 @@ export function useAuthProvider(): AuthContextValue {
 
   /* ---- global role checks ---- */
   const role = profile?.role ?? 'participant'
-  const isStaff = GLOBAL_ROLE_RANK[role] >= GLOBAL_ROLE_RANK.national_leader
-  const isAdmin = GLOBAL_ROLE_RANK[role] >= GLOBAL_ROLE_RANK.national_admin
-  const isSuperAdmin = role === 'super_admin'
+  const roleRank = GLOBAL_ROLE_RANK[role] ?? 0
+  const isStaff = roleRank >= GLOBAL_ROLE_RANK.national_leader
+  const isAdmin = roleRank >= GLOBAL_ROLE_RANK.admin
+  const isManager = roleRank >= GLOBAL_ROLE_RANK.manager
+  const isSuperAdmin = isAdmin // kept for backwards compat, same as isAdmin
 
   /* ---- capabilities (frontend-only gating) ---- */
   const capabilities = useMemo(
@@ -670,8 +687,10 @@ export function useAuthProvider(): AuthContextValue {
       isAssistLeader,
       isCoLeader,
       isStaff,
+      isManager,
       isAdmin,
       isSuperAdmin,
+      managedCollectiveIds,
       signUp,
       signIn,
       signInWithGoogle,
@@ -688,7 +707,7 @@ export function useAuthProvider(): AuthContextValue {
     [
       user, profile, session, role, collectiveRoles, capabilities, hasCapability,
       isLoading, isSuspended, suspendedReason, suspendedUntil, needsTosAcceptance,
-      isLeader, isAssistLeader, isCoLeader, isStaff, isAdmin, isSuperAdmin,
+      isLeader, isAssistLeader, isCoLeader, isStaff, isManager, isAdmin, isSuperAdmin, managedCollectiveIds,
       signUp, signIn, signInWithGoogle, signInWithApple, signInWithMagicLink,
       signOut, resetPassword, updatePassword, refreshProfile, acceptTos,
       onboardingDone, markOnboardingComplete,

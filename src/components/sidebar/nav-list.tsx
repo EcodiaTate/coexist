@@ -10,7 +10,7 @@ import type { NavCategory, Suite } from './types'
 export function getAccentClasses(suite: Suite) {
   const isMoss = suite === 'leader'
   return {
-    borderColor: isMoss ? 'border-moss-100/40' : 'border-primary-100/40',
+    borderColor: isMoss ? 'border-moss-100/40' : 'border-neutral-100',
     dividerColor: isMoss ? 'bg-moss-100/30' : 'bg-primary-100/30',
     activeClasses: isMoss
       ? 'bg-moss-50/70 text-moss-800 font-medium'
@@ -83,7 +83,7 @@ export function SidebarNavList({
               {cat.sectionHeader && !collapsed && (
                 <div className={cn(
                   'mx-2.5 mt-6 mb-2.5 pl-3 border-l-[3px]',
-                  cat.sectionBorderColor ?? 'border-primary-300',
+                  cat.sectionBorderColor ?? 'border-neutral-200',
                 )}>
                   <p className={cn(
                     'text-[13px] font-extrabold uppercase tracking-[0.12em]',

@@ -146,6 +146,7 @@ export function useSearch(filters?: SearchFilters) {
           .from('collectives')
           .select('id, name, slug, region, state, cover_image_url, member_count')
           .eq('is_active', true)
+          .or('is_national.is.null,is_national.eq.false')
           .ilike('name', pattern)
           .order('member_count', { ascending: false })
           .limit(10),

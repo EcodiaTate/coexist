@@ -85,7 +85,7 @@ function TagManagerSheet({
 
   return (
     <BottomSheet open={open} onClose={onClose} snapPoints={[0.55]}>
-      <h2 className="font-heading text-lg font-semibold text-primary-800 mb-4">Create Tag</h2>
+      <h2 className="font-heading text-lg font-semibold text-neutral-900 mb-4">Create Tag</h2>
       <div className="space-y-4">
         <Input
           label="Tag Name"
@@ -94,7 +94,7 @@ function TagManagerSheet({
           onChange={(e) => setName(e.target.value)}
         />
         <div>
-          <label className="block text-xs font-medium text-primary-400 mb-2">Colour</label>
+          <label className="block text-xs font-medium text-neutral-400 mb-2">Colour</label>
           <div className="flex flex-wrap gap-2">
             {presetColours.map((c) => (
               <button
@@ -186,10 +186,10 @@ export function TagsTab() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: tag.colour }} />
-                  <p className="text-sm font-semibold text-primary-800">{tag.name}</p>
+                  <p className="text-sm font-semibold text-neutral-900">{tag.name}</p>
                 </div>
-                {tag.description && <p className="text-xs text-primary-400 mt-0.5">{tag.description}</p>}
-                <p className="text-[11px] text-primary-400 mt-1.5">Created {formatDate(tag.created_at)}</p>
+                {tag.description && <p className="text-xs text-neutral-400 mt-0.5">{tag.description}</p>}
+                <p className="text-[11px] text-neutral-400 mt-1.5">Created {formatDate(tag.created_at)}</p>
               </div>
               <button
                 onClick={() => setDeletingId(tag.id)}

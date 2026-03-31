@@ -164,6 +164,68 @@ export function useUpdateAutoSurveyConfig() {
   })
 }
 
+/* ------------------------------------------------------------------ */
+/*  Impact Form Config                                                 */
+/* ------------------------------------------------------------------ */
+
+export interface ImpactFormConfig {
+  [key: string]: boolean | number
+  enabled: boolean
+  auto_task_enabled: boolean
+  deadline_hours: number
+}
+
+/**
+ * Admin: fetch impact form configuration from app_settings.
+ * Controls whether impact form tasks are auto-created for leaders
+ * after events complete.
+ */
+export function useImpactFormConfig() {
+  return useQuery({
+    queryKey: ['impact-form-config'],
+    queryFn: async () => {
+      const { data, error } = await untypedFrom('app_settings')
+        .select('value')
+        .eq('key', 'impact_form_config')
+        .maybeSingle()
+
+      if (error) throw error
+
+      const defaults: ImpactFormConfig = {
+        enabled: true,
+        auto_task_enabled: true,
+        deadline_hours: 48,
+      }
+
+      const row = data as { value?: Partial<ImpactFormConfig> } | null
+      if (!row?.value) return defaults
+      return { ...defaults, ...row.value }
+    },
+    staleTime: 10 * 60 * 1000,
+  })
+}
+
+/**
+ * Admin: update the impact form configuration.
+ */
+export function useUpdateImpactFormConfig() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (config: ImpactFormConfig) => {
+      const { error } = await untypedFrom('app_settings')
+        .upsert(
+          { key: 'impact_form_config', value: config },
+          { onConflict: 'key' },
+        )
+      if (error) throw error
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['impact-form-config'] })
+    },
+  })
+}
+
 /**
  * Send survey notification to all checked-in attendees of a completed event.
  * Called after impact is logged / event is marked completed.

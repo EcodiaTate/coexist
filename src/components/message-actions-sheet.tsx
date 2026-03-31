@@ -57,9 +57,9 @@ export function MessageActionsSheet({
         <button
           type="button"
           onClick={onReply}
-          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+          className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-neutral-800 hover:bg-neutral-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
         >
-          <Reply size={18} className="text-primary-400" />
+          <Reply size={18} className="text-neutral-400" />
           Reply
         </button>
 
@@ -67,9 +67,9 @@ export function MessageActionsSheet({
           <button
             type="button"
             onClick={onEdit}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-neutral-800 hover:bg-neutral-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
           >
-            <Pencil size={18} className="text-primary-400" />
+            <Pencil size={18} className="text-neutral-400" />
             Edit message
           </button>
         )}
@@ -78,9 +78,9 @@ export function MessageActionsSheet({
           <button
             type="button"
             onClick={onPin}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-primary-800 hover:bg-primary-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 min-h-11 text-sm text-neutral-800 hover:bg-neutral-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
           >
-            <Pin size={18} className="text-primary-400" />
+            <Pin size={18} className="text-neutral-400" />
             {message.is_pinned ? 'Unpin message' : 'Pin message'}
           </button>
         )}
@@ -99,7 +99,7 @@ export function MessageActionsSheet({
         {/* ── Report & Block (only for other users' messages) ── */}
         {!isOwnMessage && (
           <>
-            <div className="mx-4 my-1 border-t border-primary-100/60" />
+            <div className="mx-4 my-1 border-t border-neutral-100" />
 
             {onReport && (
               <button

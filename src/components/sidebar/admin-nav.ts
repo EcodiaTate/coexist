@@ -48,13 +48,14 @@ export const adminNavCategories: NavCategory[] = [
     items: [
       { label: 'Collectives', path: '/admin/collectives', icon: icon(MapPin), capability: 'manage_collectives' },
       { label: 'Events', path: '/admin/events', icon: icon(CalendarDays), capability: 'manage_events' },
+      { label: 'Development', path: '/admin/development', icon: icon(GraduationCap), capability: 'manage_content' },
       { label: 'Partners', path: '/admin/partners', icon: icon(Handshake), capability: 'manage_partners' },
       { label: 'Shop', path: '/admin/shop', icon: icon(ShoppingBag), capability: 'manage_merch' },
       { label: 'Contacts', path: '/admin/contacts', icon: icon(Phone), capability: 'manage_users' },
     ],
   },
   {
-    label: 'Create',
+    label: 'Engage',
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
@@ -65,20 +66,15 @@ export const adminNavCategories: NavCategory[] = [
     ],
   },
   {
-    label: 'Development',
-    labelColor: 'text-amber-600',
-    dotColor: 'bg-amber-500',
-    items: [
-      { label: 'Development', path: '/admin/development', icon: icon(GraduationCap), capability: 'manage_content' },
-    ],
-  },
-  {
-    label: 'Impact',
+    label: 'Insights',
     labelColor: 'text-amber-600',
     dotColor: 'bg-amber-500',
     items: [
       { label: 'Impact Dashboard', path: '/admin/impact', icon: icon(Leaf), capability: 'view_reports' },
       { label: 'Metric Definitions', path: '/admin/impact-metrics', icon: icon(BarChart3), capability: 'manage_system' },
+      { label: 'Reports', path: '/admin/reports', icon: icon(FileText), capability: 'view_reports' },
+      { label: 'Exports', path: '/admin/exports', icon: icon(Download), capability: 'manage_exports' },
+      { label: 'Audit Log', path: '/admin/audit-log', icon: icon(FileText), capability: 'view_audit_log' },
     ],
   },
   {
@@ -90,16 +86,6 @@ export const adminNavCategories: NavCategory[] = [
       { label: 'Branding', path: '/admin/branding', icon: icon(Image), capability: 'manage_system' },
       { label: 'Legal Pages', path: '/admin/legal-pages', icon: icon(FileText), capability: 'manage_system' },
       { label: 'System', path: '/admin/system', icon: icon(Settings), capability: 'manage_system' },
-    ],
-  },
-  {
-    label: 'Operations',
-    labelColor: 'text-amber-600',
-    dotColor: 'bg-amber-500',
-    items: [
-      { label: 'Reports', path: '/admin/reports', icon: icon(FileText), capability: 'view_reports' },
-      { label: 'Exports', path: '/admin/exports', icon: icon(Download), capability: 'manage_exports' },
-      { label: 'Audit Log', path: '/admin/audit-log', icon: icon(FileText), capability: 'view_audit_log' },
       { label: 'Dev Tools', path: '/admin/dev-tools', icon: icon(Bug), devOnly: true },
     ],
   },

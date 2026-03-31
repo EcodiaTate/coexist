@@ -143,10 +143,10 @@ export default function LearnModulePage() {
     return (
       <Page noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent onBack={() => navigate('/learn')} />}>
         <div className="flex flex-col items-center justify-center py-32 px-5">
-          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary-100/60 mb-4">
-            <BookOpen size={28} strokeWidth={1.5} className="text-primary-400" />
+          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-neutral-100 mb-4">
+            <BookOpen size={28} strokeWidth={1.5} className="text-neutral-400" />
           </div>
-          <p className="text-[15px] font-bold text-primary-700">Module not found</p>
+          <p className="text-[15px] font-bold text-neutral-900">Module not found</p>
           <Button variant="ghost" size="sm" onClick={() => navigate('/learn')} className="mt-3">
             Back to My Learning
           </Button>
@@ -157,14 +157,9 @@ export default function LearnModulePage() {
 
   return (
     <Page noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent onBack={() => navigate('/learn')} />}>
-      <div className="min-h-full bg-gradient-to-b from-amber-50/40 via-white to-primary-50/20">
+      <div className="min-h-full">
         {/* ── Hero header ── */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-amber-600 via-amber-700 to-primary-800">
-          {/* Decorative shapes */}
-          <div className="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/[0.05] pointer-events-none" />
-          <div className="absolute -left-10 bottom-0 w-40 h-40 rounded-full border border-white/[0.08] pointer-events-none" />
-          <div className="absolute right-[20%] bottom-4 w-14 h-14 rounded-full bg-white/[0.06] pointer-events-none" />
-
+        <div className="relative overflow-hidden bg-white">
           <div
             className="relative z-10 px-5 sm:px-6 pt-14 pb-10"
             style={{ paddingTop: '3.5rem' }}
@@ -176,18 +171,18 @@ export default function LearnModulePage() {
               transition={{ duration: 0.35 }}
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/50">Module</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">Module</span>
                 {module.estimated_minutes && (
-                  <span className="flex items-center gap-0.5 text-[10px] font-bold text-white/40">
+                  <span className="flex items-center gap-0.5 text-[10px] font-bold text-neutral-400">
                     <Clock size={9} />
                     {module.estimated_minutes} min
                   </span>
                 )}
               </div>
-              <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white tracking-tight leading-tight">
+              <h1 className="font-heading text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight leading-tight">
                 {module.title}
               </h1>
-              <p className="text-[12px] text-white/40 mt-1.5 capitalize">
+              <p className="text-[12px] text-neutral-400 mt-1.5 capitalize">
                 {module.category.replace(/_/g, ' ')}
               </p>
             </motion.div>
@@ -199,15 +194,15 @@ export default function LearnModulePage() {
               transition={{ delay: 0.2 }}
               className="mt-5 flex items-center gap-3"
             >
-              <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
+              <div className="flex-1 h-2 rounded-full bg-neutral-100 overflow-hidden">
                 <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-white/60 to-moss-300"
+                  className="h-full rounded-full bg-primary-400"
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPct}%` }}
                   transition={{ duration: 0.6, delay: 0.3 }}
                 />
               </div>
-              <span className="text-[12px] font-bold text-white/70 tabular-nums shrink-0">
+              <span className="text-[12px] font-bold text-neutral-500 tabular-nums shrink-0">
                 {viewedBlocks.size}/{blocks.length}
               </span>
             </motion.div>
@@ -218,7 +213,7 @@ export default function LearnModulePage() {
             <svg viewBox="0 0 1440 70" preserveAspectRatio="none" className="w-full h-7 sm:h-10 block">
               <path
                 d="M0,30 C120,28 200,22 320,26 C440,30 520,18 600,20 C680,22 720,14 760,16 L768,6 L774,4 L780,10 C820,18 920,28 1040,24 C1120,20 1200,26 1280,30 C1360,32 1400,28 1440,26 L1440,70 L0,70 Z"
-                className="fill-[#fdf8f0]"
+                className="fill-white"
               />
             </svg>
           </div>
@@ -232,15 +227,15 @@ export default function LearnModulePage() {
               initial={rm ? {} : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="rounded-2xl bg-gradient-to-br from-white via-white to-amber-50/60 shadow-sm p-5 mb-8 -mt-2"
+              className="rounded-2xl bg-white border border-neutral-100 shadow-sm p-5 mb-8 -mt-2"
             >
               <div className="flex items-center gap-2 mb-2">
-                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 shadow-sm shadow-amber-300/30">
-                  <BookOpen size={13} className="text-white" />
+                <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50">
+                  <BookOpen size={13} className="text-primary-600" />
                 </div>
-                <span className="text-[11px] font-bold uppercase tracking-widest text-amber-600/70">About this module</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-neutral-400">About this module</span>
               </div>
-              <p className="text-[13px] text-primary-700 leading-relaxed">{module.description}</p>
+              <p className="text-[13px] text-neutral-600 leading-relaxed">{module.description}</p>
             </motion.div>
           )}
 
@@ -254,7 +249,7 @@ export default function LearnModulePage() {
                 initial={rm ? {} : { opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, delay: rm ? 0 : Math.min(i * 0.05, 0.4) }}
-                className="rounded-2xl bg-white shadow-sm p-5 sm:p-6"
+                className="rounded-2xl bg-white border border-neutral-100 shadow-sm p-5 sm:p-6"
               >
                 <ContentBlockRenderer block={block} />
               </motion.div>
@@ -268,14 +263,14 @@ export default function LearnModulePage() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.25 }}
-            className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 border-t border-primary-100/50 shadow-[0_-4px_20px_rgba(0,0,0,0.06)]"
+            className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-neutral-100 shadow-sm"
           >
             <div className="max-w-3xl mx-auto flex items-center gap-3 px-5 sm:px-6 py-3">
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <ProgressRing percent={progressPct} size={36} strokeWidth={3.5} />
                 <div className="min-w-0">
-                  <p className="text-[12px] font-bold text-primary-800 truncate">{module.title}</p>
-                  <p className="text-[10px] text-primary-400 font-medium">
+                  <p className="text-[12px] font-bold text-neutral-900 truncate">{module.title}</p>
+                  <p className="text-[10px] text-neutral-500 font-medium">
                     {viewedBlocks.size} of {blocks.length} blocks viewed
                   </p>
                 </div>

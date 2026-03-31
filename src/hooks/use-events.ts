@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { supabase, untypedFrom } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { useToast } from '@/components/toast'
+import { queueOfflineAction } from '@/lib/offline-sync'
 import type {
   Database,
   Tables,
@@ -1101,10 +1104,26 @@ async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
 export function useLogImpact() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async (impactData: Omit<TablesInsert<'event_impact'>, 'logged_by'>) => {
       if (!user) throw new Error('Must be signed in')
+
+      if (isOffline) {
+        queueOfflineAction('log-impact', {
+          impactData: { ...impactData },
+          userId: user.id,
+        })
+        // Return optimistic data
+        return {
+          ...impactData,
+          id: `offline-${Date.now()}`,
+          logged_by: user.id,
+          logged_at: new Date().toISOString(),
+        } as EventImpact
+      }
 
       const { data, error } = await supabase
         .from('event_impact')
@@ -1138,11 +1157,15 @@ export function useLogImpact() {
       return { previous, eventId }
     },
     onError: (_err, _vars, context) => {
-      if (context) {
+      if (!isOffline && context) {
         queryClient.setQueryData(['event-impact', context.eventId], context.previous)
       }
     },
     onSuccess: async (data) => {
+      if (isOffline) {
+        toast.info('Impact data saved offline — will sync when back online')
+        return
+      }
       // Trigger auto-survey notifications for attendees
       try {
         const eventId = data.event_id
@@ -1159,6 +1182,7 @@ export function useLogImpact() {
       }
     },
     onSettled: (data, _err, vars) => {
+      if (isOffline) return
       const eventId = data?.event_id ?? vars.event_id
       queryClient.invalidateQueries({ queryKey: ['event-impact', eventId] })
       queryClient.invalidateQueries({ queryKey: ['event', eventId] })
@@ -1176,6 +1200,8 @@ export function useLogImpact() {
       queryClient.invalidateQueries({ queryKey: ['leader-dashboard'] })
       queryClient.invalidateQueries({ queryKey: ['collective-custom-metrics'] })
       queryClient.invalidateQueries({ queryKey: ['national-custom-metrics'] })
+      // Invalidate impact form tasks so the leader task list reflects completion
+      queryClient.invalidateQueries({ queryKey: ['pending-impact-form-tasks'] })
     },
   })
 }

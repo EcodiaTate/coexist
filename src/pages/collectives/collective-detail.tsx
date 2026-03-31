@@ -15,12 +15,13 @@ import {
     MapPin as MapPinIcon,
     ChevronRight,
     Settings,
+    ArrowRight,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Button } from '@/components/button'
 import { Avatar } from '@/components/avatar'
-import { StatCard } from '@/components/stat-card'
+import { BentoStatCard, BentoStatGrid } from '@/components/bento-stats'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { MapView } from '@/components/map/map-view'
@@ -49,14 +50,16 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
 function CollectiveDetailSkeleton() {
   return (
-    <div className="space-y-6 py-4">
-      <Skeleton variant="image" />
-      <Skeleton variant="title" />
-      <Skeleton variant="text" count={3} />
-      <div className="grid grid-cols-3 gap-3">
-        <Skeleton variant="stat-card" />
-        <Skeleton variant="stat-card" />
-        <Skeleton variant="stat-card" />
+    <div className="space-y-4 py-4">
+      <Skeleton variant="image" className="!aspect-[3/4] !rounded-none -mx-4 lg:-mx-6 w-[calc(100%+2rem)] lg:w-[calc(100%+3rem)]" />
+      <div className="space-y-3 px-1">
+        <Skeleton variant="title" />
+        <Skeleton variant="text" count={2} />
+      </div>
+      <div className="grid grid-cols-2 gap-2.5">
+        <Skeleton variant="stat-card" className="!h-28" />
+        <Skeleton variant="stat-card" className="!h-28" />
+        <Skeleton variant="stat-card" className="col-span-2 !h-20" />
       </div>
     </div>
   )
@@ -95,12 +98,12 @@ export default function CollectiveDetailPage() {
 
   const stagger = {
     hidden: {},
-    visible: { transition: { staggerChildren: 0.04 } },
+    visible: { transition: { staggerChildren: 0.06 } },
   }
 
   const fadeUp = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+    hidden: { opacity: 0, y: 18 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] } },
   }
 
   const isMember = !!membership
@@ -146,6 +149,8 @@ export default function CollectiveDetailPage() {
     )
   }
 
+  const pos = parseLocationPoint(collective.location_point)
+
   return (
     <Page
       swipeBack
@@ -162,7 +167,7 @@ export default function CollectiveDetailPage() {
                 type="button"
                 onClick={() => navigate(`/collectives/${slug}/manage`)}
                 aria-label="Manage collective"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full bg-black/40 text-white hover:bg-black/50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full bg-black/30 backdrop-blur-sm text-white hover:bg-black/40 active:scale-[0.97] transition-all duration-150 cursor-pointer select-none"
               >
                 <Settings size={20} />
               </button>
@@ -207,12 +212,12 @@ export default function CollectiveDetailPage() {
         </div>
       }
     >
-      {/* Cover image hero - full-bleed (negate page padding) */}
+      {/* ── Hero: tall, cinematic, full-bleed ── */}
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.35 }}
-        className="relative aspect-[2.2/1] w-[calc(100%+2rem)] -mx-4 lg:w-[calc(100%+3rem)] lg:-mx-6 overflow-hidden bg-primary-100"
+        transition={{ duration: 0.5 }}
+        className="relative aspect-[3/4] sm:aspect-[2/1] w-[calc(100%+2rem)] -mx-4 lg:w-[calc(100%+3rem)] lg:-mx-6 overflow-hidden bg-primary-950"
       >
         {collective.cover_image_url ? (
           <OptimizedImage
@@ -223,25 +228,56 @@ export default function CollectiveDetailPage() {
             wrapperClassName="h-full w-full"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-200 to-primary-400">
-            <TreePine size={56} className="text-primary-400/40" />
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-800 to-primary-950">
+            <TreePine size={80} className="text-primary-600/30" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-        <div className="absolute bottom-4 left-4 right-4">
-          <h2 className="font-heading text-2xl font-bold text-white drop-shadow-sm">
-            {collective.name}
-          </h2>
+        {/* Cinematic gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
+
+        {/* Editorial hero text — bottom-aligned, large wordmark */}
+        <div className="absolute bottom-0 left-0 right-0 p-5 pb-6">
           {collective.region && (
-            <div className="mt-1 flex items-center gap-1 text-sm text-white/80">
-              <MapPinIcon size={14} />
-              <span>{collective.region}{collective.state ? `, ${collective.state}` : ''}</span>
-            </div>
+            <motion.div
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.4 }}
+              className="flex items-center gap-1.5 mb-2"
+            >
+              <MapPinIcon size={13} className="text-white/60" />
+              <span className="text-[13px] font-semibold tracking-wide text-white/70 uppercase">
+                {collective.region}{collective.state ? ` / ${collective.state}` : ''}
+              </span>
+            </motion.div>
           )}
+          <motion.h1
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15, duration: 0.45 }}
+            className="font-heading text-[2rem] sm:text-4xl font-extrabold text-white leading-[1.1] tracking-tight drop-shadow-lg"
+          >
+            {collective.name}
+          </motion.h1>
+          <motion.div
+            initial={shouldReduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.35, duration: 0.4 }}
+            className="flex items-center gap-3 mt-3"
+          >
+            <span className="text-sm font-medium text-white/80">{collective.member_count} members</span>
+            {stats && stats.totalEvents > 0 && (
+              <>
+                <span className="w-1 h-1 rounded-full bg-white/40" />
+                <span className="text-sm font-medium text-white/80">{stats.totalEvents} events</span>
+              </>
+            )}
+          </motion.div>
         </div>
       </motion.div>
 
-      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="space-y-6 py-4">
+      {/* ── Content: editorial bento layout ── */}
+      <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="pt-5 pb-4 space-y-5">
+
         {/* Just-joined WhatsNext prompt */}
         {justJoined && (
           <motion.div variants={fadeUp}>
@@ -275,151 +311,121 @@ export default function CollectiveDetailPage() {
           </motion.div>
         )}
 
-        {/* Description */}
-        {collective.description && (
-          <motion.div variants={fadeUp}>
-            <p className="text-sm leading-relaxed text-primary-400">
-              {collective.description}
-            </p>
-          </motion.div>
-        )}
+        {/* ── About + Leaders: asymmetric bento row ── */}
+        <motion.div variants={fadeUp} className="grid grid-cols-1 gap-2.5">
+          {/* Description card — editorial quote style */}
+          {collective.description && (
+            <div className="rounded-2xl bg-white p-5 shadow-sm">
+              <p className="text-[15px] leading-[1.65] text-primary-700 font-medium italic">
+                "{collective.description}"
+              </p>
+            </div>
+          )}
 
-        {/* Leaders */}
-        {leaders.length > 0 && (
-          <motion.section variants={fadeUp} aria-label="Leaders">
-            <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider mb-3">
-              Leaders
-            </h3>
-            <div className="flex flex-wrap gap-3">
+          {/* Leaders — inline pill row */}
+          {leaders.length > 0 && (
+            <div className="flex flex-wrap gap-2">
               {leaders.map((leader) => (
                 <Link
                   key={leader.id}
                   to={`/profile/${leader.user_id}`}
-                  className="flex items-center gap-2 rounded-xl bg-surface-0 px-3 py-2 transition-[colors,transform] duration-150 hover:bg-surface-3 active:scale-[0.98]"
+                  className="flex items-center gap-2.5 rounded-full bg-white pl-1.5 pr-4 py-1.5 shadow-sm transition-all duration-150 hover:shadow-md active:scale-[0.97]"
                 >
                   <Avatar
                     src={leader.profiles?.avatar_url}
                     name={leader.profiles?.display_name}
                     size="sm"
                   />
-                  <div>
-                    <p className="text-sm font-medium text-primary-800">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-primary-800 truncate">
                       {leader.profiles?.display_name ?? 'Unknown'}
                     </p>
-                    <p className="text-[11px] text-primary-400 font-semibold capitalize">
+                    <p className="text-[10px] text-primary-400 font-bold uppercase tracking-wider">
                       {leader.role!.replace('_', ' ')}
                     </p>
                   </div>
                 </Link>
               ))}
             </div>
-          </motion.section>
-        )}
+          )}
+        </motion.div>
 
-        {/* Stats */}
+        {/* ── Impact — wordmark header + bento stats ── */}
         {stats && (
           <motion.section variants={fadeUp} aria-label="Collective stats">
-            <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider mb-3">
+            <h2 className="font-heading text-2xl font-extrabold text-primary-900 tracking-tight mb-3">
               Impact
-            </h3>
-            <div className="grid grid-cols-3 gap-3">
-              <StatCard
-                label="Events"
-                value={stats.totalEvents}
-                icon={<CalendarDays size={18} />}
-              />
-              <StatCard
-                label="Est. Vol. Hours"
-                value={stats.totalHours}
-                icon={<Clock size={18} />}
-              />
+            </h2>
+            <BentoStatGrid>
+              <BentoStatCard label="Events" value={stats.totalEvents} icon={<CalendarDays size={18} />} theme="warning" />
+              <BentoStatCard label="Vol. Hours" value={stats.totalHours} icon={<Clock size={16} />} unit="hrs" theme="primary" />
               {stats.totalTreesPlanted > 0 && (
-                <StatCard
-                  label="Trees"
-                  value={stats.totalTreesPlanted}
-                  icon={<TreePine size={18} />}
-                />
+                <BentoStatCard label="Trees" value={stats.totalTreesPlanted} icon={<TreePine size={16} />} theme="sprout" />
               )}
               {stats.totalRubbishKg > 0 && (
-                <StatCard
-                  label="Rubbish (kg)"
-                  value={stats.totalRubbishKg}
-                  icon={<Trash2 size={18} />}
-                />
+                <BentoStatCard label="Rubbish" value={stats.totalRubbishKg} icon={<Trash2 size={16} />} unit="kg" theme="sky" />
               )}
               {stats.totalAreaRestored > 0 && (
-                <StatCard
-                  label="Area (sqm)"
-                  value={stats.totalAreaRestored}
-                  icon={<Ruler size={18} />}
-                />
+                <BentoStatCard label="Area" value={stats.totalAreaRestored} icon={<Ruler size={16} />} unit="sqm" theme="bark" />
               )}
               {stats.totalNativePlants > 0 && (
-                <StatCard
-                  label="Native Plants"
-                  value={stats.totalNativePlants}
-                  icon={<Leaf size={18} />}
-                />
+                <BentoStatCard label="Native Plants" value={stats.totalNativePlants} icon={<Leaf size={16} />} theme="moss" />
               )}
               {stats.totalWildlifeSightings > 0 && (
-                <StatCard
-                  label="Wildlife"
-                  value={stats.totalWildlifeSightings}
-                  icon={<Eye size={18} />}
-                />
+                <BentoStatCard label="Wildlife" value={stats.totalWildlifeSightings} icon={<Eye size={16} />} theme="plum" />
               )}
               {stats.attendanceRate > 0 && (
-                <StatCard
-                  label="Attendance"
-                  value={`${Math.round(stats.attendanceRate * 100)}%`}
-                  icon={<UserCheck size={18} />}
-                />
+                <BentoStatCard label="Attendance" value={`${Math.round(stats.attendanceRate * 100)}%`} icon={<UserCheck size={16} />} theme="coral" />
               )}
-            </div>
+            </BentoStatGrid>
           </motion.section>
         )}
 
-        {/* Member gallery */}
+        {/* ── Members — full-bleed avatar strip ── */}
         <motion.section variants={fadeUp} aria-label="Members">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider">
-              Members ({collective.member_count})
-            </h3>
+          <div className="flex items-end justify-between mb-3">
+            <h2 className="font-heading text-2xl font-extrabold text-primary-900 tracking-tight">
+              Members
+            </h2>
+            <span className="text-sm font-bold text-primary-400 tabular-nums">{collective.member_count}</span>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {members.slice(0, 24).map((member) => (
-              <Link
-                key={member.id}
-                to={`/profile/${member.user_id}`}
-                aria-label={member.profiles?.display_name ?? 'Member'}
-              >
-                <Avatar
-                  src={member.profiles?.avatar_url}
-                  name={member.profiles?.display_name}
-                  size="sm"
-                />
-              </Link>
-            ))}
-            {members.length > 24 && (
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-0 text-xs font-semibold text-primary-400">
-                +{members.length - 24}
-              </div>
-            )}
+          <div className="rounded-2xl bg-white p-4 shadow-sm">
+            <div className="flex flex-wrap gap-1.5">
+              {members.slice(0, 30).map((member) => (
+                <Link
+                  key={member.id}
+                  to={`/profile/${member.user_id}`}
+                  aria-label={member.profiles?.display_name ?? 'Member'}
+                  className="transition-transform duration-100 hover:scale-110 active:scale-95"
+                >
+                  <Avatar
+                    src={member.profiles?.avatar_url}
+                    name={member.profiles?.display_name}
+                    size="sm"
+                  />
+                </Link>
+              ))}
+              {members.length > 30 && (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-50 text-[11px] font-bold text-primary-500">
+                  +{members.length - 30}
+                </div>
+              )}
+            </div>
           </div>
         </motion.section>
 
-        {/* Upcoming events */}
+        {/* ── Upcoming Events — editorial cards ── */}
         <motion.section variants={fadeUp} aria-label="Upcoming events">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider">
-              Upcoming Events
-            </h3>
+          <div className="flex items-end justify-between mb-3">
+            <h2 className="font-heading text-2xl font-extrabold text-primary-900 tracking-tight">
+              Up Next
+            </h2>
             {upcomingEvents.length > 3 && (
               <Link
                 to={`/events?collective=${collectiveId}`}
-                className="text-xs font-semibold text-primary-400 hover:text-primary-400"
+                className="flex items-center gap-1 text-sm font-bold text-primary-500 hover:text-primary-600 transition-colors"
               >
-                See all
+                All events <ArrowRight size={14} />
               </Link>
             )}
           </div>
@@ -436,90 +442,126 @@ export default function CollectiveDetailPage() {
               className="min-h-[140px] py-4"
             />
           ) : (
-            <div className="space-y-2">
-              {upcomingEvents.slice(0, 3).map((event) => (
+            <div className="grid grid-cols-1 gap-2.5">
+              {upcomingEvents.slice(0, 3).map((event, i) => (
                 <Link
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className="flex items-center gap-3 rounded-xl bg-surface-0 p-3 transition-[colors,transform] duration-150 hover:bg-surface-3 active:scale-[0.99]"
+                  className={`group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-150 hover:shadow-md active:scale-[0.98] ${
+                    i === 0 ? 'p-0' : 'p-3.5'
+                  }`}
                 >
-                  <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-primary-100 text-primary-400">
-                    <span className="text-[11px] font-semibold uppercase">
-                      {new Date(event.date_start).toLocaleDateString('en-AU', { month: 'short' })}
-                    </span>
-                    <span className="font-heading text-lg font-bold leading-tight">
-                      {new Date(event.date_start).getDate()}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-primary-800 truncate">
-                      {event.title}
-                    </p>
-                    {event.address && (
-                      <p className="text-xs text-primary-400 truncate">{event.address}</p>
-                    )}
-                  </div>
-                  <ChevronRight size={16} className="text-primary-300" />
+                  {i === 0 ? (
+                    /* Featured first event — large card with date overlay */
+                    <div className="relative">
+                      <div className="aspect-[2.5/1] bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center">
+                        <CalendarDays size={32} className="text-primary-300" />
+                      </div>
+                      <div className="absolute top-3 left-3">
+                        <div className="rounded-xl bg-white/90 backdrop-blur-sm px-3 py-1.5 shadow-sm">
+                          <span className="text-[10px] font-bold uppercase text-primary-500 block leading-tight">
+                            {new Date(event.date_start).toLocaleDateString('en-AU', { month: 'short' })}
+                          </span>
+                          <span className="font-heading text-xl font-extrabold text-primary-900 leading-none">
+                            {new Date(event.date_start).getDate()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <p className="font-heading text-base font-bold text-primary-900">
+                          {event.title}
+                        </p>
+                        {event.address && (
+                          <p className="text-xs text-primary-400 mt-0.5 truncate">{event.address}</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    /* Compact event rows */
+                    <div className="flex items-center gap-3.5">
+                      <div className="flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-xl bg-primary-50 text-primary-600">
+                        <span className="text-[10px] font-bold uppercase leading-tight">
+                          {new Date(event.date_start).toLocaleDateString('en-AU', { month: 'short' })}
+                        </span>
+                        <span className="font-heading text-lg font-extrabold leading-none">
+                          {new Date(event.date_start).getDate()}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-primary-800 truncate">
+                          {event.title}
+                        </p>
+                        {event.address && (
+                          <p className="text-xs text-primary-400 truncate">{event.address}</p>
+                        )}
+                      </div>
+                      <ChevronRight size={16} className="text-primary-300 shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  )}
                 </Link>
               ))}
             </div>
           )}
         </motion.section>
 
-        {/* Past events */}
+        {/* ── Past Events — compact, muted ── */}
         {pastEvents.length > 0 && (
           <motion.section variants={fadeUp} aria-label="Past events">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider">
-                Past Events
-              </h3>
-            </div>
-            <div className="space-y-2">
+            <h3 className="text-xs font-bold uppercase tracking-widest text-primary-300 mb-2.5">
+              Past Events
+            </h3>
+            <div className="space-y-1.5">
               {pastEvents.slice(0, 5).map((event) => (
                 <Link
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className="flex items-center gap-3 rounded-xl bg-surface-0 p-3 transition-[colors,transform] duration-150 hover:bg-surface-3 active:scale-[0.99]"
+                  className="group flex items-center gap-3 rounded-xl bg-white/60 p-3 transition-all duration-150 hover:bg-white active:scale-[0.99]"
                 >
-                  <div className="flex h-12 w-12 flex-col items-center justify-center rounded-lg bg-surface-2 text-primary-400">
-                    <span className="text-[11px] font-semibold uppercase">
+                  <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg bg-surface-2 text-primary-300">
+                    <span className="text-[9px] font-bold uppercase leading-tight">
                       {new Date(event.date_start).toLocaleDateString('en-AU', { month: 'short' })}
                     </span>
-                    <span className="font-heading text-lg font-bold leading-tight">
+                    <span className="font-heading text-base font-bold leading-none">
                       {new Date(event.date_start).getDate()}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-primary-800 truncate">
+                    <p className="text-sm font-medium text-primary-500 truncate">
                       {event.title}
                     </p>
                   </div>
-                  <ChevronRight size={16} className="text-primary-300" />
+                  <ChevronRight size={14} className="text-primary-200 shrink-0 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               ))}
             </div>
           </motion.section>
         )}
 
-        {/* Map */}
-        <motion.section variants={fadeUp} aria-label="Location">
-          <h3 className="font-heading text-sm font-semibold text-primary-400 uppercase tracking-wider mb-3">
-            Location
-          </h3>
-          {(() => {
-            const pos = parseLocationPoint(collective.location_point)
-            return (
-              <MapView
-                center={pos ?? undefined}
-                zoom={pos ? 14 : 5}
-                markers={pos ? [{ id: collective.id, position: pos, variant: 'collective', label: collective.name }] : undefined}
-                interactive={false}
-                aria-label={`${collective.name} location`}
-                className="aspect-video rounded-2xl"
-              />
-            )
-          })()}
+        {/* ── Location — full-bleed map card ── */}
+        <motion.section variants={fadeUp} aria-label="Location" className="w-[calc(100%+2rem)] -mx-4 lg:w-[calc(100%+3rem)] lg:-mx-6">
+          <div className="relative overflow-hidden">
+            <MapView
+              center={pos ?? undefined}
+              zoom={pos ? 14 : 5}
+              markers={pos ? [{ id: collective.id, position: pos, variant: 'collective', label: collective.name }] : undefined}
+              interactive={false}
+              aria-label={`${collective.name} location`}
+              className="aspect-[2/1] sm:aspect-[3/1]"
+            />
+            {/* Map overlay label */}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/50 to-transparent p-4 pt-10">
+              <p className="font-heading text-lg font-bold text-white drop-shadow">
+                {collective.region || 'Location'}
+              </p>
+              {collective.state && (
+                <p className="text-sm text-white/70 font-medium">{collective.state}, Australia</p>
+              )}
+            </div>
+          </div>
         </motion.section>
+
+        {/* Bottom spacer for footer clearance */}
+        <div className="h-2" />
       </motion.div>
 
       {/* Leave confirmation */}

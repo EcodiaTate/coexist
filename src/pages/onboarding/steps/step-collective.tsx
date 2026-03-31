@@ -37,6 +37,7 @@ export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCol
         .from('collectives')
         .select('*')
         .eq('is_active', true)
+        .or('is_national.is.null,is_national.eq.false')
         .order('member_count', { ascending: false })
         .limit(10)
       return data as Collective[]
@@ -52,10 +53,10 @@ export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCol
         initial="hidden"
         animate="visible"
       >
-        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800">
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-neutral-900">
           Join a Collective
         </motion.h2>
-        <motion.p variants={fadeUp} className="mt-2 text-primary-400 leading-relaxed">
+        <motion.p variants={fadeUp} className="mt-2 text-neutral-500 leading-relaxed">
           Collectives are local volunteer groups. Join one to find events near you.
         </motion.p>
 
@@ -80,8 +81,8 @@ export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCol
                     'w-full flex items-center gap-3 p-4 rounded-xl text-left cursor-pointer',
                     'transition-colors duration-150',
                     isSelected
-                      ? 'ring-2 ring-primary-500 bg-white shadow-sm'
-                      : 'bg-primary-50/60 hover:bg-primary-50',
+                      ? 'ring-2 ring-neutral-900 bg-white border border-neutral-100 shadow-sm'
+                      : 'bg-white border border-neutral-100 hover:bg-neutral-50',
                   )}
                 >
                   {collective.cover_image_url ? (
@@ -91,28 +92,28 @@ export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCol
                       className="w-12 h-12 rounded-lg object-cover shrink-0"
                     />
                   ) : (
-                    <div className="w-12 h-12 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
-                      <Users size={20} className="text-primary-500" />
+                    <div className="w-12 h-12 rounded-lg bg-neutral-50 flex items-center justify-center shrink-0">
+                      <Users size={20} className="text-neutral-400" />
                     </div>
                   )}
 
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-primary-800 truncate">{collective.name}</p>
+                    <p className="font-semibold text-neutral-900 truncate">{collective.name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       {collective.region && (
-                        <span className="flex items-center gap-1 text-xs text-primary-400">
+                        <span className="flex items-center gap-1 text-xs text-neutral-500">
                           <MapPin size={12} />
                           {collective.region}
                         </span>
                       )}
-                      <span className="text-xs text-primary-400">
+                      <span className="text-xs text-neutral-500">
                         {collective.member_count} members
                       </span>
                     </div>
                   </div>
 
                   {isSelected && (
-                    <div className="w-6 h-6 rounded-full bg-primary-800 flex items-center justify-center shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-neutral-900 flex items-center justify-center shrink-0">
                       <Check size={14} className="text-white" />
                     </div>
                   )}
@@ -120,7 +121,7 @@ export function StepCollective({ selectedId, onSelect, onNext, onSkip }: StepCol
               )
             })
           ) : (
-            <p className="text-sm text-primary-400 text-center py-8">
+            <p className="text-sm text-neutral-500 text-center py-8">
               No collectives available yet. Check back soon!
             </p>
           )}

@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { useToast } from '@/components/toast'
+import { queueOfflineAction } from '@/lib/offline-sync'
 import type { TablesInsert } from '@/types/database.types'
 
 /* ------------------------------------------------------------------ */
@@ -126,6 +129,8 @@ export function useModuleProgress(moduleId: string | undefined) {
 export function useUpsertModuleProgress() {
   const qc = useQueryClient()
   const { user } = useAuth()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async (input: {
@@ -137,6 +142,30 @@ export function useUpsertModuleProgress() {
       time_spent_sec?: number
     }) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('module-progress', {
+          userId: user.id,
+          moduleId: input.module_id,
+          status: input.status,
+          lastContentId: input.last_content_id,
+          progressPct: input.progress_pct,
+          timeSpentSec: input.time_spent_sec,
+        })
+        return {
+          id: `offline-${Date.now()}`,
+          user_id: user.id,
+          module_id: input.module_id,
+          status: input.status ?? 'in_progress',
+          last_content_id: input.last_content_id ?? null,
+          last_sort_order: input.last_sort_order ?? null,
+          progress_pct: input.progress_pct ?? 0,
+          time_spent_sec: input.time_spent_sec ?? 0,
+          started_at: new Date().toISOString(),
+          completed_at: input.status === 'completed' ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString(),
+        } as ModuleProgress
+      }
 
       const now = new Date().toISOString()
       const row: TablesInsert<'dev_user_module_progress'> = {
@@ -198,6 +227,10 @@ export function useUpsertModuleProgress() {
     },
     onSuccess: (_data, vars) => {
       if (!user) return
+      if (isOffline) {
+        toast.info('Progress saved offline — will sync when back online')
+        return
+      }
       qc.invalidateQueries({ queryKey: keys.moduleProgress(user.id, vars.module_id) })
       qc.invalidateQueries({ queryKey: keys.myModuleProgress(user.id) })
     },
@@ -211,6 +244,7 @@ export function useUpsertModuleProgress() {
 export function useUpsertSectionProgress() {
   const qc = useQueryClient()
   const { user } = useAuth()
+  const { isOffline } = useOffline()
 
   return useMutation({
     mutationFn: async (input: {
@@ -221,6 +255,29 @@ export function useUpsertSectionProgress() {
       progress_pct: number
     }) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('section-progress', {
+          userId: user.id,
+          sectionId: input.section_id,
+          status: input.status,
+          modulesCompleted: input.modules_completed,
+          modulesTotal: input.modules_total,
+          progressPct: input.progress_pct,
+        })
+        return {
+          id: `offline-${Date.now()}`,
+          user_id: user.id,
+          section_id: input.section_id,
+          status: input.status,
+          modules_completed: input.modules_completed,
+          modules_total: input.modules_total,
+          progress_pct: input.progress_pct,
+          started_at: input.status === 'in_progress' ? new Date().toISOString() : null,
+          completed_at: input.status === 'completed' ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString(),
+        } as SectionProgress
+      }
 
       const now = new Date().toISOString()
       const row: TablesInsert<'dev_user_section_progress'> = {
@@ -245,6 +302,7 @@ export function useUpsertSectionProgress() {
     },
     onSuccess: () => {
       if (!user) return
+      if (isOffline) return
       qc.invalidateQueries({ queryKey: keys.mySectionProgress(user.id) })
     },
   })
@@ -275,6 +333,8 @@ export function useQuizAttempts(quizId: string | undefined) {
 export function useSubmitQuiz() {
   const qc = useQueryClient()
   const { user } = useAuth()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async (input: {
@@ -294,6 +354,33 @@ export function useSubmitQuiz() {
       }[]
     }) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('quiz-submit', {
+          userId: user.id,
+          quizId: input.quiz_id,
+          moduleId: input.module_id,
+          scorePct: input.score_pct,
+          pointsEarned: input.points_earned,
+          pointsTotal: input.points_total,
+          passed: input.passed,
+          timeSpentSec: input.time_spent_sec,
+          responses: input.responses,
+        })
+        return {
+          id: `offline-${Date.now()}`,
+          user_id: user.id,
+          quiz_id: input.quiz_id,
+          module_id: input.module_id ?? null,
+          score_pct: input.score_pct,
+          points_earned: input.points_earned,
+          points_total: input.points_total,
+          passed: input.passed,
+          time_spent_sec: input.time_spent_sec,
+          started_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
+        } as QuizAttempt
+      }
 
       // Create attempt
       const { data: attempt, error: attemptError } = await supabase
@@ -333,6 +420,10 @@ export function useSubmitQuiz() {
     },
     onSuccess: (_data, vars) => {
       if (!user) return
+      if (isOffline) {
+        toast.info('Quiz submitted offline — will sync when back online')
+        return
+      }
       qc.invalidateQueries({ queryKey: keys.quizAttempts(user.id, vars.quiz_id) })
     },
   })

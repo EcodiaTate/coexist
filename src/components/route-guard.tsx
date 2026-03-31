@@ -7,11 +7,14 @@ import type { Database } from '@/types/database.types'
 type UserRole = Database['public']['Enums']['user_role']
 type CollectiveRole = Database['public']['Enums']['collective_role']
 
-const _GLOBAL_RANK: Record<UserRole, number> = {
+const _GLOBAL_RANK: Record<string, number> = {
   participant: 0,
   national_leader: 1,
-  national_admin: 2,
-  super_admin: 3,
+  national_staff: 1,   // legacy alias (pre-migration 074)
+  manager: 2,
+  national_admin: 2,   // legacy alias (pre-migration 076)
+  admin: 3,
+  super_admin: 3,      // legacy alias (pre-migration 076)
 }
 
 /* ------------------------------------------------------------------ */
@@ -117,10 +120,11 @@ interface RequireLeaderAccessProps {
 
 /**
  * Grants access if the user holds assist_leader / co_leader / leader
- * in any collective, OR has a global role of national_leader or above.
+ * in any collective, OR has a global role of national_leader or above,
+ * OR is a manager with managed_collectives assigned.
  */
 export function RequireLeaderAccess({ children }: RequireLeaderAccessProps) {
-  const { user, role, collectiveRoles, isLoading } = useAuth()
+  const { user, role, collectiveRoles, managedCollectiveIds, isLoading } = useAuth()
   const location = useLocation()
 
   if (isLoading) {
@@ -134,10 +138,13 @@ export function RequireLeaderAccess({ children }: RequireLeaderAccessProps) {
   // National staff and above always have access
   const isStaffPlus = _GLOBAL_RANK[role] >= _GLOBAL_RANK.national_leader
 
+  // Managers with assigned collectives can access the leader suite
+  const isManagerWithCollectives = _GLOBAL_RANK[role] >= _GLOBAL_RANK.manager && managedCollectiveIds.length > 0
+
   // Check if user holds a qualifying collective role
   const hasLeaderRole = collectiveRoles.some((m) => _LEADER_ROLES.includes(m.role as CollectiveRole))
 
-  if (!isStaffPlus && !hasLeaderRole) {
+  if (!isStaffPlus && !isManagerWithCollectives && !hasLeaderRole) {
     return <Navigate to="/" replace />
   }
 

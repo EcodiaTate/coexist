@@ -29,6 +29,8 @@ interface DropdownProps {
   disabled?: boolean
   className?: string
   triggerClassName?: string
+  /** Use 'dark' when rendered on a dark/hero background */
+  tone?: 'default' | 'dark'
 }
 
 function useIsMobile() {
@@ -56,6 +58,7 @@ export function Dropdown({
   disabled = false,
   className,
   triggerClassName,
+  tone = 'default',
 }: DropdownProps) {
   const [open, setOpen] = useState(false)
   const isMobile = useIsMobile()
@@ -178,7 +181,10 @@ export function Dropdown({
       aria-describedby={error ? errorId : undefined}
       aria-label={!label ? placeholder : undefined}
       className={cn(
-        'flex items-center justify-between w-full h-11 rounded-full bg-surface-3 px-4',
+        'flex items-center justify-between w-full h-11 rounded-full px-4',
+        tone === 'dark'
+          ? 'bg-white/20 backdrop-blur-md border border-white/20'
+          : 'bg-surface-3',
         'text-[16px] sm:text-sm leading-normal text-left',
         'cursor-pointer select-none',
         'transition-colors duration-150',
@@ -187,7 +193,7 @@ export function Dropdown({
         error
           ? 'ring-2 ring-error'
           : open
-            ? 'ring-2 ring-primary-500'
+            ? tone === 'dark' ? 'ring-2 ring-white/40' : 'ring-2 ring-primary-500'
             : '',
         triggerClassName,
       )}
@@ -195,7 +201,9 @@ export function Dropdown({
       <span
         className={cn(
           'truncate min-w-0',
-          selectedOption ? 'text-primary-800' : 'text-primary-400',
+          tone === 'dark'
+            ? selectedOption ? 'text-white' : 'text-white/70'
+            : selectedOption ? 'text-neutral-900' : 'text-neutral-500',
         )}
       >
         {selectedOption ? (
@@ -216,7 +224,8 @@ export function Dropdown({
       <ChevronDown
         size={18}
         className={cn(
-          'shrink-0 ml-2 text-primary-400 transition-transform duration-150',
+          'shrink-0 ml-2 transition-transform duration-150',
+          tone === 'dark' ? 'text-white/70' : 'text-neutral-400',
           open && 'rotate-180',
         )}
         aria-hidden="true"
@@ -254,7 +263,7 @@ export function Dropdown({
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
               isSelected
                 ? 'bg-white text-primary-400'
-                : 'text-primary-800 hover:bg-primary-50 active:bg-primary-50',
+                : 'text-neutral-900 hover:bg-neutral-50 active:bg-neutral-50',
             )}
           >
             <span className="flex items-center gap-3 min-w-0">
@@ -284,7 +293,7 @@ export function Dropdown({
         <label
           id={labelId}
           htmlFor={id}
-          className="block mb-1.5 text-sm font-medium text-primary-800"
+          className="block mb-1.5 text-sm font-medium text-neutral-900"
         >
           {label}
         </label>
@@ -317,7 +326,7 @@ export function Dropdown({
                       }
                     }}
                     className={cn(
-                      'bg-white rounded-2xl shadow-xl border border-primary-100',
+                      'bg-white rounded-2xl shadow-xl border border-neutral-100',
                       'max-h-60 overflow-y-auto',
                       'py-1.5',
                     )}
@@ -355,7 +364,7 @@ export function Dropdown({
           onClose={() => setOpen(false)}
           snapPoints={[0.4]}
         >
-          <h3 className="font-heading text-base font-semibold text-primary-800 mb-3">
+          <h3 className="font-heading text-base font-semibold text-neutral-900 mb-3">
             {label ?? placeholder}
           </h3>
           {optionsList}

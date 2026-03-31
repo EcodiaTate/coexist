@@ -44,30 +44,30 @@ export default function SuspendedAccountPage() {
         transition={{ duration: 0.4, delay: 0.15 }}
         className="text-center max-w-sm"
       >
-        <h1 className="font-heading text-2xl font-bold text-primary-800">
+        <h1 className="font-heading text-2xl font-bold text-neutral-900">
           Account Suspended
         </h1>
 
-        <p className="mt-3 text-primary-400 leading-relaxed">
+        <p className="mt-3 text-neutral-500 leading-relaxed">
           Your account has been suspended and you cannot access the app at this time.
         </p>
 
         {/* Reason card */}
-        <div className="mt-6 rounded-xl bg-white border border-primary-200 p-4 text-left">
-          <p className="text-xs font-medium text-primary-400 uppercase tracking-wider mb-1">
+        <div className="mt-6 rounded-xl bg-white border border-neutral-100 p-4 text-left">
+          <p className="text-xs font-medium text-neutral-400 uppercase tracking-wider mb-1">
             Reason
           </p>
-          <p className="text-sm text-primary-800 leading-relaxed">{reason}</p>
+          <p className="text-sm text-neutral-900 leading-relaxed">{reason}</p>
         </div>
 
         {/* Appeal info */}
-        <div className="mt-6 rounded-xl bg-white border border-primary-100 p-4">
-          <p className="text-sm text-primary-800 leading-relaxed">
+        <div className="mt-6 rounded-xl bg-white border border-neutral-100 p-4">
+          <p className="text-sm text-neutral-900 leading-relaxed">
             If you believe this is a mistake, please contact us to appeal:
           </p>
           <a
             href={`mailto:${CONTACT_EMAIL}`}
-            className="mt-2 inline-flex items-center gap-2 text-primary-400 font-medium text-sm hover:underline"
+            className="mt-2 inline-flex items-center gap-2 text-neutral-500 font-medium text-sm hover:underline"
           >
             <Mail size={16} />
             {CONTACT_EMAIL}

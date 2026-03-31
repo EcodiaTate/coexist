@@ -125,63 +125,6 @@ export default function ReferralPage() {
   return (
     <Page swipeBack header={<Header title="Invite Friends" back />}>
       <div className="relative min-h-[calc(100dvh-4rem)] overflow-x-hidden">
-        {/* Full-bleed gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-moss-50/50 via-white to-sky-50/15" />
-
-        {/* Decorative geometric shapes */}
-        <motion.div
-          className="absolute top-12 -right-12 w-56 h-56 rounded-full border border-moss-200/35"
-          animate={rm ? undefined : { rotate: 360 }}
-          transition={rm ? undefined : { duration: 50, repeat: Infinity, ease: 'linear' }}
-        />
-        <motion.div
-          className="absolute top-44 -left-16 w-44 h-44 rounded-full border border-moss-200/35"
-          animate={rm ? undefined : { rotate: -360 }}
-          transition={rm ? undefined : { duration: 60, repeat: Infinity, ease: 'linear' }}
-        />
-        <motion.div
-          className="absolute top-24 right-10 w-20 h-20 rounded-full bg-moss-100/25"
-          animate={rm ? undefined : { y: [0, -12, 0] }}
-          transition={rm ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute top-80 left-6 w-16 h-16 rounded-full bg-moss-100/25"
-          animate={rm ? undefined : { y: [0, 10, 0] }}
-          transition={rm ? undefined : { duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute bottom-40 -right-8 w-32 h-32 rounded-full border border-moss-200/35"
-          animate={rm ? undefined : { rotate: 360 }}
-          transition={rm ? undefined : { duration: 70, repeat: Infinity, ease: 'linear' }}
-        />
-
-        {/* Floating dots */}
-        <motion.div
-          className="absolute top-20 left-1/4 w-2 h-2 rounded-full bg-sky-300/20"
-          animate={rm ? undefined : { y: [0, -8, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={rm ? undefined : { duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute top-56 right-1/4 w-1.5 h-1.5 rounded-full bg-moss-300/25"
-          animate={rm ? undefined : { y: [0, 6, 0], opacity: [0.25, 0.5, 0.25] }}
-          transition={rm ? undefined : { duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        />
-        <motion.div
-          className="absolute top-[22rem] left-1/3 w-2.5 h-2.5 rounded-full bg-sky-300/20"
-          animate={rm ? undefined : { y: [0, -10, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={rm ? undefined : { duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-        />
-        <motion.div
-          className="absolute top-[28rem] right-1/3 w-1.5 h-1.5 rounded-full bg-moss-300/25"
-          animate={rm ? undefined : { y: [0, 8, 0], opacity: [0.2, 0.45, 0.2] }}
-          transition={rm ? undefined : { duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-        />
-        <motion.div
-          className="absolute bottom-28 left-1/5 w-2 h-2 rounded-full bg-moss-300/25"
-          animate={rm ? undefined : { y: [0, -6, 0], opacity: [0.2, 0.4, 0.2] }}
-          transition={rm ? undefined : { duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-        />
-
         {/* Content */}
         <motion.div
           className="relative z-10 pb-8"
@@ -192,15 +135,15 @@ export default function ReferralPage() {
           {/* Hero */}
           <motion.div
             variants={fadeUp}
-            className="mt-4 rounded-2xl bg-white/90 border border-moss-200/40 shadow-sm p-5 text-center"
+            className="mt-4 rounded-2xl bg-white border border-neutral-100 shadow-sm p-5 text-center"
           >
-            <div className="w-14 h-14 rounded-full bg-moss-100/60 flex items-center justify-center mx-auto mb-3">
-              <Gift size={28} className="text-moss-600" />
+            <div className="w-14 h-14 rounded-full bg-primary-50 flex items-center justify-center mx-auto mb-3">
+              <Gift size={28} className="text-primary-600" />
             </div>
-            <h2 className="font-heading text-lg font-bold text-primary-800">
+            <h2 className="font-heading text-lg font-bold text-neutral-900">
               Grow the Movement
             </h2>
-            <p className="mt-1 text-sm text-primary-400 max-w-xs mx-auto">
+            <p className="mt-1 text-sm text-neutral-500 max-w-xs mx-auto">
               Invite friends to join Co-Exist and help grow the conservation community!
             </p>
           </motion.div>
@@ -210,12 +153,12 @@ export default function ReferralPage() {
             variants={fadeUp}
             className="mt-5"
           >
-            <h3 className="font-heading text-sm font-semibold text-primary-800 mb-2">
+            <h3 className="text-[11px] uppercase tracking-[0.15em] font-bold text-neutral-400 mb-2">
               Your Referral Code
             </h3>
             {code ? (
               <div className="flex items-center gap-2">
-                <div className="flex-1 rounded-xl bg-white/90 border border-moss-200/40 px-4 py-3 text-center font-heading text-lg font-bold text-primary-800 tracking-wider select-all shadow-sm">
+                <div className="flex-1 rounded-xl bg-white border border-neutral-100 px-4 py-3 text-center font-heading text-lg font-bold text-neutral-900 tracking-wider select-all shadow-sm">
                   {code}
                 </div>
                 <button
@@ -225,7 +168,7 @@ export default function ReferralPage() {
                     'flex items-center justify-center min-h-11 min-w-11 rounded-xl active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none shadow-sm',
                     copied
                       ? 'bg-success-100/80 border border-success-200/40 text-success-600'
-                      : 'bg-white/90 border border-moss-200/40 text-primary-500 hover:bg-moss-50/60',
+                      : 'bg-white border border-neutral-100 text-neutral-600 hover:bg-neutral-50',
                   )}
                   aria-label="Copy code"
                 >

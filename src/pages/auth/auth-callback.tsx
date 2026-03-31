@@ -12,12 +12,6 @@ type CallbackState = 'processing' | 'success' | 'error'
 /**
  * Handles auth callback redirects from Supabase email links
  * (email verification, magic links, password recovery).
- *
- * On web: Supabase auto-picks up the hash fragment tokens and fires
- * onAuthStateChange. We just wait for the session, then redirect.
- *
- * On mobile browser: After session is confirmed, offer to open the
- * native app via deep link (coexist://home).
  */
 export default function AuthCallbackPage() {
   const navigate = useNavigate()
@@ -26,29 +20,21 @@ export default function AuthCallbackPage() {
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
-    // Supabase JS client automatically detects the hash fragment
-    // (#access_token=...&type=...) and exchanges it for a session.
-    // We listen for the auth state change to know when it's done.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN' || event === 'PASSWORD_RECOVERY') {
         setState('success')
 
-        // If the user is on web (not inside the native app), check
-        // if this is a recovery flow  redirect to reset-password page.
         if (event === 'PASSWORD_RECOVERY') {
           setTimeout(() => navigate('/reset-password', { replace: true }), 1500)
           return
         }
 
-        // On web, just redirect to home after a brief success message.
         if (!isMobileBrowser()) {
           setTimeout(() => navigate('/', { replace: true }), 1500)
         }
-        // On mobile browser, we show the "Open in app" button instead.
       }
     })
 
-    // Safety timeout  if nothing happens after 30s, something went wrong.
     const timeout = setTimeout(() => {
       setState((prev) => {
         if (prev === 'processing') {
@@ -75,8 +61,8 @@ export default function AuthCallbackPage() {
           animate={{ opacity: 1 }}
           className="flex flex-col items-center text-center"
         >
-          <Loader2 className="w-12 h-12 text-primary-400 animate-spin" />
-          <p className="mt-4 text-primary-400 font-medium">Verifying your account...</p>
+          <Loader2 className="w-12 h-12 text-neutral-400 animate-spin" />
+          <p className="mt-4 text-neutral-500 font-medium">Verifying your account...</p>
         </motion.div>
       )}
 
@@ -90,10 +76,10 @@ export default function AuthCallbackPage() {
           <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center">
             <CheckCircle className="w-10 h-10 text-success" />
           </div>
-          <h1 className="mt-6 font-heading text-2xl font-bold text-primary-800">
+          <h1 className="mt-6 font-heading text-2xl font-bold text-neutral-900">
             You're verified!
           </h1>
-          <p className="mt-2 text-primary-400">
+          <p className="mt-2 text-neutral-500">
             Your account has been confirmed.
           </p>
 
@@ -120,7 +106,7 @@ export default function AuthCallbackPage() {
               </Button>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-primary-300">Redirecting...</p>
+            <p className="mt-4 text-sm text-neutral-400">Redirecting...</p>
           )}
         </motion.div>
       )}
@@ -134,10 +120,10 @@ export default function AuthCallbackPage() {
           <div className="w-20 h-20 rounded-full bg-error/10 flex items-center justify-center">
             <AlertCircle className="w-10 h-10 text-error" />
           </div>
-          <h1 className="mt-6 font-heading text-2xl font-bold text-primary-800">
+          <h1 className="mt-6 font-heading text-2xl font-bold text-neutral-900">
             Something went wrong
           </h1>
-          <p className="mt-2 text-primary-400">{errorMsg}</p>
+          <p className="mt-2 text-neutral-500">{errorMsg}</p>
           <div className="mt-8 w-full space-y-3">
             <Button
               variant="primary"

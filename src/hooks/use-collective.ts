@@ -68,7 +68,7 @@ export function useCollective(idOrSlug: string | undefined) {
 /*  All collectives (for discovery)                                    */
 /* ------------------------------------------------------------------ */
 
-export function useCollectives(filters?: { state?: string; search?: string }) {
+export function useCollectives(filters?: { state?: string; search?: string; includeNational?: boolean }) {
   return useQuery({
     queryKey: ['collectives', filters],
     queryFn: async () => {
@@ -77,6 +77,10 @@ export function useCollectives(filters?: { state?: string; search?: string }) {
         .select('*, profiles!collectives_leader_id_fkey(id, display_name, avatar_url)')
         .eq('is_active', true)
         .order('name')
+
+      if (!filters?.includeNational) {
+        query = query.or('is_national.is.null,is_national.eq.false')
+      }
 
       if (filters?.state) {
         query = query.eq('state', filters.state)

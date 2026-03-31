@@ -57,7 +57,7 @@ const STATUS_COLORS: Record<OrderStatus, string> = {
   processing: 'bg-info-100 text-info-800',
   shipped: 'bg-plum-100 text-plum-800',
   delivered: 'bg-success-100 text-success-800',
-  cancelled: 'bg-white text-primary-400',
+  cancelled: 'bg-white text-neutral-400',
   refunded: 'bg-error-100 text-error-700',
 }
 
@@ -71,12 +71,12 @@ const STATUS_ICONS: Record<OrderStatus, typeof Clock> = {
 }
 
 const CARD_STATUS_GRADIENTS: Record<string, string> = {
-  pending: 'from-warning-50 via-warning-50/60 to-[#f0f4ea] border-warning-200/30',
-  processing: 'from-info-50 via-info-50/60 to-[#edf1e7] border-info-200/30',
-  shipped: 'from-plum-50 via-plum-50/60 to-[#edf1e7] border-plum-200/30',
-  delivered: 'from-success-50 via-success-50/60 to-[#edf1e7] border-success-200/30',
-  cancelled: 'from-[#f0f0f0] to-[#e8e8e8] border-primary-200/20',
-  refunded: 'from-error-50 via-error-50/60 to-[#f0f0f0] border-error-200/30',
+  pending: 'border-neutral-100',
+  processing: 'border-neutral-100',
+  shipped: 'border-neutral-100',
+  delivered: 'border-neutral-100',
+  cancelled: 'border-neutral-100',
+  refunded: 'border-neutral-100',
 }
 
 const RETURN_STATUS_COLORS: Record<ReturnStatus, string> = {
@@ -143,7 +143,7 @@ function OrderTimeline({ status, updatedAt }: { status: OrderStatus; createdAt: 
                   ? 'bg-primary-500 text-white shadow-sm'
                   : isActive
                     ? 'bg-primary-200 text-primary-700'
-                    : 'bg-primary-50 text-primary-300',
+                    : 'bg-neutral-50 text-neutral-300',
               )}
             >
               <Icon size={12} />
@@ -152,7 +152,7 @@ function OrderTimeline({ status, updatedAt }: { status: OrderStatus; createdAt: 
               <div
                 className={cn(
                   'h-0.5 flex-1 rounded-full transition-colors',
-                  i < currentIdx ? 'bg-primary-300' : 'bg-primary-100',
+                  i < currentIdx ? 'bg-primary-300' : 'bg-neutral-100',
                 )}
               />
             )}
@@ -179,10 +179,10 @@ function OrderCounts({ orders }: { orders: OrderWithProfile[] }) {
   }, [orders])
 
   const cards = [
-    { label: 'Pending', count: counts.pending, gradient: 'from-warning-500 to-warning-600', icon: Clock },
-    { label: 'Processing', count: counts.processing, gradient: 'from-info-500 to-info-600', icon: Package },
-    { label: 'Shipped', count: counts.shipped, gradient: 'from-plum-500 to-plum-600', icon: Truck },
-    { label: 'Delivered', count: counts.delivered, gradient: 'from-success-500 to-success-600', icon: CheckCircle2 },
+    { label: 'Pending', count: counts.pending, iconBg: 'bg-warning-50 text-warning-600', icon: Clock },
+    { label: 'Processing', count: counts.processing, iconBg: 'bg-info-50 text-info-600', icon: Package },
+    { label: 'Shipped', count: counts.shipped, iconBg: 'bg-plum-50 text-plum-600', icon: Truck },
+    { label: 'Delivered', count: counts.delivered, iconBg: 'bg-success-50 text-success-600', icon: CheckCircle2 },
   ]
 
   return (
@@ -190,10 +190,12 @@ function OrderCounts({ orders }: { orders: OrderWithProfile[] }) {
       {cards.map((c) => {
         const Icon = c.icon
         return (
-          <div key={c.label} className={`p-4 rounded-2xl shadow-lg bg-gradient-to-br ${c.gradient} text-center`}>
-            <Icon size={16} className="text-white/60 mx-auto mb-1" />
-            <p className="font-heading text-xl font-bold tabular-nums text-white">{c.count}</p>
-            <p className="text-[11px] font-semibold mt-0.5 text-white/70">{c.label}</p>
+          <div key={c.label} className="p-4 rounded-2xl bg-white border border-neutral-100 shadow-sm text-center">
+            <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center mx-auto mb-1', c.iconBg)}>
+              <Icon size={14} />
+            </div>
+            <p className="font-heading text-xl font-bold tabular-nums text-neutral-900">{c.count}</p>
+            <p className="text-[11px] font-semibold mt-0.5 text-neutral-500">{c.label}</p>
           </div>
         )
       })}
@@ -236,7 +238,7 @@ function ReturnsBanner({ orderId }: { orderId: string }) {
     <>
       <Divider />
       <div>
-        <h4 className="text-xs font-semibold text-primary-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+        <h4 className="text-xs font-semibold text-neutral-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
           <RotateCcw size={12} />
           Return Requests
         </h4>
@@ -244,7 +246,7 @@ function ReturnsBanner({ orderId }: { orderId: string }) {
           {returns.map((ret) => (
             <div
               key={ret.id}
-              className="p-3 rounded-xl bg-gradient-to-r from-warning-50/80 to-primary-50/40 border border-warning-200/30"
+              className="p-3 rounded-xl bg-white border border-neutral-100 shadow-sm"
             >
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
@@ -253,7 +255,7 @@ function ReturnsBanner({ orderId }: { orderId: string }) {
                     name={ret.profiles?.display_name ?? 'User'}
                     size="xs"
                   />
-                  <span className="text-sm font-medium text-primary-800">
+                  <span className="text-sm font-medium text-neutral-900">
                     {ret.profiles?.display_name ?? 'Unknown'}
                   </span>
                 </div>
@@ -266,7 +268,7 @@ function ReturnsBanner({ orderId }: { orderId: string }) {
                   {ret.status}
                 </span>
               </div>
-              <p className="text-sm text-primary-400 mb-1">
+              <p className="text-sm text-neutral-400 mb-1">
                 <span className="font-medium">Reason:</span> {ret.reason}
               </p>
               {ret.status === 'requested' && (
@@ -330,19 +332,19 @@ function AllReturnsList() {
   return (
     <div className="mb-5">
       <div className="flex items-center gap-2 mb-3">
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-gradient-to-br from-warning-500 to-warning-600 shadow-md">
-          <RotateCcw size={14} className="text-white" />
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-warning-50 text-warning-600">
+          <RotateCcw size={14} />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-primary-800">Pending Returns</h3>
-          <p className="text-[11px] text-primary-400">{pending.length} awaiting review</p>
+          <h3 className="text-sm font-bold text-neutral-900">Pending Returns</h3>
+          <p className="text-[11px] text-neutral-400">{pending.length} awaiting review</p>
         </div>
       </div>
       <div className="space-y-2">
         {pending.map((ret) => (
           <div
             key={ret.id}
-            className="p-4 rounded-2xl bg-gradient-to-br from-warning-50 via-warning-50/60 to-[#f0f4ea] border border-warning-200/30 shadow-sm"
+            className="p-4 rounded-2xl bg-white border border-neutral-100 shadow-sm"
           >
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -351,7 +353,7 @@ function AllReturnsList() {
                   name={ret.profiles?.display_name ?? 'User'}
                   size="xs"
                 />
-                <span className="text-sm font-medium text-primary-800">
+                <span className="text-sm font-medium text-neutral-900">
                   {ret.profiles?.display_name ?? 'Unknown'}
                 </span>
               </div>
@@ -359,11 +361,11 @@ function AllReturnsList() {
                 {ret.status}
               </span>
             </div>
-            <p className="text-sm text-primary-400 mb-1">
+            <p className="text-sm text-neutral-400 mb-1">
               <span className="font-medium">Reason:</span> {ret.reason}
             </p>
             {ret.order && (
-              <p className="text-xs text-primary-400 mb-2">
+              <p className="text-xs text-neutral-400 mb-2">
                 Order #{(ret.order as { id: string }).id.slice(0, 8)} ·{' '}
                 {formatPrice((ret.order as { total_cents: number }).total_cents)}
               </p>
@@ -566,8 +568,8 @@ export default function OrdersTab() {
                 type="button"
                 onClick={() => openOrder(order)}
                 className={cn(
-                  'w-full text-left p-5 bg-gradient-to-br border rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.08),0_1px_4px_rgba(61,77,51,0.03)] cursor-pointer transition-[color,background-color,transform] duration-200 active:scale-[0.98]',
-                  CARD_STATUS_GRADIENTS[order.status] ?? 'from-[#f0f4ea] to-[#e8ecdf] border-primary-200/20',
+                  'w-full text-left p-5 bg-white border rounded-2xl shadow-sm cursor-pointer transition-[color,background-color,transform] duration-200 active:scale-[0.98]',
+                  CARD_STATUS_GRADIENTS[order.status] ?? 'border-neutral-100',
                 )}
               >
                 <div className="flex items-center justify-between mb-2">
@@ -577,7 +579,7 @@ export default function OrdersTab() {
                       name={order.profiles?.display_name ?? 'Unknown'}
                       size="xs"
                     />
-                    <span className="text-sm font-semibold text-primary-800">
+                    <span className="text-sm font-semibold text-neutral-900">
                       {order.profiles?.display_name ?? 'Unknown'}
                     </span>
                   </div>
@@ -599,11 +601,11 @@ export default function OrdersTab() {
                 />
 
                 <div className="flex items-center justify-between mt-2.5">
-                  <span className="text-xs text-primary-400">
+                  <span className="text-xs text-neutral-400">
                     #{order.id.slice(0, 8)} · {order.items.length} item
                     {order.items.length !== 1 ? 's' : ''} · {formatDate(order.created_at)}
                   </span>
-                  <span className="font-heading font-bold text-sm text-primary-800 tabular-nums">
+                  <span className="font-heading font-bold text-sm text-neutral-900 tabular-nums">
                     {formatPrice(order.total_cents)}
                   </span>
                 </div>
@@ -624,17 +626,17 @@ export default function OrdersTab() {
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-heading font-semibold text-lg text-primary-800">
+                <h3 className="font-heading font-semibold text-lg text-neutral-900">
                   Order #{selectedOrder.id.slice(0, 8)}
                 </h3>
-                <p className="text-xs text-primary-400 mt-0.5">
+                <p className="text-xs text-neutral-400 mt-0.5">
                   {formatDateTime(selectedOrder.created_at)}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => handleCopyId(selectedOrder.id)}
-                className="flex items-center gap-1.5 px-3 min-h-11 rounded-lg text-sm text-primary-400 hover:bg-primary-50 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 min-h-11 rounded-lg text-sm text-neutral-400 hover:bg-neutral-50 cursor-pointer"
               >
                 <Copy size={12} />
                 Copy ID
@@ -658,7 +660,7 @@ export default function OrdersTab() {
                 size="sm"
               />
               <div>
-                <p className="text-sm font-semibold text-primary-800">
+                <p className="text-sm font-semibold text-neutral-900">
                   {selectedOrder.profiles?.display_name ?? 'Unknown'}
                 </p>
               </div>
@@ -668,12 +670,12 @@ export default function OrdersTab() {
 
             {/* Items */}
             <div>
-              <h4 className="text-xs font-semibold text-primary-800 uppercase tracking-wider mb-2">
+              <h4 className="text-xs font-semibold text-neutral-900 uppercase tracking-wider mb-2">
                 Items
               </h4>
               <div className="space-y-2">
                 {selectedOrder.items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-3 p-2 rounded-xl bg-primary-50/40">
+                  <div key={item.id} className="flex items-center gap-3 p-2 rounded-xl bg-neutral-50">
                     {item.image_url && (
                       <img
                         src={item.image_url}
@@ -682,14 +684,14 @@ export default function OrdersTab() {
                       />
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-primary-800 truncate">
+                      <p className="text-sm font-medium text-neutral-900 truncate">
                         {item.product_name}
                       </p>
-                      <p className="text-xs text-primary-400">
+                      <p className="text-xs text-neutral-400">
                         {item.variant_label} x{item.quantity}
                       </p>
                     </div>
-                    <span className="text-sm font-semibold text-primary-800 tabular-nums shrink-0">
+                    <span className="text-sm font-semibold text-neutral-900 tabular-nums shrink-0">
                       {formatPrice(item.price_cents * item.quantity)}
                     </span>
                   </div>
@@ -699,7 +701,7 @@ export default function OrdersTab() {
 
             {/* Total */}
             <div className="px-1">
-              <div className="flex justify-between text-sm font-bold text-primary-800">
+              <div className="flex justify-between text-sm font-bold text-neutral-900">
                 <span>Total</span>
                 <span className="tabular-nums">{formatPrice(selectedOrder.total_cents ?? Math.round((selectedOrder.total ?? 0) * 100))}</span>
               </div>
@@ -709,12 +711,12 @@ export default function OrdersTab() {
 
             {/* Shipping address */}
             <div>
-              <h4 className="text-xs font-semibold text-primary-800 uppercase tracking-wider mb-2">
+              <h4 className="text-xs font-semibold text-neutral-900 uppercase tracking-wider mb-2">
                 Shipping
               </h4>
-              <div className="flex items-start gap-2 p-3 rounded-xl bg-primary-50/40">
-                <MapPin size={14} className="text-primary-400 shrink-0 mt-0.5" />
-                <div className="text-sm text-primary-600">
+              <div className="flex items-start gap-2 p-3 rounded-xl bg-neutral-50">
+                <MapPin size={14} className="text-neutral-400 shrink-0 mt-0.5" />
+                <div className="text-sm text-neutral-600">
                   <p className="font-medium">{selectedOrder.shipping_address?.full_name}</p>
                   <p>{selectedOrder.shipping_address?.line1}</p>
                   {selectedOrder.shipping_address?.line2 && (
@@ -725,7 +727,7 @@ export default function OrdersTab() {
                     {selectedOrder.shipping_address?.postcode}
                   </p>
                   {selectedOrder.shipping_address?.phone && (
-                    <p className="mt-1 text-primary-400">{selectedOrder.shipping_address.phone}</p>
+                    <p className="mt-1 text-neutral-400">{selectedOrder.shipping_address.phone}</p>
                   )}
                 </div>
               </div>
@@ -756,7 +758,7 @@ export default function OrdersTab() {
 
             {/* Admin notes */}
             <div>
-              <h4 className="text-xs font-semibold text-primary-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <h4 className="text-xs font-semibold text-neutral-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <StickyNote size={12} />
                 Admin Notes
               </h4>

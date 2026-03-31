@@ -42,7 +42,7 @@ export function PdfViewer({ url, fileName, fileSizeBytes, className }: PdfViewer
   const canPreview = type === 'pdf'
 
   return (
-    <div className={cn('rounded-xl overflow-hidden border border-primary-200', className)}>
+    <div className={cn('rounded-xl overflow-hidden border border-neutral-200', className)}>
       {/* Inline viewer for PDFs */}
       {canPreview && (
         <div className="w-full aspect-[3/4] max-h-[600px] bg-primary-50">
@@ -71,7 +71,7 @@ export function PdfViewer({ url, fileName, fileSizeBytes, className }: PdfViewer
       )}
 
       {/* File info bar */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-white border-t border-primary-100">
+      <div className="flex items-center gap-3 px-4 py-3 bg-white border-t border-neutral-100">
         <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-bark-100 shrink-0">
           {fileIcon(type)}
         </div>

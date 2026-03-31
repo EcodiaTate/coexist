@@ -9,8 +9,8 @@ type CollectiveRole = Database['public']['Enums']['collective_role']
 const GLOBAL_RANK: Record<UserRole, number> = {
   participant: 0,
   national_leader: 1,
-  national_admin: 2,
-  super_admin: 3,
+  manager: 2,
+  admin: 3,
 }
 
 interface RoleGateProps {

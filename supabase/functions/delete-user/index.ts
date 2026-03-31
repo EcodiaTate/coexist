@@ -52,7 +52,7 @@ Deno.serve(async (req: Request) => {
       .eq('id', caller.id)
       .single()
 
-    if (!callerProfile || !['super_admin', 'national_admin'].includes(callerProfile.role)) {
+    if (!callerProfile || !['admin', 'manager'].includes(callerProfile.role)) {
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -102,8 +102,8 @@ function DropZone({
           'relative flex flex-col items-center justify-center py-8 px-4 rounded-xl border-2 border-dashed transition-colors cursor-pointer',
           'active:scale-[0.98]',
           dragOver
-            ? 'border-primary-400 bg-primary-100/60 scale-[1.01]'
-            : 'border-primary-200 bg-primary-50/30 hover:border-primary-300 hover:bg-primary-50/50',
+            ? 'border-primary-400 bg-primary-50 scale-[1.01]'
+            : 'border-neutral-200 bg-neutral-50 hover:border-neutral-300 hover:bg-neutral-100',
           uploading && 'pointer-events-none opacity-70',
         )}
       >
@@ -151,7 +151,7 @@ function SlideCard({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9 }}
-      className="flex gap-3 p-2.5 rounded-xl bg-white border border-primary-100 shadow-sm"
+      className="flex gap-3 p-2.5 rounded-xl bg-white border border-neutral-100 shadow-sm"
     >
       <img
         src={slide.url}
@@ -223,14 +223,14 @@ function QuizPicker({
       {isLoading ? (
         <p className="text-xs text-primary-400 text-center py-4">Loading quizzes...</p>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-6 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/30">
+        <div className="text-center py-6 rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50">
           <CircleDot size={24} className="text-primary-300 mx-auto mb-1" />
           <p className="text-xs text-primary-500">
             {quizzes.length === 0 ? 'No quizzes yet  create one first' : 'No matching quizzes'}
           </p>
         </div>
       ) : (
-        <div className="max-h-48 overflow-y-auto space-y-1 rounded-xl border border-primary-200 p-1.5">
+        <div className="max-h-48 overflow-y-auto space-y-1 rounded-xl border border-neutral-200 p-1.5">
           {filtered.map((q) => (
             <button
               key={q.id}
@@ -317,7 +317,7 @@ function SortableBlock({
           )}
         </div>
         {preview && (
-          <p className="text-xs text-primary-500 line-clamp-1 mt-0.5">{preview}</p>
+          <p className="text-xs text-neutral-500 line-clamp-1 mt-0.5">{preview}</p>
         )}
       </div>
 
@@ -429,7 +429,7 @@ function BlockEditForm({
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
-      className="rounded-xl border-2 border-primary-200 bg-primary-50/50 p-4 sm:p-5 space-y-4 overflow-hidden"
+      className="rounded-xl border-2 border-neutral-200 bg-neutral-50 p-4 sm:p-5 space-y-4 overflow-hidden"
     >
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -478,7 +478,7 @@ function BlockEditForm({
                     'inline-flex items-center gap-1.5 px-3.5 min-h-[44px] rounded-xl text-sm font-semibold transition-transform active:scale-[0.97]',
                     draft.video_provider === p.key
                       ? 'bg-sky-600 text-white shadow-sm'
-                      : 'bg-white text-primary-500 border border-primary-200 hover:border-sky-300',
+                      : 'bg-white text-neutral-500 border border-neutral-200 hover:border-neutral-300',
                   )}
                 >
                   {p.icon}
@@ -743,11 +743,11 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/30"
+          className="flex flex-col items-center justify-center py-12 rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50"
         >
           <FileText size={32} className="text-primary-300 mb-3" />
-          <p className="text-sm font-medium text-primary-500 mb-1">No content blocks yet</p>
-          <p className="text-xs text-primary-400 mb-4">Add blocks to build your module</p>
+          <p className="text-sm font-medium text-neutral-500 mb-1">No content blocks yet</p>
+          <p className="text-xs text-neutral-400 mb-4">Add blocks to build your module</p>
           <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => setShowTypePicker(true)}>
             Add First Block
           </Button>
@@ -761,7 +761,7 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              className="space-y-1.5 p-3 rounded-xl bg-primary-50/60 border border-primary-100"
+              className="space-y-1.5 p-3 rounded-xl bg-neutral-50 border border-neutral-100"
             >
               {BLOCK_TYPES.map((bt) => (
                 <button
@@ -770,7 +770,7 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
                   onClick={() => addBlock(bt.type)}
                   className={cn(
                     'w-full flex items-center gap-3 px-4 min-h-[52px] rounded-xl text-left transition-transform active:scale-[0.98]',
-                    'bg-white border border-primary-100 hover:border-primary-300 hover:shadow-sm',
+                    'bg-white border border-neutral-100 hover:border-neutral-300 hover:shadow-sm',
                   )}
                 >
                   <span className={cn('flex items-center justify-center w-9 h-9 rounded-lg shrink-0', bt.color)}>
@@ -796,7 +796,7 @@ export function BlockEditor({ blocks, onChange, className }: BlockEditorProps) {
             <button
               type="button"
               onClick={() => setShowTypePicker(true)}
-              className="inline-flex items-center gap-1.5 px-4 min-h-[48px] rounded-xl border border-dashed border-primary-300 text-sm font-semibold text-primary-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/40 transition-transform active:scale-[0.98] w-full justify-center"
+              className="inline-flex items-center gap-1.5 px-4 min-h-[48px] rounded-xl border border-dashed border-neutral-300 text-sm font-semibold text-neutral-500 hover:border-neutral-400 hover:text-neutral-600 hover:bg-neutral-50 transition-transform active:scale-[0.98] w-full justify-center"
             >
               <Plus size={15} />
               Add Block

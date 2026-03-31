@@ -112,7 +112,7 @@ function QuestionCard({
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="text-xs text-primary-500 mt-1 pl-2 border-l-2 border-primary-200"
+                className="text-xs text-neutral-500 mt-1 pl-2 border-l-2 border-neutral-200"
               >
                 {question.explanation}
               </motion.p>
@@ -228,7 +228,7 @@ function QuestionForm({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      className="rounded-xl border-2 border-primary-200 bg-primary-50/50 p-5 space-y-4"
+      className="rounded-xl border-2 border-neutral-200 bg-neutral-50 p-5 space-y-4"
     >
       <p className="text-sm font-semibold text-primary-700">
         {initial ? 'Edit Question' : 'Add Question'}
@@ -284,7 +284,7 @@ function QuestionForm({
                   'flex items-center justify-center w-8 h-8 rounded-lg border-2 transition-colors shrink-0',
                   opt.is_correct
                     ? 'border-moss-500 bg-moss-100 text-moss-600'
-                    : 'border-primary-200 bg-white text-primary-300 hover:border-primary-300',
+                    : 'border-neutral-200 bg-white text-neutral-400 hover:border-neutral-300',
                 )}
               >
                 {opt.is_correct && '✓'}
@@ -400,10 +400,10 @@ export function QuestionBuilder({ questions, onChange, className }: QuestionBuil
 
       {/* Empty state */}
       {questions.length === 0 && !isAdding && (
-        <div className="flex flex-col items-center justify-center py-10 rounded-xl border-2 border-dashed border-primary-200 bg-primary-50/30">
+        <div className="flex flex-col items-center justify-center py-10 rounded-xl border-2 border-dashed border-neutral-200 bg-neutral-50">
           <CircleDot size={28} className="text-primary-300 mb-2" />
-          <p className="text-sm font-medium text-primary-500 mb-1">No questions yet</p>
-          <p className="text-xs text-primary-400 mb-4">Add questions to build your quiz</p>
+          <p className="text-sm font-medium text-neutral-500 mb-1">No questions yet</p>
+          <p className="text-xs text-neutral-400 mb-4">Add questions to build your quiz</p>
           <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => setIsAdding(true)}>
             Add First Question
           </Button>
@@ -425,7 +425,7 @@ export function QuestionBuilder({ questions, onChange, className }: QuestionBuil
         <button
           type="button"
           onClick={() => setIsAdding(true)}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-primary-300 text-sm font-semibold text-primary-500 hover:border-primary-400 hover:text-primary-600 hover:bg-primary-50/40 transition-transform active:scale-[0.98] w-full justify-center"
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-dashed border-neutral-300 text-sm font-semibold text-neutral-500 hover:border-neutral-400 hover:text-neutral-600 hover:bg-neutral-50 transition-transform active:scale-[0.98] w-full justify-center"
         >
           <Plus size={15} />
           Add Question

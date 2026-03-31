@@ -687,14 +687,14 @@ function PushTestSuite() {
       {/* ── Device Status ── */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-medium text-primary-500 flex items-center gap-1.5">
+          <p className="text-xs font-medium text-neutral-500 flex items-center gap-1.5">
             <Smartphone size={13} />
             Registered Devices
           </p>
           <button
             type="button"
             onClick={() => refetchTokens()}
-            className="text-[11px] text-primary-400 hover:text-primary-600 flex items-center gap-1"
+            className="text-[11px] text-neutral-400 hover:text-neutral-600 flex items-center gap-1"
           >
             <RefreshCw size={10} /> Refresh
           </button>
@@ -720,8 +720,8 @@ function PushTestSuite() {
                   stale ? 'bg-warning-50 border-warning-200 text-warning-700' : 'bg-success-50/50 border-success-200 text-success-700',
                 )}>
                   <span className="uppercase font-bold">{t.platform}</span>
-                  <span className="text-primary-400 font-mono">{t.token.slice(0, 12)}...</span>
-                  <span className={stale ? 'text-warning-500' : 'text-primary-400'}>
+                  <span className="text-neutral-400 font-mono">{t.token.slice(0, 12)}...</span>
+                  <span className={stale ? 'text-warning-500' : 'text-neutral-400'}>
                     {ageMins < 60 ? `${ageMins}m` : ageMins < 1440 ? `${Math.round(ageMins / 60)}h` : `${Math.round(ageMins / 1440)}d`}
                     {stale ? ' stale' : ''}
                   </span>
@@ -735,7 +735,7 @@ function PushTestSuite() {
       {/* ── Preferences snapshot ── */}
       {prefs && (
         <div className="space-y-1.5">
-          <p className="text-xs font-medium text-primary-500 flex items-center gap-1.5">
+          <p className="text-xs font-medium text-neutral-500 flex items-center gap-1.5">
             <Bell size={13} />
             Current Preferences
           </p>
@@ -749,7 +749,7 @@ function PushTestSuite() {
               </span>
             ))}
           </div>
-          <div className="flex gap-3 text-[11px] text-primary-400">
+          <div className="flex gap-3 text-[11px] text-neutral-400">
             <span className="flex items-center gap-1">
               <Moon size={10} />
               Quiet: {prefs.quiet_hours_enabled ? `${prefs.quiet_hours_start}-${prefs.quiet_hours_end}` : 'Off'}
@@ -763,13 +763,13 @@ function PushTestSuite() {
       )}
 
       {/* ── Test config ── */}
-      <div className="space-y-3 pt-1 border-t border-primary-100/60">
+      <div className="space-y-3 pt-1 border-t border-neutral-100">
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-primary-500">Push Types to Send</p>
+            <p className="text-xs font-medium text-neutral-500">Push Types to Send</p>
             <button
               type="button"
-              className="text-[11px] text-primary-400 hover:text-primary-600"
+              className="text-[11px] text-neutral-400 hover:text-neutral-600"
               onClick={() => setSelectedTypes(selectedTypes.length === ALL_TYPES.length ? [] : [...ALL_TYPES])}
             >
               {selectedTypes.length === ALL_TYPES.length ? 'None' : 'All'}
@@ -783,7 +783,7 @@ function PushTestSuite() {
                 onClick={() => toggleType(type)}
                 className={cn(
                   'px-2 py-0.5 rounded text-[11px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.97] cursor-pointer',
-                  selectedTypes.includes(type) ? 'bg-primary-600 text-white' : 'bg-primary-50 text-primary-500',
+                  selectedTypes.includes(type) ? 'bg-primary-600 text-white' : 'bg-neutral-50 text-neutral-500',
                 )}
               >
                 {TYPE_META[type]}
@@ -825,12 +825,12 @@ function PushTestSuite() {
       {results.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold text-primary-800">
+            <p className="text-xs font-semibold text-neutral-900">
               Results: <span className="text-success-600">{passed} pass</span>
               {failed > 0 && <> / <span className="text-error-600">{failed} fail</span></>}
-              <span className="text-primary-400 font-normal"> / {results.length}</span>
+              <span className="text-neutral-400 font-normal"> / {results.length}</span>
             </p>
-            {!running && <button type="button" onClick={clear} className="text-[11px] text-primary-400 hover:text-primary-600">Clear</button>}
+            {!running && <button type="button" onClick={clear} className="text-[11px] text-neutral-400 hover:text-neutral-600">Clear</button>}
           </div>
 
           {/* Group: Infrastructure */}
@@ -856,7 +856,7 @@ function PushTestSuite() {
 function ResultGroup({ label, results }: { label: string; results: PushTestResult[] }) {
   return (
     <div className="space-y-1">
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-neutral-400">{label}</p>
       {results.map((r) => (
         <div
           key={r.id}
@@ -864,7 +864,7 @@ function ResultGroup({ label, results }: { label: string; results: PushTestResul
             'flex items-start gap-2 px-2.5 py-2 rounded-lg text-xs',
             r.status === 'pass' ? 'bg-success-50/40' :
             r.status === 'fail' ? 'bg-error-50/40' :
-            'bg-primary-50/40',
+            'bg-neutral-50',
           )}
         >
           <span className="shrink-0 mt-0.5">
@@ -874,13 +874,13 @@ function ResultGroup({ label, results }: { label: string; results: PushTestResul
           </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
-              <span className="font-medium text-primary-700">{r.label}</span>
+              <span className="font-medium text-neutral-700">{r.label}</span>
               {r.durationMs !== undefined && (
-                <span className="text-[9px] text-primary-400 shrink-0 ml-2">{r.durationMs}ms</span>
+                <span className="text-[9px] text-neutral-400 shrink-0 ml-2">{r.durationMs}ms</span>
               )}
             </div>
             {r.detail && (
-              <p className={cn('text-[11px] mt-0.5', r.status === 'fail' ? 'text-error-600' : 'text-primary-500')}>
+              <p className={cn('text-[11px] mt-0.5', r.status === 'fail' ? 'text-error-600' : 'text-neutral-500')}>
                 {r.detail}
               </p>
             )}
@@ -943,7 +943,7 @@ function EmailTestSection() {
     <div className="space-y-4">
       {/* Template picker */}
       <div className="space-y-1.5">
-        <p className="text-xs font-medium text-primary-500">Email Template</p>
+        <p className="text-xs font-medium text-neutral-500">Email Template</p>
         <div className="flex flex-wrap gap-1.5">
           {EMAIL_TYPES.map((t) => (
             <button
@@ -952,7 +952,7 @@ function EmailTestSection() {
               onClick={() => setSelectedType(t.value)}
               className={cn(
                 'px-2.5 py-1 rounded-full text-[11px] font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.97] cursor-pointer',
-                selectedType === t.value ? 'bg-primary-600 text-white' : 'bg-primary-50 text-primary-500',
+                selectedType === t.value ? 'bg-primary-600 text-white' : 'bg-neutral-50 text-neutral-500',
               )}
             >
               {t.label}
@@ -963,24 +963,24 @@ function EmailTestSection() {
 
       {/* Recipient */}
       <div className="space-y-1.5">
-        <p className="text-xs font-medium text-primary-500">Recipient</p>
+        <p className="text-xs font-medium text-neutral-500">Recipient</p>
         <input
           type="email"
           value={recipientEmail}
           onChange={(e) => setRecipientEmail(e.target.value)}
           placeholder={user?.email ?? 'your@email.com'}
-          className="w-full h-11 px-3 rounded-xl border border-primary-200 bg-white text-sm text-primary-800 placeholder:text-primary-300 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300"
+          className="w-full h-11 px-3 rounded-xl border border-neutral-100 bg-white text-sm text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-300"
         />
-        <p className="text-[11px] text-primary-400">
+        <p className="text-[11px] text-neutral-400">
           Leave blank to send to your account email ({user?.email}).
         </p>
       </div>
 
       {/* Sample data preview */}
       <div className="space-y-1.5">
-        <p className="text-xs font-medium text-primary-500">Sample Data</p>
-        <div className="rounded-lg bg-primary-50/60 p-2.5 overflow-x-auto">
-          <pre className="text-[11px] text-primary-600 font-mono whitespace-pre-wrap break-all">
+        <p className="text-xs font-medium text-neutral-500">Sample Data</p>
+        <div className="rounded-lg bg-neutral-50 p-2.5 overflow-x-auto">
+          <pre className="text-[11px] text-neutral-600 font-mono whitespace-pre-wrap break-all">
             {JSON.stringify(selectedTemplate.sampleData, null, 2)}
           </pre>
         </div>
@@ -1045,7 +1045,7 @@ export default function DevToolsPage() {
     return (
       <div className="p-6 text-center">
         <AlertCircle className="mx-auto mb-3 text-error-400" size={32} />
-        <p className="text-sm text-primary-500">Dev tools are only available in development mode for authorised developers.</p>
+        <p className="text-sm text-neutral-500">Dev tools are only available in development mode for authorised developers.</p>
       </div>
     )
   }
@@ -1059,20 +1059,20 @@ export default function DevToolsPage() {
     >
       {/* ---- User Context ---- */}
       <motion.div variants={fadeUp}>
-        <div className="rounded-2xl bg-white p-4 shadow-sm border border-primary-100/40">
+        <div className="rounded-2xl bg-white p-4 shadow-sm border border-neutral-100">
           <div className="flex items-center gap-3 mb-3">
             <div className="flex items-center justify-center w-9 h-9 rounded-full bg-info-100 text-info-600">
               <Bug size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-primary-800">Dev Testing Panel</h3>
-              <p className="text-caption text-primary-400">
-                Signed in as <span className="font-medium text-primary-600">{profile?.display_name ?? user?.email}</span>
+              <h3 className="text-sm font-semibold text-neutral-900">Dev Testing Panel</h3>
+              <p className="text-caption text-neutral-400">
+                Signed in as <span className="font-medium text-neutral-600">{profile?.display_name ?? user?.email}</span>
                 {' '}({profile?.role ?? 'unknown'})
               </p>
             </div>
           </div>
-          <p className="text-xs text-primary-400">
+          <p className="text-xs text-neutral-400">
             Create test events happening right now, then jump into any day-of flow to test check-in, QR codes, impact logging, and surveys.
           </p>
         </div>
@@ -1080,14 +1080,14 @@ export default function DevToolsPage() {
 
       {/* ---- Seed Event Creator ---- */}
       <motion.div variants={fadeUp}>
-        <div className="rounded-2xl bg-white p-4 shadow-sm border border-primary-100/40 space-y-4">
-          <h3 className="text-sm font-semibold text-primary-800 flex items-center gap-2">
-            <Calendar size={16} className="text-primary-400" />
+        <div className="rounded-2xl bg-white p-4 shadow-sm border border-neutral-100 space-y-4">
+          <h3 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
+            <Calendar size={16} className="text-neutral-400" />
             Create Test Event (Happening Now)
           </h3>
 
           <div className="space-y-2">
-            <label className="text-xs font-medium text-primary-500">Activity Type</label>
+            <label className="text-xs font-medium text-neutral-500">Activity Type</label>
             <div className="flex flex-wrap gap-2">
               {ACTIVITY_TYPE_OPTIONS.map((opt) => (
                 <button
@@ -1099,7 +1099,7 @@ export default function DevToolsPage() {
                     'cursor-pointer select-none active:scale-[0.97]',
                     selectedActivity === opt.value
                       ? 'bg-primary-600 text-white shadow-sm'
-                      : 'bg-primary-50 text-primary-600 hover:bg-primary-100',
+                      : 'bg-neutral-50 text-neutral-600 hover:bg-neutral-50',
                   )}
                 >
                   {opt.label}
@@ -1119,7 +1119,7 @@ export default function DevToolsPage() {
             Seed "{ACTIVITY_TYPE_LABELS[selectedActivity]}" Event
           </Button>
 
-          <p className="text-[11px] text-primary-400">
+          <p className="text-[11px] text-neutral-400">
             Creates a published event (started 30m ago, ends in 2.5h) with you as leader + 8 fake attendees.
           </p>
         </div>
@@ -1127,10 +1127,10 @@ export default function DevToolsPage() {
 
       {/* ---- Active Test Events ---- */}
       <motion.div variants={fadeUp}>
-        <div className="rounded-2xl bg-white p-4 shadow-sm border border-primary-100/40 space-y-4">
+        <div className="rounded-2xl bg-white p-4 shadow-sm border border-neutral-100 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-primary-800 flex items-center gap-2">
-              <Users size={16} className="text-primary-400" />
+            <h3 className="text-sm font-semibold text-neutral-900 flex items-center gap-2">
+              <Users size={16} className="text-neutral-400" />
               Your Test Events (Today)
             </h3>
             <Button
@@ -1152,7 +1152,7 @@ export default function DevToolsPage() {
             </div>
           ) : !testEvents?.length ? (
             <div className="text-center py-6">
-              <p className="text-sm text-primary-400">No test events today. Create one above.</p>
+              <p className="text-sm text-neutral-400">No test events today. Create one above.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -1166,14 +1166,14 @@ export default function DevToolsPage() {
 
       {/* ---- Push Notification Test Suite ---- */}
       <motion.div variants={fadeUp}>
-        <div className="rounded-2xl bg-white p-4 shadow-sm border border-primary-100/40 space-y-4">
+        <div className="rounded-2xl bg-white p-4 shadow-sm border border-neutral-100 space-y-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-9 h-9 rounded-full bg-accent-100 text-accent-600">
               <Bell size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-primary-800">Push Notification Tests</h3>
-              <p className="text-[11px] text-primary-400">
+              <h3 className="text-sm font-semibold text-neutral-900">Push Notification Tests</h3>
+              <p className="text-[11px] text-neutral-400">
                 Registration, delivery, preferences, quiet hours, batching, latency.
               </p>
             </div>
@@ -1184,14 +1184,14 @@ export default function DevToolsPage() {
 
       {/* ---- Email (Resend) Test ---- */}
       <motion.div variants={fadeUp}>
-        <div className="rounded-2xl bg-white p-4 shadow-sm border border-primary-100/40 space-y-4">
+        <div className="rounded-2xl bg-white p-4 shadow-sm border border-neutral-100 space-y-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center w-9 h-9 rounded-full bg-success-100 text-success-600">
               <Mail size={18} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-primary-800">Email Test (Resend)</h3>
-              <p className="text-[11px] text-primary-400">
+              <h3 className="text-sm font-semibold text-neutral-900">Email Test (Resend)</h3>
+              <p className="text-[11px] text-neutral-400">
                 Send a test email to verify Resend is configured and delivering.
               </p>
             </div>
@@ -1202,9 +1202,9 @@ export default function DevToolsPage() {
 
       {/* ---- Quick-Nav to Flows ---- */}
       <motion.div variants={fadeUp}>
-        <div className="rounded-2xl bg-white p-4 shadow-sm border border-primary-100/40 space-y-3">
-          <h3 className="text-sm font-semibold text-primary-800">Quick Navigation</h3>
-          <p className="text-xs text-primary-400 mb-2">
+        <div className="rounded-2xl bg-white p-4 shadow-sm border border-neutral-100 space-y-3">
+          <h3 className="text-sm font-semibold text-neutral-900">Quick Navigation</h3>
+          <p className="text-xs text-neutral-400 mb-2">
             Jump directly to any day-of page. Use a test event ID from above.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -1255,57 +1255,57 @@ function TestEventCard({
   return (
     <div className={cn(
       'rounded-xl border p-3 space-y-3',
-      isActive ? 'border-success-200 bg-success-50/30' : isPast ? 'border-primary-100 bg-primary-50/30' : 'border-primary-100',
+      isActive ? 'border-success-200 bg-success-50/30' : isPast ? 'border-neutral-100 bg-neutral-50' : 'border-neutral-100',
     )}>
       <div className="flex items-start justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className={cn(
               'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold uppercase tracking-wider',
-              isActive ? 'bg-success-100 text-success-700' : isPast ? 'bg-primary-100 text-primary-500' : 'bg-info-100 text-info-600',
+              isActive ? 'bg-success-100 text-success-700' : isPast ? 'bg-neutral-100 text-neutral-500' : 'bg-info-100 text-info-600',
             )}>
               {isActive ? 'LIVE' : isPast ? 'ENDED' : 'UPCOMING'}
             </span>
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary-100 text-primary-600">
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-neutral-100 text-neutral-600">
               {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
             </span>
           </div>
-          <p className="text-sm font-medium text-primary-800 mt-1 truncate">{event.title}</p>
-          <p className="text-caption text-primary-400">
+          <p className="text-sm font-medium text-neutral-900 mt-1 truncate">{event.title}</p>
+          <p className="text-caption text-neutral-400">
             {event.collective_name} - {event.registration_count} registered
           </p>
-          <p className="text-[11px] text-primary-400 mt-0.5">
-            Your role: <span className="font-medium text-primary-600">{event.user_role ?? 'none'}</span>
-            {' '} | Status: <span className="font-medium text-primary-600">{event.user_status ?? 'not registered'}</span>
+          <p className="text-[11px] text-neutral-400 mt-0.5">
+            Your role: <span className="font-medium text-neutral-600">{event.user_role ?? 'none'}</span>
+            {' '} | Status: <span className="font-medium text-neutral-600">{event.user_status ?? 'not registered'}</span>
           </p>
         </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
         <button type="button" onClick={() => navigate(`/events/${event.id}/day`)}
-          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
-          <ClipboardCheck size={16} className="text-primary-500" />
-          <span className="text-[11px] font-medium text-primary-600">Day</span>
+          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-neutral-50 transition-colors cursor-pointer">
+          <ClipboardCheck size={16} className="text-neutral-500" />
+          <span className="text-[11px] font-medium text-neutral-600">Day</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/check-in`)}
-          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
+          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-neutral-50 transition-colors cursor-pointer">
           <QrCode size={16} className="text-success-500" />
-          <span className="text-[11px] font-medium text-primary-600">Check-In</span>
+          <span className="text-[11px] font-medium text-neutral-600">Check-In</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/impact`)}
-          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
+          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-neutral-50 transition-colors cursor-pointer">
           <TreePine size={16} className="text-success-600" />
-          <span className="text-[11px] font-medium text-primary-600">Impact</span>
+          <span className="text-[11px] font-medium text-neutral-600">Impact</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}/survey`)}
-          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
+          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-neutral-50 transition-colors cursor-pointer">
           <Star size={16} className="text-warning-500" />
-          <span className="text-[11px] font-medium text-primary-600">Survey</span>
+          <span className="text-[11px] font-medium text-neutral-600">Survey</span>
         </button>
         <button type="button" onClick={() => navigate(`/events/${event.id}`)}
-          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-primary-50 transition-colors cursor-pointer">
+          className="flex flex-col items-center justify-center gap-1 p-3 min-h-14 rounded-lg bg-white hover:bg-neutral-50 transition-colors cursor-pointer">
           <MapPin size={16} className="text-info-500" />
-          <span className="text-[11px] font-medium text-primary-600">Detail</span>
+          <span className="text-[11px] font-medium text-neutral-600">Detail</span>
         </button>
       </div>
     </div>

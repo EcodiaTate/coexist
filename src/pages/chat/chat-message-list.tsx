@@ -349,7 +349,7 @@ export function ChatMessageList({
     if (isDeleted) {
       return (
         <div className={cn('flex py-1', isSent ? 'justify-end' : 'justify-start')}>
-          <p className="text-xs italic text-primary-400 font-medium px-3.5 py-2.5 rounded-2xl bg-white/70 ring-1 ring-primary-200/50 shadow-sm">
+          <p className="text-xs italic text-neutral-400 font-medium px-3.5 py-2.5 rounded-2xl bg-neutral-50 ring-1 ring-neutral-100">
             Message removed
           </p>
         </div>
@@ -367,7 +367,7 @@ export function ChatMessageList({
     if (messageType === 'system') {
       return (
         <div className="flex justify-center py-3">
-          <p className="text-xs text-primary-500 italic font-medium bg-white/80 px-4 py-2 rounded-full shadow-sm ring-1 ring-primary-200/40">
+          <p className="text-xs text-neutral-500 italic font-medium bg-neutral-50 px-4 py-2 rounded-full ring-1 ring-neutral-100">
             {msg.content}
           </p>
         </div>
@@ -431,7 +431,7 @@ export function ChatMessageList({
           {bubble}
           {(msg as unknown as { updated_at?: string }).updated_at && (msg as unknown as { updated_at?: string }).updated_at !== msg.created_at && (
             <p className={cn(
-              'text-[11px] text-primary-400 mt-0.5',
+              'text-[11px] text-neutral-400 mt-0.5',
               isSent ? 'text-right pr-2' : 'pl-10',
             )}>
               (edited)
@@ -462,11 +462,11 @@ export function ChatMessageList({
           isChannel ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center py-12">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary-200/40">
-                  <Lock size={24} strokeWidth={2.5} className="text-white" />
+                <div className="w-14 h-14 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-4">
+                  <Lock size={24} strokeWidth={2.5} className="text-primary-500" />
                 </div>
-                <p className="text-base font-bold text-primary-900">Staff-only chat</p>
-                <p className="text-sm text-primary-500 mt-1.5">
+                <p className="text-base font-bold text-neutral-900">Staff-only chat</p>
+                <p className="text-sm text-neutral-500 mt-1.5">
                   Messages here are only visible to staff members
                 </p>
               </div>
@@ -483,7 +483,7 @@ export function ChatMessageList({
             {/* Load more indicator */}
             {isFetchingNextPage && (
               <div className="flex justify-center py-3">
-                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary-200 border-t-primary-600" />
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-neutral-200 border-t-neutral-600" />
               </div>
             )}
 
@@ -494,7 +494,7 @@ export function ChatMessageList({
                   <motion.span
                     initial={isCollective && !shouldReduceMotion ? { opacity: 0, scale: 0.9 } : false}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="rounded-full bg-white px-4 py-1.5 text-[11px] font-bold text-primary-600 shadow-md ring-1 ring-primary-200/60"
+                    className="rounded-full bg-white px-4 py-1.5 text-[11px] font-bold text-neutral-500 shadow-sm ring-1 ring-neutral-100"
                   >
                     {dateHeader(group.date)}
                   </motion.span>
@@ -534,19 +534,19 @@ export function ChatMessageList({
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.15 }}
-              className="shrink-0 px-4 pb-1.5 bg-white/90"
+              className="shrink-0 px-4 pb-1.5 bg-white"
             >
               <div className="flex items-center gap-2">
                 <div className="flex gap-1">
                   {[0, 1, 2].map((i) => (
                     <div
                       key={i}
-                      className="h-2 w-2 rounded-full bg-primary-500 animate-bounce"
+                      className="h-2 w-2 rounded-full bg-neutral-400 animate-bounce"
                       style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.6s' }}
                     />
                   ))}
                 </div>
-                <p className="text-xs text-primary-600 italic font-medium">{typingText}</p>
+                <p className="text-xs text-neutral-500 italic font-medium">{typingText}</p>
               </div>
             </motion.div>
           )}

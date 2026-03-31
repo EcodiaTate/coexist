@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const { data: staff } = await supabase
       .from('profiles')
       .select('id')
-      .in('role', ['national_leader', 'national_admin', 'super_admin'])
+      .in('role', ['national_leader', 'manager', 'admin'])
 
     if (!staff || staff.length === 0) {
       return new Response(JSON.stringify({ ok: true, notified: 0 }), {

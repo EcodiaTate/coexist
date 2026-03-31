@@ -133,7 +133,7 @@ function ContactAccordion({
   const visual = section.visual
 
   return (
-    <div className="rounded-2xl bg-white shadow-sm border border-primary-100/40 overflow-hidden">
+    <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 overflow-hidden">
       {/* Accordion header */}
       <button
         onClick={onToggle}
@@ -153,9 +153,9 @@ function ContactAccordion({
           {visual.icon}
         </span>
         <span className="flex-1 text-left">
-          <span className="text-sm font-semibold text-primary-800">{visual.title}</span>
+          <span className="text-sm font-semibold text-neutral-900">{visual.title}</span>
           {matchCount !== null && (
-            <span className="ml-2 text-xs text-primary-400">
+            <span className="ml-2 text-xs text-neutral-500">
               {matchCount} result{matchCount !== 1 ? 's' : ''}
             </span>
           )}
@@ -163,7 +163,7 @@ function ContactAccordion({
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={rm ? { duration: 0 } : { duration: 0.2 }}
-          className="text-primary-300"
+          className="text-neutral-300"
         >
           <ChevronDown size={18} />
         </motion.span>
@@ -203,11 +203,11 @@ function ContactAccordion({
                     <Phone size={16} className={visual.phoneColor} />
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-primary-800 leading-snug truncate">
+                    <p className="text-sm font-medium text-neutral-900 leading-snug truncate">
                       {contact.name}
                     </p>
                     {contact.note && (
-                      <p className="text-[11px] text-primary-400 leading-snug mt-0.5 truncate">
+                      <p className="text-[11px] text-neutral-500 leading-snug mt-0.5 truncate">
                         {contact.note}
                       </p>
                     )}
@@ -301,10 +301,10 @@ export function EmergencyContacts({ eventState }: EmergencyContactsProps) {
           <Phone size={16} />
         </span>
         <div>
-          <h3 className="font-heading text-base font-bold text-primary-800">
+          <h3 className="font-heading text-base font-bold text-neutral-900">
             Emergency Contacts
           </h3>
-          <p className="text-[11px] text-primary-400">
+          <p className="text-[11px] text-neutral-500">
             {eventState
               ? `Showing contacts for ${eventState}  tap any number to call`
               : 'Tap any number to call instantly'}
@@ -339,7 +339,7 @@ export function EmergencyContacts({ eventState }: EmergencyContactsProps) {
       {/* Loading */}
       {isLoading && (
         <div className="flex items-center justify-center py-8">
-          <Loader2 size={24} className="text-primary-400 animate-spin" />
+          <Loader2 size={24} className="text-neutral-400 animate-spin" />
         </div>
       )}
 
@@ -361,7 +361,7 @@ export function EmergencyContacts({ eventState }: EmergencyContactsProps) {
       {/* No results */}
       {!isLoading && !hasResults && (
         <div className="text-center py-6">
-          <p className="text-sm text-primary-400">No contacts matching &ldquo;{searchQuery}&rdquo;</p>
+          <p className="text-sm text-neutral-500">No contacts matching &ldquo;{searchQuery}&rdquo;</p>
         </div>
       )}
     </div>

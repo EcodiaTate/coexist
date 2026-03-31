@@ -68,7 +68,7 @@ export function ListItem({
     'transition-colors duration-100',
     isInteractive && 'cursor-pointer hover:bg-surface-3 active:bg-surface-3',
     disabled && 'opacity-50 cursor-not-allowed pointer-events-none',
-    !hideDivider && 'border-b border-primary-100/40',
+    !hideDivider && 'border-b border-neutral-100',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
     className,
   )

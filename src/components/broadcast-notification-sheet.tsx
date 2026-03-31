@@ -65,7 +65,7 @@ export function BroadcastNotificationSheet({
           </div>
           <div>
             <h3 className="text-base font-bold text-primary-900">Push Notification</h3>
-            <p className="text-xs text-primary-400">
+            <p className="text-xs text-neutral-500">
               Send to all {collectiveName ? `${collectiveName} ` : ''}members
             </p>
           </div>
@@ -125,13 +125,13 @@ export function BroadcastNotificationSheet({
             rows={3}
             maxLength={300}
           />
-          <p className="text-[11px] text-primary-400 mt-1 text-right">
+          <p className="text-[11px] text-neutral-500 mt-1 text-right">
             {body.length}/300
           </p>
         </div>
 
         {/* Warning */}
-        <p className="text-[11px] text-primary-400 mb-3 bg-primary-50 rounded-lg px-3 py-2">
+        <p className="text-[11px] text-neutral-500 mb-3 bg-primary-50 rounded-lg px-3 py-2">
           This will send a push notification to <strong>all registered members</strong> of this collective who have notifications enabled. Use sparingly.
         </p>
 

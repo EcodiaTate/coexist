@@ -481,11 +481,11 @@ function SystemTemplateEditor({
       <Header title="" back onBack={onClose} />
 
       {/* Template info header */}
-      <div className="rounded-xl bg-gradient-to-br from-primary-50 via-white to-secondary-50/30 border border-primary-200 p-4">
+      <div className="rounded-xl bg-white border border-neutral-100 p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-sm font-semibold text-primary-800">{template.label}</h3>
-            <p className="text-xs text-primary-400 mt-0.5">{template.description}</p>
+            <h3 className="text-sm font-semibold text-neutral-900">{template.label}</h3>
+            <p className="text-xs text-neutral-400 mt-0.5">{template.description}</p>
             <span className={cn(
               'inline-block mt-2 text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full',
               template.category === 'transactional' ? 'bg-info-100 text-info-700' : 'bg-secondary-100 text-secondary-700',
@@ -508,7 +508,7 @@ function SystemTemplateEditor({
 
       {/* Hero section */}
       <div className="space-y-3">
-        <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider">Hero Banner</p>
+        <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Hero Banner</p>
         <div className="grid gap-3 sm:grid-cols-[80px_1fr]">
           <Input
             label="Emoji"
@@ -533,7 +533,7 @@ function SystemTemplateEditor({
 
       {/* CTA */}
       <div className="space-y-3">
-        <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider">Call to Action</p>
+        <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Call to Action</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <Input
             label="Button Text"
@@ -552,19 +552,19 @@ function SystemTemplateEditor({
 
       {/* Custom body HTML */}
       <div className="space-y-3">
-        <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider">Body Content</p>
-        <p className="text-xs text-primary-400 leading-relaxed">
+        <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">Body Content</p>
+        <p className="text-xs text-neutral-400 leading-relaxed">
           Leave blank to use the default built-in body. Add custom HTML to fully override the email body.
           Use {'{{variable}}'} placeholders for dynamic data.
         </p>
 
         {/* Preview / HTML toggle */}
-        <div className="flex gap-1 bg-primary-50 rounded-xl p-1">
+        <div className="flex gap-1 bg-neutral-50 rounded-xl p-1">
           <button
             onClick={() => setActiveView('preview')}
             className={cn(
               'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer',
-              activeView === 'preview' ? 'bg-white shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
+              activeView === 'preview' ? 'bg-white shadow-sm text-neutral-900' : 'text-neutral-400 hover:text-neutral-600',
             )}
           >
             <Eye size={14} /> Preview
@@ -573,7 +573,7 @@ function SystemTemplateEditor({
             onClick={() => setActiveView('html')}
             className={cn(
               'flex-1 min-h-11 flex items-center justify-center gap-1.5 text-sm font-medium rounded-lg transition-colors duration-150 cursor-pointer',
-              activeView === 'html' ? 'bg-white shadow-sm text-primary-800' : 'text-primary-400 hover:text-primary-600',
+              activeView === 'html' ? 'bg-white shadow-sm text-neutral-900' : 'text-neutral-400 hover:text-neutral-600',
             )}
           >
             <Code2 size={14} /> Body HTML
@@ -582,7 +582,7 @@ function SystemTemplateEditor({
 
         {activeView === 'preview' ? (
           <div
-            className="rounded-xl bg-[#f5f7f0] border border-primary-200 shadow-sm max-h-[600px] overflow-y-auto"
+            className="rounded-xl bg-[#f5f7f0] border border-neutral-100 shadow-sm max-h-[600px] overflow-y-auto"
             dangerouslySetInnerHTML={{ __html: sanitizedPreview }}
           />
         ) : (
@@ -598,11 +598,11 @@ function SystemTemplateEditor({
       </div>
 
       {/* Available variables */}
-      <div className="rounded-xl bg-primary-50/60 border border-primary-100 p-3">
-        <p className="text-[11px] font-semibold text-primary-500 mb-2">Available Variables</p>
+      <div className="rounded-xl bg-neutral-50 border border-neutral-100 p-3">
+        <p className="text-[11px] font-semibold text-neutral-500 mb-2">Available Variables</p>
         <div className="flex flex-wrap gap-1.5">
           {Object.keys(template.sampleData).map((key) => (
-            <span key={key} className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white border border-primary-200 text-primary-600">
+            <span key={key} className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white border border-neutral-100 text-neutral-600">
               {`{{${key}}}`}
             </span>
           ))}
@@ -677,9 +677,9 @@ export function SystemTemplatesTab() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-xl bg-gradient-to-br from-primary-50 via-white to-secondary-50/30 border border-primary-200 p-4">
-        <h4 className="text-sm font-semibold text-primary-800">System Email Templates</h4>
-        <p className="text-xs text-primary-400 mt-1 leading-relaxed">
+      <div className="rounded-xl bg-white border border-neutral-100 p-4">
+        <h4 className="text-sm font-semibold text-neutral-900">System Email Templates</h4>
+        <p className="text-xs text-neutral-400 mt-1 leading-relaxed">
           Customise the hero banner, subject line, body content, and CTA for every automated email Co-Exist sends.
           Changes take effect immediately. Unmodified templates use the built-in defaults.
         </p>
@@ -725,8 +725,8 @@ function TemplateGroup({
   return (
     <div className="space-y-2">
       <div>
-        <p className="text-xs font-semibold text-primary-500 uppercase tracking-wider">{label}</p>
-        <p className="text-[11px] text-primary-400">{description}</p>
+        <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">{label}</p>
+        <p className="text-[11px] text-neutral-400">{description}</p>
       </div>
       <StaggeredList className="space-y-1.5">
         {templates.map((tpl) => {
@@ -740,13 +740,13 @@ function TemplateGroup({
                 onClick={() => onEdit(tpl)}
                 className={cn(
                   'w-full flex items-center gap-3 p-3 rounded-xl bg-white border transition-[shadow,transform] duration-150 cursor-pointer active:scale-[0.99]',
-                  isDisabled ? 'border-error-200 opacity-60' : isCustomised ? 'border-success-200 shadow-sm' : 'border-primary-100 hover:shadow-sm',
+                  isDisabled ? 'border-error-200 opacity-60' : isCustomised ? 'border-success-200 shadow-sm' : 'border-neutral-100 hover:shadow-sm',
                 )}
               >
                 <span className="text-xl shrink-0">{override?.hero_emoji || tpl.defaultEmoji}</span>
                 <div className="flex-1 min-w-0 text-left">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-primary-800 truncate">{tpl.label}</p>
+                    <p className="text-sm font-medium text-neutral-900 truncate">{tpl.label}</p>
                     {isCustomised && (
                       <span className={cn(
                         'text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full shrink-0',
@@ -756,9 +756,9 @@ function TemplateGroup({
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-primary-400 truncate mt-0.5">{override?.subject || tpl.defaultSubject}</p>
+                  <p className="text-xs text-neutral-400 truncate mt-0.5">{override?.subject || tpl.defaultSubject}</p>
                 </div>
-                <ChevronRight size={16} className="text-primary-300 shrink-0" />
+                <ChevronRight size={16} className="text-neutral-300 shrink-0" />
               </button>
             </StaggeredItem>
           )

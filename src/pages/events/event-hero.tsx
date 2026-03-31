@@ -61,8 +61,8 @@ export function EventHero({ event, past, userStatus, accent, onShare }: EventHer
               aria-hidden="true"
             />
 
-            {/* Activity badge on image */}
-            <div className="absolute top-3 right-3">
+            {/* Activity tag — floating pill, top-left */}
+            <div className="absolute top-3 left-3">
               <Badge
                 variant="activity"
                 activity={activityToBadge[event.activity_type] ?? 'workshop'}

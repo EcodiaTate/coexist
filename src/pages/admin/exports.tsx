@@ -201,7 +201,7 @@ export default function AdminExportsPage() {
       if (exportId === 'members') {
         let query = supabase
           .from('profiles')
-          .select('display_name, role, created_at')
+          .select('display_name, email, role, created_at')
           .order('created_at', { ascending: false })
           .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('created_at', dateStart)
@@ -209,17 +209,17 @@ export default function AdminExportsPage() {
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
-          ['Name', 'Role', 'Join Date'],
-          (data ?? []).map((r) => [r.display_name, r.role, r.created_at]),
+          ['Name', 'Email', 'Role', 'Join Date'],
+          (data ?? []).map((r) => [r.display_name, r.email, r.role, r.created_at]),
         )
       } else if (exportId === 'attendance') {
         let query = supabase
           .from('event_registrations')
-          .select('event_id, user_id, checked_in_at, events(title), profiles(display_name)')
-          .order('checked_in_at', { ascending: false })
+          .select('event_id, user_id, registered_at, checked_in_at, events(title), profiles(display_name)')
+          .order('registered_at', { ascending: false })
           .limit(EXPORT_ROW_LIMIT)
-        if (dateStart) query = query.gte('created_at', dateStart)
-        if (dateEnd) query = query.lte('created_at', dateEnd + 'T23:59:59')
+        if (dateStart) query = query.gte('registered_at', dateStart)
+        if (dateEnd) query = query.lte('registered_at', dateEnd + 'T23:59:59')
         const { data, error } = await query
         if (error) throw error
         csv = toCsv(
@@ -251,7 +251,7 @@ export default function AdminExportsPage() {
       } else if (exportId === 'survey') {
         let query = supabase
           .from('survey_responses')
-          .select('id, survey_id, event_id, user_id, answers, submitted_at, surveys(title), events(title)')
+          .select('id, survey_id, event_id, user_id, answers, submitted_at, surveys(title), events(title), profiles(display_name)')
           .order('submitted_at', { ascending: false })
           .limit(EXPORT_ROW_LIMIT)
         if (dateStart) query = query.gte('submitted_at', dateStart)
@@ -261,12 +261,12 @@ export default function AdminExportsPage() {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const surveyData = (data ?? []) as any[]
         csv = toCsv(
-          ['Response ID', 'Survey', 'Event', 'User ID', 'Answers', 'Submitted'],
+          ['Response ID', 'Survey', 'Event', 'Respondent', 'Answers', 'Submitted'],
           surveyData.map((r) => [
             r.id,
             r.surveys?.title ?? r.survey_id,
             r.events?.title ?? r.event_id ?? '',
-            r.user_id,
+            r.profiles?.display_name ?? r.user_id,
             JSON.stringify(r.answers),
             r.submitted_at,
           ]),
@@ -388,7 +388,7 @@ export default function AdminExportsPage() {
       <motion.div className="space-y-6" variants={stagger} initial="hidden" animate="visible">
         {/* Filters */}
         <motion.div variants={fadeUp} className="flex flex-col sm:flex-row gap-3 p-4 bg-white rounded-xl shadow-sm">
-          <div className="flex items-center gap-2 text-sm text-primary-400 shrink-0">
+          <div className="flex items-center gap-2 text-sm text-neutral-400 shrink-0">
             <Calendar size={16} />
             Filters:
           </div>
@@ -437,10 +437,10 @@ export default function AdminExportsPage() {
                   {exp.icon}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-heading text-sm font-semibold text-primary-800">
+                  <h3 className="font-heading text-sm font-semibold text-neutral-900">
                     {exp.title}
                   </h3>
-                  <p className="text-xs text-primary-400 mt-0.5">
+                  <p className="text-xs text-neutral-400 mt-0.5">
                     {exp.description}
                   </p>
                 </div>

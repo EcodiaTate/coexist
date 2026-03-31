@@ -33,13 +33,13 @@ function StatBox({
 }) {
   return (
     <div className="flex flex-1 flex-col items-center gap-1 rounded-xl bg-surface-2 px-3 py-2.5">
-      <span className="text-primary-400" aria-hidden="true">
+      <span className="text-neutral-400" aria-hidden="true">
         {icon}
       </span>
-      <span className="font-heading text-lg font-bold text-primary-800">
+      <span className="font-heading text-lg font-bold text-neutral-900">
         {value.toLocaleString()}
       </span>
-      <span className="text-[11px] font-medium text-primary-400">{label}</span>
+      <span className="text-[11px] font-medium text-neutral-500">{label}</span>
     </div>
   )
 }
@@ -94,7 +94,7 @@ export function UserCard({
               'min-h-11 min-w-11 flex items-center justify-center',
               'cursor-pointer select-none',
               'active:scale-[0.97] transition-transform duration-150',
-              'hover:bg-primary-50 hover:text-primary-400',
+              'hover:bg-primary-50 hover:text-neutral-600',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             )}
           >
@@ -106,11 +106,11 @@ export function UserCard({
             <img
               src={avatarUrl}
               alt={`${name}'s avatar`}
-              className="h-16 w-16 rounded-full object-cover ring-2 ring-primary-100"
+              className="h-16 w-16 rounded-full object-cover ring-2 ring-neutral-100"
             />
           ) : (
             <div
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-xl font-bold text-primary-400 ring-2 ring-primary-50"
+              className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100 text-xl font-bold text-neutral-500 ring-2 ring-neutral-100"
               aria-hidden="true"
             >
               {name.charAt(0).toUpperCase()}
@@ -118,13 +118,13 @@ export function UserCard({
           )}
 
           {/* Name */}
-          <h3 className="mt-2.5 font-heading text-lg font-bold text-primary-800">
+          <h3 className="mt-2.5 font-heading text-lg font-bold text-neutral-900">
             {name}
           </h3>
 
           {/* Pronouns */}
           {pronouns && (
-            <span className="text-xs text-primary-400">{pronouns}</span>
+            <span className="text-xs text-neutral-500">{pronouns}</span>
           )}
 
           {/* Tier + Collective badges */}
@@ -146,7 +146,7 @@ export function UserCard({
         <div className="space-y-2 px-5 pb-3">
           {/* Location */}
           {location && (
-            <div className="flex items-center gap-1.5 text-sm text-primary-400">
+            <div className="flex items-center gap-1.5 text-sm text-neutral-500">
               <MapPin size={14} aria-hidden="true" />
               <span>{location}</span>
             </div>
@@ -160,8 +160,8 @@ export function UserCard({
               rel="noopener noreferrer"
               aria-label={`Visit ${instagramHandle} on Instagram`}
               className={cn(
-                'flex items-center gap-1.5 text-sm text-primary-400 min-h-11',
-                'transition-colors duration-150 hover:text-primary-400',
+                'flex items-center gap-1.5 text-sm text-neutral-500 min-h-11',
+                'transition-colors duration-150 hover:text-neutral-600',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:rounded',
               )}
             >

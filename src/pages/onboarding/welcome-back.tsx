@@ -24,8 +24,6 @@ export default function WelcomeBackPage() {
   const { user, profile, markOnboardingComplete } = useAuth()
   const shouldReduceMotion = useReducedMotion()
 
-  // Mark onboarding done on mount  this page is for returning users
-  // whose profile already has onboarding_completed but the local flag was lost
   useEffect(() => { markOnboardingComplete() }, [markOnboardingComplete])
 
   const { data: missedData, isLoading, error } = useQuery({
@@ -33,7 +31,6 @@ export default function WelcomeBackPage() {
     queryFn: async () => {
       if (!user) return null
 
-      // Fetch events that happened while away
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
@@ -66,7 +63,7 @@ export default function WelcomeBackPage() {
         initial="hidden"
         animate="visible"
       >
-        {/* Wave emoji */}
+        {/* Wave icon */}
         <motion.div
           variants={{
             hidden: { scale: 0.5, opacity: 0, rotate: -20 },
@@ -74,21 +71,21 @@ export default function WelcomeBackPage() {
           }}
           className="mx-auto mb-6"
         >
-          <div className="w-20 h-20 rounded-full bg-white shadow-sm flex items-center justify-center">
-            <Hand className="w-10 h-10 text-primary-400" />
+          <div className="w-20 h-20 rounded-full bg-neutral-50 border border-neutral-100 flex items-center justify-center">
+            <Hand className="w-10 h-10 text-neutral-400" />
           </div>
         </motion.div>
 
         <motion.h1
           variants={fadeUp}
-          className="font-heading text-2xl font-bold text-primary-800 text-center"
+          className="font-heading text-2xl font-bold text-neutral-900 text-center"
         >
           Welcome back, {displayName}!
         </motion.h1>
 
         <motion.p
           variants={fadeUp}
-          className="mt-2 text-primary-400 text-center max-w-xs mx-auto"
+          className="mt-2 text-neutral-500 text-center max-w-xs mx-auto"
         >
           We missed you. Here's what's been happening while you were away.
         </motion.p>
@@ -106,33 +103,32 @@ export default function WelcomeBackPage() {
               {missedData.missedEventsCount > 0 && (
                 <motion.div
                   variants={fadeUp}
-                  className="flex items-center gap-4 p-4 rounded-xl bg-white shadow-sm"
+                  className="flex items-center gap-4 p-4 rounded-xl bg-white border border-neutral-100 shadow-sm"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-accent-100 flex items-center justify-center shrink-0">
-                    <Calendar size={20} className="text-primary-400" />
+                  <div className="w-10 h-10 rounded-lg bg-neutral-50 flex items-center justify-center shrink-0">
+                    <Calendar size={20} className="text-neutral-400" />
                   </div>
                   <div>
-                    <p className="font-semibold text-sm text-primary-800">
+                    <p className="font-semibold text-sm text-neutral-900">
                       {missedData.missedEventsCount} events happened
                     </p>
-                    <p className="text-xs text-primary-400">Your collective's been busy!</p>
+                    <p className="text-xs text-neutral-500">Your collective's been busy!</p>
                   </div>
                 </motion.div>
               )}
 
-
               <motion.div
                 variants={fadeUp}
-                className="flex items-center gap-4 p-4 rounded-xl bg-surface-2 shadow-sm"
+                className="flex items-center gap-4 p-4 rounded-xl bg-white border border-neutral-100 shadow-sm"
               >
-                <div className="w-10 h-10 rounded-lg bg-primary-200 flex items-center justify-center shrink-0">
-                  <Users size={20} className="text-primary-400" />
+                <div className="w-10 h-10 rounded-lg bg-neutral-50 flex items-center justify-center shrink-0">
+                  <Users size={20} className="text-neutral-400" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm text-primary-800">
+                  <p className="font-semibold text-sm text-neutral-900">
                     Your collective is waiting
                   </p>
-                  <p className="text-xs text-primary-400">Jump into the next event!</p>
+                  <p className="text-xs text-neutral-500">Jump into the next event!</p>
                 </div>
               </motion.div>
             </>

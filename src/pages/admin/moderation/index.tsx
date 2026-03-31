@@ -140,7 +140,7 @@ function ReportCard({
       <motion.div
         initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-2xl shadow-md overflow-hidden"
+        className="bg-white rounded-2xl shadow-sm overflow-hidden"
       >
         {/* Header */}
         <div className="flex items-center gap-3 px-4 pt-4 pb-2">
@@ -155,7 +155,7 @@ function ReportCard({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold text-primary-800">
+              <span className="text-sm font-semibold text-neutral-900">
                 {config.label} Report
               </span>
               <span className={cn(
@@ -166,12 +166,12 @@ function ReportCard({
                     ? 'bg-success-100 text-success-700'
                     : report.status === 'removed'
                       ? 'bg-error-100 text-error-700'
-                      : 'bg-white text-primary-400',
+                      : 'bg-white text-neutral-400',
               )}>
                 {report.status}
               </span>
             </div>
-            <span className="text-xs text-primary-400">
+            <span className="text-xs text-neutral-400">
               {formatDate(report.created_at!)}
             </span>
           </div>
@@ -185,10 +185,10 @@ function ReportCard({
             size="xs"
           />
           <div className="flex-1 min-w-0">
-            <span className="text-xs text-primary-400">
+            <span className="text-xs text-neutral-400">
               {report.reporter?.display_name ?? 'Unknown'}
             </span>
-            <p className="text-xs text-primary-400 truncate" title={report.reason}>
+            <p className="text-xs text-neutral-400 truncate" title={report.reason}>
               {report.reason}
             </p>
           </div>
@@ -199,7 +199,7 @@ function ReportCard({
           <div className="px-4 pb-2">
             <Link
               to={`/profile/${report.content_id}`}
-              className="text-xs font-medium text-primary-500 hover:text-primary-700 hover:underline"
+              className="text-xs font-medium text-neutral-500 hover:text-neutral-700 hover:underline"
             >
               View reported user profile &rarr;
             </Link>
@@ -208,7 +208,7 @@ function ReportCard({
 
         {/* Actions */}
         {report.status === 'pending' && (
-          <div className="flex gap-2 px-4 py-3 border-t border-primary-100/40">
+          <div className="flex gap-2 px-4 py-3 border-t border-neutral-100">
             <Button
               variant="ghost"
               size="sm"
@@ -333,7 +333,7 @@ export default function ModerationQueuePage() {
             {activeStatus === 'pending' && (
               <div className="flex items-center gap-2 px-1">
                 <AlertTriangle size={14} className="text-warning-500" aria-hidden="true" />
-                <span className="text-sm font-medium text-primary-800">
+                <span className="text-sm font-medium text-neutral-900">
                   {reports?.length ?? 0} report{(reports?.length ?? 0) !== 1 ? 's' : ''} pending review
                 </span>
               </div>

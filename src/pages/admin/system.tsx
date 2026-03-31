@@ -85,19 +85,19 @@ function UsageGauge({
       isNearLimit ? 'bg-error-50' : 'bg-white',
     )}>
       <div className="flex items-center gap-2 mb-2">
-        <span className={cn('text-primary-400', isNearLimit && 'text-error-500')}>
+        <span className={cn('text-neutral-400', isNearLimit && 'text-error-500')}>
           {icon}
         </span>
-        <span className="text-sm font-medium text-primary-800">{label}</span>
+        <span className="text-sm font-medium text-neutral-900">{label}</span>
         {isNearLimit && (
           <AlertTriangle size={14} className="text-error-500 ml-auto" />
         )}
       </div>
       <div className="flex items-end gap-1">
-        <span className="font-heading text-2xl font-bold text-primary-800 tabular-nums">
+        <span className="font-heading text-2xl font-bold text-neutral-900 tabular-nums">
           {value.toLocaleString()}
         </span>
-        <span className="text-xs text-primary-400 mb-1">
+        <span className="text-xs text-neutral-400 mb-1">
           / {limit.toLocaleString()} {unit}
         </span>
       </div>
@@ -140,7 +140,7 @@ export default function AdminSystemPage() {
         <div className="space-y-6">
           {/* Supabase Usage */}
           <motion.div variants={fadeUp}><section>
-        <h2 className="font-heading text-base font-semibold text-primary-800 mb-3">
+        <h2 className="font-heading text-base font-semibold text-neutral-900 mb-3">
           Supabase Usage
         </h2>
 
@@ -186,14 +186,14 @@ export default function AdminSystemPage() {
           {/* Per-table breakdown */}
           {stats?.counts && (
             <div className="mt-4 p-4 rounded-xl bg-white shadow-sm">
-              <h3 className="text-sm font-semibold text-primary-800 mb-3">Row Counts by Table</h3>
+              <h3 className="text-sm font-semibold text-neutral-900 mb-3">Row Counts by Table</h3>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-2">
                 {Object.entries(stats.counts)
                   .sort(([, a], [, b]) => (b as number) - (a as number))
                   .map(([table, count]) => (
                     <div key={table} className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-primary-500 font-mono truncate">{table}</span>
-                      <span className="text-sm font-semibold text-primary-800 tabular-nums">
+                      <span className="text-xs text-neutral-500 font-mono truncate">{table}</span>
+                      <span className="text-sm font-semibold text-neutral-900 tabular-nums">
                         {(count as number).toLocaleString()}
                       </span>
                     </div>

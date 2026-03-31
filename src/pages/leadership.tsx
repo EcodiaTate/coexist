@@ -88,22 +88,22 @@ export default function LeadershipPage() {
     <Page swipeBack noBackground className="!px-0 bg-white" stickyOverlay={<Header title="" back transparent className="collapse-header" />}>
       {/* Hero – layered image parallax (matches donate page pattern) */}
       <div className="relative">
-        <div className="relative w-full h-[480px] sm:h-auto overflow-hidden">
-          {/* Background layer - covers container, clips sides on narrow screens */}
+        <div className="relative w-full h-[110vw] min-h-[480px] sm:h-auto overflow-hidden">
+          {/* Background layer */}
           <div
             ref={rm ? undefined : bgRef}
-            className="absolute inset-0 sm:relative sm:inset-auto will-change-transform"
+            className="h-full will-change-transform"
           >
             <img
               src="/img/leadership-hero-bg.webp"
               alt="Co-Exist leadership landscape"
               decoding="async"
               fetchPriority="high"
-              className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
+              className="w-full h-full object-cover object-center sm:h-auto sm:object-fill block"
             />
           </div>
 
-          {/* Foreground cutout - same sizing, pinned to top */}
+          {/* Foreground cutout */}
           <div
             ref={rm ? undefined : fgRef}
             className="absolute inset-0 z-[3] will-change-transform"
@@ -112,7 +112,7 @@ export default function LeadershipPage() {
               src="/img/leadership-hero-fg.webp"
               alt=""
               decoding="async"
-              className="h-full w-auto min-w-full object-cover object-center sm:w-full sm:h-auto sm:object-fill block"
+              className="w-full h-full object-cover object-center sm:h-auto sm:object-fill block"
             />
           </div>
 

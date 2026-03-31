@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { adminVariants, expandCollapse as expandCollapseVariants } from '@/lib/admin-motion'
@@ -21,7 +21,7 @@ import {
     Sparkles,
     Settings,
 } from 'lucide-react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
@@ -46,6 +46,8 @@ import {
     useAdminRemoveFromCollective,
     useAdminUpdateCapabilities,
     useUserResolvedCapabilities,
+    useUserManagedCollectives,
+    useAdminUpdateManagedCollectives,
 } from '@/hooks/use-admin-user-roles'
 import {
     CAPABILITIES,
@@ -74,20 +76,35 @@ interface AdminUserRow {
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
 
+const PAGE_SIZE = 30
+
 function useAdminUsers(search: string, roleFilter: string) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['admin-users', search, roleFilter],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 0 }) => {
       const { data, error } = await supabase.rpc('admin_list_users', {
         search_term: search,
         role_filter: roleFilter || 'all',
-        result_limit: 50,
+        result_limit: PAGE_SIZE,
+        offset_val: pageParam,
       })
       if (error) throw error
       return (data ?? []) as AdminUserRow[]
     },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
     staleTime: 30 * 1000,
   })
+}
+
+function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timer = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+  return debounced
 }
 
 function useAllCollectives() {
@@ -110,15 +127,15 @@ const roleOptions = [
   { value: 'all', label: 'All Roles' },
   { value: 'participant', label: 'Participant' },
   { value: 'national_leader', label: 'National Leader' },
-  { value: 'national_admin', label: 'National Admin' },
-  { value: 'super_admin', label: 'Super Admin' },
+  { value: 'manager', label: 'Manager' },
+  { value: 'admin', label: 'Admin' },
 ]
 
 const roleBadgeColors: Record<string, string> = {
   participant: 'bg-primary-100 text-primary-500',
   national_leader: 'bg-info-200 text-info-800',
-  national_admin: 'bg-plum-200 text-plum-800',
-  super_admin: 'bg-error-200 text-error-800',
+  manager: 'bg-plum-200 text-plum-800',
+  admin: 'bg-error-200 text-error-800',
 }
 
 const collectiveRoleOptions: { value: CollectiveRole; label: string }[] = [
@@ -172,6 +189,8 @@ function UserSettingsSheet({
   const assignRole = useAdminAssignCollectiveRole()
   const removeFromCollective = useAdminRemoveFromCollective()
   const updateCaps = useAdminUpdateCapabilities()
+  const { data: managedCollectives } = useUserManagedCollectives(user?.role === 'manager' ? user?.id : undefined)
+  const updateManagedCollectives = useAdminUpdateManagedCollectives()
 
   const [showAddCollective, setShowAddCollective] = useState(false)
   const [addCollectiveId, setAddCollectiveId] = useState('')
@@ -189,7 +208,7 @@ function UserSettingsSheet({
     return allCollectives.filter((c) => !existing.has(c.id))
   }, [allCollectives, collectiveRoles])
 
-  const isStaffRole = user?.role === 'national_leader' || user?.role === 'national_admin' || user?.role === 'super_admin'
+  const isStaffRole = user?.role === 'national_leader' || user?.role === 'manager' || user?.role === 'admin'
   const userRole = (user?.role ?? 'participant') as UserRole
 
   const capsByCategory = useMemo(() => {
@@ -236,8 +255,17 @@ function UserSettingsSheet({
   /* ---- Optimistic cache helpers ---- */
   const patchUserInCache = useCallback(
     (userId: string, patch: Record<string, unknown>) => {
-      queryClient.setQueriesData<Record<string, unknown>[]>({ queryKey: ['admin-users'] }, (old) =>
-        old?.map((u) => (u.id === userId ? { ...u, ...patch } : u)),
+      queryClient.setQueriesData<{ pages: Record<string, unknown>[][]; pageParams: unknown[] }>(
+        { queryKey: ['admin-users'] },
+        (old) => {
+          if (!old) return old
+          return {
+            ...old,
+            pages: old.pages.map((page) =>
+              page.map((u) => (u.id === userId ? { ...u, ...patch } : u)),
+            ),
+          }
+        },
       )
     },
     [queryClient],
@@ -245,8 +273,15 @@ function UserSettingsSheet({
 
   const removeUserFromCache = useCallback(
     (userId: string) => {
-      queryClient.setQueriesData<Record<string, unknown>[]>({ queryKey: ['admin-users'] }, (old) =>
-        old?.filter((u) => u.id !== userId),
+      queryClient.setQueriesData<{ pages: Record<string, unknown>[][]; pageParams: unknown[] }>(
+        { queryKey: ['admin-users'] },
+        (old) => {
+          if (!old) return old
+          return {
+            ...old,
+            pages: old.pages.map((page) => page.filter((u) => u.id !== userId)),
+          }
+        },
       )
     },
     [queryClient],
@@ -258,19 +293,21 @@ function UserSettingsSheet({
       if (userId === currentUser?.id) {
         throw new Error('You cannot change your own role')
       }
-      if ((role === 'super_admin' || role === 'national_admin') && !isSuperAdmin) {
-        throw new Error('Only super admins can assign admin roles')
+      if ((role === 'admin' || role === 'manager') && !isSuperAdmin) {
+        throw new Error('Only admins can assign admin/manager roles')
       }
-      const { error } = await supabase
+      const { data: rows, error } = await supabase
         .from('profiles')
         .update({ role } as Record<string, unknown>)
         .eq('id', userId)
+        .select('id')
       if (error) throw error
+      if (!rows?.length) throw new Error('Role update had no effect — check RLS policies')
       await logAudit({ action: 'role_changed', target_type: 'user', target_id: userId, details: { new_role: role } })
     },
     onMutate: async ({ userId, role }) => {
       await queryClient.cancelQueries({ queryKey: ['admin-users'] })
-      const previous = queryClient.getQueriesData<Record<string, unknown>[]>({ queryKey: ['admin-users'] })
+      const previous = queryClient.getQueriesData({ queryKey: ['admin-users'] })
       patchUserInCache(userId, { role })
       setShowRoleChange(false)
       return { previous }
@@ -382,11 +419,11 @@ function UserSettingsSheet({
       <BottomSheet open={open} onClose={onClose} snapPoints={[0.92]}>
         <div className="space-y-5 pb-6">
           {/* User header */}
-          <div className="flex items-center gap-4 p-4 -mx-1 rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100/60 ring-1 ring-primary-200/40">
+          <div className="flex items-center gap-4 p-4 -mx-1 rounded-2xl bg-white border border-neutral-100">
             <Avatar src={user.avatar_url} name={user.display_name ?? ''} size="lg" />
             <div className="flex-1 min-w-0">
-              <p className="text-lg font-bold text-primary-900 truncate">{user.display_name}</p>
-              <p className="text-sm text-primary-500 truncate">{user.email}</p>
+              <p className="text-lg font-bold text-neutral-900 truncate">{user.display_name}</p>
+              <p className="text-sm text-neutral-500 truncate">{user.email}</p>
               <div className="flex items-center gap-2 mt-1.5">
                 <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full', roleBadgeColors[user.role])}>
                   {user.role?.replace(/_/g, ' ')}
@@ -408,26 +445,26 @@ function UserSettingsSheet({
               className={cn(
                 'flex items-center gap-3 p-3.5 rounded-xl transition-colors active:scale-[0.97]',
                 showRoleChange
-                  ? 'bg-primary-200 ring-1 ring-primary-300/60'
-                  : 'bg-primary-50 ring-1 ring-primary-200/40',
+                  ? 'bg-neutral-100 ring-1 ring-neutral-200'
+                  : 'bg-neutral-50 ring-1 ring-neutral-100',
               )}
             >
               <div className="w-9 h-9 rounded-lg bg-primary-200 text-primary-700 flex items-center justify-center shrink-0">
                 <UserCog size={17} />
               </div>
-              <span className="text-sm font-semibold text-primary-800">Change Role</span>
+              <span className="text-sm font-semibold text-neutral-900">Change Role</span>
             </button>
 
             <button
               type="button"
               onClick={() => user.email && resetPasswordMutation.mutate(user.email)}
               disabled={resetPasswordMutation.isPending}
-              className="flex items-center gap-3 p-3.5 rounded-xl bg-primary-50 ring-1 ring-primary-200/40 transition-colors active:scale-[0.97]"
+              className="flex items-center gap-3 p-3.5 rounded-xl bg-neutral-50 ring-1 ring-neutral-100 transition-colors active:scale-[0.97]"
             >
               <div className="w-9 h-9 rounded-lg bg-primary-200 text-primary-700 flex items-center justify-center shrink-0">
                 <KeyRound size={17} />
               </div>
-              <span className="text-sm font-semibold text-primary-800">Reset Password</span>
+              <span className="text-sm font-semibold text-neutral-900">Reset Password</span>
             </button>
 
             {user.is_suspended ? (
@@ -484,7 +521,7 @@ function UserSettingsSheet({
                 exit="exit"
                 className="overflow-hidden"
               >
-                <div className="p-3.5 bg-primary-50 rounded-xl ring-1 ring-primary-200/50 space-y-3">
+                <div className="p-3.5 bg-neutral-50 rounded-xl ring-1 ring-neutral-100 space-y-3">
                   <Dropdown
                     options={roleOptions.filter((o) => o.value !== 'all')}
                     value={newRole}
@@ -544,7 +581,7 @@ function UserSettingsSheet({
           <div>
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-primary-900">Collective Roles</h3>
+                <h3 className="text-sm font-bold text-neutral-900">Collective Roles</h3>
                 {activeRoles.length > 0 && (
                   <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-primary-200 text-primary-700">
                     {activeRoles.length}
@@ -557,8 +594,8 @@ function UserSettingsSheet({
                 className={cn(
                   'flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg transition-colors active:scale-[0.97]',
                   showAddCollective
-                    ? 'bg-primary-200 text-primary-800'
-                    : 'bg-primary-100 text-primary-600',
+                    ? 'bg-neutral-200 text-neutral-900'
+                    : 'bg-neutral-100 text-neutral-600',
                 )}
               >
                 {showAddCollective ? <X size={13} /> : <Plus size={13} />}
@@ -576,7 +613,7 @@ function UserSettingsSheet({
                   exit="exit"
                   className="overflow-hidden"
                 >
-                  <div className="mb-3 p-3.5 bg-primary-50 rounded-xl ring-1 ring-primary-200/50 space-y-2.5">
+                  <div className="mb-3 p-3.5 bg-neutral-50 rounded-xl ring-1 ring-neutral-100 space-y-2.5">
                     <Dropdown
                       options={availableCollectives.map((c) => ({ value: c.id, label: `${c.name}${c.state ? ` (${c.state})` : ''}` }))}
                       value={addCollectiveId}
@@ -645,8 +682,8 @@ function UserSettingsSheet({
                         <Icon size={15} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-primary-900 truncate">{membership.collective.name}</p>
-                        <p className="text-[11px] text-primary-500">
+                        <p className="text-sm font-semibold text-neutral-900 truncate">{membership.collective.name}</p>
+                        <p className="text-[11px] text-neutral-500">
                           {membership.role.replace(/_/g, ' ')}
                           {membership.collective.state && ` · ${membership.collective.state}`}
                         </p>
@@ -676,7 +713,7 @@ function UserSettingsSheet({
                             },
                           )
                         }
-                        className="p-2.5 rounded-lg text-primary-400 active:bg-error-100 active:text-error-600 shrink-0 transition-colors"
+                        className="p-2.5 rounded-lg text-neutral-400 active:bg-error-100 active:text-error-600 shrink-0 transition-colors"
                         title="Remove from collective"
                       >
                         <X size={14} />
@@ -688,7 +725,65 @@ function UserSettingsSheet({
             )}
           </div>
 
-          {/* Capabilities / Permissions Section - super_admin only */}
+          {/* Managed Collectives - shown for managers, editable by admin */}
+          {user.role === 'manager' && isSuperAdmin && allCollectives && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-9 h-9 rounded-lg bg-plum-200 text-plum-700 flex items-center justify-center shrink-0">
+                  <Settings size={15} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-plum-900">Managed Collectives</h3>
+                  <p className="text-[11px] text-plum-600">
+                    Which collectives this manager oversees
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {allCollectives.map((collective) => {
+                  const isManaged = managedCollectives?.includes(collective.id) ?? false
+                  return (
+                    <label
+                      key={collective.id}
+                      className={cn(
+                        'flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors',
+                        isManaged
+                          ? 'bg-plum-50 ring-1 ring-plum-200/60'
+                          : 'bg-white ring-1 ring-neutral-100 hover:bg-neutral-50',
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isManaged}
+                        onChange={() => {
+                          const current = managedCollectives ?? []
+                          const next = isManaged
+                            ? current.filter((id) => id !== collective.id)
+                            : [...current, collective.id]
+                          updateManagedCollectives.mutate(
+                            { userId: user.id, collectiveIds: next },
+                            {
+                              onSuccess: () => toast.success('Managed collectives updated'),
+                              onError: () => toast.error('Failed to update managed collectives'),
+                            },
+                          )
+                        }}
+                        className="w-5 h-5 rounded border-plum-300 text-plum-600 focus:ring-plum-500"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-neutral-900 truncate">{collective.name}</p>
+                        {collective.state && (
+                          <p className="text-[11px] text-neutral-500">{collective.state}{collective.region ? ` · ${collective.region}` : ''}</p>
+                        )}
+                      </div>
+                    </label>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Capabilities / Permissions Section - admin only */}
           {isSuperAdmin && isStaffRole && (
             <div>
               <button
@@ -733,16 +828,16 @@ function UserSettingsSheet({
                       </div>
                     ) : (
                       <div className="mt-3 space-y-4">
-                        <p className="text-[11px] text-primary-500 px-1">
-                          Defaults from <strong className="text-primary-700">{userRole.replace(/_/g, ' ')}</strong> role.
+                        <p className="text-[11px] text-neutral-500 px-1">
+                          Defaults from <strong className="text-neutral-700">{userRole.replace(/_/g, ' ')}</strong> role.
                           Toggle to override.
                         </p>
                         {Object.entries(capsByCategory).map(([category, caps]) => (
                           <div key={category}>
-                            <p className="text-[11px] uppercase tracking-wider font-bold text-primary-400 mb-2 px-1">
+                            <p className="text-[11px] uppercase tracking-wider font-bold text-neutral-400 mb-2 px-1">
                               {CATEGORY_LABELS[category as keyof typeof CATEGORY_LABELS]}
                             </p>
-                            <div className="rounded-xl overflow-hidden ring-1 ring-primary-100/60">
+                            <div className="rounded-xl overflow-hidden ring-1 ring-neutral-100">
                               {caps.map((cap, i) => {
                                 const isEnabled = capsData?.capabilities.has(cap.key) ?? false
                                 const isDefault = ROLE_DEFAULT_CAPS[userRole].includes(cap.key)
@@ -752,7 +847,7 @@ function UserSettingsSheet({
                                     key={cap.key}
                                     className={cn(
                                       'flex items-center justify-between px-3.5 py-3',
-                                      i > 0 && 'border-t border-primary-100/40',
+                                      i > 0 && 'border-t border-neutral-100',
                                       isOverridden
                                         ? isEnabled ? 'bg-success-50/60' : 'bg-error-50/40'
                                         : 'bg-white',
@@ -765,7 +860,7 @@ function UserSettingsSheet({
                                         ) : (
                                           <XCircle size={13} className="text-neutral-300 shrink-0" />
                                         )}
-                                        <p className={cn('text-sm', isEnabled ? 'text-primary-800 font-medium' : 'text-primary-500')}>
+                                        <p className={cn('text-sm', isEnabled ? 'text-neutral-900 font-medium' : 'text-neutral-500')}>
                                           {cap.label}
                                         </p>
                                         {isOverridden && (
@@ -777,12 +872,12 @@ function UserSettingsSheet({
                                           </span>
                                         )}
                                         {!isOverridden && isDefault && (
-                                          <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-500">
+                                          <span className="text-[9px] font-medium px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-500">
                                             default
                                           </span>
                                         )}
                                       </div>
-                                      <p className="text-[11px] text-primary-400 ml-[21px]">{cap.description}</p>
+                                      <p className="text-[11px] text-neutral-400 ml-[21px]">{cap.description}</p>
                                     </div>
                                     <Toggle
                                       checked={isEnabled}
@@ -824,6 +919,7 @@ function UserSettingsSheet({
 
 export default function AdminUsersPage() {
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
   const [roleFilter, setRoleFilter] = useState('all')
   const [settingsUser, setSettingsUser] = useState<AdminUserRow | null>(null)
   const [profileUserId, setProfileUserId] = useState<string | null>(null)
@@ -832,7 +928,8 @@ export default function AdminUsersPage() {
   const queryClient = useQueryClient()
   const { toast } = useToast()
 
-  const { data: users, isLoading } = useAdminUsers(search, roleFilter)
+  const { data, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage } = useAdminUsers(debouncedSearch, roleFilter)
+  const users = useMemo(() => data?.pages.flatMap((p) => p) ?? [], [data])
   const showLoading = useDelayedLoading(isLoading)
   useAdminHeader('User Management')
 
@@ -871,8 +968,8 @@ export default function AdminUsersPage() {
 
       {/* Bulk actions */}
       {selectedUsers.size > 0 && (
-        <motion.div variants={fadeUp} className="flex items-center gap-2 mb-4 p-3 bg-primary-100 rounded-xl ring-1 ring-primary-200/60">
-          <span className="text-sm text-primary-700 font-semibold">
+        <motion.div variants={fadeUp} className="flex items-center gap-2 mb-4 p-3 bg-neutral-50 rounded-xl ring-1 ring-neutral-100">
+          <span className="text-sm text-neutral-700 font-semibold">
             {selectedUsers.size} selected
           </span>
           <Button
@@ -912,6 +1009,7 @@ export default function AdminUsersPage() {
           description={search ? 'Try a different search term' : 'No users match the filter'}
         />
       ) : (
+        <>
         <StaggeredList className="space-y-1.5">
           {users.map((user) => (
             <StaggeredItem
@@ -921,8 +1019,8 @@ export default function AdminUsersPage() {
                 'transition-colors duration-200',
                 user.is_suspended
                   ? 'bg-error-50 ring-1 ring-error-200/60 opacity-70'
-                  : 'bg-gradient-to-r from-primary-50 to-moss-50/60 ring-1 ring-primary-200/50 shadow-sm',
-                selectedUsers.has(user.id) && 'ring-2 ring-primary-500 shadow-md',
+                  : 'bg-white border border-neutral-100 shadow-sm',
+                selectedUsers.has(user.id) && 'ring-2 ring-primary-500 shadow-sm',
               )}
             >
               {/* Checkbox */}
@@ -930,7 +1028,7 @@ export default function AdminUsersPage() {
                 type="checkbox"
                 checked={selectedUsers.has(user.id)}
                 onChange={() => toggleUserSelection(user.id)}
-                className="w-5 h-5 rounded border-primary-200 text-primary-600 focus:ring-primary-500"
+                className="w-5 h-5 rounded border-neutral-200 text-primary-600 focus:ring-primary-500"
                 aria-label={`Select ${user.display_name}`}
               />
 
@@ -943,7 +1041,7 @@ export default function AdminUsersPage() {
                 <Avatar src={user.avatar_url} name={user.display_name ?? ''} size="sm" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-primary-900 truncate">
+                    <p className="text-sm font-semibold text-neutral-900 truncate">
                       {user.display_name ?? 'Unknown'}
                     </p>
                     <span className={cn('text-[11px] font-semibold px-1.5 py-0.5 rounded-full shrink-0', roleBadgeColors[user.role] ?? roleBadgeColors.participant)}>
@@ -955,7 +1053,7 @@ export default function AdminUsersPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-primary-500 truncate">{user.email}</p>
+                  <p className="text-xs text-neutral-500 truncate">{user.email}</p>
                 </div>
               </button>
 
@@ -963,7 +1061,7 @@ export default function AdminUsersPage() {
               <button
                 type="button"
                 onClick={() => setSettingsUser(user)}
-                className="p-2.5 rounded-xl bg-primary-50 text-primary-500 active:bg-primary-200 active:text-primary-700 transition-colors shrink-0"
+                className="p-2.5 rounded-xl bg-neutral-50 text-neutral-500 active:bg-neutral-200 active:text-neutral-700 transition-colors shrink-0"
                 title="User settings"
               >
                 <Settings size={18} />
@@ -971,6 +1069,20 @@ export default function AdminUsersPage() {
             </StaggeredItem>
           ))}
         </StaggeredList>
+
+        {hasNextPage && (
+          <div className="flex justify-center mt-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => fetchNextPage()}
+              loading={isFetchingNextPage}
+            >
+              Load more
+            </Button>
+          </div>
+        )}
+        </>
       )}
       </motion.div>
 

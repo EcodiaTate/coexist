@@ -26,6 +26,9 @@ const DownloadPage = lazy(() => import('@/pages/public/download'))
 const AccountDeletionPage = lazy(() => import('@/pages/public/account-deletion'))
 const DataDeletionPage = lazy(() => import('@/pages/public/data-deletion'))
 
+// Design showcase (dev only)
+const EventEditorialShowcase = lazy(() => import('@/pages/design/event-editorial'))
+
 // Legal
 const TermsOfServicePage = lazy(() => import('@/pages/legal/terms'))
 const PrivacyPolicyPage = lazy(() => import('@/pages/legal/privacy'))
@@ -76,8 +79,8 @@ const EditProfilePage = lazy(() => import('@/pages/profile/edit-profile'))
 
 const ReferralPage = lazy(() => import('@/pages/referral/index'))
 
-// Events
-const EventsPage = lazy(() => import('@/pages/events/index'))
+// Explore (unified events + collectives page)
+const ExplorePage = lazy(() => import('@/pages/events/index'))
 const EventDetailPage = lazy(() => import('@/pages/events/event-detail'))
 const CreateEventPage = lazy(() => import('@/pages/events/create-event'))
 const CheckInPage = lazy(() => import('@/pages/events/check-in'))
@@ -86,6 +89,8 @@ const EventDayPage = lazy(() => import('@/pages/events/event-day'))
 const LogImpactPage = lazy(() => import('@/pages/events/log-impact'))
 const PostEventSurveyPage = lazy(() => import('@/pages/events/post-event-survey'))
 const EditEventPage = lazy(() => import('@/pages/events/edit-event'))
+const TicketConfirmationPage = lazy(() => import('@/pages/events/ticket-confirmation'))
+const MyTicketsPage = lazy(() => import('@/pages/events/my-tickets'))
 
 // Notifications
 const NotificationsPage = lazy(() => import('@/pages/notifications/index'))
@@ -353,7 +358,8 @@ function App() {
 
           {/* ---- Member pages (with PageTransition) ---- */}
           <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
-          <Route path="/events" element={<PageTransition><EventsPage /></PageTransition>} />
+          <Route path="/explore" element={<PageTransition><ExplorePage /></PageTransition>} />
+          <Route path="/events" element={<Navigate to="/explore" replace />} />
           <Route path="/events/create" element={<PageTransition><CreateEventPage /></PageTransition>} />
           <Route path="/events/:id" element={<PageTransition><EventDetailPage /></PageTransition>} />
           <Route path="/events/:id/check-in" element={<PageTransition><CheckInPage /></PageTransition>} />
@@ -362,7 +368,8 @@ function App() {
           <Route path="/events/:id/impact" element={<PageTransition><LogImpactPage /></PageTransition>} />
           <Route path="/events/:id/survey" element={<PageTransition><PostEventSurveyPage /></PageTransition>} />
           <Route path="/events/:id/edit" element={<PageTransition><EditEventPage /></PageTransition>} />
-          <Route path="/collectives" element={<PageTransition><DiscoverCollectivesPage /></PageTransition>} />
+          <Route path="/events/:id/ticket-confirmation" element={<PageTransition><TicketConfirmationPage /></PageTransition>} />
+          <Route path="/collectives" element={<Navigate to="/explore?tab=collectives" replace />} />
           <Route path="/collectives/:slug" element={<PageTransition><CollectiveDetailPage /></PageTransition>} />
           <Route path="/collectives/:slug/manage" element={<PageTransition><CollectiveManagePage /></PageTransition>} />
           <Route path="/tasks" element={<PageTransition><TasksPage /></PageTransition>} />
@@ -371,6 +378,7 @@ function App() {
           <Route path="/chat/:collectiveId" element={<PageTransition><ChatRoomPage /></PageTransition>} />
           <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
           <Route path="/profile/edit" element={<PageTransition><EditProfilePage /></PageTransition>} />
+          <Route path="/profile/tickets" element={<PageTransition><MyTicketsPage /></PageTransition>} />
           <Route path="/profile/:userId" element={<PageTransition><ViewProfilePage /></PageTransition>} />
           <Route path="/impact" element={<Navigate to="/profile" replace />} />
           <Route path="/referral" element={<PageTransition><ReferralPage /></PageTransition>} />
@@ -417,7 +425,7 @@ function App() {
             <Route path="collectives/:collectiveId" element={<RequireCapability cap="manage_collectives"><AdminCollectiveDetailPage /></RequireCapability>} />
             <Route path="users" element={<RequireCapability cap="manage_users"><AdminUsersPage /></RequireCapability>} />
             <Route path="create" element={<RequireCapability cap="manage_workflows"><AdminCreatePage /></RequireCapability>} />
-            <Route path="updates" element={<RequireRole minRole="national_admin"><AdminUpdatesPage /></RequireRole>} />
+            <Route path="updates" element={<RequireCapability cap="send_announcements"><AdminUpdatesPage /></RequireCapability>} />
             <Route path="tasks" element={<RequireCapability cap="manage_workflows"><AdminWorkflowsPage /></RequireCapability>} />
             <Route path="events" element={<RequireCapability cap="manage_events"><AdminEventsPage /></RequireCapability>} />
             <Route path="events/create" element={<RequireCapability cap="manage_events"><CreateEventPage /></RequireCapability>} />
@@ -554,6 +562,9 @@ function App() {
             </AppShell>
           }
         />
+
+        {/* Design showcase (dev only) */}
+        <Route path="/design/events" element={<EventEditorialShowcase />} />
 
         {/* Catch-all: redirect to welcome */}
         <Route

@@ -33,6 +33,7 @@ import {
     Pencil,
     ClipboardList,
     Bell,
+    Ticket,
 } from 'lucide-react'
 import { EventHero, EventHeroOverlay } from './event-hero'
 import { EventActions } from './event-actions'
@@ -69,6 +70,8 @@ import { cn } from '@/lib/cn'
 import { parseLocationPoint } from '@/lib/geo'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
+import { useEventTicketTypes, useMyEventTicket, useCreateTicketCheckout, useCancelPendingTicket, useTicketSalesSummary, useEventTickets } from '@/hooks/use-event-tickets'
+import { getStripe } from '@/lib/stripe'
 import { MapView } from '@/components'
 
 /* ------------------------------------------------------------------ */
@@ -124,51 +127,51 @@ function EventDetailSkeleton() {
         {/* Hero shimmer */}
         <div className="relative -mx-4 lg:-mx-6">
           <div className="w-full overflow-hidden animate-pulse" style={{ aspectRatio: '3/4', maxHeight: '56vh' }}>
-            <div className="absolute inset-0 bg-gradient-to-br from-primary-200/40 via-moss-200/30 to-sprout-200/40" />
+            <div className="absolute inset-0 bg-neutral-100" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
           </div>
         </div>
         <div className="pt-5 space-y-4">
           {/* Info card shimmer */}
-          <div className="rounded-2xl bg-white/60 border border-sprout-200/30 p-5 space-y-4 animate-pulse">
+          <div className="rounded-2xl bg-white border border-neutral-100 p-5 space-y-4 animate-pulse">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sprout-100/60" />
+              <div className="w-10 h-10 rounded-xl bg-neutral-100" />
               <div className="flex-1 space-y-2">
-                <div className="h-3.5 bg-primary-100/50 rounded w-2/3" />
-                <div className="h-3 bg-primary-100/30 rounded w-1/3" />
+                <div className="h-3.5 bg-neutral-100 rounded w-2/3" />
+                <div className="h-3 bg-neutral-50 rounded w-1/3" />
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sprout-100/60" />
+              <div className="w-10 h-10 rounded-xl bg-neutral-100" />
               <div className="flex-1 space-y-2">
-                <div className="h-3.5 bg-primary-100/50 rounded w-3/4" />
-                <div className="h-3 bg-primary-100/30 rounded w-1/2" />
+                <div className="h-3.5 bg-neutral-100 rounded w-3/4" />
+                <div className="h-3 bg-neutral-50 rounded w-1/2" />
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-sprout-100/60" />
+              <div className="w-10 h-10 rounded-xl bg-neutral-100" />
               <div className="flex-1 space-y-2">
-                <div className="h-3.5 bg-primary-100/50 rounded w-1/2" />
-                <div className="h-3 bg-primary-100/30 rounded w-3/5" />
+                <div className="h-3.5 bg-neutral-100 rounded w-1/2" />
+                <div className="h-3 bg-neutral-50 rounded w-3/5" />
               </div>
             </div>
           </div>
           {/* Capacity shimmer */}
-          <div className="rounded-2xl bg-white/60 border border-primary-200/30 p-4 space-y-3 animate-pulse">
-            <div className="h-4 bg-primary-100/40 rounded w-1/3" />
-            <div className="h-3 bg-primary-100/30 rounded-full w-full" />
+          <div className="rounded-2xl bg-white border border-neutral-100 p-4 space-y-3 animate-pulse">
+            <div className="h-4 bg-neutral-100 rounded w-1/3" />
+            <div className="h-3 bg-neutral-50 rounded-full w-full" />
             <div className="flex -space-x-2">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="w-8 h-8 rounded-full bg-primary-100/40 ring-2 ring-white" />
+                <div key={i} className="w-8 h-8 rounded-full bg-neutral-100 ring-2 ring-white" />
               ))}
             </div>
           </div>
           {/* Description shimmer */}
-          <div className="rounded-2xl bg-white/60 border border-primary-200/30 p-4 space-y-2 animate-pulse">
-            <div className="h-4 bg-primary-100/40 rounded w-1/4" />
-            <div className="h-3 bg-primary-100/30 rounded w-full" />
-            <div className="h-3 bg-primary-100/30 rounded w-5/6" />
-            <div className="h-3 bg-primary-100/30 rounded w-2/3" />
+          <div className="rounded-2xl bg-white border border-neutral-100 p-4 space-y-2 animate-pulse">
+            <div className="h-4 bg-neutral-100 rounded w-1/4" />
+            <div className="h-3 bg-neutral-50 rounded w-full" />
+            <div className="h-3 bg-neutral-50 rounded w-5/6" />
+            <div className="h-3 bg-neutral-50 rounded w-2/3" />
           </div>
         </div>
       </div>
@@ -177,7 +180,7 @@ function EventDetailSkeleton() {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Glass info chip                                                    */
+/*  Info chip                                                          */
 /* ------------------------------------------------------------------ */
 
 function InfoChip({
@@ -206,8 +209,8 @@ function InfoChip({
         {icon}
       </span>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">{label}</p>
-        <p className="text-[15px] font-bold text-primary-800 break-words leading-snug mt-0.5">{value}</p>
+        <p className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">{label}</p>
+        <p className="text-[15px] font-bold text-neutral-900 break-words leading-snug mt-0.5">{value}</p>
       </div>
       {action && (
         <button
@@ -216,7 +219,7 @@ function InfoChip({
           className={cn(
             'min-h-11 flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl text-[13px] font-bold shrink-0 mt-0.5',
             'cursor-pointer select-none active:scale-[0.97] transition-transform duration-150',
-            accent.bg, accent.text, accent.border, 'border',
+            'bg-neutral-100 text-neutral-600 border-neutral-200 border',
             'hover:shadow-sm',
           )}
           aria-label={action.label}
@@ -232,6 +235,92 @@ function InfoChip({
 /* ------------------------------------------------------------------ */
 /*  Page Component                                                     */
 /* ------------------------------------------------------------------ */
+
+/* ------------------------------------------------------------------ */
+/*  Ticket Sales Section (leaders/admins only)                         */
+/* ------------------------------------------------------------------ */
+
+function TicketSalesSection({
+  eventId,
+  accent,
+  rm,
+}: {
+  eventId: string
+  accent: { bg: string; text: string; border: string; gradient: string; glow: string }
+  rm: boolean | null
+}) {
+  const { data: summary } = useTicketSalesSummary(eventId)
+  const { data: tickets } = useEventTickets(eventId)
+
+  if (!summary) return null
+
+  const revenueAud = (summary.totalRevenue / 100).toFixed(2)
+
+  return (
+    <motion.div
+      variants={rm ? undefined : { hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.25 } } }}
+      className="rounded-2xl p-4.5 space-y-3 bg-white border border-neutral-100 shadow-sm"
+    >
+      <div className="flex items-center gap-2">
+        <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', accent.bg)}>
+          <Ticket size={14} className={accent.text} />
+        </div>
+        <h3 className="text-sm font-bold text-neutral-900">Ticket Sales</h3>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        <div className="rounded-xl bg-success-50 p-3 text-center">
+          <p className="font-heading text-lg font-bold text-success-700">${revenueAud}</p>
+          <p className="text-[10px] text-success-500 font-semibold uppercase">Revenue</p>
+        </div>
+        <div className="rounded-xl bg-primary-50 p-3 text-center">
+          <p className="font-heading text-lg font-bold text-primary-700">{summary.totalSold}</p>
+          <p className="text-[10px] text-primary-400 font-semibold uppercase">Sold</p>
+        </div>
+        <div className="rounded-xl bg-moss-50 p-3 text-center">
+          <p className="font-heading text-lg font-bold text-moss-700">{summary.totalCheckedIn}</p>
+          <p className="text-[10px] text-moss-500 font-semibold uppercase">Checked In</p>
+        </div>
+      </div>
+
+      {/* Recent ticket holders */}
+      {tickets && tickets.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">Ticket Holders</p>
+          <div className="max-h-[180px] overflow-y-auto space-y-1">
+            {tickets.slice(0, 20).map((t) => {
+              const profile = t.profiles as unknown as { display_name: string; email: string } | null
+              return (
+                <div key={t.id} className="flex items-center gap-2.5 py-1.5 px-2 rounded-lg hover:bg-neutral-50">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-neutral-800 truncate">
+                      {profile?.display_name ?? profile?.email ?? 'Unknown'}
+                    </p>
+                    <p className="text-[10px] text-neutral-400">
+                      {(t.event_ticket_types as unknown as { name: string } | null)?.name ?? ''} · ${((t.price_cents ?? 0) / 100).toFixed(2)}
+                    </p>
+                  </div>
+                  <span className={cn(
+                    'text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase',
+                    t.status === 'confirmed' ? 'bg-success-100 text-success-700'
+                      : t.status === 'checked_in' ? 'bg-moss-100 text-moss-700'
+                      : t.status === 'pending' ? 'bg-warning-100 text-warning-700'
+                      : 'bg-error-100 text-error-700',
+                  )}>
+                    {t.status === 'checked_in' ? 'In' : t.status}
+                  </span>
+                  {t.ticket_code && (
+                    <span className="font-mono text-[9px] text-neutral-300">{t.ticket_code}</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </motion.div>
+  )
+}
 
 export default function EventDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -249,6 +338,14 @@ export default function EventDetailPage() {
   const cancelEventMutation = useCancelEvent()
   const duplicateEventMutation = useDuplicateEvent()
   const inviteCollectiveMutation = useInviteCollective()
+
+  // Ticketed events
+  const isTicketed = event?.is_ticketed ?? false
+  const { data: ticketTypes } = useEventTicketTypes(isTicketed ? id : undefined)
+  const { data: myTicket } = useMyEventTicket(isTicketed ? id : undefined)
+  const ticketCheckout = useCreateTicketCheckout()
+  const cancelPendingTicket = useCancelPendingTicket()
+  const [selectedTicketType, setSelectedTicketType] = useState<string | null>(null)
 
   const [showCancelSheet, setShowCancelSheet] = useState(false)
   const [showCalendarSheet, setShowCalendarSheet] = useState(false)
@@ -535,6 +632,167 @@ export default function EventDetailPage() {
       )
     }
 
+    // ── Ticketed events: show ticket selector ──
+    if (isTicketed) {
+      if (myTicket && (myTicket.status === 'confirmed' || myTicket.status === 'checked_in')) {
+        return (
+          <div className="space-y-2">
+            <div className={cn(
+              'flex items-center gap-2.5 px-5 py-3.5 rounded-2xl text-sm font-bold border',
+              accent.bg, accent.text, accent.border,
+            )}>
+              <CheckCircle2 size={18} />
+              <div className="flex-1 min-w-0">
+                <p>You have a ticket</p>
+                {myTicket.ticket_code && (
+                  <p className="text-xs font-mono opacity-70 mt-0.5">{myTicket.ticket_code}</p>
+                )}
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              fullWidth
+              onClick={() => navigate(`/events/${event.id}/ticket-confirmation?ticket_id=${myTicket.id}`)}
+            >
+              View Ticket
+            </Button>
+          </div>
+        )
+      }
+
+      if (myTicket && myTicket.status === 'pending') {
+        // Check if the pending ticket is stale (older than 30 min)
+        const pendingAge = Date.now() - new Date(myTicket.created_at).getTime()
+        const isStale = pendingAge > 30 * 60 * 1000
+
+        return (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5 px-5 py-3.5 rounded-2xl bg-warning-50 text-warning-700 text-sm font-bold border border-warning-200/40">
+              <Clock size={18} />
+              {isStale ? 'Your checkout session has expired' : 'Payment pending — complete your checkout'}
+            </div>
+            <div className="flex gap-2">
+              {!isStale && myTicket.stripe_checkout_session_id && (
+                <Button
+                  variant="primary"
+                  size="md"
+                  fullWidth
+                  onClick={async () => {
+                    // Try to resume — create a new checkout since Stripe sessions expire
+                    try {
+                      const result = await ticketCheckout.mutateAsync({
+                        eventId: event.id,
+                        ticketTypeId: myTicket.ticket_type_id,
+                      })
+                      if (result.url) window.location.href = result.url
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : 'Failed to resume checkout')
+                    }
+                  }}
+                  loading={ticketCheckout.isPending}
+                  className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
+                >
+                  Retry Checkout
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="md"
+                fullWidth={!myTicket.stripe_checkout_session_id || isStale}
+                onClick={() => {
+                  cancelPendingTicket.mutate({ ticketId: myTicket.id, eventId: event.id })
+                }}
+                loading={cancelPendingTicket.isPending}
+              >
+                {isStale ? 'Clear & Try Again' : 'Cancel'}
+              </Button>
+            </div>
+          </div>
+        )
+      }
+
+      // No ticket — show ticket type selector
+      return (
+        <div className="space-y-3">
+          {(ticketTypes ?? []).map((tt) => {
+            const soldOut = tt.remaining !== null && tt.remaining <= 0
+            const selected = selectedTicketType === tt.id
+            const notOnSale = (tt.sale_start && new Date(tt.sale_start) > new Date()) || (tt.sale_end && new Date(tt.sale_end) < new Date())
+
+            return (
+              <button
+                key={tt.id}
+                type="button"
+                disabled={soldOut || !!notOnSale}
+                onClick={() => setSelectedTicketType(selected ? null : tt.id)}
+                className={cn(
+                  'w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border text-left transition-all cursor-pointer',
+                  selected
+                    ? `${accent.border} ${accent.bg}`
+                    : 'border-neutral-100 bg-white hover:bg-neutral-50',
+                  (soldOut || notOnSale) && 'opacity-50 cursor-not-allowed',
+                )}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-primary-800">{tt.name}</p>
+                  {tt.description && <p className="text-xs text-primary-400 mt-0.5">{tt.description}</p>}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm font-bold text-primary-800">
+                      {tt.price_cents === 0 ? 'Free' : `$${(tt.price_cents / 100).toFixed(2)}`}
+                    </span>
+                    {tt.remaining !== null && !soldOut && (
+                      <span className="text-[11px] text-primary-400">{tt.remaining} left</span>
+                    )}
+                    {soldOut && <span className="text-[11px] font-semibold text-error-500">Sold out</span>}
+                    {notOnSale && !soldOut && <span className="text-[11px] text-primary-400">Not on sale</span>}
+                  </div>
+                </div>
+                <div className={cn(
+                  'w-5 h-5 rounded-full border-2 shrink-0 transition-colors',
+                  selected ? `${accent.border} ${accent.bg}` : 'border-neutral-200',
+                )}>
+                  {selected && <div className={cn('w-full h-full rounded-full scale-50', accent.bg)} />}
+                </div>
+              </button>
+            )
+          })}
+
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
+            disabled={!selectedTicketType}
+            loading={ticketCheckout.isPending}
+            onClick={async () => {
+              if (!selectedTicketType) return
+              try {
+                const result = await ticketCheckout.mutateAsync({
+                  eventId: event.id,
+                  ticketTypeId: selectedTicketType,
+                })
+                // Redirect to Stripe Checkout
+                if (result.url) {
+                  window.location.href = result.url
+                } else if (result.session_id) {
+                  const stripe = await getStripe()
+                  await stripe?.redirectToCheckout({ sessionId: result.session_id })
+                }
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : 'Failed to start checkout')
+              }
+            }}
+            className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
+          >
+            {selectedTicketType
+              ? `Get Ticket — $${((ticketTypes?.find((t) => t.id === selectedTicketType)?.price_cents ?? 0) / 100).toFixed(2)}`
+              : 'Select a ticket'}
+          </Button>
+        </div>
+      )
+    }
+
+    // ── Free events: regular registration ──
     return (
       <Button
         variant="primary"
@@ -566,145 +824,17 @@ export default function EventDetailPage() {
         onShare={handleShare}
       />
 
-      <div className="relative">
-        {/* Decorative background elements */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-          <svg className="absolute -top-12 -right-16 w-[280px] h-[280px] opacity-[0.10]" viewBox="0 0 280 280" fill="none">
-            <circle cx="140" cy="140" r="130" stroke="var(--color-sprout-400)" strokeWidth="2.5" />
-            <circle cx="140" cy="140" r="95" stroke="var(--color-moss-300)" strokeWidth="1.5" strokeDasharray="6 8" />
-            <circle cx="140" cy="140" r="55" stroke="var(--color-primary-300)" strokeWidth="1" strokeDasharray="3 5" />
-          </svg>
-          <svg className="absolute top-[35%] -left-20 w-[220px] h-[220px] opacity-[0.08]" viewBox="0 0 220 220" fill="none">
-            <circle cx="110" cy="110" r="100" stroke="var(--color-primary-400)" strokeWidth="2" />
-            <circle cx="110" cy="110" r="70" stroke="var(--color-sprout-300)" strokeWidth="1.5" />
-            <circle cx="110" cy="110" r="35" stroke="var(--color-moss-200)" strokeWidth="1" strokeDasharray="4 6" />
-          </svg>
-          <svg className="absolute bottom-[15%] right-4 w-[150px] h-[150px] opacity-[0.12]" viewBox="0 0 150 150" fill="none">
-            <circle cx="75" cy="75" r="65" stroke="var(--color-moss-400)" strokeWidth="2" />
-            <circle cx="75" cy="75" r="40" stroke="var(--color-sprout-400)" strokeWidth="1.5" strokeDasharray="4 6" />
-          </svg>
-          {/* Large soft colour blob */}
-          <div className={cn('absolute -top-24 -right-24 w-[350px] h-[350px] rounded-full opacity-[0.04] bg-gradient-to-br', accent.gradient)} />
-          <div className={cn('absolute bottom-[20%] -left-16 w-[250px] h-[250px] rounded-full opacity-[0.05] bg-gradient-to-tr', accent.gradient)} />
-        </div>
-
       <motion.div
         className="relative pt-5 pb-8 space-y-4"
         variants={shouldReduceMotion ? undefined : stagger}
         initial="hidden"
         animate="visible"
       >
-        {/* ── Leader quick-actions grid ── */}
-        {isStaff && !collectiveRole.isLoading && (
-          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
-            <div className="flex items-center gap-2 mb-2.5">
-              <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-moss-400 to-sprout-500 flex items-center justify-center shadow-sm">
-                <Sparkles size={11} className="text-white" />
-              </div>
-              <span className="text-[11px] font-bold text-primary-400/70 uppercase tracking-widest">Leader Actions</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => navigate(`/events/${event.id}/day`)}
-                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
-              >
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-moss-500 to-moss-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                  <ClipboardList size={16} className="text-white" />
-                </div>
-                <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">Event Day</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowQrSheet(true)}
-                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
-              >
-                <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                  <QrCode size={16} className="text-white" />
-                </div>
-                <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">QR Code</span>
-              </button>
-              {isLeaderOrAbove && (
-                <button
-                  type="button"
-                  onClick={() => navigate(`/events/${event.id}/impact`)}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-sprout-500 to-sprout-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <Leaf size={16} className="text-white" />
-                  </div>
-                  <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">Log Impact</span>
-                </button>
-              )}
-              {isLeaderOrAbove && (
-                <button
-                  type="button"
-                  onClick={() => navigate(`/events/${event.id}/edit`)}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-sky-500 to-sky-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <Pencil size={16} className="text-white" />
-                  </div>
-                  <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">Edit</span>
-                </button>
-              )}
-              {isLeaderOrAbove && (
-                <button
-                  type="button"
-                  onClick={handleDuplicate}
-                  disabled={duplicateEventMutation.isPending}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none disabled:opacity-50"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <Copy size={16} className="text-white" />
-                  </div>
-                  <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">Duplicate</span>
-                </button>
-              )}
-              {isLeaderOrAbove && !past && event.status !== 'cancelled' && (
-                <button
-                  type="button"
-                  onClick={handleOpenInviteSheet}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-primary-50/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
-                >
-                  <div className={cn(
-                    'w-9 h-9 rounded-lg flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform bg-gradient-to-br',
-                    alreadyInvited ? 'from-sky-500 to-sky-600' : 'from-amber-500 to-amber-600',
-                  )}>
-                    {alreadyInvited ? <Bell size={16} className="text-white" /> : <Send size={16} className="text-white" />}
-                  </div>
-                  <span className="text-[10px] font-semibold text-primary-600 leading-tight text-center">{alreadyInvited ? 'Remind' : 'Invite'}</span>
-                </button>
-              )}
-              {isLeaderOrAbove && event.status !== 'cancelled' && (
-                <button
-                  type="button"
-                  onClick={() => setShowCancelEventSheet(true)}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-error-100/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
-                >
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-error-400 to-error-500 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
-                    <Ban size={16} className="text-white" />
-                  </div>
-                  <span className="text-[10px] font-semibold text-error-600 leading-tight text-center">Cancel</span>
-                </button>
-              )}
-            </div>
-          </motion.div>
-        )}
-
         {/* ── Key info card ── */}
         <motion.div
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className={cn(
-            'rounded-2xl p-4.5 space-y-0.5 relative overflow-hidden',
-            'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
-            accent.border, accent.bg,
-          )}
+          className="rounded-2xl p-4.5 space-y-0.5 bg-white border border-neutral-100 shadow-sm"
         >
-          {/* Decorative gradient wash */}
-          <div className={cn('absolute inset-0 opacity-30 bg-gradient-to-br', accent.gradient)} aria-hidden="true" />
-          <div className="absolute inset-0 bg-white/80" aria-hidden="true" />
-          <div className="relative">
           <InfoChip
             icon={<Calendar size={17} />}
             label="Date & Time"
@@ -728,7 +858,6 @@ export default function EventDetailPage() {
               action={{ label: 'Directions', onClick: handleGetDirections }}
             />
           )}
-          </div>
         </motion.div>
 
         {/* ── Location map ── */}
@@ -743,65 +872,23 @@ export default function EventDetailPage() {
                 markers={[{ id: event.id, position: pos, variant: 'event', label: event.title }]}
                 interactive={false}
                 aria-label={`${event.title} location`}
-                className="aspect-video rounded-2xl shadow-[0_4px_20px_-4px_rgba(61,77,51,0.12)] border border-primary-200/30"
+                className="aspect-video rounded-2xl shadow-sm border border-neutral-100"
               />
             </motion.div>
           )
         })()}
 
-        {/* ── Collaborating collectives ── */}
-        {event.collaborators && event.collaborators.length > 0 && (
-          <motion.div
-            variants={shouldReduceMotion ? undefined : fadeUp}
-            className={cn(
-              'rounded-2xl p-4 relative overflow-hidden',
-              'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
-              accent.border,
-            )}
-          >
-            <div className={cn('absolute inset-0 bg-gradient-to-r opacity-[0.06]', accent.gradient)} aria-hidden="true" />
-            <div className="absolute inset-0 bg-white/92" aria-hidden="true" />
-            <p className="relative text-[11px] uppercase tracking-wider font-semibold text-primary-400/80 mb-2.5">
-              Co-hosted with
-            </p>
-            <div className="relative space-y-2">
-              {event.collaborators.map((collab) => (
-                <Link
-                  key={collab.id}
-                  to={`/collectives/${collab.slug ?? collab.id}`}
-                  className="flex items-center gap-3 min-h-11 hover:opacity-80 active:scale-[0.98] transition-[opacity,transform] duration-150"
-                >
-                  {collab.cover_image_url ? (
-                    <img src={collab.cover_image_url} alt={collab.name} className="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm" />
-                  ) : (
-                    <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm bg-gradient-to-br text-white', accent.gradient)}>
-                      <Users size={15} />
-                    </div>
-                  )}
-                  <span className="text-sm font-bold text-primary-800">{collab.name}</span>
-                  <ChevronRight size={14} className={cn('ml-auto shrink-0', accent.text)} />
-                </Link>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
         {/* ── Description (About this event) ── */}
         {event.description && (
           <motion.div
             variants={shouldReduceMotion ? undefined : fadeUp}
-            className={cn(
-              'rounded-2xl p-4.5 relative overflow-hidden',
-              'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
-              'bg-gradient-to-br from-white via-white to-primary-50/40',
-              accent.border,
-            )}
+            className="rounded-2xl p-4.5 bg-white border border-neutral-100 shadow-sm"
           >
-            <h3 className={cn('text-sm font-bold mb-3', accent.text)}>About this event</h3>
+            <h3 className="text-sm font-bold mb-3 text-neutral-900">About this event</h3>
             <div className="relative">
               <p
                 className={cn(
-                  'text-[15px] text-primary-600 leading-relaxed whitespace-pre-line',
+                  'text-[15px] text-neutral-600 leading-relaxed whitespace-pre-line',
                   !descriptionExpanded && 'line-clamp-4',
                 )}
               >
@@ -811,11 +898,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={() => setDescriptionExpanded(true)}
-                  className={cn(
-                    'min-h-11 flex items-center justify-center text-caption font-bold mt-1.5',
-                    'cursor-pointer select-none active:scale-[0.97] transition-transform duration-150',
-                    accent.text,
-                  )}
+                  className="min-h-11 flex items-center justify-center text-caption font-bold mt-1.5 cursor-pointer select-none active:scale-[0.97] transition-transform duration-150 text-primary-600"
                 >
                   Read more
                 </button>
@@ -823,15 +906,6 @@ export default function EventDetailPage() {
             </div>
           </motion.div>
         )}
-
-        {/* ── Capacity section (spots filled) ── */}
-        <EventAttendees
-          event={event}
-          accent={accent}
-          capacityText={capacityText}
-          capacityPercent={capacityPercent}
-          fadeUpVariants={shouldReduceMotion ? undefined : fadeUp}
-        />
 
         {/* ── Event details pills (what_to_bring, terrain, difficulty, etc.) ── */}
         {(() => {
@@ -848,22 +922,16 @@ export default function EventDetailPage() {
           return (
             <motion.div
               variants={shouldReduceMotion ? undefined : fadeUp}
-              className={cn(
-                'rounded-2xl p-4.5 relative overflow-hidden',
-                'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
-                accent.border, accent.bg,
-              )}
+              className="rounded-2xl p-4.5 bg-white border border-neutral-100 shadow-sm"
             >
-              <div className={cn('absolute inset-0 opacity-20 bg-gradient-to-tl', accent.gradient)} aria-hidden="true" />
-              <div className="absolute inset-0 bg-white/75" aria-hidden="true" />
-              <h3 className={cn('relative text-sm font-bold mb-3', accent.text)}>Good to know</h3>
-              <div className="relative space-y-3">
+              <h3 className="text-sm font-bold mb-3 text-neutral-900">Good to know</h3>
+              <div className="space-y-3">
                 {ext.meeting_point && (
                   <div className="flex items-start gap-2.5">
                     <MapPin size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
                     <div>
-                      <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">Meeting point</p>
-                      <p className="text-sm font-medium text-primary-700">{ext.meeting_point}</p>
+                      <p className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">Meeting point</p>
+                      <p className="text-sm font-medium text-neutral-700">{ext.meeting_point}</p>
                     </div>
                   </div>
                 )}
@@ -871,8 +939,8 @@ export default function EventDetailPage() {
                   <div className="flex items-start gap-2.5">
                     <Backpack size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
                     <div>
-                      <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">What to bring</p>
-                      <p className="text-sm font-medium text-primary-700">{ext.what_to_bring}</p>
+                      <p className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">What to bring</p>
+                      <p className="text-sm font-medium text-neutral-700">{ext.what_to_bring}</p>
                     </div>
                   </div>
                 )}
@@ -880,8 +948,8 @@ export default function EventDetailPage() {
                   <div className="flex items-start gap-2.5">
                     <Shirt size={15} className={cn('shrink-0 mt-0.5', accent.text)} />
                     <div>
-                      <p className="text-[11px] uppercase tracking-wider font-semibold text-primary-400/80">What to wear</p>
-                      <p className="text-sm font-medium text-primary-700">{ext.what_to_wear}</p>
+                      <p className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400">What to wear</p>
+                      <p className="text-sm font-medium text-neutral-700">{ext.what_to_wear}</p>
                     </div>
                   </div>
                 )}
@@ -915,35 +983,131 @@ export default function EventDetailPage() {
           )
         })()}
 
-        {/* ── Action buttons row ── */}
-        <EventActions
-          past={past}
+        {/* ── Capacity section (spots filled) ── */}
+        <EventAttendees
+          event={event}
+          accent={accent}
+          capacityText={capacityText}
+          capacityPercent={capacityPercent}
           fadeUpVariants={shouldReduceMotion ? undefined : fadeUp}
-          onCalendarOpen={() => setShowCalendarSheet(true)}
-          onShare={handleShare}
         />
 
-        {/* Leader tools moved to top of content area */}
+        {/* ── Leader quick-actions grid ── */}
+        {isStaff && !collectiveRole.isLoading && (
+          <motion.div variants={shouldReduceMotion ? undefined : fadeUp}>
+            <div className="flex items-center gap-2 mb-2.5">
+              <div className="w-6 h-6 rounded-lg bg-moss-50 flex items-center justify-center">
+                <Sparkles size={11} className="text-moss-600" />
+              </div>
+              <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-widest">Leader Actions</span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => navigate(`/events/${event.id}/day`)}
+                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+              >
+                <div className="w-9 h-9 rounded-lg bg-moss-50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <ClipboardList size={16} className="text-moss-600" />
+                </div>
+                <span className="text-[10px] font-semibold text-neutral-700 leading-tight text-center">Event Day</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowQrSheet(true)}
+                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+              >
+                <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <QrCode size={16} className="text-primary-600" />
+                </div>
+                <span className="text-[10px] font-semibold text-neutral-700 leading-tight text-center">QR Code</span>
+              </button>
+              {isLeaderOrAbove && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/events/${event.id}/impact`)}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-sprout-50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Leaf size={16} className="text-sprout-600" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-700 leading-tight text-center">Log Impact</span>
+                </button>
+              )}
+              {isLeaderOrAbove && (
+                <button
+                  type="button"
+                  onClick={() => navigate(`/events/${event.id}/edit`)}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-sky-50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Pencil size={16} className="text-sky-600" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-700 leading-tight text-center">Edit</span>
+                </button>
+              )}
+              {isLeaderOrAbove && (
+                <button
+                  type="button"
+                  onClick={handleDuplicate}
+                  disabled={duplicateEventMutation.isPending}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none disabled:opacity-50"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Copy size={16} className="text-violet-600" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-700 leading-tight text-center">Duplicate</span>
+                </button>
+              )}
+              {isLeaderOrAbove && !past && event.status !== 'cancelled' && (
+                <button
+                  type="button"
+                  onClick={handleOpenInviteSheet}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+                >
+                  <div className={cn(
+                    'w-9 h-9 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform',
+                    alreadyInvited ? 'bg-sky-50' : 'bg-amber-50',
+                  )}>
+                    {alreadyInvited ? <Bell size={16} className="text-sky-600" /> : <Send size={16} className="text-amber-600" />}
+                  </div>
+                  <span className="text-[10px] font-semibold text-neutral-700 leading-tight text-center">{alreadyInvited ? 'Remind' : 'Invite'}</span>
+                </button>
+              )}
+              {isLeaderOrAbove && event.status !== 'cancelled' && (
+                <button
+                  type="button"
+                  onClick={() => setShowCancelEventSheet(true)}
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-error-100/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-error-50 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Ban size={16} className="text-error-600" />
+                  </div>
+                  <span className="text-[10px] font-semibold text-error-600 leading-tight text-center">Cancel</span>
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Ticket Sales (ticketed events, leader+ only) ── */}
+        {isTicketed && isStaff && (
+          <TicketSalesSection eventId={event.id} accent={accent} rm={shouldReduceMotion} />
+        )}
 
         {/* ── Post-event: Impact Summary ── */}
         {past && event.impact && (
           <motion.div
             variants={shouldReduceMotion ? undefined : fadeUp}
-            className={cn(
-              'rounded-2xl p-4.5 space-y-3.5 relative overflow-hidden',
-              'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
-              accent.border,
-            )}
+            className="rounded-2xl p-4.5 space-y-3.5 bg-white border border-neutral-100 shadow-sm"
           >
-            <div className={cn('absolute inset-0 bg-gradient-to-br opacity-[0.12]', accent.gradient)} aria-hidden="true" />
-            <div className="absolute inset-0 bg-white/85" aria-hidden="true" />
-            <div className="relative flex items-center gap-2">
-              <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center shadow-sm bg-gradient-to-br text-white', accent.gradient)}>
-                <Leaf size={14} />
+            <div className="flex items-center gap-2">
+              <div className={cn('w-7 h-7 rounded-lg flex items-center justify-center', accent.bg)}>
+                <Leaf size={14} className={accent.text} />
               </div>
-              <h3 className={cn('text-sm font-bold', accent.text)}>Impact Summary</h3>
+              <h3 className="text-sm font-bold text-neutral-900">Impact Summary</h3>
             </div>
-            <div className="relative grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               {(event.impact.trees_planted ?? 0) > 0 && (
                 <StatCard
                   label="Trees Planted"
@@ -1018,26 +1182,59 @@ export default function EventDetailPage() {
           </motion.div>
         )}
 
+        {/* ── Action buttons row ── */}
+        <EventActions
+          past={past}
+          fadeUpVariants={shouldReduceMotion ? undefined : fadeUp}
+          onCalendarOpen={() => setShowCalendarSheet(true)}
+          onShare={handleShare}
+        />
+
+        {/* ── Collaborating collectives ── */}
+        {event.collaborators && event.collaborators.length > 0 && (
+          <motion.div
+            variants={shouldReduceMotion ? undefined : fadeUp}
+            className="rounded-2xl p-4 bg-white border border-neutral-100 shadow-sm"
+          >
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-neutral-400 mb-2.5">
+              Co-hosted with
+            </p>
+            <div className="space-y-2">
+              {event.collaborators.map((collab) => (
+                <Link
+                  key={collab.id}
+                  to={`/collectives/${collab.slug ?? collab.id}`}
+                  className="flex items-center gap-3 min-h-11 hover:opacity-80 active:scale-[0.98] transition-[opacity,transform] duration-150"
+                >
+                  {collab.cover_image_url ? (
+                    <img src={collab.cover_image_url} alt={collab.name} className="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm" />
+                  ) : (
+                    <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm', accent.bg)}>
+                      <Users size={15} className={accent.text} />
+                    </div>
+                  )}
+                  <span className="text-sm font-bold text-neutral-900">{collab.name}</span>
+                  <ChevronRight size={14} className="ml-auto shrink-0 text-neutral-400" />
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* ── Post-event: survey prompt ── */}
         {past && userStatus === 'attended' && (
           <motion.div
             variants={shouldReduceMotion ? undefined : fadeUp}
-            className={cn(
-              'rounded-2xl p-5 relative overflow-hidden',
-              'border shadow-[0_6px_24px_-6px_rgba(61,77,51,0.15)]',
-              accent.border,
-            )}
+            className="rounded-2xl p-5 bg-white border border-neutral-100 shadow-sm"
           >
-            <div className={cn('absolute inset-0 bg-gradient-to-br opacity-20', accent.gradient)} aria-hidden="true" />
-            <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-transparent" aria-hidden="true" />
-            <p className={cn('relative text-sm font-bold', accent.text)}>How was the event?</p>
-            <p className="relative text-caption text-primary-500 mt-1">
+            <p className="text-sm font-bold text-neutral-900">How was the event?</p>
+            <p className="text-caption text-neutral-500 mt-1">
               Share your feedback to help us improve future events.
             </p>
             <Button
               variant="primary"
               size="sm"
-              className={cn('relative mt-3 bg-gradient-to-r shadow-md', accent.gradient, accent.glow)}
+              className={cn('mt-3 bg-gradient-to-r shadow-md', accent.gradient, accent.glow)}
               onClick={() => navigate(`/events/${event.id}/survey`)}
             >
               Give Feedback
@@ -1045,7 +1242,6 @@ export default function EventDetailPage() {
           </motion.div>
         )}
       </motion.div>
-      </div>
 
       {/* Cancel confirmation */}
       <ConfirmationSheet
@@ -1200,22 +1396,18 @@ export default function EventDetailPage() {
           </div>
 
           {/* Event preview */}
-          <div className={cn(
-            'rounded-xl p-3.5 border relative overflow-hidden',
-            accent.border,
-          )}>
-            <div className={cn('absolute inset-0 opacity-[0.06] bg-gradient-to-br', accent.gradient)} aria-hidden="true" />
-            <div className="relative flex items-center gap-3">
+          <div className="rounded-xl p-3.5 border border-neutral-100">
+            <div className="flex items-center gap-3">
               {event?.cover_image_url ? (
                 <img src={event.cover_image_url} alt={event.title} className="w-12 h-12 rounded-lg object-cover shrink-0" />
               ) : (
-                <div className={cn('w-12 h-12 rounded-lg flex items-center justify-center shrink-0 bg-gradient-to-br text-white', accent.gradient)}>
-                  <Calendar size={18} />
+                <div className={cn('w-12 h-12 rounded-lg flex items-center justify-center shrink-0', accent.bg)}>
+                  <Calendar size={18} className={accent.text} />
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-primary-800 line-clamp-2">{event?.title}</p>
-                <p className="text-xs text-primary-500 mt-0.5">
+                <p className="text-sm font-bold text-neutral-900 line-clamp-2">{event?.title}</p>
+                <p className="text-xs text-neutral-500 mt-0.5">
                   {event ? formatEventDate(event.date_start) : ''}
                 </p>
               </div>

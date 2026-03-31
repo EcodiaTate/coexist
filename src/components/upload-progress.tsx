@@ -48,7 +48,7 @@ export function UploadProgress({
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <Loader2 size={12} className="animate-spin text-primary-500" />
-                  <span className="text-xs text-primary-400">
+                  <span className="text-xs text-neutral-500">
                     Uploading{progress != null ? ` ${progress}%` : '...'}
                   </span>
                 </div>
@@ -83,7 +83,7 @@ export function UploadProgress({
           )}
         >
           <Loader2 size={24} className="animate-spin text-primary-500 mb-2" />
-          <span className="text-sm font-medium text-primary-800">
+          <span className="text-sm font-medium text-neutral-900">
             {progress != null ? `${progress}%` : 'Uploading...'}
           </span>
           <div className="h-1.5 w-32 mt-2 rounded-full bg-white overflow-hidden">

@@ -47,6 +47,8 @@ import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { queueOfflineAction } from '@/lib/offline-sync'
 import { useCollective } from '@/hooks/use-collective'
 import { useLeaderHeader, useLeaderContext, useIsLeaderLayout } from '@/components/leader-layout'
 import { Page } from '@/components/page'
@@ -81,6 +83,7 @@ import {
 } from '@/hooks/use-leader-dashboard'
 import { useMyModuleProgress } from '@/hooks/use-development-progress'
 import { useMyTargetedContent } from '@/hooks/use-development-assignments'
+import { BentoStatCard, BentoStatGrid } from '@/components/bento-stats'
 
 function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -109,9 +112,9 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
   ]
 
   return (
-    <div className="rounded-2xl bg-moss-50/40 shadow-sm border border-moss-100/40 p-5">
+    <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-heading text-sm font-bold text-primary-800">
+        <h3 className="font-heading text-sm font-bold text-neutral-900">
           {monthNames[month]} {year}
         </h3>
         <div className="flex gap-1">
@@ -136,7 +139,7 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
 
       <div className="grid grid-cols-7 gap-1 text-center">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
-          <div key={i} className="text-[11px] font-semibold text-primary-300 uppercase tracking-wider pb-2">
+          <div key={i} className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider pb-2">
             {d}
           </div>
         ))}
@@ -157,7 +160,7 @@ function MiniCalendar({ collectiveId }: { collectiveId: string | undefined }) {
                 hasEvent && 'bg-moss-100 text-moss-700 font-bold',
                 isToday && !hasEvent && 'ring-2 ring-primary-200 text-primary-700 font-semibold',
                 isToday && hasEvent && 'bg-moss-200 text-moss-800 font-bold ring-2 ring-moss-300',
-                !isToday && !hasEvent && 'text-primary-500 font-medium',
+                !isToday && !hasEvent && 'text-neutral-500 font-medium',
               )}
             >
               {day}
@@ -179,6 +182,7 @@ function TaskCard({ task }: { task: MyTask }) {
   const [showSurvey, setShowSurvey] = useState(false)
   const { toast } = useToast()
   const { user } = useAuth()
+  const { isOffline } = useOffline()
   const completeMutation = useCompleteTask()
   const skipMutation = useSkipTask()
   const shouldReduceMotion = useReducedMotion()
@@ -188,6 +192,20 @@ function TaskCard({ task }: { task: MyTask }) {
   const surveySubmitMutation = useMutation({
     mutationFn: async (answers: Record<string, unknown>) => {
       if (!user || !task.template?.survey_id) return
+
+      if (isOffline) {
+        queueOfflineAction('survey-response', {
+          surveyId: task.template.survey_id,
+          userId: user.id,
+          answers,
+        })
+        await completeMutation.mutateAsync({
+          instanceId: task.id,
+          notes: notes || undefined,
+        })
+        return
+      }
+
       await supabase.from('survey_responses').insert({
         survey_id: task.template.survey_id,
         user_id: user.id,
@@ -199,7 +217,7 @@ function TaskCard({ task }: { task: MyTask }) {
       })
     },
     onSuccess: () => {
-      toast.success('Survey submitted & task completed!')
+      toast.success(isOffline ? 'Survey & task saved offline — will sync when back online' : 'Survey submitted & task completed!')
       setShowSurvey(false)
       setExpanded(false)
       setNotes('')
@@ -229,8 +247,8 @@ function TaskCard({ task }: { task: MyTask }) {
         'rounded-2xl overflow-hidden transition-opacity duration-200',
         isCompleted && 'opacity-50',
         isSkipped && 'opacity-40',
-        !isCompleted && !isSkipped && 'bg-primary-50/40 shadow-sm border border-primary-100/40',
-        isOverdue && !isCompleted && 'bg-error-50/40 shadow-md ring-1 ring-error-200/60',
+        !isCompleted && !isSkipped && 'bg-white shadow-sm border border-neutral-100',
+        isOverdue && !isCompleted && 'ring-1 ring-error-200/60',
       )}
     >
       <div className="flex items-stretch">
@@ -274,7 +292,7 @@ function TaskCard({ task }: { task: MyTask }) {
           <div className="flex-1 min-w-0">
             <p className={cn(
               'text-sm font-semibold truncate',
-              isCompleted || isSkipped ? 'text-primary-300 line-through' : 'text-primary-800',
+              isCompleted || isSkipped ? 'text-neutral-400 line-through' : 'text-neutral-900',
             )}>
               {task.template?.title ?? 'Task'}
             </p>
@@ -295,7 +313,7 @@ function TaskCard({ task }: { task: MyTask }) {
               {!isCompleted && !isSkipped && (
                 <span className={cn(
                   'text-[11px] font-medium flex items-center gap-1',
-                  urgency === 'overdue' ? 'text-error-600' : urgency === 'today' ? 'text-warning-700' : 'text-primary-400',
+                  urgency === 'overdue' ? 'text-error-600' : urgency === 'today' ? 'text-warning-700' : 'text-neutral-500',
                 )}>
                   <Clock size={10} />
                   {formattedDue}
@@ -313,7 +331,7 @@ function TaskCard({ task }: { task: MyTask }) {
                 animate={{ rotate: expanded ? 90 : 0 }}
                 transition={{ duration: 0.15 }}
               >
-                <ChevronRight size={16} className="text-primary-300" />
+                <ChevronRight size={16} className="text-neutral-400" />
               </motion.div>
             </div>
           )}
@@ -331,21 +349,21 @@ function TaskCard({ task }: { task: MyTask }) {
           >
             <div className="px-4 pb-4 pl-12 space-y-3">
               {task.template?.description && (
-                <p className="text-xs text-primary-500 leading-relaxed">{task.template.description}</p>
+                <p className="text-xs text-neutral-500 leading-relaxed">{task.template.description}</p>
               )}
               {task.template?.attachment_url && (
                 <a
                   href={task.template.attachment_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-primary-50 border border-primary-100 hover:bg-primary-100 transition-colors"
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-neutral-50 border border-neutral-100 hover:bg-neutral-100 transition-colors"
                 >
                   <FileText size={18} className="text-primary-500 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-primary-700 truncate">
+                    <p className="text-xs font-medium text-neutral-900 truncate">
                       {task.template.attachment_label || 'View Attachment'}
                     </p>
-                    <p className="text-[11px] text-primary-400">Tap to open</p>
+                    <p className="text-[11px] text-neutral-400">Tap to open</p>
                   </div>
                 </a>
               )}
@@ -442,7 +460,7 @@ const fadeUp = {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Section heading (light mode - white background)                    */
+/*  Section heading                                                    */
 /* ------------------------------------------------------------------ */
 
 function SectionHeader({
@@ -456,8 +474,8 @@ function SectionHeader({
 }) {
   return (
     <div className="flex items-center justify-between mb-3">
-      <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-primary-700/60 uppercase tracking-widest">
-        {icon && <span className="text-primary-400">{icon}</span>}
+      <h2 className="flex items-center gap-2 font-heading text-[13px] font-bold text-neutral-400 uppercase tracking-widest">
+        {icon && <span className="text-neutral-400">{icon}</span>}
         {children}
       </h2>
       {action && (
@@ -477,33 +495,7 @@ function SectionHeader({
 /*  Impact stat mini-card                                              */
 /* ------------------------------------------------------------------ */
 
-function ImpactMini({
-  value,
-  label,
-  unit,
-  icon,
-  color,
-}: {
-  value: number | string
-  label: string
-  unit?: string
-  icon: React.ReactNode
-  color: string
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl bg-moss-50/40 shadow-sm border border-moss-100/40 p-3">
-      <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', color)}>
-        {icon}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-heading text-lg font-extrabold text-primary-800 tabular-nums leading-tight">
-          {typeof value === 'number' ? value.toLocaleString() : value}{unit && <span className="text-xs font-bold ml-0.5 text-primary-500">{unit}</span>}
-        </p>
-        <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">{label}</p>
-      </div>
-    </div>
-  )
-}
+/* (Impact stats now use BentoStatCard / BentoStatGrid from bento-stats.tsx) */
 
 /* ------------------------------------------------------------------ */
 /*  Invite sheet (inline on dashboard)                                 */
@@ -542,24 +534,24 @@ function InviteAction({ collectiveSlug, collectiveId, collectiveName }: { collec
   }
 
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-moss-50 to-primary-50/60 border border-moss-100/50 p-4">
+    <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm p-4">
       <div className="flex items-center gap-2 mb-3">
         <div className="w-8 h-8 rounded-lg bg-moss-100 flex items-center justify-center">
           <Send size={14} className="text-moss-600" />
         </div>
         <div>
-          <p className="text-sm font-bold text-primary-800">Invite Members</p>
-          <p className="text-[11px] text-primary-400">Grow your collective</p>
+          <p className="text-sm font-bold text-neutral-900">Invite Members</p>
+          <p className="text-[11px] text-neutral-500">Grow your collective</p>
         </div>
       </div>
-      <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 border border-primary-100/50 mb-3">
-        <span className="text-xs text-primary-400 truncate flex-1 font-mono">{inviteUrl}</span>
+      <div className="flex items-center gap-2 bg-neutral-50 rounded-xl px-3 py-2 border border-neutral-100 mb-3">
+        <span className="text-xs text-neutral-500 truncate flex-1 font-mono">{inviteUrl}</span>
       </div>
       <div className="flex gap-2">
         <button
           type="button"
           onClick={handleCopy}
-          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-white border border-primary-100 text-xs font-semibold text-primary-600 hover:bg-primary-50 active:scale-[0.97] transition-transform cursor-pointer"
+          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl bg-white border border-neutral-200 text-xs font-semibold text-neutral-600 hover:bg-neutral-50 active:scale-[0.97] transition-transform cursor-pointer"
         >
           {copied ? <Check size={13} /> : <Copy size={13} />}
           {copied ? 'Copied!' : 'Copy'}
@@ -589,7 +581,7 @@ const TIME_GROUP_CONFIG: Record<TodoTimeGroup, { label: string; color: string; d
   tomorrow:  { label: 'Tomorrow',   color: 'text-amber-600',   dotColor: 'bg-amber-400',   icon: <Calendar size={11} /> },
   this_week: { label: 'This Week',  color: 'text-moss-600',    dotColor: 'bg-moss-400',    icon: <CalendarDays size={11} /> },
   later:     { label: 'Later',      color: 'text-primary-500', dotColor: 'bg-primary-300',  icon: <CalendarDays size={11} /> },
-  no_date:   { label: 'No Due Date',color: 'text-primary-400', dotColor: 'bg-primary-200',  icon: <Circle size={11} /> },
+  no_date:   { label: 'No Due Date',color: 'text-neutral-400', dotColor: 'bg-neutral-300',  icon: <Circle size={11} /> },
 }
 
 function getTimeGroup(todo: LeaderTodo): TodoTimeGroup {
@@ -627,7 +619,7 @@ function TodoItem({ todo, reducedMotion }: { todo: LeaderTodo; reducedMotion: bo
       initial={reducedMotion ? false : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={reducedMotion ? undefined : { opacity: 0, x: -40, transition: { duration: 0.2 } }}
-      className="group flex items-start gap-3 px-4 py-3 hover:bg-primary-25/50 active:bg-primary-50/50 transition-colors duration-100"
+      className="group flex items-start gap-3 px-4 py-3 hover:bg-neutral-50/50 active:bg-neutral-100/50 transition-colors duration-100"
     >
       {/* Checkbox */}
       <button
@@ -641,17 +633,17 @@ function TodoItem({ todo, reducedMotion }: { todo: LeaderTodo; reducedMotion: bo
             },
           )
         }}
-        className="mt-0.5 shrink-0 flex items-center justify-center w-5 h-5 rounded-full border-2 border-primary-200 hover:border-primary-400 active:scale-90 transition-all duration-150 cursor-pointer"
+        className="mt-0.5 shrink-0 flex items-center justify-center w-5 h-5 rounded-full border-2 border-neutral-200 hover:border-neutral-400 active:scale-90 transition-all duration-150 cursor-pointer"
         aria-label={`Complete "${todo.title}"`}
       >
         {toggleMutation.isPending && (
-          <div className="w-2.5 h-2.5 rounded-full bg-primary-300 animate-pulse" />
+          <div className="w-2.5 h-2.5 rounded-full bg-neutral-300 animate-pulse" />
         )}
       </button>
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-primary-800 leading-snug line-clamp-2">
+        <p className="text-sm font-semibold text-neutral-900 leading-snug line-clamp-2">
           {todo.title}
         </p>
 
@@ -676,7 +668,7 @@ function TodoItem({ todo, reducedMotion }: { todo: LeaderTodo; reducedMotion: bo
               {config.icon}
               {group === 'overdue' ? formattedDue : group === 'today' ? 'Today' : group === 'tomorrow' ? 'Tomorrow' : formattedDue}
               {todo.due_time && (
-                <span className="text-primary-300 ml-0.5">
+                <span className="text-neutral-400 ml-0.5">
                   {todo.due_time.slice(0, 5)}
                 </span>
               )}
@@ -693,7 +685,7 @@ function TodoItem({ todo, reducedMotion }: { todo: LeaderTodo; reducedMotion: bo
 
         {/* Description snippet */}
         {todo.description && (
-          <p className="text-[11px] text-primary-400 mt-1 line-clamp-1 leading-relaxed">
+          <p className="text-[11px] text-neutral-400 mt-1 line-clamp-1 leading-relaxed">
             {todo.description}
           </p>
         )}
@@ -764,17 +756,17 @@ function UpcomingTodosWidget() {
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl bg-white shadow-sm border border-primary-100/40 overflow-hidden">
-        <div className="px-4 py-3 border-b border-primary-50">
-          <div className="h-4 w-32 bg-primary-50 rounded-lg animate-pulse" />
+      <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 overflow-hidden">
+        <div className="px-4 py-3 border-b border-neutral-100">
+          <div className="h-4 w-32 bg-neutral-100 rounded-lg animate-pulse" />
         </div>
-        <div className="divide-y divide-primary-50/60">
+        <div className="divide-y divide-neutral-100">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-start gap-3 px-4 py-3">
-              <div className="w-5 h-5 rounded-full bg-primary-50 animate-pulse shrink-0 mt-0.5" />
+              <div className="w-5 h-5 rounded-full bg-neutral-100 animate-pulse shrink-0 mt-0.5" />
               <div className="flex-1 space-y-2">
-                <div className="h-3.5 w-3/4 bg-primary-50 rounded animate-pulse" />
-                <div className="h-2.5 w-1/2 bg-primary-50/60 rounded animate-pulse" />
+                <div className="h-3.5 w-3/4 bg-neutral-100 rounded animate-pulse" />
+                <div className="h-2.5 w-1/2 bg-neutral-50 rounded animate-pulse" />
               </div>
             </div>
           ))}
@@ -785,12 +777,12 @@ function UpcomingTodosWidget() {
 
   if (totalCount === 0) {
     return (
-      <div className="rounded-2xl bg-gradient-to-br from-primary-50/60 to-moss-50/40 shadow-sm border border-primary-100/40 p-6 text-center">
-        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary-100 to-moss-100 flex items-center justify-center mx-auto mb-3">
+      <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 p-6 text-center">
+        <div className="w-12 h-12 rounded-2xl bg-primary-50 flex items-center justify-center mx-auto mb-3">
           <ListTodo size={22} className="text-primary-400" />
         </div>
-        <p className="text-sm font-semibold text-primary-600 mb-1">All caught up</p>
-        <p className="text-xs text-primary-400 mb-3">No pending todos right now</p>
+        <p className="text-sm font-semibold text-neutral-900 mb-1">All caught up</p>
+        <p className="text-xs text-neutral-500 mb-3">No pending todos right now</p>
         <Button
           variant="ghost"
           size="sm"
@@ -804,16 +796,16 @@ function UpcomingTodosWidget() {
   }
 
   return (
-    <div className="rounded-2xl bg-white shadow-sm border border-primary-100/40 overflow-hidden">
+    <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-primary-50/80">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-moss-600 flex items-center justify-center shadow-sm">
-            <ListTodo size={15} className="text-white" />
+          <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center">
+            <ListTodo size={15} className="text-primary-600" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-primary-800">Your Todos</h3>
-            <p className="text-[11px] text-primary-400 font-medium">
+            <h3 className="text-sm font-bold text-neutral-900">Your Todos</h3>
+            <p className="text-[11px] text-neutral-500 font-medium">
               {totalCount} pending
               {overdueCount > 0 && (
                 <span className="text-error-500 font-bold ml-1">
@@ -832,7 +824,7 @@ function UpcomingTodosWidget() {
         {/* Circular progress ring */}
         <div className="relative w-10 h-10 shrink-0">
           <svg className="w-10 h-10 -rotate-90" viewBox="0 0 36 36">
-            <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" strokeWidth="3" className="text-primary-50" />
+            <circle cx="18" cy="18" r="14" fill="none" stroke="currentColor" strokeWidth="3" className="text-neutral-100" />
             <motion.circle
               cx="18" cy="18" r="14" fill="none" strokeWidth="3" strokeLinecap="round"
               className={overdueCount > 0 ? 'text-error-400' : 'text-moss-500'}
@@ -842,14 +834,14 @@ function UpcomingTodosWidget() {
               transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }}
             />
           </svg>
-          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-primary-700 tabular-nums">
+          <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-neutral-900 tabular-nums">
             {totalCount}
           </span>
         </div>
       </div>
 
       {/* Todo list */}
-      <div className="divide-y divide-primary-50/60">
+      <div className="divide-y divide-neutral-100">
         <AnimatePresence mode="popLayout">
           {visibleTodos.map((item, idx) => {
             const groupInfo = visibleGroups.find((g) => g.startIdx === idx)
@@ -862,7 +854,7 @@ function UpcomingTodosWidget() {
                     <span className={cn('text-[10px] font-bold uppercase tracking-widest', TIME_GROUP_CONFIG[groupInfo.group].color)}>
                       {TIME_GROUP_CONFIG[groupInfo.group].label}
                     </span>
-                    <span className="text-[10px] font-semibold text-primary-300 tabular-nums">
+                    <span className="text-[10px] font-semibold text-neutral-400 tabular-nums">
                       {grouped[groupInfo.group].length}
                     </span>
                   </div>
@@ -876,8 +868,8 @@ function UpcomingTodosWidget() {
 
       {/* Footer */}
       {totalCount > 8 && (
-        <div className="px-4 py-2 border-t border-primary-50/80 bg-primary-25/30">
-          <p className="text-[11px] text-primary-400 text-center font-medium">
+        <div className="px-4 py-2 border-t border-neutral-100 bg-neutral-50/30">
+          <p className="text-[11px] text-neutral-500 text-center font-medium">
             +{totalCount - 8} more todos
           </p>
         </div>
@@ -886,7 +878,7 @@ function UpcomingTodosWidget() {
       {/* View all link */}
       <Link
         to="/leader/tasks"
-        className="flex items-center justify-center gap-1.5 px-4 py-3 border-t border-primary-50/80 bg-primary-25/20 hover:bg-primary-50/40 active:scale-[0.99] transition-all duration-150 group"
+        className="flex items-center justify-center gap-1.5 px-4 py-3 border-t border-neutral-100 hover:bg-neutral-50 active:scale-[0.99] transition-all duration-150 group"
       >
         <span className="text-xs font-semibold text-primary-500 group-hover:text-primary-700 transition-colors">
           View all tasks & todos
@@ -1007,13 +999,13 @@ export default function LeaderDashboardPage() {
           <div className="relative z-10 px-6 -mt-6 space-y-4 pb-20">
             <div className="grid grid-cols-2 gap-3">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-20 rounded-2xl bg-primary-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+                <div key={i} className="h-20 rounded-2xl bg-neutral-100 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
               ))}
             </div>
-            <div className="h-12 rounded-2xl bg-primary-50" />
+            <div className="h-12 rounded-2xl bg-neutral-100" />
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-20 rounded-2xl bg-primary-50" />
+                <div key={i} className="h-20 rounded-2xl bg-neutral-100" />
               ))}
             </div>
           </div>
@@ -1035,13 +1027,13 @@ export default function LeaderDashboardPage() {
     )
   }
 
-  const quickActions: { label: string; icon: React.ReactNode; to: string; bg: string; text: string; badge: number; pulse?: boolean }[] = [
+  const quickActions: { label: string; icon: React.ReactNode; to: string; iconBg: string; iconText: string; badge: number; pulse?: boolean }[] = [
     ...(currentEvent ? [{
       label: 'Current Event',
       icon: <Flame size={18} />,
       to: `/events/${currentEvent.id}`,
-      bg: 'bg-gradient-to-br from-amber-500 to-orange-600',
-      text: 'text-white',
+      iconBg: 'bg-amber-100',
+      iconText: 'text-amber-600',
       badge: 0,
       pulse: true,
     }] : []),
@@ -1049,64 +1041,60 @@ export default function LeaderDashboardPage() {
       label: 'Edit Event',
       icon: <Pencil size={18} />,
       to: `/events/${nextUpcomingEvent.id}/edit?mode=day-of`,
-      bg: 'bg-moss-600',
-      text: 'text-white',
+      iconBg: 'bg-moss-100',
+      iconText: 'text-moss-600',
       badge: 0,
     }] : []),
     ...(pendingItems.length > 0 ? [{
       label: 'Log Impact',
       icon: <Leaf size={18} />,
       to: `/events/${pendingItems[0].id}/impact`,
-      bg: 'bg-gradient-to-br from-moss-500 to-moss-700',
-      text: 'text-white',
+      iconBg: 'bg-moss-100',
+      iconText: 'text-moss-700',
       badge: pendingItems.length > 1 ? pendingItems.length : 0,
     }] : []),
     ...(continueModule ? [{
       label: 'Continue Learning',
       icon: <BookOpen size={18} />,
       to: `/learn/module/${continueModule.id}`,
-      bg: 'bg-gradient-to-br from-plum-500 to-plum-700',
-      text: 'text-white',
+      iconBg: 'bg-plum-100',
+      iconText: 'text-plum-600',
       badge: 0,
     }] : []),
-    { label: 'Chat', icon: <MessageCircle size={18} />, to: `/chat/${collectiveId}`, bg: 'bg-primary-600', text: 'text-white', badge: 0 },
-    { label: 'Updates', icon: <Megaphone size={18} />, to: '/updates', bg: 'bg-primary-400', text: 'text-white', badge: unreadUpdateCount },
-    { label: 'Invite', icon: <UserPlus size={18} />, to: `/collectives/${collectiveSlug}/manage`, bg: 'bg-bark-600', text: 'text-white', badge: 0 },
+    { label: 'Chat', icon: <MessageCircle size={18} />, to: `/chat/${collectiveId}`, iconBg: 'bg-primary-100', iconText: 'text-primary-600', badge: 0 },
+    { label: 'Updates', icon: <Megaphone size={18} />, to: '/updates', iconBg: 'bg-primary-100', iconText: 'text-primary-500', badge: unreadUpdateCount },
+    { label: 'Invite', icon: <UserPlus size={18} />, to: `/collectives/${collectiveSlug}/manage`, iconBg: 'bg-bark-100', iconText: 'text-bark-600', badge: 0 },
   ]
 
-  // Build impact cards — core stats always show (even if 0), secondary only if non-zero
-  const coreImpactCards: { value: number; label: string; unit?: string; icon: React.ReactElement; color: string }[] = impactStats ? [
-    { value: impactStats.totalEvents, label: 'Events Held', icon: <CalendarDays size={15} className="text-warning-600" />, color: 'bg-warning-100' },
-    { value: impactStats.eventsAttended, label: 'Attendances', icon: <Users size={15} className="text-warning-700" />, color: 'bg-warning-50' },
-    { value: impactStats.volunteerHours, label: 'Est. Vol. Hours', unit: 'hrs', icon: <Clock size={15} className="text-primary-600" />, color: 'bg-primary-100' },
-    { value: impactStats.treesPlanted, label: 'Trees Planted', icon: <TreePine size={15} className="text-moss-600" />, color: 'bg-moss-100' },
-    { value: impactStats.rubbishKg, label: 'Rubbish Collected', unit: 'kg', icon: <Trash2 size={15} className="text-bark-600" />, color: 'bg-bark-100' },
-    { value: impactStats.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={15} className="text-plum-600" />, color: 'bg-plum-100' },
-    { value: impactStats.coastlineCleanedM, label: 'Coastline Cleaned', unit: 'm', icon: <Waves size={15} className="text-sky-600" />, color: 'bg-sky-100' },
-    { value: impactStats.leadersEmpowered, label: 'Leaders Empowered', icon: <GraduationCap size={15} className="text-bark-700" />, color: 'bg-bark-50' },
-  ] : []
-  // Secondary stats only if non-zero
-  const secondaryImpactCards: { value: number; label: string; unit?: string; icon: React.ReactElement; color: string }[] = impactStats ? [
-    { value: impactStats.cleanupSites, label: 'Cleanup Sites', icon: <Trash2 size={15} className="text-sky-700" />, color: 'bg-sky-50' },
+  // Build impact cards — only show non-zero
+  const impactCards: { value: number; label: string; unit?: string; icon: React.ReactElement; theme: import('@/components/bento-stats').BentoTheme }[] = impactStats ? [
+    { value: impactStats.totalEvents, label: 'Events Held', icon: <CalendarDays size={16} />, theme: 'warning' },
+    { value: impactStats.eventsAttended, label: 'Attendances', icon: <Users size={16} />, theme: 'primary' },
+    { value: impactStats.volunteerHours, label: 'Vol. Hours', unit: 'hrs', icon: <Clock size={16} />, theme: 'moss' },
+    { value: impactStats.treesPlanted, label: 'Trees Planted', icon: <TreePine size={16} />, theme: 'sprout' },
+    { value: impactStats.rubbishKg, label: 'Rubbish', unit: 'kg', icon: <Trash2 size={16} />, theme: 'sky' },
+    { value: impactStats.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={16} />, theme: 'plum' },
+    { value: impactStats.coastlineCleanedM, label: 'Coastline', unit: 'm', icon: <Waves size={16} />, theme: 'info' },
+    { value: impactStats.leadersEmpowered, label: 'Leaders Empowered', icon: <GraduationCap size={16} />, theme: 'bark' },
+    { value: impactStats.cleanupSites, label: 'Cleanup Sites', icon: <Trash2 size={16} />, theme: 'coral' },
   ].filter((c) => c.value > 0) : []
-  const impactCards = [...coreImpactCards, ...secondaryImpactCards]
 
   return (
     <Wrapper>
       <PullToRefresh onRefresh={handleRefresh} className="min-h-full bg-white">
         {/* ── Hero with collective cover image + rocky wave overlay ── */}
         <div className={cn('relative', !isInLeaderLayout && '-mx-4 lg:-mx-6')}>
-          <div className="relative w-full h-[52vw] min-h-[220px] max-h-[320px] overflow-hidden">
+          <div className="relative w-full overflow-hidden">
             {collectiveDetail?.cover_image_url ? (
               <img
                 src={collectiveDetail.cover_image_url}
                 alt={collectiveName}
                 loading="eager"
                 decoding="async"
-                className="w-full h-full object-cover"
+                className="w-full h-auto block"
               />
             ) : (
-              <div className="w-full h-full bg-gradient-to-br from-moss-600 via-primary-700 to-primary-900" />
+              <div className="w-full aspect-[16/9] bg-gradient-to-br from-moss-600 via-primary-700 to-primary-900" />
             )}
             {/* Dark overlay for text legibility */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/10" />
@@ -1116,9 +1104,6 @@ export default function LeaderDashboardPage() {
               <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/60 mb-1">
                 Leader Dashboard
               </p>
-              <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white drop-shadow-md">
-                {collectiveName}
-              </h1>
               {collectiveDetail?.region && (
                 <p className="flex items-center gap-1 text-xs text-white/70 mt-1">
                   <MapPin size={11} />
@@ -1167,30 +1152,35 @@ export default function LeaderDashboardPage() {
           initial="hidden"
           animate="visible"
         >
+          {/* ── Collective Impact (prominent, right under hero) ── */}
+          {impactStats && impactCards.length > 0 && (
+            <motion.div variants={rm ? undefined : fadeUp}>
+              <SectionHeader icon={<TreePine size={14} />}>
+                Collective Impact
+              </SectionHeader>
+              <BentoStatGrid>
+                {impactCards.map((card) => (
+                  <BentoStatCard
+                    key={card.label}
+                    value={card.value}
+                    label={card.label}
+                    unit={card.unit}
+                    icon={card.icon}
+                    theme={card.theme}
+                  />
+                ))}
+              </BentoStatGrid>
+            </motion.div>
+          )}
+
           {/* ── At-a-glance stats ── */}
           <motion.div variants={rm ? undefined : fadeUp}>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-gradient-to-br from-primary-600 to-primary-700 p-4 text-center shadow-md">
-                <Users size={20} className="text-white/60 mx-auto mb-1.5" />
-                <p className="text-2xl font-bold text-white tabular-nums leading-none">{data?.activeMembers ?? 0}</p>
-                <p className="mt-1 text-[11px] font-semibold text-white/50 uppercase tracking-wider">Members</p>
-              </div>
-              <div className="rounded-2xl bg-gradient-to-br from-moss-500 to-moss-600 p-4 text-center shadow-md">
-                <CalendarDays size={20} className="text-white/60 mx-auto mb-1.5" />
-                <p className="text-2xl font-bold text-white tabular-nums leading-none">{data?.upcomingEvents?.length ?? 0}</p>
-                <p className="mt-1 text-[11px] font-semibold text-white/50 uppercase tracking-wider">Upcoming</p>
-              </div>
-              <div className="rounded-2xl bg-primary-50/60 shadow-sm border border-primary-100/40 p-4 text-center">
-                <Clock size={20} className="text-primary-400 mx-auto mb-1.5" />
-                <p className="text-2xl font-bold text-primary-800 tabular-nums leading-none">{data?.hoursThisMonth ?? 0}</p>
-                <p className="mt-1 text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Hrs/Month</p>
-              </div>
-              <div className="rounded-2xl bg-primary-50/60 shadow-sm border border-primary-100/40 p-4 text-center">
-                <CalendarCheck size={20} className="text-primary-400 mx-auto mb-1.5" />
-                <p className="text-2xl font-bold text-primary-800 tabular-nums leading-none">{data?.eventsThisMonth ?? 0}</p>
-                <p className="mt-1 text-[11px] font-semibold text-primary-400 uppercase tracking-wider">Events/Month</p>
-              </div>
-            </div>
+            <BentoStatGrid>
+              <BentoStatCard value={data?.activeMembers ?? 0} label="Members" icon={<Users size={16} />} theme="primary-soft" />
+              <BentoStatCard value={data?.upcomingEvents?.length ?? 0} label="Upcoming" icon={<CalendarDays size={16} />} theme="moss-soft" />
+              <BentoStatCard value={data?.hoursThisMonth ?? 0} label="Hrs / Month" icon={<Clock size={16} />} theme="bark-soft" />
+              <BentoStatCard value={data?.eventsThisMonth ?? 0} label="Events / Month" icon={<CalendarCheck size={16} />} theme="sprout-soft" />
+            </BentoStatGrid>
           </motion.div>
 
           {/* ── Quick actions ── */}
@@ -1202,13 +1192,13 @@ export default function LeaderDashboardPage() {
                   key={action.label}
                   to={action.to}
                   className={cn(
-                    'group relative flex flex-col items-center gap-1.5 rounded-xl bg-primary-50/50 shadow-sm border border-primary-100/40 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150',
-                    action.pulse && 'ring-2 ring-amber-400/50 shadow-amber-200/30',
+                    'group relative flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150',
+                    action.pulse && 'ring-2 ring-amber-400/50',
                   )}
                 >
                   <div className={cn(
                     'relative flex items-center justify-center w-9 h-9 rounded-lg transition-transform group-hover:scale-105',
-                    action.bg, action.text,
+                    action.iconBg, action.iconText,
                   )}>
                     {action.icon}
                     {action.pulse && (
@@ -1220,7 +1210,7 @@ export default function LeaderDashboardPage() {
                       </span>
                     )}
                   </div>
-                  <span className="text-[10px] font-semibold text-primary-600 text-center leading-tight">
+                  <span className="text-[10px] font-semibold text-neutral-600 text-center leading-tight">
                     {action.label}
                   </span>
                 </Link>
@@ -1234,22 +1224,22 @@ export default function LeaderDashboardPage() {
               <SectionHeader icon={<Bell size={14} />}>
                 Needs Attention
               </SectionHeader>
-              <div className="rounded-2xl bg-warning-50 border border-warning-200/50 overflow-hidden">
+              <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm overflow-hidden">
                 {pendingItems.map((item, idx) => (
                   <Link
                     key={item.id}
                     to={`/events/${item.id}/impact`}
                     className={cn(
                       'flex items-center gap-3 px-4 py-3.5',
-                      'hover:bg-warning-100/50 active:scale-[0.99] transition-[colors,transform] duration-150',
-                      idx > 0 && 'border-t border-warning-200/30',
+                      'hover:bg-neutral-50 active:scale-[0.99] transition-[colors,transform] duration-150',
+                      idx > 0 && 'border-t border-neutral-100',
                     )}
                   >
                     <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-warning-100 shrink-0">
                       <AlertTriangle size={14} className="text-warning-600" />
                     </div>
-                    <span className="text-sm text-primary-700 flex-1 font-medium">{item.message}</span>
-                    <ChevronRight size={14} className="text-warning-400 shrink-0" />
+                    <span className="text-sm text-neutral-900 flex-1 font-medium">{item.message}</span>
+                    <ChevronRight size={14} className="text-neutral-400 shrink-0" />
                   </Link>
                 ))}
               </div>
@@ -1277,7 +1267,7 @@ export default function LeaderDashboardPage() {
                   <TaskCard key={task.id} task={task} />
                 ))}
                 {pendingTasks.length > 5 && (
-                  <p className="text-xs text-primary-400 text-center pt-2">
+                  <p className="text-xs text-neutral-500 text-center pt-2">
                     +{pendingTasks.length - 5} more tasks
                   </p>
                 )}
@@ -1296,7 +1286,7 @@ export default function LeaderDashboardPage() {
                   <Link
                     key={event.id}
                     to={`/events/${event.id}`}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-moss-50/50 shadow-sm border border-moss-100/40 hover:shadow-md active:scale-[0.99] transition-transform duration-150"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white shadow-sm border border-neutral-100 hover:shadow-md active:scale-[0.99] transition-transform duration-150"
                   >
                     {event.cover_image_url ? (
                       <img
@@ -1307,15 +1297,15 @@ export default function LeaderDashboardPage() {
                         className="w-14 h-14 rounded-xl object-cover shrink-0"
                       />
                     ) : (
-                      <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-moss-50 to-primary-50 flex items-center justify-center shrink-0">
+                      <div className="w-14 h-14 rounded-xl bg-moss-50 flex items-center justify-center shrink-0">
                         <CalendarDays size={22} className="text-moss-400" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="font-heading text-sm font-bold text-primary-800 truncate">
+                      <p className="font-heading text-sm font-bold text-neutral-900 truncate">
                         {event.title}
                       </p>
-                      <p className="text-xs text-primary-500 mt-0.5 font-medium">
+                      <p className="text-xs text-neutral-500 mt-0.5 font-medium">
                         {new Date(event.date_start).toLocaleDateString('en-AU', {
                           weekday: 'short',
                           day: 'numeric',
@@ -1325,22 +1315,22 @@ export default function LeaderDashboardPage() {
                         })}
                       </p>
                       {event.address && (
-                        <p className="text-[11px] text-primary-400 truncate mt-0.5 flex items-center gap-1">
+                        <p className="text-[11px] text-neutral-400 truncate mt-0.5 flex items-center gap-1">
                           <MapPin size={10} className="shrink-0" />
                           {event.address}
                         </p>
                       )}
                     </div>
-                    <ChevronRight size={16} className="text-primary-200 shrink-0" />
+                    <ChevronRight size={16} className="text-neutral-300 shrink-0" />
                   </Link>
                 ))}
               </div>
             ) : (
-              <div className="p-6 rounded-2xl bg-moss-50 border border-moss-100 text-center">
+              <div className="p-6 rounded-2xl bg-white border border-neutral-100 shadow-sm text-center">
                 <div className="w-12 h-12 rounded-2xl bg-moss-100 flex items-center justify-center mx-auto mb-3">
                   <CalendarDays size={24} className="text-moss-400" />
                 </div>
-                <p className="text-sm font-medium text-primary-600 mb-3">No upcoming events</p>
+                <p className="text-sm font-medium text-neutral-900 mb-3">No upcoming events</p>
                 <Button
                   variant="primary"
                   size="sm"
@@ -1356,41 +1346,22 @@ export default function LeaderDashboardPage() {
             </div>
           </motion.div>
 
-          {/* ── Collective Impact ── */}
-          {impactStats && (
-            <motion.div variants={rm ? undefined : fadeUp}>
-              <SectionHeader icon={<TreePine size={14} />}>
-                Collective Impact
-              </SectionHeader>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {impactCards.map((card) => (
-                  <ImpactMini
-                    key={card.label}
-                    value={card.value}
-                    label={card.label}
-                    unit={card.unit}
-                    icon={card.icon}
-                    color={card.color}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          )}
+          {/* (Collective Impact moved above at-a-glance stats) */}
 
           {/* ── Attendance rate ── */}
           {(data?.attendanceRate ?? 0) > 0 && (
             <motion.div variants={rm ? undefined : fadeUp}>
-              <div className="rounded-2xl bg-success-50/40 shadow-sm border border-success-100/40 p-4">
+              <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-8 h-8 rounded-lg bg-success-100 flex items-center justify-center">
                     <CheckCircle2 size={14} className="text-success-600" />
                   </div>
-                  <span className="text-xs font-semibold text-primary-500">Attendance Rate</span>
-                  <span className="ml-auto text-xl font-bold text-primary-800 tabular-nums">
+                  <span className="text-xs font-semibold text-neutral-500">Attendance Rate</span>
+                  <span className="ml-auto text-xl font-bold text-neutral-900 tabular-nums">
                     {data?.attendanceRate}%
                   </span>
                 </div>
-                <div className="h-2 rounded-full bg-primary-50 overflow-hidden">
+                <div className="h-2 rounded-full bg-neutral-100 overflow-hidden">
                   <motion.div
                     className="h-full rounded-full bg-gradient-to-r from-success-400 to-success-500"
                     initial={{ width: 0 }}
@@ -1411,29 +1382,29 @@ export default function LeaderDashboardPage() {
               {/* Engagement summary */}
               {engagement && (
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-2xl bg-success-50 border border-success-100/50 p-4">
+                  <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-7 h-7 rounded-lg bg-success-100 flex items-center justify-center">
                         <CheckCircle2 size={12} className="text-success-600" />
                       </div>
                     </div>
-                    <p className="text-2xl font-bold text-primary-800 leading-none tabular-nums">
+                    <p className="text-2xl font-bold text-neutral-900 leading-none tabular-nums">
                       {engagement.active.length}
                     </p>
                     <p className="text-xs font-semibold text-success-600 mt-1">Active</p>
-                    <p className="text-[11px] text-primary-400 mt-0.5">Last 30 days</p>
+                    <p className="text-[11px] text-neutral-500 mt-0.5">Last 30 days</p>
                   </div>
-                  <div className="rounded-2xl bg-warning-50 border border-warning-100/50 p-4">
+                  <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm p-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-7 h-7 rounded-lg bg-warning-100 flex items-center justify-center">
                         <AlertTriangle size={12} className="text-warning-600" />
                       </div>
                     </div>
-                    <p className="text-2xl font-bold text-primary-800 leading-none tabular-nums">
+                    <p className="text-2xl font-bold text-neutral-900 leading-none tabular-nums">
                       {engagement.atRisk.length}
                     </p>
                     <p className="text-xs font-semibold text-warning-600 mt-1">At Risk</p>
-                    <p className="text-[11px] text-primary-400 mt-0.5">Inactive 30+ days</p>
+                    <p className="text-[11px] text-neutral-500 mt-0.5">Inactive 30+ days</p>
                   </div>
                 </div>
               )}
@@ -1441,10 +1412,10 @@ export default function LeaderDashboardPage() {
               {/* Recent members */}
               {data?.recentMembers && data.recentMembers.length > 0 ? (
                 <div>
-                  <p className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                     <UserPlus size={11} /> Recently Joined
                   </p>
-                  <div className="rounded-2xl bg-primary-50/40 shadow-sm border border-primary-100/40 overflow-hidden">
+                  <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 overflow-hidden">
                     {data.recentMembers.map((member, idx) => {
                       const profile = (member as unknown as { profiles?: { display_name?: string; avatar_url?: string } }).profiles
                       return (
@@ -1453,8 +1424,8 @@ export default function LeaderDashboardPage() {
                           to={`/profile/${member.user_id}`}
                           className={cn(
                             'flex items-center gap-3 px-4 py-3',
-                            'hover:bg-primary-50/50 active:scale-[0.99] transition-[colors,transform] duration-150',
-                            idx > 0 && 'border-t border-primary-50',
+                            'hover:bg-neutral-50 active:scale-[0.99] transition-[colors,transform] duration-150',
+                            idx > 0 && 'border-t border-neutral-100',
                           )}
                         >
                           <Avatar
@@ -1463,10 +1434,10 @@ export default function LeaderDashboardPage() {
                             size="sm"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-primary-800 truncate">
+                            <p className="text-sm font-semibold text-neutral-900 truncate">
                               {profile?.display_name ?? 'Unknown'}
                             </p>
-                            <p className="text-[11px] text-primary-400 mt-0.5">
+                            <p className="text-[11px] text-neutral-500 mt-0.5">
                               Joined{' '}
                               {new Date(member.joined_at).toLocaleDateString('en-AU', {
                                 day: 'numeric',
@@ -1474,14 +1445,14 @@ export default function LeaderDashboardPage() {
                               })}
                             </p>
                           </div>
-                          <ChevronRight size={14} className="text-primary-200 shrink-0" />
+                          <ChevronRight size={14} className="text-neutral-300 shrink-0" />
                         </Link>
                       )
                     })}
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-primary-400 bg-primary-50/40 shadow-sm border border-primary-100/40 rounded-2xl p-4">No recent members</p>
+                <p className="text-sm text-neutral-500 bg-white shadow-sm border border-neutral-100 rounded-2xl p-4">No recent members</p>
               )}
 
               {/* Invite / grow */}

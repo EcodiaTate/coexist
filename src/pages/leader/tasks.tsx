@@ -6,7 +6,7 @@ import {
     AlertTriangle, ChevronRight, ChevronLeft,
     Calendar as CalendarIcon, FileText,
     SkipForward, Flame, Sparkles, Users,
-    ClipboardList,
+    ClipboardList, BarChart3,
     Plus, Pencil, Eye, Trash2, List,
     Circle, CheckCircle2, GripVertical, Flag,
 } from 'lucide-react'
@@ -24,6 +24,8 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { queueOfflineAction } from '@/lib/offline-sync'
 import {
     useMyTasks,
     useCompleteTask,
@@ -32,6 +34,10 @@ import {
     useGroupedTasks,
     type MyTask,
 } from '@/hooks/use-tasks'
+import {
+    usePendingImpactFormTasks,
+    type ImpactFormTask,
+} from '@/hooks/use-impact-form-tasks'
 import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 import {
     useLeaderTodos,
@@ -133,6 +139,7 @@ function TaskCard({ task }: { task: MyTask }) {
   const [showSurvey, setShowSurvey] = useState(false)
   const { toast } = useToast()
   const { user } = useAuth()
+  const { isOffline } = useOffline()
   const completeMutation = useCompleteTask()
   const skipMutation = useSkipTask()
   const shouldReduceMotion = useReducedMotion()
@@ -142,6 +149,20 @@ function TaskCard({ task }: { task: MyTask }) {
   const surveySubmitMutation = useMutation({
     mutationFn: async (answers: Record<string, unknown>) => {
       if (!user || !task.template?.survey_id) return
+
+      if (isOffline) {
+        queueOfflineAction('survey-response', {
+          surveyId: task.template.survey_id,
+          userId: user.id,
+          answers,
+        })
+        await completeMutation.mutateAsync({
+          instanceId: task.id,
+          notes: notes || undefined,
+        })
+        return
+      }
+
       await supabase.from('survey_responses').insert({
         survey_id: task.template.survey_id,
         user_id: user.id,
@@ -153,7 +174,7 @@ function TaskCard({ task }: { task: MyTask }) {
       })
     },
     onSuccess: () => {
-      toast.success('Survey submitted & task completed!')
+      toast.success(isOffline ? 'Survey & task saved offline — will sync when back online' : 'Survey submitted & task completed!')
       setShowSurvey(false)
       setExpanded(false)
       setNotes('')
@@ -179,18 +200,18 @@ function TaskCard({ task }: { task: MyTask }) {
   const isShared = (task.template?.assignment_mode ?? 'collective') === 'collective' && !task.assigned_user_id
 
   const cardBg = isCompleted
-    ? 'bg-moss-50/60'
+    ? 'bg-neutral-50'
     : isSkipped
-    ? 'bg-primary-50/50'
+    ? 'bg-neutral-50'
     : urgency === 'overdue'
-    ? 'bg-gradient-to-br from-error-50 to-rose-100/80 shadow-md'
+    ? 'bg-gradient-to-br from-error-50 to-rose-100/80 shadow-sm'
     : urgency === 'today'
     ? 'bg-gradient-to-br from-warning-50 to-amber-100/70 shadow-sm'
     : urgency === 'tomorrow'
     ? 'bg-gradient-to-br from-amber-50/80 to-yellow-100/50 shadow-sm'
     : urgency === 'soon'
     ? 'bg-gradient-to-br from-moss-50 to-emerald-100/40 shadow-sm'
-    : 'bg-gradient-to-br from-white to-primary-50/60 shadow-sm'
+    : 'bg-white shadow-sm border border-neutral-100'
 
   return (
     <motion.div
@@ -246,7 +267,7 @@ function TaskCard({ task }: { task: MyTask }) {
           <div className="flex-1 min-w-0">
             <p className={cn(
               'text-sm font-semibold truncate',
-              isCompleted || isSkipped ? 'text-primary-300 line-through' : 'text-primary-800',
+              isCompleted || isSkipped ? 'text-neutral-400 line-through' : 'text-neutral-900',
             )}>
               {task.template?.title ?? 'Task'}
             </p>
@@ -260,14 +281,14 @@ function TaskCard({ task }: { task: MyTask }) {
 
               {!isCompleted && !isSkipped && (
                 isShared
-                  ? <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-primary-100/80 text-primary-500 flex items-center gap-0.5"><Users size={9} /> Shared</span>
+                  ? <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-neutral-100 text-neutral-500 flex items-center gap-0.5"><Users size={9} /> Shared</span>
                   : <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-moss-100/80 text-moss-600">You</span>
               )}
 
               {!isCompleted && !isSkipped && (
                 <span className={cn(
                   'text-[11px] font-medium flex items-center gap-1',
-                  urgency === 'overdue' ? 'text-error-600 font-semibold' : urgency === 'today' ? 'text-warning-700 font-semibold' : 'text-primary-400',
+                  urgency === 'overdue' ? 'text-error-600 font-semibold' : urgency === 'today' ? 'text-warning-700 font-semibold' : 'text-neutral-500',
                 )}>
                   <Clock size={10} />
                   {formattedDue}
@@ -278,7 +299,7 @@ function TaskCard({ task }: { task: MyTask }) {
               )}
 
               {task.event && !isCompleted && !isSkipped && (
-                <span className="text-[11px] text-primary-400 flex items-center gap-1">
+                <span className="text-[11px] text-neutral-500 flex items-center gap-1">
                   <CalendarIcon size={10} />
                   {task.event.title}
                 </span>
@@ -318,21 +339,21 @@ function TaskCard({ task }: { task: MyTask }) {
           >
             <div className="px-4 pb-4 pl-12 space-y-3">
               {task.template?.description && (
-                <p className="text-xs text-primary-500 leading-relaxed">{task.template.description}</p>
+                <p className="text-xs text-neutral-500 leading-relaxed">{task.template.description}</p>
               )}
               {task.template?.attachment_url && (
                 <a
                   href={task.template.attachment_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-primary-50 border border-primary-100 hover:bg-primary-100 transition-colors"
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-neutral-50 border border-neutral-100 hover:bg-neutral-100 transition-colors"
                 >
                   <FileText size={18} className="text-primary-500 shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-primary-700 truncate">
+                    <p className="text-xs font-medium text-neutral-900 truncate">
                       {task.template.attachment_label || 'View Attachment'}
                     </p>
-                    <p className="text-[11px] text-primary-400">Tap to open</p>
+                    <p className="text-[11px] text-neutral-400">Tap to open</p>
                   </div>
                 </a>
               )}
@@ -437,15 +458,15 @@ function CollectiveGroup({
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2 px-1">
-        <p className="text-xs font-bold text-primary-700 uppercase tracking-wider">{name}</p>
-        <div className="flex-1 h-px bg-primary-100" />
+        <p className="text-xs font-bold text-neutral-900 uppercase tracking-wider">{name}</p>
+        <div className="flex-1 h-px bg-neutral-100" />
         {overdueCount > 0 && (
           <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-error-50 text-error-600 flex items-center gap-1">
             <Flame size={10} /> {overdueCount}
           </span>
         )}
         {pendingCount > 0 && overdueCount === 0 && (
-          <span className="text-[11px] font-semibold text-primary-400">{pendingCount} to do</span>
+          <span className="text-[11px] font-semibold text-neutral-500">{pendingCount} to do</span>
         )}
       </div>
 
@@ -459,7 +480,7 @@ function CollectiveGroup({
         <button
           type="button"
           onClick={() => setShowCompleted(!showCompleted)}
-          className="flex items-center gap-1.5 text-[11px] text-primary-400 cursor-pointer select-none py-1 px-1 hover:text-primary-600 active:scale-[0.97] transition-[colors,transform] duration-150"
+          className="flex items-center gap-1.5 text-[11px] text-neutral-500 cursor-pointer select-none py-1 px-1 hover:text-neutral-700 active:scale-[0.97] transition-[colors,transform] duration-150"
         >
           <motion.div animate={{ rotate: showCompleted ? 90 : 0 }} transition={{ duration: 0.15 }}>
             <ChevronRight size={12} />
@@ -487,12 +508,149 @@ function CollectiveGroup({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Impact Form Card                                                   */
+/* ------------------------------------------------------------------ */
+
+function ImpactFormCard({ task }: { task: ImpactFormTask }) {
+  const navigate = useNavigate()
+  const shouldReduceMotion = useReducedMotion()
+
+  const now = new Date()
+  const dueDate = new Date(task.due_date)
+  const eventEnd = new Date(task.date_end)
+  const isOverdue = task.status === 'pending' && dueDate < now
+  const isCompleted = task.status === 'completed'
+
+  const daysUntilDue = Math.ceil((dueDate.getTime() - now.getTime()) / 86400000)
+  const urgency = isOverdue ? 'overdue' : daysUntilDue === 0 ? 'today' : daysUntilDue === 1 ? 'tomorrow' : 'normal'
+
+  const formattedDue = dueDate.toLocaleDateString('en-AU', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
+
+  const formattedEventDate = eventEnd.toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'short',
+  })
+
+  if (isCompleted) {
+    return (
+      <motion.div
+        layout={!shouldReduceMotion ? 'position' : false}
+        className="rounded-2xl bg-neutral-50 overflow-hidden opacity-60"
+      >
+        <div className="flex items-center gap-3 p-3">
+          <div className="w-6 h-6 rounded-full bg-success-500 flex items-center justify-center shadow-sm shrink-0">
+            <CheckCircle size={13} className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-neutral-400 line-through truncate">{task.event_title}</p>
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+              <span className="text-[11px] text-success-600 flex items-center gap-1">
+                <CheckCircle size={10} />
+                {task.completed_by_name ? `Logged by ${task.completed_by_name}` : 'Impact logged'}
+              </span>
+              {task.completed_at && (
+                <span className="text-[11px] text-neutral-400">
+                  {new Date(task.completed_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
+  const cardBg = urgency === 'overdue'
+    ? 'bg-gradient-to-br from-error-50 to-rose-100/80 shadow-md'
+    : urgency === 'today'
+    ? 'bg-gradient-to-br from-warning-50 to-amber-100/70 shadow-sm'
+    : urgency === 'tomorrow'
+    ? 'bg-gradient-to-br from-amber-50/80 to-yellow-100/50 shadow-sm'
+    : 'bg-gradient-to-br from-moss-50 to-emerald-100/40 shadow-sm'
+
+  return (
+    <motion.div
+      layout={!shouldReduceMotion ? 'position' : false}
+      className={cn('rounded-2xl overflow-hidden transition-all duration-200', cardBg)}
+    >
+      <div className="flex items-stretch">
+        <div className={cn(
+          'w-1.5 shrink-0 rounded-l-2xl',
+          urgency === 'overdue' && 'bg-error-500',
+          urgency === 'today' && 'bg-warning-500',
+          urgency === 'tomorrow' && 'bg-amber-400',
+          urgency === 'normal' && 'bg-moss-400',
+        )} />
+
+        <button
+          type="button"
+          onClick={() => navigate(`/events/${task.event_id}/log-impact`)}
+          className="flex-1 flex items-start gap-3 p-4 text-left cursor-pointer min-w-0 active:scale-[0.98] transition-transform duration-150"
+        >
+          <div className="mt-0.5 shrink-0">
+            <div className={cn(
+              'w-8 h-8 rounded-xl flex items-center justify-center',
+              urgency === 'overdue' ? 'bg-error-100' : 'bg-moss-100',
+            )}>
+              <BarChart3 size={16} className={cn(
+                urgency === 'overdue' ? 'text-error-500' : 'text-moss-600',
+              )} />
+            </div>
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-neutral-900 truncate">{task.event_title}</p>
+
+            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-moss-100/80 text-moss-700">
+                Log Impact
+              </span>
+
+              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md shrink-0 uppercase tracking-wide bg-neutral-100 text-neutral-500 flex items-center gap-0.5">
+                <Users size={9} /> Shared
+              </span>
+
+              <span className={cn(
+                'text-[11px] font-medium flex items-center gap-1',
+                urgency === 'overdue' ? 'text-error-600 font-semibold' : urgency === 'today' ? 'text-warning-700 font-semibold' : 'text-neutral-500',
+              )}>
+                <Clock size={10} />
+                Due {formattedDue}
+                {urgency === 'overdue' && ` · ${Math.abs(daysUntilDue)}d overdue`}
+                {urgency === 'today' && ' · Today'}
+              </span>
+            </div>
+
+            {task.collective_name && (
+              <p className="text-[11px] text-neutral-500 mt-1">
+                {task.collective_name} · {formattedEventDate}
+              </p>
+            )}
+          </div>
+
+          <div className="shrink-0 mt-1">
+            <ChevronRight size={16} className={cn(
+              urgency === 'overdue' ? 'text-error-400' : 'text-moss-400',
+            )} />
+          </div>
+        </button>
+      </div>
+    </motion.div>
+  )
+}
+
+/* ------------------------------------------------------------------ */
 /*  Tasks tab content                                                  */
 /* ------------------------------------------------------------------ */
 
 function TasksTabContent({ rm }: { rm: boolean }) {
   const queryClient = useQueryClient()
   const { data: tasks, isLoading } = useMyTasks()
+  const { data: impactFormTasks } = usePendingImpactFormTasks()
   const showLoading = useDelayedLoading(isLoading)
   const generateMutation = useGenerateTaskInstances()
   const groups = useGroupedTasks(tasks)
@@ -505,11 +663,17 @@ function TasksTabContent({ rm }: { rm: boolean }) {
   const handleRefresh = useCallback(async () => {
     await generateMutation.mutateAsync()
     await queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
+    await queryClient.invalidateQueries({ queryKey: ['pending-impact-form-tasks'] })
   }, [generateMutation, queryClient])
 
-  const totalPending = groups.reduce((sum, g) => sum + g.pendingCount, 0)
-  const totalOverdue = groups.reduce((sum, g) => sum + g.overdueCount, 0)
-  const totalCompleted = groups.reduce((sum, g) => g.tasks.filter((t) => t.status === 'completed').length + sum, 0)
+  const [showCompletedImpact, setShowCompletedImpact] = useState(false)
+  const pendingImpactForms = (impactFormTasks ?? []).filter((t) => t.status === 'pending')
+  const completedImpactForms = (impactFormTasks ?? []).filter((t) => t.status === 'completed')
+  const impactFormOverdue = pendingImpactForms.filter((t) => new Date(t.due_date) < new Date()).length
+
+  const totalPending = groups.reduce((sum, g) => sum + g.pendingCount, 0) + pendingImpactForms.length
+  const totalOverdue = groups.reduce((sum, g) => sum + g.overdueCount, 0) + impactFormOverdue
+  const totalCompleted = groups.reduce((sum, g) => g.tasks.filter((t) => t.status === 'completed').length + sum, 0) + completedImpactForms.length
 
   if (showLoading) {
     return (
@@ -524,7 +688,9 @@ function TasksTabContent({ rm }: { rm: boolean }) {
     )
   }
 
-  if (!groups.length) {
+  const hasAnyTasks = groups.length > 0 || pendingImpactForms.length > 0 || completedImpactForms.length > 0
+
+  if (!hasAnyTasks) {
     return (
       <div className="flex flex-col items-center justify-center py-8 sm:py-12">
         <motion.div
@@ -535,8 +701,8 @@ function TasksTabContent({ rm }: { rm: boolean }) {
         >
           <Sparkles size={36} className="text-moss-500" />
         </motion.div>
-        <p className="font-heading text-xl font-bold text-primary-800 mb-1">All caught up!</p>
-        <p className="text-sm text-primary-400">No tasks right now. Enjoy the moment.</p>
+        <p className="font-heading text-xl font-bold text-neutral-900 mb-1">All caught up!</p>
+        <p className="text-sm text-neutral-500">No tasks right now. Enjoy the moment.</p>
       </div>
     )
   }
@@ -590,9 +756,65 @@ function TasksTabContent({ rm }: { rm: boolean }) {
         </div>
       </motion.div>
 
-      {/* Task groups */}
+      {/* Impact form tasks + regular task groups */}
       <PullToRefresh onRefresh={handleRefresh}>
         <div className="space-y-6">
+          {/* Impact form tasks — shown above regular tasks with high priority */}
+          {(pendingImpactForms.length > 0 || completedImpactForms.length > 0) && (
+            <motion.div
+              variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
+            >
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 px-1">
+                  <BarChart3 size={12} className="text-moss-500" />
+                  <p className="text-xs font-bold text-moss-700 uppercase tracking-wider">Log Impact</p>
+                  <div className="flex-1 h-px bg-moss-200/60" />
+                  {impactFormOverdue > 0 && (
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-error-50 text-error-600 flex items-center gap-1">
+                      <Flame size={10} /> {impactFormOverdue}
+                    </span>
+                  )}
+                  {pendingImpactForms.length > 0 && impactFormOverdue === 0 && (
+                    <span className="text-[11px] font-semibold text-moss-500">{pendingImpactForms.length} to log</span>
+                  )}
+                </div>
+
+                {pendingImpactForms.map((task) => (
+                  <ImpactFormCard key={task.id} task={task} />
+                ))}
+
+                {completedImpactForms.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowCompletedImpact(!showCompletedImpact)}
+                    className="flex items-center gap-1.5 text-[11px] text-neutral-500 cursor-pointer select-none py-1 px-1 hover:text-neutral-700 active:scale-[0.97] transition-[colors,transform] duration-150"
+                  >
+                    <motion.div animate={{ rotate: showCompletedImpact ? 90 : 0 }} transition={{ duration: 0.15 }}>
+                      <ChevronRight size={12} />
+                    </motion.div>
+                    {completedImpactForms.length} logged
+                  </button>
+                )}
+                <AnimatePresence>
+                  {showCompletedImpact && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="space-y-1 overflow-hidden"
+                    >
+                      {completedImpactForms.map((task) => (
+                        <ImpactFormCard key={task.id} task={task} />
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Regular task groups */}
           {groups.map((group) => (
             <motion.div
               key={group.collective_id}
@@ -672,7 +894,7 @@ function TodoModal({
   return (
     <BottomSheet open={open} onClose={onClose}>
       <div className="px-5 pt-2 pb-6 space-y-4">
-        <h2 className="font-heading text-lg font-bold text-primary-900">{isEdit ? 'Edit To-Do' : 'New To-Do'}</h2>
+        <h2 className="font-heading text-lg font-bold text-neutral-900">{isEdit ? 'Edit To-Do' : 'New To-Do'}</h2>
         <Input
           label="What do you need to do?"
           value={title}
@@ -695,19 +917,19 @@ function TodoModal({
             onChange={(e) => setDueDate(e.target.value)}
           />
           <div>
-            <label className="text-sm font-medium text-primary-800 mb-1.5 block">Time</label>
+            <label className="text-sm font-medium text-neutral-900 mb-1.5 block">Time</label>
             <input
               type="time"
               value={dueTime}
               onChange={(e) => setDueTime(e.target.value)}
-              className="w-full h-11 px-3 rounded-xl border border-primary-200 bg-white text-sm text-primary-800 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-colors"
+              className="w-full h-11 px-3 rounded-xl border border-neutral-200 bg-white text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-400 transition-colors"
             />
           </div>
         </div>
 
         {/* Priority selector */}
         <div>
-          <p className="text-sm font-medium text-primary-800 mb-2">Priority</p>
+          <p className="text-sm font-medium text-neutral-900 mb-2">Priority</p>
           <div className="flex gap-1.5">
             {PRIORITY_OPTIONS.map((opt) => {
               const cfg = PRIORITY_CONFIG[opt.value as TodoPriority]
@@ -720,8 +942,8 @@ function TodoModal({
                   className={cn(
                     'flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-sm cursor-pointer transition-all duration-150',
                     active
-                      ? 'bg-primary-100 border border-primary-200 font-medium shadow-sm'
-                      : 'bg-white border border-primary-100/40 hover:bg-primary-50 text-primary-500',
+                      ? 'bg-neutral-100 border border-neutral-200 font-medium shadow-sm'
+                      : 'bg-white border border-neutral-100 hover:bg-neutral-50 text-neutral-500',
                   )}
                 >
                   <div className={cn('w-2 h-2 rounded-full', cfg.dot)} />
@@ -779,7 +1001,7 @@ function TodoItem({
       className={cn(
         'group relative flex items-start gap-3 px-4 py-3.5 rounded-2xl transition-colors duration-150',
         completed
-          ? 'bg-moss-50/40'
+          ? 'bg-neutral-50'
           : overdue
             ? 'bg-gradient-to-r from-error-50/80 to-rose-50/60 shadow-sm'
             : today
@@ -821,12 +1043,12 @@ function TodoItem({
       <div className="flex-1 min-w-0">
         <p className={cn(
           'text-sm font-medium leading-snug transition-all duration-200',
-          completed ? 'text-primary-400 line-through' : 'text-primary-800',
+          completed ? 'text-neutral-400 line-through' : 'text-neutral-900',
         )}>
           {todo.title}
         </p>
         {todo.description && !completed && (
-          <p className="text-xs text-primary-400 line-clamp-2 mt-0.5">{todo.description}</p>
+          <p className="text-xs text-neutral-500 line-clamp-2 mt-0.5">{todo.description}</p>
         )}
         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
           {/* Priority indicator */}
@@ -840,7 +1062,7 @@ function TodoItem({
           {todo.due_date && !completed && (
             <span className={cn(
               'flex items-center gap-1 text-[11px] font-medium',
-              overdue ? 'text-error-600' : today ? 'text-warning-600' : 'text-primary-400',
+              overdue ? 'text-error-600' : today ? 'text-warning-600' : 'text-neutral-500',
             )}>
               {overdue ? <Flame size={10} /> : <Clock size={10} />}
               {formatDate(todo.due_date)}
@@ -848,7 +1070,7 @@ function TodoItem({
             </span>
           )}
           {todo.source_template_id && (
-            <span className="text-[11px] text-primary-300 italic">from task</span>
+            <span className="text-[11px] text-neutral-400 italic">from task</span>
           )}
         </div>
       </div>
@@ -859,7 +1081,7 @@ function TodoItem({
           <button
             type="button"
             onClick={() => onEdit(todo)}
-            className="p-2 rounded-xl text-primary-400 hover:bg-primary-100 hover:text-primary-600 cursor-pointer transition-colors"
+            className="p-2 rounded-xl text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600 cursor-pointer transition-colors"
             title="Edit"
           >
             <Pencil size={14} />
@@ -867,7 +1089,7 @@ function TodoItem({
           <button
             type="button"
             onClick={() => onDelete(todo.id)}
-            className="p-2 rounded-xl text-primary-400 hover:bg-error-50 hover:text-error-600 cursor-pointer transition-colors"
+            className="p-2 rounded-xl text-neutral-400 hover:bg-error-50 hover:text-error-600 cursor-pointer transition-colors"
             title="Delete"
           >
             <Trash2 size={14} />
@@ -934,17 +1156,17 @@ function CalendarView({
         <button
           type="button"
           onClick={prevMonth}
-          className="p-2 rounded-xl hover:bg-primary-100 cursor-pointer transition-colors text-primary-500"
+          className="p-2 rounded-xl hover:bg-neutral-100 cursor-pointer transition-colors text-neutral-500"
         >
           <ChevronLeft size={18} />
         </button>
-        <h3 className="text-sm font-bold text-primary-800">
+        <h3 className="text-sm font-bold text-neutral-900">
           {MONTHS[calMonth]} {calYear}
         </h3>
         <button
           type="button"
           onClick={nextMonth}
-          className="p-2 rounded-xl hover:bg-primary-100 cursor-pointer transition-colors text-primary-500"
+          className="p-2 rounded-xl hover:bg-neutral-100 cursor-pointer transition-colors text-neutral-500"
         >
           <ChevronRight size={18} />
         </button>
@@ -953,7 +1175,7 @@ function CalendarView({
       {/* Day headers */}
       <div className="grid grid-cols-7 gap-px">
         {DAYS.map((d) => (
-          <div key={d} className="text-center text-[11px] font-semibold text-primary-400 uppercase tracking-wider py-1">
+          <div key={d} className="text-center text-[11px] font-semibold text-neutral-400 uppercase tracking-wider py-1">
             {d}
           </div>
         ))}
@@ -1023,16 +1245,16 @@ function CalendarView({
             className="space-y-2"
           >
             <div className="flex items-center gap-2 px-1 pt-2">
-              <p className="text-xs font-bold text-primary-700 uppercase tracking-wider">
+              <p className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
                 {formatDate(selectedDate)}
               </p>
-              <div className="flex-1 h-px bg-primary-100" />
-              <span className="text-[11px] text-primary-400">{selectedTodos.length} item{selectedTodos.length !== 1 ? 's' : ''}</span>
+              <div className="flex-1 h-px bg-neutral-100" />
+              <span className="text-[11px] text-neutral-500">{selectedTodos.length} item{selectedTodos.length !== 1 ? 's' : ''}</span>
             </div>
 
             {selectedTodos.length === 0 ? (
               <div className="text-center py-6">
-                <p className="text-sm text-primary-400">Nothing scheduled</p>
+                <p className="text-sm text-neutral-500">Nothing scheduled</p>
               </div>
             ) : (
               <div className="space-y-1.5">
@@ -1116,8 +1338,8 @@ function TodosTabContent({ rm }: { rm: boolean }) {
         className="grid grid-cols-3 gap-2"
       >
         <div className="rounded-2xl bg-white/80 backdrop-blur-sm p-3 text-center shadow-sm">
-          <p className="font-heading text-xl font-extrabold text-primary-800 tabular-nums">{pendingTodos.length}</p>
-          <p className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider">To do</p>
+          <p className="font-heading text-xl font-extrabold text-neutral-900 tabular-nums">{pendingTodos.length}</p>
+          <p className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">To do</p>
         </div>
         <div className={cn(
           'rounded-2xl p-3 text-center shadow-sm',
@@ -1132,7 +1354,7 @@ function TodosTabContent({ rm }: { rm: boolean }) {
             overdueCount > 0 ? 'text-error-400' : 'text-primary-300',
           )}>Overdue</p>
         </div>
-        <div className="rounded-2xl bg-moss-50/80 p-3 text-center shadow-sm">
+        <div className="rounded-2xl bg-neutral-50 p-3 text-center shadow-sm">
           <p className="font-heading text-xl font-extrabold text-moss-600 tabular-nums">{completedTodos.length}</p>
           <p className="text-[11px] font-semibold text-moss-500 uppercase tracking-wider">Done</p>
         </div>
@@ -1144,7 +1366,7 @@ function TodosTabContent({ rm }: { rm: boolean }) {
         className="flex items-center gap-2"
       >
         {/* View toggle */}
-        <div className="flex bg-primary-100/60 rounded-xl p-0.5 shrink-0">
+        <div className="flex bg-neutral-100 rounded-xl p-0.5 shrink-0">
           <button
             type="button"
             onClick={() => setView('list')}
@@ -1217,8 +1439,8 @@ function TodosTabContent({ rm }: { rm: boolean }) {
                 >
                   <Sparkles size={36} className="text-sky-500" />
                 </motion.div>
-                <p className="font-heading text-xl font-bold text-primary-800 mb-1">Fresh start</p>
-                <p className="text-sm text-primary-400 mb-4">Add your first to-do to stay organised</p>
+                <p className="font-heading text-xl font-bold text-neutral-900 mb-1">Fresh start</p>
+                <p className="text-sm text-neutral-500 mb-4">Add your first to-do to stay organised</p>
                 <Button
                   variant="primary"
                   size="sm"
@@ -1253,7 +1475,7 @@ function TodosTabContent({ rm }: { rm: boolean }) {
                 <button
                   type="button"
                   onClick={() => setShowCompleted(!showCompleted)}
-                  className="flex items-center gap-1.5 text-[11px] text-primary-400 cursor-pointer select-none py-1 px-1 hover:text-primary-600 active:scale-[0.97] transition-[colors,transform] duration-150"
+                  className="flex items-center gap-1.5 text-[11px] text-neutral-500 cursor-pointer select-none py-1 px-1 hover:text-neutral-700 active:scale-[0.97] transition-[colors,transform] duration-150"
                 >
                   <motion.div animate={{ rotate: showCompleted ? 90 : 0 }} transition={{ duration: 0.15 }}>
                     <ChevronRight size={12} />
@@ -1378,7 +1600,7 @@ export default function LeaderTasksPage() {
           className="flex justify-center"
           variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
         >
-          <div className="flex bg-primary-100/60 rounded-xl p-0.5">
+          <div className="flex bg-neutral-100 rounded-xl p-0.5">
             <button
               type="button"
               onClick={() => setActiveTab('tasks')}

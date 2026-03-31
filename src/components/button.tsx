@@ -6,7 +6,7 @@ const variantStyles = {
   primary:
     'bg-primary-800 text-white hover:bg-primary-950 focus-visible:ring-primary-400',
   secondary:
-    'bg-primary-100 text-primary-800 shadow-sm hover:bg-sprout-200 hover:shadow-md focus-visible:ring-primary-400',
+    'bg-primary-100 text-primary-800 shadow-sm hover:bg-primary-200 hover:shadow-md focus-visible:ring-primary-400',
   ghost:
     'bg-transparent text-primary-800 hover:bg-primary-50 focus-visible:ring-primary-400',
   danger:

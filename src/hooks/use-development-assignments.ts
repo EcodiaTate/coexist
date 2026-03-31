@@ -36,14 +36,14 @@ export function useMyTargetedContent() {
 
   // Compute user's effective roles for targeting
   // Collective roles: leader, co_leader, assist_leader, member
-  // Global roles mapped: national_leader, national_admin, super_admin → 'national_leader'
+  // Global roles mapped: national_leader, manager, admin → 'national_leader'
   const effectiveRoles = useMemo(() => {
     const roles = new Set<string>()
     for (const cm of collectiveRoles) {
       roles.add(cm.role)
     }
     // Any staff-level global role counts as 'national_leader' for targeting
-    if (role === 'national_leader' || role === 'national_admin' || role === 'super_admin') {
+    if (role === 'national_leader' || role === 'manager' || role === 'admin') {
       roles.add('national_leader')
     }
     return Array.from(roles)

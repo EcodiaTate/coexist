@@ -23,7 +23,7 @@ export function MarkdownRenderer({ content, className }: MarkdownRendererProps) 
         'prose-blockquote:border-l-primary-300 prose-blockquote:text-primary-600 prose-blockquote:not-italic',
         'prose-ul:text-primary-700 prose-ol:text-primary-700',
         'prose-li:marker:text-primary-400',
-        'prose-hr:border-primary-200',
+        'prose-hr:border-neutral-200',
         'prose-img:rounded-xl prose-img:shadow-sm',
         'prose-table:text-sm',
         'prose-th:text-primary-800 prose-th:font-semibold prose-th:bg-primary-50',

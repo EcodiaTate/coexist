@@ -3,6 +3,7 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { Link } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
+import { PlaceAutocomplete } from '@/components/place-autocomplete'
 import {
   MapPin,
   Users,
@@ -88,10 +89,10 @@ function CreateCollectiveModal({
     <BottomSheet open={open} onClose={onClose}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-heading text-lg font-semibold text-primary-800">Create Collective</h2>
+        <h2 className="font-heading text-lg font-semibold text-neutral-900">Create Collective</h2>
         <button
           onClick={onClose}
-          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-neutral-400 hover:bg-neutral-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
           aria-label="Close"
         >
           <X size={20} />
@@ -113,10 +114,17 @@ function CreateCollectiveModal({
           placeholder="What does this collective focus on?"
           rows={3}
         />
-        <Input
+        <PlaceAutocomplete
           label="Region"
           value={region}
-          onChange={(e) => setRegion(e.target.value)}
+          onChange={(val, place) => {
+            setRegion(val)
+            if (place) {
+              const stateMatch = place.short_name.split(',').pop()?.trim()
+              const matched = (['NSW', 'VIC', 'QLD', 'WA', 'SA', 'TAS', 'ACT', 'NT'] as const).find((s) => stateMatch?.includes(s))
+              if (matched) setState(matched)
+            }
+          }}
           placeholder="e.g. Byron Bay"
         />
         <Dropdown
@@ -174,7 +182,6 @@ export default function AdminCollectivesPage() {
       size="sm"
       icon={<Plus size={16} />}
       onClick={() => setShowCreate(true)}
-      className="!bg-white/15 !border-white/10 hover:!bg-white/25 !text-white"
     >
       Create
     </Button>
@@ -242,8 +249,8 @@ export default function AdminCollectivesPage() {
                     'px-3.5 min-h-11 rounded-lg text-sm font-semibold capitalize',
                     'transition-colors duration-150 cursor-pointer select-none',
                     statusFilter === s
-                      ? 'bg-primary-100 text-primary-800'
-                      : 'text-primary-400 hover:text-primary-600',
+                      ? 'bg-neutral-100 text-neutral-900'
+                      : 'text-neutral-400 hover:text-neutral-600',
                   )}
                 >
                   {s}
@@ -300,15 +307,15 @@ export default function AdminCollectivesPage() {
                           className="w-14 h-14 rounded-xl object-cover shrink-0"
                         />
                       ) : (
-                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center shrink-0">
-                          <MapPin size={24} className="text-primary-400" />
+                        <div className="w-14 h-14 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0">
+                          <MapPin size={24} className="text-neutral-400" />
                         </div>
                       )}
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <p className="font-heading text-sm font-semibold text-primary-800 truncate">
+                          <p className="font-heading text-sm font-semibold text-neutral-900 truncate">
                             {c.name}
                           </p>
                           <span
@@ -326,12 +333,12 @@ export default function AdminCollectivesPage() {
                           )}
                         </div>
                         {(c.region || c.state) && (
-                          <p className="text-xs text-primary-400 flex items-center gap-1">
+                          <p className="text-xs text-neutral-400 flex items-center gap-1">
                             <MapPin size={12} />
                             {[c.region, c.state].filter(Boolean).join(', ')}
                           </p>
                         )}
-                        <div className="flex items-center gap-3 mt-1 text-xs text-primary-400">
+                        <div className="flex items-center gap-3 mt-1 text-xs text-neutral-400">
                           <span className="flex items-center gap-1">
                             <Users size={12} /> {c.memberCount} members
                           </span>
@@ -355,12 +362,12 @@ export default function AdminCollectivesPage() {
                             e.stopPropagation()
                             setArchiveTarget(c)
                           }}
-                          className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
+                          className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-neutral-400 hover:bg-neutral-50 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                           aria-label={c.is_active ? `Archive ${c.name}` : `Restore ${c.name}`}
                         >
                           {c.is_active ? <Archive size={16} /> : <RotateCcw size={16} />}
                         </button>
-                        <ChevronRight size={16} className="text-primary-300" />
+                        <ChevronRight size={16} className="text-neutral-300" />
                       </div>
                     </Link>
                   </motion.div>

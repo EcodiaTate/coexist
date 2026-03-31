@@ -21,6 +21,7 @@ import { EmptyState } from '@/components/empty-state'
 import { PullToRefresh } from '@/components/pull-to-refresh'
 import { Button } from '@/components/button'
 import { cn } from '@/lib/cn'
+import { MiniBar } from '@/components/micro-viz'
 import { useImpactStats, useMonthlyActivity, useImpactByCategory, useStreak } from '@/hooks/use-impact'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 
@@ -60,99 +61,33 @@ const fadeUp: Variants = {
   show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 200, damping: 24 } },
 }
 
-/* ─── decorative shapes ─── */
-function DecoShapes({ reduced }: { reduced: boolean }) {
-  return (
-    <>
-      <motion.div
-        className="absolute -top-16 -right-16 w-56 h-56 rounded-full border-[3px] border-moss-200/35 pointer-events-none"
-        animate={reduced ? undefined : { scale: [1, 1.08, 1] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-[40%] -left-12 w-40 h-40 rounded-full border-[3px] border-moss-200/35 pointer-events-none"
-        animate={reduced ? undefined : { scale: [1, 1.06, 1] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-      <div className="absolute bottom-24 -left-10 w-48 h-48 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-sprout-100/26 to-transparent pointer-events-none" />
-      <div className="absolute -top-10 right-8 w-56 h-56 rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/17 to-transparent pointer-events-none" />
-      <motion.div
-        className="absolute top-28 right-10 w-3 h-3 rounded-full bg-moss-300/30 pointer-events-none"
-        animate={reduced ? undefined : { y: [0, -8, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <motion.div
-        className="absolute top-[55%] right-[20%] w-2 h-2 rounded-full bg-sprout-300/25 pointer-events-none"
-        animate={reduced ? undefined : { y: [0, -6, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-      />
-      <motion.div
-        className="absolute bottom-48 left-[15%] w-2.5 h-2.5 rounded-full bg-moss-300/30 pointer-events-none"
-        animate={reduced ? undefined : { y: [0, -10, 0] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-      />
-    </>
-  )
-}
-
 /* ─── skeleton ─── */
 function ImpactSkeleton() {
   return (
     <div className="space-y-10 pt-8 pb-10 px-5">
-      <div className="h-52 rounded-3xl bg-primary-100/40 animate-pulse" />
+      <div className="h-52 rounded-3xl bg-neutral-100 animate-pulse" />
       <div className="grid grid-cols-2 gap-5">
-        <div className="h-32 rounded-3xl bg-primary-100/30 animate-pulse" />
-        <div className="h-32 rounded-3xl bg-primary-100/30 animate-pulse" />
-        <div className="h-32 rounded-3xl bg-primary-100/30 animate-pulse" />
-        <div className="h-32 rounded-3xl bg-primary-100/30 animate-pulse" />
+        <div className="col-span-2 h-28 rounded-3xl bg-neutral-100 animate-pulse" />
+        <div className="h-32 rounded-3xl bg-neutral-50 animate-pulse" />
+        <div className="h-32 rounded-3xl bg-neutral-50 animate-pulse" />
+        <div className="h-32 rounded-3xl bg-neutral-50 animate-pulse" />
+        <div className="h-32 rounded-3xl bg-neutral-50 animate-pulse" />
       </div>
-      <div className="h-48 rounded-3xl bg-primary-100/30" />
+      <div className="h-48 rounded-3xl bg-neutral-50" />
     </div>
   )
 }
 
 /* ─── stat card configs ─── */
-const STAT_CONFIGS: Record<string, { gradient: string; iconBg: string; iconColor: string }> = {
-  events: {
-    gradient: 'from-primary-100/90 to-primary-200/50',
-    iconBg: 'bg-primary-600',
-    iconColor: 'text-white',
-  },
-  hours: {
-    gradient: 'from-bark-100/90 to-bark-200/50',
-    iconBg: 'bg-bark-600',
-    iconColor: 'text-white',
-  },
-  rubbish: {
-    gradient: 'from-moss-100/90 to-moss-200/50',
-    iconBg: 'bg-moss-600',
-    iconColor: 'text-white',
-  },
-  cleanups: {
-    gradient: 'from-sky-100/90 to-sky-200/50',
-    iconBg: 'bg-sky-600',
-    iconColor: 'text-white',
-  },
-  weeds: {
-    gradient: 'from-plum-100/90 to-plum-200/50',
-    iconBg: 'bg-plum-600',
-    iconColor: 'text-white',
-  },
-  collectives: {
-    gradient: 'from-sprout-100/90 to-sprout-200/50',
-    iconBg: 'bg-sprout-600',
-    iconColor: 'text-white',
-  },
-  leaders: {
-    gradient: 'from-bark-100/90 to-bark-200/50',
-    iconBg: 'bg-bark-600',
-    iconColor: 'text-white',
-  },
-  coastline: {
-    gradient: 'from-sky-100/90 to-sky-200/50',
-    iconBg: 'bg-sky-600',
-    iconColor: 'text-white',
-  },
+const STAT_CONFIGS: Record<string, { iconBg: string; iconColor: string; barColor?: string; barMax?: number }> = {
+  events:      { iconBg: 'bg-primary-50',  iconColor: 'text-primary-600', barColor: 'bg-primary-500', barMax: 50 },
+  hours:       { iconBg: 'bg-bark-50',     iconColor: 'text-bark-600',    barColor: 'bg-bark-500',    barMax: 200 },
+  rubbish:     { iconBg: 'bg-moss-50',     iconColor: 'text-moss-600',    barColor: 'bg-moss-500',    barMax: 10 },
+  cleanups:    { iconBg: 'bg-sky-50',      iconColor: 'text-sky-600',     barColor: 'bg-sky-500',     barMax: 30 },
+  weeds:       { iconBg: 'bg-plum-50',     iconColor: 'text-plum-600',    barColor: 'bg-plum-500',    barMax: 500 },
+  collectives: { iconBg: 'bg-sprout-50',   iconColor: 'text-sprout-600' },
+  leaders:     { iconBg: 'bg-bark-50',     iconColor: 'text-bark-600' },
+  coastline:   { iconBg: 'bg-sky-50',      iconColor: 'text-sky-600',     barColor: 'bg-sky-500',     barMax: 5000 },
 }
 
 /* ─── big stat block ─── */
@@ -162,43 +97,64 @@ function BigStat({
   icon,
   config,
   suffix,
+  hero,
 }: {
   value: number
   label: string
   icon: React.ReactNode
   config: string
   suffix?: string
+  hero?: boolean
 }) {
   const style = STAT_CONFIGS[config] ?? STAT_CONFIGS.events
+
+  if (hero) {
+    return (
+      <motion.div
+        variants={fadeUp}
+        className="col-span-2 flex items-center gap-5 rounded-3xl bg-white border border-neutral-100 p-6 shadow-sm"
+      >
+        <div className={cn(
+          'flex items-center justify-center w-12 h-12 rounded-2xl shrink-0',
+          style.iconBg,
+        )} aria-hidden="true">
+          <span className={style.iconColor}>{icon}</span>
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] uppercase tracking-[0.15em] text-neutral-400 font-bold mb-1">
+            {label}
+          </p>
+          <p className="font-heading text-4xl font-extrabold text-neutral-900 tabular-nums leading-none">
+            <CountUp end={value} />{suffix && <span className="text-lg">{suffix}</span>}
+          </p>
+          {style.barColor && style.barMax && value > 0 && (
+            <MiniBar value={value} max={style.barMax} color={style.barColor} className="mt-3" />
+          )}
+        </div>
+      </motion.div>
+    )
+  }
 
   return (
     <motion.div
       variants={fadeUp}
-      className={cn(
-        'relative flex flex-col items-center justify-center text-center rounded-3xl p-6 pb-8 min-h-[150px]',
-        'bg-gradient-to-br',
-        `${style.gradient}`,
-      )}
+      className="flex flex-col items-center justify-center text-center rounded-3xl bg-white border border-neutral-100 p-5 min-h-[150px] shadow-sm"
     >
-      <svg className="absolute top-1 right-3 w-16 h-12 opacity-[0.3] pointer-events-none" viewBox="0 0 64 48" fill="none">
-        <ellipse cx="32" cy="12" rx="32" ry="18" fill="white" />
-      </svg>
-
       <div className={cn(
-        'mb-4 flex items-center justify-center w-11 h-11 rounded-2xl shadow-md',
+        'mb-3 flex items-center justify-center w-10 h-10 rounded-xl',
         style.iconBg,
       )} aria-hidden="true">
         <span className={style.iconColor}>{icon}</span>
       </div>
-      <div className="relative">
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 70%)' }} />
-        <p className="relative font-heading text-4xl font-extrabold text-primary-900 tabular-nums leading-none">
-          <CountUp end={value} />{suffix && <span className="text-lg">{suffix}</span>}
-        </p>
-      </div>
-      <p className="relative text-[11px] uppercase tracking-[0.15em] text-primary-600 font-bold mt-2.5">
+      <p className="font-heading text-3xl font-extrabold text-neutral-900 tabular-nums leading-none">
+        <CountUp end={value} />{suffix && <span className="text-base ml-0.5">{suffix}</span>}
+      </p>
+      <p className="text-[10px] uppercase tracking-[0.15em] text-neutral-400 font-bold mt-2">
         {label}
       </p>
+      {style.barColor && style.barMax && value > 0 && (
+        <MiniBar value={value} max={style.barMax} color={style.barColor} className="mt-3 w-full max-w-[80px]" />
+      )}
     </motion.div>
   )
 }
@@ -258,7 +214,7 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
     <div className="flex items-center gap-8">
       <div className="relative w-40 h-40 shrink-0">
         <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-          <circle cx="50" cy="50" r={radius} fill="none" strokeWidth="11" className="stroke-primary-100/50" />
+          <circle cx="50" cy="50" r={radius} fill="none" strokeWidth="11" className="stroke-neutral-100" />
           {data.map((item, idx) => {
             const pct = item.count / total
             const dashLen = pct * circumference
@@ -284,10 +240,10 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <p className="font-heading text-3xl font-extrabold text-primary-900 leading-none">
+            <p className="font-heading text-3xl font-extrabold text-neutral-900 leading-none">
               <CountUp end={total} />
             </p>
-            <p className="text-[11px] text-primary-500 uppercase tracking-widest mt-1 font-bold">events</p>
+            <p className="text-[11px] text-neutral-400 uppercase tracking-widest mt-1 font-bold">events</p>
           </div>
         </div>
       </div>
@@ -298,12 +254,12 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
           return (
             <div key={item.category} className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-primary-700 font-bold">
+                <span className="text-xs text-neutral-700 font-bold">
                   {CATEGORY_LABELS[item.category] ?? item.category}
                 </span>
-                <span className="text-xs text-primary-500 font-bold tabular-nums">{pct}%</span>
+                <span className="text-xs text-neutral-500 font-bold tabular-nums">{pct}%</span>
               </div>
-              <div className="h-2.5 rounded-full bg-primary-100/50 overflow-hidden">
+              <div className="h-2.5 rounded-full bg-neutral-100 overflow-hidden">
                 <motion.div
                   className="h-full rounded-full shadow-sm"
                   style={{ backgroundColor: CATEGORY_COLORS[item.category] ?? '#869e62' }}
@@ -323,8 +279,8 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
 /* ─── section heading ─── */
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[11px] uppercase tracking-[0.18em] text-primary-600 font-extrabold mb-5 flex items-center gap-2">
-      <span className="h-0.5 w-4 rounded-full bg-primary-400/50" />
+    <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-400 font-extrabold mb-5 flex items-center gap-2">
+      <span className="h-0.5 w-4 rounded-full bg-neutral-300" />
       {children}
     </p>
   )
@@ -353,8 +309,7 @@ export default function ImpactDashboardPage() {
   if (showLoading || statsLoading) {
     return (
       <Page swipeBack noBackground className="!px-0 bg-white" header={<Header title="Impact" back />}>
-        <div className="relative min-h-full">
-          <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
+        <div className="relative min-h-full bg-white">
           <div className="relative z-10 px-4 lg:px-6">
             <ImpactSkeleton />
           </div>
@@ -381,8 +336,7 @@ export default function ImpactDashboardPage() {
   if (!stats) {
     return (
       <Page swipeBack noBackground className="!px-0 bg-white" header={<Header title="Impact" back />}>
-        <div className="relative min-h-full">
-          <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
+        <div className="relative min-h-full bg-white">
           <div className="relative z-10 px-4 lg:px-6">
             <EmptyState
               illustration="empty"
@@ -416,16 +370,8 @@ export default function ImpactDashboardPage() {
 
   return (
     <Page swipeBack noBackground className="!px-0 bg-white" header={<Header title="Impact" back />}>
-      <PullToRefresh
-        onRefresh={handleRefresh}
-        background={
-          <div className="pointer-events-none sticky top-0 h-[100dvh] -mb-[100dvh] overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-moss-50/60 via-white to-sprout-50/20" />
-            <DecoShapes reduced={!!shouldReduceMotion} />
-          </div>
-        }
-      >
-        <div className="relative min-h-full">
+      <PullToRefresh onRefresh={handleRefresh}>
+        <div className="relative min-h-full bg-white">
           {/* ─── Content ─── */}
           <div className="relative z-10 px-4 lg:px-6 pb-4 space-y-5">
 
@@ -439,9 +385,6 @@ export default function ImpactDashboardPage() {
                 variants={fadeUp}
                 className="relative rounded-3xl bg-gradient-to-br from-primary-700 via-primary-600 to-primary-800 p-7 shadow-2xl overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-40 h-40 rounded-full bg-white/5 -translate-y-1/3 translate-x-1/4" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 rounded-full bg-white/5 translate-y-1/3 -translate-x-1/4" />
-
                 <div className="relative">
                   <div className="flex items-center gap-2 mb-5">
                     <div className="flex items-center justify-center w-10 h-10 rounded-2xl bg-white/20">
@@ -470,19 +413,20 @@ export default function ImpactDashboardPage() {
               </motion.div>
             </motion.div>
 
-            {/* ─── Core Stats Grid: Canonical Metrics ─── */}
+            {/* ─── Core Stats Bento Grid ─── */}
             <motion.div
               variants={shouldReduceMotion ? undefined : stagger}
               initial="hidden"
               animate="show"
               className="grid grid-cols-2 gap-4"
             >
-              {/* Land Restoration */}
+              {/* Hero stat: Trees Planted spans full width */}
               <BigStat
                 value={stats.treesPlanted}
                 label="Trees Planted"
                 icon={<TreePine size={20} strokeWidth={2.5} />}
                 config="events"
+                hero
               />
               <BigStat
                 value={stats.invasiveWeedsPulled}
@@ -538,24 +482,24 @@ export default function ImpactDashboardPage() {
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 22 }}
-                className="flex items-center gap-5 rounded-3xl bg-gradient-to-r from-warning-100/80 via-warning-50 to-coral-100/60 bg-white shadow-sm border border-moss-50/60 p-6"
+                className="flex items-center gap-5 rounded-3xl bg-white shadow-sm border border-neutral-100 p-6"
               >
-                <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-warning-500 to-coral-500 shadow-lg shadow-warning-200/50">
+                <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-warning-500 shadow-md">
                   <Flame size={26} strokeWidth={2.5} className="text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-warning-700 font-extrabold mb-2.5">
+                  <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-400 font-extrabold mb-2.5">
                     Active Streak
                   </p>
                   <div className="flex items-baseline gap-4">
-                    <p className="font-heading text-3xl font-extrabold text-primary-900 tabular-nums">
+                    <p className="font-heading text-3xl font-extrabold text-neutral-900 tabular-nums">
                       <CountUp end={streak.currentWeeks} />
-                      <span className="text-sm font-bold text-primary-500 ml-1">wks</span>
+                      <span className="text-sm font-bold text-neutral-400 ml-1">wks</span>
                     </p>
-                    <span className="w-0.5 h-7 bg-primary-300/50 rounded-full" />
-                    <p className="font-heading text-3xl font-extrabold text-primary-900 tabular-nums">
+                    <span className="w-0.5 h-7 bg-neutral-200 rounded-full" />
+                    <p className="font-heading text-3xl font-extrabold text-neutral-900 tabular-nums">
                       <CountUp end={streak.currentMonths} />
-                      <span className="text-sm font-bold text-primary-500 ml-1">mos</span>
+                      <span className="text-sm font-bold text-neutral-400 ml-1">mos</span>
                     </p>
                   </div>
                 </div>
@@ -570,7 +514,7 @@ export default function ImpactDashboardPage() {
                 transition={{ delay: 0.25, type: 'spring', stiffness: 200, damping: 22 }}
               >
                 <SectionHeading>Monthly Activity</SectionHeading>
-                <div className="rounded-3xl bg-white shadow-sm border border-moss-50/60 p-6">
+                <div className="rounded-3xl bg-white shadow-sm border border-neutral-100 p-6">
                   <ActivitySparkline data={monthly} />
                 </div>
               </motion.section>
@@ -584,7 +528,7 @@ export default function ImpactDashboardPage() {
                 transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 22 }}
               >
                 <SectionHeading>Impact Breakdown</SectionHeading>
-                <div className="rounded-3xl bg-white shadow-sm border border-moss-50/60 p-6">
+                <div className="rounded-3xl bg-white shadow-sm border border-neutral-100 p-6">
                   <ImpactRing data={byCategory} />
                 </div>
               </motion.section>
@@ -599,7 +543,6 @@ export default function ImpactDashboardPage() {
               onClick={() => navigate('/impact/national')}
               className="w-full flex items-center gap-5 rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-xl shadow-primary-300/30 p-6 min-h-11 text-left active:scale-[0.97] transition-transform duration-150 hover:shadow-2xl cursor-pointer select-none overflow-hidden relative"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 rounded-full bg-white/5 -translate-y-1/2 translate-x-1/4" />
               <div className="relative flex items-center justify-center w-13 h-13 rounded-2xl bg-white/20">
                 <Globe size={24} strokeWidth={2.5} className="text-white" />
               </div>
@@ -617,9 +560,9 @@ export default function ImpactDashboardPage() {
               initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, type: 'spring', stiffness: 200, damping: 22 }}
-              className="rounded-3xl bg-white shadow-sm border border-moss-50/60 bg-gradient-to-br from-bark-100/60 to-bark-200/40 p-6"
+              className="rounded-3xl bg-white shadow-sm border border-neutral-100 p-6"
             >
-              <p className="text-sm text-primary-700 font-semibold leading-relaxed">
+              <p className="text-sm text-neutral-700 font-semibold leading-relaxed">
                 {stats.treesPlanted > 10
                   ? `You've planted ${Math.round(stats.treesPlanted / 3)}x more trees than the average Co-Exist member. Keep it up!`
                   : 'Keep attending events to grow your impact and see how you compare!'}

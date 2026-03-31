@@ -89,10 +89,10 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
         initial="hidden"
         animate="visible"
       >
-        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800">
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-neutral-900">
           Find your first event
         </motion.h2>
-        <motion.p variants={fadeUp} className="mt-2 text-primary-400 leading-relaxed">
+        <motion.p variants={fadeUp} className="mt-2 text-neutral-500 leading-relaxed">
           Jump in! One tap to RSVP.
         </motion.p>
 
@@ -102,24 +102,24 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
           ) : error ? (
             <div className="text-center py-8">
               <p className="text-sm text-error-500">Couldn't load events right now.</p>
-              <p className="text-xs text-primary-400 mt-1">You can skip and browse events later.</p>
+              <p className="text-xs text-neutral-500 mt-1">You can skip and browse events later.</p>
             </div>
           ) : events && events.length > 0 ? (
             events.map((event) => (
               <motion.div
                 key={event.id}
                 variants={fadeUp}
-                className="flex items-start gap-3 p-4 rounded-xl shadow-sm bg-white"
+                className="flex items-start gap-3 p-4 rounded-xl border border-neutral-100 shadow-sm bg-white"
               >
-                <div className="w-12 h-12 rounded-lg bg-accent-100 flex flex-col items-center justify-center shrink-0">
-                  <Calendar size={16} className="text-primary-400" />
+                <div className="w-12 h-12 rounded-lg bg-neutral-50 flex flex-col items-center justify-center shrink-0">
+                  <Calendar size={16} className="text-neutral-400" />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-primary-800 truncate">{event.title}</p>
-                  <p className="text-xs text-primary-400 mt-0.5">{formatDate(event.date_start)}</p>
+                  <p className="font-semibold text-neutral-900 truncate">{event.title}</p>
+                  <p className="text-xs text-neutral-500 mt-0.5">{formatDate(event.date_start)}</p>
                   {event.address && (
-                    <p className="flex items-center gap-1 text-xs text-primary-400 mt-0.5">
+                    <p className="flex items-center gap-1 text-xs text-neutral-500 mt-0.5">
                       <MapPin size={10} />
                       <span className="truncate">{event.address}</span>
                     </p>
@@ -139,8 +139,8 @@ export function StepFirstEvent({ collectiveId, onNext, onSkip }: StepFirstEventP
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-sm text-primary-400">No upcoming events right now.</p>
-              <p className="text-xs text-primary-400 mt-1">Don't worry - we'll notify you when one pops up!</p>
+              <p className="text-sm text-neutral-500">No upcoming events right now.</p>
+              <p className="text-xs text-neutral-400 mt-1">Don't worry - we'll notify you when one pops up!</p>
             </div>
           )}
         </div>

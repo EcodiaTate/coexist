@@ -181,11 +181,11 @@ export default function LearnQuizPage() {
     return (
       <Page header={<Header title="" back />}>
         <div className="flex flex-col items-center justify-center py-20">
-          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-100/60 mb-4">
-            <CircleDot size={24} strokeWidth={1.5} className="text-primary-400" />
+          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-neutral-100 mb-4">
+            <CircleDot size={24} strokeWidth={1.5} className="text-neutral-400" />
           </div>
-          <p className="text-[15px] font-bold text-primary-700">Quiz not found</p>
-          <p className="text-[13px] text-primary-400 mt-1">This quiz may have been removed or is no longer available.</p>
+          <p className="text-[15px] font-bold text-neutral-900">Quiz not found</p>
+          <p className="text-[13px] text-neutral-500 mt-1">This quiz may have been removed or is no longer available.</p>
           <Button variant="ghost" size="sm" onClick={() => navigate('/learn')} className="mt-3">
             Back to My Learning
           </Button>
@@ -200,13 +200,13 @@ export default function LearnQuizPage() {
     return (
       <Page header={<Header title="" back />}>
         <div className="max-w-2xl mx-auto pb-20 pt-4 text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-bark-100 mb-5">
-            <RotateCcw size={28} className="text-bark-500" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-neutral-100 mb-5">
+            <RotateCcw size={28} className="text-neutral-500" />
           </div>
-          <h2 className="font-heading text-xl font-bold text-primary-800 mb-2">
+          <h2 className="font-heading text-xl font-bold text-neutral-900 mb-2">
             {previouslyPassed ? 'Quiz Passed' : 'No Attempts Remaining'}
           </h2>
-          <p className="text-[13px] text-primary-500 mb-6">
+          <p className="text-[13px] text-neutral-500 mb-6">
             {previouslyPassed
               ? `You passed with ${bestAttempt.score_pct}%. Well done!`
               : `You've used all ${maxAttempts} attempt${maxAttempts === 1 ? '' : 's'}. Your best score was ${bestAttempt.score_pct}%.`}
@@ -237,46 +237,46 @@ export default function LearnQuizPage() {
             className={cn(
               'inline-flex items-center justify-center w-20 h-20 rounded-full mb-6',
               results.passed
-                ? 'bg-gradient-to-br from-moss-100 to-moss-200'
-                : 'bg-gradient-to-br from-bark-100 to-bark-200',
+                ? 'bg-primary-50'
+                : 'bg-neutral-100',
             )}
           >
             {results.passed ? (
-              <Trophy size={36} className="text-moss-600" />
+              <Trophy size={36} className="text-primary-600" />
             ) : (
               <RotateCcw size={36} className="text-bark-600" />
             )}
           </motion.div>
 
-          <h2 className="font-heading text-2xl font-bold text-primary-800 mb-1">
+          <h2 className="font-heading text-2xl font-bold text-neutral-900 mb-1">
             {results.passed ? 'Congratulations!' : 'Keep Going!'}
           </h2>
-          <p className="text-[13px] text-primary-500 mb-8">
+          <p className="text-[13px] text-neutral-500 mb-8">
             {results.passed
               ? 'You passed the quiz successfully'
               : `You need ${quiz.pass_score}% to pass. Try again!`}
           </p>
 
           {/* Score card */}
-          <div className="inline-flex items-center gap-5 px-7 py-5 rounded-2xl bg-white border border-primary-100 shadow-sm mb-8">
+          <div className="inline-flex items-center gap-5 px-7 py-5 rounded-2xl bg-white border border-neutral-100 shadow-sm mb-8">
             <div className="text-center">
-              <p className={cn('text-4xl font-bold tabular-nums', results.passed ? 'text-moss-600' : 'text-bark-600')}>
+              <p className={cn('text-4xl font-bold tabular-nums', results.passed ? 'text-primary-600' : 'text-bark-600')}>
                 {results.score}%
               </p>
-              <p className="text-[11px] text-primary-400 font-medium mt-1">Score</p>
+              <p className="text-[11px] text-neutral-500 font-medium mt-1">Score</p>
             </div>
-            <div className="w-px h-12 bg-primary-100" />
+            <div className="w-px h-12 bg-neutral-100" />
             <div className="text-center">
-              <p className="text-4xl font-bold text-primary-700 tabular-nums">
-                {results.earned}<span className="text-primary-300">/{results.total}</span>
+              <p className="text-4xl font-bold text-neutral-900 tabular-nums">
+                {results.earned}<span className="text-neutral-400">/{results.total}</span>
               </p>
-              <p className="text-[11px] text-primary-400 font-medium mt-1">Points</p>
+              <p className="text-[11px] text-neutral-500 font-medium mt-1">Points</p>
             </div>
           </div>
 
           {/* Per-question breakdown */}
-          <div className="rounded-2xl bg-primary-50/40 border border-primary-100 p-4 mb-8 text-left max-h-72 overflow-y-auto">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-primary-400 mb-3">Question Breakdown</p>
+          <div className="rounded-2xl bg-neutral-50 border border-neutral-100 p-4 mb-8 text-left max-h-72 overflow-y-auto">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-3">Question Breakdown</p>
             <div className="space-y-1.5">
               {orderedQuestions.map((q, i) => {
                 const answer = answers.get(q.id)
@@ -284,12 +284,12 @@ export default function LearnQuizPage() {
                 const correctIds = new Set((q.options ?? []).filter((o) => o.is_correct).map((o) => o.id))
                 const isCorrect = q.question_type === 'short_answer' || (correctIds.size === selectedIds.size && [...correctIds].every((id) => selectedIds.has(id)))
                 return (
-                  <div key={q.id} className={cn('flex items-center gap-2.5 py-2.5 px-3 rounded-xl', isCorrect ? 'bg-moss-50/60' : 'bg-white')}>
+                  <div key={q.id} className={cn('flex items-center gap-2.5 py-2.5 px-3 rounded-xl', isCorrect ? 'bg-primary-50' : 'bg-white')}>
                     <div className={cn('flex items-center justify-center w-6 h-6 rounded-full shrink-0', isCorrect ? 'bg-moss-100 text-moss-600' : 'bg-error-100 text-error-500')}>
                       {isCorrect ? <Check size={11} /> : <X size={11} />}
                     </div>
-                    <p className="text-[13px] text-primary-700 flex-1 min-w-0 line-clamp-1">Q{i + 1}: {q.question_text}</p>
-                    <span className="text-[11px] text-primary-400 tabular-nums shrink-0 font-bold">
+                    <p className="text-[13px] text-neutral-700 flex-1 min-w-0 line-clamp-1">Q{i + 1}: {q.question_text}</p>
+                    <span className="text-[11px] text-neutral-400 tabular-nums shrink-0 font-bold">
                       {isCorrect ? q.points ?? 1 : 0}/{q.points ?? 1}
                     </span>
                   </div>
@@ -332,11 +332,11 @@ export default function LearnQuizPage() {
     <Page header={<Header title="" back />}>
     <div className="max-w-2xl mx-auto pb-20">
       {/* ── Sticky header ── */}
-      <div className="sticky top-0 z-20 bg-white/95 border-b border-primary-100/60 -mx-4 px-4 py-3 mb-6">
+      <div className="sticky top-0 z-20 bg-white border-b border-neutral-100 -mx-4 px-4 py-3 mb-6">
         <div className="flex items-center gap-3">
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-bold text-primary-800 truncate">{quiz.title}</p>
-            <p className="text-[11px] text-primary-400 font-medium">
+            <p className="text-[13px] font-bold text-neutral-900 truncate">{quiz.title}</p>
+            <p className="text-[11px] text-neutral-500 font-medium">
               Question {currentIndex + 1} of {orderedQuestions.length}
             </p>
           </div>

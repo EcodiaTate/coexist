@@ -21,7 +21,7 @@ export function EcodiaAttribution({ className }: EcodiaAttributionProps) {
         className,
       )}
     >
-      <span className="text-[10px] text-primary-400">
+      <span className="text-[10px] text-neutral-400">
         Built by
       </span>
       <span className="inline-flex">

@@ -143,10 +143,10 @@ function ContactFormModal({
     <BottomSheet open={open} onClose={onClose}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-heading text-lg font-semibold text-primary-800">{isEdit ? 'Edit Contact' : 'Add Contact'}</h2>
+        <h2 className="font-heading text-lg font-semibold text-neutral-900">{isEdit ? 'Edit Contact' : 'Add Contact'}</h2>
         <button
           onClick={onClose}
-          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-neutral-400 hover:bg-neutral-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
           aria-label="Close"
         >
           <X size={20} />
@@ -190,10 +190,10 @@ function ContactFormModal({
 
         {/* States */}
         <div>
-          <label className="block text-xs font-semibold text-primary-500 uppercase tracking-wider mb-1.5">
+          <label className="block text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1.5">
             Applicable States
           </label>
-          <p className="text-[11px] text-primary-400 mb-2">
+          <p className="text-[11px] text-neutral-400 mb-2">
             Leave empty to show in all states. Select specific states to only show this contact for events in those states.
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -206,7 +206,7 @@ function ContactFormModal({
                   'px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors duration-150 min-h-[36px]',
                   selectedStates.includes(state)
                     ? 'bg-primary-600 text-white shadow-sm'
-                    : 'bg-primary-50 text-primary-500 hover:bg-primary-100',
+                    : 'bg-neutral-50 text-neutral-500 hover:bg-neutral-100',
                 )}
               >
                 {state}
@@ -216,7 +216,7 @@ function ContactFormModal({
               <button
                 type="button"
                 onClick={() => setSelectedStates([])}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-primary-400 hover:text-primary-600 min-h-[36px]"
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-neutral-400 hover:text-neutral-600 min-h-[36px]"
               >
                 Clear all
               </button>
@@ -235,13 +235,13 @@ function ContactFormModal({
 
         {/* Active toggle */}
         <div className="flex items-center justify-between py-2">
-          <span className="text-sm font-medium text-primary-800">Active</span>
+          <span className="text-sm font-medium text-neutral-900">Active</span>
           <button
             type="button"
             onClick={() => setIsActive(!isActive)}
             className={cn(
               'relative w-11 h-6 rounded-full transition-colors duration-150',
-              isActive ? 'bg-success-500' : 'bg-primary-200',
+              isActive ? 'bg-success-500' : 'bg-neutral-200',
             )}
           >
             <span
@@ -334,7 +334,6 @@ export default function AdminContactsPage() {
         size="sm"
         icon={<Plus size={16} />}
         onClick={() => { setEditTarget(null); setShowForm(true) }}
-        className="!bg-white/15 !border-white/10 hover:!bg-white/25 !text-white"
       >
         Add Contact
       </Button>
@@ -378,8 +377,8 @@ export default function AdminContactsPage() {
                 'px-3 min-h-11 rounded-lg text-sm font-semibold whitespace-nowrap',
                 'transition-colors duration-150 cursor-pointer select-none',
                 !categoryFilter
-                  ? 'bg-primary-100 text-primary-800'
-                  : 'text-primary-400 hover:text-primary-600',
+                  ? 'bg-neutral-100 text-neutral-900'
+                  : 'text-neutral-400 hover:text-neutral-600',
               )}
             >
               All
@@ -437,10 +436,10 @@ export default function AdminContactsPage() {
                       >
                         {icon}
                       </span>
-                      <h3 className="font-heading text-sm font-bold text-primary-800">
+                      <h3 className="font-heading text-sm font-bold text-neutral-900">
                         {group.meta.label}
                       </h3>
-                      <span className="text-xs text-primary-400">
+                      <span className="text-xs text-neutral-400">
                         {group.contacts.length} contact{group.contacts.length !== 1 ? 's' : ''}
                       </span>
                     </div>
@@ -477,7 +476,7 @@ export default function AdminContactsPage() {
                           {/* Info */}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-0.5">
-                              <p className="text-sm font-semibold text-primary-800 truncate">
+                              <p className="text-sm font-semibold text-neutral-900 truncate">
                                 {contact.name}
                               </p>
                               {!contact.is_active && (
@@ -486,13 +485,13 @@ export default function AdminContactsPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-primary-400">
+                            <div className="flex items-center gap-2 text-xs text-neutral-400">
                               <span className="font-medium tabular-nums">
                                 {formatPhone(contact.phone)}
                               </span>
                               {contact.note && (
                                 <>
-                                  <span className="text-primary-200">·</span>
+                                  <span className="text-neutral-200">·</span>
                                   <span className="truncate">{contact.note}</span>
                                 </>
                               )}
@@ -502,7 +501,7 @@ export default function AdminContactsPage() {
                                 {contact.states.map((s) => (
                                   <span
                                     key={s}
-                                    className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary-50 text-primary-500"
+                                    className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-neutral-50 text-neutral-500"
                                   >
                                     {s}
                                   </span>
@@ -516,7 +515,7 @@ export default function AdminContactsPage() {
                             <button
                               type="button"
                               onClick={() => { setEditTarget(contact); setShowForm(true) }}
-                              className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-50 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
+                              className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-neutral-400 hover:bg-neutral-50 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                               aria-label={`Edit ${contact.name}`}
                             >
                               <Pencil size={15} />
@@ -524,7 +523,7 @@ export default function AdminContactsPage() {
                             <button
                               type="button"
                               onClick={() => setDeleteTarget(contact)}
-                              className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-red-50 hover:text-red-500 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
+                              className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-neutral-400 hover:bg-red-50 hover:text-red-500 cursor-pointer active:scale-[0.93] transition-[colors,transform]"
                               aria-label={`Delete ${contact.name}`}
                             >
                               <Trash2 size={15} />

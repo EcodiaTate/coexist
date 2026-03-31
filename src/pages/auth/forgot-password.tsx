@@ -64,12 +64,12 @@ export default function ForgotPasswordPage() {
               >
                 <CheckCircle className="w-16 h-16 text-success mx-auto" />
               </motion.div>
-              <h2 className="mt-6 font-heading text-xl font-semibold text-primary-800">
+              <h2 className="mt-6 font-heading text-xl font-semibold text-neutral-900">
                 Check your inbox
               </h2>
-              <p className="mt-2 text-primary-400 max-w-xs">
+              <p className="mt-2 text-neutral-500 max-w-xs">
                 We've sent a password reset link to{' '}
-                <span className="font-medium text-primary-800">{email}</span>
+                <span className="font-medium text-neutral-900">{email}</span>
               </p>
               <Button
                 variant="ghost"
@@ -90,14 +90,14 @@ export default function ForgotPasswordPage() {
               className="flex-1 flex flex-col"
             >
               <div className="flex-1">
-                <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mb-6">
-                  <Mail className="w-7 h-7 text-primary-400" />
+                <div className="w-14 h-14 rounded-full bg-neutral-50 flex items-center justify-center mb-6">
+                  <Mail className="w-7 h-7 text-neutral-400" />
                 </div>
 
-                <h2 className="font-heading text-xl font-semibold text-primary-800">
+                <h2 className="font-heading text-xl font-semibold text-neutral-900">
                   Forgot your password?
                 </h2>
-                <p className="mt-2 text-primary-400 leading-relaxed">
+                <p className="mt-2 text-neutral-500 leading-relaxed">
                   Enter your email and we'll send you a link to reset it.
                 </p>
 

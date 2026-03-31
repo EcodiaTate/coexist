@@ -117,12 +117,12 @@ function PinnedMessageBar({
   const hasMultiple = messages.length > 1
 
   return (
-    <div className="shrink-0 bg-surface-1 shadow-md">
+    <div className="shrink-0 bg-white border-b border-neutral-100">
       <div className="flex w-full items-center gap-2.5 px-4 py-2.5 min-h-11">
-        <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100 shrink-0">
-          <Pin size={13} className="text-primary-600" />
+        <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-50 shrink-0">
+          <Pin size={13} className="text-primary-500" />
         </div>
-        <p className="text-xs text-primary-800 truncate flex-1 text-left">
+        <p className="text-xs text-neutral-800 truncate flex-1 text-left">
           <span className="font-bold">Pinned: </span>
           {latest.content ?? 'Image'}
         </p>
@@ -131,7 +131,7 @@ function PinnedMessageBar({
           <button
             type="button"
             onClick={() => setExpanded(!expanded)}
-            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-400 hover:bg-neutral-50 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
             aria-label={expanded ? 'Collapse pinned messages' : 'Show all pinned messages'}
           >
             <ChevronDown size={16} className={cn('transition-transform duration-200', expanded && 'rotate-180')} />
@@ -143,7 +143,7 @@ function PinnedMessageBar({
           <button
             type="button"
             onClick={() => onUnpin(latest.id)}
-            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-300 hover:text-primary-500 hover:bg-primary-100 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
+            className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-300 hover:text-neutral-500 hover:bg-neutral-50 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
             aria-label="Unpin message"
           >
             <X size={16} />
@@ -164,20 +164,20 @@ function PinnedMessageBar({
               {messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className="flex items-center gap-2 rounded-xl bg-primary-50/60 px-3 py-2"
+                  className="flex items-center gap-2 rounded-xl bg-neutral-50 px-3 py-2"
                 >
-                  <Pin size={10} className="text-primary-300 shrink-0" />
-                  <p className="text-xs text-primary-700 truncate flex-1">
+                  <Pin size={10} className="text-neutral-300 shrink-0" />
+                  <p className="text-xs text-neutral-700 truncate flex-1">
                     {msg.content ?? 'Image'}
                   </p>
-                  <span className="text-[11px] text-primary-400 shrink-0">
+                  <span className="text-[11px] text-neutral-400 shrink-0">
                     {msg.profiles?.display_name}
                   </span>
                   {isStaff && (
                     <button
                       type="button"
                       onClick={() => onUnpin(msg.id)}
-                      className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-300 hover:text-error-500 hover:bg-error-50 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
+                      className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-300 hover:text-error-500 hover:bg-error-50 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
                       aria-label={`Unpin: ${msg.content?.slice(0, 30) ?? 'message'}`}
                     >
                       <X size={14} />
@@ -704,7 +704,7 @@ export default function ChatRoomPage() {
   /* ---- Not found guard ---- */
   if (isChannel && !channelId) {
     return (
-      <div className="flex flex-col flex-1 min-h-0 max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40" style={{ paddingTop: 'var(--safe-top)' }}>
+      <div className="flex flex-col flex-1 min-h-0 max-h-dvh overflow-hidden relative bg-white" style={{ paddingTop: 'var(--safe-top)' }}>
         <Header title="Staff Chat" back className="!relative !top-0" />
         <div className="flex-1 flex items-center justify-center">
           <EmptyState illustration="empty" title="Channel not found" description="This channel may have been removed." />
@@ -726,7 +726,7 @@ export default function ChatRoomPage() {
 
   return (
     <div
-      className="flex flex-col flex-1 min-h-0 max-h-dvh overflow-hidden relative bg-gradient-to-b from-primary-50/80 to-primary-100/40"
+      className="flex flex-col flex-1 min-h-0 max-h-dvh overflow-hidden relative bg-white"
       style={{ paddingTop: 'var(--safe-top)' }}
     >
       {/* Header — shrink-0 keeps it pinned at the top of the flex column */}
@@ -752,7 +752,7 @@ export default function ChatRoomPage() {
                   type="button"
                   onClick={() => setShowManageMembers(true)}
                   aria-label="Manage members"
-                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+                  className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-500 hover:bg-neutral-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <Users size={20} />
                 </button>
@@ -761,7 +761,7 @@ export default function ChatRoomPage() {
                 type="button"
                 onClick={() => isCollective ? setShowSearch(true) : undefined}
                 aria-label="Search messages"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-500 hover:bg-primary-100 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-500 hover:bg-neutral-50 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
               >
                 <Search size={20} />
               </button>
@@ -814,21 +814,21 @@ export default function ChatRoomPage() {
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.15 }}
-            className="shrink-0 bg-surface-1 px-4 py-2.5 shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
+            className="shrink-0 bg-white border-t border-neutral-100 px-4 py-2.5"
           >
             <div className="flex items-center gap-2.5">
-              <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-100">
-                <Reply size={14} className="text-primary-600 shrink-0" />
+              <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-primary-50">
+                <Reply size={14} className="text-primary-500 shrink-0" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-primary-600">{replyTo.profiles?.display_name ?? 'Unknown'}</p>
-                <p className="text-xs text-primary-500 truncate">{replyTo.content ?? 'Image'}</p>
+                <p className="text-xs font-bold text-neutral-700">{replyTo.profiles?.display_name ?? 'Unknown'}</p>
+                <p className="text-xs text-neutral-500 truncate">{replyTo.content ?? 'Image'}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setReplyTo(null)}
                 aria-label="Cancel reply"
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-400 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
               >
                 <X size={16} />
               </button>
@@ -846,13 +846,13 @@ export default function ChatRoomPage() {
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.15 }}
-              className="shrink-0 bg-warning-100 px-4 py-2.5 shadow-[0_-2px_8px_rgba(74,74,66,0.06)]"
+              className="shrink-0 bg-warning-50 border-t border-neutral-100 px-4 py-2.5"
             >
               <div className="flex items-center gap-2.5">
-                <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-warning-200">
+                <div className="flex items-center justify-center h-7 w-7 rounded-lg bg-warning-50">
                   <Pencil size={14} className="text-warning-700 shrink-0" />
                 </div>
-                <p className="text-xs font-bold text-warning-800 flex-1">Editing message</p>
+                <p className="text-xs font-bold text-warning-700 flex-1">Editing message</p>
                 <button
                   type="button"
                   onClick={() => { setEditingMessage(null); setEditText('') }}
@@ -878,7 +878,7 @@ export default function ChatRoomPage() {
             onClick={scrollToBottom}
             aria-label="Scroll to latest messages"
             className={cn(
-              'absolute right-4 z-20 flex min-h-12 min-w-12 items-center justify-center rounded-full bg-white shadow-lg ring-2 ring-primary-200/60 text-primary-600 hover:bg-primary-50 active:scale-[0.93] transition-transform duration-150 cursor-pointer select-none',
+              'absolute right-4 z-20 flex min-h-12 min-w-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-neutral-100 text-neutral-600 hover:bg-neutral-50 active:scale-[0.93] transition-transform duration-150 cursor-pointer select-none',
               hasBottomTabs ? 'bottom-32' : 'bottom-20',
             )}
           >

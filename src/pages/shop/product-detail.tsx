@@ -69,12 +69,12 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
 
   if (images.length === 0) {
     return (
-      <div className="w-full aspect-[4/5] sm:aspect-square bg-gradient-to-br from-primary-50 to-primary-100/60 flex items-center justify-center rounded-b-3xl">
+      <div className="w-full aspect-[4/5] sm:aspect-square bg-neutral-50 flex items-center justify-center rounded-b-3xl">
         <div className="flex flex-col items-center gap-3">
           <div className="w-20 h-20 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
-            <ShoppingBag size={32} className="text-primary-300" />
+            <ShoppingBag size={32} className="text-neutral-400" />
           </div>
-          <span className="text-sm text-primary-300 font-medium">No image available</span>
+          <span className="text-sm text-neutral-400 font-medium">No image available</span>
         </div>
       </div>
     )
@@ -144,7 +144,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
             )}
             aria-label="Previous image"
           >
-            <ChevronLeft size={18} className="text-primary-800" />
+            <ChevronLeft size={18} className="text-neutral-900" />
           </button>
           <button
             type="button"
@@ -159,7 +159,7 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
             )}
             aria-label="Next image"
           >
-            <ChevronRight size={18} className="text-primary-800" />
+            <ChevronRight size={18} className="text-neutral-900" />
           </button>
         </>
       )}
@@ -186,13 +186,13 @@ function TrustBadges() {
   ]
 
   return (
-    <div className="flex items-center justify-center gap-6 py-4 px-3 rounded-2xl bg-primary-50/50 shadow-sm">
+    <div className="flex items-center justify-center gap-6 py-4 px-3 rounded-2xl bg-white border border-neutral-100 shadow-sm">
       {badges.map(({ icon: Icon, label }) => (
         <div key={label} className="flex flex-col items-center gap-1.5">
-          <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm">
-            <Icon size={16} className="text-primary-500" />
+          <div className="w-9 h-9 rounded-full bg-neutral-50 flex items-center justify-center shadow-sm">
+            <Icon size={16} className="text-neutral-500" />
           </div>
-          <span className="text-[11px] font-medium text-primary-500">{label}</span>
+          <span className="text-[11px] font-medium text-neutral-500">{label}</span>
         </div>
       ))}
     </div>
@@ -213,7 +213,7 @@ function QuantityStepper({
   max?: number
 }) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-xl bg-surface-2 shadow-sm p-1">
+    <div className="inline-flex items-center gap-1 rounded-xl bg-neutral-50 shadow-sm p-1">
       <button
         type="button"
         onClick={() => onChange(Math.max(1, value - 1))}
@@ -222,14 +222,14 @@ function QuantityStepper({
           'flex items-center justify-center w-10 h-10 rounded-lg',
           'cursor-pointer select-none active:scale-[0.93] transition-transform duration-150',
           value <= 1
-            ? 'text-primary-200 cursor-not-allowed'
-            : 'text-primary-600 hover:bg-primary-50',
+            ? 'text-neutral-200 cursor-not-allowed'
+            : 'text-neutral-600 hover:bg-neutral-100',
         )}
         aria-label="Decrease quantity"
       >
         <Minus size={16} strokeWidth={2.5} />
       </button>
-      <span className="font-heading font-bold text-primary-800 min-w-[3ch] text-center tabular-nums text-lg">
+      <span className="font-heading font-bold text-neutral-900 min-w-[3ch] text-center tabular-nums text-lg">
         {value}
       </span>
       <button
@@ -240,8 +240,8 @@ function QuantityStepper({
           'flex items-center justify-center w-10 h-10 rounded-lg',
           'cursor-pointer select-none active:scale-[0.93] transition-transform duration-150',
           max !== undefined && value >= max
-            ? 'text-primary-200 cursor-not-allowed'
-            : 'text-primary-600 hover:bg-primary-50',
+            ? 'text-neutral-200 cursor-not-allowed'
+            : 'text-neutral-600 hover:bg-neutral-100',
         )}
         aria-label="Increase quantity"
       >
@@ -256,7 +256,7 @@ function QuantityStepper({
 /* ------------------------------------------------------------------ */
 
 function Divider() {
-  return <div className="h-px bg-gradient-to-r from-transparent via-primary-100 to-transparent" />
+  return <div className="h-px bg-gradient-to-r from-transparent via-neutral-100 to-transparent" />
 }
 
 /* ------------------------------------------------------------------ */
@@ -310,10 +310,10 @@ function AddedToCartModal({
     <BottomSheet open={open} onClose={onClose}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-heading text-lg font-semibold text-primary-800">Added to cart!</h2>
+        <h2 className="font-heading text-lg font-semibold text-neutral-900">Added to cart!</h2>
         <button
           onClick={onClose}
-          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-neutral-400 hover:bg-neutral-100 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
           aria-label="Close"
         >
           <X size={20} />
@@ -323,7 +323,7 @@ function AddedToCartModal({
         {/* Recommendations */}
         {related && related.length > 0 && (
           <div>
-            <p className="text-sm font-semibold text-primary-600 mb-3">
+            <p className="text-sm font-semibold text-neutral-600 mb-3">
               You might also like
             </p>
             <div className="flex gap-3 overflow-x-auto scrollbar-none pb-2 -mx-1 px-1">
@@ -337,7 +337,7 @@ function AddedToCartModal({
                   }}
                   className="shrink-0 w-32 cursor-pointer select-none active:scale-[0.97] transition-transform duration-150 text-left"
                 >
-                  <div className="rounded-xl overflow-hidden bg-primary-50 shadow-sm">
+                  <div className="rounded-xl overflow-hidden bg-neutral-50 shadow-sm">
                     <img
                       src={p.images[0] ?? placeholderMerch}
                       alt={p.name}
@@ -346,10 +346,10 @@ function AddedToCartModal({
                       className="w-full aspect-square object-cover"
                     />
                     <div className="p-2.5">
-                      <p className="text-xs font-semibold text-primary-800 line-clamp-1">
+                      <p className="text-xs font-semibold text-neutral-900 line-clamp-1">
                         {p.name}
                       </p>
-                      <p className="text-xs font-bold text-primary-500 mt-0.5">
+                      <p className="text-xs font-bold text-neutral-500 mt-0.5">
                         {formatPrice(p.base_price_cents)}
                       </p>
                     </div>
@@ -502,7 +502,7 @@ export default function ProductDetailPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           {/* Price + quantity */}
           <div className="flex items-center justify-center gap-3 sm:justify-start">
-            <p className="font-heading text-lg font-bold text-primary-800 leading-none">
+            <p className="font-heading text-lg font-bold text-neutral-900 leading-none">
               {formatPrice((activeVariant?.price_cents ?? product.base_price_cents) * quantity)}
             </p>
             <QuantityStepper
@@ -521,7 +521,7 @@ export default function ProductDetailPage() {
               disabled={!inStock || reserving}
               loading={reserving}
               onClick={handleAddToCart}
-              className="!bg-gradient-to-r !from-primary-400 !to-sprout-500 !text-white !border-none"
+              className=""
             >
               {addedToCart ? 'Added!' : inStock ? 'Cart' : 'Sold Out'}
             </Button>
@@ -551,17 +551,17 @@ export default function ProductDetailPage() {
         {/* ---- Name, price, rating ---- */}
         <motion.div variants={fadeUp} className="space-y-3">
           {product.category && (
-            <span className="inline-block px-3 py-1 rounded-full bg-primary-100/70 text-primary-600 text-xs font-semibold uppercase tracking-wider">
+            <span className="inline-block px-3 py-1 rounded-full bg-neutral-100 text-neutral-600 text-xs font-semibold uppercase tracking-wider">
               {product.category}
             </span>
           )}
 
-          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-primary-800 leading-tight">
+          <h1 className="font-heading text-2xl sm:text-3xl font-bold text-neutral-900 leading-tight">
             {product.name}
           </h1>
 
           <div className="flex items-center flex-wrap gap-3">
-            <span className="font-heading text-2xl font-bold text-primary-500">
+            <span className="font-heading text-2xl font-bold text-neutral-900">
               {formatPrice(activeVariant?.price_cents ?? product.base_price_cents)}
             </span>
 
@@ -602,10 +602,10 @@ export default function ProductDetailPage() {
 
         {/* ---- Description ---- */}
         <motion.div variants={fadeUp}>
-          <h2 className="text-sm font-semibold text-primary-800 uppercase tracking-wider mb-3">
+          <h2 className="text-[11px] uppercase tracking-[0.15em] font-bold text-neutral-400 mb-3">
             About this product
           </h2>
-          <p className="text-[15px] text-primary-600 leading-relaxed">
+          <p className="text-[15px] text-neutral-600 leading-relaxed">
             {product.description}
           </p>
         </motion.div>
@@ -618,11 +618,11 @@ export default function ProductDetailPage() {
             {sizes.length > 0 && (
               <motion.div variants={fadeUp}>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-primary-800 uppercase tracking-wider">
+                  <h2 className="text-[11px] uppercase tracking-[0.15em] font-bold text-neutral-400">
                     Size
                   </h2>
                   {activeVariant?.size && (
-                    <span className="text-sm text-primary-400">{activeVariant.size}</span>
+                    <span className="text-sm text-neutral-500">{activeVariant.size}</span>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -644,10 +644,10 @@ export default function ProductDetailPage() {
                           'relative px-5 py-2.5 min-h-11 min-w-[3.5rem] rounded-xl text-sm font-semibold',
                           'transition-transform duration-200 cursor-pointer select-none',
                           isSelected
-                            ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md'
+                            ? 'bg-neutral-900 text-white shadow-sm'
                             : available
-                              ? 'bg-surface-2 text-primary-700 shadow-sm hover:shadow-md'
-                              : 'bg-primary-50/40 text-primary-300 cursor-not-allowed line-through',
+                              ? 'bg-white border border-neutral-100 text-neutral-900 shadow-sm hover:shadow-md'
+                              : 'bg-neutral-50 text-neutral-300 cursor-not-allowed line-through',
                         )}
                       >
                         {size}
@@ -661,11 +661,11 @@ export default function ProductDetailPage() {
             {colours.length > 0 && (
               <motion.div variants={fadeUp}>
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-primary-800 uppercase tracking-wider">
+                  <h2 className="text-[11px] uppercase tracking-[0.15em] font-bold text-neutral-400">
                     Colour
                   </h2>
                   {activeVariant?.colour && (
-                    <span className="text-sm text-primary-400">{activeVariant.colour}</span>
+                    <span className="text-sm text-neutral-500">{activeVariant.colour}</span>
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -687,10 +687,10 @@ export default function ProductDetailPage() {
                           'relative px-5 py-2.5 min-h-11 rounded-xl text-sm font-semibold',
                           'transition-transform duration-200 cursor-pointer select-none',
                           isSelected
-                            ? 'bg-gradient-to-r from-primary-400 to-sprout-500 text-white shadow-md'
+                            ? 'bg-neutral-900 text-white shadow-sm'
                             : available
-                              ? 'bg-surface-2 text-primary-700 shadow-sm hover:shadow-md'
-                              : 'bg-primary-50/40 text-primary-300 cursor-not-allowed line-through',
+                              ? 'bg-white border border-neutral-100 text-neutral-900 shadow-sm hover:shadow-md'
+                              : 'bg-neutral-50 text-neutral-300 cursor-not-allowed line-through',
                         )}
                       >
                         {colour}
@@ -716,7 +716,7 @@ export default function ProductDetailPage() {
             <Divider />
 
             <motion.div variants={fadeUp}>
-              <h2 className="font-heading text-lg font-bold text-primary-800 mb-4">
+              <h2 className="font-heading text-lg font-bold text-neutral-900 mb-4">
                 You might also like
               </h2>
               <div className="-mx-4 lg:-mx-0">
@@ -739,8 +739,8 @@ export default function ProductDetailPage() {
                             aspectRatio="1/1"
                           />
                           {p.variants.every((v) => v.stock === 0) && (
-                            <div className="absolute inset-0 bg-primary-800/40 flex items-center justify-center">
-                              <span className="px-2.5 py-1 bg-white/90 rounded-full text-xs font-semibold text-primary-800">
+                            <div className="absolute inset-0 bg-neutral-900/40 flex items-center justify-center">
+                              <span className="px-2.5 py-1 bg-white/90 rounded-full text-xs font-semibold text-neutral-900">
                                 Sold out
                               </span>
                             </div>
@@ -750,7 +750,7 @@ export default function ProductDetailPage() {
                           <Card.Title className="text-xs line-clamp-1">
                             {p.name}
                           </Card.Title>
-                          <p className="text-xs font-bold text-primary-500 mt-1">
+                          <p className="text-xs font-bold text-neutral-500 mt-1">
                             {formatPrice(p.base_price_cents)}
                           </p>
                         </Card.Content>

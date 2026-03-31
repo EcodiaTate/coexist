@@ -50,11 +50,32 @@ export function useSyncManager() {
           toast.warning(`${result.failed} action${result.failed === 1 ? '' : 's'} will retry next time`)
         }
 
-        // Refetch critical data after sync
+        // Refetch all data that may have been mutated offline
         queryClient.invalidateQueries({ queryKey: ['my-events'] })
         queryClient.invalidateQueries({ queryKey: ['profile'] })
         queryClient.invalidateQueries({ queryKey: ['chat-messages'] })
         queryClient.invalidateQueries({ queryKey: ['unread-counts'] })
+        queryClient.invalidateQueries({ queryKey: ['my-tasks'] })
+        queryClient.invalidateQueries({ queryKey: ['collective-tasks'] })
+        queryClient.invalidateQueries({ queryKey: ['leader-todos'] })
+        queryClient.invalidateQueries({ queryKey: ['blocked-users'] })
+        queryClient.invalidateQueries({ queryKey: ['notifications'] })
+        queryClient.invalidateQueries({ queryKey: ['notifications-unread'] })
+        queryClient.invalidateQueries({ queryKey: ['event-impact'] })
+        queryClient.invalidateQueries({ queryKey: ['impact-stats'] })
+        queryClient.invalidateQueries({ queryKey: ['profile-stats'] })
+        queryClient.invalidateQueries({ queryKey: ['national-impact'] })
+        queryClient.invalidateQueries({ queryKey: ['collective-impact'] })
+        queryClient.invalidateQueries({ queryKey: ['moderation-queue'] })
+        queryClient.invalidateQueries({ queryKey: ['chat-polls'] })
+        queryClient.invalidateQueries({ queryKey: ['chat-announcement'] })
+        queryClient.invalidateQueries({ queryKey: ['dev-my-module-progress'] })
+        queryClient.invalidateQueries({ queryKey: ['dev-my-section-progress'] })
+        queryClient.invalidateQueries({ queryKey: ['dev-quiz-attempts'] })
+        queryClient.invalidateQueries({ queryKey: ['pending-surveys'] })
+        queryClient.invalidateQueries({ queryKey: ['leader-dashboard'] })
+        queryClient.invalidateQueries({ queryKey: ['admin-kpi-dashboard'] })
+        queryClient.invalidateQueries({ queryKey: ['pending-impact-form-tasks'] })
       })
       .catch(() => {
         toast.error('Sync failed - will retry next time')

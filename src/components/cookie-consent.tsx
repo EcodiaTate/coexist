@@ -101,20 +101,20 @@ export function CookieConsentBanner({ className }: { className?: string }) {
           <div className="rounded-2xl bg-white shadow-lg overflow-hidden">
             {/* Header */}
             <div className="flex items-start gap-3 p-4 pb-2">
-              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white text-primary-400 shrink-0">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white text-neutral-400 shrink-0">
                 <Cookie size={18} />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-heading text-sm font-semibold text-primary-800">
+                <h3 className="font-heading text-sm font-semibold text-neutral-900">
                   We use cookies
                 </h3>
-                <p className="text-xs text-primary-400 mt-0.5 leading-relaxed">
+                <p className="text-xs text-neutral-500 mt-0.5 leading-relaxed">
                   We use cookies to improve your experience and analyse how the site is used.
                 </p>
               </div>
               <button
                 onClick={handleRejectNonEssential}
-                className="flex items-center justify-center w-11 h-11 rounded-full text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 shrink-0"
+                className="flex items-center justify-center w-11 h-11 rounded-full text-neutral-500 hover:bg-neutral-100 active:scale-[0.93] transition-[colors,transform] duration-150 shrink-0"
                 aria-label="Reject non-essential cookies"
               >
                 <X size={16} />
@@ -133,15 +133,15 @@ export function CookieConsentBanner({ className }: { className?: string }) {
                   <div className="space-y-2 py-2">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-medium text-primary-800">Essential</p>
-                        <p className="text-[11px] text-primary-400">Required for the site to work</p>
+                        <p className="text-xs font-medium text-neutral-900">Essential</p>
+                        <p className="text-[11px] text-neutral-500">Required for the site to work</p>
                       </div>
                       <Toggle checked disabled onChange={() => {}} size="sm" />
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-medium text-primary-800">Analytics</p>
-                        <p className="text-[11px] text-primary-400">Help us improve the experience</p>
+                        <p className="text-xs font-medium text-neutral-900">Analytics</p>
+                        <p className="text-[11px] text-neutral-500">Help us improve the experience</p>
                       </div>
                       <Toggle
                         checked={consent.analytics}
@@ -151,8 +151,8 @@ export function CookieConsentBanner({ className }: { className?: string }) {
                     </div>
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-xs font-medium text-primary-800">Marketing</p>
-                        <p className="text-[11px] text-primary-400">Personalised content and campaigns</p>
+                        <p className="text-xs font-medium text-neutral-900">Marketing</p>
+                        <p className="text-[11px] text-neutral-500">Personalised content and campaigns</p>
                       </div>
                       <Toggle
                         checked={consent.marketing}
@@ -169,7 +169,7 @@ export function CookieConsentBanner({ className }: { className?: string }) {
             <div className="flex gap-2 p-4 pt-2">
               <button
                 onClick={() => setShowDetails(!showDetails)}
-                className="text-xs font-medium text-primary-400 hover:text-primary-800 active:scale-[0.97] transition-[colors,transform] duration-150 px-3 min-h-11 flex items-center justify-center cursor-pointer"
+                className="text-xs font-medium text-neutral-500 hover:text-neutral-700 active:scale-[0.97] transition-[colors,transform] duration-150 px-3 min-h-11 flex items-center justify-center cursor-pointer"
               >
                 {showDetails ? 'Hide details' : 'Customise'}
               </button>

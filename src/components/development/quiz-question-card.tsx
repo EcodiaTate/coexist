@@ -101,7 +101,7 @@ export function QuizQuestionCard({
                 disabled={disabled || submitted}
                 className={cn(
                   'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left text-sm font-medium transition-transform border-2',
-                  state === 'default' && 'border-primary-200 bg-white text-primary-700 hover:border-primary-300 hover:bg-primary-50',
+                  state === 'default' && 'border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300 hover:bg-neutral-50',
                   state === 'selected' && 'border-primary-500 bg-primary-50 text-primary-800',
                   state === 'correct' && 'border-moss-400 bg-moss-50 text-moss-800',
                   state === 'incorrect' && 'border-red-300 bg-red-50 text-red-700',
@@ -112,7 +112,7 @@ export function QuizQuestionCard({
                 <div
                   className={cn(
                     'flex items-center justify-center w-6 h-6 rounded-full border-2 shrink-0 text-xs',
-                    state === 'default' && 'border-primary-300',
+                    state === 'default' && 'border-neutral-300',
                     state === 'selected' && 'border-primary-500 bg-primary-500 text-white',
                     state === 'correct' && 'border-moss-500 bg-moss-500 text-white',
                     state === 'incorrect' && 'border-red-400 bg-red-400 text-white',
@@ -156,10 +156,10 @@ export function QuizQuestionCard({
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl bg-primary-50 border border-primary-200 px-4 py-3"
+          className="rounded-xl bg-neutral-50 border border-neutral-200 px-4 py-3"
         >
-          <p className="text-xs font-semibold text-primary-500 mb-1">Explanation</p>
-          <p className="text-sm text-primary-700">{question.explanation}</p>
+          <p className="text-xs font-semibold text-neutral-500 mb-1">Explanation</p>
+          <p className="text-sm text-neutral-700">{question.explanation}</p>
         </motion.div>
       )}
     </div>

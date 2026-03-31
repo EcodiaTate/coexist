@@ -16,9 +16,9 @@ import ShippingTab from './shipping-tab'
 function SectionHeader({ label }: { label: string }) {
   return (
     <div className="flex items-center gap-2 mb-3">
-      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-200/40 to-transparent" />
-      <span className="text-[11px] font-bold text-primary-500 uppercase tracking-[0.12em]">{label}</span>
-      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-primary-200/40 to-transparent" />
+      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-200/40 to-transparent" />
+      <span className="text-[11px] font-bold text-neutral-500 uppercase tracking-[0.12em]">{label}</span>
+      <div className="h-px flex-1 bg-gradient-to-r from-transparent via-neutral-200/40 to-transparent" />
     </div>
   )
 }
@@ -116,12 +116,12 @@ export default function AdminMerchPage() {
             className="w-full h-7 sm:h-10 block"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path d={WAVE_PATH} className="fill-surface-1" />
+            <path d={WAVE_PATH} className="fill-neutral-50" />
           </svg>
         </div>
       </div>
 
-      <motion.div variants={fadeUp} className="px-3 sm:px-4 pt-3 sticky top-0 z-20 bg-gradient-to-b from-surface-1 via-surface-1 to-surface-1/0 pb-1">
+      <motion.div variants={fadeUp} className="px-3 sm:px-4 pt-3 sticky top-0 z-20 bg-gradient-to-b from-neutral-50 via-neutral-50 to-neutral-50/0 pb-1">
         <TabBar
           tabs={TABS}
           activeTab={activeTab}

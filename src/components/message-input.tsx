@@ -150,7 +150,7 @@ export function MessageInput({
   return (
     <div
       className={cn(
-        'z-10 bg-white shadow-[0_-2px_12px_0_rgb(0_0_0/0.08)] border-t border-primary-100/50',
+        'z-10 bg-white shadow-none border-t border-neutral-100',
         className,
       )}
       style={{
@@ -167,16 +167,16 @@ export function MessageInput({
             animate={{ opacity: 1, height: 'auto' }}
             exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="bg-primary-50/60 px-3 py-3"
+            className="bg-neutral-50 px-3 py-3"
           >
             <div className="flex items-center gap-1.5 mb-1.5">
-              <p className="text-[11px] font-extrabold uppercase tracking-wider text-primary-600 flex-1">
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-neutral-500 flex-1">
                 Leader Actions
               </p>
               <button
                 type="button"
                 onClick={() => setShowLeaderActions(false)}
-                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-primary-400 hover:bg-primary-100 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
+                className="flex items-center justify-center min-h-11 min-w-11 rounded-full text-neutral-400 hover:bg-neutral-100 active:scale-[0.95] transition-transform duration-150 cursor-pointer select-none"
                 aria-label="Close actions"
               >
                 <X size={14} />
@@ -262,7 +262,7 @@ export function MessageInput({
                 'transition-transform duration-200 active:scale-[0.93]',
                 showLeaderActions
                   ? 'bg-primary-600 text-white rotate-45'
-                  : 'text-primary-400 hover:bg-primary-100 hover:text-primary-600',
+                  : 'text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 'disabled:pointer-events-none',
               )}
@@ -279,9 +279,9 @@ export function MessageInput({
               disabled={disabled}
               aria-label="Attach photo"
               className={cn(
-                'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center text-primary-400',
+                'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center text-neutral-400',
                 'transition-[colors,transform] duration-150 active:scale-[0.93]',
-                'hover:bg-primary-100 hover:text-primary-600',
+                'hover:bg-neutral-100 hover:text-neutral-600',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 'disabled:pointer-events-none',
               )}
@@ -306,9 +306,9 @@ export function MessageInput({
                 disabled={disabled}
                 aria-label="Attach HTML file"
                 className={cn(
-                  'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center text-primary-400',
+                  'flex-shrink-0 rounded-full min-w-11 min-h-11 flex items-center justify-center text-neutral-400',
                   'transition-[colors,transform] duration-150 active:scale-[0.93]',
-                  'hover:bg-primary-100 hover:text-primary-600',
+                  'hover:bg-neutral-100 hover:text-neutral-600',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                   'disabled:pointer-events-none',
                 )}
@@ -330,8 +330,8 @@ export function MessageInput({
             maxLength={maxLength}
             aria-label="Message text"
             className={cn(
-              'flex-1 resize-none bg-transparent text-[14px] font-medium text-primary-900',
-              'placeholder:text-primary-400 placeholder:font-normal',
+              'flex-1 resize-none bg-transparent text-[14px] font-medium text-neutral-900',
+              'placeholder:text-neutral-400 placeholder:font-normal',
               'outline-none',
               'disabled:cursor-not-allowed',
               'leading-6 min-h-11 py-2.5',
@@ -352,10 +352,10 @@ export function MessageInput({
                 exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.5 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 className={cn(
-                  'flex-shrink-0 rounded-full bg-gradient-to-br from-primary-500 to-primary-700 min-w-11 min-h-11 flex items-center justify-center text-white',
+                  'flex-shrink-0 rounded-full bg-primary-500 min-w-11 min-h-11 flex items-center justify-center text-white',
                   'transition-colors duration-150',
-                  'hover:from-primary-600 hover:to-primary-800',
-                  'shadow-lg shadow-primary-300/40',
+                  'hover:bg-primary-600',
+                  'shadow-sm',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1',
                   'disabled:pointer-events-none disabled:opacity-50',
                 )}

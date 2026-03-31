@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabase, untypedFrom } from '@/lib/supabase'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -10,9 +10,42 @@ interface PendingCheckIn {
   timestamp: string
 }
 
+/**
+ * All action types that can be safely queued for offline sync.
+ *
+ * NOT queued (require real-time validation):
+ *  - Stock reservation / purchase flow
+ *  - Promo code validation
+ *  - Event registration (capacity check)
+ *  - Admin operations
+ *  - Payment / checkout flows
+ */
+export type OfflineActionType =
+  | 'check-in'
+  | 'chat-message'
+  | 'profile-update'
+  | 'task-complete'
+  | 'task-skip'
+  | 'todo-create'
+  | 'todo-update'
+  | 'todo-toggle'
+  | 'todo-delete'
+  | 'report-content'
+  | 'block-user'
+  | 'unblock-user'
+  | 'mark-notification-read'
+  | 'mark-all-notifications-read'
+  | 'log-impact'
+  | 'survey-response'
+  | 'announcement-response'
+  | 'poll-vote'
+  | 'module-progress'
+  | 'section-progress'
+  | 'quiz-submit'
+
 export interface OfflineAction {
   id: string
-  type: 'check-in' | 'chat-message'
+  type: OfflineActionType
   payload: Record<string, unknown>
   createdAt: string
   retries: number
@@ -135,7 +168,7 @@ function saveActionQueue(queue: OfflineAction[]): boolean {
 
 /** Queue any offline action */
 export function queueOfflineAction(
-  type: OfflineAction['type'],
+  type: OfflineActionType,
   payload: Record<string, unknown>,
 ) {
   const queue = getActionQueue()
@@ -160,85 +193,612 @@ export function getPendingActions(): OfflineAction[] {
 
 const MAX_RETRIES = 3
 
-/** Process a single action. Returns true if synced, false if failed. */
+/* ------------------------------------------------------------------ */
+/*  Action processors                                                  */
+/* ------------------------------------------------------------------ */
+
+async function processChatMessage(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { collectiveId, userId, content, replyToId } = action.payload as {
+    collectiveId: string
+    userId: string
+    content: string
+    replyToId?: string
+  }
+
+  // Dedup: check if an identical message was already sent
+  const dedupeWindow = new Date(
+    new Date(action.createdAt).getTime() - 5000,
+  ).toISOString()
+  const { data: existing } = await supabase
+    .from('chat_messages')
+    .select('id')
+    .eq('collective_id', collectiveId)
+    .eq('user_id', userId)
+    .eq('content', content ?? '')
+    .gte('created_at', dedupeWindow)
+    .limit(1)
+  if (existing && existing.length > 0) return { ok: true }
+
+  const { error } = await supabase
+    .from('chat_messages')
+    .insert({
+      collective_id: collectiveId,
+      user_id: userId,
+      content,
+      reply_to_id: replyToId ?? null,
+    })
+  if (error) {
+    if (error.code === '23503' || error.code === '42501') {
+      return { ok: false, conflict: 'Message to collective could not be sent. Please try again.' }
+    }
+    return { ok: false }
+  }
+  return { ok: true }
+}
+
+async function processCheckIn(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { eventId, userId, timestamp } = action.payload as {
+    eventId: string
+    userId: string
+    timestamp: string
+  }
+  const { data: existing } = await supabase
+    .from('event_registrations')
+    .select('status')
+    .eq('event_id', eventId)
+    .eq('user_id', userId)
+    .single()
+
+  if (existing?.status === 'attended') return { ok: true }
+
+  const { error } = await supabase
+    .from('event_registrations')
+    .update({ status: 'attended', checked_in_at: timestamp })
+    .eq('event_id', eventId)
+    .eq('user_id', userId)
+
+  if (error) return { ok: false, conflict: 'Check-in sync failed. Please try again.' }
+  return { ok: true }
+}
+
+async function processProfileUpdate(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { userId, updates } = action.payload as {
+    userId: string
+    updates: Record<string, unknown>
+  }
+  const { error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId)
+  if (error) return { ok: false, conflict: 'Profile update failed. Your changes will be retried.' }
+  return { ok: true }
+}
+
+async function processTaskComplete(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { instanceId, userId, notes, timestamp } = action.payload as {
+    instanceId: string
+    userId: string
+    notes?: string
+    timestamp: string
+  }
+
+  // Check if already completed (idempotent)
+  const { data: existing } = await supabase
+    .from('task_instances')
+    .select('status')
+    .eq('id', instanceId)
+    .single()
+  if (existing?.status === 'completed') return { ok: true }
+
+  const { error } = await supabase
+    .from('task_instances')
+    .update({
+      status: 'completed',
+      completed_at: timestamp,
+      completed_by: userId,
+      completion_notes: notes || null,
+    })
+    .eq('id', instanceId)
+  if (error) return { ok: false, conflict: 'Task completion sync failed.' }
+  return { ok: true }
+}
+
+async function processTaskSkip(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { instanceId } = action.payload as { instanceId: string }
+
+  const { data: existing } = await supabase
+    .from('task_instances')
+    .select('status')
+    .eq('id', instanceId)
+    .single()
+  if (existing?.status === 'skipped' || existing?.status === 'completed') return { ok: true }
+
+  const { error } = await supabase
+    .from('task_instances')
+    .update({ status: 'skipped' })
+    .eq('id', instanceId)
+  if (error) return { ok: false, conflict: 'Task skip sync failed.' }
+  return { ok: true }
+}
+
+async function processTodoCreate(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { userId, title, description, due_date, due_time, priority, source_template_id } = action.payload as {
+    userId: string
+    title: string
+    description?: string
+    due_date?: string | null
+    due_time?: string | null
+    priority?: string
+    source_template_id?: string | null
+  }
+
+  const { error } = await untypedFrom('leader_todos')
+    .insert({
+      user_id: userId,
+      title,
+      description: description || null,
+      due_date: due_date || null,
+      due_time: due_time || null,
+      priority: priority ?? 'medium',
+      source_template_id: source_template_id || null,
+    })
+  if (error) return { ok: false, conflict: 'Todo creation failed.' }
+  return { ok: true }
+}
+
+async function processTodoUpdate(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { id, ...updates } = action.payload as { id: string } & Record<string, unknown>
+  const { error } = await untypedFrom('leader_todos')
+    .update({ ...updates, updated_at: new Date().toISOString() })
+    .eq('id', id)
+  if (error) return { ok: false, conflict: 'Todo update failed.' }
+  return { ok: true }
+}
+
+async function processTodoToggle(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { id, completed, timestamp } = action.payload as {
+    id: string
+    completed: boolean
+    timestamp: string
+  }
+  const { error } = await untypedFrom('leader_todos')
+    .update({
+      status: completed ? 'completed' : 'pending',
+      completed_at: completed ? timestamp : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+  if (error) return { ok: false, conflict: 'Todo toggle failed.' }
+  return { ok: true }
+}
+
+async function processTodoDelete(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { id } = action.payload as { id: string }
+  const { error } = await untypedFrom('leader_todos')
+    .delete()
+    .eq('id', id)
+  // Already deleted = success
+  if (error && error.code !== 'PGRST116') return { ok: false, conflict: 'Todo deletion failed.' }
+  return { ok: true }
+}
+
+async function processReportContent(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { contentId, contentType, reason, reporterId } = action.payload as {
+    contentId: string
+    contentType: string
+    reason: string
+    reporterId: string
+  }
+
+  const { data, error } = await supabase
+    .from('content_reports')
+    .insert({
+      content_id: contentId,
+      content_type: contentType,
+      reason,
+      reporter_id: reporterId,
+      status: 'pending',
+    })
+    .select('id')
+    .single()
+  if (error) return { ok: false, conflict: 'Content report failed to sync.' }
+
+  // Best-effort admin notification
+  try {
+    await supabase.functions.invoke('notify-report', {
+      body: {
+        record: {
+          id: data.id,
+          content_id: contentId,
+          content_type: contentType,
+          reason,
+          reporter_id: reporterId,
+        },
+      },
+    })
+  } catch { /* best-effort */ }
+  return { ok: true }
+}
+
+async function processBlockUser(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { blockerId, blockedId, reason } = action.payload as {
+    blockerId: string
+    blockedId: string
+    reason?: string
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const blocks = () => (supabase as any).from('user_blocks')
+
+  const { error: blockError } = await blocks()
+    .insert({
+      blocker_id: blockerId,
+      blocked_id: blockedId,
+      reason: reason ?? null,
+    })
+
+  // Unique violation = already blocked, treat as success
+  if (blockError && blockError.code !== '23505') {
+    return { ok: false, conflict: 'Block user failed to sync.' }
+  }
+
+  // Create report (best-effort)
+  const reportReason = reason ? `User blocked: ${reason}` : 'User blocked by another member'
+  try {
+    const { data: reportData } = await supabase
+      .from('content_reports')
+      .insert({
+        content_id: blockedId,
+        content_type: 'profile',
+        reason: reportReason,
+        reporter_id: blockerId,
+        status: 'pending',
+      })
+      .select('id')
+      .single()
+    if (reportData) {
+      await supabase.functions.invoke('notify-report', {
+        body: { record: { id: reportData.id, content_id: blockedId, content_type: 'profile', reason: reportReason, reporter_id: blockerId } },
+      })
+    }
+  } catch { /* best-effort */ }
+  return { ok: true }
+}
+
+async function processUnblockUser(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { blockerId, blockedId } = action.payload as {
+    blockerId: string
+    blockedId: string
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const blocks = () => (supabase as any).from('user_blocks')
+
+  const { error } = await blocks()
+    .delete()
+    .eq('blocker_id', blockerId)
+    .eq('blocked_id', blockedId)
+  if (error) return { ok: false, conflict: 'Unblock user failed to sync.' }
+  return { ok: true }
+}
+
+async function processMarkNotificationRead(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { notificationId, timestamp } = action.payload as {
+    notificationId: string
+    timestamp: string
+  }
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read_at: timestamp })
+    .eq('id', notificationId)
+  if (error) return { ok: false }
+  return { ok: true }
+}
+
+async function processMarkAllNotificationsRead(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { userId, timestamp } = action.payload as {
+    userId: string
+    timestamp: string
+  }
+  const { error } = await supabase
+    .from('notifications')
+    .update({ read_at: timestamp })
+    .eq('user_id', userId)
+    .is('read_at', null)
+  if (error) return { ok: false }
+  return { ok: true }
+}
+
+async function processLogImpact(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { impactData, userId } = action.payload as {
+    impactData: Record<string, unknown>
+    userId: string
+  }
+
+  const { error } = await supabase
+    .from('event_impact')
+    .upsert(
+      { ...impactData, logged_by: userId },
+      { onConflict: 'event_id' },
+    )
+  if (error) return { ok: false, conflict: 'Impact data failed to sync. Please try again from the event page.' }
+
+  // Mark event as completed
+  const { error: statusError } = await supabase
+    .from('events')
+    .update({ status: 'completed' })
+    .eq('id', impactData.event_id as string)
+    .in('status', ['published'])
+  if (statusError) return { ok: false, conflict: 'Impact saved but event status update failed.' }
+
+  return { ok: true }
+}
+
+async function processSurveyResponse(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { surveyId, userId, answers, eventId } = action.payload as {
+    surveyId: string
+    userId: string
+    answers: Record<string, unknown>
+    eventId?: string
+  }
+
+  // Dedup: check if response already exists
+  let check = supabase
+    .from('survey_responses')
+    .select('id')
+    .eq('survey_id', surveyId)
+    .eq('user_id', userId)
+  if (eventId) check = check.eq('event_id', eventId)
+  const { data: existing } = await check.limit(1)
+  if (existing && existing.length > 0) return { ok: true }
+
+  const row: Record<string, unknown> = {
+    survey_id: surveyId,
+    user_id: userId,
+    answers,
+  }
+  if (eventId) row.event_id = eventId
+
+  const { error } = await supabase
+    .from('survey_responses')
+    .insert(row)
+  if (error) return { ok: false, conflict: 'Survey response failed to sync.' }
+  return { ok: true }
+}
+
+async function processAnnouncementResponse(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { announcementId, userId, response } = action.payload as {
+    announcementId: string
+    userId: string
+    response: string
+  }
+
+  // Remove existing response first (single-choice)
+  await supabase
+    .from('chat_announcement_responses')
+    .delete()
+    .eq('announcement_id', announcementId)
+    .eq('user_id', userId)
+
+  const { error } = await supabase
+    .from('chat_announcement_responses')
+    .insert({
+      announcement_id: announcementId,
+      user_id: userId,
+      response,
+    })
+  if (error) return { ok: false, conflict: 'Announcement response failed to sync.' }
+  return { ok: true }
+}
+
+async function processPollVote(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { pollId, userId, optionIds, allowMultiple } = action.payload as {
+    pollId: string
+    userId: string
+    optionIds: string[]
+    allowMultiple: boolean
+  }
+
+  // Remove existing votes if single-choice
+  if (!allowMultiple) {
+    await supabase
+      .from('chat_poll_votes')
+      .delete()
+      .eq('poll_id', pollId)
+      .eq('user_id', userId)
+  }
+
+  const rows = optionIds.map((optionId) => ({
+    poll_id: pollId,
+    user_id: userId,
+    option_id: optionId,
+  }))
+
+  const { error } = await supabase
+    .from('chat_poll_votes')
+    .upsert(rows, { onConflict: 'poll_id,user_id,option_id' })
+  if (error) return { ok: false, conflict: 'Poll vote failed to sync.' }
+  return { ok: true }
+}
+
+async function processModuleProgress(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { userId, moduleId, status, lastContentId, progressPct, timeSpentSec } = action.payload as {
+    userId: string
+    moduleId: string
+    status?: string
+    lastContentId?: string | null
+    progressPct?: number
+    timeSpentSec?: number
+  }
+
+  const now = new Date().toISOString()
+
+  // Check if row exists
+  const { data: existing } = await supabase
+    .from('dev_user_module_progress')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('module_id', moduleId)
+    .maybeSingle()
+
+  const row: Record<string, unknown> = {
+    user_id: userId,
+    module_id: moduleId,
+    status: status ?? 'in_progress',
+  }
+  if (lastContentId !== undefined) row.last_content_id = lastContentId
+  if (progressPct !== undefined) row.progress_pct = progressPct
+  if (timeSpentSec !== undefined) row.time_spent_sec = timeSpentSec
+  if (status === 'completed') row.completed_at = now
+
+  if (existing) {
+    const { error } = await supabase
+      .from('dev_user_module_progress')
+      .update(row)
+      .eq('id', existing.id)
+    if (error) return { ok: false, conflict: 'Module progress sync failed.' }
+  } else {
+    row.started_at = now
+    const { error } = await supabase
+      .from('dev_user_module_progress')
+      .insert(row)
+    if (error) return { ok: false, conflict: 'Module progress sync failed.' }
+  }
+  return { ok: true }
+}
+
+async function processSectionProgress(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { userId, sectionId, status, modulesCompleted, modulesTotal, progressPct } = action.payload as {
+    userId: string
+    sectionId: string
+    status: string
+    modulesCompleted: number
+    modulesTotal: number
+    progressPct: number
+  }
+
+  const now = new Date().toISOString()
+  const row: Record<string, unknown> = {
+    user_id: userId,
+    section_id: sectionId,
+    status,
+    modules_completed: modulesCompleted,
+    modules_total: modulesTotal,
+    progress_pct: progressPct,
+  }
+  if (status === 'in_progress') row.started_at = now
+  if (status === 'completed') row.completed_at = now
+
+  const { error } = await supabase
+    .from('dev_user_section_progress')
+    .upsert(row, { onConflict: 'user_id,section_id' })
+  if (error) return { ok: false, conflict: 'Section progress sync failed.' }
+  return { ok: true }
+}
+
+async function processQuizSubmit(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
+  const { userId, quizId, moduleId, scorePct, pointsEarned, pointsTotal, passed, timeSpentSec, responses } = action.payload as {
+    userId: string
+    quizId: string
+    moduleId?: string | null
+    scorePct: number
+    pointsEarned: number
+    pointsTotal: number
+    passed: boolean
+    timeSpentSec: number
+    responses: {
+      question_id: string
+      selected_option_ids: string[]
+      text_response?: string
+      is_correct: boolean
+      points_earned: number
+    }[]
+  }
+
+  const { data: attempt, error: attemptError } = await supabase
+    .from('dev_quiz_attempts')
+    .insert({
+      user_id: userId,
+      quiz_id: quizId,
+      module_id: moduleId ?? null,
+      score_pct: scorePct,
+      points_earned: pointsEarned,
+      points_total: pointsTotal,
+      passed,
+      time_spent_sec: timeSpentSec,
+      completed_at: new Date().toISOString(),
+    })
+    .select()
+    .single()
+  if (attemptError) return { ok: false, conflict: 'Quiz submission failed to sync.' }
+
+  if (responses.length > 0) {
+    const responseRows = responses.map((r) => ({
+      attempt_id: attempt.id,
+      question_id: r.question_id,
+      selected_option_ids: r.selected_option_ids,
+      text_response: r.text_response ?? null,
+      is_correct: r.is_correct,
+      points_earned: r.points_earned,
+    }))
+    const { error: respError } = await supabase
+      .from('dev_quiz_responses')
+      .insert(responseRows)
+    if (respError) return { ok: false, conflict: 'Quiz responses failed to sync (attempt was saved).' }
+  }
+  return { ok: true }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Process a single action — router                                   */
+/* ------------------------------------------------------------------ */
+
 async function processAction(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
   switch (action.type) {
-    case 'chat-message': {
-      const { collectiveId, userId, content, replyToId } = action.payload as {
-        collectiveId: string
-        userId: string
-        content: string
-        replyToId?: string
-      }
-
-      // Dedup: check if an identical message was already sent (e.g. partial sync
-      // succeeded before the action was removed from the queue)
-      const dedupeWindow = new Date(
-        new Date(action.createdAt).getTime() - 5000,
-      ).toISOString()
-      const { data: existing } = await supabase
-        .from('chat_messages')
-        .select('id')
-        .eq('collective_id', collectiveId)
-        .eq('user_id', userId)
-        .eq('content', content ?? '')
-        .gte('created_at', dedupeWindow)
-        .limit(1)
-      if (existing && existing.length > 0) {
-        // Already sent — treat as success, skip insert
-        return { ok: true }
-      }
-
-      const { error } = await supabase
-        .from('chat_messages')
-        .insert({
-          collective_id: collectiveId,
-          user_id: userId,
-          content,
-          reply_to_id: replyToId ?? null,
-        })
-      if (error) {
-        // 409 or unique constraint = conflict (e.g. user was removed from collective)
-        if (error.code === '23503' || error.code === '42501') {
-          return { ok: false, conflict: `Message to collective could not be sent. Please try again.` }
-        }
-        return { ok: false }
-      }
-      return { ok: true }
-    }
-
-    case 'check-in': {
-      const { eventId, userId, timestamp } = action.payload as {
-        eventId: string
-        userId: string
-        timestamp: string
-      }
-      // Check if already checked in (server wins)
-      const { data: existing } = await supabase
-        .from('event_registrations')
-        .select('status')
-        .eq('event_id', eventId)
-        .eq('user_id', userId)
-        .single()
-
-      if (existing?.status === 'attended') {
-        return { ok: true } // Already done - no conflict
-      }
-
-      const { error } = await supabase
-        .from('event_registrations')
-        .update({ status: 'attended', checked_in_at: timestamp })
-        .eq('event_id', eventId)
-        .eq('user_id', userId)
-
-      if (error) {
-        return { ok: false, conflict: `Check-in sync failed. Please try again.` }
-      }
-      return { ok: true }
-    }
-
+    case 'chat-message':
+      return processChatMessage(action)
+    case 'check-in':
+      return processCheckIn(action)
+    case 'profile-update':
+      return processProfileUpdate(action)
+    case 'task-complete':
+      return processTaskComplete(action)
+    case 'task-skip':
+      return processTaskSkip(action)
+    case 'todo-create':
+      return processTodoCreate(action)
+    case 'todo-update':
+      return processTodoUpdate(action)
+    case 'todo-toggle':
+      return processTodoToggle(action)
+    case 'todo-delete':
+      return processTodoDelete(action)
+    case 'report-content':
+      return processReportContent(action)
+    case 'block-user':
+      return processBlockUser(action)
+    case 'unblock-user':
+      return processUnblockUser(action)
+    case 'mark-notification-read':
+      return processMarkNotificationRead(action)
+    case 'mark-all-notifications-read':
+      return processMarkAllNotificationsRead(action)
+    case 'log-impact':
+      return processLogImpact(action)
+    case 'survey-response':
+      return processSurveyResponse(action)
+    case 'announcement-response':
+      return processAnnouncementResponse(action)
+    case 'poll-vote':
+      return processPollVote(action)
+    case 'module-progress':
+      return processModuleProgress(action)
+    case 'section-progress':
+      return processSectionProgress(action)
+    case 'quiz-submit':
+      return processQuizSubmit(action)
     default:
-      return { ok: false, conflict: `Unknown action type: ${action.type}` }
+      return { ok: false, conflict: `Unknown action type: ${(action as OfflineAction).type}` }
   }
 }
 

@@ -19,19 +19,29 @@ export interface EventSurveyData {
 /**
  * Load the admin-created survey for a given event.
  *
- * Priority:
+ * @param mode - `'leader'` (default): impact form → auto-send fallback.
+ *               `'attendee'`: auto-send only, skips impact forms.
+ *
+ * Priority for leader mode:
+ *  1. Survey directly linked to this event (surveys.event_id)
+ *  2. Impact form survey matching the event's activity type
+ *  3. Auto-send survey matching the event's activity type
+ *
+ * Priority for attendee mode:
  *  1. Survey directly linked to this event (surveys.event_id)
  *  2. Auto-send survey matching the event's activity type
  *
- * Used by both the leader log-impact page and the participant
- * post-event-survey page — single source of truth for survey lookup.
+ * This distinction is critical — impact forms are for leaders to log
+ * conservation outcomes, NOT for attendee feedback. Attendees should
+ * only see auto_send_after_event surveys.
  */
 export function useEventSurvey(
   eventId: string | undefined,
   activityType: string | undefined,
+  mode: 'leader' | 'attendee' = 'leader',
 ) {
   return useQuery({
-    queryKey: ['event-survey', eventId, activityType],
+    queryKey: ['event-survey', eventId, activityType, mode],
     queryFn: async (): Promise<EventSurveyData | null> => {
       if (!eventId) return null
 
@@ -43,10 +53,26 @@ export function useEventSurvey(
         .eq('status', 'active')
         .maybeSingle()
 
-      // 2. Fallback: auto-send survey for this activity type
+      // 2. Impact form survey for this activity type (leader-only)
+      const impactForm =
+        direct ?? (mode === 'leader' && activityType
+          ? (
+              await supabase
+                .from('surveys')
+                .select('id, title, questions')
+                .eq('activity_type', activityType)
+                .eq('is_impact_form', true)
+                .eq('status', 'active')
+                .maybeSingle()
+            ).data
+          : null)
+
+      // 3. Fallback: auto-send survey for this activity type (attendee-facing only).
+      //    Leaders should NOT see attendee feedback surveys on the impact form page —
+      //    those questions are irrelevant and have no impact_metric tags.
       const survey =
-        direct ??
-        (activityType
+        (direct ?? impactForm) ??
+        (mode !== 'leader' && activityType
           ? (
               await supabase
                 .from('surveys')

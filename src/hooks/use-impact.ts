@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
-import { IMPACT_SELECT_COLUMNS, sumMetric, computeEstimatedHours } from '@/lib/impact-metrics'
+import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -60,7 +60,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
 
       let impactQuery = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events(date_start, date_end)`)
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id`)
         .range(0, 9999)
       if (timeRange === 'current-year') {
         impactQuery = impactQuery.gte('logged_at', yearStart)
@@ -108,10 +108,6 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       // leadersCountRes may not exist yet — don't throw
 
       const logs = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
-      const logsWithEvents = logs.map((r) => ({
-        ...r,
-        events: r.events as { date_start: string; date_end: string | null } | null,
-      }))
 
       // Count ALL event attendances nationally (not just events with impact logs)
       let attendanceQuery = supabase
@@ -147,7 +143,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
 
       return {
         eventsAttended: (attendanceCount ?? 0) + legacyAttendance,
-        volunteerHours: computeEstimatedHours(logsWithEvents),
+        volunteerHours: Math.round(sumMetric(logs, 'hours_total')),
         eventsHeld: eventsRes.count ?? 0,
         treesPlanted: sumMetric(logs, 'trees_planted'),
         invasiveWeedsPulled: sumMetric(logs, 'invasive_weeds_pulled'),
@@ -176,7 +172,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
 
       let impactQuery = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id, date_start, date_end)`)
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id)`)
         .eq('events.collective_id', collectiveId)
       if (timeRange === 'current-year') {
         impactQuery = impactQuery.gte('logged_at', yearStart)
@@ -210,10 +206,6 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
       const [impactRes, cleanupRes, eventsRes, leadersCountRes] = await Promise.all([impactQuery, cleanupQuery, eventsQuery, leadersCountQuery])
 
       const rows = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
-      const rowsWithEvents = rows.map((r) => ({
-        ...r,
-        events: r.events as { date_start: string; date_end: string | null } | null,
-      }))
 
       // Count ALL event attendances for this collective's events (not just those with impact)
       const allEventIds = (eventsRes.data ?? []).map((e) => e.id)
@@ -243,7 +235,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
       )
       return {
         eventsAttended: attendanceCount + legacyAttendance,
-        volunteerHours: computeEstimatedHours(rowsWithEvents),
+        volunteerHours: Math.round(sumMetric(rows, 'hours_total')),
         eventsHeld: eventsRes.count ?? 0,
         treesPlanted: sumMetric(rows, 'trees_planted'),
         invasiveWeedsPulled: sumMetric(rows, 'invasive_weeds_pulled'),

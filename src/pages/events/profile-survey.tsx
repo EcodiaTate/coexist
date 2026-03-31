@@ -268,7 +268,7 @@ function ProfileSurveyForm({ profile }: { profile: Profile | null }) {
             type="textarea"
             rows={2}
             maxLength={500}
-            className="[&_textarea]:bg-primary-50/80 [&_textarea]:border [&_textarea]:border-primary-200"
+            className="[&_textarea]:bg-neutral-50 [&_textarea]:border [&_textarea]:border-neutral-200"
           />
         </motion.div>
 

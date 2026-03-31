@@ -19,7 +19,10 @@ import {
     AlertCircle,
     Pencil,
     ListChecks,
-    Sliders, Eye
+    Sliders, Eye,
+    BarChart3,
+    Users,
+    Send,
 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -30,7 +33,7 @@ import { Toggle } from '@/components/toggle'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
-import { ACTIVITY_TYPE_OPTIONS } from '@/hooks/use-events'
+import { ACTIVITY_TYPE_OPTIONS, ACTIVITY_TYPE_LABELS } from '@/hooks/use-events'
 import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 
 /* ------------------------------------------------------------------ */
@@ -254,7 +257,7 @@ function OptionChipBuilder({
 
   return (
     <div>
-      <label className="block text-xs font-medium text-primary-400 mb-1.5">Options</label>
+      <label className="block text-xs font-medium text-neutral-400 mb-1.5">Options</label>
 
       {/* Option list  each on its own row for easy editing */}
       {options.length > 0 && (
@@ -271,7 +274,7 @@ function OptionChipBuilder({
                 className="flex items-center gap-1.5 group"
               >
                 {/* Option number */}
-                <span className="flex items-center justify-center w-5 h-5 rounded-md bg-primary-50 text-[10px] font-bold text-primary-400 shrink-0">
+                <span className="flex items-center justify-center w-5 h-5 rounded-md bg-neutral-50 text-[10px] font-bold text-neutral-400 shrink-0">
                   {i + 1}
                 </span>
 
@@ -286,37 +289,37 @@ function OptionChipBuilder({
                       if (e.key === 'Escape') { setEditingIdx(null) }
                     }}
                     onBlur={commitEdit}
-                    className="flex-1 min-w-0 h-9 px-2.5 rounded-lg bg-white border-2 border-primary-400 text-sm text-primary-800 outline-none"
+                    className="flex-1 min-w-0 h-9 px-2.5 rounded-lg bg-white border-2 border-primary-400 text-sm text-neutral-900 outline-none"
                   />
                 ) : (
                   <button
                     type="button"
                     onClick={() => startEditing(i)}
-                    className="flex-1 min-w-0 h-9 px-2.5 rounded-lg bg-white border border-primary-100 text-sm text-primary-700 text-left truncate hover:bg-primary-50 hover:border-primary-200 transition-colors cursor-pointer"
+                    className="flex-1 min-w-0 h-9 px-2.5 rounded-lg bg-white border border-neutral-100 text-sm text-neutral-700 text-left truncate hover:bg-neutral-50 hover:border-neutral-200 transition-colors cursor-pointer"
                   >
                     {opt}
                   </button>
                 )}
 
-                {/* Reorder buttons */}
-                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                {/* Reorder buttons — always visible (no hover-only on mobile) */}
+                <div className="flex items-center gap-0.5 shrink-0">
                   <button
                     type="button"
                     onClick={() => moveOption(i, -1)}
                     disabled={i === 0}
-                    className="p-0.5 rounded text-primary-300 hover:text-primary-600 disabled:opacity-20 cursor-pointer"
+                    className="flex items-center justify-center min-w-9 min-h-9 rounded-lg text-neutral-400 hover:text-neutral-600 active:bg-neutral-100 disabled:opacity-20 cursor-pointer transition-colors"
                     aria-label="Move option up"
                   >
-                    <ChevronUp size={12} />
+                    <ChevronUp size={14} />
                   </button>
                   <button
                     type="button"
                     onClick={() => moveOption(i, 1)}
                     disabled={i === options.length - 1}
-                    className="p-0.5 rounded text-primary-300 hover:text-primary-600 disabled:opacity-20 cursor-pointer"
+                    className="flex items-center justify-center min-w-9 min-h-9 rounded-lg text-neutral-400 hover:text-neutral-600 active:bg-neutral-100 disabled:opacity-20 cursor-pointer transition-colors"
                     aria-label="Move option down"
                   >
-                    <ChevronDown size={12} />
+                    <ChevronDown size={14} />
                   </button>
                 </div>
 
@@ -324,7 +327,7 @@ function OptionChipBuilder({
                 <button
                   type="button"
                   onClick={() => removeOption(i)}
-                  className="flex items-center justify-center w-7 h-7 rounded-lg text-primary-300 hover:bg-error-50 hover:text-error-600 transition-colors cursor-pointer shrink-0"
+                  className="flex items-center justify-center min-w-9 min-h-9 rounded-lg text-neutral-300 hover:bg-error-50 hover:text-error-600 active:bg-error-100 transition-colors cursor-pointer shrink-0"
                   aria-label={`Remove "${opt}"`}
                 >
                   <X size={12} />
@@ -336,11 +339,11 @@ function OptionChipBuilder({
           {/* "Other" preview pill */}
           {allowOther && (
             <div className="flex items-center gap-1.5">
-              <span className="flex items-center justify-center w-5 h-5 rounded-md bg-primary-50 text-[10px] font-bold text-primary-300 shrink-0">
+              <span className="flex items-center justify-center w-5 h-5 rounded-md bg-neutral-50 text-[10px] font-bold text-neutral-300 shrink-0">
                 +
               </span>
-              <div className="flex-1 h-9 px-2.5 rounded-lg bg-primary-50/50 border border-dashed border-primary-200 flex items-center">
-                <span className="text-sm text-primary-400 italic">Other (write-in)</span>
+              <div className="flex-1 h-9 px-2.5 rounded-lg bg-neutral-50/50 border border-dashed border-neutral-200 flex items-center">
+                <span className="text-sm text-neutral-400 italic">Other (write-in)</span>
               </div>
             </div>
           )}
@@ -357,7 +360,7 @@ function OptionChipBuilder({
             onKeyDown={handleKeyDown}
             onBlur={() => { if (draft.trim()) addOption() }}
             placeholder={options.length === 0 ? 'Type your first option...' : 'Add another option...'}
-            className="w-full h-9 px-3 rounded-lg bg-surface-3 border border-primary-100/50 outline-none text-sm text-primary-800 placeholder:text-primary-300 focus:ring-2 focus:ring-primary-500 transition-shadow"
+            className="w-full h-9 px-3 rounded-lg bg-surface-3 border border-neutral-100/50 outline-none text-sm text-neutral-900 placeholder:text-neutral-300 focus:ring-2 focus:ring-primary-500 transition-shadow"
           />
         </div>
         <Button
@@ -370,7 +373,7 @@ function OptionChipBuilder({
           Add
         </Button>
       </div>
-      <p className="text-[11px] text-primary-400 mt-1">
+      <p className="text-[11px] text-neutral-400 mt-1">
         Press Enter to add. Click an option to edit it. Drag to reorder.
       </p>
     </div>
@@ -415,27 +418,27 @@ function QuestionEditor({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -20 }}
       transition={{ duration: 0.2 }}
-      className="rounded-xl bg-white border border-primary-100 shadow-sm overflow-hidden"
+      className="rounded-xl bg-white border border-neutral-100 shadow-sm overflow-hidden"
     >
       {/* Header row - always visible, tappable to expand */}
       <div
-        className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-3 cursor-pointer hover:bg-primary-50/30 active:bg-primary-50/50 transition-colors select-none"
+        className="flex items-center gap-2 sm:gap-2.5 px-3 sm:px-4 py-3 cursor-pointer hover:bg-neutral-50/30 active:bg-neutral-50/50 transition-colors select-none"
         onClick={() => setExpanded(!expanded)}
       >
         {/* Number badge */}
-        <span className="flex items-center justify-center w-6 h-6 rounded-md bg-primary-100 text-[11px] font-bold text-primary-600 shrink-0">
+        <span className="flex items-center justify-center w-6 h-6 rounded-md bg-neutral-100 text-[11px] font-bold text-neutral-600 shrink-0">
           {index + 1}
         </span>
 
         {/* Type badge - icon only on mobile, icon + label on sm+ */}
-        <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md bg-primary-50 text-primary-400 shrink-0">
+        <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-md bg-neutral-50 text-neutral-400 shrink-0">
           {questionTypeIcons[question.type]}
-          <span className="text-[11px] font-medium hidden sm:inline">{questionTypeLabels[question.type]}</span>
+          <span className="text-[11px] font-medium text-neutral-400 hidden sm:inline">{questionTypeLabels[question.type]}</span>
         </span>
 
         {/* Question text */}
-        <p className="flex-1 text-sm font-medium text-primary-800 truncate min-w-0">
-          {question.text || <span className="text-primary-300 italic">Untitled</span>}
+        <p className="flex-1 text-sm font-medium text-neutral-900 truncate min-w-0">
+          {question.text || <span className="text-neutral-300 italic">Untitled</span>}
           {question.required && <span className="text-error-500 ml-0.5">*</span>}
         </p>
 
@@ -445,7 +448,7 @@ function QuestionEditor({
             type="button"
             onClick={onMoveUp}
             disabled={isFirst}
-            className="flex items-center justify-center min-w-9 min-h-9 sm:min-w-8 sm:min-h-8 rounded-lg text-primary-300 hover:text-primary-600 hover:bg-primary-100 active:bg-primary-200 disabled:opacity-20 cursor-pointer transition-colors"
+            className="flex items-center justify-center min-w-9 min-h-9 sm:min-w-8 sm:min-h-8 rounded-lg text-neutral-300 hover:text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200 disabled:opacity-20 cursor-pointer transition-colors"
             aria-label="Move up"
           >
             <ChevronUp size={16} />
@@ -454,7 +457,7 @@ function QuestionEditor({
             type="button"
             onClick={onMoveDown}
             disabled={isLast}
-            className="flex items-center justify-center min-w-9 min-h-9 sm:min-w-8 sm:min-h-8 rounded-lg text-primary-300 hover:text-primary-600 hover:bg-primary-100 active:bg-primary-200 disabled:opacity-20 cursor-pointer transition-colors"
+            className="flex items-center justify-center min-w-9 min-h-9 sm:min-w-8 sm:min-h-8 rounded-lg text-neutral-300 hover:text-neutral-600 hover:bg-neutral-100 active:bg-neutral-200 disabled:opacity-20 cursor-pointer transition-colors"
             aria-label="Move down"
           >
             <ChevronDown size={16} />
@@ -462,7 +465,7 @@ function QuestionEditor({
           <button
             type="button"
             onClick={onRemove}
-            className="flex items-center justify-center min-w-9 min-h-9 sm:min-w-8 sm:min-h-8 rounded-lg text-primary-300 hover:text-error-600 hover:bg-error-50 active:bg-error-100 cursor-pointer transition-colors"
+            className="flex items-center justify-center min-w-9 min-h-9 sm:min-w-8 sm:min-h-8 rounded-lg text-neutral-300 hover:text-error-600 hover:bg-error-50 active:bg-error-100 cursor-pointer transition-colors"
             aria-label="Remove question"
           >
             <Trash2 size={14} />
@@ -472,7 +475,7 @@ function QuestionEditor({
         <ChevronDown
           size={14}
           className={cn(
-            'text-primary-300 transition-transform duration-200 shrink-0',
+            'text-neutral-300 transition-transform duration-200 shrink-0',
             expanded && 'rotate-180',
           )}
         />
@@ -488,7 +491,7 @@ function QuestionEditor({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="px-4 pb-4 pt-1 space-y-3 border-t border-primary-100/50">
+            <div className="px-4 pb-4 pt-1 space-y-3 border-t border-neutral-100/50">
               {/* Question type */}
               <Dropdown
                 options={QUESTION_TYPES.map((t) => ({ value: t.value, label: t.label }))}
@@ -587,10 +590,10 @@ function QuestionEditor({
                   />
 
                   {/* Allow "Other" option */}
-                  <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-primary-50/50 border border-primary-100/50">
+                  <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-neutral-50/50 border border-neutral-100/50">
                     <div>
-                      <p className="text-sm font-medium text-primary-700">Allow "Other" answer</p>
-                      <p className="text-[11px] text-primary-400">
+                      <p className="text-sm font-medium text-neutral-700">Allow "Other" answer</p>
+                      <p className="text-[11px] text-neutral-400">
                         Respondents can type their own answer if none of the options fit
                       </p>
                     </div>
@@ -617,8 +620,8 @@ function QuestionEditor({
                     label="Star Count"
                   />
                   {/* Rating preview */}
-                  <div className="rounded-xl bg-primary-50/50 border border-primary-100/50 px-3 py-2.5">
-                    <p className="text-[11px] text-primary-400 mb-1.5 flex items-center gap-1">
+                  <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/50 px-3 py-2.5">
+                    <p className="text-[11px] text-neutral-400 mb-1.5 flex items-center gap-1">
                       <Eye size={10} /> Preview
                     </p>
                     <div className="flex gap-1">
@@ -669,13 +672,13 @@ function QuestionEditor({
                     />
                   </div>
                   {/* Scale preview */}
-                  <div className="rounded-xl bg-primary-50/50 border border-primary-100/50 px-3 py-2.5">
-                    <p className="text-[11px] text-primary-400 mb-1.5 flex items-center gap-1">
+                  <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/50 px-3 py-2.5">
+                    <p className="text-[11px] text-neutral-400 mb-1.5 flex items-center gap-1">
                       <Eye size={10} /> Preview
                     </p>
                     <div className="flex items-center gap-2">
                       {question.min_label && (
-                        <span className="text-[11px] text-primary-500">{question.min_label}</span>
+                        <span className="text-[11px] text-neutral-500">{question.min_label}</span>
                       )}
                       <div className="flex gap-1 flex-wrap">
                         {Array.from(
@@ -684,14 +687,14 @@ function QuestionEditor({
                         ).map((n) => (
                           <span
                             key={n}
-                            className="flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-primary-200 text-xs font-medium text-primary-600"
+                            className="flex items-center justify-center w-7 h-7 rounded-lg bg-white border border-neutral-200 text-xs font-medium text-neutral-600"
                           >
                             {n}
                           </span>
                         ))}
                       </div>
                       {question.max_label && (
-                        <span className="text-[11px] text-primary-500">{question.max_label}</span>
+                        <span className="text-[11px] text-neutral-500">{question.max_label}</span>
                       )}
                     </div>
                   </div>
@@ -701,10 +704,10 @@ function QuestionEditor({
               {/* Free text config */}
               {question.type === 'free_text' && (
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-primary-50/50 border border-primary-100/50">
+                  <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-neutral-50/50 border border-neutral-100/50">
                     <div>
-                      <p className="text-sm font-medium text-primary-700">Multi-line</p>
-                      <p className="text-[11px] text-primary-400">Allow longer paragraph responses</p>
+                      <p className="text-sm font-medium text-neutral-700">Multi-line</p>
+                      <p className="text-[11px] text-neutral-400">Allow longer paragraph responses</p>
                     </div>
                     <Toggle
                       checked={question.text_multiline ?? true}
@@ -740,21 +743,21 @@ function QuestionEditor({
                     placeholder="e.g. Share your thoughts..."
                   />
                   {/* Free text preview */}
-                  <div className="rounded-xl bg-primary-50/50 border border-primary-100/50 px-3 py-2.5">
-                    <p className="text-[11px] text-primary-400 mb-1.5 flex items-center gap-1">
+                  <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/50 px-3 py-2.5">
+                    <p className="text-[11px] text-neutral-400 mb-1.5 flex items-center gap-1">
                       <Eye size={10} /> Preview
                     </p>
                     {question.text_multiline !== false ? (
-                      <div className="h-16 rounded-lg bg-white border border-primary-200 px-3 py-2 text-xs text-primary-300">
+                      <div className="h-16 rounded-lg bg-white border border-neutral-200 px-3 py-2 text-xs text-neutral-300">
                         {question.placeholder || 'Type your response here...'}
                       </div>
                     ) : (
-                      <div className="h-9 rounded-lg bg-white border border-primary-200 px-3 flex items-center text-xs text-primary-300">
+                      <div className="h-9 rounded-lg bg-white border border-neutral-200 px-3 flex items-center text-xs text-neutral-300">
                         {question.placeholder || 'Type your response here...'}
                       </div>
                     )}
                     {(question.text_min_length || question.text_max_length) && (
-                      <p className="text-[10px] text-primary-400 mt-1">
+                      <p className="text-[10px] text-neutral-400 mt-1">
                         {question.text_min_length ? `Min ${question.text_min_length}` : ''}
                         {question.text_min_length && question.text_max_length ? '  ' : ''}
                         {question.text_max_length ? `Max ${question.text_max_length}` : ''}
@@ -816,16 +819,16 @@ function QuestionEditor({
                     onChange={(v) => update({ impact_metric: v || undefined })}
                   />
                   {/* Number preview */}
-                  <div className="rounded-xl bg-primary-50/50 border border-primary-100/50 px-3 py-2.5">
-                    <p className="text-[11px] text-primary-400 mb-1.5 flex items-center gap-1">
+                  <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/50 px-3 py-2.5">
+                    <p className="text-[11px] text-neutral-400 mb-1.5 flex items-center gap-1">
                       <Eye size={10} /> Preview
                     </p>
                     <div className="flex items-center gap-2">
-                      <div className="h-9 w-32 rounded-lg bg-white border border-primary-200 px-3 flex items-center text-xs text-primary-300">
+                      <div className="h-9 w-32 rounded-lg bg-white border border-neutral-200 px-3 flex items-center text-xs text-neutral-300">
                         {question.placeholder || '0'}
                       </div>
                       {(question.number_min != null || question.number_max != null) && (
-                        <span className="text-[10px] text-primary-400">
+                        <span className="text-[10px] text-neutral-400">
                           {question.number_min != null ? `Min: ${question.number_min}` : ''}
                           {question.number_min != null && question.number_max != null ? ' · ' : ''}
                           {question.number_max != null ? `Max: ${question.number_max}` : ''}
@@ -855,16 +858,16 @@ function QuestionEditor({
                     />
                   </div>
                   {/* Date preview */}
-                  <div className="rounded-xl bg-primary-50/50 border border-primary-100/50 px-3 py-2.5">
-                    <p className="text-[11px] text-primary-400 mb-1.5 flex items-center gap-1">
+                  <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/50 px-3 py-2.5">
+                    <p className="text-[11px] text-neutral-400 mb-1.5 flex items-center gap-1">
                       <Eye size={10} /> Preview
                     </p>
                     <div className="flex items-center gap-2">
-                      <div className="h-9 w-40 rounded-lg bg-white border border-primary-200 px-3 flex items-center text-xs text-primary-300">
+                      <div className="h-9 w-40 rounded-lg bg-white border border-neutral-200 px-3 flex items-center text-xs text-neutral-300">
                         <Calendar size={12} className="mr-1.5" /> Select a date
                       </div>
                       {(question.date_min || question.date_max) && (
-                        <span className="text-[10px] text-primary-400">
+                        <span className="text-[10px] text-neutral-400">
                           {question.date_min ? `From: ${question.date_min}` : ''}
                           {question.date_min && question.date_max ? ' · ' : ''}
                           {question.date_max ? `Until: ${question.date_max}` : ''}
@@ -884,15 +887,15 @@ function QuestionEditor({
                     onChange={(e) => update({ placeholder: e.target.value || undefined })}
                     placeholder="e.g. you@example.com"
                   />
-                  <div className="rounded-xl bg-primary-50/50 border border-primary-100/50 px-3 py-2.5">
-                    <p className="text-[11px] text-primary-400 mb-1.5 flex items-center gap-1">
+                  <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/50 px-3 py-2.5">
+                    <p className="text-[11px] text-neutral-400 mb-1.5 flex items-center gap-1">
                       <Eye size={10} /> Preview
                     </p>
-                    <div className="h-9 w-56 rounded-lg bg-white border border-primary-200 px-3 flex items-center text-xs text-primary-300">
-                      <Mail size={12} className="mr-1.5 text-primary-400" />
+                    <div className="h-9 w-56 rounded-lg bg-white border border-neutral-200 px-3 flex items-center text-xs text-neutral-300">
+                      <Mail size={12} className="mr-1.5 text-neutral-400" />
                       {question.placeholder || 'you@example.com'}
                     </div>
-                    <p className="text-[10px] text-primary-400 mt-1">
+                    <p className="text-[10px] text-neutral-400 mt-1">
                       Email format is validated automatically
                     </p>
                   </div>
@@ -908,15 +911,15 @@ function QuestionEditor({
                     onChange={(e) => update({ placeholder: e.target.value || undefined })}
                     placeholder="e.g. 0412 345 678"
                   />
-                  <div className="rounded-xl bg-primary-50/50 border border-primary-100/50 px-3 py-2.5">
-                    <p className="text-[11px] text-primary-400 mb-1.5 flex items-center gap-1">
+                  <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/50 px-3 py-2.5">
+                    <p className="text-[11px] text-neutral-400 mb-1.5 flex items-center gap-1">
                       <Eye size={10} /> Preview
                     </p>
-                    <div className="h-9 w-48 rounded-lg bg-white border border-primary-200 px-3 flex items-center text-xs text-primary-300">
-                      <Phone size={12} className="mr-1.5 text-primary-400" />
+                    <div className="h-9 w-48 rounded-lg bg-white border border-neutral-200 px-3 flex items-center text-xs text-neutral-300">
+                      <Phone size={12} className="mr-1.5 text-neutral-400" />
                       {question.placeholder || '0412 345 678'}
                     </div>
-                    <p className="text-[10px] text-primary-400 mt-1">
+                    <p className="text-[10px] text-neutral-400 mt-1">
                       Phone number format is validated automatically
                     </p>
                   </div>
@@ -925,15 +928,15 @@ function QuestionEditor({
 
               {/* Yes/No preview */}
               {question.type === 'yes_no' && (
-                <div className="rounded-xl bg-primary-50/50 border border-primary-100/50 px-3 py-2.5">
-                  <p className="text-[11px] text-primary-400 mb-1.5 flex items-center gap-1">
+                <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/50 px-3 py-2.5">
+                  <p className="text-[11px] text-neutral-400 mb-1.5 flex items-center gap-1">
                     <Eye size={10} /> Preview
                   </p>
                   <div className="flex gap-2">
-                    <span className="flex items-center justify-center h-9 px-5 rounded-lg bg-white border border-primary-200 text-sm font-medium text-primary-600">
+                    <span className="flex items-center justify-center h-9 px-5 rounded-lg bg-white border border-neutral-200 text-sm font-medium text-neutral-600">
                       Yes
                     </span>
-                    <span className="flex items-center justify-center h-9 px-5 rounded-lg bg-white border border-primary-200 text-sm font-medium text-primary-600">
+                    <span className="flex items-center justify-center h-9 px-5 rounded-lg bg-white border border-neutral-200 text-sm font-medium text-neutral-600">
                       No
                     </span>
                   </div>
@@ -942,12 +945,12 @@ function QuestionEditor({
 
               {/* Multiple choice / checkbox / dropdown preview */}
               {hasOptions && (question.options?.length ?? 0) > 0 && (
-                <div className="rounded-xl bg-primary-50/50 border border-primary-100/50 px-3 py-2.5">
-                  <p className="text-[11px] text-primary-400 mb-1.5 flex items-center gap-1">
+                <div className="rounded-xl bg-neutral-50/50 border border-neutral-100/50 px-3 py-2.5">
+                  <p className="text-[11px] text-neutral-400 mb-1.5 flex items-center gap-1">
                     <Eye size={10} /> Preview
                   </p>
                   {question.type === 'dropdown' ? (
-                    <div className="h-9 w-56 rounded-lg bg-white border border-primary-200 px-3 flex items-center justify-between text-xs text-primary-300">
+                    <div className="h-9 w-56 rounded-lg bg-white border border-neutral-200 px-3 flex items-center justify-between text-xs text-neutral-300">
                       <span>Select an option</span>
                       <ChevronDown size={12} />
                     </div>
@@ -956,19 +959,19 @@ function QuestionEditor({
                       {question.options?.map((opt) => (
                         <div key={opt} className="flex items-center gap-2">
                           <span className={cn(
-                            'flex items-center justify-center w-4 h-4 border border-primary-300 shrink-0',
+                            'flex items-center justify-center w-4 h-4 border border-neutral-300 shrink-0',
                             question.type === 'multiple_choice' ? 'rounded-full' : 'rounded',
                           )} />
-                          <span className="text-xs text-primary-600">{opt}</span>
+                          <span className="text-xs text-neutral-600">{opt}</span>
                         </div>
                       ))}
                       {question.allow_other && (
                         <div className="flex items-center gap-2">
                           <span className={cn(
-                            'flex items-center justify-center w-4 h-4 border border-primary-300 shrink-0',
+                            'flex items-center justify-center w-4 h-4 border border-neutral-300 shrink-0',
                             question.type === 'multiple_choice' ? 'rounded-full' : 'rounded',
                           )} />
-                          <span className="text-xs text-primary-400 italic">Other:</span>
+                          <span className="text-xs text-neutral-400 italic">Other:</span>
                           <div className="flex-1 h-6 rounded border border-dashed border-primary-200 bg-white" />
                         </div>
                       )}
@@ -978,10 +981,10 @@ function QuestionEditor({
               )}
 
               {/* Required toggle */}
-              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-primary-50/50 border border-primary-100/50">
+              <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-neutral-50/50 border border-neutral-100/50">
                 <div>
-                  <p className="text-sm font-medium text-primary-700">Required</p>
-                  <p className="text-[11px] text-primary-400">
+                  <p className="text-sm font-medium text-neutral-700">Required</p>
+                  <p className="text-[11px] text-neutral-400">
                     Respondents must answer this question to submit the survey
                   </p>
                 </div>
@@ -1127,6 +1130,7 @@ export default function CreateSurveyPage() {
   const [title, setTitle] = useState(initialTemplate?.name ?? '')
   const [description, setDescription] = useState('')
   const [autoSendAfterEvent, setAutoSendAfterEvent] = useState(false)
+  const [isImpactForm, setIsImpactForm] = useState(false)
   const [activityType, setActivityType] = useState('')
   const [questions, setQuestions] = useState<SurveyQuestion[]>(initialTemplate?.questions ?? [])
   const [validationErrors, setValidationErrors] = useState<string[]>([])
@@ -1138,6 +1142,7 @@ export default function CreateSurveyPage() {
       setTitle(existingSurvey.title ?? '')
       setDescription((existingSurvey as Record<string, unknown>).description as string ?? '')
       setAutoSendAfterEvent(existingSurvey.auto_send_after_event ?? false)
+      setIsImpactForm(existingSurvey.is_impact_form ?? false)
       setActivityType((existingSurvey as Record<string, unknown>).activity_type as string ?? '')
       // Parse questions  could be string or object
       let parsedQuestions: SurveyQuestion[] = []
@@ -1185,8 +1190,9 @@ export default function CreateSurveyPage() {
         title,
         description: description.trim() || null,
         questions: JSON.stringify(questions),
-        auto_send_after_event: autoSendAfterEvent,
-        activity_type: autoSendAfterEvent && activityType ? activityType : null,
+        auto_send_after_event: autoSendAfterEvent && !isImpactForm,
+        is_impact_form: isImpactForm,
+        activity_type: (autoSendAfterEvent || isImpactForm) && activityType ? activityType : null,
         status: 'active',
       }
 
@@ -1204,14 +1210,29 @@ export default function CreateSurveyPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-surveys'] })
       queryClient.invalidateQueries({ queryKey: ['admin-survey-detail', surveyId] })
+      // Invalidate leader-facing caches so impact forms / event surveys reflect changes
+      queryClient.invalidateQueries({ queryKey: ['impact-form-surveys'] })
+      queryClient.invalidateQueries({ queryKey: ['event-survey'] })
+      queryClient.invalidateQueries({ queryKey: ['pending-impact-form-tasks'] })
       toast.success(isEdit ? 'Survey updated' : 'Survey created')
       navigate('/admin/surveys')
     },
-    onError: () => toast.error(isEdit ? 'Failed to update survey' : 'Failed to create survey'),
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : String(err)
+      if (msg.includes('surveys_impact_form_activity_type_unique')) {
+        const typeName = ACTIVITY_TYPE_LABELS[activityType] ?? activityType
+        toast.error(`There's already an active impact form for "${typeName}". Go to Surveys, find the existing one, and deactivate or delete it first.`)
+      } else {
+        toast.error(isEdit ? 'Failed to update survey' : 'Failed to create survey')
+      }
+    },
   })
 
   const handleSubmit = () => {
     const errors = validateSurvey(title, questions)
+    if (isImpactForm && !activityType) {
+      errors.push('Impact forms must be linked to an activity type')
+    }
     setValidationErrors(errors)
     if (errors.length > 0) {
       toast.error(errors[0])
@@ -1259,12 +1280,12 @@ export default function CreateSurveyPage() {
     return (
       <div className="max-w-4xl mx-auto pb-8">
         <div className="mb-8">
-          <div className="h-7 w-48 rounded-lg bg-primary-100 animate-pulse" />
-          <div className="h-4 w-72 rounded-lg bg-primary-50 animate-pulse mt-2" />
+          <div className="h-7 w-48 rounded-lg bg-neutral-100 animate-pulse" />
+          <div className="h-4 w-72 rounded-lg bg-neutral-50 animate-pulse mt-2" />
         </div>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 rounded-xl bg-primary-50 animate-pulse" />
+            <div key={i} className="h-20 rounded-xl bg-neutral-50 animate-pulse" />
           ))}
         </div>
       </div>
@@ -1275,10 +1296,10 @@ export default function CreateSurveyPage() {
     <div className="max-w-4xl mx-auto pb-8">
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="font-heading text-2xl font-bold text-primary-800">
+        <h1 className="font-heading text-2xl font-bold text-neutral-900">
           {isEdit ? 'Edit Survey' : 'Create Survey'}
         </h1>
-        <p className="text-sm text-primary-400 mt-1">
+        <p className="text-sm text-neutral-400 mt-1">
           {isEdit
             ? 'Update your survey questions and settings'
             : 'Build a survey to collect feedback from your community'}
@@ -1286,8 +1307,8 @@ export default function CreateSurveyPage() {
       </div>
 
       {/* Title & settings card */}
-      <section className="rounded-2xl bg-white border border-primary-100 shadow-sm p-5 mb-6">
-        <h2 className="text-sm font-semibold text-primary-800 mb-4">Details</h2>
+      <section className="rounded-2xl bg-white border border-neutral-100 shadow-sm p-5 mb-6">
+        <h2 className="text-sm font-semibold text-neutral-900 mb-4">Details</h2>
 
         <div className="space-y-4">
           <Input
@@ -1307,26 +1328,115 @@ export default function CreateSurveyPage() {
             rows={2}
           />
 
-          <div className="flex items-center gap-3 px-4 py-3.5 rounded-xl bg-primary-50/50 border border-primary-100">
-            <Toggle
-              checked={autoSendAfterEvent}
-              onChange={setAutoSendAfterEvent}
-              label="Auto-send after event"
-              description="Automatically send this survey to attendees after each event"
-              size="sm"
-            />
+          {/* Survey purpose selector */}
+          <div>
+            <label className="block text-xs font-medium text-neutral-500 mb-2">Survey Purpose</label>
+            <div className="space-y-2">
+              {/* General survey */}
+              <button
+                type="button"
+                onClick={() => { setAutoSendAfterEvent(false); setIsImpactForm(false) }}
+                className={cn(
+                  'w-full flex items-start gap-3 px-4 py-3.5 rounded-xl border text-left transition-colors cursor-pointer',
+                  !autoSendAfterEvent && !isImpactForm
+                    ? 'border-primary-400 bg-primary-50/60'
+                    : 'border-neutral-100 bg-neutral-50/30 hover:bg-neutral-50',
+                )}
+              >
+                <span className={cn(
+                  'flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mt-0.5',
+                  !autoSendAfterEvent && !isImpactForm ? 'bg-primary-100 text-primary-600' : 'bg-neutral-100 text-neutral-400',
+                )}>
+                  <ClipboardList size={16} />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-neutral-900">General Survey</p>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">Standalone survey — share manually or attach to a task</p>
+                </div>
+              </button>
+
+              {/* Attendee feedback */}
+              <button
+                type="button"
+                onClick={() => { setAutoSendAfterEvent(true); setIsImpactForm(false) }}
+                className={cn(
+                  'w-full flex items-start gap-3 px-4 py-3.5 rounded-xl border text-left transition-colors cursor-pointer',
+                  autoSendAfterEvent && !isImpactForm
+                    ? 'border-plum-400 bg-plum-50/60'
+                    : 'border-neutral-100 bg-neutral-50/30 hover:bg-neutral-50',
+                )}
+              >
+                <span className={cn(
+                  'flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mt-0.5',
+                  autoSendAfterEvent && !isImpactForm ? 'bg-plum-100 text-plum-600' : 'bg-neutral-100 text-neutral-400',
+                )}>
+                  <Send size={16} />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-neutral-900">Attendee Feedback</p>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">Auto-sent to checked-in attendees after each event</p>
+                </div>
+              </button>
+
+              {/* Leader impact form */}
+              <button
+                type="button"
+                onClick={() => { setIsImpactForm(true); setAutoSendAfterEvent(false) }}
+                className={cn(
+                  'w-full flex items-start gap-3 px-4 py-3.5 rounded-xl border text-left transition-colors cursor-pointer',
+                  isImpactForm
+                    ? 'border-moss-400 bg-moss-50/60'
+                    : 'border-neutral-100 bg-neutral-50/30 hover:bg-neutral-50',
+                )}
+              >
+                <span className={cn(
+                  'flex items-center justify-center w-8 h-8 rounded-lg shrink-0 mt-0.5',
+                  isImpactForm ? 'bg-moss-100 text-moss-600' : 'bg-neutral-100 text-neutral-400',
+                )}>
+                  <BarChart3 size={16} />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-neutral-900">Leader Impact Form</p>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">
+                    Sent to collective leaders as a shared task after events. Answers linked to impact metrics
+                    flow into the impact dashboard. One leader fills it out on behalf of the group.
+                  </p>
+                </div>
+              </button>
+            </div>
           </div>
 
-          {autoSendAfterEvent && (
-            <Dropdown
-              label="Activity Type"
-              options={[
-                { value: '', label: 'All activity types' },
-                ...ACTIVITY_TYPE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-              ]}
-              value={activityType}
-              onChange={setActivityType}
-            />
+          {/* Activity type — shown for both attendee feedback and impact forms */}
+          {(autoSendAfterEvent || isImpactForm) && (
+            <div>
+              <Dropdown
+                label="Activity Type"
+                options={[
+                  ...(!isImpactForm ? [{ value: '', label: 'All activity types' }] : []),
+                  ...ACTIVITY_TYPE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
+                ]}
+                value={activityType}
+                onChange={setActivityType}
+              />
+              {isImpactForm && !activityType && (
+                <p className="text-[11px] text-warning-600 mt-1.5 flex items-center gap-1">
+                  <AlertCircle size={11} />
+                  Impact forms must be linked to an activity type
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Impact form guidance */}
+          {isImpactForm && (
+            <div className="rounded-xl bg-moss-50 border border-moss-100 px-3.5 py-3">
+              <p className="text-[11px] text-moss-700 leading-relaxed">
+                <strong>How it works:</strong> When an event of this type is completed, a shared task is
+                automatically created for the collective&apos;s leaders. Any leader, co-leader, or assist-leader
+                can fill it out — only one submission is needed. Number questions linked to impact metrics will
+                update the event&apos;s impact stats automatically.
+              </p>
+            </div>
           )}
         </div>
       </section>
@@ -1334,20 +1444,20 @@ export default function CreateSurveyPage() {
       {/* Questions section */}
       <section className="mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-primary-800">
+          <h2 className="text-sm font-semibold text-neutral-900">
             Questions{questions.length > 0 && ` (${questions.length})`}
           </h2>
         </div>
 
         {questions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 px-4 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/30">
-            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-100 mb-3">
-              <ClipboardList size={24} className="text-primary-400" />
+          <div className="flex flex-col items-center justify-center py-10 px-4 rounded-2xl border-2 border-dashed border-neutral-200 bg-neutral-50/30">
+            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-neutral-100 mb-3">
+              <ClipboardList size={24} className="text-neutral-400" />
             </div>
-            <p className="text-sm font-medium text-primary-500 text-center">
+            <p className="text-sm font-medium text-neutral-500 text-center">
               No questions yet
             </p>
-            <p className="text-xs text-primary-400 text-center mt-1">
+            <p className="text-xs text-neutral-400 text-center mt-1">
               Add your first question below
             </p>
           </div>
@@ -1373,12 +1483,12 @@ export default function CreateSurveyPage() {
       </section>
 
       {/* Add question buttons */}
-      <section className="rounded-2xl border border-primary-200 bg-gradient-to-b from-primary-50/80 to-white overflow-hidden shadow-sm mb-6">
-        <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-primary-100 bg-primary-50/50">
+      <section className="rounded-2xl border border-neutral-200 bg-gradient-to-b from-primary-50/80 to-white overflow-hidden shadow-sm mb-6">
+        <div className="flex items-center gap-2.5 px-5 py-3.5 border-b border-primary-100 bg-neutral-50/50">
           <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-500 text-white">
             <Plus size={15} />
           </div>
-          <h3 className="text-sm font-semibold text-primary-800">Add Question</h3>
+          <h3 className="text-sm font-semibold text-neutral-900">Add Question</h3>
         </div>
 
         <div className="p-3 sm:p-4">
@@ -1391,15 +1501,15 @@ export default function CreateSurveyPage() {
                 onClick={() => addQuestion(qt.value)}
                 className={cn(
                   'flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl text-center',
-                  'bg-white border border-primary-100/60',
+                  'bg-white border border-neutral-100/60',
                   'active:bg-primary-100/50 active:scale-[0.96]',
                   'transition-[colors,transform] duration-150 cursor-pointer group select-none',
                 )}
               >
-                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary-50 text-primary-500 group-active:bg-primary-100 transition-colors">
+                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary-50 text-neutral-500 group-active:bg-primary-100 transition-colors">
                   {qt.icon}
                 </span>
-                <p className="text-[11px] font-medium text-primary-700 leading-tight">{qt.label}</p>
+                <p className="text-[11px] font-medium text-neutral-700 leading-tight">{qt.label}</p>
               </button>
             ))}
           </div>
@@ -1413,17 +1523,17 @@ export default function CreateSurveyPage() {
                 onClick={() => addQuestion(qt.value)}
                 className={cn(
                   'flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left',
-                  'bg-white border border-primary-100/60 hover:border-primary-200 hover:bg-primary-50/50',
+                  'bg-white border border-neutral-100/60 hover:border-primary-200 hover:bg-neutral-50/50',
                   'active:bg-primary-100/50 active:scale-[0.98]',
                   'transition-[colors,transform] duration-150 cursor-pointer group select-none',
                 )}
               >
-                <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 text-primary-500 group-hover:bg-primary-100 transition-colors shrink-0">
+                <span className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary-50 text-neutral-500 group-hover:bg-primary-100 transition-colors shrink-0">
                   {qt.icon}
                 </span>
                 <div>
-                  <p className="text-xs font-medium text-primary-700">{qt.label}</p>
-                  <p className="text-[10px] text-primary-400">{qt.description}</p>
+                  <p className="text-xs font-medium text-neutral-700">{qt.label}</p>
+                  <p className="text-[10px] text-neutral-400">{qt.description}</p>
                 </div>
               </button>
             ))}
@@ -1458,18 +1568,18 @@ export default function CreateSurveyPage() {
       {/* Submit bar - fixed above bottom tab bar */}
       <div className="fixed bottom-[calc(56px+var(--safe-bottom)+0.75rem)] sm:bottom-4 inset-x-0 z-30 pointer-events-none px-4 sm:px-6">
         <div className="max-w-4xl mx-auto pointer-events-auto">
-          <div className="rounded-2xl bg-white/95 backdrop-blur-sm border border-primary-100 shadow-lg px-4 py-3">
+          <div className="rounded-2xl bg-white/95 backdrop-blur-sm border border-neutral-100 shadow-lg px-4 py-3">
             {/* Status line - mobile only */}
             <div className="mb-2 sm:hidden">
               {questions.length === 0 ? (
-                <p className="text-xs text-primary-400">Add at least one question</p>
+                <p className="text-xs text-neutral-400">Add at least one question</p>
               ) : !title.trim() ? (
-                <p className="text-xs text-primary-400">Add a survey title</p>
+                <p className="text-xs text-neutral-400">Add a survey title</p>
               ) : (
-                <p className="text-xs text-primary-500 font-medium">
+                <p className="text-xs text-neutral-500 font-medium">
                   {questions.length} question{questions.length !== 1 ? 's' : ''} ready
                   {questions.filter((q) => q.required).length > 0 && (
-                    <span className="text-primary-400">
+                    <span className="text-neutral-400">
                       {' '}({questions.filter((q) => q.required).length} required)
                     </span>
                   )}
@@ -1481,14 +1591,14 @@ export default function CreateSurveyPage() {
               {/* Desktop status */}
               <div className="flex-1 min-w-0 hidden sm:block">
                 {questions.length === 0 ? (
-                  <p className="text-xs text-primary-400">Add at least one question</p>
+                  <p className="text-xs text-neutral-400">Add at least one question</p>
                 ) : !title.trim() ? (
-                  <p className="text-xs text-primary-400">Add a survey title</p>
+                  <p className="text-xs text-neutral-400">Add a survey title</p>
                 ) : (
-                  <p className="text-xs text-primary-500 font-medium">
+                  <p className="text-xs text-neutral-500 font-medium">
                     {questions.length} question{questions.length !== 1 ? 's' : ''} ready
                     {questions.filter((q) => q.required).length > 0 && (
-                      <span className="text-primary-400">
+                      <span className="text-neutral-400">
                         {' '}({questions.filter((q) => q.required).length} required)
                       </span>
                     )}

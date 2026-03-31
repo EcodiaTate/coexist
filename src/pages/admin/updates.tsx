@@ -115,7 +115,7 @@ function RichContent({ text, className }: { text: string; className?: string }) 
           href={match[2]}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-primary-600 font-semibold underline underline-offset-2 decoration-primary-300 hover:decoration-primary-500 hover:text-primary-700 transition-colors"
+          className="inline-flex items-center gap-1 text-neutral-600 font-semibold underline underline-offset-2 decoration-primary-300 hover:decoration-primary-500 hover:text-neutral-700 transition-colors"
         >
           {match[1]}
           <ExternalLink size={11} className="shrink-0" />
@@ -128,7 +128,7 @@ function RichContent({ text, className }: { text: string; className?: string }) 
           href={match[3]}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-primary-600 font-semibold underline underline-offset-2 decoration-primary-300 hover:decoration-primary-500 hover:text-primary-700 transition-colors break-all"
+          className="inline-flex items-center gap-1 text-neutral-600 font-semibold underline underline-offset-2 decoration-primary-300 hover:decoration-primary-500 hover:text-neutral-700 transition-colors break-all"
         >
           {match[3]}
           <ExternalLink size={11} className="shrink-0" />
@@ -188,7 +188,7 @@ function ComposeModal({
   editTarget?: AdminUpdate | null
 }) {
   const { toast } = useToast()
-  const { data: allCollectives } = useCollectives()
+  const { data: allCollectives } = useCollectives({ includeNational: true })
   const createUpdate = useCreateUpdate()
   const updateUpdate = useUpdateUpdate()
   const annUpload = useImageUpload({ bucket: 'announcements' })
@@ -299,10 +299,10 @@ function ComposeModal({
     <BottomSheet open={open} onClose={onClose}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-heading text-lg font-semibold text-primary-800">{isEdit ? 'Edit Update' : 'New Update'}</h2>
+        <h2 className="font-heading text-lg font-semibold text-neutral-900">{isEdit ? 'Edit Update' : 'New Update'}</h2>
         <button
           onClick={onClose}
-          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-neutral-400 hover:bg-neutral-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
           aria-label="Close"
         >
           <X size={20} />
@@ -321,7 +321,7 @@ function ComposeModal({
         {/* Content */}
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-sm font-semibold text-primary-800">Content</label>
+            <label className="block text-sm font-semibold text-neutral-900">Content</label>
             <button
               type="button"
               onClick={() => setShowLinkInput(!showLinkInput)}
@@ -329,8 +329,8 @@ function ComposeModal({
                 'inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-lg',
                 'transition-colors duration-150 cursor-pointer select-none',
                 showLinkInput
-                  ? 'bg-primary-100 text-primary-700'
-                  : 'text-primary-500 hover:bg-primary-50 hover:text-primary-700',
+                  ? 'bg-primary-100 text-neutral-700'
+                  : 'text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700',
               )}
             >
               <LinkIcon size={12} />
@@ -347,7 +347,7 @@ function ComposeModal({
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden mb-2"
               >
-                <div className="flex items-end gap-2 p-3 rounded-xl bg-primary-50/60 ring-1 ring-primary-100">
+                <div className="flex items-end gap-2 p-3 rounded-xl bg-neutral-50 ring-1 ring-neutral-100">
                   <div className="flex-1 space-y-2">
                     <Input
                       label="URL"
@@ -386,8 +386,8 @@ function ComposeModal({
             rows={8}
             maxLength={10000}
             className={cn(
-              'w-full rounded-xl px-4 py-3 text-sm text-primary-800 leading-relaxed',
-              'bg-surface-3 ring-1 ring-primary-100 placeholder:text-primary-300',
+              'w-full rounded-xl px-4 py-3 text-sm text-neutral-900 leading-relaxed',
+              'bg-white ring-1 ring-neutral-100 placeholder:text-neutral-300',
               'focus:outline-none focus:ring-2 focus:ring-primary-400',
               'resize-y min-h-[120px]',
             )}
@@ -395,26 +395,26 @@ function ComposeModal({
           <div className="flex items-center justify-between mt-1">
             <div className="flex items-center gap-1.5">
               {content && /\[.+?\]\(https?:\/\/.+?\)/.test(content) && (
-                <span className="inline-flex items-center gap-1 text-[11px] text-primary-400">
+                <span className="inline-flex items-center gap-1 text-[11px] text-neutral-400">
                   <ExternalLink size={10} />
                   Links will be clickable
                 </span>
               )}
             </div>
-            <span className="text-xs text-primary-300">{content.length}/10,000</span>
+            <span className="text-xs text-neutral-300">{content.length}/10,000</span>
           </div>
         </div>
 
         {/* Images */}
         <div>
-          <label className="block text-sm font-semibold text-primary-800 mb-2">
+          <label className="block text-sm font-semibold text-neutral-900 mb-2">
             Images ({totalImages}/10)
           </label>
 
           {(existingImages.length > 0 || previews.length > 0) && (
             <div className="grid grid-cols-4 gap-2 mb-3">
               {existingImages.map((src, i) => (
-                <div key={`existing-${i}`} className="relative aspect-square rounded-xl overflow-hidden group ring-1 ring-primary-100">
+                <div key={`existing-${i}`} className="relative aspect-square rounded-xl overflow-hidden group ring-1 ring-neutral-100">
                   <img src={src} alt="" className="w-full h-full object-cover" />
                   <button
                     type="button"
@@ -426,7 +426,7 @@ function ComposeModal({
                 </div>
               ))}
               {previews.map((src, i) => (
-                <div key={`new-${i}`} className="relative aspect-square rounded-xl overflow-hidden group ring-1 ring-primary-100">
+                <div key={`new-${i}`} className="relative aspect-square rounded-xl overflow-hidden group ring-1 ring-neutral-100">
                   <img src={src} alt="" className="w-full h-full object-cover" />
                   <button
                     type="button"
@@ -446,9 +446,9 @@ function ComposeModal({
               onClick={() => fileInputRef.current?.click()}
               className={cn(
                 'flex items-center justify-center gap-2 w-full h-16 rounded-xl',
-                'border-2 border-dashed border-primary-200/60 bg-primary-50/30',
-                'text-sm text-primary-500 font-medium',
-                'cursor-pointer hover:border-primary-300/60 hover:bg-primary-50/60',
+                'border-2 border-dashed border-neutral-100 bg-neutral-50',
+                'text-sm text-neutral-500 font-medium',
+                'cursor-pointer hover:border-neutral-200 hover:bg-neutral-50',
                 'transition-colors duration-150',
               )}
             >
@@ -478,7 +478,7 @@ function ComposeModal({
         <div className="grid grid-cols-2 gap-3">
           {/* Priority */}
           <div>
-            <label className="block text-sm font-semibold text-primary-800 mb-2">Priority</label>
+            <label className="block text-sm font-semibold text-neutral-900 mb-2">Priority</label>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -488,7 +488,7 @@ function ComposeModal({
                   'transition-colors duration-150 cursor-pointer select-none',
                   priority === 'normal'
                     ? 'bg-primary-600 text-white shadow-sm'
-                    : 'bg-primary-50 text-primary-600 ring-1 ring-primary-200/60 hover:bg-primary-100',
+                    : 'bg-primary-50 text-neutral-600 ring-1 ring-primary-200/60 hover:bg-primary-100',
                 )}
               >
                 <Sparkles size={12} /> Normal
@@ -511,7 +511,7 @@ function ComposeModal({
 
           {/* Pin */}
           <div>
-            <label className="block text-sm font-semibold text-primary-800 mb-2">Pinned</label>
+            <label className="block text-sm font-semibold text-neutral-900 mb-2">Pinned</label>
             <button
               type="button"
               onClick={() => setIsPinned(!isPinned)}
@@ -520,7 +520,7 @@ function ComposeModal({
                 'transition-colors duration-150 cursor-pointer select-none',
                 isPinned
                   ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-primary-50 text-primary-600 ring-1 ring-primary-200/60 hover:bg-primary-100',
+                  : 'bg-primary-50 text-neutral-600 ring-1 ring-primary-200/60 hover:bg-primary-100',
               )}
             >
               <Pin size={12} />
@@ -531,7 +531,7 @@ function ComposeModal({
 
         {/* Target audience - simplified: national or specific collective */}
         <div>
-          <label className="block text-sm font-semibold text-primary-800 mb-2">
+          <label className="block text-sm font-semibold text-neutral-900 mb-2">
             Who sees this?
           </label>
           <div className="flex gap-2 mb-3">
@@ -543,7 +543,7 @@ function ComposeModal({
                 'transition-colors duration-150 cursor-pointer select-none',
                 targetAudience === 'all'
                   ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-primary-50 text-primary-600 ring-1 ring-primary-200/60 hover:bg-primary-100',
+                  : 'bg-primary-50 text-neutral-600 ring-1 ring-primary-200/60 hover:bg-primary-100',
               )}
             >
               <Globe size={14} /> All Participants
@@ -556,7 +556,7 @@ function ComposeModal({
                 'transition-colors duration-150 cursor-pointer select-none',
                 targetAudience === 'collective_specific'
                   ? 'bg-primary-600 text-white shadow-sm'
-                  : 'bg-primary-50 text-primary-600 ring-1 ring-primary-200/60 hover:bg-primary-100',
+                  : 'bg-primary-50 text-neutral-600 ring-1 ring-primary-200/60 hover:bg-primary-100',
               )}
             >
               <Users size={14} /> Specific Collective
@@ -572,7 +572,7 @@ function ComposeModal({
                 exit={{ opacity: 0, height: 0 }}
                 className="overflow-hidden"
               >
-                <div className="space-y-1.5 max-h-48 overflow-y-auto rounded-xl ring-1 ring-primary-100 p-2 bg-primary-50/30">
+                <div className="space-y-1.5 max-h-48 overflow-y-auto rounded-xl ring-1 ring-neutral-100 p-2 bg-neutral-50">
                   {(allCollectives ?? []).map((c) => {
                     const isSelected = selectedCollectiveId === c.id
                     return (
@@ -585,22 +585,22 @@ function ComposeModal({
                           'transition-colors duration-150 cursor-pointer select-none',
                           isSelected
                             ? 'bg-primary-100 ring-1 ring-primary-400'
-                            : 'hover:bg-primary-50',
+                            : 'hover:bg-neutral-50',
                         )}
                       >
                         {c.cover_image_url ? (
                           <img src={c.cover_image_url} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
                         ) : (
                           <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
-                            <Users size={14} className="text-primary-400" />
+                            <Users size={14} className="text-neutral-400" />
                           </div>
                         )}
                         <div className="min-w-0">
-                          <p className={cn('text-sm font-semibold truncate', isSelected ? 'text-primary-800' : 'text-primary-700')}>
+                          <p className={cn('text-sm font-semibold truncate', isSelected ? 'text-neutral-900' : 'text-neutral-700')}>
                             {c.name}
                           </p>
                           {c.region && (
-                            <p className="text-[11px] text-primary-400">{c.region}, {c.state}</p>
+                            <p className="text-[11px] text-neutral-400">{c.region}, {c.state}</p>
                           )}
                         </div>
                       </button>
@@ -612,7 +612,7 @@ function ComposeModal({
           </AnimatePresence>
 
           {/* Targeting hint */}
-          <p className="mt-2 text-[11px] text-primary-400 leading-relaxed">
+          <p className="mt-2 text-[11px] text-neutral-400 leading-relaxed">
             {targetAudience === 'all'
               ? 'This will be visible to every participant in the app, nationally.'
               : selectedCollective
@@ -675,14 +675,14 @@ function DetailPanel({
       animate={{ opacity: 1, x: 0 }}
       exit={reducedMotion ? undefined : { opacity: 0, x: 12 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="h-full flex flex-col bg-white rounded-2xl shadow-sm ring-1 ring-primary-100/60 overflow-hidden"
+      className="h-full flex flex-col bg-white rounded-2xl shadow-sm ring-1 ring-neutral-100 overflow-hidden"
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-primary-100/60 shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100 shrink-0">
         <button
           type="button"
           onClick={onClose}
-          className="flex items-center gap-1.5 text-xs font-semibold text-primary-500 hover:text-primary-700 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-xs font-semibold text-neutral-500 hover:text-neutral-700 transition-colors cursor-pointer"
         >
           <ArrowLeft size={14} />
           Back
@@ -691,7 +691,7 @@ function DetailPanel({
           <button
             type="button"
             onClick={handleCopyContent}
-            className="p-2 rounded-lg text-primary-400 hover:bg-primary-50 hover:text-primary-600 transition-colors cursor-pointer"
+            className="p-2 rounded-lg text-neutral-400 hover:bg-neutral-50 hover:text-neutral-600 transition-colors cursor-pointer"
             title="Copy content"
           >
             <Copy size={15} />
@@ -699,7 +699,7 @@ function DetailPanel({
           <button
             type="button"
             onClick={onEdit}
-            className="p-2 rounded-lg text-primary-400 hover:bg-primary-50 hover:text-primary-600 transition-colors cursor-pointer"
+            className="p-2 rounded-lg text-neutral-400 hover:bg-neutral-50 hover:text-neutral-600 transition-colors cursor-pointer"
             title="Edit"
           >
             <Pencil size={15} />
@@ -707,7 +707,7 @@ function DetailPanel({
           <button
             type="button"
             onClick={onDelete}
-            className="p-2 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 transition-colors cursor-pointer"
+            className="p-2 rounded-lg text-neutral-400 hover:bg-error-50 hover:text-error-600 transition-colors cursor-pointer"
             title="Delete"
           >
             <Trash2 size={15} />
@@ -737,7 +737,7 @@ function DetailPanel({
           {/* Badges */}
           <div className="flex items-center gap-2 flex-wrap">
             {update.is_pinned && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-neutral-600 bg-primary-50 px-2 py-0.5 rounded-full">
                 <Pin size={10} /> Pinned
               </span>
             )}
@@ -758,23 +758,23 @@ function DetailPanel({
           </div>
 
           {/* Title */}
-          <h2 className="font-heading text-lg font-bold text-primary-900 leading-tight">
+          <h2 className="font-heading text-lg font-bold text-neutral-900 leading-tight">
             {update.title}
           </h2>
 
           {/* Author + meta */}
-          <div className="flex items-center gap-3 pb-3 border-b border-primary-100/60">
+          <div className="flex items-center gap-3 pb-3 border-b border-neutral-100">
             <Avatar
               src={update.author?.avatar_url}
               name={update.author?.display_name ?? 'Staff'}
               size="sm"
             />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-primary-800">
+              <p className="text-sm font-semibold text-neutral-900">
                 {update.author?.display_name ?? 'Co-Exist Team'}
               </p>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-[11px] text-primary-400 flex items-center gap-1">
+                <span className="text-[11px] text-neutral-400 flex items-center gap-1">
                   <Clock size={10} />
                   {formatDate(update.created_at ?? '')}
                 </span>
@@ -783,17 +783,17 @@ function DetailPanel({
           </div>
 
           {/* Stats row */}
-          <div className="flex items-center gap-4 py-2 px-3 rounded-xl bg-primary-50/40">
+          <div className="flex items-center gap-4 py-2 px-3 rounded-xl bg-neutral-50">
             <div className="flex items-center gap-1.5">
-              <Eye size={13} className="text-primary-400" />
-              <span className="text-xs font-semibold text-primary-700">{update.read_count}</span>
-              <span className="text-[11px] text-primary-400">read</span>
+              <Eye size={13} className="text-neutral-400" />
+              <span className="text-xs font-semibold text-neutral-700">{update.read_count}</span>
+              <span className="text-[11px] text-neutral-400">read</span>
             </div>
             {images.length > 0 && (
               <div className="flex items-center gap-1.5">
-                <ImageIcon size={13} className="text-primary-400" />
-                <span className="text-xs font-semibold text-primary-700">{images.length}</span>
-                <span className="text-[11px] text-primary-400">{images.length === 1 ? 'image' : 'images'}</span>
+                <ImageIcon size={13} className="text-neutral-400" />
+                <span className="text-xs font-semibold text-neutral-700">{images.length}</span>
+                <span className="text-[11px] text-neutral-400">{images.length === 1 ? 'image' : 'images'}</span>
               </div>
             )}
           </div>
@@ -801,7 +801,7 @@ function DetailPanel({
           {/* Content preview with clickable links */}
           <RichContent
             text={update.content}
-            className="text-sm text-primary-700 leading-[1.8] whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
+            className="text-sm text-neutral-700 leading-[1.8] whitespace-pre-wrap break-words [overflow-wrap:anywhere]"
           />
 
           {/* Extra images */}
@@ -818,7 +818,7 @@ function DetailPanel({
       </div>
 
       {/* Footer actions */}
-      <div className="shrink-0 px-4 py-3 border-t border-primary-100/60 flex items-center gap-2">
+      <div className="shrink-0 px-4 py-3 border-t border-neutral-100 flex items-center gap-2">
         <Button
           variant="secondary"
           size="sm"
@@ -876,8 +876,8 @@ function UpdateRow({
         'flex items-start gap-3.5 p-4 rounded-xl bg-white cursor-pointer',
         'ring-1 transition-all duration-150',
         isSelected
-          ? 'ring-primary-400 shadow-md bg-primary-50/30'
-          : 'ring-primary-100/60 shadow-sm hover:shadow-md hover:ring-primary-200/60',
+          ? 'ring-primary-400 shadow-sm bg-primary-50'
+          : 'ring-neutral-100 shadow-sm hover:shadow-sm hover:ring-neutral-200',
         isUrgent && !isSelected && 'ring-warning-200/60',
       )}
     >
@@ -889,19 +889,19 @@ function UpdateRow({
           className="w-14 h-14 rounded-xl object-cover shrink-0 ring-1 ring-black/[0.04]"
         />
       ) : (
-        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center shrink-0">
-          <Megaphone size={20} className="text-primary-400" />
+        <div className="w-14 h-14 rounded-xl bg-white border border-neutral-100 flex items-center justify-center shrink-0">
+          <Megaphone size={20} className="text-neutral-400" />
         </div>
       )}
 
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
-          <h3 className="text-sm font-semibold text-primary-800 truncate max-w-[200px] sm:max-w-none">
+          <h3 className="text-sm font-semibold text-neutral-900 truncate max-w-[200px] sm:max-w-none">
             {update.title}
           </h3>
           {update.is_pinned && (
-            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary-500 bg-primary-50 px-1.5 py-0.5 rounded-full shrink-0">
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-neutral-500 bg-primary-50 px-1.5 py-0.5 rounded-full shrink-0">
               <Pin size={8} /> Pinned
             </span>
           )}
@@ -912,7 +912,7 @@ function UpdateRow({
           )}
         </div>
 
-        <p className="text-xs text-primary-500 line-clamp-1 mb-1.5">{update.content}</p>
+        <p className="text-xs text-neutral-500 line-clamp-1 mb-1.5">{update.content}</p>
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Author */}
@@ -922,11 +922,11 @@ function UpdateRow({
               name={update.author?.display_name ?? 'Staff'}
               size="xs"
             />
-            <span className="text-[11px] font-medium text-primary-600">
+            <span className="text-[11px] font-medium text-neutral-600">
               {update.author?.display_name ?? 'Staff'}
             </span>
           </div>
-          <span className="text-[10px] text-primary-300">{formatRelative(update.created_at ?? '')}</span>
+          <span className="text-[10px] text-neutral-300">{formatRelative(update.created_at ?? '')}</span>
 
           {/* Audience badge */}
           <span className={cn(
@@ -940,12 +940,12 @@ function UpdateRow({
           </span>
 
           {/* Read count */}
-          <span className="inline-flex items-center gap-0.5 text-[10px] text-primary-400 shrink-0 ml-auto">
+          <span className="inline-flex items-center gap-0.5 text-[10px] text-neutral-400 shrink-0 ml-auto">
             <Eye size={9} /> {update.read_count}
           </span>
 
           {images.length > 0 && (
-            <span className="inline-flex items-center gap-0.5 text-[10px] text-primary-300 shrink-0">
+            <span className="inline-flex items-center gap-0.5 text-[10px] text-neutral-300 shrink-0">
               <ImageIcon size={9} /> {images.length}
             </span>
           )}
@@ -957,7 +957,7 @@ function UpdateRow({
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onEdit() }}
-          className="p-2 rounded-lg text-primary-400 hover:bg-primary-50 hover:text-primary-600 transition-colors cursor-pointer"
+          className="p-2 rounded-lg text-neutral-400 hover:bg-neutral-50 hover:text-neutral-600 transition-colors cursor-pointer"
           title="Edit"
         >
           <Pencil size={15} />
@@ -965,12 +965,12 @@ function UpdateRow({
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onDelete() }}
-          className="p-2 rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 transition-colors cursor-pointer"
+          className="p-2 rounded-lg text-neutral-400 hover:bg-error-50 hover:text-error-600 transition-colors cursor-pointer"
           title="Delete"
         >
           <Trash2 size={15} />
         </button>
-        <ChevronRight size={14} className="text-primary-300 ml-0.5" />
+        <ChevronRight size={14} className="text-neutral-300 ml-0.5" />
       </div>
     </motion.div>
   )
@@ -1059,7 +1059,6 @@ export default function AdminUpdatesPage() {
       size="sm"
       icon={<Plus size={16} />}
       onClick={() => { setEditTarget(null); setShowCompose(true) }}
-      className="!bg-white/15 !border-white/10 hover:!bg-white/25 !text-white"
     >
       New Update
     </Button>
@@ -1104,8 +1103,8 @@ export default function AdminUpdatesPage() {
                   'px-3.5 min-h-11 rounded-lg text-sm font-semibold',
                   'transition-colors duration-150 cursor-pointer select-none',
                   audienceFilter === f.key
-                    ? 'bg-primary-100 text-primary-800'
-                    : 'text-primary-400 hover:text-primary-600',
+                    ? 'bg-primary-100 text-neutral-900'
+                    : 'text-neutral-400 hover:text-neutral-600',
                 )}
               >
                 {f.label}

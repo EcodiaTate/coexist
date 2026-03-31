@@ -63,12 +63,12 @@ function ManageMembersSheet({
       <BottomSheet open={open} onClose={onClose}>
         <div className="pb-2">
           <div className="flex items-center gap-2.5 px-4 pb-3">
-            <Users size={18} className="text-primary-600" />
-            <p className="text-sm font-bold text-primary-800">Manage Members</p>
+            <Users size={18} className="text-neutral-500" />
+            <p className="text-sm font-bold text-neutral-800">Manage Members</p>
           </div>
 
           {removableMembers.length === 0 ? (
-            <p className="px-4 py-4 text-sm text-primary-500 text-center">No removable members</p>
+            <p className="px-4 py-4 text-sm text-neutral-500 text-center">No removable members</p>
           ) : (
             <div className="max-h-72 overflow-y-auto space-y-0.5">
               {removableMembers.map((m) => (
@@ -82,11 +82,11 @@ function ManageMembersSheet({
                     size="sm"
                   />
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium text-primary-800 truncate block">
+                    <span className="text-sm font-medium text-neutral-800 truncate block">
                       {m.profiles?.display_name ?? 'Member'}
                     </span>
                     {m.role !== 'member' && (
-                      <span className="text-[11px] font-semibold text-primary-500 capitalize">
+                      <span className="text-[11px] font-semibold text-neutral-500 capitalize">
                         {m.role!.replace('_', ' ')}
                       </span>
                     )}

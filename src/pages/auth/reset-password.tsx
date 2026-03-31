@@ -9,7 +9,7 @@ import { Input } from '@/components/input'
 import { Header } from '@/components/header'
 
 /**
- * Password reset form  the user lands here after clicking the
+ * Password reset form — the user lands here after clicking the
  * reset link in their email. Supabase has already established a
  * PASSWORD_RECOVERY session via the hash fragment by the time this
  * page renders (handled by auth-callback or onAuthStateChange).
@@ -72,10 +72,10 @@ export default function ResetPasswordPage() {
               >
                 <CheckCircle className="w-16 h-16 text-success mx-auto" />
               </motion.div>
-              <h2 className="mt-6 font-heading text-xl font-semibold text-primary-800">
+              <h2 className="mt-6 font-heading text-xl font-semibold text-neutral-900">
                 Password updated
               </h2>
-              <p className="mt-2 text-primary-400">Redirecting you now...</p>
+              <p className="mt-2 text-neutral-500">Redirecting you now...</p>
             </motion.div>
           ) : (
             <motion.form
@@ -86,14 +86,14 @@ export default function ResetPasswordPage() {
               className="flex-1 flex flex-col"
             >
               <div className="flex-1">
-                <div className="w-14 h-14 rounded-full bg-primary-100 flex items-center justify-center mb-6">
-                  <Lock className="w-7 h-7 text-primary-400" />
+                <div className="w-14 h-14 rounded-full bg-neutral-50 flex items-center justify-center mb-6">
+                  <Lock className="w-7 h-7 text-neutral-400" />
                 </div>
 
-                <h2 className="font-heading text-xl font-semibold text-primary-800">
+                <h2 className="font-heading text-xl font-semibold text-neutral-900">
                   Set a new password
                 </h2>
-                <p className="mt-2 text-primary-400 leading-relaxed">
+                <p className="mt-2 text-neutral-500 leading-relaxed">
                   Choose a strong password for your account.
                 </p>
 

@@ -91,9 +91,6 @@ export default function LeaderEventsPage() {
   if (showLoading) {
     return (
       <div className="relative min-h-dvh overflow-x-hidden bg-gradient-to-b from-moss-50 via-white to-primary-50/30">
-        {/* Decorative shapes */}
-        <div className="absolute -right-16 -top-16 w-[320px] h-[320px] rounded-full border-2 border-moss-200/40" />
-        <div className="absolute -left-20 bottom-[10%] w-[280px] h-[280px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/25 to-transparent opacity-30" />
         <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
         <div className="relative z-10 px-6 pt-14 space-y-6">
           <div className="flex flex-col items-center gap-2 pb-2">
@@ -122,18 +119,6 @@ export default function LeaderEventsPage() {
       <div className="absolute inset-0 bg-gradient-to-b from-moss-50 via-white to-primary-50/30" />
       <button onClick={() => navigate(-1)} className={backButtonCn} aria-label="Go back"><ArrowLeft size={22} /></button>
 
-      {/* ── Decorative geometric shapes - "morning canopy" formation ── */}
-      <div className="absolute -left-12 -top-12 w-[300px] h-[300px] rounded-full border-2 border-moss-200/35 animate-[breathe_22s_ease-in-out_infinite]" />
-      <div className="absolute -left-2 top-4 w-[200px] h-[200px] rounded-full border border-moss-200/20 animate-[breathe_18s_ease-in-out_0.8s_infinite]" />
-      <div className="absolute -right-16 bottom-[12%] w-[260px] h-[260px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/30 to-transparent opacity-25" />
-      <div className="absolute top-[55%] right-[5%] w-[80px] h-[80px] rounded-full border border-primary-200/30" />
-      <div className="absolute top-[10%] left-[40%] w-[160px] h-[160px] rounded-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-moss-100/18 to-transparent opacity-30" />
-      <div className="absolute bottom-[22%] left-[8%] w-[50px] h-[50px] rounded-full bg-primary-100/25" />
-      <div className="absolute top-[30%] -right-4 w-[100px] h-[100px] rounded-full border border-moss-200/25" />
-      {/* Floating dots */}
-      <div className="absolute right-[18%] top-[14%] w-2 h-2 rounded-full bg-moss-300/35 animate-[float_5s_ease-in-out_infinite]" />
-      <div className="absolute left-[20%] top-[40%] w-1.5 h-1.5 rounded-full bg-primary-300/25 animate-[floatDown_6s_ease-in-out_1s_infinite]" />
-      <div className="absolute right-[30%] bottom-[18%] w-2.5 h-2.5 rounded-full bg-moss-300/30 animate-[float_5.5s_ease-in-out_2s_infinite]" />
 
       {/* ── Content ── */}
       <motion.div
@@ -162,16 +147,16 @@ export default function LeaderEventsPage() {
             { value: stats?.past ?? 0, label: 'Past', color: 'text-primary-600' },
             { value: stats?.drafts ?? 0, label: 'Drafts', color: 'text-primary-500' },
           ].map((s) => (
-            <div key={s.label} className="flex flex-col items-center rounded-2xl bg-white shadow-sm border border-moss-100/50 px-5 py-3 min-w-[80px]">
+            <div key={s.label} className="flex flex-col items-center rounded-2xl bg-white shadow-sm border border-neutral-100 px-5 py-3 min-w-[80px]">
               <span className={cn('font-heading text-2xl font-extrabold tabular-nums', s.color)}>{s.value}</span>
-              <span className="text-[11px] font-semibold text-primary-400 uppercase tracking-wider mt-0.5">{s.label}</span>
+              <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider mt-0.5">{s.label}</span>
             </div>
           ))}
         </motion.div>
 
         {/* ── Filter bar ── */}
         <motion.div variants={rm ? undefined : fadeUp}>
-          <div className="flex gap-1 rounded-xl bg-white shadow-sm border border-primary-50 p-1">
+          <div className="flex gap-1 rounded-xl bg-white shadow-sm border border-neutral-100 p-1">
             {FILTERS.map((f) => (
               <button
                 key={f.id}
@@ -181,7 +166,7 @@ export default function LeaderEventsPage() {
                   'flex-1 px-3 py-2 rounded-lg text-xs font-semibold transition-colors duration-150 cursor-pointer select-none whitespace-nowrap',
                   filter === f.id
                     ? 'bg-moss-600 text-white shadow-sm'
-                    : 'text-primary-500 hover:text-primary-700 hover:bg-primary-50',
+                    : 'text-neutral-500 hover:text-neutral-700 hover:bg-neutral-50',
                 )}
               >
                 {f.label}
@@ -194,15 +179,15 @@ export default function LeaderEventsPage() {
         {!events || events.length === 0 ? (
           <motion.div
             variants={rm ? undefined : fadeUp}
-            className="flex flex-col items-center justify-center text-center py-16 rounded-2xl bg-white shadow-sm border border-primary-50"
+            className="flex flex-col items-center justify-center text-center py-16 rounded-2xl bg-white shadow-sm border border-neutral-100"
           >
             <div className="w-14 h-14 rounded-2xl bg-moss-50 flex items-center justify-center mb-4">
               <Search size={24} className="text-moss-400" />
             </div>
-            <p className="font-heading text-base font-bold text-primary-800 mb-1">
+            <p className="font-heading text-base font-bold text-neutral-900 mb-1">
               {filter === 'upcoming' ? 'No upcoming events' : 'No events found'}
             </p>
-            <p className="text-xs text-primary-400 max-w-[240px]">
+            <p className="text-xs text-neutral-500 max-w-[240px]">
               Create your first conservation event and rally your collective.
             </p>
           </motion.div>
@@ -219,7 +204,7 @@ export default function LeaderEventsPage() {
                 >
                   <Link
                     to={`/events/${event.id}`}
-                    className="flex items-center gap-4 p-4 rounded-2xl bg-white shadow-sm border border-primary-50/60 hover:shadow-md hover:border-moss-100 active:scale-[0.99] transition-[border-color,transform] duration-200"
+                    className="flex items-center gap-4 p-4 rounded-2xl bg-white shadow-sm border border-neutral-100 hover:shadow-md hover:border-neutral-200 active:scale-[0.99] transition-[border-color,transform] duration-200"
                   >
                     {/* Cover thumbnail */}
                     {event.cover_image_url ? (
@@ -237,7 +222,7 @@ export default function LeaderEventsPage() {
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <p className="font-heading text-sm font-bold text-primary-800 truncate">
+                        <p className="font-heading text-sm font-bold text-neutral-900 truncate">
                           {event.title}
                         </p>
                         {event.status && event.status !== 'published' && (
@@ -254,13 +239,13 @@ export default function LeaderEventsPage() {
                         {formatEventDate(event.date_start)}
                       </p>
                       {event.address && (
-                        <p className="text-[11px] text-primary-400 truncate flex items-center gap-1 mt-0.5">
+                        <p className="text-[11px] text-neutral-400 truncate flex items-center gap-1 mt-0.5">
                           <MapPin size={10} className="shrink-0" />
                           {event.address}
                         </p>
                       )}
                       <div className="flex items-center gap-3 mt-1.5">
-                        <span className="text-[11px] font-semibold text-primary-400 flex items-center gap-1">
+                        <span className="text-[11px] font-semibold text-neutral-400 flex items-center gap-1">
                           <Users size={11} />
                           {regCount} registered
                         </span>

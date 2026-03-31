@@ -219,13 +219,13 @@ function DynamicTimelineBuilder({
   return (
     <div className="space-y-3">
       {/* Natural language preview */}
-      <div className="rounded-xl bg-gradient-to-r from-primary-50 to-moss-50 border border-primary-100/60 px-4 py-3">
+      <div className="rounded-xl bg-white border border-neutral-100 px-4 py-3">
         <div className="flex items-start gap-2.5">
           <Sparkles size={15} className="text-primary-500 mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-[11px] font-medium text-primary-400 uppercase tracking-wider mb-0.5">Auto-calculated deadline</p>
-            <p className="text-sm font-semibold text-primary-800">{previewLabel}</p>
-            <p className="text-[11px] text-primary-400 mt-1">
+            <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-wider mb-0.5">Auto-calculated deadline</p>
+            <p className="text-sm font-semibold text-neutral-900">{previewLabel}</p>
+            <p className="text-[11px] text-neutral-400 mt-1">
               Each collective gets a personalised due date based on their own events
             </p>
           </div>
@@ -234,7 +234,7 @@ function DynamicTimelineBuilder({
 
       {/* Anchor selection */}
       <div>
-        <p className="text-sm font-medium text-primary-800 mb-2">Anchor to</p>
+        <p className="text-sm font-medium text-neutral-900 mb-2">Anchor to</p>
         <div className="space-y-1.5">
           {ANCHOR_OPTIONS.map((opt) => (
             <button
@@ -245,16 +245,16 @@ function DynamicTimelineBuilder({
                 'w-full text-left px-3 py-2.5 rounded-xl transition-colors cursor-pointer',
                 anchor === opt.value
                   ? 'bg-primary-100 border border-primary-200'
-                  : 'bg-white border border-primary-100/40 hover:bg-primary-50',
+                  : 'bg-white border border-neutral-100 hover:bg-neutral-50',
               )}
             >
               <p className={cn(
                 'text-sm font-medium',
-                anchor === opt.value ? 'text-primary-700' : 'text-primary-600',
+                anchor === opt.value ? 'text-primary-700' : 'text-neutral-600',
               )}>
                 {opt.label}
               </p>
-              <p className="text-[11px] text-primary-400 mt-0.5">{opt.description}</p>
+              <p className="text-[11px] text-neutral-400 mt-0.5">{opt.description}</p>
             </button>
           ))}
         </div>
@@ -272,7 +272,7 @@ function DynamicTimelineBuilder({
 
       {/* Offset */}
       <div>
-        <p className="text-sm font-medium text-primary-800 mb-2">Timing</p>
+        <p className="text-sm font-medium text-neutral-900 mb-2">Timing</p>
         <div className="flex items-center gap-2">
           <Input
             type="number"
@@ -280,13 +280,13 @@ function DynamicTimelineBuilder({
             onChange={(e) => setOffsetDays(e.target.value)}
             className="w-24"
           />
-          <p className="text-sm text-primary-600">
+          <p className="text-sm text-neutral-600">
             day{Math.abs(offsetNum) !== 1 ? 's' : ''}{' '}
             {offsetNum < 0 ? 'before' : offsetNum > 0 ? 'after' : 'on the day of'}{' '}
             the event
           </p>
         </div>
-        <p className="text-[11px] text-primary-400 mt-1">
+        <p className="text-[11px] text-neutral-400 mt-1">
           Use negative numbers for before (e.g. -3), positive for after (e.g. 7)
         </p>
       </div>
@@ -295,8 +295,8 @@ function DynamicTimelineBuilder({
       <div className="space-y-3 pt-1">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-primary-700">Apply to all upcoming events</p>
-            <p className="text-[11px] text-primary-400">
+            <p className="text-sm font-medium text-neutral-700">Apply to all upcoming events</p>
+            <p className="text-[11px] text-neutral-400">
               {matchAllEvents
                 ? 'Creates a task for every matching event in the lookahead window'
                 : 'Only creates a task for the next matching event'}
@@ -313,7 +313,7 @@ function DynamicTimelineBuilder({
             onChange={(e) => setLookaheadDays(e.target.value)}
             placeholder="60"
           />
-          <p className="text-[11px] text-primary-400 mt-1">
+          <p className="text-[11px] text-neutral-400 mt-1">
             How far ahead to search for events (default 60 days)
           </p>
         </div>
@@ -478,10 +478,10 @@ function TemplateModal({
     <BottomSheet open={open} onClose={onClose}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-heading text-lg font-semibold text-primary-800">{isEdit ? 'Edit Template' : 'Create Task Template'}</h2>
+        <h2 className="font-heading text-lg font-semibold text-neutral-900">{isEdit ? 'Edit Template' : 'Create Task Template'}</h2>
         <button
           onClick={onClose}
-          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+          className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-neutral-400 hover:bg-neutral-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
           aria-label="Close"
         >
           <X size={20} />
@@ -504,7 +504,7 @@ function TemplateModal({
         />
         {/* Assignment mode — placed before scope/category so conditional fields make sense */}
         <div>
-          <p className="text-sm font-medium text-primary-800 mb-2">Completion Mode</p>
+          <p className="text-sm font-medium text-neutral-900 mb-2">Completion Mode</p>
           <div className="flex gap-2">
             <button
               type="button"
@@ -513,15 +513,15 @@ function TemplateModal({
                 'flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-left',
                 assignmentMode === 'collective'
                   ? 'bg-primary-100 border border-primary-200'
-                  : 'bg-white border border-primary-100/40 hover:bg-primary-50',
+                  : 'bg-white border border-neutral-100 hover:bg-neutral-50',
               )}
             >
-              <Users size={16} className={assignmentMode === 'collective' ? 'text-primary-700' : 'text-primary-400'} />
+              <Users size={16} className={assignmentMode === 'collective' ? 'text-primary-700' : 'text-neutral-400'} />
               <div>
-                <p className={cn('text-sm font-medium', assignmentMode === 'collective' ? 'text-primary-700' : 'text-primary-500')}>
+                <p className={cn('text-sm font-medium', assignmentMode === 'collective' ? 'text-primary-700' : 'text-neutral-500')}>
                   Collective
                 </p>
-                <p className="text-[11px] text-primary-400">Anyone can tick it off</p>
+                <p className="text-[11px] text-neutral-400">Anyone can tick it off</p>
               </div>
             </button>
             <button
@@ -531,15 +531,15 @@ function TemplateModal({
                 'flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-left',
                 assignmentMode === 'individual'
                   ? 'bg-primary-100 border border-primary-200'
-                  : 'bg-white border border-primary-100/40 hover:bg-primary-50',
+                  : 'bg-white border border-neutral-100 hover:bg-neutral-50',
               )}
             >
-              <User size={16} className={assignmentMode === 'individual' ? 'text-primary-700' : 'text-primary-400'} />
+              <User size={16} className={assignmentMode === 'individual' ? 'text-primary-700' : 'text-neutral-400'} />
               <div>
-                <p className={cn('text-sm font-medium', assignmentMode === 'individual' ? 'text-primary-700' : 'text-primary-500')}>
+                <p className={cn('text-sm font-medium', assignmentMode === 'individual' ? 'text-primary-700' : 'text-neutral-500')}>
                   Individual
                 </p>
-                <p className="text-[11px] text-primary-400">Each person completes it</p>
+                <p className="text-[11px] text-neutral-400">Each person completes it</p>
               </div>
             </button>
             <button
@@ -549,15 +549,15 @@ function TemplateModal({
                 'flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl cursor-pointer transition-colors text-left',
                 assignmentMode === 'assigned'
                   ? 'bg-primary-100 border border-primary-200'
-                  : 'bg-white border border-primary-100/40 hover:bg-primary-50',
+                  : 'bg-white border border-neutral-100 hover:bg-neutral-50',
               )}
             >
-              <UserCheck size={16} className={assignmentMode === 'assigned' ? 'text-primary-700' : 'text-primary-400'} />
+              <UserCheck size={16} className={assignmentMode === 'assigned' ? 'text-primary-700' : 'text-neutral-400'} />
               <div>
-                <p className={cn('text-sm font-medium', assignmentMode === 'assigned' ? 'text-primary-700' : 'text-primary-500')}>
+                <p className={cn('text-sm font-medium', assignmentMode === 'assigned' ? 'text-primary-700' : 'text-neutral-500')}>
                   Assigned
                 </p>
-                <p className="text-[11px] text-primary-400">One specific person</p>
+                <p className="text-[11px] text-neutral-400">One specific person</p>
               </div>
             </button>
           </div>
@@ -612,7 +612,7 @@ function TemplateModal({
 
         {/* Schedule */}
         <div>
-          <p className="text-sm font-medium text-primary-800 mb-2">Schedule</p>
+          <p className="text-sm font-medium text-neutral-900 mb-2">Schedule</p>
           <div className="flex gap-2 mb-3 flex-wrap">
             {(['weekly', 'monthly', 'event_relative', 'once'] as const).map((type) => {
               const Icon = SCHEDULE_ICONS[type]
@@ -627,7 +627,7 @@ function TemplateModal({
                     'transition-colors duration-150',
                     scheduleType === type
                       ? 'bg-primary-100 text-primary-700 font-medium'
-                      : 'bg-white text-primary-400 hover:bg-primary-50',
+                      : 'bg-white text-neutral-400 hover:bg-neutral-50',
                   )}
                 >
                   <Icon size={14} />
@@ -645,12 +645,12 @@ function TemplateModal({
           {scheduleType === 'event_relative' && (
             <div className="space-y-3">
               {/* Dynamic timeline toggle */}
-              <div className="flex items-center justify-between rounded-xl bg-gradient-to-r from-moss-50 to-primary-50 border border-moss-200/50 px-3 py-2.5">
+              <div className="flex items-center justify-between rounded-xl bg-white border border-neutral-100 px-3 py-2.5">
                 <div className="flex items-center gap-2">
                   <Zap size={15} className="text-moss-600" />
                   <div>
-                    <p className="text-sm font-medium text-primary-800">Dynamic Timeline</p>
-                    <p className="text-[11px] text-primary-400">Auto-calculate deadlines per collective</p>
+                    <p className="text-sm font-medium text-neutral-900">Dynamic Timeline</p>
+                    <p className="text-[11px] text-neutral-400">Auto-calculate deadlines per collective</p>
                   </div>
                 </div>
                 <Toggle checked={useDynamicTimeline} onChange={setUseDynamicTimeline} />
@@ -700,8 +700,8 @@ function TemplateModal({
 
         {/* Survey (optional) */}
         <div className="space-y-2">
-          <p className="text-sm font-medium text-primary-800 flex items-center gap-1.5">
-            <ClipboardList size={14} className="text-primary-400" />
+          <p className="text-sm font-medium text-neutral-900 flex items-center gap-1.5">
+            <ClipboardList size={14} className="text-neutral-400" />
             Survey (optional)
           </p>
           <Dropdown
@@ -714,7 +714,7 @@ function TemplateModal({
             placeholder="Attach a survey..."
           />
           {surveyId && (
-            <p className="text-[11px] text-primary-400 px-1">
+            <p className="text-[11px] text-neutral-400 px-1">
               Staff will be prompted to complete this survey when marking the task as done
             </p>
           )}
@@ -722,22 +722,22 @@ function TemplateModal({
 
         {/* Attachment (optional) */}
         <div className="space-y-2">
-          <p className="text-sm font-medium text-primary-800 flex items-center gap-1.5">
-            <Paperclip size={14} className="text-primary-400" />
+          <p className="text-sm font-medium text-neutral-900 flex items-center gap-1.5">
+            <Paperclip size={14} className="text-neutral-400" />
             Attachment (optional)
           </p>
 
           {attachmentUrl ? (
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary-50 border border-primary-100">
-              <FileText size={18} className="text-primary-500 shrink-0" />
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-neutral-50 border border-neutral-100">
+              <FileText size={18} className="text-neutral-500 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-primary-700 truncate">{attachmentLabel || 'Attachment'}</p>
-                <p className="text-[11px] text-primary-400 truncate">{attachmentUrl}</p>
+                <p className="text-xs font-medium text-neutral-700 truncate">{attachmentLabel || 'Attachment'}</p>
+                <p className="text-[11px] text-neutral-400 truncate">{attachmentUrl}</p>
               </div>
               <button
                 type="button"
                 onClick={() => { setAttachmentUrl(''); setAttachmentLabel('') }}
-                className="shrink-0 p-1 rounded-lg text-primary-400 hover:text-error-600 hover:bg-error-50 cursor-pointer transition-colors"
+                className="shrink-0 p-1 rounded-lg text-neutral-400 hover:text-error-600 hover:bg-error-50 cursor-pointer transition-colors"
                 aria-label="Remove attachment"
               >
                 <X size={14} />
@@ -760,8 +760,8 @@ function TemplateModal({
                   'w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed',
                   'text-sm font-medium cursor-pointer transition-colors',
                   fileUpload.uploading
-                    ? 'border-primary-200 text-primary-300 bg-primary-50'
-                    : 'border-primary-200 text-primary-500 hover:border-primary-300 hover:bg-primary-50',
+                    ? 'border-neutral-200 text-neutral-300 bg-neutral-50'
+                    : 'border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:bg-neutral-50',
                 )}
               >
                 <Upload size={16} />

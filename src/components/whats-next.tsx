@@ -39,7 +39,7 @@ export function WhatsNext({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.3 }}
     >
-      <p className="text-overline text-primary-400 px-1">{title}</p>
+      <p className="text-overline text-neutral-400 px-1">{title}</p>
 
       <div className="space-y-1.5">
         {suggestions.map((s, i) => (
@@ -52,7 +52,7 @@ export function WhatsNext({
             }}
             className={cn(
               'flex items-center gap-3 w-full p-3 rounded-xl',
-              'bg-white/60 border border-primary-100',
+              'bg-white/60 border border-neutral-100',
               'text-left transition-colors duration-150',
               'hover:bg-primary-50',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
@@ -68,12 +68,12 @@ export function WhatsNext({
               </span>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-primary-800">{s.label}</p>
+              <p className="text-sm font-semibold text-neutral-900">{s.label}</p>
               {s.description && (
-                <p className="text-xs text-primary-400 mt-0.5">{s.description}</p>
+                <p className="text-xs text-neutral-500 mt-0.5">{s.description}</p>
               )}
             </div>
-            <ChevronRight size={16} className="text-primary-400 shrink-0" />
+            <ChevronRight size={16} className="text-neutral-400 shrink-0" />
           </motion.button>
         ))}
       </div>

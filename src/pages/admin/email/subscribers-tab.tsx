@@ -93,8 +93,8 @@ function AssignTagsSheet({
 
   return (
     <BottomSheet open={open} onClose={onClose} snapPoints={[0.5]}>
-      <h2 className="font-heading text-lg font-semibold text-primary-800 mb-1">Manage Tags</h2>
-      <p className="text-sm text-primary-400 mb-4">{profileName}</p>
+      <h2 className="font-heading text-lg font-semibold text-neutral-900 mb-1">Manage Tags</h2>
+      <p className="text-sm text-neutral-400 mb-4">{profileName}</p>
       <div className="flex flex-wrap gap-2 mb-6">
         {allTags?.map((tag) => (
           <button
@@ -114,7 +114,7 @@ function AssignTagsSheet({
             {selectedIds.has(tag.id) && <CheckCircle2 size={12} className="mr-1" />}
             {tag.name}
           </button>
-        )) ?? <p className="text-sm text-primary-400">No tags available</p>}
+        )) ?? <p className="text-sm text-neutral-400">No tags available</p>}
       </div>
       <Button variant="primary" fullWidth loading={saving} onClick={handleSave}>
         Save Tags
@@ -170,10 +170,10 @@ export function SubscribersTab() {
   return (
     <>
       {/* Auto-sync bar */}
-      <div className="flex items-center justify-between gap-3 mb-4 rounded-xl bg-gradient-to-r from-primary-50 to-secondary-50/30 border border-primary-200 p-3">
+      <div className="flex items-center justify-between gap-3 mb-4 rounded-xl bg-white border border-neutral-100 p-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-semibold text-primary-700">Auto-tagging</p>
-          <p className="text-[11px] text-primary-400">
+          <p className="text-xs font-semibold text-neutral-700">Auto-tagging</p>
+          <p className="text-[11px] text-neutral-400">
             Syncs tags from onboarding interests, collectives, tiers, attendance, and location
           </p>
         </div>
@@ -208,9 +208,9 @@ export function SubscribersTab() {
           <p className="text-[11px] font-semibold uppercase tracking-wider text-success-600">Opted In</p>
           <p className="text-lg font-bold text-success-700 tabular-nums">{optedIn.length}</p>
         </div>
-        <div className="flex-1 rounded-xl bg-primary-50 p-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-400">Opted Out</p>
-          <p className="text-lg font-bold text-primary-600 tabular-nums">{optedOut.length}</p>
+        <div className="flex-1 rounded-xl bg-neutral-50 p-3">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">Opted Out</p>
+          <p className="text-lg font-bold text-neutral-600 tabular-nums">{optedOut.length}</p>
         </div>
       </div>
 
@@ -234,17 +234,17 @@ export function SubscribersTab() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-primary-800 truncate">
+                <p className="text-sm font-medium text-neutral-900 truncate">
                   {sub.display_name || 'Anonymous'}
                 </p>
                 <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                   {sub.location && (
-                    <span className="flex items-center gap-0.5 text-[11px] text-primary-400">
+                    <span className="flex items-center gap-0.5 text-[11px] text-neutral-400">
                       <MapPin size={9} />{sub.location}
                     </span>
                   )}
                   {sub.marketing_opt_in === false && (
-                    <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-primary-100 text-primary-500">
+                    <span className="text-[11px] font-medium px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-500">
                       Opted out
                     </span>
                   )}
@@ -263,7 +263,7 @@ export function SubscribersTab() {
                   name: sub.display_name || 'User',
                   tags: sub.tags ?? [],
                 })}
-                className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-primary-400 hover:bg-primary-100 hover:text-primary-600 transition-colors cursor-pointer shrink-0"
+                className="flex items-center justify-center min-w-11 min-h-11 rounded-lg text-neutral-400 hover:bg-neutral-50 hover:text-neutral-600 transition-colors cursor-pointer shrink-0"
                 aria-label="Manage tags"
               >
                 <Tag size={14} />

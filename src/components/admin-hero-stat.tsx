@@ -1,43 +1,43 @@
 import { type ReactNode, Children } from 'react'
 import { motion } from 'framer-motion'
+import { TrendingUp, TrendingDown } from 'lucide-react'
 import { useCountUp } from '@/components/stat-card'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
 /*  Colour presets                                                     */
 /*                                                                     */
-/*  Each preset provides a gradient bg, icon tint, and value colour    */
-/*  that reads well on the dark admin hero band. The extended range    */
-/*  covers every semantic colour in the theme so each admin page can   */
-/*  give its stats a distinct visual identity.                         */
+/*  Each preset provides an icon accent, value colour, and optional    */
+/*  delta badge style. Cards themselves are white/flat — colour only   */
+/*  appears on the icon badge and delta indicator.                     */
 /* ------------------------------------------------------------------ */
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const HERO_STAT_COLORS = {
   // Greens / nature
-  primary:  { bg: 'bg-gradient-to-br from-primary-600 to-primary-800',  icon: 'bg-primary-500/30 text-primary-200',  value: 'text-white',   shadow: 'shadow-primary-900/20' },
-  sprout:   { bg: 'bg-gradient-to-br from-sprout-500 to-sprout-800',    icon: 'bg-sprout-400/30 text-sprout-200',    value: 'text-white',   shadow: 'shadow-sprout-900/20' },
-  moss:     { bg: 'bg-gradient-to-br from-moss-500 to-moss-800',        icon: 'bg-moss-400/30 text-moss-200',        value: 'text-white',   shadow: 'shadow-moss-900/20' },
-  success:  { bg: 'bg-gradient-to-br from-success-500 to-success-800',  icon: 'bg-success-400/30 text-success-200',  value: 'text-white',   shadow: 'shadow-success-900/20' },
+  primary:  { icon: 'bg-primary-50 text-primary-600',   value: 'text-neutral-900', delta: 'text-primary-600 bg-primary-50' },
+  sprout:   { icon: 'bg-sprout-50 text-sprout-600',     value: 'text-neutral-900', delta: 'text-sprout-600 bg-sprout-50' },
+  moss:     { icon: 'bg-moss-50 text-moss-600',         value: 'text-neutral-900', delta: 'text-moss-600 bg-moss-50' },
+  success:  { icon: 'bg-success-50 text-success-600',   value: 'text-neutral-900', delta: 'text-success-600 bg-success-50' },
 
   // Earth
-  bark:     { bg: 'bg-gradient-to-br from-bark-500 to-bark-800',        icon: 'bg-bark-400/30 text-bark-200',        value: 'text-white',   shadow: 'shadow-bark-900/20' },
-  secondary:{ bg: 'bg-gradient-to-br from-secondary-500 to-secondary-800', icon: 'bg-secondary-400/30 text-secondary-200', value: 'text-white', shadow: 'shadow-secondary-900/20' },
+  bark:     { icon: 'bg-bark-50 text-bark-600',         value: 'text-neutral-900', delta: 'text-bark-600 bg-bark-50' },
+  secondary:{ icon: 'bg-secondary-50 text-secondary-600', value: 'text-neutral-900', delta: 'text-secondary-600 bg-secondary-50' },
 
   // Blues / cool
-  info:     { bg: 'bg-gradient-to-br from-info-500 to-info-800',        icon: 'bg-info-400/30 text-info-200',        value: 'text-white',   shadow: 'shadow-info-900/20' },
-  sky:      { bg: 'bg-gradient-to-br from-sky-500 to-sky-800',          icon: 'bg-sky-400/30 text-sky-200',          value: 'text-white',   shadow: 'shadow-sky-900/20' },
+  info:     { icon: 'bg-info-50 text-info-600',         value: 'text-neutral-900', delta: 'text-info-600 bg-info-50' },
+  sky:      { icon: 'bg-sky-50 text-sky-600',           value: 'text-neutral-900', delta: 'text-sky-600 bg-sky-50' },
 
   // Warm / accent
-  warning:  { bg: 'bg-gradient-to-br from-warning-500 to-warning-800',  icon: 'bg-warning-400/30 text-warning-200',  value: 'text-white',   shadow: 'shadow-warning-900/20' },
-  coral:    { bg: 'bg-gradient-to-br from-coral-500 to-coral-800',      icon: 'bg-coral-400/30 text-coral-200',      value: 'text-white',   shadow: 'shadow-coral-900/20' },
-  error:    { bg: 'bg-gradient-to-br from-error-500 to-error-800',      icon: 'bg-error-400/30 text-error-200',      value: 'text-white',   shadow: 'shadow-error-900/20' },
+  warning:  { icon: 'bg-warning-50 text-warning-600',   value: 'text-neutral-900', delta: 'text-warning-600 bg-warning-50' },
+  coral:    { icon: 'bg-coral-50 text-coral-600',       value: 'text-neutral-900', delta: 'text-coral-600 bg-coral-50' },
+  error:    { icon: 'bg-error-50 text-error-600',       value: 'text-neutral-900', delta: 'text-error-600 bg-error-50' },
 
   // Purple
-  plum:     { bg: 'bg-gradient-to-br from-plum-500 to-plum-800',        icon: 'bg-plum-400/30 text-plum-200',        value: 'text-white',   shadow: 'shadow-plum-900/20' },
+  plum:     { icon: 'bg-plum-50 text-plum-600',         value: 'text-neutral-900', delta: 'text-plum-600 bg-plum-50' },
 
-  // Neutral / glass (for single or low-priority stats)
-  glass:    { bg: 'bg-white/[0.08]',                                    icon: 'bg-white/10 text-white/60',           value: 'text-white',   shadow: '' },
+  // Neutral / glass
+  glass:    { icon: 'bg-neutral-100 text-neutral-500',  value: 'text-neutral-900', delta: 'text-neutral-500 bg-neutral-50' },
 } as const
 
 export type HeroStatColor = keyof typeof HERO_STAT_COLORS
@@ -72,6 +72,10 @@ export function AdminHeroStat({
   const display = useCountUp(value, 1200, !reducedMotion)
   const c = HERO_STAT_COLORS[color]
 
+  // Parse sub to detect +/- trends
+  const isPositive = sub?.startsWith('+')
+  const isNegative = sub?.startsWith('-')
+
   return (
     <motion.div
       initial={reducedMotion ? { opacity: 1 } : { opacity: 0, y: 12 }}
@@ -83,16 +87,16 @@ export function AdminHeroStat({
       }}
       className={cn(
         'flex flex-col items-center justify-center text-center rounded-2xl',
-        'px-3 py-2.5 sm:px-4 sm:py-3.5',
-        c.bg, c.shadow,
+        'px-3 py-3 sm:px-4 sm:py-4',
+        'bg-white shadow-sm border border-neutral-100',
         className,
       )}
       aria-label={`${label}: ${value}`}
     >
-      {/* Icon hidden on mobile to save space, visible sm+ */}
+      {/* Icon badge */}
       {icon && (
         <span
-          className={cn('hidden sm:flex items-center justify-center w-9 h-9 rounded-xl mb-2', c.icon)}
+          className={cn('flex items-center justify-center w-9 h-9 rounded-xl mb-2.5', c.icon)}
           aria-hidden="true"
         >
           {icon}
@@ -100,15 +104,25 @@ export function AdminHeroStat({
       )}
       <p
         style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}
-        className={cn('text-xl sm:text-2xl font-bold tracking-tight tabular-nums leading-none', c.value)}
+        className={cn('text-2xl sm:text-3xl font-bold tracking-tight tabular-nums leading-none', c.value)}
       >
         {display.toLocaleString()}
       </p>
-      <p className="mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] font-semibold text-white/50 tracking-wider uppercase truncate max-w-full">
+      <p className="mt-1.5 text-[10px] font-semibold text-neutral-400 tracking-wider uppercase truncate max-w-full">
         {label}
       </p>
       {sub && (
-        <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold mt-1 text-white/70 bg-white/10 px-2 py-0.5 rounded-full">
+        <span className={cn(
+          'inline-flex items-center gap-0.5 text-[10px] font-semibold mt-2 px-2 py-0.5 rounded-full',
+          isPositive ? 'text-success-600 bg-success-50' :
+          isNegative ? 'text-error-600 bg-error-50' :
+          c.delta,
+        )}>
+          {(isPositive || isNegative) && (
+            isPositive
+              ? <TrendingUp className="w-3 h-3" />
+              : <TrendingDown className="w-3 h-3" />
+          )}
           {sub}
         </span>
       )}
@@ -131,7 +145,7 @@ export function AdminHeroStatRow({
 
   return (
     <div className={cn(
-      'grid gap-2 sm:gap-2.5',
+      'grid gap-2.5 sm:gap-3',
       // 2-col on mobile, then expand columns based on count
       count <= 2
         ? 'grid-cols-2 max-w-[320px]'

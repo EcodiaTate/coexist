@@ -51,10 +51,10 @@ export function StepInterests({ selected, onChange, onNext, onSkip }: StepIntere
         initial="hidden"
         animate="visible"
       >
-        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-primary-800">
+        <motion.h2 variants={fadeUp} className="font-heading text-2xl font-bold text-neutral-900">
           What are you into?
         </motion.h2>
-        <motion.p variants={fadeUp} className="mt-2 text-primary-400">
+        <motion.p variants={fadeUp} className="mt-2 text-neutral-500">
           Pick the conservation activities that excite you. Choose as many as you like.
         </motion.p>
 

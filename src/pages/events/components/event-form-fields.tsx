@@ -1,5 +1,4 @@
 import {
-  MapPin,
   Image,
   Camera,
   X,
@@ -16,6 +15,8 @@ import {
   UploadProgress,
 } from '@/components'
 import type { MapCenter } from '@/components'
+import { PlaceAutocomplete } from '@/components/place-autocomplete'
+import type { PlaceResult } from '@/components/place-autocomplete'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
@@ -106,14 +107,25 @@ export function DateTimeFields({
 /* ------------------------------------------------------------------ */
 
 export function LocationFields({ fields, onChange }: FieldProps) {
+  const handlePlaceSelect = (_value: string, place: PlaceResult | null) => {
+    if (place) {
+      onChange({
+        address: place.short_name,
+        location_lat: place.lat,
+        location_lng: place.lng,
+      })
+    } else {
+      onChange({ address: _value })
+    }
+  }
+
   return (
     <>
-      <Input
+      <PlaceAutocomplete
         label="Address"
         placeholder="Search for an address..."
         value={fields.address}
-        onChange={(e) => onChange({ address: e.target.value })}
-        icon={<MapPin size={18} />}
+        onChange={handlePlaceSelect}
       />
       <MapView
         center={

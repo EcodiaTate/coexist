@@ -65,7 +65,6 @@ export default function AdminChallengesPage() {
       size="sm"
       icon={<Plus size={16} />}
       onClick={() => setShowCreate(true)}
-      className="!bg-white/15 !border-white/10 hover:!bg-white/25 !text-white"
     >
       Create Challenge
     </Button>
@@ -175,17 +174,17 @@ export default function AdminChallengesPage() {
                         <div
                           className={cn(
                             'flex items-center justify-center w-10 h-10 rounded-lg shrink-0',
-                            isActive ? 'bg-accent-100' : 'bg-white',
+                            isActive ? 'bg-neutral-100' : 'bg-neutral-50',
                           )}
                         >
                           <Trophy
                             size={20}
-                            className={isActive ? 'text-primary-400' : 'text-primary-400'}
+                            className={isActive ? 'text-neutral-400' : 'text-neutral-400'}
                           />
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-heading text-sm font-semibold text-primary-800 truncate">
+                            <h3 className="font-heading text-sm font-semibold text-neutral-900 truncate">
                               {challenge.title}
                             </h3>
                             <span
@@ -193,18 +192,18 @@ export default function AdminChallengesPage() {
                                 'text-[11px] font-medium px-1.5 py-0.5 rounded-full shrink-0',
                                 isActive
                                   ? 'bg-success-100 text-success-700'
-                                  : 'bg-white text-primary-400',
+                                  : 'bg-neutral-100 text-neutral-400',
                               )}
                             >
                               {isActive ? 'Active' : 'Ended'}
                             </span>
                           </div>
                           {challenge.description && (
-                            <p className="text-xs text-primary-400 mt-0.5 line-clamp-2">
+                            <p className="text-xs text-neutral-400 mt-0.5 line-clamp-2">
                               {challenge.description}
                             </p>
                           )}
-                          <div className="flex items-center gap-3 mt-2 text-xs text-primary-400">
+                          <div className="flex items-center gap-3 mt-2 text-xs text-neutral-400">
                             <span className="flex items-center gap-1">
                               <Target size={12} />
                               {challenge.goal_value} {challenge.goal_type}
@@ -237,7 +236,7 @@ export default function AdminChallengesPage() {
                         <button
                           type="button"
                           onClick={() => setDeleteTarget(challenge.id)}
-                          className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-primary-400 hover:bg-error-50 hover:text-error-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]"
+                          className="p-1.5 min-h-11 min-w-11 flex items-center justify-center rounded-lg text-neutral-400 hover:bg-error-50 hover:text-error-600 transition-[colors,transform] duration-150 cursor-pointer active:scale-[0.93]"
                           aria-label="Delete challenge"
                         >
                           <Trash2 size={16} />
@@ -255,10 +254,10 @@ export default function AdminChallengesPage() {
           <BottomSheet open={showCreate} onClose={() => setShowCreate(false)}>
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-heading text-lg font-semibold text-primary-800">Create National Challenge</h2>
+              <h2 className="font-heading text-lg font-semibold text-neutral-900">Create National Challenge</h2>
               <button
                 onClick={() => setShowCreate(false)}
-                className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-primary-400 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
+                className="flex items-center justify-center rounded-full min-w-11 min-h-11 text-neutral-400 hover:bg-neutral-50 active:scale-[0.93] transition-[colors,transform] duration-150 cursor-pointer"
                 aria-label="Close"
               >
                 <X size={20} />

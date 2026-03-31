@@ -19,7 +19,6 @@ import {
   ArrowRight,
   Heart,
   TrendingUp,
-  Leaf,
 } from 'lucide-react'
 import type { Database } from '@/types/database.types'
 
@@ -131,38 +130,42 @@ const ACTIVITY_META: Record<string, {
   },
 }
 
-const CATEGORY_CARDS: { key: ActivityType; label: string; description: string; icon: ReactNode; decorIcon: ReactNode; gradient: string }[] = [
+const CATEGORY_CARDS: { key: ActivityType; label: string; description: string; icon: ReactNode; gradient: string; iconBg: string; iconText: string }[] = [
   {
     key: 'shore_cleanup',
     label: 'Shore Cleanup',
     description: 'Protect our coastlines',
     icon: <Waves size={18} />,
-    decorIcon: <Waves size={56} strokeWidth={1} />,
     gradient: 'from-sky-500 to-moss-600',
+    iconBg: 'bg-sky-100',
+    iconText: 'text-sky-600',
   },
   {
     key: 'tree_planting',
     label: 'Tree Planting',
     description: 'Plant native species',
     icon: <TreePine size={18} />,
-    decorIcon: <TreePine size={56} strokeWidth={1} />,
     gradient: 'from-success-500 to-primary-600',
+    iconBg: 'bg-success-100',
+    iconText: 'text-success-600',
   },
   {
     key: 'marine_restoration',
     label: 'Marine Restoration',
     description: 'Restore ocean habitats',
     icon: <Droplets size={18} />,
-    decorIcon: <Droplets size={56} strokeWidth={1} />,
     gradient: 'from-primary-500 to-moss-600',
+    iconBg: 'bg-primary-100',
+    iconText: 'text-primary-600',
   },
   {
     key: 'nature_walk',
     label: 'Nature Walks',
     description: 'Explore & connect',
     icon: <Compass size={18} />,
-    decorIcon: <Compass size={56} strokeWidth={1} />,
     gradient: 'from-bark-500 to-warning-600',
+    iconBg: 'bg-bark-100',
+    iconText: 'text-bark-600',
   },
 ]
 
@@ -241,6 +244,7 @@ export interface ExploreListViewProps {
   toggleActivityFilter: (type: ActivityType) => void
   nearbyEventsData: NearbyEvent[] | undefined
   nearbyEventsLoading: boolean
+  nationalEventsData?: NearbyEvent[] | undefined
   nearbyCollectivesData: NearbyCollective[] | undefined
   nearbyCollectivesLoading: boolean
   showLoading: boolean
@@ -265,6 +269,7 @@ export function ExploreListView({
   toggleActivityFilter,
   nearbyEventsData,
   nearbyEventsLoading,
+  nationalEventsData,
   nearbyCollectivesData,
   nearbyCollectivesLoading,
   showLoading,
@@ -283,21 +288,6 @@ export function ExploreListView({
       {/* ======== Hero Banner ======== */}
       <motion.div variants={fadeUp} className="mb-6">
         <div className="relative overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-secondary-700">
-          {/* Decorative shapes - "explorer's horizon" formation */}
-          <div className="absolute -top-16 -left-16 w-64 h-64 rounded-full border border-white/[0.07]" aria-hidden="true" />
-          <div className="absolute -top-4 -left-2 w-40 h-40 rounded-full bg-white/[0.04]" aria-hidden="true" />
-          <div className="absolute -bottom-12 -right-12 w-56 h-56 rounded-full bg-white/[0.05]" aria-hidden="true" />
-          <div className="absolute top-[20%] right-[15%] w-14 h-14 rounded-full border border-white/[0.10]" aria-hidden="true" />
-          <div className="absolute bottom-[25%] left-[35%] w-10 h-10 rounded-full bg-sprout-400/12" aria-hidden="true" />
-
-          {/* Leaf decorations */}
-          <div className="absolute top-4 right-8 text-white/10" aria-hidden="true">
-            <Leaf size={64} strokeWidth={1} />
-          </div>
-          <div className="absolute bottom-6 left-6 text-white/8 rotate-45" aria-hidden="true">
-            <TreePine size={48} strokeWidth={1} />
-          </div>
-
           <div className="relative px-6 lg:px-10" style={{ paddingTop: '2rem' }}>
             <motion.div
               initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
@@ -419,7 +409,7 @@ export function ExploreListView({
         <h3 className="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-3">
           Find a Collective
         </h3>
-        <CollectiveMap className="h-[72vh] min-h-[480px]" />
+        <CollectiveMap className="h-[calc(100vh-6rem)] min-h-[560px]" />
       </motion.div>
 
 
@@ -436,12 +426,12 @@ export function ExploreListView({
               onClick={() => toggleActivityFilter(cat.key)}
               whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
               className={cn(
-                'relative overflow-hidden rounded-2xl p-4 text-left min-h-[100px]',
+                'relative overflow-hidden rounded-2xl bg-white border border-neutral-100 p-4 text-left min-h-[100px]',
                 'cursor-pointer select-none transition-shadow duration-200',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                 filters.activityTypes.includes(cat.key)
                   ? 'ring-2 ring-primary-400 shadow-lg'
-                  : 'shadow-md',
+                  : 'shadow-sm',
               )}
               initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -449,21 +439,21 @@ export function ExploreListView({
               aria-label={cat.label}
               aria-pressed={filters.activityTypes.includes(cat.key)}
             >
-              {/* Gradient background */}
-              <div className={cn('absolute inset-0 bg-gradient-to-br', cat.gradient)} aria-hidden="true" />
-              {/* Decorative icon */}
-              <div className="absolute -bottom-2 -right-2 text-white/15" aria-hidden="true">
-                {cat.decorIcon}
-              </div>
+              {/* Top gradient stripe */}
+              <div className={cn('absolute inset-x-0 top-0 h-1 bg-gradient-to-r', cat.gradient)} aria-hidden="true" />
               {/* Content */}
               <div className="relative">
-                <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 text-white mb-2">
+                <span className={cn(
+                  'flex items-center justify-center w-9 h-9 rounded-xl mb-2',
+                  cat.iconBg,
+                  cat.iconText,
+                )}>
                   {cat.icon}
                 </span>
-                <span className="text-sm font-semibold text-white block leading-tight">
+                <span className="text-sm font-semibold text-primary-800 block leading-tight">
                   {cat.label}
                 </span>
-                <span className="text-[11px] font-medium text-white/60 mt-0.5 block">
+                <span className="text-[11px] font-medium text-primary-400 mt-0.5 block">
                   {cat.description}
                 </span>
               </div>
@@ -471,6 +461,73 @@ export function ExploreListView({
           ))}
         </div>
       </motion.div>
+
+      {/* ======== National Events (retreats, campouts) ======== */}
+      {nationalEventsData && nationalEventsData.length > 0 && (
+        <motion.div variants={fadeUp} className="mb-6">
+          <div className="flex items-center justify-between mb-3 px-4 lg:px-6">
+            <h3 className="text-xs font-semibold text-moss-600 uppercase tracking-wider">
+              Retreats & National Events
+            </h3>
+          </div>
+          <div className="flex gap-3 overflow-x-auto px-4 lg:px-6 scrollbar-none pb-2">
+            {nationalEventsData.map((event, idx) => {
+              const meta = ACTIVITY_META[event.activity_type] ?? ACTIVITY_META.other
+              return (
+                <motion.div
+                  key={event.id}
+                  className="w-[80vw] max-w-[300px] shrink-0"
+                  initial={shouldReduceMotion ? false : { opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.06, duration: 0.3 }}
+                >
+                  <Card.Root
+                    variant="event"
+                    onClick={() => onNavigate(`/events/${event.id}`)}
+                    aria-label={event.title}
+                    watermark={event.activity_type}
+                    className="h-full"
+                  >
+                    {event.cover_image_url ? (
+                      <Card.Overlay
+                        src={event.cover_image_url}
+                        alt={event.title}
+                        aspectRatio="16/9"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-moss-500/80 text-white">
+                            National
+                          </span>
+                        </div>
+                        <p className="font-heading text-sm font-semibold text-white truncate">{event.title}</p>
+                        <div className="flex items-center gap-3 mt-1.5 text-xs text-white/70">
+                          <span className="flex items-center gap-1"><Calendar size={11} />{new Date(event.date_start).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</span>
+                          {event.address && <span className="flex items-center gap-1 truncate"><MapPin size={11} />{event.address}</span>}
+                        </div>
+                      </Card.Overlay>
+                    ) : (
+                      <div className={`bg-gradient-to-br ${meta.gradient} p-4`} style={{ aspectRatio: '16/9' }}>
+                        <div className="flex flex-col justify-end h-full">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-white/20 text-white">
+                              National
+                            </span>
+                          </div>
+                          <p className="font-heading text-sm font-semibold text-white truncate">{event.title}</p>
+                          <div className="flex items-center gap-3 mt-1.5 text-xs text-white/50">
+                            <span className="flex items-center gap-1"><Calendar size={11} />{new Date(event.date_start).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</span>
+                            {event.address && <span className="flex items-center gap-1 truncate"><MapPin size={11} />{event.address}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </Card.Root>
+                </motion.div>
+              )
+            })}
+          </div>
+        </motion.div>
+      )}
 
       {/* ======== Featured / Nearby Events ======== */}
       <motion.div variants={fadeUp} className="mb-6">
@@ -507,22 +564,20 @@ export function ExploreListView({
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: idx * 0.06, duration: 0.3 }}
                   >
-                    <Card.Root
-                      variant="event"
-                      onClick={() => onNavigate(`/events/${event.id}`)}
-                      aria-label={event.title}
-                      className="h-full"
-                    >
-                      {/* Image or gradient placeholder */}
-                      {event.cover_image_url ? (
-                        <div className="relative">
-                          <Card.Image
-                            src={event.cover_image_url}
-                            alt={event.title}
-                            aspectRatio="16/10"
-                          />
-                          {/* Activity badge overlapping image */}
-                          <div className="absolute bottom-2 left-3">
+                    {event.cover_image_url ? (
+                      <Card.Root
+                        variant="event"
+                        onClick={() => onNavigate(`/events/${event.id}`)}
+                        aria-label={event.title}
+                        watermark={event.activity_type}
+                        className="h-full"
+                      >
+                        <Card.Overlay
+                          src={event.cover_image_url}
+                          alt={event.title}
+                          aspectRatio="16/10"
+                        >
+                          <Card.Badge position="top-left">
                             <Badge
                               variant="activity"
                               activity={activityTypeToBadge[event.activity_type] ?? 'restoration'}
@@ -530,15 +585,40 @@ export function ExploreListView({
                             >
                               {formatActivityType(event.activity_type)}
                             </Badge>
+                          </Card.Badge>
+                          <div>
+                            <Card.Title className="text-sm text-white line-clamp-2">
+                              {event.title}
+                            </Card.Title>
+                            <Card.Meta className="text-xs text-white/70 flex items-center gap-1.5 mt-1">
+                              <Calendar size={12} aria-hidden="true" />
+                              {formatEventDate(event.date_start)}
+                            </Card.Meta>
+                            {event.collectives && (
+                              <Card.Meta className="text-xs text-white/70 flex items-center gap-1.5 mt-0.5">
+                                <Users size={12} aria-hidden="true" />
+                                {event.collectives.name}
+                              </Card.Meta>
+                            )}
                           </div>
-                        </div>
-                      ) : (
+                        </Card.Overlay>
+                      </Card.Root>
+                    ) : (
+                      <Card.Root
+                        variant="event"
+                        onClick={() => onNavigate(`/events/${event.id}`)}
+                        aria-label={event.title}
+                        watermark={event.activity_type}
+                        className="h-full bg-white border border-neutral-100"
+                      >
+                        {/* Gradient accent bar */}
                         <div className={cn(
-                          'relative w-full flex items-center justify-center bg-gradient-to-br',
+                          'h-1 w-full bg-gradient-to-r',
                           meta.gradient,
-                        )} style={{ aspectRatio: '16/10' }}>
-                          <span className="text-white/30">{meta.iconLg}</span>
-                          <div className="absolute bottom-2 left-3">
+                        )} aria-hidden="true" />
+
+                        <Card.Content className="p-3">
+                          <div className="mb-2">
                             <Badge
                               variant="activity"
                               activity={activityTypeToBadge[event.activity_type] ?? 'restoration'}
@@ -547,31 +627,22 @@ export function ExploreListView({
                               {formatActivityType(event.activity_type)}
                             </Badge>
                           </div>
-                        </div>
-                      )}
-
-                      <Card.Content className="p-3">
-                        <Card.Title className="text-sm line-clamp-2">
-                          {event.title}
-                        </Card.Title>
-                        <Card.Meta className="text-xs flex items-center gap-1.5 mt-1">
-                          <Calendar size={12} aria-hidden="true" />
-                          {formatEventDate(event.date_start)}
-                        </Card.Meta>
-                        {event.collectives && (
-                          <Card.Meta className="text-xs flex items-center gap-1.5 mt-0.5">
-                            <Users size={12} aria-hidden="true" />
-                            {event.collectives.name}
+                          <Card.Title className="text-sm line-clamp-2">
+                            {event.title}
+                          </Card.Title>
+                          <Card.Meta className="text-xs flex items-center gap-1.5 mt-1">
+                            <Calendar size={12} aria-hidden="true" />
+                            {formatEventDate(event.date_start)}
                           </Card.Meta>
-                        )}
-                      </Card.Content>
-
-                      {/* Bottom accent bar */}
-                      <div className={cn(
-                        'h-1 w-full bg-gradient-to-r',
-                        meta.gradient,
-                      )} aria-hidden="true" />
-                    </Card.Root>
+                          {event.collectives && (
+                            <Card.Meta className="text-xs flex items-center gap-1.5 mt-0.5">
+                              <Users size={12} aria-hidden="true" />
+                              {event.collectives.name}
+                            </Card.Meta>
+                          )}
+                        </Card.Content>
+                      </Card.Root>
+                    )}
                   </motion.div>
                 )
               })}
@@ -605,7 +676,7 @@ export function ExploreListView({
             ].map((stat, i) => (
               <motion.div
                 key={stat.label}
-                className="rounded-xl bg-white/90 p-3 shadow-sm"
+                className="rounded-xl bg-white p-3 shadow-sm border border-neutral-100"
                 initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.2 + i * 0.08, duration: 0.3 }}
@@ -636,7 +707,7 @@ export function ExploreListView({
           </h3>
           <button
             type="button"
-            onClick={() => onNavigate('/collectives')}
+            onClick={() => onNavigate('/explore?tab=collectives')}
             className="flex items-center gap-1 text-xs font-semibold text-primary-500 min-h-11 active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none"
           >
             View all <ArrowRight size={12} />
@@ -654,41 +725,48 @@ export function ExploreListView({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.06, duration: 0.25 }}
               >
-                <Card.Root
-                  variant="collective"
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => onNavigate(`/collectives/${c.slug}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      onNavigate(`/collectives/${c.slug}`)
+                    }
+                  }}
                   aria-label={c.name}
-                  className="overflow-hidden"
+                  className={cn(
+                    'flex items-center gap-3 p-3 rounded-2xl bg-white',
+                    'border border-neutral-100 shadow-sm',
+                    'cursor-pointer select-none',
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
+                    'active:scale-[0.98] transition-transform duration-150',
+                  )}
                 >
-                  <div className="flex items-stretch">
-                    {/* Gradient accent side bar */}
-                    <div className="w-1.5 bg-gradient-to-b from-primary-400 via-sprout-400 to-moss-400 shrink-0" aria-hidden="true" />
-                    <Card.Content className="flex items-center gap-3 flex-1 min-w-0 p-3">
-                      {/* Icon with gradient bg */}
-                      <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-primary-100 to-sprout-100 text-primary-500 shrink-0 shadow-sm">
-                        <TreePine size={20} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-primary-800 truncate">
-                          {c.name}
-                        </p>
-                        <p className="text-xs text-primary-400 flex items-center gap-1">
-                          <MapPin size={10} aria-hidden="true" />
-                          {[c.region, c.state]
-                            .filter(Boolean)
-                            .join(', ')}
-                        </p>
-                      </div>
-                      {/* Member count pill */}
-                      <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-50 shrink-0">
-                        <Users size={12} className="text-primary-400" />
-                        <span className="text-xs font-semibold text-primary-600 tabular-nums">
-                          {c.member_count}
-                        </span>
-                      </div>
-                    </Card.Content>
+                  {/* Icon */}
+                  <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-primary-50 text-primary-500 shrink-0">
+                    <TreePine size={20} />
                   </div>
-                </Card.Root>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-primary-800 truncate">
+                      {c.name}
+                    </p>
+                    <p className="text-xs text-primary-400 flex items-center gap-1">
+                      <MapPin size={10} aria-hidden="true" />
+                      {[c.region, c.state]
+                        .filter(Boolean)
+                        .join(', ')}
+                    </p>
+                  </div>
+                  {/* Member count pill */}
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary-50 shrink-0">
+                    <Users size={12} className="text-primary-400" />
+                    <span className="text-xs font-semibold text-primary-600 tabular-nums">
+                      {c.member_count}
+                    </span>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -697,7 +775,7 @@ export function ExploreListView({
             illustration="wildlife"
             title="No collectives nearby"
             description="Expand your search or browse all collectives nationally"
-            action={{ label: 'Browse All Collectives', to: '/collectives' }}
+            action={{ label: 'Browse All Collectives', to: '/explore?tab=collectives' }}
             className="min-h-[160px] py-4"
           />
         )}
@@ -708,15 +786,6 @@ export function ExploreListView({
         <div className="relative overflow-hidden bg-gradient-to-br from-secondary-700 via-primary-700 to-primary-600 px-6 pt-10 lg:px-10"
           style={{ paddingBottom: 'calc(var(--safe-bottom) + 3.5rem)' }}
         >
-          {/* Decorative shapes - "gathering circle" */}
-          <div className="absolute -top-10 -right-10 w-44 h-44 rounded-full border border-white/[0.08]" aria-hidden="true" />
-          <div className="absolute -top-2 right-4 w-24 h-24 rounded-full bg-white/[0.05]" aria-hidden="true" />
-          <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-white/[0.04]" aria-hidden="true" />
-          <div className="absolute top-[50%] left-[30%] w-10 h-10 rounded-full border border-white/[0.10]" aria-hidden="true" />
-          <div className="absolute bottom-8 right-[20%] text-white/8" aria-hidden="true">
-            <Leaf size={48} strokeWidth={1} />
-          </div>
-
           <div className="relative">
             <h3 className="text-xl font-bold text-white mb-2">
               Join the Movement
@@ -727,7 +796,7 @@ export function ExploreListView({
             <Button
               variant="primary"
               size="lg"
-              onClick={() => onNavigate('/collectives')}
+              onClick={() => onNavigate('/explore?tab=collectives')}
               className="bg-white text-primary-700 hover:bg-white/90 shadow-lg"
             >
               Find a Collective

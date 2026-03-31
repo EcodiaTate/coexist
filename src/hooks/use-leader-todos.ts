@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { untypedFrom } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
+import { useOffline } from '@/hooks/use-offline'
+import { useToast } from '@/components/toast'
+import { queueOfflineAction } from '@/lib/offline-sync'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -87,6 +90,8 @@ export function useLeaderTodos(filters?: {
 export function useCreateTodo() {
   const queryClient = useQueryClient()
   const { user } = useAuth()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async (input: {
@@ -98,6 +103,34 @@ export function useCreateTodo() {
       source_template_id?: string | null
     }) => {
       if (!user) throw new Error('Not authenticated')
+
+      if (isOffline) {
+        queueOfflineAction('todo-create', {
+          userId: user.id,
+          title: input.title,
+          description: input.description,
+          due_date: input.due_date,
+          due_time: input.due_time,
+          priority: input.priority,
+          source_template_id: input.source_template_id,
+        })
+        // Return an optimistic todo for the UI
+        return {
+          id: `offline-${Date.now()}`,
+          user_id: user.id,
+          title: input.title,
+          description: input.description || null,
+          due_date: input.due_date || null,
+          due_time: input.due_time || null,
+          priority: input.priority ?? 'medium',
+          status: 'pending',
+          completed_at: null,
+          source_template_id: input.source_template_id || null,
+          sort_order: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as LeaderTodo
+      }
 
       const { data, error } = await untypedFrom('leader_todos')
         .insert({
@@ -116,6 +149,9 @@ export function useCreateTodo() {
       return data as LeaderTodo
     },
     onSuccess: () => {
+      if (isOffline) {
+        toast.info('Todo saved offline — will sync when back online')
+      }
       queryClient.invalidateQueries({ queryKey: ['leader-todos'] })
     },
   })
@@ -127,12 +163,19 @@ export function useCreateTodo() {
 
 export function useUpdateTodo() {
   const queryClient = useQueryClient()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async ({
       id,
       ...updates
     }: Partial<LeaderTodo> & { id: string }) => {
+      if (isOffline) {
+        queueOfflineAction('todo-update', { id, ...updates })
+        return { id, ...updates } as LeaderTodo
+      }
+
       const { data, error } = await untypedFrom('leader_todos')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
@@ -149,7 +192,11 @@ export function useUpdateTodo() {
         (old) => old?.map((t) => (t.id === id ? { ...t, ...updates } : t)),
       )
     },
+    onSuccess: () => {
+      if (isOffline) toast.info('Todo update saved offline — will sync when back online')
+    },
     onSettled: () => {
+      if (isOffline) return
       queryClient.invalidateQueries({ queryKey: ['leader-todos'] })
     },
   })
@@ -161,9 +208,20 @@ export function useUpdateTodo() {
 
 export function useToggleTodo() {
   const queryClient = useQueryClient()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async ({ id, completed }: { id: string; completed: boolean }) => {
+      if (isOffline) {
+        queueOfflineAction('todo-toggle', {
+          id,
+          completed,
+          timestamp: new Date().toISOString(),
+        })
+        return
+      }
+
       const { error } = await untypedFrom('leader_todos')
         .update({
           status: completed ? 'completed' : 'pending',
@@ -190,7 +248,11 @@ export function useToggleTodo() {
           ),
       )
     },
+    onSuccess: () => {
+      if (isOffline) toast.info('Todo saved offline — will sync when back online')
+    },
     onSettled: () => {
+      if (isOffline) return
       queryClient.invalidateQueries({ queryKey: ['leader-todos'] })
     },
   })
@@ -202,9 +264,16 @@ export function useToggleTodo() {
 
 export function useDeleteTodo() {
   const queryClient = useQueryClient()
+  const { isOffline } = useOffline()
+  const { toast } = useToast()
 
   return useMutation({
     mutationFn: async (id: string) => {
+      if (isOffline) {
+        queueOfflineAction('todo-delete', { id })
+        return
+      }
+
       const { error } = await untypedFrom('leader_todos')
         .delete()
         .eq('id', id)
@@ -218,7 +287,11 @@ export function useDeleteTodo() {
         (old) => old?.filter((t) => t.id !== id),
       )
     },
+    onSuccess: () => {
+      if (isOffline) toast.info('Todo deleted offline — will sync when back online')
+    },
     onSettled: () => {
+      if (isOffline) return
       queryClient.invalidateQueries({ queryKey: ['leader-todos'] })
     },
   })

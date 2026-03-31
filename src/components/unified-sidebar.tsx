@@ -62,7 +62,7 @@ function getSuiteIdentity(suite: Suite, collectiveName: string): SuiteIdentity {
         iconSmall: <Shield size={12} className="text-white" />,
         iconGradient: 'from-primary-700 to-primary-900',
         badgeBg: 'from-primary-50/80 to-primary-50/30',
-        badgeBorder: 'border-primary-100/30',
+        badgeBorder: 'border-neutral-100',
         labelColor: 'text-primary-500',
         pillHover: 'hover:bg-primary-50/60',
       }
@@ -219,7 +219,7 @@ function SuiteSwitcher({
                 className={cn(
                   'flex items-center gap-1.5 px-2 h-7 rounded-lg',
                   'text-[11px] font-medium text-primary-500',
-                  'bg-white/60 border border-primary-100/25',
+                  'bg-white/60 border border-neutral-100',
                   id.pillHover,
                   'cursor-pointer select-none',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
@@ -314,7 +314,7 @@ function MobileProfileCard({ onNavigate }: { onNavigate: (path: string) => void 
       className={cn(
         'w-full flex items-center gap-3.5 p-3 group',
         'bg-gradient-to-br from-primary-50/80 to-primary-50/30',
-        'rounded-2xl border border-primary-100/40',
+        'rounded-2xl border border-neutral-100',
         'cursor-pointer select-none text-left',
         'hover:from-primary-50 hover:to-primary-50/50',
         'transition-transform duration-200 active:scale-[0.98]',
@@ -805,7 +805,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
   const { data: collectiveDetail } = useCollective(suite === 'leader' ? leaderCollectiveId : undefined)
   const collectiveName = (collectiveDetail?.name ?? 'My Collective').replace(/\s+Collective$/i, '')
 
-  const isAnyLeader = collectiveRoles.some(
+  const isAnyLeader = isStaff || collectiveRoles.some(
     (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
   )
 
@@ -842,19 +842,13 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
 
     const updatesItem: NavItem = { label: 'Updates', path: '/updates', icon: <Megaphone size={17} strokeWidth={1.5} /> }
     const chatItem: NavItem = { label: 'Chat', path: '/chat', icon: <MessageCircle size={17} strokeWidth={1.5} />, desktopOnly: true }
+    const learnItem: NavItem = { label: 'Learn', path: '/learn', icon: <BookOpen size={17} strokeWidth={1.5} /> }
 
-    const cats: NavCategory[] = [{ label: '', items: [highestHome, updatesItem, chatItem] }]
+    const topItems: NavItem[] = isStaff
+      ? [highestHome, chatItem, updatesItem]
+      : [highestHome, chatItem, learnItem, updatesItem]
 
-    if (isAnyLeader || isStaff) {
-      cats.push({
-        label: 'Development',
-        labelColor: 'text-sprout-600',
-        dotColor: 'bg-sprout-500',
-        items: [
-          { label: 'Learn', path: '/learn', icon: <BookOpen size={17} strokeWidth={1.5} /> },
-        ],
-      })
-    }
+    const cats: NavCategory[] = [{ label: '', items: topItems }]
 
     if (isStaff) {
       const adminCats = adminNavCategories

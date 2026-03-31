@@ -47,10 +47,10 @@ export function BlockUserSheet({
             <ShieldOff size={16} />
           </div>
           <div>
-            <h3 className="font-heading text-base font-semibold text-primary-800">
+            <h3 className="font-heading text-base font-semibold text-neutral-900">
               Block {userName}?
             </h3>
-            <p className="text-xs text-primary-400">
+            <p className="text-xs text-neutral-500">
               They won&apos;t be notified
             </p>
           </div>
