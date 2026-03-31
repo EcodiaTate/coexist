@@ -30,7 +30,7 @@ secrets/
 .env
 .env.local
 .env.production
-
+.env.development
 # Firebase config files (contain API keys)
 android/app/google-services.json
 ios/App/App/GoogleService-Info.plist

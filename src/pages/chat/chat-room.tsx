@@ -78,7 +78,7 @@ import type { Json } from '@/types/database.types'
 import { ChatMessageList, type AnyMessage } from './chat-message-list'
 import { ChatSearch } from './chat-search'
 import { ChatLeaderPanel } from './chat-leader-panel'
-import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
+import { fadeUp } from '@/lib/admin-motion'
 
 /* ------------------------------------------------------------------ */
 /*  Chat mode                                                          */

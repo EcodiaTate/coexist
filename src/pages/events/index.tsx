@@ -134,7 +134,7 @@ function SectionHeader({ title, count, action }: { title: string; count?: number
 /*  Hero                                                               */
 /* ------------------------------------------------------------------ */
 
-function ExploreHero({ rm, nationalImpact }: { rm: boolean; nationalImpact?: { totalMembers: number; treesPlanted: number; collectivesCount: number; rubbishCollectedTonnes: number } }) {
+function ExploreHero({ rm, nationalImpact }: { rm: boolean; nationalImpact?: { totalMembers: number; treesPlanted: number; collectivesCount: number; rubbishCollectedTonnes?: number } }) {
   return (
     <div className="relative overflow-hidden">
       {/* Deep gradient background */}
@@ -763,7 +763,7 @@ export default function ExplorePage() {
                                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                                   <div className="absolute bottom-2 left-2.5">
                                     <span className="px-2 py-0.5 rounded-full bg-white/90 backdrop-blur-sm text-[10px] font-bold text-primary-700 uppercase tracking-wide shadow-sm">
-                                      {m.role.replace(/_/g, ' ')}
+                                      {m.role?.replace(/_/g, ' ') ?? 'member'}
                                     </span>
                                   </div>
                                 </div>

@@ -1055,15 +1055,15 @@ export default function LeaderDashboardPage() {
 
   // Build impact cards — only show non-zero
   const impactCards: { value: number; label: string; unit?: string; icon: React.ReactElement; theme: import('@/components/bento-stats').BentoTheme }[] = impactStats ? [
-    { value: impactStats.totalEvents, label: 'Events Held', icon: <CalendarDays size={16} />, theme: 'warning' },
-    { value: impactStats.eventsAttended, label: 'Attendances', icon: <Users size={16} />, theme: 'primary' },
-    { value: impactStats.volunteerHours, label: 'Vol. Hours', unit: 'hrs', icon: <Clock size={16} />, theme: 'moss' },
-    { value: impactStats.treesPlanted, label: 'Trees Planted', icon: <TreePine size={16} />, theme: 'sprout' },
-    { value: impactStats.rubbishKg, label: 'Rubbish', unit: 'kg', icon: <Trash2 size={16} />, theme: 'sky' },
-    { value: impactStats.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={16} />, theme: 'plum' },
-    { value: impactStats.coastlineCleanedM, label: 'Coastline', unit: 'm', icon: <Waves size={16} />, theme: 'info' },
-    { value: impactStats.leadersEmpowered, label: 'Leaders Empowered', icon: <GraduationCap size={16} />, theme: 'bark' },
-    { value: impactStats.cleanupSites, label: 'Cleanup Sites', icon: <Trash2 size={16} />, theme: 'coral' },
+    { value: impactStats.totalEvents, label: 'Events Held', icon: <CalendarDays size={16} />, theme: 'warning' as const },
+    { value: impactStats.eventsAttended, label: 'Attendances', icon: <Users size={16} />, theme: 'primary' as const },
+    { value: impactStats.volunteerHours, label: 'Vol. Hours', unit: 'hrs', icon: <Clock size={16} />, theme: 'moss' as const },
+    { value: impactStats.treesPlanted, label: 'Trees Planted', icon: <TreePine size={16} />, theme: 'sprout' as const },
+    { value: impactStats.rubbishKg, label: 'Rubbish', unit: 'kg', icon: <Trash2 size={16} />, theme: 'sky' as const },
+    { value: impactStats.invasiveWeedsPulled, label: 'Weeds Pulled', icon: <Sprout size={16} />, theme: 'plum' as const },
+    { value: impactStats.coastlineCleanedM, label: 'Coastline', unit: 'm', icon: <Waves size={16} />, theme: 'info' as const },
+    { value: impactStats.leadersEmpowered, label: 'Leaders Empowered', icon: <GraduationCap size={16} />, theme: 'bark' as const },
+    { value: impactStats.cleanupSites, label: 'Cleanup Sites', icon: <Trash2 size={16} />, theme: 'coral' as const },
   ].filter((c) => c.value > 0) : []
 
   return (
