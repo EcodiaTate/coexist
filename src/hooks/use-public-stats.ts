@@ -34,9 +34,10 @@ export function usePublicStats() {
         supabase.from('events').select('id', { count: 'exact', head: true })
           .lt('date_start', new Date().toISOString())
           .gte('date_start', baselineDate),
-        // Only sum native_plants from post-baseline impact rows
+        // Only sum native_plants/trees from post-baseline, non-legacy impact rows
         supabase.from('event_impact').select('native_plants, trees_planted')
-          .gte('logged_at', baselineDate),
+          .gte('logged_at', baselineDate)
+          .not('notes', 'like', 'Legacy import:%'),
       ])
 
       const totalNativePlants = (impactRes.data ?? []).reduce(
