@@ -295,7 +295,7 @@ export function useAdminUpdateManagedCollectives() {
       const { error } = await supabase
         .from('staff_roles')
         .upsert(
-          { user_id: userId, managed_collectives: collectiveIds } as Record<string, unknown>,
+          { user_id: userId, managed_collectives: collectiveIds } as any,
           { onConflict: 'user_id' },
         )
       if (error) throw error

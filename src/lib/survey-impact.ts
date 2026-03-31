@@ -63,7 +63,7 @@ export async function syncSurveyImpact(
     updated_at: _ua,
     logged_at: _la,
     ...existingFields
-  } = existing ?? ({} as Record<string, unknown>)
+  } = existing ?? ({} as any)
   const existingCustom = (existing?.custom_metrics as Record<string, unknown>) ?? {}
 
   const merged = {
