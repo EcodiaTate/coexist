@@ -271,14 +271,12 @@ function ProductGroup({
   selectedIds,
   onToggleSelect,
   adjustStock,
-  '/img/placeholder-merch.jpg',
 }: {
   product: Product
   variants: FlatVariant[]
   selectedIds: Set<string>
   onToggleSelect: (key: string) => void
   adjustStock: ReturnType<typeof useAdjustStock>
-  '/img/placeholder-merch.jpg': string | undefined
 }) {
   const allSelected = variants.every((v) => selectedIds.has(`${product.id}-${v.variant.id}`))
   const someSelected = variants.some((v) => selectedIds.has(`${product.id}-${v.variant.id}`))
@@ -631,7 +629,6 @@ export default function InventoryTab() {
                 selectedIds={selectedIds}
                 onToggleSelect={toggleSelect}
                 adjustStock={adjustStock}
-                '/img/placeholder-merch.jpg'={'/img/placeholder-merch.jpg'}
               />
             ))}
           </div>
