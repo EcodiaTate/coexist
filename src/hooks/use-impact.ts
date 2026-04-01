@@ -1,50 +1,29 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { sumMetric } from '@/lib/impact-metrics'
+import {
+  fetchImpactRows,
+  fetchBaselineSettings,
+  type ImpactTimeRange,
+} from '@/lib/impact-query'
 import { useAuth } from '@/hooks/use-auth'
-import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 
 /* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
+/*  Canonical impact shape                                             */
 /* ------------------------------------------------------------------ */
 
-/** Split an array into chunks to avoid Supabase URL length limits */
-function chunks<T>(arr: T[], size = 50): T[][] {
-  const out: T[][] = []
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
-  return out
-}
-
-
-/* ------------------------------------------------------------------ */
-/*  Canonical impact metrics                                           */
-/* ------------------------------------------------------------------ */
-
-/**
- * Canonical Co-Exist dashboard impact shape.
- * "leadersEmpowered" is a cumulative counter stored in app_settings
- * (seeded from collective_members, incremented by DB trigger on new
- * leadership role assignments — never decremented).
- */
 export interface CanonicalImpact {
-  /* Community Events */
   eventsAttended: number
   volunteerHours: number
   eventsHeld: number
-  /* Land Restoration Projects */
   treesPlanted: number
   invasiveWeedsPulled: number
-  /* Cleanup Sites */
   rubbishCollectedKg: number
   cleanupSites: number
   coastlineCleanedM: number
-  /* Organisational */
   collectivesCount: number
   leadersEmpowered: number
 }
-
-/* ------------------------------------------------------------------ */
-/*  National (aggregate) impact                                        */
-/* ------------------------------------------------------------------ */
 
 export interface NationalImpact extends CanonicalImpact {
   totalMembers: number
@@ -52,118 +31,56 @@ export interface NationalImpact extends CanonicalImpact {
 
 type TimeRange = 'all-time' | 'current-year'
 
-// Baseline checkpoint date — impact rows before this date are replaced by
-// the seeded baseline numbers in app_settings.
-const IMPACT_BASELINE_DATE = '2026-01-01'
+/* ------------------------------------------------------------------ */
+/*  National impact                                                    */
+/* ------------------------------------------------------------------ */
 
 export function useNationalImpact(timeRange: TimeRange = 'all-time') {
   return useQuery({
     queryKey: ['national-impact', timeRange],
     queryFn: async (): Promise<NationalImpact> => {
-      const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString()
-      const baselineDate = new Date(IMPACT_BASELINE_DATE).toISOString()
-
-      // Fetch baseline numbers from app_settings (seeded from historical spreadsheet)
-      const baselineRes = await supabase
-        .from('app_settings')
-        .select('key, value')
-        .in('key', [
-          'impact_baseline_attendees',
-          'impact_baseline_events',
-          'impact_baseline_trees',
-          'impact_baseline_rubbish_kg',
-          'impact_baseline_hours',
-        ])
-      const baselineMap: Record<string, number> = {}
-      for (const row of (baselineRes.data ?? [])) {
-        baselineMap[row.key] = (row.value as { count?: number })?.count ?? 0
-      }
-      const baselineAttendees = baselineMap['impact_baseline_attendees'] ?? 0
-      const baselineEvents    = baselineMap['impact_baseline_events'] ?? 0
-      const baselineTrees     = baselineMap['impact_baseline_trees'] ?? 0
-      const baselineRubbishKg = baselineMap['impact_baseline_rubbish_kg'] ?? 0
-      const baselineHours     = baselineMap['impact_baseline_hours'] ?? 0
-
-      const now = new Date().toISOString()
-      const effectiveStart = timeRange === 'current-year' && yearStart > baselineDate ? yearStart : baselineDate
-
-      // Step 1: fetch post-baseline event IDs (reliable scope for impact query)
-      let eventsQuery = supabase
-        .from('events')
-        .select('id, activity_type, address', { count: 'exact' })
-        .lt('date_start', now)
-        .gte('date_start', effectiveStart)
-      const eventsRes = await eventsQuery
-
-      const postBaselineEventIds = (eventsRes.data ?? []).map((e) => e.id)
-
-      // Step 2: fetch impact rows only for post-baseline events, excluding legacy imports.
-      // This prevents 999_backfill rows (date_start='2024-01-01', notes=NULL) from being
-      // double-counted against the baseline constants.
-      let impactQuery = supabase
-        .from('event_impact')
-        .select(IMPACT_SELECT_COLUMNS)
-        .or('notes.is.null,notes.not.like.Legacy import:%')
-        .range(0, 9999)
-      if (postBaselineEventIds.length > 0) {
-        impactQuery = impactQuery.in('event_id', postBaselineEventIds)
-      } else {
-        // No events in range — return empty result without querying
-        impactQuery = impactQuery.eq('event_id', '00000000-0000-0000-0000-000000000000')
-      }
-
-      // Leaders empowered — cumulative counter from app_settings
-      const leadersCountQuery = supabase
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'leaders_empowered_total')
-        .single()
-
-      const [impactRes, membersRes, collectivesRes, leadersCountRes] = await Promise.all([
-        impactQuery,
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('collectives').select('id', { count: 'exact', head: true }),
-        leadersCountQuery,
-      ])
-
-      if (impactRes.error) throw impactRes.error
-      if (eventsRes.error) throw eventsRes.error
-      if (membersRes.error) throw membersRes.error
-      if (collectivesRes.error) throw collectivesRes.error
-      // cleanupRes removed — cleanup addresses now derived from eventsRes.data
-      // leadersCountRes may not exist yet — don't throw
-
-      const logs = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
-
-      // Count attendance from registrations for post-baseline events.
-      // Filter by event date_start (not registered_at) — people may register
-      // before Jan 1 for a Jan event, and registered_at doesn't update on check-in.
-      // Sum attendees from event_impact (leaders enter headcount in post-event review)
-      const attendanceCount = sumMetric(logs, 'attendees')
-
-      // Count unique cleanup sites by address (post-baseline)
-      const cleanupAddresses = new Set(
-        (eventsRes.data ?? [])
-          .filter((e) => e.activity_type === 'shore_cleanup' || e.activity_type === 'marine_restoration')
-          .map((e: { address: string | null }) => (e.address ?? '').trim().toLowerCase())
-          .filter(Boolean)
-      )
-
-      // For all-time view: add baseline numbers on top of post-baseline sums
       const isAllTime = timeRange === 'all-time'
 
+      const [{ rows, eventIds, eventCount }, baseline, membersRes, collectivesRes, leadersCountRes] =
+        await Promise.all([
+          fetchImpactRows({ timeRange: timeRange as ImpactTimeRange }),
+          isAllTime ? fetchBaselineSettings() : Promise.resolve(null),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }),
+          supabase.from('collectives').select('id', { count: 'exact', head: true }),
+          supabase.from('app_settings').select('value').eq('key', 'leaders_empowered_total').single(),
+        ])
+
+      if (membersRes.error) throw membersRes.error
+      if (collectivesRes.error) throw collectivesRes.error
+
+      // Cleanup sites: unique addresses from cleanup/marine events in scope
+      const cleanupAddresses = new Set<string>()
+      if (eventIds.length > 0) {
+        const { data: cleanupEvents } = await supabase
+          .from('events')
+          .select('address')
+          .in('id', eventIds)
+          .in('activity_type', ['shore_cleanup', 'marine_restoration'])
+        for (const e of cleanupEvents ?? []) {
+          const addr = (e.address ?? '').trim().toLowerCase()
+          if (addr) cleanupAddresses.add(addr)
+        }
+      }
+
+      const b = baseline ?? { attendees: 0, events: 0, trees: 0, rubbishKg: 0, hours: 0 }
+
       return {
-        eventsAttended: (attendanceCount ?? 0) + (isAllTime ? baselineAttendees : 0),
-        volunteerHours: Math.round(sumMetric(logs, 'hours_total')) + (isAllTime ? baselineHours : 0),
-        eventsHeld: (eventsRes.count ?? 0) + (isAllTime ? baselineEvents : 0),
-        treesPlanted: sumMetric(logs, 'trees_planted') + (isAllTime ? baselineTrees : 0),
-        invasiveWeedsPulled: sumMetric(logs, 'invasive_weeds_pulled'),
-        rubbishCollectedKg: Math.round(sumMetric(logs, 'rubbish_kg') + (isAllTime ? baselineRubbishKg : 0)),
-        cleanupSites: cleanupAddresses.size,
-        coastlineCleanedM: Math.round(sumMetric(logs, 'coastline_cleaned_m')),
-        collectivesCount: collectivesRes.count ?? 0,
-        leadersEmpowered: (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
-        totalMembers: membersRes.count ?? 0,
+        eventsAttended:      sumMetric(rows, 'attendees')           + (isAllTime ? b.attendees : 0),
+        volunteerHours: Math.round(sumMetric(rows, 'hours_total'))  + (isAllTime ? b.hours    : 0),
+        eventsHeld:          eventCount                             + (isAllTime ? b.events   : 0),
+        treesPlanted:        sumMetric(rows, 'trees_planted')       + (isAllTime ? b.trees    : 0),
+        invasiveWeedsPulled: sumMetric(rows, 'invasive_weeds_pulled'),
+        rubbishCollectedKg:  Math.round(sumMetric(rows, 'rubbish_kg') + (isAllTime ? b.rubbishKg : 0)),
+        cleanupSites:        cleanupAddresses.size,
+        coastlineCleanedM:   Math.round(sumMetric(rows, 'coastline_cleaned_m')),
+        collectivesCount:    collectivesRes.count ?? 0,
+        leadersEmpowered:    (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
+        totalMembers:        membersRes.count ?? 0,
       }
     },
     staleTime: 5 * 60 * 1000,
@@ -172,7 +89,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Collective impact (for home page toggle)                           */
+/*  Collective impact                                                  */
 /* ------------------------------------------------------------------ */
 
 export function useCollectiveImpact(collectiveId: string | undefined, timeRange: TimeRange = 'all-time') {
@@ -180,39 +97,24 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
     queryKey: ['collective-impact', collectiveId, timeRange],
     queryFn: async (): Promise<CanonicalImpact | null> => {
       if (!collectiveId) return null
-      const now = new Date().toISOString()
-      const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString()
 
-      // Step 1: Fetch all event IDs for this collective (reliable scope — no embedded join filtering)
-      let eventsQuery = supabase
-        .from('events')
-        .select('id, address, activity_type', { count: 'exact' })
-        .eq('collective_id', collectiveId)
-        .in('status', ['published', 'completed'])
-        .lt('date_start', now)
-      if (timeRange === 'current-year') {
-        eventsQuery = eventsQuery.gte('date_start', yearStart)
-      }
+      const isAllTime = timeRange === 'all-time'
 
-      const leadersCountQuery = supabase
-        .from('app_settings')
-        .select('value')
-        .eq('key', 'leaders_empowered:' + collectiveId)
-        .single()
+      const [{ rows, legacyRows, eventIds, eventCount }, leadersCountRes] = await Promise.all([
+        fetchImpactRows({
+          collectiveId,
+          timeRange: timeRange as ImpactTimeRange,
+          // Include pre-baseline legacy rows for all-time collective view
+          includeLegacy: isAllTime,
+        }),
+        supabase
+          .from('app_settings')
+          .select('value')
+          .eq('key', 'leaders_empowered:' + collectiveId)
+          .single(),
+      ])
 
-      const [eventsRes, leadersCountRes] = await Promise.all([eventsQuery, leadersCountQuery])
-
-      const eventIds = (eventsRes.data ?? []).map((e) => e.id)
-      const eventsHeld = eventsRes.count ?? 0
-
-      const cleanupAddresses = new Set(
-        (eventsRes.data ?? [])
-          .filter((e) => e.activity_type === 'shore_cleanup' || e.activity_type === 'marine_restoration')
-          .map((e) => (e.address ?? '').trim().toLowerCase())
-          .filter(Boolean)
-      )
-
-      if (eventIds.length === 0) {
+      if (eventCount === 0) {
         return {
           eventsAttended: 0, volunteerHours: 0, eventsHeld: 0,
           treesPlanted: 0, invasiveWeedsPulled: 0, rubbishCollectedKg: 0,
@@ -221,44 +123,33 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
         }
       }
 
-      // Step 2: Fetch ALL impact rows for this collective's events — both live and legacy.
-      // Legacy rows (notes LIKE 'Legacy import:%') now have attendees backfilled from migration
-      // 20260401030000, and already have rubbish_kg/trees_planted/hours_total from the original import.
-      // For current-year: only non-legacy rows (legacy rows are all 2025 and earlier).
-      const isAllTime = timeRange === 'all-time'
+      const allRows = [...rows, ...legacyRows]
 
-      const [liveImpactRes, legacyImpactRes] = await Promise.all([
-        supabase
-          .from('event_impact')
-          .select(IMPACT_SELECT_COLUMNS)
-          .in('event_id', eventIds)
-          .or('notes.is.null,notes.not.like.Legacy import:%')
-          .range(0, 9999),
-        isAllTime
-          ? supabase
-              .from('event_impact')
-              .select(IMPACT_SELECT_COLUMNS)
-              .in('event_id', eventIds)
-              .like('notes', 'Legacy import:%')
-              .range(0, 9999)
-          : Promise.resolve({ data: [] as unknown[], error: null }),
-      ])
-
-      const liveRows = (liveImpactRes.data ?? []) as unknown as Record<string, unknown>[]
-      const legacyRows = (legacyImpactRes.data ?? []) as unknown as Record<string, unknown>[]
-      const allRows = [...liveRows, ...legacyRows]
+      // Cleanup sites: unique addresses from cleanup/marine events
+      const cleanupAddresses = new Set<string>()
+      if (eventIds.length > 0) {
+        const { data: cleanupEvents } = await supabase
+          .from('events')
+          .select('address')
+          .in('id', eventIds)
+          .in('activity_type', ['shore_cleanup', 'marine_restoration'])
+        for (const e of cleanupEvents ?? []) {
+          const addr = (e.address ?? '').trim().toLowerCase()
+          if (addr) cleanupAddresses.add(addr)
+        }
+      }
 
       return {
-        eventsAttended: Math.round(sumMetric(allRows, 'attendees')),
-        volunteerHours: Math.round(sumMetric(allRows, 'hours_total')),
-        eventsHeld,
-        treesPlanted: sumMetric(allRows, 'trees_planted'),
+        eventsAttended:      Math.round(sumMetric(allRows, 'attendees')),
+        volunteerHours:      Math.round(sumMetric(allRows, 'hours_total')),
+        eventsHeld:          eventCount,
+        treesPlanted:        sumMetric(allRows, 'trees_planted'),
         invasiveWeedsPulled: sumMetric(allRows, 'invasive_weeds_pulled'),
-        rubbishCollectedKg: Math.round(sumMetric(allRows, 'rubbish_kg')),
-        cleanupSites: cleanupAddresses.size,
-        coastlineCleanedM: Math.round(sumMetric(allRows, 'coastline_cleaned_m')),
-        collectivesCount: 1,
-        leadersEmpowered: (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
+        rubbishCollectedKg:  Math.round(sumMetric(allRows, 'rubbish_kg')),
+        cleanupSites:        cleanupAddresses.size,
+        coastlineCleanedM:   Math.round(sumMetric(allRows, 'coastline_cleaned_m')),
+        collectivesCount:    1,
+        leadersEmpowered:    (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
       }
     },
     enabled: !!collectiveId,
@@ -268,7 +159,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
 }
 
 /* ------------------------------------------------------------------ */
-/*  Custom metrics aggregation (for surfaces that need them)           */
+/*  Custom metrics aggregation                                         */
 /* ------------------------------------------------------------------ */
 
 export interface AggregatedCustomMetric {
@@ -276,10 +167,6 @@ export interface AggregatedCustomMetric {
   total: number
 }
 
-/**
- * Aggregate custom_metrics JSONB across event_impact rows.
- * Returns top custom metrics by total value, excluding builtins.
- */
 function aggregateCustomMetrics(
   rows: Record<string, unknown>[],
   limit?: number,
@@ -299,35 +186,25 @@ function aggregateCustomMetrics(
   return limit ? sorted.slice(0, limit) : sorted
 }
 
-/** Custom metrics for a single collective */
 export function useCollectiveCustomMetrics(collectiveId: string | undefined) {
   return useQuery({
     queryKey: ['collective-custom-metrics', collectiveId],
     queryFn: async (): Promise<AggregatedCustomMetric[]> => {
       if (!collectiveId) return []
-      const { data, error } = await supabase
-        .from('event_impact')
-        .select('custom_metrics, events!inner(collective_id)')
-        .eq('events.collective_id', collectiveId)
-      if (error) throw error
-      return aggregateCustomMetrics((data ?? []) as unknown as Record<string, unknown>[])
+      const { rows } = await fetchImpactRows({ collectiveId, timeRange: 'all-time', includeLegacy: false })
+      return aggregateCustomMetrics(rows)
     },
     enabled: !!collectiveId,
     staleTime: 5 * 60 * 1000,
   })
 }
 
-/** Top custom metrics nationally (for national dashboard) */
 export function useNationalCustomMetrics(limit = 5) {
   return useQuery({
     queryKey: ['national-custom-metrics', limit],
     queryFn: async (): Promise<AggregatedCustomMetric[]> => {
-      const { data, error } = await supabase
-        .from('event_impact')
-        .select('custom_metrics')
-        .not('custom_metrics', 'is', null)
-      if (error) throw error
-      return aggregateCustomMetrics((data ?? []) as unknown as Record<string, unknown>[], limit)
+      const { rows } = await fetchImpactRows({ timeRange: 'all-time' })
+      return aggregateCustomMetrics(rows, limit)
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -338,6 +215,13 @@ export function useNationalCustomMetrics(limit = 5) {
 /* ------------------------------------------------------------------ */
 
 export type PersonalImpact = CanonicalImpact
+
+/** Split an array into chunks to avoid Supabase URL length limits */
+function chunks<T>(arr: T[], size = 50): T[][] {
+  const out: T[][] = []
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size))
+  return out
+}
 
 export function useImpactStats(userId?: string) {
   const { user } = useAuth()
@@ -354,104 +238,57 @@ export function useImpactStats(userId?: string) {
         .eq('user_id', id)
         .eq('status', 'attended')
 
-      const eventIds = registrations?.map((r) => r.event_id) ?? []
-      const eventsAttended = eventIds.length
+      const attendedEventIds = registrations?.map((r) => r.event_id) ?? []
+      const eventsAttended = attendedEventIds.length
 
-      if (eventIds.length === 0) {
+      if (attendedEventIds.length === 0) {
         return {
-          eventsAttended: 0,
-          volunteerHours: 0,
-          eventsHeld: 0,
-          treesPlanted: 0,
-          invasiveWeedsPulled: 0,
-          rubbishCollectedKg: 0,
-          cleanupSites: 0,
-          coastlineCleanedM: 0,
-          collectivesCount: 0,
+          eventsAttended: 0, volunteerHours: 0, eventsHeld: 0,
+          treesPlanted: 0, invasiveWeedsPulled: 0, rubbishCollectedKg: 0,
+          cleanupSites: 0, coastlineCleanedM: 0, collectivesCount: 0,
           leadersEmpowered: 0,
         }
       }
 
-      // Batch event_impact and cleanup queries to avoid URL length limits
-      const fetchImpacts = async () => {
-        const rows: Record<string, number | null>[] = []
-        for (const chunk of chunks(eventIds)) {
-          const { data } = await supabase
-            .from('event_impact')
-            .select(IMPACT_SELECT_COLUMNS)
-            .in('event_id', chunk)
-            .or('notes.is.null,notes.not.like.Legacy import:%')
-          if (data) rows.push(...(data as unknown as Record<string, number | null>[]))
-        }
-        return rows
-      }
-
-      const fetchCleanups = async () => {
-        const rows: { address: string | null }[] = []
-        for (const chunk of chunks(eventIds)) {
-          const { data } = await supabase
-            .from('events')
-            .select('id, address')
-            .in('id', chunk)
-            .in('activity_type', ['shore_cleanup', 'marine_restoration'])
-          if (data) rows.push(...data)
-        }
-        return rows
-      }
-
-      const [impacts, cleanupEvents, collectivesRes, leadersRes] = await Promise.all([
-        fetchImpacts(),
-        fetchCleanups(),
-        supabase
-          .from('collective_members')
-          .select('collective_id, role')
-          .eq('user_id', id),
-        supabase
-          .from('collective_members')
-          .select('user_id')
-          .eq('user_id', id)
+      // User scope: pass their attended event IDs directly.
+      // fetchImpactRows handles chunking internally.
+      const [{ rows }, cleanupData, collectivesRes, leadersRes, eventsOrganisedRes] = await Promise.all([
+        fetchImpactRows({ eventIds: attendedEventIds, skipBaselineDateFilter: true }),
+        // Cleanup sites: find cleanup events among attended
+        (async () => {
+          const addrs = new Set<string>()
+          for (const chunk of chunks(attendedEventIds)) {
+            const { data } = await supabase
+              .from('events')
+              .select('address')
+              .in('id', chunk)
+              .in('activity_type', ['shore_cleanup', 'marine_restoration'])
+            for (const e of data ?? []) {
+              const addr = (e.address ?? '').trim().toLowerCase()
+              if (addr) addrs.add(addr)
+            }
+          }
+          return addrs
+        })(),
+        supabase.from('collective_members').select('collective_id').eq('user_id', id),
+        supabase.from('collective_members').select('user_id').eq('user_id', id)
           .in('role', ['assist_leader', 'co_leader', 'leader']),
+        supabase.from('event_impact').select('event_id', { count: 'exact', head: true }).eq('logged_by', id),
       ])
-      let totalHours = 0
-      let totalTrees = 0
-      let totalWeeds = 0
-      let totalRubbishKg = 0
-      let totalCoastlineM = 0
 
-      for (const impact of impacts) {
-        totalHours += impact.hours_total ?? 0
-        totalTrees += impact.trees_planted ?? 0
-        totalWeeds += impact.invasive_weeds_pulled ?? 0
-        totalRubbishKg += impact.rubbish_kg ?? 0
-        totalCoastlineM += impact.coastline_cleaned_m ?? 0
-      }
-
-      const cleanupAddresses = new Set(
-        cleanupEvents.map((e) => (e.address ?? '').trim().toLowerCase()).filter(Boolean),
-      )
-
-      // Count unique collectives the user belongs to
-      const uniqueCollectives = new Set(
-        (collectivesRes.data ?? []).map((c) => c.collective_id),
-      )
-
-      // Count events the user organised (logged impact for)
-      const { count: eventsOrganised } = await supabase
-        .from('event_impact')
-        .select('event_id', { count: 'exact', head: true })
-        .eq('logged_by', id)
+      const uniqueCollectives = new Set((collectivesRes.data ?? []).map((c) => c.collective_id))
 
       return {
         eventsAttended,
-        volunteerHours: Math.round(totalHours),
-        eventsHeld: eventsOrganised ?? 0,
-        treesPlanted: totalTrees,
-        invasiveWeedsPulled: totalWeeds,
-        rubbishCollectedKg: Math.round(totalRubbishKg),
-        cleanupSites: cleanupAddresses.size,
-        coastlineCleanedM: Math.round(totalCoastlineM),
-        collectivesCount: uniqueCollectives.size,
-        leadersEmpowered: (leadersRes.data ?? []).length > 0 ? 1 : 0,
+        volunteerHours:      Math.round(sumMetric(rows, 'hours_total')),
+        eventsHeld:          eventsOrganisedRes.count ?? 0,
+        treesPlanted:        sumMetric(rows, 'trees_planted'),
+        invasiveWeedsPulled: sumMetric(rows, 'invasive_weeds_pulled'),
+        rubbishCollectedKg:  Math.round(sumMetric(rows, 'rubbish_kg')),
+        cleanupSites:        cleanupData.size,
+        coastlineCleanedM:   Math.round(sumMetric(rows, 'coastline_cleaned_m')),
+        collectivesCount:    uniqueCollectives.size,
+        leadersEmpowered:    (leadersRes.data ?? []).length > 0 ? 1 : 0,
       }
     },
     enabled: !!id,
@@ -493,10 +330,7 @@ export function useMonthlyActivity(userId?: string) {
         monthCounts.set(key, (monthCounts.get(key) ?? 0) + 1)
       }
 
-      return Array.from(monthCounts.entries()).map(([month, count]) => ({
-        month,
-        count,
-      }))
+      return Array.from(monthCounts.entries()).map(([month, count]) => ({ month, count }))
     },
     enabled: !!id,
     staleTime: 10 * 60 * 1000,
@@ -575,13 +409,11 @@ export function useStreak(userId?: string) {
         return { currentWeeks: 0, longestWeeks: 0, currentMonths: 0, longestMonths: 0 }
       }
 
-      // Calculate week-based streaks
       const weeks = new Set<string>()
       const months = new Set<string>()
 
       for (const reg of registrations) {
         const date = new Date(reg.registered_at!)
-        // ISO week
         const startOfYear = new Date(date.getFullYear(), 0, 1)
         const dayOfYear = Math.floor((date.getTime() - startOfYear.getTime()) / 86400000)
         const weekNum = Math.ceil((dayOfYear + startOfYear.getDay() + 1) / 7)
@@ -589,7 +421,6 @@ export function useStreak(userId?: string) {
         months.add(`${date.getFullYear()}-${date.getMonth()}`)
       }
 
-      // Get current week/month keys for "is streak still active" check
       const now = new Date()
       const startOfYear = new Date(now.getFullYear(), 0, 1)
       const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / 86400000)
@@ -597,7 +428,6 @@ export function useStreak(userId?: string) {
       const currentWeekKey = `${now.getFullYear()}-W${currentWeekNum}`
       const currentMonthKey = `${now.getFullYear()}-${now.getMonth()}`
 
-      // Also compute "last week/month" for grace period (streak counts if active this or last period)
       const lastWeekDate = new Date(now.getTime() - 7 * 86400000)
       const lStartOfYear = new Date(lastWeekDate.getFullYear(), 0, 1)
       const lDayOfYear = Math.floor((lastWeekDate.getTime() - lStartOfYear.getTime()) / 86400000)
@@ -609,14 +439,12 @@ export function useStreak(userId?: string) {
 
       const calcStreak = (sortedKeys: string[], isWeek: boolean, currentKey: string, lastKey: string) => {
         if (sortedKeys.length === 0) return { current: 0, longest: 0 }
-
         let current = 1
         let longest = 1
         for (let i = 1; i < sortedKeys.length; i++) {
           const prev = sortedKeys[i - 1]
           const curr = sortedKeys[i]
           let isConsecutive = false
-
           if (isWeek) {
             const [prevY, prevW] = prev.split('-W').map(Number)
             const [currY, currW] = curr.split('-W').map(Number)
@@ -630,7 +458,6 @@ export function useStreak(userId?: string) {
               (currY === prevY && currM === prevM + 1) ||
               (currY === prevY + 1 && prevM === 11 && currM === 0)
           }
-
           if (isConsecutive) {
             current++
             if (current > longest) longest = current
@@ -638,8 +465,6 @@ export function useStreak(userId?: string) {
             current = 1
           }
         }
-
-        // Only count as "current" if the last entry is this period or the previous one
         const lastEntry = sortedKeys[sortedKeys.length - 1]
         const isActive = lastEntry === currentKey || lastEntry === lastKey
         return { current: isActive ? current : 0, longest }

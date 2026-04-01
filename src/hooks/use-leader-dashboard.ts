@@ -1,6 +1,7 @@
 import { useQuery, keepPreviousData, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
-import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
+import { sumMetric } from '@/lib/impact-metrics'
+import { fetchImpactRows } from '@/lib/impact-query'
 
 /* ------------------------------------------------------------------ */
 /*  Leader dashboard data hooks                                        */
@@ -169,63 +170,36 @@ export interface CollectiveFullStats {
 }
 
 async function fetchCollectiveFullStats(collectiveId: string): Promise<CollectiveFullStats | null> {
-  const now = new Date()
+  const now = new Date().toISOString()
 
-  const [impactRes, membersRes, eventsRes, pastEventsRes, cleanupRes, leadersCountRes] = await Promise.all([
-    supabase
-      .from('event_impact')
-      .select(`${IMPACT_SELECT_COLUMNS}, events!inner(collective_id, date_start)`)
-      .eq('events.collective_id', collectiveId)
-      .lt('events.date_start', now.toISOString())
-      .or('notes.is.null,notes.not.like.Legacy import:%'),
-    supabase
-      .from('collective_members')
-      .select('id', { count: 'exact', head: true })
-      .eq('collective_id', collectiveId)
-      .eq('status', 'active'),
-    supabase
-      .from('events')
-      .select('id', { count: 'exact', head: true })
-      .eq('collective_id', collectiveId)
-      .lt('date_start', now.toISOString())
-      .neq('status', 'cancelled')
-      .neq('status', 'draft'),
-    supabase
-      .from('events')
-      .select('id')
-      .eq('collective_id', collectiveId)
-      .lt('date_start', now.toISOString())
-      .neq('status', 'cancelled')
-      .neq('status', 'draft'),
-    supabase
-      .from('events')
-      .select('id', { count: 'exact', head: true })
-      .eq('collective_id', collectiveId)
-      .in('activity_type', ['shore_cleanup', 'marine_restoration'])
-      .lt('date_start', now.toISOString()),
-    supabase
-      .from('app_settings')
-      .select('value')
-      .eq('key', 'leaders_empowered:' + collectiveId)
-      .single(),
-  ])
+  const [{ rows, legacyRows, eventIds, eventCount }, membersRes, eventsRes, cleanupRes, leadersCountRes] =
+    await Promise.all([
+      // All-time: include legacy rows for full historical picture
+      fetchImpactRows({ collectiveId, timeRange: 'all-time', includeLegacy: true }),
+      supabase.from('collective_members').select('id', { count: 'exact', head: true })
+        .eq('collective_id', collectiveId).eq('status', 'active'),
+      supabase.from('events').select('id', { count: 'exact', head: true })
+        .eq('collective_id', collectiveId).lt('date_start', now)
+        .neq('status', 'cancelled').neq('status', 'draft'),
+      supabase.from('events').select('id', { count: 'exact', head: true })
+        .eq('collective_id', collectiveId)
+        .in('activity_type', ['shore_cleanup', 'marine_restoration'])
+        .lt('date_start', now),
+      supabase.from('app_settings').select('value')
+        .eq('key', 'leaders_empowered:' + collectiveId).single(),
+    ])
 
-  const rows = (impactRes.data ?? []) as unknown as ImpactRow[]
-  const eventIds = (pastEventsRes.data ?? []).map((e: { id: string }) => e.id)
+  const allRows = [...rows, ...legacyRows] as Record<string, unknown>[]
 
   let attendanceCount = 0
   let attendanceRate = 0
   if (eventIds.length > 0) {
-    const { count: totalReg } = await supabase
-      .from('event_registrations')
-      .select('id', { count: 'exact', head: true })
-      .in('event_id', eventIds)
-      .in('status', ['registered', 'attended'])
-    const { count: totalAttended } = await supabase
-      .from('event_registrations')
-      .select('id', { count: 'exact', head: true })
-      .in('event_id', eventIds)
-      .eq('status', 'attended')
+    const [{ count: totalReg }, { count: totalAttended }] = await Promise.all([
+      supabase.from('event_registrations').select('id', { count: 'exact', head: true })
+        .in('event_id', eventIds).in('status', ['registered', 'attended']),
+      supabase.from('event_registrations').select('id', { count: 'exact', head: true })
+        .in('event_id', eventIds).eq('status', 'attended'),
+    ])
     attendanceCount = totalAttended ?? 0
     if (totalReg && totalReg > 0) {
       attendanceRate = Math.round(((totalAttended ?? 0) / totalReg) * 100)
@@ -233,17 +207,17 @@ async function fetchCollectiveFullStats(collectiveId: string): Promise<Collectiv
   }
 
   return {
-    eventsAttended: attendanceCount,
-    volunteerHours: Math.round(sumMetric(rows as Record<string, unknown>[], 'hours_total')),
-    treesPlanted: sumMetric(rows as Record<string, unknown>[], 'trees_planted'),
-    invasiveWeedsPulled: sumMetric(rows as Record<string, unknown>[], 'invasive_weeds_pulled'),
-    rubbishKg: Math.round(sumMetric(rows as Record<string, unknown>[], 'rubbish_kg') * 10) / 10,
-    cleanupSites: cleanupRes.count ?? 0,
-    coastlineCleanedM: Math.round(sumMetric(rows as Record<string, unknown>[], 'coastline_cleaned_m')),
-    leadersEmpowered: (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
-    eventsLogged: rows.length,
-    totalMembers: membersRes.count ?? 0,
-    totalEvents: eventsRes.count ?? 0,
+    eventsAttended:      attendanceCount,
+    volunteerHours:      Math.round(sumMetric(allRows, 'hours_total')),
+    treesPlanted:        sumMetric(allRows, 'trees_planted'),
+    invasiveWeedsPulled: sumMetric(allRows, 'invasive_weeds_pulled'),
+    rubbishKg:           Math.round(sumMetric(allRows, 'rubbish_kg') * 10) / 10,
+    cleanupSites:        cleanupRes.count ?? 0,
+    coastlineCleanedM:   Math.round(sumMetric(allRows, 'coastline_cleaned_m')),
+    leadersEmpowered:    (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
+    eventsLogged:        eventCount,
+    totalMembers:        membersRes.count ?? 0,
+    totalEvents:         eventsRes.count ?? 0,
     attendanceRate,
   }
 }

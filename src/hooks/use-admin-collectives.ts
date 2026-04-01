@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { supabase, escapeIlike } from '@/lib/supabase'
 import { sumMetric } from '@/lib/impact-metrics'
+import { fetchImpactRows } from '@/lib/impact-query'
 import { logAudit } from '@/lib/audit'
 import { countByField, STATUS_FILTERS } from '@/lib/query-builders'
 import type {
@@ -238,16 +239,12 @@ export function useAdminCollectiveStats(collectiveId: string | undefined) {
 
       // RPC uses COALESCE(SUM(...), 0) so unmeasured metrics aggregate to 0,
       // which is the correct semantic for dashboard totals (vs null in raw rows).
-      const [rpcRes, impactRes] = await Promise.all([
+      const [rpcRes, impactResult] = await Promise.all([
         supabase.rpc('get_collective_stats', { p_collective_id: collectiveId }),
-        supabase
-          .from('event_impact')
-          .select('hours_total, events!inner(collective_id)')
-          .eq('events.collective_id', collectiveId),
+        fetchImpactRows({ collectiveId, timeRange: 'all-time', includeLegacy: true }),
       ])
       if (rpcRes.error) throw rpcRes.error
-
-      const impactRows = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
+      const impactRows = impactResult.rows
 
       const rpcData = rpcRes.data as {
         member_count: number
