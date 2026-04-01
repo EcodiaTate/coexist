@@ -862,7 +862,7 @@ function HomeImpactSection({
           {/* Toggles */}
           <div className="flex items-center gap-2 mb-6">
             {/* Scope toggle: National / Collective (with dropdown if multiple) */}
-            <div className="flex rounded-full bg-primary-950/10 p-0.5">
+            <div className="flex rounded-full bg-[#f4f2ec]/15 p-0.5">
               <button
                 type="button"
                 onClick={() => setScope('national')}
@@ -870,7 +870,7 @@ function HomeImpactSection({
                   'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
                   scope === 'national'
                     ? 'bg-white/90 text-primary-900 shadow-sm'
-                    : 'text-primary-950/50 hover:text-primary-950/70',
+                    : 'text-[#f4f2ec]/70 hover:text-[#f4f2ec]',
                 )}
               >
                 <Globe size={11} className="inline mr-1 -mt-0.5" />
@@ -892,7 +892,7 @@ function HomeImpactSection({
                       'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none flex items-center gap-1 max-w-[160px]',
                       scope === 'collective'
                         ? 'bg-white/90 text-primary-900 shadow-sm'
-                        : 'text-primary-950/50 hover:text-primary-950/70',
+                        : 'text-[#f4f2ec]/70 hover:text-[#f4f2ec]',
                     )}
                   >
                     <MapPin size={11} className="-mt-0.5 shrink-0" />
@@ -933,7 +933,7 @@ function HomeImpactSection({
             </div>
 
             {/* Time range toggle */}
-            <div className="flex rounded-full bg-primary-950/10 p-0.5">
+            <div className="flex rounded-full bg-[#f4f2ec]/15 p-0.5">
               <button
                 type="button"
                 onClick={() => setTimeRange('all-time')}
@@ -941,7 +941,7 @@ function HomeImpactSection({
                   'px-3 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
                   timeRange === 'all-time'
                     ? 'bg-white/90 text-primary-900 shadow-sm'
-                    : 'text-primary-950/50 hover:text-primary-950/70',
+                    : 'text-[#f4f2ec]/70 hover:text-[#f4f2ec]',
                 )}
               >
                 All Time
@@ -953,7 +953,7 @@ function HomeImpactSection({
                   'px-3 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
                   timeRange === 'current-year'
                     ? 'bg-white/90 text-primary-900 shadow-sm'
-                    : 'text-primary-950/50 hover:text-primary-950/70',
+                    : 'text-[#f4f2ec]/70 hover:text-[#f4f2ec]',
                 )}
               >
                 {new Date().getFullYear()}
