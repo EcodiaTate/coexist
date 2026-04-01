@@ -1,5 +1,6 @@
 import { useQuery, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { countByField, STATUS_FILTERS } from '@/lib/query-builders'
 
 /* ------------------------------------------------------------------ */
 /*  Admin events dashboard hook                                        */
@@ -71,17 +72,18 @@ async function fetchAdminEventsData(): Promise<AdminEventsData> {
 
   // Batch-fetch registration counts in one query instead of N
   const eventIds = eventList.map((e) => e.id)
-  const regCounts = new Map<string, number>()
+  let regCounts = new Map<unknown, number>()
   if (eventIds.length > 0) {
     const { data: regRows } = await supabase
       .from('event_registrations')
       .select('event_id')
       .in('event_id', eventIds)
-      .in('status', ['registered', 'attended'])
+      .in('status', STATUS_FILTERS.events.REGISTRATION)
 
-    for (const row of (regRows ?? []) as { event_id: string }[]) {
-      regCounts.set(row.event_id, (regCounts.get(row.event_id) ?? 0) + 1)
-    }
+    regCounts = countByField(
+      (regRows ?? []) as { event_id: string }[],
+      'event_id',
+    )
   }
 
   const enriched: AdminEvent[] = eventList.map((event) => ({

@@ -20,7 +20,9 @@ import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { cn } from '@/lib/cn'
-import { formatDate, formatTime } from '@/lib/date-format'
+import { formatDate, formatTime, daysUntil } from '@/lib/date-format'
+import { ACTIVITY_COLORS, STATUS_BADGE_STYLES } from '@/lib/color-schemes'
+import { formatActivityType } from '@/lib/activity-types'
 import { useAdminEventsData, type AdminEvent } from '@/hooks/use-admin-events'
 
 interface CollectiveGroup {
@@ -38,41 +40,9 @@ type StatusFilter = 'upcoming' | 'past' | 'all' | 'draft' | 'cancelled'
 /*  Activity type styling                                              */
 /* ------------------------------------------------------------------ */
 
-const activityColors: Record<string, string> = {
-  shore_cleanup: 'bg-sky-100 text-sky-700',
-  tree_planting: 'bg-sprout-100 text-sprout-700',
-  land_regeneration: 'bg-moss-100 text-moss-700',
-  nature_walk: 'bg-bark-100 text-bark-700',
-  camp_out: 'bg-moss-100 text-moss-700',
-  retreat: 'bg-plum-100 text-plum-700',
-  film_screening: 'bg-coral-100 text-coral-700',
-  marine_restoration: 'bg-primary-100 text-primary-700',
-  workshop: 'bg-bark-100 text-bark-700',
-}
-
-function activityLabel(type: string | null): string {
-  if (!type) return 'Event'
-  return type
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase())
-}
-
-const statusBadgeStyles: Record<string, { label: string; className: string }> = {
-  draft: { label: 'Draft', className: 'bg-neutral-100 text-neutral-600' },
-  published: { label: 'Live', className: 'bg-success-100 text-success-700' },
-  cancelled: { label: 'Cancelled', className: 'bg-error-100 text-error-700' },
-  completed: { label: 'Completed', className: 'bg-info-100 text-info-700' },
-}
-
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-
-function daysUntil(dateStr: string): number {
-  const now = new Date()
-  const target = new Date(dateStr)
-  return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-}
 
 function groupByCollective(events: AdminEvent[]): CollectiveGroup[] {
   const map = new Map<string, CollectiveGroup>()
@@ -142,7 +112,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const isPast = new Date(event.date_start) < new Date()
-  const actColor = activityColors[event.activity_type ?? ''] ?? 'bg-neutral-50 text-neutral-600'
+  const actColor = ACTIVITY_COLORS[event.activity_type ?? ''] ?? 'bg-neutral-50 text-neutral-600'
 
   return (
     <motion.div
@@ -179,7 +149,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
           {/* Badges overlapping image bottom */}
           <div className="absolute bottom-2 left-3 right-3 flex items-end justify-between">
             <span className={cn('text-[11px] font-semibold px-2 py-0.5 rounded-full ', actColor)}>
-              {activityLabel(event.activity_type)}
+              {formatActivityType(event.activity_type)}
             </span>
             <CountdownBadge dateStr={event.date_start} />
           </div>
@@ -192,7 +162,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
               {event.title}
             </h4>
             {event.status !== 'published' && (() => {
-              const badge = statusBadgeStyles[event.status]
+              const badge = STATUS_BADGE_STYLES[event.status]
               return badge ? (
                 <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0', badge.className)}>
                   {badge.label}
@@ -386,7 +356,7 @@ function PastEventRow({ event, index }: { event: AdminEvent; index: number }) {
         </div>
 
         {event.status !== 'published' && (() => {
-          const badge = statusBadgeStyles[event.status]
+          const badge = STATUS_BADGE_STYLES[event.status]
           return badge ? (
             <span className={cn('text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0', badge.className)}>
               {badge.label}

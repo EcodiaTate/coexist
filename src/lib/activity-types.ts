@@ -72,6 +72,16 @@ export const activityAccent: Record<string, ActivityAccent> = {
   workshop:           { gradient: 'from-fuchsia-400 to-purple-500',   glow: 'shadow-fuchsia-400/25', bg: 'bg-fuchsia-50',   text: 'text-fuchsia-700',  border: 'border-fuchsia-200/50' },
 }
 
+/* ------------------------------------------------------------------ */
+/*  Display label                                                      */
+/* ------------------------------------------------------------------ */
+
+/** Converts a DB enum value to a human-readable label: "shore_cleanup" → "Shore Cleanup" */
+export function formatActivityType(type: string | null | undefined): string {
+  if (!type) return 'Event'
+  return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 export const defaultAccent: ActivityAccent = {
   gradient: 'from-primary-400 to-sprout-500',
   glow: 'shadow-primary-400/25',
