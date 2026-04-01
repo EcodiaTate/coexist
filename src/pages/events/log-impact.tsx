@@ -65,7 +65,7 @@ const MapView = lazy(() => import('@/components/map/map-view').then(m => ({ defa
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' as const } },
 }
 
 const stagger = {

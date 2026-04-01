@@ -65,30 +65,41 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
   const baselineDate = new Date(ADMIN_BASELINE_DATE).toISOString()
   const isAllTime = dateRange === 'all'
 
+  const now = new Date().toISOString()
+
+  // Step 1: fetch post-baseline event IDs to scope impact query reliably.
+  // Embedded join filters (.gte('events.date_start')) don't scope the top-level
+  // WHERE in PostgREST — fetching IDs first and using .in() is the safe approach.
+  const postBaselineEventsRes = await supabase
+    .from('events')
+    .select('id', { count: 'exact' })
+    .lt('date_start', now)
+    .gte('date_start', baselineDate)
+  const postBaselineEventIds = (postBaselineEventsRes.data ?? []).map((e) => e.id)
+
   const [
     totalMembersRes,
     totalCollectivesRes,
-    totalEventsRes,
     totalImpactRes,
     periodMembersRes,
     periodEventsRes,
   ] = await Promise.all([
     supabase.from('profiles').select('id', { count: 'exact', head: true }),
     supabase.from('collectives').select('id', { count: 'exact', head: true }),
-    supabase.from('events').select('id', { count: 'exact', head: true })
-      .lt('date_start', new Date().toISOString())
-      .gte('date_start', baselineDate),
     (() => {
-      // Exclude legacy bulk-import rows; for period views, scope by event date.
+      // Exclude legacy bulk-import rows; scope to post-baseline events only.
       let q = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, events!inner(date_start)`)
+        .select(IMPACT_SELECT_COLUMNS)
         .or('notes.is.null,notes.not.like.Legacy import:%')
         .range(0, 9999)
-      if (rangeStart) {
-        q = q
-          .gte('events.date_start', rangeStart)
-          .lt('events.date_start', new Date().toISOString())
+      const scopeIds = rangeStart
+        ? postBaselineEventIds // further filtered below by period
+        : postBaselineEventIds
+      if (scopeIds.length > 0) {
+        q = q.in('event_id', scopeIds)
+      } else {
+        q = q.eq('event_id', '00000000-0000-0000-0000-000000000000')
       }
       return q
     })(),
@@ -103,7 +114,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
           .from('events')
           .select('id', { count: 'exact', head: true })
           .gte('date_start', rangeStart)
-          .lt('date_start', new Date().toISOString())
+          .lt('date_start', now)
       : Promise.resolve({ count: 0 }),
   ])
 
@@ -111,7 +122,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
   return {
     totalMembers: totalMembersRes.count ?? 0,
     totalCollectives: totalCollectivesRes.count ?? 0,
-    totalEvents: (totalEventsRes.count ?? 0) + (isAllTime ? ADMIN_BASELINE_EVENTS : 0),
+    totalEvents: (postBaselineEventsRes.count ?? 0) + (isAllTime ? ADMIN_BASELINE_EVENTS : 0),
     totalAttendees: Math.round(sumMetric(impact, 'attendees')) + (isAllTime ? ADMIN_BASELINE_ATTENDEES : 0),
     totalTrees: sumMetric(impact, 'trees_planted') + (isAllTime ? ADMIN_BASELINE_TREES : 0),
     totalHours: Math.round(sumMetric(impact, 'hours_total')) + (isAllTime ? ADMIN_BASELINE_HOURS : 0),
