@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tansta
 import { supabase, escapeIlike } from '@/lib/supabase'
 import { sumMetric } from '@/lib/impact-metrics'
 import { logAudit } from '@/lib/audit'
-import { countByField } from '@/lib/query-builders'
+import { countByField, STATUS_FILTERS } from '@/lib/query-builders'
 import type {
   Database,
   Tables,
@@ -96,14 +96,14 @@ export function useAdminCollectives(filters: {
           .in('collective_id', ids),
       ])
 
-      const memberCounts = new Map<string, number>()
-      for (const row of (membersRes.data ?? []) as { collective_id: string }[]) {
-        memberCounts.set(row.collective_id, (memberCounts.get(row.collective_id) ?? 0) + 1)
-      }
-      const eventCounts = new Map<string, number>()
-      for (const row of (eventsRes.data ?? []) as { collective_id: string }[]) {
-        eventCounts.set(row.collective_id, (eventCounts.get(row.collective_id) ?? 0) + 1)
-      }
+      const memberCounts = countByField(
+        (membersRes.data ?? []) as { collective_id: string }[],
+        'collective_id',
+      )
+      const eventCounts = countByField(
+        (eventsRes.data ?? []) as { collective_id: string }[],
+        'collective_id',
+      )
 
       return collectives.map((c) => {
         const memberCount = memberCounts.get(c.id) ?? 0
@@ -209,7 +209,7 @@ export function useAdminCollectiveEvents(collectiveId: string | undefined) {
         .from('event_registrations')
         .select('event_id')
         .in('event_id', eventIds)
-        .in('status', ['registered', 'attended'])
+        .in('status', STATUS_FILTERS.events.REGISTRATION)
 
       const regCounts = new Map<string, number>()
       for (const row of (regRows ?? []) as { event_id: string }[]) {

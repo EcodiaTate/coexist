@@ -27,6 +27,7 @@ import { BottomSheet } from '@/components/bottom-sheet'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
+import { CONTACT_CATEGORY_COLORS } from '@/lib/color-schemes'
 import {
   useAdminContacts,
   useCreateContact,
@@ -53,14 +54,6 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   internal: <Users size={16} />,
 }
 
-const CATEGORY_COLORS: Record<string, { bg: string; text: string; ring: string }> = {
-  emergency: { bg: 'bg-red-50', text: 'text-red-600', ring: 'ring-red-200' },
-  wildlife: { bg: 'bg-moss-50', text: 'text-moss-600', ring: 'ring-moss-200' },
-  marine: { bg: 'bg-sky-50', text: 'text-sky-600', ring: 'ring-sky-200' },
-  poison: { bg: 'bg-amber-50', text: 'text-amber-600', ring: 'ring-amber-200' },
-  ses: { bg: 'bg-primary-50', text: 'text-primary-600', ring: 'ring-primary-200' },
-  internal: { bg: 'bg-plum-50', text: 'text-plum-600', ring: 'ring-plum-200' },
-}
 
 /* ------------------------------------------------------------------ */
 /*  Format phone for display                                           */
@@ -420,7 +413,7 @@ export default function AdminContactsPage() {
           ) : (
             <div className="space-y-6">
               {grouped.map((group) => {
-                const colors = CATEGORY_COLORS[group.category] ?? CATEGORY_COLORS.emergency
+                const colors = CONTACT_CATEGORY_COLORS[group.category] ?? CONTACT_CATEGORY_COLORS.emergency
                 const icon = CATEGORY_ICONS[group.category]
 
                 return (

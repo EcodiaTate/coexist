@@ -41,6 +41,7 @@ import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { logAudit } from '@/lib/audit'
+import { ROLE_LABELS, SKILL_LABELS } from '@/lib/labels-and-enums'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -89,19 +90,6 @@ interface NotificationRecipient {
 /*  Label maps                                                         */
 /* ------------------------------------------------------------------ */
 
-const ROLE_LABELS: Record<string, string> = {
-  social_media: 'Social Media & Content',
-  collective_leader: 'Collective Leader',
-  assistant_leader: 'Assistant Leader',
-  other: 'Other',
-}
-
-const SKILL_LABELS: Record<string, string> = {
-  public_speaking: 'Public Speaking',
-  event_organisation: 'Event Organisation',
-  event_facilitation: 'Event Facilitation',
-  social_media_content: 'Social Media Content Creation',
-}
 
 const HOW_HEARD_LABELS: Record<string, string> = {
   social_media: 'Social Media',

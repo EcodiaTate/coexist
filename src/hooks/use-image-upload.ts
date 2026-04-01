@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { uploadImage, type UploadImageResult } from '@/lib/image-utils'
 import { useUpload } from '@/hooks/use-upload'
+import { buildStoragePath } from '@/lib/storage-path-builder'
 
 interface UseImageUploadOptions {
   bucket: string
@@ -58,11 +59,7 @@ export function useImageUpload({
   const buildPath = useCallback(
     (customPath?: string) => {
       if (customPath) return customPath
-      const uid = user?.id ?? 'anon'
-      const prefix = pathPrefix ? `${pathPrefix}/` : ''
-      const ts = Date.now()
-      const rand = Math.random().toString(36).slice(2, 8)
-      return `${uid}/${prefix}${ts}-${rand}.jpg`
+      return buildStoragePath(user?.id, pathPrefix || undefined)
     },
     [user?.id, pathPrefix],
   )

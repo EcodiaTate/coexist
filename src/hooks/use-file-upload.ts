@@ -2,6 +2,7 @@ import { useCallback } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { uploadWithProgress } from '@/lib/image-utils'
 import { useUpload } from '@/hooks/use-upload'
+import { buildStoragePath } from '@/lib/storage-path-builder'
 
 interface UseFileUploadOptions {
   bucket: string
@@ -37,13 +38,8 @@ export function useFileUpload({
         throw new Error(`File too large (max ${maxSizeMB}MB)`)
       }
 
-      const uid = user.id
-      const prefix = pathPrefix ? `${pathPrefix}/` : ''
-      const ts = Date.now()
-      const rand = Math.random().toString(36).slice(2, 8)
-      // Preserve original extension
       const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin'
-      const path = `${uid}/${prefix}${ts}-${rand}.${ext}`
+      const path = buildStoragePath(user.id, pathPrefix || undefined, ext)
 
       const result = await uploadWithProgress({ bucket, path, file, onProgress })
       return { url: result.url, path: result.path, fileName: file.name }
