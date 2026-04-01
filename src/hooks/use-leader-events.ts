@@ -1,4 +1,4 @@
-import { useQuery, type QueryClient } from '@tanstack/react-query'
+import { useQuery, keepPreviousData, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import type { Tables } from '@/types/database.types'
 
@@ -70,6 +70,7 @@ export function useLeaderCollectiveEvents(collectiveId: string | undefined, filt
     queryFn: () => fetchLeaderCollectiveEvents(collectiveId!, filter),
     enabled: !!collectiveId,
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 

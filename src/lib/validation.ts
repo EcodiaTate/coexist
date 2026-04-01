@@ -22,6 +22,9 @@ const urlField = z.string().trim().url('Invalid URL').max(2048, 'URL too long').
 
 const australianPostcode = z.string().trim().regex(/^\d{4}$/, 'Postcode must be 4 digits')
 
+const instagramHandle = z.string().trim().max(30, 'Instagram handle too long')
+  .regex(/^@?[\w.]*$/, 'Invalid Instagram handle').optional().or(z.literal(''))
+
 /* ------------------------------------------------------------------ */
 /*  Profile                                                            */
 /* ------------------------------------------------------------------ */
@@ -30,15 +33,14 @@ export const profileUpdateSchema = z.object({
   display_name: trimmedString(1, 100, 'Display name').optional(),
   bio: optionalTrimmedString(500, 'Bio'),
   location: optionalTrimmedString(200, 'Location'),
-  instagram_handle: z.string().trim().max(30, 'Instagram handle too long')
-    .regex(/^@?[\w.]*$/, 'Invalid Instagram handle').optional().or(z.literal('')),
+  instagram_handle: instagramHandle,
   avatar_url: urlField,
   notification_preferences: z.record(z.string(), z.boolean()).optional(),
 }).strict()
 
 export const onboardingSchema = z.object({
   display_name: trimmedString(1, 100, 'Display name'),
-  instagram_handle: z.string().trim().max(30).regex(/^@?[\w.]*$/, 'Invalid Instagram handle').optional().or(z.literal('')),
+  instagram_handle: instagramHandle,
   location: optionalTrimmedString(200, 'Location'),
   interests: z.array(z.string().max(50)).max(20, 'Too many interests').optional(),
   avatar_url: urlField,

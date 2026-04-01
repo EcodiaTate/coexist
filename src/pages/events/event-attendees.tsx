@@ -61,9 +61,8 @@ export function EventAttendees({ event, accent, capacityText, capacityPercent, f
                   ? 'bg-gradient-to-r from-warning-400 to-warning-500'
                   : cn('bg-gradient-to-r', accent.gradient),
             )}
-            initial={{ width: 0 }}
             animate={{ width: `${capacityPercent}%` }}
-            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.8, ease: 'easeOut', delay: 0.2 }}
+            transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.6, ease: 'easeOut' }}
           />
         </div>
       )}

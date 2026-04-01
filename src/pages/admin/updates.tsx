@@ -35,6 +35,7 @@ import { UploadProgress } from '@/components/upload-progress'
 import { Avatar } from '@/components/avatar'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
+import { formatDateLong, formatRelative } from '@/lib/date-format'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useCollectives } from '@/hooks/use-collective'
 import { useImageUpload } from '@/hooks/use-image-upload'
@@ -50,33 +51,6 @@ import type { Enums } from '@/types/database.types'
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-AU', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-}
-
-function formatRelative(dateStr: string): string {
-  const date = new Date(dateStr)
-  const now = Date.now()
-  const diff = Math.floor((now - date.getTime()) / 1000)
-
-  if (diff < 60) return 'Just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
-  return date.toLocaleDateString('en-AU', {
-    day: 'numeric',
-    month: 'short',
-    year: diff > 31536000 ? 'numeric' : undefined,
-  })
-}
 
 function audienceLabel(update: AdminUpdate): string {
   if (update.target_audience === 'collective_specific' && update.collective?.name) {
@@ -776,7 +750,7 @@ function DetailPanel({
               <div className="flex items-center gap-2 mt-0.5">
                 <span className="text-[11px] text-neutral-400 flex items-center gap-1">
                   <Clock size={10} />
-                  {formatDate(update.created_at ?? '')}
+                  {formatDateLong(update.created_at ?? '')}
                 </span>
               </div>
             </div>

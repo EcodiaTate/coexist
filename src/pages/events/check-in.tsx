@@ -18,6 +18,8 @@ import { useProfile } from '@/hooks/use-profile'
 import { useEventDetail, useCheckIn } from '@/hooks/use-events'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import { useOffline } from '@/hooks/use-offline'
+import { useCheckInValidation } from '@/hooks/use-check-in-validation'
+import { CHECK_IN_ERROR_MESSAGES, type CheckInErrorKind } from '@/lib/constants/check-in'
 import { queueOfflineCheckIn } from '@/lib/offline-sync'
 import { supabase } from '@/lib/supabase'
 import {
@@ -97,16 +99,7 @@ function Confetti() {
 
 type CheckInState = 'idle' | 'scanning' | 'manual' | 'success' | 'error' | 'waitlisted'
 
-type ErrorKind = 'not_registered' | 'already_checked_in' | 'invalid_qr' | 'event_cancelled' | 'event_not_active' | 'generic'
-
-const ERROR_MESSAGES: Record<ErrorKind, string> = {
-  not_registered: "You're not registered for this event. Register first, then try again.",
-  already_checked_in: "You've already checked in to this event!",
-  invalid_qr: 'This QR code is not valid for this event.',
-  event_cancelled: 'This event has been cancelled.',
-  event_not_active: 'Check-in is not available for this event right now.',
-  generic: 'Something went wrong. Please try again.',
-}
+type ErrorKind = CheckInErrorKind
 
 /* ------------------------------------------------------------------ */
 /*  Page Component                                                     */
@@ -123,6 +116,7 @@ export default function CheckInPage() {
   const { data: event, isLoading } = useEventDetail(eventId)
   const showLoading = useDelayedLoading(isLoading)
   const checkInMutation = useCheckIn()
+  const { validateRegistration } = useCheckInValidation()
   const collectiveRole = useCollectiveRole(event?.collective_id)
   const isLeaderOrAbove = collectiveRole.isCoLeader || collectiveRole.isLeader || isGlobalStaff
 
@@ -163,32 +157,15 @@ export default function CheckInPage() {
       }
 
       // Check registration status first
-      const { data: registration, error: regError } = await supabase
-        .from('event_registrations')
-        .select('status, checked_in_at')
-        .eq('event_id', targetEventId)
-        .eq('user_id', user.id)
-        .maybeSingle()
+      const validation = await validateRegistration(targetEventId, user.id)
 
-      if (regError || !registration) {
-        setErrorKind('not_registered')
-        setState('error')
-        return
-      }
-
-      if (registration.status === 'attended' && registration.checked_in_at) {
-        setErrorKind('already_checked_in')
-        setState('error')
-        return
-      }
-
-      if (registration.status === 'waitlisted') {
+      if (validation.status === 'waitlisted') {
         setState('waitlisted')
         return
       }
 
-      if (registration.status !== 'registered' && registration.status !== 'invited') {
-        setErrorKind('not_registered')
+      if (validation.status === 'error') {
+        setErrorKind(validation.kind)
         setState('error')
         return
       }
@@ -542,7 +519,7 @@ export default function CheckInPage() {
               {errorKind === 'already_checked_in' ? 'Already Checked In' : 'Check-in Failed'}
             </h2>
             <p className="text-neutral-500 mt-2 max-w-xs">
-              {ERROR_MESSAGES[errorKind]}
+              {CHECK_IN_ERROR_MESSAGES[errorKind]}
             </p>
             <div className="mt-6 w-full max-w-xs space-y-2">
               {errorKind === 'already_checked_in' || errorKind === 'event_cancelled' || errorKind === 'event_not_active' ? (

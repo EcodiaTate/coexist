@@ -42,6 +42,7 @@ export interface AdminOverviewData {
   totalMembers: number
   totalCollectives: number
   totalEvents: number
+  totalAttendees: number
   totalTrees: number
   totalHours: number
   totalRubbish: number
@@ -56,6 +57,7 @@ const ADMIN_BASELINE_TREES      = 35000
 const ADMIN_BASELINE_RUBBISH_KG = 4794
 const ADMIN_BASELINE_EVENTS     = 340
 const ADMIN_BASELINE_HOURS      = 11000  // 5500 attendees × 2hrs avg
+const ADMIN_BASELINE_ATTENDEES  = 5500
 const ADMIN_BASELINE_DATE       = '2026-01-01'
 
 async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewData> {
@@ -110,6 +112,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
     totalMembers: totalMembersRes.count ?? 0,
     totalCollectives: totalCollectivesRes.count ?? 0,
     totalEvents: (totalEventsRes.count ?? 0) + (isAllTime ? ADMIN_BASELINE_EVENTS : 0),
+    totalAttendees: Math.round(sumMetric(impact, 'attendees')) + (isAllTime ? ADMIN_BASELINE_ATTENDEES : 0),
     totalTrees: sumMetric(impact, 'trees_planted') + (isAllTime ? ADMIN_BASELINE_TREES : 0),
     totalHours: Math.round(sumMetric(impact, 'hours_total')) + (isAllTime ? ADMIN_BASELINE_HOURS : 0),
     totalRubbish: Math.round(sumMetric(impact, 'rubbish_kg') + (isAllTime ? ADMIN_BASELINE_RUBBISH_KG : 0)),

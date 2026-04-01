@@ -4,7 +4,7 @@
 -- When a leader fills a survey for an event that previously had a legacy
 -- bulk-import row, the upsert preserved the old "Legacy import: X attendees"
 -- notes. This caused the row to be excluded from post-baseline impact sums.
--- ============================================================================
+-- a============================================================================
 
 UPDATE event_impact
 SET notes = NULL,

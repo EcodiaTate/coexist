@@ -311,8 +311,9 @@ export function BentoStatGrid({
   const layout = getLayout(items.length)
 
   return (
-    <div
+    <motion.div
       ref={ref}
+      layout
       className={cn(
         'grid grid-cols-2 sm:grid-cols-4 gap-3',
         className,
@@ -322,8 +323,9 @@ export function BentoStatGrid({
         const [smCol, mobCol, isHero] = layout[i] ?? [1, 1, false]
 
         return (
-          <div
+          <motion.div
             key={i}
+            layout
             className={cn(
               mobColClasses[mobCol],
               smColClasses[smCol],
@@ -335,10 +337,10 @@ export function BentoStatGrid({
                   delay: child.props.delay ?? i,
                 } as Partial<BentoStatCardProps>)
               : child}
-          </div>
+          </motion.div>
         )
       })}
-    </div>
+    </motion.div>
   )
 }
 

@@ -9,6 +9,7 @@ import { Button } from '@/components/button'
 import { Skeleton } from '@/components/skeleton'
 import { OGMeta, SITE_URL } from '@/components/og-meta'
 import { APP_NAME } from '@/lib/constants'
+import { formatTime } from '@/lib/date-format'
 import { WebFooter } from '@/components/web-footer'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
 
@@ -18,13 +19,6 @@ function formatDate(date: string) {
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  })
-}
-
-function formatTime(date: string) {
-  return new Date(date).toLocaleTimeString('en-AU', {
-    hour: 'numeric',
-    minute: '2-digit',
   })
 }
 

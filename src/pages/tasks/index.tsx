@@ -323,7 +323,7 @@ function CollectiveGroup({
   const completed = tasks.filter((t) => t.status === 'completed' || t.status === 'skipped')
 
   return (
-    <div className="space-y-1.5">
+    <motion.div layout="position" className="space-y-1.5">
       <button
         type="button"
         onClick={() => setCollapsed(!collapsed)}
@@ -347,26 +347,35 @@ function CollectiveGroup({
         )}
       </button>
 
-      {!collapsed && (
-        <div className="space-y-1.5">
-          {pending.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
-          {completed.length > 0 && (
-            <details className="group">
-              <summary className="text-[11px] text-neutral-500 cursor-pointer py-1 select-none">
-                {completed.length} completed
-              </summary>
-              <div className="space-y-1 mt-1">
-                {completed.map((task) => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
-              </div>
-            </details>
-          )}
-        </div>
-      )}
-    </div>
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.div
+            key="expanded"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden space-y-1.5"
+          >
+            {pending.map((task) => (
+              <TaskCard key={task.id} task={task} />
+            ))}
+            {completed.length > 0 && (
+              <details className="group">
+                <summary className="text-[11px] text-neutral-500 cursor-pointer py-1 select-none">
+                  {completed.length} completed
+                </summary>
+                <div className="space-y-1 mt-1">
+                  {completed.map((task) => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
+                </div>
+              </details>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   )
 }
 

@@ -54,6 +54,7 @@ export const BUILTIN_COLUMNS = new Set([
   'wildlife_sightings',
   'coastline_cleaned_m',
   'hours_total',
+  'attendees',
   // Column exists in DB (added in migration 041) but is intentionally not
   // displayed or aggregated — "leaders empowered" uses a cumulative counter
   // in app_settings (migration 073), not event logging. Listed here so

@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { uploadWithProgress } from '@/lib/image-utils'
+import { useUpload } from '@/hooks/use-upload'
 
 interface UseFileUploadOptions {
   bucket: string
@@ -27,58 +28,30 @@ export function useFileUpload({
   maxSizeMB = 20,
 }: UseFileUploadOptions): UseFileUploadReturn {
   const { user } = useAuth()
-  const [uploading, setUploading] = useState(false)
-  const [progress, setProgress] = useState<number | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
-  const reset = useCallback(() => {
-    setUploading(false)
-    setProgress(null)
-    setError(null)
-  }, [])
-
-  const upload = useCallback(
-    async (file: File) => {
+  const uploadFn = useCallback(
+    async (file: File, onProgress: (p: number) => void) => {
       if (!user) throw new Error('Not authenticated')
 
       if (file.size > maxSizeMB * 1024 * 1024) {
-        const msg = `File too large (max ${maxSizeMB}MB)`
-        setError(msg)
-        throw new Error(msg)
+        throw new Error(`File too large (max ${maxSizeMB}MB)`)
       }
 
-      setUploading(true)
-      setError(null)
-      setProgress(0)
+      const uid = user.id
+      const prefix = pathPrefix ? `${pathPrefix}/` : ''
+      const ts = Date.now()
+      const rand = Math.random().toString(36).slice(2, 8)
+      // Preserve original extension
+      const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin'
+      const path = `${uid}/${prefix}${ts}-${rand}.${ext}`
 
-      try {
-        const uid = user.id
-        const prefix = pathPrefix ? `${pathPrefix}/` : ''
-        const ts = Date.now()
-        const rand = Math.random().toString(36).slice(2, 8)
-        // Preserve original extension
-        const ext = file.name.includes('.') ? file.name.split('.').pop() : 'bin'
-        const path = `${uid}/${prefix}${ts}-${rand}.${ext}`
-
-        const result = await uploadWithProgress({
-          bucket,
-          path,
-          file,
-          onProgress: (p) => setProgress(p),
-        })
-
-        setProgress(100)
-        return { url: result.url, path: result.path, fileName: file.name }
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Upload failed'
-        setError(msg)
-        throw e
-      } finally {
-        setUploading(false)
-      }
+      const result = await uploadWithProgress({ bucket, path, file, onProgress })
+      return { url: result.url, path: result.path, fileName: file.name }
     },
     [user, bucket, pathPrefix, maxSizeMB],
   )
 
-  return { upload, uploading, progress, error, reset }
+  const { uploading, progress, error, reset, run } = useUpload(uploadFn)
+
+  return { upload: run, uploading, progress, error, reset }
 }

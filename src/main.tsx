@@ -19,7 +19,6 @@ import { CookieConsentBanner } from '@/components/cookie-consent'
 import { initSentry, SentryErrorBoundary } from '@/lib/sentry'
 import App from './App'
 import './styles/globals.css'
-import '@/lib/i18n'
 
 const queryClient = new QueryClient({
   defaultOptions: {

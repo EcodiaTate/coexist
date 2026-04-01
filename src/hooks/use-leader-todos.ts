@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { untypedFrom } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { useOffline } from '@/hooks/use-offline'
@@ -80,6 +80,7 @@ export function useLeaderTodos(filters?: {
     },
     enabled: !!user,
     staleTime: 15 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 
