@@ -3,6 +3,14 @@ import { supabase } from '@/lib/supabase'
 import { IMPACT_SELECT_COLUMNS, sumMetric, isBuiltinMetric } from '@/lib/impact-metrics'
 import type { ImpactMetricDef } from '@/lib/impact-metrics'
 import { getDateRangeStart, type DateRange } from '@/hooks/use-admin-dashboard'
+import {
+  IMPACT_BASELINE_DATE,
+  BASELINE_TREES,
+  BASELINE_RUBBISH_KG,
+  BASELINE_EVENTS,
+  BASELINE_ATTENDEES,
+  BASELINE_HOURS,
+} from '@/lib/impact-query'
 import type { Database } from '@/types/database.types'
 
 type ActivityType = Database['public']['Enums']['activity_type']
@@ -72,12 +80,6 @@ export interface DataQuality {
 /* ------------------------------------------------------------------ */
 
 const SEED_ADMIN = 'a0000000-0000-0000-0000-000000000001'
-const BASELINE_DATE       = '2026-01-01'
-const BASELINE_EVENTS     = 340
-const BASELINE_ATTENDEES  = 5500
-const BASELINE_TREES      = 35000
-const BASELINE_RUBBISH_KG = 4794
-const BASELINE_HOURS      = 11000  // 5500 attendees × 2hrs avg
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -132,7 +134,7 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
 
       // Always restrict to post-baseline events to prevent 999_backfill rows
       // (date_start='2024-01-01', notes=NULL) from being double-counted with the baseline constants.
-      const effectiveStart = rangeStart ?? new Date(BASELINE_DATE).toISOString()
+      const effectiveStart = rangeStart ?? new Date(IMPACT_BASELINE_DATE).toISOString()
 
       let q = supabase
         .from('event_impact')
@@ -261,6 +263,7 @@ export function useYearOverYear(metricDefs: ImpactMetricDef[]) {
         .from('event_impact')
         .select(`${IMPACT_SELECT_COLUMNS}, logged_at, events!inner(date_start, date_end)`)
         .or('notes.is.null,notes.not.like.Legacy import:%')
+        .gte('events.date_start', new Date(IMPACT_BASELINE_DATE).toISOString())
         .lt('events.date_start', new Date().toISOString())
 
       if (error) throw error

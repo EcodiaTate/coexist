@@ -4,7 +4,8 @@ import { useAuth } from '@/hooks/use-auth'
 import { useOffline } from '@/hooks/use-offline'
 import { useToast } from '@/components/toast'
 import { queueOfflineAction } from '@/lib/offline-sync'
-import { IMPACT_SELECT_COLUMNS } from '@/lib/impact-metrics'
+import { sumMetric } from '@/lib/impact-metrics'
+import { fetchImpactRows } from '@/lib/impact-query'
 import type { Database } from '@/types/database.types'
 
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
@@ -95,30 +96,22 @@ export function useProfileStats(userId?: string) {
       let totalCoastlineM = 0
 
       if (eventIds.length > 0) {
-        // Batch in chunks to avoid URL length limits — parallelize
-        const impactRows: Record<string, unknown>[] = []
-        const chunkResults = await Promise.all(
-          Array.from({ length: Math.ceil(eventIds.length / 50) }, (_, i) => {
-            const chunk = eventIds.slice(i * 50, (i + 1) * 50)
-            return supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).in('event_id', chunk)
-          }),
-        )
-        for (const { data } of chunkResults) {
-          if (data) impactRows.push(...(data as unknown as Record<string, unknown>[]))
-        }
+        // User profile: include all rows for attended events regardless of date
+        // (skipBaselineDateFilter=true — user impact is their personal record, not a national aggregate)
+        const { rows: impactRows } = await fetchImpactRows({
+          eventIds,
+          includeLegacy: true,
+          skipBaselineDateFilter: true,
+        })
 
-        if (impactRows.length > 0) {
-          for (const impact of impactRows) {
-            totalTreesPlanted += Number(impact.trees_planted) || 0
-            totalHours += Number(impact.hours_total) || 0
-            totalRubbishKg += Number(impact.rubbish_kg) || 0
-            totalAreaSqm += Number(impact.area_restored_sqm) || 0
-            totalNativePlants += Number(impact.native_plants) || 0
-            totalWildlifeSightings += Number(impact.wildlife_sightings) || 0
-            totalInvasiveWeedsPulled += Number(impact.invasive_weeds_pulled) || 0
-            totalCoastlineM += Number(impact.coastline_cleaned_m) || 0
-          }
-        }
+        totalTreesPlanted       = sumMetric(impactRows, 'trees_planted')
+        totalHours              = sumMetric(impactRows, 'hours_total')
+        totalRubbishKg          = sumMetric(impactRows, 'rubbish_kg')
+        totalAreaSqm            = sumMetric(impactRows, 'area_restored_sqm')
+        totalNativePlants       = sumMetric(impactRows, 'native_plants')
+        totalWildlifeSightings  = sumMetric(impactRows, 'wildlife_sightings')
+        totalInvasiveWeedsPulled = sumMetric(impactRows, 'invasive_weeds_pulled')
+        totalCoastlineM         = sumMetric(impactRows, 'coastline_cleaned_m')
       }
 
       return {

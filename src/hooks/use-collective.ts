@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase, escapeIlike } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
-import { IMPACT_SELECT_COLUMNS } from '@/lib/impact-metrics'
+import { sumMetric } from '@/lib/impact-metrics'
+import { fetchImpactRows } from '@/lib/impact-query'
 import { COLLECTIVE_ROLE_RANK } from '@/lib/constants'
 import type {
   Database,
@@ -250,35 +251,24 @@ export function useCollectiveStats(collectiveId: string | undefined) {
       let attendanceRate = 0
 
       if (eventIds.length > 0) {
-        // Parallelize impact + attendance queries
-        const [impactsRes, registeredRes, attendedRes] = await Promise.all([
-          supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).in('event_id', eventIds)
-            .or('notes.is.null,notes.not.like.Legacy import:%'),
-          supabase
-            .from('event_registrations')
-            .select('id', { count: 'exact', head: true })
-            .in('event_id', eventIds)
-            .in('status', ['registered', 'attended']),
-          supabase
-            .from('event_registrations')
-            .select('id', { count: 'exact', head: true })
-            .in('event_id', eventIds)
-            .eq('status', 'attended'),
+        const [{ rows: impactRows }, registeredRes, attendedRes] = await Promise.all([
+          // All-time collective stats: include legacy rows for full historical picture
+          fetchImpactRows({ eventIds, includeLegacy: true, skipBaselineDateFilter: true }),
+          supabase.from('event_registrations').select('id', { count: 'exact', head: true })
+            .in('event_id', eventIds).in('status', ['registered', 'attended']),
+          supabase.from('event_registrations').select('id', { count: 'exact', head: true })
+            .in('event_id', eventIds).eq('status', 'attended'),
         ])
 
-        if (impactsRes.data) {
-          for (const i of impactsRes.data as unknown as Record<string, unknown>[]) {
-            totalTreesPlanted += Number(i.trees_planted) || 0
-            totalRubbishKg += Number(i.rubbish_kg) || 0
-            totalHours += Number(i.hours_total) || 0
-            totalAreaRestored += Number(i.area_restored_sqm) || 0
-            totalNativePlants += Number(i.native_plants) || 0
-            totalWildlifeSightings += Number(i.wildlife_sightings) || 0
-          }
-        }
+        totalTreesPlanted   = sumMetric(impactRows, 'trees_planted')
+        totalRubbishKg      = sumMetric(impactRows, 'rubbish_kg')
+        totalHours          = sumMetric(impactRows, 'hours_total')
+        totalAreaRestored   = sumMetric(impactRows, 'area_restored_sqm')
+        totalNativePlants   = sumMetric(impactRows, 'native_plants')
+        totalWildlifeSightings = sumMetric(impactRows, 'wildlife_sightings')
 
         const totalRegistered = registeredRes.count ?? 0
-        const totalAttended = attendedRes.count ?? 0
+        const totalAttended   = attendedRes.count ?? 0
         if (totalRegistered > 0) {
           attendanceRate = Math.round((totalAttended / totalRegistered) * 100) / 100
         }
