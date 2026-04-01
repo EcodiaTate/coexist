@@ -157,7 +157,8 @@ export async function fetchImpactRows(scope: ImpactScope = {}): Promise<FetchImp
 
   // Build the base query scoped to the resolved event IDs.
   // Split into chunks if necessary to stay under PostgREST URL limits.
-  const fetchChunked = async (filter: (q: ReturnType<typeof supabase.from>) => ReturnType<typeof supabase.from>) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fetchChunked = async (filter: (q: any) => any) => {
     const CHUNK = 200
     const allRows: ImpactRow[] = []
     for (let i = 0; i < resolvedEventIds.length; i += CHUNK) {
