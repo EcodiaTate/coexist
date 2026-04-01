@@ -84,7 +84,8 @@ export function buildBatchQuery(
   selectColumns = '*',
 ) {
   return supabase
-    .from(table)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .from(table as any)
     .select(selectColumns)
     .in(field, ids)
 }

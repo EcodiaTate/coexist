@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { toast } from 'sonner'
+import { useToast } from '@/components/toast'
 import type { UseMutationResult } from '@tanstack/react-query'
 
 interface UseFormMutationOptions<TData, TVariables> {
@@ -34,6 +34,7 @@ export function useFormMutation<TData, TVariables>({
   resetForm,
 }: UseFormMutationOptions<TData, TVariables>) {
   const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
 
   const handleSubmit = useCallback(
     async (payload: TVariables) => {
@@ -53,7 +54,7 @@ export function useFormMutation<TData, TVariables>({
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mutation.mutateAsync, onSuccess, successMessage, errorMessage, resetForm],
+    [mutation.mutateAsync, onSuccess, successMessage, errorMessage, resetForm, toast],
   )
 
   return {
