@@ -84,41 +84,32 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       const baselineRubbishKg = baselineMap['impact_baseline_rubbish_kg'] ?? 0
       const baselineHours     = baselineMap['impact_baseline_hours'] ?? 0
 
-      // Exclude legacy imports; scope to post-baseline events only (prevents 999_backfill
-      // rows from being double-counted against the baseline constants).
-      // The !inner join with .gte('events.date_start') filters at the join level —
-      // only event_impact rows whose event is on/after baselineDate are returned.
-      let impactQuery = supabase
-        .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(date_start)`)
-        .or('notes.is.null,notes.not.like.Legacy import:%')
-        .gte('events.date_start', baselineDate)
-        .range(0, 9999)
-      if (timeRange === 'current-year') {
-        impactQuery = impactQuery
-          .gte('events.date_start', yearStart)
-          .lt('events.date_start', new Date().toISOString())
-      }
+      const now = new Date().toISOString()
+      const effectiveStart = timeRange === 'current-year' && yearStart > baselineDate ? yearStart : baselineDate
 
-      // Only count events on/after the baseline date
+      // Step 1: fetch post-baseline event IDs (reliable scope for impact query)
       let eventsQuery = supabase
         .from('events')
-        .select('id, activity_type', { count: 'exact' })
-        .lt('date_start', new Date().toISOString())
-        .gte('date_start', baselineDate)
-      if (timeRange === 'current-year') {
-        eventsQuery = eventsQuery.gte('date_start', yearStart > baselineDate ? yearStart : baselineDate)
-      }
+        .select('id, activity_type, address', { count: 'exact' })
+        .lt('date_start', now)
+        .gte('date_start', effectiveStart)
+      const eventsRes = await eventsQuery
 
-      // Cleanup events — fetch addresses so we can count unique sites (post-baseline only)
-      let cleanupQuery = supabase
-        .from('events')
-        .select('id, address')
-        .in('activity_type', ['shore_cleanup', 'marine_restoration'])
-        .lt('date_start', new Date().toISOString())
-        .gte('date_start', baselineDate)
-      if (timeRange === 'current-year') {
-        cleanupQuery = cleanupQuery.gte('date_start', yearStart > baselineDate ? yearStart : baselineDate)
+      const postBaselineEventIds = (eventsRes.data ?? []).map((e) => e.id)
+
+      // Step 2: fetch impact rows only for post-baseline events, excluding legacy imports.
+      // This prevents 999_backfill rows (date_start='2024-01-01', notes=NULL) from being
+      // double-counted against the baseline constants.
+      let impactQuery = supabase
+        .from('event_impact')
+        .select(IMPACT_SELECT_COLUMNS)
+        .or('notes.is.null,notes.not.like.Legacy import:%')
+        .range(0, 9999)
+      if (postBaselineEventIds.length > 0) {
+        impactQuery = impactQuery.in('event_id', postBaselineEventIds)
+      } else {
+        // No events in range — return empty result without querying
+        impactQuery = impactQuery.eq('event_id', '00000000-0000-0000-0000-000000000000')
       }
 
       // Leaders empowered — cumulative counter from app_settings
@@ -128,12 +119,10 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         .eq('key', 'leaders_empowered_total')
         .single()
 
-      const [impactRes, eventsRes, membersRes, collectivesRes, cleanupRes, leadersCountRes] = await Promise.all([
+      const [impactRes, membersRes, collectivesRes, leadersCountRes] = await Promise.all([
         impactQuery,
-        eventsQuery,
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('collectives').select('id', { count: 'exact', head: true }),
-        cleanupQuery,
         leadersCountQuery,
       ])
 
@@ -141,7 +130,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       if (eventsRes.error) throw eventsRes.error
       if (membersRes.error) throw membersRes.error
       if (collectivesRes.error) throw collectivesRes.error
-      if (cleanupRes.error) throw cleanupRes.error
+      // cleanupRes removed — cleanup addresses now derived from eventsRes.data
       // leadersCountRes may not exist yet — don't throw
 
       const logs = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
@@ -154,7 +143,10 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
 
       // Count unique cleanup sites by address (post-baseline)
       const cleanupAddresses = new Set(
-        (cleanupRes.data ?? []).map((e: { address: string | null }) => (e.address ?? '').trim().toLowerCase()).filter(Boolean)
+        (eventsRes.data ?? [])
+          .filter((e) => e.activity_type === 'shore_cleanup' || e.activity_type === 'marine_restoration')
+          .map((e: { address: string | null }) => (e.address ?? '').trim().toLowerCase())
+          .filter(Boolean)
       )
 
       // For all-time view: add baseline numbers on top of post-baseline sums
