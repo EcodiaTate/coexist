@@ -130,17 +130,19 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       const rangeStart = getDateRangeStart(filters.dateRange)
       const isAllTime = filters.dateRange === 'all'
 
+      // Always restrict to post-baseline events to prevent 999_backfill rows
+      // (date_start='2024-01-01', notes=NULL) from being double-counted with the baseline constants.
+      const effectiveStart = rangeStart ?? new Date(BASELINE_DATE).toISOString()
+
       let q = supabase
         .from('event_impact')
         .select(
           `${IMPACT_SELECT_COLUMNS}, event_id, events!inner(id, title, date_start, date_end, collective_id, activity_type, created_by, collectives(name))`,
         )
         .or('notes.is.null,notes.not.like.Legacy import:%')
+        .gte('events.date_start', effectiveStart)
         .lt('events.date_start', new Date().toISOString())
         .order('logged_at', { ascending: false })
-
-      // For period views, scope by event date
-      if (rangeStart) q = q.gte('events.date_start', rangeStart)
       if (filters.collectiveId) q = q.eq('events.collective_id', filters.collectiveId)
       if (filters.activityType) q = q.eq('events.activity_type', filters.activityType)
 

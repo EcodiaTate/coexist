@@ -50,6 +50,7 @@ export function useMapDraw({ map, onAreaChange }: UseMapDrawOptions) {
 
   useEffect(() => {
     if (!map) return
+    const m = map
 
     let destroyed = false
 
@@ -58,7 +59,7 @@ export function useMapDraw({ map, onAreaChange }: UseMapDrawOptions) {
       injectDrawStyles()
 
       const drawnItems = new L.FeatureGroup()
-      map.addLayer(drawnItems)
+      m.addLayer(drawnItems)
       drawnItemsRef.current = drawnItems
 
       const drawControl = new L.Control.Draw({
@@ -85,7 +86,7 @@ export function useMapDraw({ map, onAreaChange }: UseMapDrawOptions) {
         },
       })
 
-      map.addControl(drawControl)
+      m.addControl(drawControl)
       controlRef.current = drawControl
 
       function emitArea() {
@@ -105,36 +106,36 @@ export function useMapDraw({ map, onAreaChange }: UseMapDrawOptions) {
         onAreaChangeRef.current?.(geoJSON)
       }
 
-      map.on(L.Draw.Event.CREATED, ((e: L.DrawEvents.Created) => {
+      m.on(L.Draw.Event.CREATED, ((e: L.DrawEvents.Created) => {
         drawnItems.clearLayers()
         drawnItems.addLayer(e.layer)
         emitArea()
       }) as unknown as L.LeafletEventHandlerFn)
 
-      map.on(L.Draw.Event.EDITED, () => emitArea())
-      map.on(L.Draw.Event.DELETED, () => emitArea())
+      m.on(L.Draw.Event.EDITED, () => emitArea())
+      m.on(L.Draw.Event.DELETED, () => emitArea())
     }
 
     // _controlCorners is set by Leaflet during initControls, which runs as part of
     // map initialisation. If it's missing the map isn't ready yet — wait for 'load'.
-    if ((map as unknown as { _controlCorners?: unknown })._controlCorners) {
+    if ((m as unknown as { _controlCorners?: unknown })._controlCorners) {
       setup()
     } else {
-      map.once('load', setup)
+      m.once('load', setup)
     }
 
     return () => {
       destroyed = true
-      map.off('load', setup)
-      map.off(L.Draw.Event.CREATED)
-      map.off(L.Draw.Event.EDITED)
-      map.off(L.Draw.Event.DELETED)
+      m.off('load', setup)
+      m.off(L.Draw.Event.CREATED)
+      m.off(L.Draw.Event.EDITED)
+      m.off(L.Draw.Event.DELETED)
       if (controlRef.current) {
-        map.removeControl(controlRef.current)
+        m.removeControl(controlRef.current)
         controlRef.current = null
       }
       if (drawnItemsRef.current) {
-        map.removeLayer(drawnItemsRef.current)
+        m.removeLayer(drawnItemsRef.current)
         drawnItemsRef.current = null
       }
     }
