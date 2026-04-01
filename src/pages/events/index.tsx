@@ -90,9 +90,9 @@ function ExploreHero({ rm }: { rm: boolean }) {
 
         <div
           ref={rm ? undefined : textRef}
-          className="absolute inset-x-0 top-[28%] sm:top-[22%] z-[2] flex flex-col items-center px-6 will-change-transform"
+          className="absolute inset-x-0 top-[35%] sm:top-[22%] z-[2] flex flex-col items-center px-6 will-change-transform"
         >
-          <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.4)] leading-[0.85] block">
+          <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.8)] leading-[0.85] block">
             Explore
           </span>
         </div>

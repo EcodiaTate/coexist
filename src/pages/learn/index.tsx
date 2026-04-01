@@ -200,15 +200,9 @@ export default function LearnIndexPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-neutral-500 block mb-2">
-              Leadership Development
-            </span>
-            <span className="font-heading text-3xl sm:text-4xl font-bold text-neutral-900 block">
+            <span className="font-heading text-3xl sm:text-4xl font-bold text-neutral-900 block text-center">
               My Learning
             </span>
-            <p className="text-sm text-neutral-500 mt-3 max-w-md mx-auto leading-relaxed">
-              Your personalised modules and pathways
-            </p>
           </motion.div>
 
           {/* Overall progress */}

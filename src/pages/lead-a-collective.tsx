@@ -301,16 +301,9 @@ export default function LeadACollectivePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/60 block mb-1.5">
-              Join the Movement
-            </span>
-            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white">
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white text-center">
               Lead a Collective
             </h1>
-            <p className="text-[13px] sm:text-sm text-white/70 mt-2 max-w-md leading-relaxed">
-              Co-Exist is powered by passionate young people driving real impact.
-              Fill out this form and we'll be in touch!
-            </p>
           </motion.div>
         </div>
 

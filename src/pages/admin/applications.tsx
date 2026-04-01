@@ -735,7 +735,6 @@ export default function AdminApplicationsPage() {
   ), [stats, rejected, rm])
 
   useAdminHeader('Applications', {
-    subtitle: 'Collective leadership applications',
     heroContent: heroStats,
   })
 
