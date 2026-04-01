@@ -40,7 +40,7 @@ export function StepNameHandle({ displayName, instagramHandle, onChange, onNext,
           <Input
             label="Instagram handle (optional)"
             value={instagramHandle}
-            onChange={(e) => onChange(displayName, e.target.value)}
+            onChange={(e) => onChange(displayName, e.target.value.replace(/^@+/, ''))}
             placeholder="@yourhandle"
           />
         </motion.div>

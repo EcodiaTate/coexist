@@ -290,7 +290,7 @@ export default function NationalImpactPage() {
       if (data?.volunteerHours) parts.push(`${data.volunteerHours.toLocaleString()} est. volunteer hours`)
       if (data?.treesPlanted) parts.push(`${data.treesPlanted.toLocaleString()} trees planted`)
       if (data?.invasiveWeedsPulled) parts.push(`${data.invasiveWeedsPulled.toLocaleString()} invasive weeds pulled`)
-      if (data?.rubbishCollectedTonnes) parts.push(`${data.rubbishCollectedTonnes}t rubbish collected`)
+      if (data?.rubbishCollectedKg) parts.push(`${data.rubbishCollectedKg}kg rubbish collected`)
       if (data?.cleanupSites) parts.push(`${data.cleanupSites} cleanup sites`)
       if (data?.coastlineCleanedM) parts.push(`${data.coastlineCleanedM}m coastline cleaned`)
       if (data?.leadersEmpowered) parts.push(`${data.leadersEmpowered} leaders empowered`)
@@ -393,9 +393,9 @@ export default function NationalImpactPage() {
           {/* Cleanup Sites */}
           <NationalStat
             icon={<Trash2 size={20} strokeWidth={2.5} />}
-            value={data?.rubbishCollectedTonnes ?? 0}
-            suffix="t"
-            label="Rubbish (tonnes)"
+            value={data?.rubbishCollectedKg ?? 0}
+            suffix="kg"
+            label="Rubbish (kg)"
             style="rubbish"
             delay={0.15}
           />

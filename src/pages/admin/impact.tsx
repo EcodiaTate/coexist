@@ -1013,7 +1013,7 @@ function DashboardTab() {
               {missingImpact!.map((e) => (
                 <div key={e.id} className="flex items-center gap-3 px-3 py-2 rounded-xl bg-white/70">
                   <Link
-                    to={`/events/${e.id}/log-impact`}
+                    to={`/events/${e.id}/impact`}
                     className="flex-1 min-w-0 hover:opacity-80 active:scale-[0.99] transition-all"
                   >
                     <p className="text-sm font-medium text-neutral-800 truncate">{e.title}</p>

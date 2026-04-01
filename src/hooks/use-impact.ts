@@ -34,7 +34,7 @@ export interface CanonicalImpact {
   treesPlanted: number
   invasiveWeedsPulled: number
   /* Cleanup Sites */
-  rubbishCollectedTonnes: number
+  rubbishCollectedKg: number
   cleanupSites: number
   coastlineCleanedM: number
   /* Organisational */
@@ -84,11 +84,15 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       const baselineRubbishKg = baselineMap['impact_baseline_rubbish_kg'] ?? 0
       const baselineHours     = baselineMap['impact_baseline_hours'] ?? 0
 
-      // Exclude legacy imports; for current-year scope by event date.
+      // Exclude legacy imports; scope to post-baseline events only (prevents 999_backfill
+      // rows from being double-counted against the baseline constants).
+      // The !inner join with .gte('events.date_start') filters at the join level —
+      // only event_impact rows whose event is on/after baselineDate are returned.
       let impactQuery = supabase
         .from('event_impact')
         .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(date_start)`)
         .or('notes.is.null,notes.not.like.Legacy import:%')
+        .gte('events.date_start', baselineDate)
         .range(0, 9999)
       if (timeRange === 'current-year') {
         impactQuery = impactQuery
@@ -162,7 +166,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
         eventsHeld: (eventsRes.count ?? 0) + (isAllTime ? baselineEvents : 0),
         treesPlanted: sumMetric(logs, 'trees_planted') + (isAllTime ? baselineTrees : 0),
         invasiveWeedsPulled: sumMetric(logs, 'invasive_weeds_pulled'),
-        rubbishCollectedTonnes: Math.round(((sumMetric(logs, 'rubbish_kg') + (isAllTime ? baselineRubbishKg : 0)) / 1000) * 100) / 100,
+        rubbishCollectedKg: Math.round(sumMetric(logs, 'rubbish_kg') + (isAllTime ? baselineRubbishKg : 0)),
         cleanupSites: cleanupAddresses.size,
         coastlineCleanedM: Math.round(sumMetric(logs, 'coastline_cleaned_m')),
         collectivesCount: collectivesRes.count ?? 0,
@@ -184,40 +188,18 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
     queryKey: ['collective-impact', collectiveId, timeRange],
     queryFn: async (): Promise<CanonicalImpact | null> => {
       if (!collectiveId) return null
+      const now = new Date().toISOString()
       const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString()
-      const baselineDate = new Date(IMPACT_BASELINE_DATE).toISOString()
 
-      // Exclude legacy imports; for current-year scope by event date.
-      let impactQuery = supabase
-        .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id, date_start)`)
-        .eq('events.collective_id', collectiveId)
-        .or('notes.is.null,notes.not.like.Legacy import:%')
-      if (timeRange === 'current-year') {
-        impactQuery = impactQuery
-          .gte('events.date_start', yearStart)
-          .lt('events.date_start', new Date().toISOString())
-      }
-
-      let cleanupQuery = supabase
-        .from('events')
-        .select('id, address')
-        .eq('collective_id', collectiveId)
-        .in('activity_type', ['shore_cleanup', 'marine_restoration'])
-        .lt('date_start', new Date().toISOString())
-        .gte('date_start', baselineDate)
-      if (timeRange === 'current-year') {
-        cleanupQuery = cleanupQuery.gte('date_start', yearStart > baselineDate ? yearStart : baselineDate)
-      }
-
+      // Step 1: Fetch all event IDs for this collective (reliable scope — no embedded join filtering)
       let eventsQuery = supabase
         .from('events')
-        .select('id', { count: 'exact' })
+        .select('id, address, activity_type', { count: 'exact' })
         .eq('collective_id', collectiveId)
-        .lt('date_start', new Date().toISOString())
-        .gte('date_start', baselineDate)
+        .in('status', ['published', 'completed'])
+        .lt('date_start', now)
       if (timeRange === 'current-year') {
-        eventsQuery = eventsQuery.gte('date_start', yearStart > baselineDate ? yearStart : baselineDate)
+        eventsQuery = eventsQuery.gte('date_start', yearStart)
       }
 
       const leadersCountQuery = supabase
@@ -226,25 +208,63 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
         .eq('key', 'leaders_empowered:' + collectiveId)
         .single()
 
-      const [impactRes, cleanupRes, eventsRes, leadersCountRes] = await Promise.all([impactQuery, cleanupQuery, eventsQuery, leadersCountQuery])
+      const [eventsRes, leadersCountRes] = await Promise.all([eventsQuery, leadersCountQuery])
 
-      const rows = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
-
-      // Sum attendees from event_impact (leaders enter headcount in post-event review)
-      const attendanceCount = sumMetric(rows as Record<string, unknown>[], 'attendees')
+      const eventIds = (eventsRes.data ?? []).map((e) => e.id)
+      const eventsHeld = eventsRes.count ?? 0
 
       const cleanupAddresses = new Set(
-        (cleanupRes.data ?? []).map((e: { address: string | null }) => (e.address ?? '').trim().toLowerCase()).filter(Boolean)
+        (eventsRes.data ?? [])
+          .filter((e) => e.activity_type === 'shore_cleanup' || e.activity_type === 'marine_restoration')
+          .map((e) => (e.address ?? '').trim().toLowerCase())
+          .filter(Boolean)
       )
+
+      if (eventIds.length === 0) {
+        return {
+          eventsAttended: 0, volunteerHours: 0, eventsHeld: 0,
+          treesPlanted: 0, invasiveWeedsPulled: 0, rubbishCollectedKg: 0,
+          cleanupSites: 0, coastlineCleanedM: 0, collectivesCount: 1,
+          leadersEmpowered: (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
+        }
+      }
+
+      // Step 2: Fetch ALL impact rows for this collective's events — both live and legacy.
+      // Legacy rows (notes LIKE 'Legacy import:%') now have attendees backfilled from migration
+      // 20260401030000, and already have rubbish_kg/trees_planted/hours_total from the original import.
+      // For current-year: only non-legacy rows (legacy rows are all 2025 and earlier).
+      const isAllTime = timeRange === 'all-time'
+
+      const [liveImpactRes, legacyImpactRes] = await Promise.all([
+        supabase
+          .from('event_impact')
+          .select(IMPACT_SELECT_COLUMNS)
+          .in('event_id', eventIds)
+          .or('notes.is.null,notes.not.like.Legacy import:%')
+          .range(0, 9999),
+        isAllTime
+          ? supabase
+              .from('event_impact')
+              .select(IMPACT_SELECT_COLUMNS)
+              .in('event_id', eventIds)
+              .like('notes', 'Legacy import:%')
+              .range(0, 9999)
+          : Promise.resolve({ data: [] as unknown[], error: null }),
+      ])
+
+      const liveRows = (liveImpactRes.data ?? []) as unknown as Record<string, unknown>[]
+      const legacyRows = (legacyImpactRes.data ?? []) as unknown as Record<string, unknown>[]
+      const allRows = [...liveRows, ...legacyRows]
+
       return {
-        eventsAttended: attendanceCount,
-        volunteerHours: Math.round(sumMetric(rows, 'hours_total')),
-        eventsHeld: eventsRes.count ?? 0,
-        treesPlanted: sumMetric(rows, 'trees_planted'),
-        invasiveWeedsPulled: sumMetric(rows, 'invasive_weeds_pulled'),
-        rubbishCollectedTonnes: Math.round((sumMetric(rows, 'rubbish_kg') / 1000) * 100) / 100,
+        eventsAttended: Math.round(sumMetric(allRows, 'attendees')),
+        volunteerHours: Math.round(sumMetric(allRows, 'hours_total')),
+        eventsHeld,
+        treesPlanted: sumMetric(allRows, 'trees_planted'),
+        invasiveWeedsPulled: sumMetric(allRows, 'invasive_weeds_pulled'),
+        rubbishCollectedKg: Math.round(sumMetric(allRows, 'rubbish_kg')),
         cleanupSites: cleanupAddresses.size,
-        coastlineCleanedM: Math.round(sumMetric(rows, 'coastline_cleaned_m')),
+        coastlineCleanedM: Math.round(sumMetric(allRows, 'coastline_cleaned_m')),
         collectivesCount: 1,
         leadersEmpowered: (leadersCountRes.data?.value as { count?: number })?.count ?? 0,
       }
@@ -352,7 +372,7 @@ export function useImpactStats(userId?: string) {
           eventsHeld: 0,
           treesPlanted: 0,
           invasiveWeedsPulled: 0,
-          rubbishCollectedTonnes: 0,
+          rubbishCollectedKg: 0,
           cleanupSites: 0,
           coastlineCleanedM: 0,
           collectivesCount: 0,
@@ -435,7 +455,7 @@ export function useImpactStats(userId?: string) {
         eventsHeld: eventsOrganised ?? 0,
         treesPlanted: totalTrees,
         invasiveWeedsPulled: totalWeeds,
-        rubbishCollectedTonnes: Math.round((totalRubbishKg / 1000) * 100) / 100,
+        rubbishCollectedKg: Math.round(totalRubbishKg),
         cleanupSites: cleanupAddresses.size,
         coastlineCleanedM: Math.round(totalCoastlineM),
         collectivesCount: uniqueCollectives.size,

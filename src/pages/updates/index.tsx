@@ -286,11 +286,9 @@ function UpdateCard({
       className={cn(
         'group rounded-2xl overflow-hidden cursor-pointer',
         'transition-transform duration-200 active:scale-[0.985]',
-        'bg-white',
-        'border border-neutral-100',
-        'shadow-sm',
-        isUrgent && 'border-warning-200',
-        isUnread && 'border-l-[3px] border-l-primary-500',
+        'bg-amber-50',
+        isUrgent && 'border-l-[3px] border-l-warning-500',
+        isUnread && !isUrgent && 'border-l-[3px] border-l-primary-500',
       )}
       role="article"
       aria-label={update.title}
@@ -457,7 +455,7 @@ export default function UpdatesPage() {
           {showLoading ? (
             <div className="space-y-3">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-[88px] rounded-2xl bg-white border border-neutral-100 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+                <div key={i} className="h-[88px] rounded-2xl bg-amber-50 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
               ))}
             </div>
           ) : isError ? (

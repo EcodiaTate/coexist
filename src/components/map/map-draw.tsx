@@ -50,66 +50,82 @@ export function useMapDraw({ map, onAreaChange }: UseMapDrawOptions) {
 
   useEffect(() => {
     if (!map) return
-    injectDrawStyles()
 
-    const drawnItems = new L.FeatureGroup()
-    map.addLayer(drawnItems)
-    drawnItemsRef.current = drawnItems
+    let destroyed = false
 
-    const drawControl = new L.Control.Draw({
-      position: 'topright',
-      draw: {
-        polygon: {
-          allowIntersection: false,
-          showArea: true,
-          shapeOptions: { color: '#4a7c59', fillColor: '#4a7c59', fillOpacity: 0.15, weight: 2 },
+    function setup() {
+      if (destroyed) return
+      injectDrawStyles()
+
+      const drawnItems = new L.FeatureGroup()
+      map.addLayer(drawnItems)
+      drawnItemsRef.current = drawnItems
+
+      const drawControl = new L.Control.Draw({
+        position: 'topright',
+        draw: {
+          polygon: {
+            allowIntersection: false,
+            showArea: true,
+            shapeOptions: { color: '#4a7c59', fillColor: '#4a7c59', fillOpacity: 0.15, weight: 2 },
+          },
+          circle: {
+            shapeOptions: { color: '#4a7c59', fillColor: '#4a7c59', fillOpacity: 0.15, weight: 2 },
+          },
+          rectangle: {
+            shapeOptions: { color: '#4a7c59', fillColor: '#4a7c59', fillOpacity: 0.15, weight: 2 },
+          },
+          polyline: false,
+          marker: false,
+          circlemarker: false,
         },
-        circle: {
-          shapeOptions: { color: '#4a7c59', fillColor: '#4a7c59', fillOpacity: 0.15, weight: 2 },
+        edit: {
+          featureGroup: drawnItems,
+          remove: true,
         },
-        rectangle: {
-          shapeOptions: { color: '#4a7c59', fillColor: '#4a7c59', fillOpacity: 0.15, weight: 2 },
-        },
-        polyline: false,
-        marker: false,
-        circlemarker: false,
-      },
-      edit: {
-        featureGroup: drawnItems,
-        remove: true,
-      },
-    })
+      })
 
-    map.addControl(drawControl)
-    controlRef.current = drawControl
+      map.addControl(drawControl)
+      controlRef.current = drawControl
 
-    function emitArea() {
-      const layers = drawnItems.getLayers()
-      if (layers.length === 0) {
-        onAreaChangeRef.current?.(null)
-        return
+      function emitArea() {
+        const layers = drawnItems.getLayers()
+        if (layers.length === 0) {
+          onAreaChangeRef.current?.(null)
+          return
+        }
+
+        const last = layers[layers.length - 1]
+        const geoJSON = (last as L.Polygon | L.Circle).toGeoJSON() as AreaGeoJSON
+
+        if (last instanceof L.Circle) {
+          geoJSON.properties = { radius: last.getRadius() }
+        }
+
+        onAreaChangeRef.current?.(geoJSON)
       }
 
-      const last = layers[layers.length - 1]
-      const geoJSON = (last as L.Polygon | L.Circle).toGeoJSON() as AreaGeoJSON
+      map.on(L.Draw.Event.CREATED, ((e: L.DrawEvents.Created) => {
+        drawnItems.clearLayers()
+        drawnItems.addLayer(e.layer)
+        emitArea()
+      }) as unknown as L.LeafletEventHandlerFn)
 
-      if (last instanceof L.Circle) {
-        geoJSON.properties = { radius: last.getRadius() }
-      }
-
-      onAreaChangeRef.current?.(geoJSON)
+      map.on(L.Draw.Event.EDITED, () => emitArea())
+      map.on(L.Draw.Event.DELETED, () => emitArea())
     }
 
-    map.on(L.Draw.Event.CREATED, ((e: L.DrawEvents.Created) => {
-      drawnItems.clearLayers()
-      drawnItems.addLayer(e.layer)
-      emitArea()
-    }) as unknown as L.LeafletEventHandlerFn)
-
-    map.on(L.Draw.Event.EDITED, () => emitArea())
-    map.on(L.Draw.Event.DELETED, () => emitArea())
+    // _controlCorners is set by Leaflet during initControls, which runs as part of
+    // map initialisation. If it's missing the map isn't ready yet — wait for 'load'.
+    if ((map as unknown as { _controlCorners?: unknown })._controlCorners) {
+      setup()
+    } else {
+      map.once('load', setup)
+    }
 
     return () => {
+      destroyed = true
+      map.off('load', setup)
       map.off(L.Draw.Event.CREATED)
       map.off(L.Draw.Event.EDITED)
       map.off(L.Draw.Event.DELETED)

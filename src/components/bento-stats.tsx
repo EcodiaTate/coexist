@@ -34,7 +34,7 @@ export const BENTO_THEMES = {
   // Soft / light variants for secondary cards
   'moss-soft':    { bg: 'bg-moss-50',    text: 'text-moss-800',    sub: 'text-moss-500',    watermark: 'text-moss-200/60',    icon: 'bg-moss-100 text-moss-600' },
   'sprout-soft':  { bg: 'bg-sprout-50',  text: 'text-sprout-800',  sub: 'text-sprout-500',  watermark: 'text-sprout-200/60',  icon: 'bg-sprout-100 text-sprout-600' },
-  'primary-soft': { bg: 'bg-white', text: 'text-neutral-900', sub: 'text-neutral-500', watermark: 'text-neutral-200/60', icon: 'bg-neutral-100 text-neutral-600' },
+  'primary-soft': { bg: 'bg-primary-50', text: 'text-primary-900', sub: 'text-primary-500', watermark: 'text-primary-200/60', icon: 'bg-primary-100 text-primary-600' },
   'bark-soft':    { bg: 'bg-bark-50',    text: 'text-bark-800',    sub: 'text-bark-500',    watermark: 'text-bark-200/60',    icon: 'bg-bark-100 text-bark-600' },
   'sky-soft':     { bg: 'bg-sky-50',     text: 'text-sky-800',     sub: 'text-sky-500',     watermark: 'text-sky-200/60',     icon: 'bg-sky-100 text-sky-600' },
   'warning-soft': { bg: 'bg-warning-50', text: 'text-warning-800', sub: 'text-warning-500', watermark: 'text-warning-200/60', icon: 'bg-warning-100 text-warning-600' },
@@ -97,6 +97,7 @@ export function BentoStatCard({
         'relative overflow-hidden rounded-2xl',
         hero ? 'p-5 sm:p-6' : 'p-4',
         t.bg,
+        theme.endsWith('-soft') ? 'shadow-[0_2px_12px_rgba(0,0,0,0.08)]' : 'shadow-[0_4px_20px_rgba(0,0,0,0.15)]',
         className,
       )}
       aria-label={`${label}: ${value}${unit ? ` ${unit}` : ''}`}

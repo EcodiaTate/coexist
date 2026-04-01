@@ -355,7 +355,7 @@ export default function ImpactDashboardPage() {
     if (stats.volunteerHours > 0) parts.push(`${stats.volunteerHours} est. volunteer hours`)
     if (stats.treesPlanted > 0) parts.push(`${stats.treesPlanted} trees planted`)
     if (stats.invasiveWeedsPulled > 0) parts.push(`${stats.invasiveWeedsPulled} invasive weeds pulled`)
-    if (stats.rubbishCollectedTonnes > 0) parts.push(`${stats.rubbishCollectedTonnes}t rubbish collected`)
+    if (stats.rubbishCollectedKg > 0) parts.push(`${stats.rubbishCollectedKg}kg rubbish collected`)
     if (stats.cleanupSites > 0) parts.push(`${stats.cleanupSites} cleanup sites`)
     if (stats.coastlineCleanedM > 0) parts.push(`${stats.coastlineCleanedM}m coastline cleaned`)
     if (stats.leadersEmpowered > 0) parts.push(`${stats.leadersEmpowered} leaders empowered`)
@@ -435,11 +435,11 @@ export default function ImpactDashboardPage() {
 
               {/* Cleanup Sites */}
               <BigStat
-                value={stats.rubbishCollectedTonnes}
-                label="Rubbish (tonnes)"
+                value={stats.rubbishCollectedKg}
+                label="Rubbish (kg)"
                 icon={<Trash2 size={20} strokeWidth={2.5} />}
                 config="rubbish"
-                suffix="t"
+                suffix="kg"
               />
               <BigStat
                 value={stats.cleanupSites}
