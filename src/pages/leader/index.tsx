@@ -1090,7 +1090,7 @@ export default function LeaderDashboardPage() {
                 alt={collectiveName}
                 loading="eager"
                 decoding="async"
-                className="w-full h-auto block"
+                className="w-full h-auto min-h-[360px] sm:min-h-0 object-cover block"
               />
             ) : (
               <div className="w-full aspect-[16/9] bg-gradient-to-br from-moss-600 via-primary-700 to-primary-900" />
@@ -1113,7 +1113,7 @@ export default function LeaderDashboardPage() {
           </div>
 
           {/* Rocky wave overlay - single layer, like root homepage */}
-          <WaveTransition className="z-[3]" />
+          <WaveTransition className="z-[3] -bottom-px" />
         </div>
 
         {/* ── Content on white background ── */}

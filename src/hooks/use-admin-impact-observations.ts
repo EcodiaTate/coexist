@@ -76,7 +76,8 @@ const BASELINE_DATE       = '2026-01-01'
 const BASELINE_EVENTS     = 340
 const BASELINE_ATTENDEES  = 5500
 const BASELINE_TREES      = 35000
-const BASELINE_RUBBISH_KG = 4900
+const BASELINE_RUBBISH_KG = 4794
+const BASELINE_HOURS      = 11000  // 5500 attendees × 2hrs avg
 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
@@ -128,18 +129,18 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
     queryFn: async () => {
       const rangeStart = getDateRangeStart(filters.dateRange)
       const isAllTime = filters.dateRange === 'all'
-      const baselineDate = new Date(BASELINE_DATE).toISOString()
 
       let q = supabase
         .from('event_impact')
         .select(
           `${IMPACT_SELECT_COLUMNS}, event_id, events!inner(id, title, date_start, date_end, collective_id, activity_type, created_by, collectives(name))`,
         )
-        .not('notes', 'like', 'Legacy import:%')
-        .gte('events.date_start', rangeStart ?? baselineDate)
+        .or('notes.is.null,notes.not.like.Legacy import:%')
         .lt('events.date_start', new Date().toISOString())
         .order('logged_at', { ascending: false })
 
+      // For period views, scope by event date
+      if (rangeStart) q = q.gte('events.date_start', rangeStart)
       if (filters.collectiveId) q = q.eq('events.collective_id', filters.collectiveId)
       if (filters.activityType) q = q.eq('events.activity_type', filters.activityType)
 
@@ -198,7 +199,7 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       }
 
       const totalAttendees = rows.reduce((s, r) => s + (r.attendance ?? 0), 0)
-      const totalEstimatedHours = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'hours_total'))
+      const totalEstimatedHours = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'hours_total')) + (isAllTime ? BASELINE_HOURS : 0)
       const uniqueEventIds = new Set(rows.map((r) => r.eventId))
 
       const summary: ImpactSummary = {
@@ -252,12 +253,10 @@ export function useYearOverYear(metricDefs: ImpactMetricDef[]) {
   return useQuery({
     queryKey: ['admin-impact-yoy', metricDefs.map((d) => d.key)],
     queryFn: async () => {
-      const baselineDate = new Date(BASELINE_DATE).toISOString()
       const { data, error } = await supabase
         .from('event_impact')
         .select(`${IMPACT_SELECT_COLUMNS}, logged_at, events!inner(date_start, date_end)`)
-        .not('notes', 'like', 'Legacy import:%')
-        .gte('events.date_start', baselineDate)
+        .or('notes.is.null,notes.not.like.Legacy import:%')
         .lt('events.date_start', new Date().toISOString())
 
       if (error) throw error

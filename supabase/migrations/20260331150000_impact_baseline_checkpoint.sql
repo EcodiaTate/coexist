@@ -9,7 +9,8 @@
 --   Volunteers/Attendees : 5,500
 --   Events held          : 340    (388 total − 48 post-2026 in-app)
 --   Trees planted        : 35,000
---   Rubbish removed (kg) : 4,900 (4.9t)
+--   Rubbish removed (kg) : 4,794
+--   Est. Vol Hours       : 11,000  (5500 attendees × 2hrs avg)
 -- ============================================================================
 
 INSERT INTO app_settings (key, value)
@@ -18,6 +19,7 @@ VALUES
   ('impact_baseline_attendees', '{"count": 5500}'::jsonb),
   ('impact_baseline_events',    '{"count": 340}'::jsonb),
   ('impact_baseline_trees',     '{"count": 35000}'::jsonb),
-  ('impact_baseline_rubbish_kg','{"count": 4900}'::jsonb)
+  ('impact_baseline_rubbish_kg','{"count": 4794}'::jsonb),
+  ('impact_baseline_hours',     '{"count": 11000}'::jsonb)
 ON CONFLICT (key) DO UPDATE
   SET value = EXCLUDED.value;

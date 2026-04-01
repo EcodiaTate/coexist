@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <application
         android:allowBackup="true"
@@ -39,6 +40,15 @@
             </intent-filter>
 
         </activity>
+
+        <!-- Override ML Kit barcode scanner to remove portrait-only restriction (Android 16+
+             ignores orientation locks on large screens; removing avoids layout issues on
+             foldables/tablets) -->
+        <activity
+            android:name="com.google.mlkit.vision.codescanner.internal.GmsBarcodeScanningDelegateActivity"
+            android:screenOrientation="unspecified"
+            android:resizeableActivity="true"
+            tools:replace="android:screenOrientation,android:resizeableActivity" />
 
         <provider
             android:name="androidx.core.content.FileProvider"

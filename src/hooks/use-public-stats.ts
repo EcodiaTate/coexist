@@ -35,12 +35,9 @@ export function usePublicStats() {
         supabase.from('events').select('id', { count: 'exact', head: true })
           .lt('date_start', new Date().toISOString())
           .gte('date_start', baselineDate),
-        // Only sum native_plants/trees from post-baseline, non-legacy impact rows.
-        // Filter by event date_start so backfilled rows with old logged_at are included.
-        supabase.from('event_impact').select('native_plants, trees_planted, events!inner(date_start)')
-          .gte('events.date_start', baselineDate)
-          .lt('events.date_start', new Date().toISOString())
-          .not('notes', 'like', 'Legacy import:%'),
+        // Only sum native_plants/trees from non-legacy impact rows (all 2026+ app data).
+        supabase.from('event_impact').select('native_plants, trees_planted')
+          .or('notes.is.null,notes.not.like.Legacy import:%'),
       ])
 
       const totalNativePlants = (impactRes.data ?? []).reduce(

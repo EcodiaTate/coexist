@@ -72,6 +72,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
           'impact_baseline_events',
           'impact_baseline_trees',
           'impact_baseline_rubbish_kg',
+          'impact_baseline_hours',
         ])
       const baselineMap: Record<string, number> = {}
       for (const row of (baselineRes.data ?? [])) {
@@ -81,19 +82,23 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       const baselineEvents    = baselineMap['impact_baseline_events'] ?? 0
       const baselineTrees     = baselineMap['impact_baseline_trees'] ?? 0
       const baselineRubbishKg = baselineMap['impact_baseline_rubbish_kg'] ?? 0
+      const baselineHours     = baselineMap['impact_baseline_hours'] ?? 0
 
-      // Filter by event date_start (not logged_at) so backfilled rows are included.
-      // Legacy bulk-import rows are excluded by notes filter.
-      const impactDateStart = timeRange === 'current-year'
-        ? (yearStart > baselineDate ? yearStart : baselineDate)
-        : baselineDate
+      // Exclude legacy imports; for current-year scope by event date.
       let impactQuery = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(date_start)`)
-        .not('notes', 'like', 'Legacy import:%')
-        .gte('events.date_start', impactDateStart)
-        .lt('events.date_start', new Date().toISOString())
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id`)
+        .or('notes.is.null,notes.not.like.Legacy import:%')
         .range(0, 9999)
+      if (timeRange === 'current-year') {
+        impactQuery = supabase
+          .from('event_impact')
+          .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(date_start)`)
+          .or('notes.is.null,notes.not.like.Legacy import:%')
+          .gte('events.date_start', yearStart)
+          .lt('events.date_start', new Date().toISOString())
+          .range(0, 9999)
+      }
 
       // Only count events on/after the baseline date
       let eventsQuery = supabase
@@ -141,16 +146,18 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
 
       const logs = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
 
-      // Count attendance from registrations on/after baseline date
-      let attendanceQuery = supabase
+      // Count attendance from registrations for post-baseline events.
+      // Filter by event date_start (not registered_at) — people may register
+      // before Jan 1 for a Jan event, and registered_at doesn't update on check-in.
+      const attendanceDateStart = timeRange === 'current-year'
+        ? (yearStart > baselineDate ? yearStart : baselineDate)
+        : baselineDate
+      const { count: attendanceCount } = await supabase
         .from('event_registrations')
-        .select('id', { count: 'exact', head: true })
+        .select('id, events!inner(date_start)', { count: 'exact', head: true })
         .eq('status', 'attended')
-        .gte('registered_at', baselineDate)
-      if (timeRange === 'current-year') {
-        attendanceQuery = attendanceQuery.gte('registered_at', yearStart > baselineDate ? yearStart : baselineDate)
-      }
-      const { count: attendanceCount } = await attendanceQuery
+        .gte('events.date_start', attendanceDateStart)
+        .lt('events.date_start', new Date().toISOString())
 
       // Count unique cleanup sites by address (post-baseline)
       const cleanupAddresses = new Set(
@@ -162,7 +169,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
 
       return {
         eventsAttended: (attendanceCount ?? 0) + (isAllTime ? baselineAttendees : 0),
-        volunteerHours: Math.round(sumMetric(logs, 'hours_total')),
+        volunteerHours: Math.round(sumMetric(logs, 'hours_total')) + (isAllTime ? baselineHours : 0),
         eventsHeld: (eventsRes.count ?? 0) + (isAllTime ? baselineEvents : 0),
         treesPlanted: sumMetric(logs, 'trees_planted') + (isAllTime ? baselineTrees : 0),
         invasiveWeedsPulled: sumMetric(logs, 'invasive_weeds_pulled'),
@@ -190,17 +197,21 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
       const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString()
       const baselineDate = new Date(IMPACT_BASELINE_DATE).toISOString()
 
-      // Filter by event date_start (not logged_at) so backfilled rows are included.
-      const impactDateStart = timeRange === 'current-year'
-        ? (yearStart > baselineDate ? yearStart : baselineDate)
-        : baselineDate
-      const impactQuery = supabase
+      // Exclude legacy imports; for current-year scope by event date.
+      let impactQuery = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id, date_start)`)
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id)`)
         .eq('events.collective_id', collectiveId)
-        .not('notes', 'like', 'Legacy import:%')
-        .gte('events.date_start', impactDateStart)
-        .lt('events.date_start', new Date().toISOString())
+        .or('notes.is.null,notes.not.like.Legacy import:%')
+      if (timeRange === 'current-year') {
+        impactQuery = supabase
+          .from('event_impact')
+          .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id, date_start)`)
+          .eq('events.collective_id', collectiveId)
+          .or('notes.is.null,notes.not.like.Legacy import:%')
+          .gte('events.date_start', yearStart)
+          .lt('events.date_start', new Date().toISOString())
+      }
 
       let cleanupQuery = supabase
         .from('events')
@@ -382,7 +393,7 @@ export function useImpactStats(userId?: string) {
             .from('event_impact')
             .select(IMPACT_SELECT_COLUMNS)
             .in('event_id', chunk)
-            .not('notes', 'like', 'Legacy import:%')
+            .or('notes.is.null,notes.not.like.Legacy import:%')
           if (data) rows.push(...(data as unknown as Record<string, number | null>[]))
         }
         return rows

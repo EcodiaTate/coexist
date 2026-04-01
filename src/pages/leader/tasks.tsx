@@ -14,6 +14,7 @@ import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useLeaderHeader } from '@/components/leader-layout'
 import { Header } from '@/components/header'
+import { SegmentedControl } from '@/components/segmented-control'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { BottomSheet } from '@/components/bottom-sheet'
@@ -1597,34 +1598,15 @@ export default function LeaderTasksPage() {
           className="flex justify-center"
           variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
         >
-          <div className="flex bg-neutral-100 rounded-xl p-0.5">
-            <button
-              type="button"
-              onClick={() => setActiveTab('tasks')}
-              className={cn(
-                'flex items-center gap-1.5 px-5 h-11 rounded-lg text-sm font-medium cursor-pointer transition-all duration-150',
-                activeTab === 'tasks'
-                  ? 'bg-white text-primary-800 shadow-sm'
-                  : 'text-primary-500 hover:text-primary-700',
-              )}
-            >
-              <ClipboardList size={15} />
-              Tasks
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('todos')}
-              className={cn(
-                'flex items-center gap-1.5 px-5 h-11 rounded-lg text-sm font-medium cursor-pointer transition-all duration-150',
-                activeTab === 'todos'
-                  ? 'bg-white text-primary-800 shadow-sm'
-                  : 'text-primary-500 hover:text-primary-700',
-              )}
-            >
-              <CheckCircle2 size={15} />
-              My Todos
-            </button>
-          </div>
+          <SegmentedControl
+            segments={[
+              { id: 'tasks' as const, label: 'Tasks', icon: <ClipboardList size={15} /> },
+              { id: 'todos' as const, label: 'My Todos', icon: <CheckCircle2 size={15} /> },
+            ]}
+            value={activeTab}
+            onChange={setActiveTab}
+            aria-label="View tasks or personal todos"
+          />
         </motion.div>
 
         {/* ── Tab content ── */}

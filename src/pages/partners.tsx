@@ -1,10 +1,10 @@
 import { motion, useReducedMotion, type Variants } from 'framer-motion'
 import { Handshake, Globe, ExternalLink } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
+import { Navigate } from 'react-router-dom'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
 import { Skeleton } from '@/components/skeleton'
-import { EmptyState } from '@/components/empty-state'
 import { WaveTransition } from '@/components/wave-transition'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
@@ -165,11 +165,7 @@ export default function PartnersPage() {
         {isLoading ? (
           <PartnersSkeleton />
         ) : !partners?.length ? (
-          <EmptyState
-            illustration={<Handshake size={40} className="text-neutral-300" />}
-            title="No partners yet"
-            description="Check back soon - we're growing our network of conservation partners."
-          />
+          <Navigate to="/" replace />
         ) : (
           <motion.div
             className="space-y-3"

@@ -47,6 +47,7 @@ import { PlaceAutocomplete } from '@/components/place-autocomplete'
 import { useAuth } from '@/hooks/use-auth'
 import { useCountUp } from '@/components/stat-card'
 import { WaveTransition } from '@/components/wave-transition'
+import { SegmentedControl } from '@/components/segmented-control'
 import { useImageUpload } from '@/hooks/use-image-upload'
 import {
     useAdminCollectiveDetail,
@@ -1378,35 +1379,20 @@ export default function AdminCollectiveDetailPage() {
       {/* ── Padded content below hero ── */}
       <div className="space-y-6 p-6">
 
-      {/* ── Tab bar - rich pill style ── */}
+      {/* ── Tab bar ── */}
       <motion.div
         initial={rm ? {} : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, delay: 0.05 }}
-        className="rounded-2xl bg-neutral-50 border border-neutral-100 p-1.5"
       >
-        <div className="flex gap-1">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.key
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={cn(
-                  'relative flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold',
-                  'rounded-xl active:scale-[0.97] transition-[color,background-color,transform] duration-200 cursor-pointer select-none',
-                  isActive
-                    ? 'bg-primary-700 text-white shadow-sm'
-                    : 'text-neutral-400 hover:text-neutral-600 hover:bg-white/80',
-                )}
-              >
-                <span className={cn(isActive ? 'text-white/80' : 'text-neutral-300')}>{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
-            )
-          })}
-        </div>
+        <SegmentedControl
+          segments={tabs.map((tab) => ({ id: tab.key, label: tab.label, icon: tab.icon }))}
+          value={activeTab}
+          onChange={setActiveTab}
+          variant="pill"
+          compact
+          aria-label="Collective detail tabs"
+        />
       </motion.div>
 
       {/* ── Tab content ── */}

@@ -5,7 +5,7 @@ import {
     CalendarDays,
     Heart,
     Star,
-    ChevronRight,
+
     Megaphone,
     CheckCircle2,
     Sparkles,
@@ -123,13 +123,10 @@ export default function LeadershipPage() {
           {/* Hero text */}
           <div
             ref={rm ? undefined : textRef}
-            className="absolute inset-x-0 top-[22%] sm:top-[16%] z-[2] flex flex-col items-center px-6 will-change-transform"
+            className="absolute inset-x-0 top-[30%] sm:top-[22%] z-[2] flex flex-col items-center px-6 will-change-transform"
           >
-            <span className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-[0.3em] text-white mb-1 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]">
-              Leadership Opportunities
-            </span>
             <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)] leading-[0.85] block text-center" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5), 0 0 40px rgba(0,0,0,0.3)' }}>
-              Become a Leader
+              Leadership
             </span>
           </div>
         </div>
@@ -222,22 +219,6 @@ export default function LeadershipPage() {
           </div>
         </motion.section>
 
-        {/* Existing leader nudge */}
-        <motion.div
-          variants={shouldReduceMotion ? undefined : fadeUp}
-          className="flex items-center gap-3.5 px-5 py-4 rounded-2xl bg-gradient-to-r from-moss-500 via-moss-600 to-moss-800 shadow-xl shadow-moss-900/25"
-        >
-          <Users size={20} className="text-white/70 shrink-0" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-semibold text-white">
-              Already a leader?
-            </p>
-            <p className="text-[12px] text-white/60 mt-0.5">
-              Access your Leader Dashboard from the sidebar.
-            </p>
-          </div>
-          <ChevronRight size={16} className="text-white/40 shrink-0" />
-        </motion.div>
       </motion.div>
     </Page>
   )

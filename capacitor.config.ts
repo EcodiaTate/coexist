@@ -52,10 +52,11 @@ const config: CapacitorConfig = {
       splashImmersive: true,
     },
 
-    // Status Bar
+    // Status Bar – style only, no backgroundColor (deprecated in Android 15+; edge-to-edge
+    // draws transparent bars and the web layer controls appearance via CSS).
     StatusBar: {
-      style: 'LIGHT', // dark text on light bg
-      backgroundColor: '#f8f9f5',
+      style: 'LIGHT',
+      overlaysWebView: true,
     },
 
     // Keyboard – use 'none' so iOS doesn't fight our own visualViewport-based
