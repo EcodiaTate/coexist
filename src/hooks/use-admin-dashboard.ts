@@ -80,18 +80,13 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
       // Exclude legacy bulk-import rows; for period views, scope by event date.
       let q = supabase
         .from('event_impact')
-        .select(IMPACT_SELECT_COLUMNS)
+        .select(`${IMPACT_SELECT_COLUMNS}, events!inner(date_start)`)
         .or('notes.is.null,notes.not.like.Legacy import:%')
         .range(0, 9999)
       if (rangeStart) {
-        // Period view — also need event date scope, so join events
-        q = supabase
-          .from('event_impact')
-          .select(`${IMPACT_SELECT_COLUMNS}, events!inner(date_start)`)
-          .or('notes.is.null,notes.not.like.Legacy import:%')
+        q = q
           .gte('events.date_start', rangeStart)
           .lt('events.date_start', new Date().toISOString())
-          .range(0, 9999)
       }
       return q
     })(),
