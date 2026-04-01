@@ -22,6 +22,7 @@ import { Avatar } from '@/components/avatar'
 import { EcodiaAttribution } from '@/components/ecodia-attribution'
 import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
+import { useHasPartners } from '@/hooks/use-has-partners'
 interface MenuLink {
   label: string
   to: string
@@ -99,6 +100,7 @@ export default function MorePage() {
   const navigate = useNavigate()
   const shouldReduceMotion = useReducedMotion()
   const { profile, collectiveRoles, isStaff } = useAuth()
+  const { hasPartners } = useHasPartners()
   const isAnyLeader = collectiveRoles.some(
     (m) => ['leader', 'co_leader', 'assist_leader'].includes(m.role),
   )
@@ -112,7 +114,7 @@ export default function MorePage() {
   const supportLinks: MenuLink[] = [
     { label: 'Leadership Opportunities', to: '/leadership', icon: <Users size={17} />, iconBg: 'bg-moss-50', iconColor: 'text-moss-600' },
     { label: 'Contact Us', to: '/contact', icon: <Mail size={17} />, iconBg: 'bg-sky-50', iconColor: 'text-sky-600' },
-    { label: 'Our Partners', to: '/partners', icon: <Handshake size={17} />, iconBg: 'bg-warning-50', iconColor: 'text-warning-600' },
+    ...(hasPartners ? [{ label: 'Our Partners', to: '/partners', icon: <Handshake size={17} />, iconBg: 'bg-warning-50', iconColor: 'text-warning-600' }] : []),
   ]
 
   const shopLinks: MenuLink[] = [

@@ -16,6 +16,7 @@ import { cn } from '@/lib/cn'
 import { APP_NAME } from '@/lib/constants'
 import { useAuth } from '@/hooks/use-auth'
 import { useCollective } from '@/hooks/use-collective'
+import { useHasPartners } from '@/hooks/use-has-partners'
 import { useLayout } from '@/hooks/use-layout'
 import { Avatar } from '@/components/avatar'
 
@@ -363,6 +364,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
   const shouldReduceMotion = useReducedMotion()
   const [collapsed, setCollapsed] = useState(false)
   const { user, profile, collectiveRoles, isStaff, isSuperAdmin, hasCapability } = useAuth()
+  const { hasPartners } = useHasPartners()
 
   const isDevUser = import.meta.env.DEV &&
     !!user?.email &&
@@ -395,9 +397,23 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
     return suites
   }, [isAnyLeader, isStaff])
 
+  /** Paths to hide from member nav when their backing data is empty */
+  const hiddenPaths = useMemo(() => {
+    const paths: string[] = []
+    if (!hasPartners) paths.push('/partners')
+    return paths
+  }, [hasPartners])
+
+  const filterMemberItems = useCallback(
+    (items: NavItem[]) => items.filter((item) => !hiddenPaths.includes(item.path)),
+    [hiddenPaths],
+  )
+
   const allSuiteCategories = useMemo(() => {
     const result: Record<Suite, NavCategory[]> = { main: [], admin: [], leader: [] }
-    result.main = [...memberNavCategories]
+    result.main = memberNavCategories
+      .map((cat) => ({ ...cat, items: filterMemberItems(cat.items) }))
+      .filter((cat) => cat.items.length > 0)
     if (isStaff) {
       result.admin = adminNavCategories
         .filter((cat) => !cat.superAdminOnly || isSuperAdmin)
@@ -414,7 +430,7 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
       result.leader = leaderNavCategories
     }
     return result
-  }, [isSuperAdmin, hasCapability, isAnyLeader, isStaff, isDevUser])
+  }, [isSuperAdmin, hasCapability, isAnyLeader, isStaff, isDevUser, filterMemberItems])
 
   const flatCategories = useMemo(() => {
     const highestHome = isStaff ? adminHomeItem : isAnyLeader ? leaderHomeItem : memberHomeItem
@@ -460,15 +476,15 @@ export function UnifiedSidebar({ mobileOpen, onMobileClose }: UnifiedSidebarProp
 
     const memberCats = memberNavCategories.map((cat, i) => ({
       ...cat,
-      items: [
+      items: filterMemberItems([
         ...(i === 0 && highestHome !== memberHomeItem ? [memberHomeItem] : []),
         ...cat.items.filter((item) => item.path !== '/updates' && item.path !== '/chat'),
-      ],
+      ]),
     })).filter((cat) => cat.items.length > 0)
     cats.push(...memberCats)
 
     return cats
-  }, [isAnyLeader, isStaff, isSuperAdmin, hasCapability, isDevUser])
+  }, [isAnyLeader, isStaff, isSuperAdmin, hasCapability, isDevUser, filterMemberItems])
 
   const isActive = (path: string) => {
     if (path === '/' || path === '/admin' || path === '/leader') {

@@ -19,6 +19,8 @@ interface SegmentedControlProps<T extends string = string> {
   onChange: (id: T) => void
   /** 'filled' = white bg active on neutral-100 track (default). 'pill' = colored bg active on white track. */
   variant?: SegmentedControlVariant
+  /** Hide labels on mobile, show icon-only. Labels appear at sm: breakpoint. */
+  compact?: boolean
   className?: string
   'aria-label'?: string
 }
@@ -49,6 +51,7 @@ export function SegmentedControl<T extends string = string>({
   value,
   onChange,
   variant = 'filled',
+  compact = false,
   className,
   'aria-label': ariaLabel = 'View options',
 }: SegmentedControlProps<T>) {
@@ -85,7 +88,7 @@ export function SegmentedControl<T extends string = string>({
                 {seg.icon}
               </span>
             )}
-            {seg.label}
+            <span className={compact ? 'hidden sm:inline' : undefined}>{seg.label}</span>
           </button>
         )
       })}

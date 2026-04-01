@@ -242,9 +242,6 @@ function HomeHero({ rm }: { rm: boolean }) {
           ref={disableParallax ? undefined : textRef}
           className={cn('absolute inset-x-0 top-[18%] sm:top-[7%] z-[2] flex flex-col items-center px-6', wcTransform)}
         >
-          <span className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.3em] text-white/80 mb-0.5" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.3)' }}>
-            Welcome to
-          </span>
           <img
             src="/logos/white-wordmark.webp"
             alt="Co-Exist"

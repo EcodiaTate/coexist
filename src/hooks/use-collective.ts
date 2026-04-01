@@ -253,7 +253,7 @@ export function useCollectiveStats(collectiveId: string | undefined) {
         // Parallelize impact + attendance queries
         const [impactsRes, registeredRes, attendedRes] = await Promise.all([
           supabase.from('event_impact').select(IMPACT_SELECT_COLUMNS).in('event_id', eventIds)
-            .not('notes', 'like', 'Legacy import:%'),
+            .or('notes.is.null,notes.not.like.Legacy import:%'),
           supabase
             .from('event_registrations')
             .select('id', { count: 'exact', head: true })

@@ -71,17 +71,11 @@ function DonateHero({ rm }: { rm: boolean }) {
 
         <div
           ref={rm ? undefined : textRef}
-          className="absolute inset-x-0 top-[13%] sm:top-[10%] z-[2] flex flex-col items-center px-6 will-change-transform"
+          className="absolute inset-x-0 top-[20%] sm:top-[16%] z-[2] flex flex-col items-center px-6 will-change-transform"
         >
-          <span className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-[0.3em] text-white/80 mb-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]">
-            Support
-          </span>
           <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_16px_rgba(0,0,0,0.4)] leading-[0.85] block">
             Donate
           </span>
-          <p className="mt-3 text-sm text-white text-center max-w-xs drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">
-            100% goes to conservation events & habitat restoration
-          </p>
         </div>
       </div>
 
@@ -164,7 +158,7 @@ function DonationForm({ rm }: { rm: boolean }) {
         </div>
 
         {/* Frequency toggle */}
-        <div className="flex rounded-2xl bg-neutral-50 border border-neutral-100 p-1.5 mb-6">
+        <div className="flex rounded-2xl bg-neutral-100/80 border border-neutral-200 p-1.5 mb-6">
           <button
             type="button"
             onClick={() => setFrequency('one_time')}
@@ -222,7 +216,7 @@ function DonationForm({ rm }: { rm: boolean }) {
             value={customAmount}
             onChange={handleCustomChange}
             icon={<span className="text-neutral-500 font-bold text-base">$</span>}
-            inputClassName="bg-neutral-50 border border-neutral-100 focus:bg-white"
+            inputClassName="bg-neutral-100/80 border border-neutral-200 focus:bg-white focus:border-neutral-300"
             min="1"
             max="50000"
             step="1"
@@ -264,7 +258,7 @@ function DonationForm({ rm }: { rm: boolean }) {
             placeholder="Share why you're supporting Co-Exist (optional)"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            inputClassName="bg-neutral-50 border border-neutral-100 focus:bg-white"
+            inputClassName="bg-neutral-100/80 border border-neutral-200 focus:bg-white focus:border-neutral-300"
             rows={2}
             maxLength={200}
             compact
@@ -275,7 +269,7 @@ function DonationForm({ rm }: { rm: boolean }) {
         </div>
 
         {/* Public toggle */}
-        <div className="mb-6 px-4 py-3 rounded-2xl bg-neutral-50 border border-neutral-100">
+        <div className="mb-6 px-4 py-3 rounded-2xl bg-neutral-100/80 border border-neutral-200">
           <Toggle
             checked={isPublic}
             onChange={setIsPublic}

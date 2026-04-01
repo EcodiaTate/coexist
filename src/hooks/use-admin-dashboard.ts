@@ -53,8 +53,9 @@ export interface AdminOverviewData {
 }
 
 const ADMIN_BASELINE_TREES      = 35000
-const ADMIN_BASELINE_RUBBISH_KG = 4900
+const ADMIN_BASELINE_RUBBISH_KG = 4794
 const ADMIN_BASELINE_EVENTS     = 340
+const ADMIN_BASELINE_HOURS      = 11000  // 5500 attendees × 2hrs avg
 const ADMIN_BASELINE_DATE       = '2026-01-01'
 
 async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewData> {
@@ -76,16 +77,23 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
       .lt('date_start', new Date().toISOString())
       .gte('date_start', baselineDate),
     (() => {
-      // Filter by the event's date_start (not logged_at) so backfilled rows are
-      // included correctly. Legacy bulk-import rows are excluded by notes filter.
-      const eventDateStart = rangeStart ?? baselineDate
-      return supabase
+      // Exclude legacy bulk-import rows; for period views, scope by event date.
+      let q = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, events!inner(date_start)`)
-        .not('notes', 'like', 'Legacy import:%')
-        .gte('events.date_start', eventDateStart)
-        .lt('events.date_start', new Date().toISOString())
+        .select(IMPACT_SELECT_COLUMNS)
+        .or('notes.is.null,notes.not.like.Legacy import:%')
         .range(0, 9999)
+      if (rangeStart) {
+        // Period view — also need event date scope, so join events
+        q = supabase
+          .from('event_impact')
+          .select(`${IMPACT_SELECT_COLUMNS}, events!inner(date_start)`)
+          .or('notes.is.null,notes.not.like.Legacy import:%')
+          .gte('events.date_start', rangeStart)
+          .lt('events.date_start', new Date().toISOString())
+          .range(0, 9999)
+      }
+      return q
     })(),
     rangeStart
       ? supabase
@@ -108,7 +116,7 @@ async function fetchAdminOverview(dateRange: DateRange): Promise<AdminOverviewDa
     totalCollectives: totalCollectivesRes.count ?? 0,
     totalEvents: (totalEventsRes.count ?? 0) + (isAllTime ? ADMIN_BASELINE_EVENTS : 0),
     totalTrees: sumMetric(impact, 'trees_planted') + (isAllTime ? ADMIN_BASELINE_TREES : 0),
-    totalHours: Math.round(sumMetric(impact, 'hours_total')),
+    totalHours: Math.round(sumMetric(impact, 'hours_total')) + (isAllTime ? ADMIN_BASELINE_HOURS : 0),
     totalRubbish: Math.round(sumMetric(impact, 'rubbish_kg') + (isAllTime ? ADMIN_BASELINE_RUBBISH_KG : 0)),
     totalArea: Math.round(sumMetric(impact, 'area_restored_sqm')),
     totalNativePlants: sumMetric(impact, 'native_plants'),

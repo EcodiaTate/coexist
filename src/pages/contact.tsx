@@ -175,11 +175,8 @@ export default function ContactPage() {
             ref={rm ? undefined : textRef}
             className="absolute inset-x-0 top-[13%] sm:top-[10%] z-[2] flex flex-col items-center px-6 will-change-transform"
           >
-            <span className="text-[10px] sm:text-xs lg:text-sm font-bold uppercase tracking-[0.3em] text-white mb-1 drop-shadow-[0_1px_6px_rgba(0,0,0,0.5)]">
-              Get In Touch
-            </span>
             <span role="heading" aria-level={1} className="font-heading text-[2.5rem] sm:text-[3.5rem] lg:text-[5rem] font-bold uppercase text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)] leading-[0.85] block text-center" style={{ textShadow: '0 2px 12px rgba(0,0,0,0.5), 0 0 40px rgba(0,0,0,0.3)' }}>
-              Contact Us
+              Contact
             </span>
           </div>
         </div>
