@@ -87,17 +87,13 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       // Exclude legacy imports; for current-year scope by event date.
       let impactQuery = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id`)
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(date_start)`)
         .or('notes.is.null,notes.not.like.Legacy import:%')
         .range(0, 9999)
       if (timeRange === 'current-year') {
-        impactQuery = supabase
-          .from('event_impact')
-          .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(date_start)`)
-          .or('notes.is.null,notes.not.like.Legacy import:%')
+        impactQuery = impactQuery
           .gte('events.date_start', yearStart)
           .lt('events.date_start', new Date().toISOString())
-          .range(0, 9999)
       }
 
       // Only count events on/after the baseline date
@@ -200,15 +196,11 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
       // Exclude legacy imports; for current-year scope by event date.
       let impactQuery = supabase
         .from('event_impact')
-        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id)`)
+        .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id, date_start)`)
         .eq('events.collective_id', collectiveId)
         .or('notes.is.null,notes.not.like.Legacy import:%')
       if (timeRange === 'current-year') {
-        impactQuery = supabase
-          .from('event_impact')
-          .select(`${IMPACT_SELECT_COLUMNS}, event_id, events!inner(collective_id, date_start)`)
-          .eq('events.collective_id', collectiveId)
-          .or('notes.is.null,notes.not.like.Legacy import:%')
+        impactQuery = impactQuery
           .gte('events.date_start', yearStart)
           .lt('events.date_start', new Date().toISOString())
       }
