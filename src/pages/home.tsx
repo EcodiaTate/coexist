@@ -104,7 +104,7 @@ function HScroll({
     <div className="relative -mx-6">
       <div
         className={cn(
-          'flex gap-3 overflow-x-auto pl-8 pr-6 pb-1',
+          'flex gap-3 overflow-x-auto pl-8 pr-6 pb-4',
           'scrollbar-none snap-x snap-proximity',
           'scroll-smooth',
           className,
@@ -710,108 +710,55 @@ function UpdatesSection({ rm }: { rm: boolean }) {
       >
         <HScroll>
           {updates.data.map((item) => (
-            <Card
+            <button
               key={item.id}
-              variant="announcement"
-              className="shrink-0 w-64 snap-start shadow-lg"
+              type="button"
               onClick={() => navigate('/updates')}
               aria-label={item.title}
+              className="shrink-0 w-56 snap-start text-left rounded-2xl overflow-hidden bg-amber-50 shadow-[0_4px_16px_rgba(0,0,0,0.12)] active:scale-[0.98] transition-transform duration-150 flex flex-col"
             >
-              {item.image_url ? (
-                <Card.Overlay
-                  src={item.image_url}
-                  alt=""
-                  aspectRatio="3/2"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    {item.is_pinned && (
-                      <Badge variant="default" size="sm">Pinned</Badge>
-                    )}
-                    {item.priority === 'urgent' && (
-                      <Badge variant="default" size="sm">Urgent</Badge>
-                    )}
-                    <span className="text-[10px] text-white/60 ml-auto">
-                      {relativeTime(item.created_at ?? '')}
-                    </span>
-                  </div>
-
-                  <p className="font-heading text-sm font-semibold text-white line-clamp-2">
-                    {item.title}
-                  </p>
-
-                  {item.content && (
-                    <p className="mt-1 text-xs text-white/70 line-clamp-2">
-                      {item.content}
-                    </p>
-                  )}
-
-                  {item.author && (
-                    <div className="flex items-center gap-2 mt-2">
-                      {item.author.avatar_url ? (
-                        <img
-                          src={item.author.avatar_url}
-                          alt=""
-                          loading="lazy"
-                          className="w-5 h-5 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                          <Megaphone size={10} className="text-white/70" />
-                        </div>
-                      )}
-                      <span className="text-[11px] text-white/60 truncate">
-                        {item.author.display_name}
-                      </span>
-                    </div>
-                  )}
-                </Card.Overlay>
-              ) : (
-                /* Fallback gradient when no image */
-                <div className="bg-gradient-to-br from-sprout-600 to-primary-700 p-4 h-[170px] flex flex-col justify-end">
-                  <div className="flex items-center gap-2 mb-2">
-                    {item.is_pinned && (
-                      <Badge variant="default" size="sm">Pinned</Badge>
-                    )}
-                    {item.priority === 'urgent' && (
-                      <Badge variant="default" size="sm">Urgent</Badge>
-                    )}
-                    <span className="text-[10px] text-white/40 ml-auto">
-                      {relativeTime(item.created_at ?? '')}
-                    </span>
-                  </div>
-
-                  <p className="font-heading text-sm font-semibold text-white line-clamp-2">
-                    {item.title}
-                  </p>
-
-                  {item.content && (
-                    <p className="mt-1 text-xs text-white/60 line-clamp-2">
-                      {item.content}
-                    </p>
-                  )}
-
-                  {item.author && (
-                    <div className="flex items-center gap-2 mt-3">
-                      {item.author.avatar_url ? (
-                        <img
-                          src={item.author.avatar_url}
-                          alt=""
-                          loading="lazy"
-                          className="w-5 h-5 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center">
-                          <Megaphone size={10} className="text-white/70" />
-                        </div>
-                      )}
-                      <span className="text-[11px] text-white/50 truncate">
-                        {item.author.display_name}
-                      </span>
-                    </div>
-                  )}
+              {/* Image — fixed 4/3 ratio, only rendered when present */}
+              {item.image_url && (
+                <div className="w-full shrink-0 overflow-hidden bg-neutral-200" style={{ aspectRatio: '4/3' }}>
+                  <img
+                    src={item.image_url}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               )}
-            </Card>
+
+              {/* Text panel — grows naturally */}
+              <div className="flex flex-col p-4 gap-1.5">
+                <p className="font-heading text-sm font-bold text-neutral-900 leading-snug line-clamp-2">
+                  {item.title}
+                </p>
+
+                {item.content && (
+                  <p className="text-[11px] text-neutral-700 leading-relaxed line-clamp-3">
+                    {item.content}
+                  </p>
+                )}
+
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  {item.author?.avatar_url ? (
+                    <img src={item.author.avatar_url} alt="" loading="lazy" className="w-4 h-4 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-4 h-4 rounded-full bg-neutral-200 flex items-center justify-center shrink-0">
+                      <Megaphone size={9} className="text-neutral-500" />
+                    </div>
+                  )}
+                  <span className="text-[10px] text-neutral-500 truncate flex-1">
+                    {item.author?.display_name ?? 'Co-Exist'}
+                  </span>
+                  <span className="text-[10px] text-neutral-400 shrink-0">
+                    {relativeTime(item.created_at ?? '')}
+                  </span>
+                </div>
+              </div>
+            </button>
           ))}
         </HScroll>
       </Section>
@@ -1025,7 +972,7 @@ function HomeImpactSection({
               <BentoStatCard value={data?.eventsAttended ?? 0} label="Attendances" icon={<Users size={16} />} theme="primary-soft" />
               <BentoStatCard value={data?.volunteerHours ?? 0} label="Vol. Hours" icon={<Clock size={16} />} unit="hrs" theme="moss-soft" />
               <BentoStatCard value={data?.treesPlanted ?? 0} label="Trees Planted" icon={<TreePine size={16} />} theme="sprout-soft" />
-              <BentoStatCard value={data?.rubbishCollectedTonnes ?? 0} label="Rubbish" icon={<Trash2 size={16} />} unit="t" theme="sky-soft" />
+              <BentoStatCard value={data?.rubbishCollectedKg ?? 0} label="Rubbish" icon={<Trash2 size={16} />} unit="kg" theme="sky-soft" />
               <BentoStatCard value={data?.collectivesCount ?? 0} label="Collectives" icon={<Users size={16} />} theme="plum-soft" />
             </BentoStatGrid>
           )}

@@ -426,7 +426,7 @@ export default function EditProfilePage() {
               <Input
                 label="Instagram Handle"
                 value={instagramHandle}
-                onChange={(e) => setInstagramHandle(e.target.value)}
+                onChange={(e) => setInstagramHandle(e.target.value.replace(/^@+/, ''))}
                 placeholder="@coexistaus"
                 maxLength={30}
                 className={inputStyle}

@@ -589,7 +589,7 @@ function ImpactFormCard({ task }: { task: ImpactFormTask }) {
 
         <button
           type="button"
-          onClick={() => navigate(`/events/${task.event_id}/log-impact`)}
+          onClick={() => navigate(`/events/${task.event_id}/impact`)}
           className="flex-1 flex items-start gap-3 p-4 text-left cursor-pointer min-w-0 active:scale-[0.98] transition-transform duration-150"
         >
           <div className="mt-0.5 shrink-0">
