@@ -831,41 +831,46 @@ function HomeImpactSection({
   const inView = useInView(sectionRef, { once: true, margin: '-60px' })
 
   return (
-    <motion.div variants={rm ? undefined : fadeUp} className="-mx-6 overflow-hidden">
-      <div ref={sectionRef} className="relative overflow-hidden" style={{ backgroundColor: '#869d61' }}>
+    <motion.div variants={rm ? undefined : fadeUp} className="-mx-2 sm:-mx-3">
+      <div ref={sectionRef} className="relative overflow-hidden bg-[#879e62] rounded-2xl">
 
         <div className="relative px-5 sm:px-7 pt-14 pb-16 sm:pt-16 sm:pb-20">
-          {/* Header */}
+          {/* Header — editorial style */}
           <motion.div
-            className="flex items-center justify-between mb-1.5"
+            className="mb-8"
             initial={rm ? undefined : { opacity: 0 }}
             animate={inView ? { opacity: 1 } : undefined}
             transition={{ duration: 0.4 }}
           >
-            <h2 className="font-heading text-xs font-bold text-white/90 uppercase tracking-[0.2em]">
-              Our Impact
+            <div className="flex items-center justify-between mb-1.5">
+              <p className="font-heading text-[10px] font-bold text-[#f4f2ec] uppercase tracking-[0.2em]">
+                Real-Time Performance
+              </p>
+              <Link
+                to="/profile"
+                className="flex items-center gap-0.5 text-[11px] font-semibold text-[#f4f2ec] hover:text-white active:scale-[0.97] transition-[colors,transform] duration-150"
+              >
+                My impact
+                <ChevronRight size={13} />
+              </Link>
+            </div>
+            <h2 className="font-heading text-[28px] sm:text-[34px] font-bold text-[#f4f2ec] leading-tight tracking-tight">
+              Mission Progress
             </h2>
-            <Link
-              to="/profile"
-              className="flex items-center gap-0.5 text-[11px] font-semibold text-white/70 hover:text-white active:scale-[0.97] transition-[colors,transform] duration-150"
-            >
-              My impact
-              <ChevronRight size={13} />
-            </Link>
           </motion.div>
 
           {/* Toggles */}
-          <div className="flex items-center gap-2 mb-8">
+          <div className="flex items-center gap-2 mb-6">
             {/* Scope toggle: National / Collective (with dropdown if multiple) */}
-            <div className="flex rounded-full bg-black/15 p-0.5">
+            <div className="flex rounded-full bg-primary-950/10 p-0.5">
               <button
                 type="button"
                 onClick={() => setScope('national')}
                 className={cn(
                   'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
                   scope === 'national'
-                    ? 'bg-white text-primary-800 shadow-sm'
-                    : 'text-white/70 hover:text-white',
+                    ? 'bg-white/90 text-primary-900 shadow-sm'
+                    : 'text-primary-950/50 hover:text-primary-950/70',
                 )}
               >
                 <Globe size={11} className="inline mr-1 -mt-0.5" />
@@ -886,8 +891,8 @@ function HomeImpactSection({
                     className={cn(
                       'px-3.5 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none flex items-center gap-1 max-w-[160px]',
                       scope === 'collective'
-                        ? 'bg-white text-primary-800 shadow-sm'
-                        : 'text-white/70 hover:text-white',
+                        ? 'bg-white/90 text-primary-900 shadow-sm'
+                        : 'text-primary-950/50 hover:text-primary-950/70',
                     )}
                   >
                     <MapPin size={11} className="-mt-0.5 shrink-0" />
@@ -928,15 +933,15 @@ function HomeImpactSection({
             </div>
 
             {/* Time range toggle */}
-            <div className="flex rounded-full bg-black/15 p-0.5">
+            <div className="flex rounded-full bg-primary-950/10 p-0.5">
               <button
                 type="button"
                 onClick={() => setTimeRange('all-time')}
                 className={cn(
                   'px-3 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
                   timeRange === 'all-time'
-                    ? 'bg-white text-primary-800 shadow-sm'
-                    : 'text-white/70 hover:text-white',
+                    ? 'bg-white/90 text-primary-900 shadow-sm'
+                    : 'text-primary-950/50 hover:text-primary-950/70',
                 )}
               >
                 All Time
@@ -947,8 +952,8 @@ function HomeImpactSection({
                 className={cn(
                   'px-3 min-h-9 rounded-full text-[11px] font-semibold transition-transform duration-200 active:scale-[0.95] cursor-pointer select-none',
                   timeRange === 'current-year'
-                    ? 'bg-white text-primary-800 shadow-sm'
-                    : 'text-white/70 hover:text-white',
+                    ? 'bg-white/90 text-primary-900 shadow-sm'
+                    : 'text-primary-950/50 hover:text-primary-950/70',
                 )}
               >
                 {new Date().getFullYear()}
@@ -956,24 +961,29 @@ function HomeImpactSection({
             </div>
           </div>
 
-          {/* Content — fixed card grid, numbers animate in-place on toggle */}
+          {/* Content — bento card grid */}
           {isInitialLoading ? (
-            <div className="space-y-4">
-              <div className="h-24 rounded-2xl bg-white/15 animate-pulse" />
-              <div className="space-y-3">
+            <div className="space-y-3">
+              <div className="h-36 rounded-3xl bg-white/20 animate-pulse" />
+              <div className="grid grid-cols-2 gap-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-[72px] rounded-xl bg-white/10 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
+                  <div key={i} className="h-24 rounded-3xl bg-white/15 animate-pulse" style={{ animationDelay: `${i * 80}ms` }} />
                 ))}
               </div>
             </div>
           ) : (
             <BentoStatGrid>
-              <BentoStatCard value={totalEvents} label="Events" icon={<Calendar size={18} />} theme="warning-soft" />
-              <BentoStatCard value={data?.eventsAttended ?? 0} label="Attendances" icon={<Users size={16} />} theme="primary-soft" />
-              <BentoStatCard value={data?.volunteerHours ?? 0} label="Vol. Hours" icon={<Clock size={16} />} unit="hrs" theme="moss-soft" />
-              <BentoStatCard value={data?.treesPlanted ?? 0} label="Trees Planted" icon={<TreePine size={16} />} theme="sprout-soft" />
-              <BentoStatCard value={data?.rubbishCollectedKg ?? 0} label="Rubbish" icon={<Trash2 size={16} />} unit="kg" theme="sky-soft" />
-              <BentoStatCard value={data?.collectivesCount ?? 0} label="Collectives" icon={<Users size={16} />} theme="plum-soft" />
+              <BentoStatCard
+                value={data?.treesPlanted ?? 0}
+                label="Trees Planted"
+                icon={<TreePine size={20} />}
+                description="Cumulative reforestation impact across all regional active corridors this fiscal year."
+              />
+              <BentoStatCard value={data?.eventsAttended ?? 0} label="Volunteers" icon={<Users size={18} />} />
+              <BentoStatCard value={totalEvents} label="Active Sites" icon={<Calendar size={18} />} />
+              <BentoStatCard value={data?.volunteerHours ?? 0} label="Vol. Hours" icon={<Clock size={18} />} unit="hrs" />
+              <BentoStatCard value={data?.rubbishCollectedKg ?? 0} label="Rubbish" icon={<Trash2 size={18} />} unit="kg" />
+              <BentoStatCard value={data?.collectivesCount ?? 0} label="Collectives" icon={<Users size={18} />} />
             </BentoStatGrid>
           )}
         </div>
