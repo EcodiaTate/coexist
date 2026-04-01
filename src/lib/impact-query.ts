@@ -101,12 +101,22 @@ export async function fetchImpactRows(scope: ImpactScope = {}): Promise<FetchImp
   const baselineDate = new Date(IMPACT_BASELINE_DATE).toISOString()
   const yearStart = new Date(new Date().getFullYear(), 0, 1).toISOString()
 
-  // Determine the effective lower date bound for event_start
-  let effectiveStart: string | null = skipBaselineDateFilter ? null : baselineDate
-  if (timeRange === 'current-year') {
+  // Determine the effective lower date bound for event_start.
+  // When includeLegacy=true we need pre-2026 events (backfill + legacy imports),
+  // so the baseline date floor must not apply to the ID resolution query.
+  let effectiveStart: string | null
+  if (includeLegacy) {
+    // All-time collective view: no lower bound — pick up everything
+    effectiveStart = null
+  } else if (skipBaselineDateFilter) {
+    effectiveStart = null
+  } else if (timeRange === 'current-year') {
     effectiveStart = yearStart > baselineDate ? yearStart : baselineDate
   } else if (timeRange === 'custom' && rangeStart) {
     effectiveStart = rangeStart
+  } else {
+    // all-time national/admin: baseline date is the floor (pre-2026 covered by constants)
+    effectiveStart = baselineDate
   }
 
   // ── Step 1: resolve event IDs ────────────────────────────────────────
@@ -119,21 +129,36 @@ export async function fetchImpactRows(scope: ImpactScope = {}): Promise<FetchImp
     resolvedEventIds = providedEventIds
     eventCount = providedEventIds.length
   } else if (collectiveId || effectiveStart) {
-    // Resolve from events table — always reliable, avoids embedded join bugs
-    let eventsQuery = supabase
-      .from('events')
-      .select('id', { count: 'exact' })
-      .lt('date_start', now)
-      .in('status', ['published', 'completed'])
+    // Resolve from events table — always reliable, avoids embedded join bugs.
+    // When including legacy rows we need IDs from ALL events (including backfill/import
+    // which may be 'draft'), but eventCount should only reflect real published/completed events.
+    const buildQuery = (statusFilter: boolean) => {
+      let q = supabase
+        .from('events')
+        .select('id', { count: 'exact' })
+        .lt('date_start', now)
+      if (statusFilter) q = q.in('status', ['published', 'completed'])
+      if (collectiveId) q = q.eq('collective_id', collectiveId)
+      if (effectiveStart) q = q.gte('date_start', effectiveStart)
+      return q
+    }
 
-    if (collectiveId) eventsQuery = eventsQuery.eq('collective_id', collectiveId)
-    if (effectiveStart) eventsQuery = eventsQuery.gte('date_start', effectiveStart)
-
-    const eventsRes = await eventsQuery
-    if (eventsRes.error) throw eventsRes.error
-
-    resolvedEventIds = (eventsRes.data ?? []).map((e) => e.id)
-    eventCount = eventsRes.count ?? 0
+    if (includeLegacy) {
+      // Fetch all event IDs (no status filter) for impact row scoping,
+      // plus a count of real events for display purposes.
+      const [allEventsRes, realEventsRes] = await Promise.all([
+        buildQuery(false),
+        buildQuery(true),
+      ])
+      if (allEventsRes.error) throw allEventsRes.error
+      resolvedEventIds = (allEventsRes.data ?? []).map((e) => e.id)
+      eventCount = realEventsRes.count ?? 0
+    } else {
+      const eventsRes = await buildQuery(true)
+      if (eventsRes.error) throw eventsRes.error
+      resolvedEventIds = (eventsRes.data ?? []).map((e) => e.id)
+      eventCount = eventsRes.count ?? 0
+    }
   } else {
     // National / global — no event ID pre-filter needed; date filter applied via
     // a separate events query in step 2 approach. We still need IDs to avoid
