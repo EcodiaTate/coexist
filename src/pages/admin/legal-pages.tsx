@@ -250,12 +250,7 @@ export default function AdminLegalPagesPage() {
 
   const previewHtml = sanitise(form.content)
 
-  useAdminHeader(
-    editing ? 'Edit Legal Page' : 'Legal Pages',
-    editing
-      ? { subtitle: editing.title }
-      : { subtitle: 'Manage legal, privacy, and policy pages' },
-  )
+  useAdminHeader(editing ? 'Edit Legal Page' : 'Legal Pages')
 
   const startEdit = useCallback((page: LegalPage) => {
     setEditing(page)

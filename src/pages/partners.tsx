@@ -144,15 +144,9 @@ export default function PartnersPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
           >
-            <span className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/60 block mb-1.5">
-              Conservation Network
-            </span>
-            <span className="font-heading text-2xl sm:text-3xl font-bold text-white block">
+            <span className="font-heading text-2xl sm:text-3xl font-bold text-white block text-center">
               Our Partners
             </span>
-            <p className="text-sm text-white/60 mt-2 max-w-sm mx-auto leading-relaxed">
-              Organisations powering conservation with Co-Exist across Australia.
-            </p>
           </motion.div>
         </div>
 

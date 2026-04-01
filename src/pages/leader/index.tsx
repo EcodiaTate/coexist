@@ -1100,9 +1100,6 @@ export default function LeaderDashboardPage() {
 
             {/* Hero text */}
             <div className="absolute inset-x-0 bottom-0 z-[2] px-6 pb-10">
-              <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-white/60 mb-1">
-                Leader Dashboard
-              </p>
               {collectiveDetail?.region && (
                 <p className="flex items-center gap-1 text-xs text-white/70 mt-1">
                   <MapPin size={11} />

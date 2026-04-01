@@ -312,10 +312,9 @@ export default function AdminContactsPage() {
   const stats = useMemo(() => {
     if (!contacts) return null
     const total = contacts.length
-    const active = contacts.filter((c) => c.is_active).length
     const categories = new Set(contacts.map((c) => c.category)).size
     const stateSpecific = contacts.filter((c) => c.states.length > 0).length
-    return { total, active, categories, stateSpecific }
+    return { total, categories, stateSpecific }
   }, [contacts])
 
   const rm = !!shouldReduceMotion
@@ -338,9 +337,8 @@ export default function AdminContactsPage() {
     () => (
       <AdminHeroStatRow>
         <AdminHeroStat value={stats?.total ?? 0} label="Total" icon={<Phone size={18} />} color="primary" delay={0} reducedMotion={rm} />
-        <AdminHeroStat value={stats?.active ?? 0} label="Active" icon={<Phone size={18} />} color="success" delay={1} reducedMotion={rm} />
-        <AdminHeroStat value={stats?.categories ?? 0} label="Categories" icon={<MapPin size={18} />} color="info" delay={2} reducedMotion={rm} />
-        <AdminHeroStat value={stats?.stateSpecific ?? 0} label="State-Specific" icon={<MapPin size={18} />} color="sprout" delay={3} reducedMotion={rm} />
+        <AdminHeroStat value={stats?.categories ?? 0} label="Categories" icon={<MapPin size={18} />} color="info" delay={1} reducedMotion={rm} />
+        <AdminHeroStat value={stats?.stateSpecific ?? 0} label="State-Specific" icon={<MapPin size={18} />} color="sprout" delay={2} reducedMotion={rm} />
       </AdminHeroStatRow>
     ),
     [stats, rm],

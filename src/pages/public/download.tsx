@@ -229,16 +229,10 @@ export default function DownloadPage() {
           </motion.div>
 
           <motion.div variants={fadeUp}>
-            <h1 className="font-heading text-3xl sm:text-4xl font-bold text-white tracking-tight">
+            <h1 className="font-heading text-3xl sm:text-4xl font-bold text-white tracking-tight text-center">
               {APP_NAME}
             </h1>
-            <p className="mt-1.5 text-lg font-medium text-white/60">{TAGLINE}</p>
           </motion.div>
-
-          <motion.p variants={fadeUp} className="mt-4 text-white/50 leading-relaxed text-[15px] max-w-sm mx-auto">
-            Join Australia's youth conservation movement. Find events near you,
-            connect with your local Collective, and track your real-world impact.
-          </motion.p>
 
           {/* ── Platform-aware download buttons ── */}
           <motion.div variants={fadeUp} className="mt-8 space-y-3">

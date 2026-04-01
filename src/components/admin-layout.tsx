@@ -38,24 +38,22 @@ import type { NavItem, NavCategory } from '@/components/sidebar/types'
 
 interface AdminHeaderState {
   title: string
-  subtitle?: string
   actions?: ReactNode
   heroContent?: ReactNode
   fullBleed?: boolean
 }
 
 interface AdminHeaderContextValue {
-  setHeader: (opts: { title: string; subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }) => void
+  setHeader: (opts: { title: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }) => void
 }
 
 const AdminHeaderContext = createContext<AdminHeaderContextValue | null>(null)
 
 /**
  * Call from any admin page to set the page header title and optional actions.
- * Pass subtitle and heroContent to populate the shared hero bar.
+ * Pass heroContent to populate the shared hero bar.
  */
 interface AdminHeaderOpts {
-  subtitle?: string
   actions?: ReactNode
   heroContent?: ReactNode
   fullBleed?: boolean
@@ -70,63 +68,62 @@ export function useAdminHeader(
 
   // Extract individual values so the effect only re-fires when they actually change,
   // not when a new wrapper object is created each render.
-  const isOptsObject = opts != null && typeof opts === 'object' && !('$$typeof' in (opts as Record<string, unknown>)) && ('subtitle' in (opts as Record<string, unknown>) || 'actions' in (opts as Record<string, unknown>) || 'heroContent' in (opts as Record<string, unknown>) || 'fullBleed' in (opts as Record<string, unknown>))
+  const isOptsObject = opts != null && typeof opts === 'object' && !('$$typeof' in (opts as Record<string, unknown>)) && ('actions' in (opts as Record<string, unknown>) || 'heroContent' in (opts as Record<string, unknown>) || 'fullBleed' in (opts as Record<string, unknown>))
   const optsRecord = isOptsObject ? (opts as AdminHeaderOpts) : undefined
-  const subtitle = optsRecord?.subtitle
   const actions = optsRecord ? optsRecord.actions : (opts as ReactNode)
   const heroContent = optsRecord?.heroContent
   const fullBleed = optsRecord?.fullBleed
 
   useEffect(() => {
-    ctx?.setHeader({ title, subtitle, actions, heroContent, fullBleed })
-  }, [ctx, title, subtitle, actions, heroContent, fullBleed])
+    ctx?.setHeader({ title, actions, heroContent, fullBleed })
+  }, [ctx, title, actions, heroContent, fullBleed])
 }
 
 /* ------------------------------------------------------------------ */
-/*  Per-page hero hue config - maps title → gradient hue + subtitle   */
+/*  Per-page hero hue config - maps title → gradient hue               */
 /* ------------------------------------------------------------------ */
 
-interface HeroCfg { hue: string; defaultSubtitle: string; tall?: boolean; f: number; w: number }
+interface HeroCfg { hue: string; tall?: boolean; f: number; w: number }
 
 const PAGE_HERO_CONFIG: Record<string, HeroCfg> = {
-  'Dashboard':           { hue: 'from-primary-800 via-primary-900 to-primary-950',  defaultSubtitle: 'National conservation overview',               f: 0, w: 0 },
-  'Collectives':         { hue: 'from-primary-600 via-primary-700 to-primary-900',  defaultSubtitle: 'Manage local chapters across Australia',        f: 1, w: 1, tall: true },
-  'User Management':     { hue: 'from-primary-800 via-primary-850 to-neutral-900',  defaultSubtitle: 'Manage members, roles, and permissions',        f: 2, w: 2, tall: true },
-  'Workflows':           { hue: 'from-primary-700 via-primary-800 to-primary-950',  defaultSubtitle: 'Automate recurring tasks and track KPIs',       f: 3, w: 3, tall: true },
-  'Events':              { hue: 'from-accent-700 via-accent-800 to-primary-950',    defaultSubtitle: 'Track and manage conservation activities',       f: 4, w: 4, tall: true },
-  'Create':              { hue: 'from-primary-700 via-primary-800 to-primary-950',  defaultSubtitle: 'Workflows, surveys, and email campaigns',       f: 5, w: 0, tall: true },
-  'Surveys':             { hue: 'from-primary-800 via-primary-850 to-neutral-900',  defaultSubtitle: 'Collect feedback and measure satisfaction',      f: 6, w: 1, tall: true },
-  'Reports':             { hue: 'from-primary-700 via-primary-900 to-primary-950',  defaultSubtitle: 'Generate impact and compliance reports',         f: 7, w: 2, tall: true },
-  'Email Marketing':     { hue: 'from-primary-900 via-primary-950 to-neutral-900',  defaultSubtitle: 'Campaigns, subscribers, and delivery health',    f: 8, w: 3, tall: true },
-  'Charity Settings':    { hue: 'from-primary-800 via-primary-900 to-neutral-900',  defaultSubtitle: 'ACNC registration and compliance details',      f: 9, w: 4, tall: true },
-  'Export Centre':       { hue: 'from-primary-700 via-primary-900 to-primary-950',  defaultSubtitle: 'Generate reports and download data',             f: 10, w: 0, tall: true },
-  'Audit Log':           { hue: 'from-primary-900 via-primary-950 to-neutral-900',  defaultSubtitle: 'Track all administrative actions',               f: 11, w: 1, tall: true },
-  'Branding & Images':   { hue: 'from-primary-800 via-primary-850 to-neutral-900',  defaultSubtitle: 'Manage app images and visual identity',          f: 0, w: 2, tall: true },
-  'System':              { hue: 'from-primary-900 via-neutral-900 to-neutral-950',  defaultSubtitle: 'Infrastructure, feature flags, and health',      f: 1, w: 3, tall: true },
-  'Merch Management':    { hue: 'from-primary-800 via-primary-900 to-primary-950',  defaultSubtitle: 'Products, orders, and inventory',                f: 3, w: 0, tall: true },
-  'Applications':        { hue: 'from-sprout-700 via-primary-800 to-primary-950',   defaultSubtitle: 'Collective leadership applications',             f: 4, w: 1, tall: true },
-  'Create Survey':       { hue: 'from-primary-800 via-primary-850 to-neutral-900',  defaultSubtitle: 'Design a new survey',                            f: 5, w: 2, tall: true },
-  'Dev Tools':           { hue: 'from-primary-900 via-neutral-900 to-neutral-950',  defaultSubtitle: 'Testing and debugging utilities',                f: 6, w: 3, tall: true },
-  'Partners & Sponsors': { hue: 'from-primary-700 via-primary-800 to-neutral-900',  defaultSubtitle: 'Manage organisations, offers, and programs',     f: 7, w: 4, tall: true },
-  'Challenges':          { hue: 'from-accent-700 via-primary-800 to-primary-950',   defaultSubtitle: 'Create and track national conservation goals',   f: 8, w: 0, tall: true },
-  'Content Moderation':  { hue: 'from-primary-900 via-primary-950 to-neutral-900',  defaultSubtitle: 'Review flagged content and manage reports',      f: 9, w: 1, tall: true },
-  'Legal Pages':         { hue: 'from-primary-800 via-primary-900 to-neutral-900',  defaultSubtitle: 'Terms, privacy, and legal documentation',        f: 10, w: 2, tall: true },
-  'Edit Legal Page':     { hue: 'from-primary-800 via-primary-900 to-neutral-900',  defaultSubtitle: 'Edit page content and settings',                 f: 10, w: 2, tall: true },
-  'Updates':             { hue: 'from-secondary-700 via-primary-800 to-primary-950', defaultSubtitle: 'Manage and publish updates for participants',   f: 2, w: 3, tall: true },
-  'New Update':          { hue: 'from-secondary-700 via-primary-800 to-primary-950', defaultSubtitle: 'Compose and publish a blog-post update',        f: 2, w: 3, tall: true },
-  'Development':         { hue: 'from-amber-700 via-amber-800 to-primary-950',     defaultSubtitle: 'Learning modules, pathways, and certifications', f: 3, w: 4, tall: true },
-  'Create Module':       { hue: 'from-amber-600 via-amber-700 to-primary-900',     defaultSubtitle: 'Build a new learning module',                    f: 4, w: 0, tall: true },
-  'Edit Module':         { hue: 'from-amber-600 via-amber-700 to-primary-900',     defaultSubtitle: 'Update module content and settings',             f: 4, w: 0, tall: true },
-  'Module Detail':       { hue: 'from-amber-600 via-amber-700 to-primary-900',     defaultSubtitle: 'Module preview and completion stats',            f: 5, w: 1, tall: true },
-  'Create Section':      { hue: 'from-amber-700 via-amber-800 to-primary-950',     defaultSubtitle: 'Chain modules into a learning pathway',          f: 6, w: 2, tall: true },
-  'Edit Section':        { hue: 'from-amber-700 via-amber-800 to-primary-950',     defaultSubtitle: 'Update pathway modules and settings',            f: 6, w: 2, tall: true },
-  'Create Quiz':         { hue: 'from-amber-800 via-primary-800 to-primary-950',   defaultSubtitle: 'Design an assessment quiz',                      f: 7, w: 3, tall: true },
-  'Edit Quiz':           { hue: 'from-amber-800 via-primary-800 to-primary-950',   defaultSubtitle: 'Update quiz questions and settings',              f: 7, w: 3, tall: true },
-  'Development Results': { hue: 'from-amber-700 via-primary-900 to-primary-950',   defaultSubtitle: 'Completion rates, quiz scores, and learner data', f: 8, w: 4, tall: true },
-  'Emergency Contacts':  { hue: 'from-red-700 via-primary-800 to-primary-950',    defaultSubtitle: 'Manage emergency and internal contact directory',  f: 9, w: 0, tall: true },
+  'Dashboard':           { hue: 'from-primary-800 via-primary-900 to-primary-950',  f: 0, w: 0 },
+  'Collectives':         { hue: 'from-primary-600 via-primary-700 to-primary-900',  f: 1, w: 1, tall: true },
+  'User Management':     { hue: 'from-primary-800 via-primary-850 to-neutral-900',  f: 2, w: 2, tall: true },
+  'Workflows':           { hue: 'from-primary-700 via-primary-800 to-primary-950',  f: 3, w: 3, tall: true },
+  'Events':              { hue: 'from-accent-700 via-accent-800 to-primary-950',    f: 4, w: 4, tall: true },
+  'Create':              { hue: 'from-primary-700 via-primary-800 to-primary-950',  f: 5, w: 0, tall: true },
+  'Surveys':             { hue: 'from-primary-800 via-primary-850 to-neutral-900',  f: 6, w: 1, tall: true },
+  'Reports':             { hue: 'from-primary-700 via-primary-900 to-primary-950',  f: 7, w: 2, tall: true },
+  'Email Marketing':     { hue: 'from-primary-900 via-primary-950 to-neutral-900',  f: 8, w: 3, tall: true },
+  'Charity Settings':    { hue: 'from-primary-800 via-primary-900 to-neutral-900',  f: 9, w: 4, tall: true },
+  'Export Centre':       { hue: 'from-primary-700 via-primary-900 to-primary-950',  f: 10, w: 0, tall: true },
+  'Audit Log':           { hue: 'from-primary-900 via-primary-950 to-neutral-900',  f: 11, w: 1, tall: true },
+  'Branding & Images':   { hue: 'from-primary-800 via-primary-850 to-neutral-900',  f: 0, w: 2, tall: true },
+  'System':              { hue: 'from-primary-900 via-neutral-900 to-neutral-950',  f: 1, w: 3, tall: true },
+  'Merch Management':    { hue: 'from-primary-800 via-primary-900 to-primary-950',  f: 3, w: 0, tall: true },
+  'Applications':        { hue: 'from-sprout-700 via-primary-800 to-primary-950',   f: 4, w: 1, tall: true },
+  'Create Survey':       { hue: 'from-primary-800 via-primary-850 to-neutral-900',  f: 5, w: 2, tall: true },
+  'Dev Tools':           { hue: 'from-primary-900 via-neutral-900 to-neutral-950',  f: 6, w: 3, tall: true },
+  'Partners & Sponsors': { hue: 'from-primary-700 via-primary-800 to-neutral-900',  f: 7, w: 4, tall: true },
+  'Challenges':          { hue: 'from-accent-700 via-primary-800 to-primary-950',   f: 8, w: 0, tall: true },
+  'Content Moderation':  { hue: 'from-primary-900 via-primary-950 to-neutral-900',  f: 9, w: 1, tall: true },
+  'Legal Pages':         { hue: 'from-primary-800 via-primary-900 to-neutral-900',  f: 10, w: 2, tall: true },
+  'Edit Legal Page':     { hue: 'from-primary-800 via-primary-900 to-neutral-900',  f: 10, w: 2, tall: true },
+  'Updates':             { hue: 'from-secondary-700 via-primary-800 to-primary-950', f: 2, w: 3, tall: true },
+  'New Update':          { hue: 'from-secondary-700 via-primary-800 to-primary-950', f: 2, w: 3, tall: true },
+  'Development':         { hue: 'from-amber-700 via-amber-800 to-primary-950',     f: 3, w: 4, tall: true },
+  'Create Module':       { hue: 'from-amber-600 via-amber-700 to-primary-900',     f: 4, w: 0, tall: true },
+  'Edit Module':         { hue: 'from-amber-600 via-amber-700 to-primary-900',     f: 4, w: 0, tall: true },
+  'Module Detail':       { hue: 'from-amber-600 via-amber-700 to-primary-900',     f: 5, w: 1, tall: true },
+  'Create Section':      { hue: 'from-amber-700 via-amber-800 to-primary-950',     f: 6, w: 2, tall: true },
+  'Edit Section':        { hue: 'from-amber-700 via-amber-800 to-primary-950',     f: 6, w: 2, tall: true },
+  'Create Quiz':         { hue: 'from-amber-800 via-primary-800 to-primary-950',   f: 7, w: 3, tall: true },
+  'Edit Quiz':           { hue: 'from-amber-800 via-primary-800 to-primary-950',   f: 7, w: 3, tall: true },
+  'Development Results': { hue: 'from-amber-700 via-primary-900 to-primary-950',   f: 8, w: 4, tall: true },
+  'Emergency Contacts':  { hue: 'from-red-700 via-primary-800 to-primary-950',    f: 9, w: 0, tall: true },
 }
 
-const DEFAULT_HERO: HeroCfg = { hue: 'from-primary-800 via-primary-900 to-primary-950', defaultSubtitle: '', tall: true, f: 11, w: 3 }
+const DEFAULT_HERO: HeroCfg = { hue: 'from-primary-800 via-primary-900 to-primary-950', tall: true, f: 11, w: 3 }
 
 
 /* ------------------------------------------------------------------ */
@@ -334,7 +331,7 @@ export function AdminLayout() {
     scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' })
   }, [location.pathname, isFullBleedRoute])
 
-  const setHeader = useCallback((opts: { title: string; subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }) => {
+  const setHeader = useCallback((opts: { title: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }) => {
     setHeaderState(opts)
   }, [])
 
@@ -356,7 +353,6 @@ export function AdminLayout() {
           {/* ── Shared hero bar - only for non-fullBleed pages ── */}
           {!header.fullBleed && header.title && header.title !== 'Dashboard' ? (() => {
             const cfg = PAGE_HERO_CONFIG[header.title] ?? DEFAULT_HERO
-            const subtitle = header.subtitle ?? cfg.defaultSubtitle
             const shapes = SHAPE_FORMATIONS[cfg.f % SHAPE_FORMATIONS.length]
             return (
               <div
@@ -401,19 +397,14 @@ export function AdminLayout() {
                     </motion.button>
                   )}
 
-                  <div className="flex items-end justify-between gap-4 flex-wrap">
-                    <div>
-                      <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white tracking-tight">
-                        {header.title}
-                      </h1>
-                      {subtitle && (
-                        <p className="mt-1 text-sm text-white/40">{subtitle}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                  <h1 className="font-heading text-2xl sm:text-3xl font-bold text-white tracking-tight text-center">
+                    {header.title}
+                  </h1>
+                  {header.actions && (
+                    <div className="flex items-center justify-center gap-2 mt-3">
                       {header.actions}
                     </div>
-                  </div>
+                  )}
 
                   {/* Per-page hero content (stats, etc.) */}
                   {header.heroContent && (
