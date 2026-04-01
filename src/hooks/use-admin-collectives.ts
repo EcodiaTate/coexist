@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { supabase, escapeIlike } from '@/lib/supabase'
 import { sumMetric } from '@/lib/impact-metrics'
 import { logAudit } from '@/lib/audit'
+import { countByField } from '@/lib/query-builders'
 import type {
   Database,
   Tables,
@@ -124,6 +125,7 @@ export function useAdminCollectives(filters: {
       })
     },
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -175,6 +177,7 @@ export function useAdminCollectiveMembers(collectiveId: string | undefined, stat
     },
     enabled: !!collectiveId,
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 

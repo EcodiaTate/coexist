@@ -2524,6 +2524,7 @@ export type Database = {
       event_impact: {
         Row: {
           area_restored_sqm: number | null
+          attendees: number | null
           coastline_cleaned_m: number | null
           custom_metrics: Json | null
           event_id: string
@@ -2541,6 +2542,7 @@ export type Database = {
         }
         Insert: {
           area_restored_sqm?: number | null
+          attendees?: number | null
           coastline_cleaned_m?: number | null
           custom_metrics?: Json | null
           event_id: string
@@ -2558,6 +2560,7 @@ export type Database = {
         }
         Update: {
           area_restored_sqm?: number | null
+          attendees?: number | null
           coastline_cleaned_m?: number | null
           custom_metrics?: Json | null
           event_id?: string
@@ -5517,6 +5520,7 @@ export type Database = {
       email_subscriber_count: { Args: never; Returns: number }
       enablelongtransactions: { Args: never; Returns: string }
       equals: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      expire_stale_pending_tickets: { Args: never; Returns: number }
       generate_ticket_code: { Args: never; Returns: string }
       geometry: { Args: { "": string }; Returns: unknown }
       geometry_above: {

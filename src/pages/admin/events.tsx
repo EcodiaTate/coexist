@@ -20,6 +20,7 @@ import { SearchBar } from '@/components/search-bar'
 import { Skeleton } from '@/components/skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { cn } from '@/lib/cn'
+import { formatDate, formatTime } from '@/lib/date-format'
 import { useAdminEventsData, type AdminEvent } from '@/hooks/use-admin-events'
 
 interface CollectiveGroup {
@@ -66,21 +67,6 @@ const statusBadgeStyles: Record<string, { label: string; className: string }> = 
 /* ------------------------------------------------------------------ */
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
-
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-AU', {
-    weekday: 'short',
-    day: 'numeric',
-    month: 'short',
-  })
-}
-
-function formatTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleTimeString('en-AU', {
-    hour: 'numeric',
-    minute: '2-digit',
-  })
-}
 
 function daysUntil(dateStr: string): number {
   const now = new Date()

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
     CalendarDays,
     MapPin,
@@ -183,9 +183,14 @@ export default function LeaderEventsPage() {
         </motion.div>
 
         {/* ── Event list ── */}
+        <AnimatePresence mode="wait" initial={false}>
         {!events || events.length === 0 ? (
           <motion.div
+            key="empty"
             variants={rm ? undefined : fadeUp}
+            initial="hidden"
+            animate="visible"
+            exit={{ opacity: 0, transition: { duration: 0.15 } }}
             className="flex flex-col items-center justify-center text-center py-16 rounded-2xl bg-white shadow-sm border border-neutral-100"
           >
             <div className="w-14 h-14 rounded-2xl bg-moss-50 flex items-center justify-center mb-4">
@@ -199,7 +204,7 @@ export default function LeaderEventsPage() {
             </p>
           </motion.div>
         ) : (
-          <div className="space-y-3">
+          <motion.div key="list" layout className="space-y-3">
             {events.map((event, idx) => {
               const regCount = event.event_registrations?.[0]?.count ?? 0
               const checkedIn = event.checked_in_count ?? 0
@@ -293,8 +298,9 @@ export default function LeaderEventsPage() {
                 </motion.div>
               )
             })}
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </motion.div>
     </div>
   )

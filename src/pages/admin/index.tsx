@@ -393,6 +393,7 @@ export default function AdminDashboardPage() {
               <BentoStatCard value={dateRange === 'all' ? (data?.totalMembers ?? 0) : (data?.periodMembers ?? 0)}  label={dateRange === 'all' ? 'Members' : 'New Members'}  icon={<Users size={18} />}       theme="primary" />
               <BentoStatCard value={data?.totalCollectives ?? 0} label="Collectives"   icon={<MapPin size={16} />}      theme="moss" />
               <BentoStatCard value={dateRange === 'all' ? (data?.totalEvents ?? 0) : (data?.periodEvents ?? 0)}    label="Events Run"    icon={<CalendarDays size={16} />} theme="warning" />
+              <BentoStatCard value={data?.totalAttendees ?? 0}   label="Attendees"     icon={<Users size={16} />}       theme="sky" />
               <BentoStatCard value={data?.totalHours ?? 0}       label="Vol. Hours"    icon={<Clock size={16} />}       theme="bark" unit="hrs" />
             </BentoStatGrid>
           </motion.div>

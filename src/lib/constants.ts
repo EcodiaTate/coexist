@@ -51,3 +51,13 @@ export const GLOBAL_ROLE_RANK: Record<string, number> = {
   admin: 3,
   super_admin: 3,      // legacy alias
 } as const
+
+/* ------------------------------------------------------------------ */
+/*  Chat role badge styling                                            */
+/* ------------------------------------------------------------------ */
+
+export const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
+  Leader: { bg: 'bg-primary-100', text: 'text-primary-700' },
+  'Co-Leader': { bg: 'bg-primary-50', text: 'text-primary-600' },
+  'Assist Leader': { bg: 'bg-primary-50', text: 'text-primary-600' },
+}

@@ -12,8 +12,9 @@ import { useProfile } from '@/hooks/use-profile'
 import { useCheckIn } from '@/hooks/use-events'
 import { useTicketCheckIn } from '@/hooks/use-event-tickets'
 import { useOffline } from '@/hooks/use-offline'
+import { useCheckInValidation } from '@/hooks/use-check-in-validation'
+import { CHECK_IN_ERROR_MESSAGES, type CheckInErrorKind } from '@/lib/constants/check-in'
 import { queueOfflineCheckIn } from '@/lib/offline-sync'
-import { supabase } from '@/lib/supabase'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { Button } from '@/components/button'
 import { Celebration } from '@/components/celebration'
@@ -27,14 +28,7 @@ import { ProfileDetails, CheckInModeView } from '@/components/check-in-form'
 /* ------------------------------------------------------------------ */
 
 type Step = 'details' | 'checkin' | 'scanning' | 'success' | 'error'
-type ErrorKind = 'not_registered' | 'already_checked_in' | 'invalid_qr' | 'generic'
-
-const ERROR_MESSAGES: Record<ErrorKind, string> = {
-  not_registered: "You're not registered for this event. Register first, then try again.",
-  already_checked_in: "You've already checked in to this event!",
-  invalid_qr: 'This QR code is not valid for this event.',
-  generic: 'Something went wrong. Please try again.',
-}
+type ErrorKind = CheckInErrorKind
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -62,6 +56,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
   const { data: profileData } = useProfile()
   const checkInMutation = useCheckIn()
   const ticketCheckIn = useTicketCheckIn()
+  const { validateRegistration } = useCheckInValidation()
 
   const needsDetails = profileData && !profileData.profile_details_completed
   const [step, setStep] = useState<Step>('checkin')
@@ -90,24 +85,16 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
     async (targetEventId: string) => {
       if (!user) return
 
-      const { data: registration, error: regError } = await supabase
-        .from('event_registrations')
-        .select('status, checked_in_at')
-        .eq('event_id', targetEventId)
-        .eq('user_id', user.id)
-        .maybeSingle()
+      const validation = await validateRegistration(targetEventId, user.id)
 
-      if (regError || !registration) {
-        setErrorKind('not_registered')
+      if (validation.status === 'error') {
+        setErrorKind(validation.kind)
         setStep('error')
         return
       }
-      if (registration.status === 'attended' && registration.checked_in_at) {
-        setErrorKind('already_checked_in')
-        setStep('error')
-        return
-      }
-      if (registration.status !== 'registered' && registration.status !== 'invited') {
+
+      // waitlisted users can't check in via the sheet (no waitlist promotion flow here)
+      if (validation.status === 'waitlisted') {
         setErrorKind('not_registered')
         setStep('error')
         return
@@ -362,7 +349,7 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
                 {errorKind === 'already_checked_in' ? 'Already Checked In' : 'Check-in Failed'}
               </h3>
               <p className="text-neutral-500 mt-1.5 max-w-xs text-sm">
-                {ERROR_MESSAGES[errorKind]}
+                {CHECK_IN_ERROR_MESSAGES[errorKind]}
               </p>
               <div className="mt-5 w-full space-y-2">
                 {errorKind === 'already_checked_in' ? (

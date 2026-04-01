@@ -1,7 +1,9 @@
-import { useRef, useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Megaphone, CalendarPlus, ClipboardCheck, ListChecks, MapPin, Calendar, Clock } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { formatTime, formatCardDate, formatCardTime } from '@/lib/date-format'
+import { ROLE_COLORS } from '@/lib/constants'
+import { useLongPress } from '@/hooks/use-long-press'
 
 interface ReplyTo {
   message: string
@@ -27,19 +29,6 @@ interface ChatBubbleProps {
   'aria-label'?: string
 }
 
-const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
-  Leader: { bg: 'bg-primary-100', text: 'text-primary-700' },
-  'Co-Leader': { bg: 'bg-primary-50', text: 'text-primary-600' },
-  'Assist Leader': { bg: 'bg-primary-50', text: 'text-primary-600' },
-}
-
-function formatTime(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date)
-}
-
 export function ChatBubble({
   message,
   sent,
@@ -58,42 +47,13 @@ export function ChatBubble({
   'aria-label': ariaLabel,
 }: ChatBubbleProps) {
   const shouldReduceMotion = useReducedMotion()
+  const { onTouchStart: handleTouchStart, onTouchEnd: handleTouchEnd, onTouchCancel: handleTouchCancel } = useLongPress(onLongPress)
 
   const label =
     ariaLabel ??
     `${sent ? 'Sent' : 'Received'} message${senderName ? ` from ${senderName}` : ''}: ${message}`
 
   const roleStyle = roleBadge ? ROLE_COLORS[roleBadge] ?? { bg: 'bg-primary-100', text: 'text-primary-600' } : null
-
-  // Long press handling for mobile
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Clean up timer on unmount to prevent memory leak
-  useEffect(() => {
-    return () => {
-      if (longPressTimerRef.current) {
-        clearTimeout(longPressTimerRef.current)
-      }
-    }
-  }, [])
-
-  const handleTouchStart = () => {
-    if (!onLongPress) return
-    longPressTimerRef.current = setTimeout(() => {
-      onLongPress()
-      // Haptic feedback if available
-      if ('vibrate' in navigator) {
-        navigator.vibrate(15)
-      }
-    }, 500)
-  }
-
-  const handleTouchEnd = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
-      longPressTimerRef.current = null
-    }
-  }
 
   return (
     <motion.div
@@ -104,7 +64,7 @@ export function ChatBubble({
       transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
       className={cn(
         'flex gap-2.5',
         sent ? 'flex-row-reverse' : 'flex-row',
@@ -422,14 +382,6 @@ const TYPE_META: Record<string, { icon: typeof Megaphone; label: string; iconBg:
   event_invite: { icon: CalendarPlus, label: 'Event Invite', iconBg: 'bg-info-50', iconColor: 'text-info-600', labelColor: 'text-info-600' },
   rsvp: { icon: ClipboardCheck, label: 'RSVP', iconBg: 'bg-success-50', iconColor: 'text-success-600', labelColor: 'text-success-600' },
   checklist: { icon: ListChecks, label: 'Checklist', iconBg: 'bg-warning-50', iconColor: 'text-warning-600', labelColor: 'text-warning-600' },
-}
-
-function formatCardDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })
-}
-
-function formatCardTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleTimeString('en-AU', { hour: 'numeric', minute: '2-digit' })
 }
 
 const ACTIVITY_LABELS: Record<string, string> = {

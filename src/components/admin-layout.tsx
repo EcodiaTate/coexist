@@ -320,15 +320,19 @@ export function AdminLayout() {
   const { navMode } = useLayout()
   const showBottomTabs = navMode === 'bottom-tabs'
   const showBackButton = !TOP_LEVEL_ADMIN_PATHS.has(location.pathname)
-  const [header, setHeaderState] = useState<AdminHeaderState>({ title: '' })
+  const isFullBleedRoute = location.pathname === '/admin' ||
+    location.pathname === '/admin/shop' ||
+    /^\/admin\/collectives\/[^/]+/.test(location.pathname)
+  const [header, setHeaderState] = useState<AdminHeaderState>({ title: '', fullBleed: isFullBleedRoute })
   const scrollRef = useRef<HTMLDivElement>(null)
   const scopeCtx = useAdminCollectiveScopeProvider()
 
-  // Scroll content to top on route change  instant to avoid fighting
-  // with page transition animations
+  // Reset header state on route change so fullBleed is correct before the child
+  // page's useEffect fires (prevents the p-6 → p-0 flash on full-bleed pages).
   useEffect(() => {
+    setHeaderState({ title: '', fullBleed: isFullBleedRoute })
     scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' })
-  }, [location.pathname])
+  }, [location.pathname, isFullBleedRoute])
 
   const setHeader = useCallback((opts: { title: string; subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }) => {
     setHeaderState(opts)

@@ -1,4 +1,4 @@
-import { useQuery, type QueryClient } from '@tanstack/react-query'
+import { useQuery, keepPreviousData, type QueryClient } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
 
@@ -139,6 +139,7 @@ export function useLeaderDashboard(collectiveId: string | undefined) {
     queryFn: () => fetchLeaderDashboard(collectiveId!),
     enabled: !!collectiveId,
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -253,6 +254,7 @@ export function useCollectiveFullStats(collectiveId: string | undefined) {
     queryFn: () => fetchCollectiveFullStats(collectiveId!),
     enabled: !!collectiveId,
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -307,6 +309,7 @@ export function useEngagementScores(collectiveId: string | undefined) {
     queryFn: () => fetchEngagementScores(collectiveId!),
     enabled: !!collectiveId,
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -359,6 +362,7 @@ export function usePendingItems(collectiveId: string | undefined) {
     queryFn: () => fetchPendingItems(collectiveId!),
     enabled: !!collectiveId,
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 

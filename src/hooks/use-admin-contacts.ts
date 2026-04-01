@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { supabase, escapeIlike } from '@/lib/supabase'
 import { logAudit } from '@/lib/audit'
 import type { Tables, TablesInsert, TablesUpdate } from '@/types/database.types'
@@ -61,6 +61,7 @@ export function useAdminContacts(filters: {
       return data as EmergencyContact[]
     },
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 

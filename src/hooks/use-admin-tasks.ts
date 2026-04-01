@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { supabase, escapeIlike } from '@/lib/supabase'
 
 /* ------------------------------------------------------------------ */
@@ -207,6 +207,7 @@ export function useAdminTaskTemplates(filters?: {
       })) as unknown as TaskTemplate[]
     },
     staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -387,5 +388,6 @@ export function useAdminKpiDashboard(filters?: {
       return { stats, totals }
     },
     staleTime: 30 * 1000,
+    placeholderData: keepPreviousData,
   })
 }

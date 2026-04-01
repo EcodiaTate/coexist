@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { IMPACT_SELECT_COLUMNS, sumMetric } from '@/lib/impact-metrics'
@@ -145,15 +145,8 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       // Count attendance from registrations for post-baseline events.
       // Filter by event date_start (not registered_at) — people may register
       // before Jan 1 for a Jan event, and registered_at doesn't update on check-in.
-      const attendanceDateStart = timeRange === 'current-year'
-        ? (yearStart > baselineDate ? yearStart : baselineDate)
-        : baselineDate
-      const { count: attendanceCount } = await supabase
-        .from('event_registrations')
-        .select('id, events!inner(date_start)', { count: 'exact', head: true })
-        .eq('status', 'attended')
-        .gte('events.date_start', attendanceDateStart)
-        .lt('events.date_start', new Date().toISOString())
+      // Sum attendees from event_impact (leaders enter headcount in post-event review)
+      const attendanceCount = sumMetric(logs, 'attendees')
 
       // Count unique cleanup sites by address (post-baseline)
       const cleanupAddresses = new Set(
@@ -178,6 +171,7 @@ export function useNationalImpact(timeRange: TimeRange = 'all-time') {
       }
     },
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -236,20 +230,8 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
 
       const rows = (impactRes.data ?? []) as unknown as Record<string, unknown>[]
 
-      // Count attendances for this collective's post-baseline events
-      const allEventIds = (eventsRes.data ?? []).map((e) => e.id)
-
-      let attendanceCount = 0
-      const chunkResults = await Promise.all(
-        chunks(allEventIds).map((chunk) =>
-          supabase
-            .from('event_registrations')
-            .select('id', { count: 'exact', head: true })
-            .in('event_id', chunk)
-            .eq('status', 'attended'),
-        ),
-      )
-      for (const { count } of chunkResults) attendanceCount += count ?? 0
+      // Sum attendees from event_impact (leaders enter headcount in post-event review)
+      const attendanceCount = sumMetric(rows as Record<string, unknown>[], 'attendees')
 
       const cleanupAddresses = new Set(
         (cleanupRes.data ?? []).map((e: { address: string | null }) => (e.address ?? '').trim().toLowerCase()).filter(Boolean)
@@ -269,6 +251,7 @@ export function useCollectiveImpact(collectiveId: string | undefined, timeRange:
     },
     enabled: !!collectiveId,
     staleTime: 5 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 

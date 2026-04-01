@@ -1,7 +1,7 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, memo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { motion, useReducedMotion, type Variants } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion'
 import {
     TreePine,
     Trash2,
@@ -159,7 +159,7 @@ function BigStat({
 }
 
 /* ─── activity sparkline ─── */
-function ActivitySparkline({ data }: { data: { month: string; count: number }[] }) {
+const ActivitySparkline = memo(function ActivitySparkline({ data }: { data: { month: string; count: number }[] }) {
   const shouldReduceMotion = useReducedMotion()
   if (data.length === 0) return null
 
@@ -189,10 +189,10 @@ function ActivitySparkline({ data }: { data: { month: string; count: number }[] 
       })}
     </div>
   )
-}
+})
 
 /* ─── ring chart ─── */
-function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
+const ImpactRing = memo(function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
   const shouldReduceMotion = useReducedMotion()
 
   // Precompute cumulative offsets (must be before early return)
@@ -273,7 +273,7 @@ function ImpactRing({ data }: { data: { category: string; count: number }[] }) {
       </div>
     </div>
   )
-}
+})
 
 /* ─── section heading ─── */
 function SectionHeading({ children }: { children: React.ReactNode }) {
@@ -448,8 +448,11 @@ export default function ImpactDashboardPage() {
                 config="cleanups"
               />
 
-              {/* Coastline */}
-              {stats.coastlineCleanedM > 0 && (
+              {/* Coastline — always render to prevent grid reflow; hidden when zero */}
+              <div
+                className={cn(stats.coastlineCleanedM === 0 && 'invisible pointer-events-none')}
+                aria-hidden={stats.coastlineCleanedM === 0}
+              >
                 <BigStat
                   value={stats.coastlineCleanedM}
                   label="Coastline (m)"
@@ -457,7 +460,7 @@ export default function ImpactDashboardPage() {
                   config="coastline"
                   suffix="m"
                 />
-              )}
+              </div>
 
               {/* Organisational */}
               <BigStat
@@ -475,62 +478,74 @@ export default function ImpactDashboardPage() {
             </motion.div>
 
             {/* ─── Streak ─── */}
-            {streak && (streak.currentWeeks > 0 || streak.currentMonths > 0) && (
-              <motion.div
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 22 }}
-                className="flex items-center gap-5 rounded-3xl bg-white shadow-sm border border-neutral-100 p-6"
-              >
-                <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-warning-500 shadow-md">
-                  <Flame size={26} strokeWidth={2.5} className="text-white" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-400 font-extrabold mb-2.5">
-                    Active Streak
-                  </p>
-                  <div className="flex items-baseline gap-4">
-                    <p className="font-heading text-3xl font-extrabold text-neutral-900 tabular-nums">
-                      <CountUp end={streak.currentWeeks} />
-                      <span className="text-sm font-bold text-neutral-400 ml-1">wks</span>
-                    </p>
-                    <span className="w-0.5 h-7 bg-neutral-200 rounded-full" />
-                    <p className="font-heading text-3xl font-extrabold text-neutral-900 tabular-nums">
-                      <CountUp end={streak.currentMonths} />
-                      <span className="text-sm font-bold text-neutral-400 ml-1">mos</span>
-                    </p>
+            <AnimatePresence>
+              {streak && (streak.currentWeeks > 0 || streak.currentMonths > 0) && (
+                <motion.div
+                  key="streak"
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0, overflow: 'hidden' }}
+                  transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 22 }}
+                  className="flex items-center gap-5 rounded-3xl bg-white shadow-sm border border-neutral-100 p-6"
+                >
+                  <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-warning-500 shadow-md">
+                    <Flame size={26} strokeWidth={2.5} className="text-white" />
                   </div>
-                </div>
-              </motion.div>
-            )}
+                  <div className="flex-1">
+                    <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-400 font-extrabold mb-2.5">
+                      Active Streak
+                    </p>
+                    <div className="flex items-baseline gap-4">
+                      <p className="font-heading text-3xl font-extrabold text-neutral-900 tabular-nums">
+                        <CountUp end={streak.currentWeeks} />
+                        <span className="text-sm font-bold text-neutral-400 ml-1">wks</span>
+                      </p>
+                      <span className="w-0.5 h-7 bg-neutral-200 rounded-full" />
+                      <p className="font-heading text-3xl font-extrabold text-neutral-900 tabular-nums">
+                        <CountUp end={streak.currentMonths} />
+                        <span className="text-sm font-bold text-neutral-400 ml-1">mos</span>
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* ─── Monthly Activity ─── */}
-            {monthly && monthly.length > 0 && (
-              <motion.section
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.25, type: 'spring', stiffness: 200, damping: 22 }}
-              >
-                <SectionHeading>Monthly Activity</SectionHeading>
-                <div className="rounded-3xl bg-white shadow-sm border border-neutral-100 p-6">
-                  <ActivitySparkline data={monthly} />
-                </div>
-              </motion.section>
-            )}
+            <AnimatePresence>
+              {monthly && monthly.length > 0 && (
+                <motion.section
+                  key="monthly"
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                  transition={{ delay: 0.25, type: 'spring', stiffness: 200, damping: 22 }}
+                >
+                  <SectionHeading>Monthly Activity</SectionHeading>
+                  <div className="rounded-3xl bg-white shadow-sm border border-neutral-100 p-6">
+                    <ActivitySparkline data={monthly} />
+                  </div>
+                </motion.section>
+              )}
+            </AnimatePresence>
 
             {/* ─── Category Breakdown ─── */}
-            {byCategory && byCategory.length > 0 && (
-              <motion.section
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 22 }}
-              >
-                <SectionHeading>Impact Breakdown</SectionHeading>
-                <div className="rounded-3xl bg-white shadow-sm border border-neutral-100 p-6">
-                  <ImpactRing data={byCategory} />
-                </div>
-              </motion.section>
-            )}
+            <AnimatePresence>
+              {byCategory && byCategory.length > 0 && (
+                <motion.section
+                  key="breakdown"
+                  initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, height: 0, overflow: 'hidden' }}
+                  transition={{ delay: 0.3, type: 'spring', stiffness: 200, damping: 22 }}
+                >
+                  <SectionHeading>Impact Breakdown</SectionHeading>
+                  <div className="rounded-3xl bg-white shadow-sm border border-neutral-100 p-6">
+                    <ImpactRing data={byCategory} />
+                  </div>
+                </motion.section>
+              )}
+            </AnimatePresence>
 
             {/* ─── National Impact CTA ─── */}
             <motion.button

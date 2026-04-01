@@ -244,12 +244,24 @@ export interface MyCollectiveSummary {
 }
 
 export function useMyCollectives() {
-  const { user } = useAuth()
+  const { user, isStaff } = useAuth()
 
   return useQuery({
-    queryKey: ['home', 'my-collectives', user?.id],
+    queryKey: ['home', 'my-collectives', user?.id, isStaff],
     queryFn: async (): Promise<MyCollectiveSummary[]> => {
       if (!user) return []
+
+      // Staff/manager/admin can scope by any collective
+      if (isStaff) {
+        const { data, error } = await supabase
+          .from('collectives')
+          .select('id, name')
+          .eq('is_active', true)
+          .order('name')
+        if (error) throw error
+        return (data ?? []).map((c) => ({ id: c.id, name: c.name }))
+      }
+
       const { data, error } = await supabase
         .from('collective_members')
         .select('collective_id, collectives(id, name)')

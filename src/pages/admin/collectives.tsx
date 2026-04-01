@@ -273,20 +273,14 @@ export default function AdminCollectivesPage() {
               }
             />
           ) : (
-            <div className="space-y-2">
-              {collectives.map((c, i) => {
+            <motion.div layout className="space-y-2">
+              {collectives.map((c) => {
                 const healthCfg = healthConfig[c.health]
 
                 return (
                   <motion.div
                     key={c.id}
-                    initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      delay: Math.min(i * 0.025, 0.2),
-                      duration: 0.2,
-                      ease: 'easeOut',
-                    }}
+                    layout="position"
                   >
                     <Link
                       to={`/admin/collectives/${c.id}`}
@@ -371,7 +365,7 @@ export default function AdminCollectivesPage() {
                   </motion.div>
                 )
               })}
-            </div>
+            </motion.div>
           )}
           </motion.div>
         </motion.div>

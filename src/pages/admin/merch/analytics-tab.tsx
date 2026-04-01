@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import { DollarSign, ShoppingBag, TrendingUp } from 'lucide-react'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -87,8 +87,13 @@ export default function AnalyticsTab() {
       </motion.div>
 
       {/* By product - rich colored cards */}
+      <AnimatePresence initial={false}>
       {analytics.by_product.length > 0 && (
-        <motion.div variants={fadeUp}><section>
+        <motion.div
+          key="by-product"
+          variants={fadeUp}
+          exit={{ opacity: 0, transition: { duration: 0.15 } }}
+        ><section>
           <h3 className="font-heading font-semibold text-neutral-900 mb-3">By product</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {analytics.by_product.map((row, idx) => (
@@ -111,13 +116,19 @@ export default function AnalyticsTab() {
           </div>
         </section></motion.div>
       )}
+      </AnimatePresence>
 
       {/* By period - alternating warm tones */}
+      <AnimatePresence initial={false}>
       {analytics.by_period.length > 0 && (
-        <motion.div variants={fadeUp}><section>
+        <motion.div
+          key="by-period"
+          variants={fadeUp}
+          exit={{ opacity: 0, transition: { duration: 0.15 } }}
+        ><section>
           <h3 className="font-heading font-semibold text-neutral-900 mb-3">Timeline</h3>
           <div className="space-y-1.5">
-            {analytics.by_period.map((row, idx) => (
+            {analytics.by_period.map((row) => (
               <div
                 key={row.date}
                 className="flex items-center justify-between px-4 py-3 rounded-xl text-sm bg-white border border-neutral-100 shadow-sm"
@@ -132,6 +143,7 @@ export default function AnalyticsTab() {
           </div>
         </section></motion.div>
       )}
+      </AnimatePresence>
     </motion.div>
   )
 }

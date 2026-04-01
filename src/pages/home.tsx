@@ -11,8 +11,6 @@ import {
     Megaphone,
     Clock,
     Trash2,
-    Sprout,
-    GraduationCap,
     Globe,
     MapPin,
     Heart,
@@ -834,17 +832,26 @@ function UpdatesSection({ rm }: { rm: boolean }) {
 function HomeImpactSection({
   collectives,
   rm,
+  showCollectiveToggle,
 }: {
   collectives: MyCollectiveSummary[]
   rm: boolean
+  showCollectiveToggle?: boolean
 }) {
-  const hasCollectives = collectives.length > 0
+  const hasCollectives = collectives.length > 0 || !!showCollectiveToggle
   const hasMultiple = collectives.length > 1
   const [scope, setScope] = useState<'national' | 'collective'>('national')
   const [selectedCollectiveId, setSelectedCollectiveId] = useState<string | undefined>(collectives[0]?.id)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const [timeRange, setTimeRange] = useState<'all-time' | 'current-year'>('all-time')
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  // Set default collective once data loads (for staff whose initial list is empty)
+  useEffect(() => {
+    if (!selectedCollectiveId && collectives.length > 0) {
+      setSelectedCollectiveId(collectives[0].id)
+    }
+  }, [collectives, selectedCollectiveId])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -866,7 +873,10 @@ function HomeImpactSection({
 
   const data: CanonicalImpact | null | undefined =
     scope === 'national' ? national.data : collective.data
-  const isLoading = scope === 'national' ? national.isLoading : collective.isLoading
+  // Only show skeleton on very first load — subsequent toggles keep previous data visible
+  const isInitialLoading = scope === 'national'
+    ? national.isLoading && !national.isPlaceholderData
+    : collective.isLoading && !collective.isPlaceholderData
 
   const totalEvents = data?.eventsHeld ?? 0
 
@@ -944,7 +954,7 @@ function HomeImpactSection({
 
                   {/* Dropdown for multiple collectives */}
                   {hasMultiple && dropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1.5 min-w-[180px] rounded-xl bg-white shadow-lg border border-neutral-100 overflow-hidden z-50">
+                    <div className="absolute top-full left-0 mt-1.5 min-w-[180px] max-h-[240px] overflow-y-auto rounded-xl bg-white shadow-lg border border-neutral-100 z-50">
                       {collectives.map((c) => (
                         <button
                           key={c.id}
@@ -999,8 +1009,8 @@ function HomeImpactSection({
             </div>
           </div>
 
-          {/* Content */}
-          {isLoading ? (
+          {/* Content — fixed card grid, numbers animate in-place on toggle */}
+          {isInitialLoading ? (
             <div className="space-y-4">
               <div className="h-24 rounded-2xl bg-white/15 animate-pulse" />
               <div className="space-y-3">
@@ -1009,37 +1019,16 @@ function HomeImpactSection({
                 ))}
               </div>
             </div>
-          ) : data ? (
+          ) : (
             <BentoStatGrid>
-              {totalEvents > 0 && (
-                <BentoStatCard value={totalEvents} label="Events" icon={<Calendar size={18} />} theme="warning-soft" />
-              )}
-              {data.eventsAttended > 0 && (
-                <BentoStatCard value={data.eventsAttended} label="Attendances" icon={<Users size={16} />} theme="primary-soft" />
-              )}
-              {data.volunteerHours > 0 && (
-                <BentoStatCard value={data.volunteerHours} label="Vol. Hours" icon={<Clock size={16} />} unit="hrs" theme="moss-soft" />
-              )}
-              {data.treesPlanted > 0 && (
-                <BentoStatCard value={data.treesPlanted} label="Trees Planted" icon={<TreePine size={16} />} theme="sprout-soft" />
-              )}
-              {data.invasiveWeedsPulled > 0 && (
-                <BentoStatCard value={data.invasiveWeedsPulled} label="Weeds Pulled" icon={<Sprout size={16} />} theme="bark-soft" />
-              )}
-              {data.rubbishCollectedTonnes > 0 && (
-                <BentoStatCard value={data.rubbishCollectedTonnes} label="Rubbish" icon={<Trash2 size={16} />} unit="t" theme="sky-soft" />
-              )}
-              {data.cleanupSites > 0 && (
-                <BentoStatCard value={data.cleanupSites} label="Cleanup Sites" icon={<Trash2 size={16} />} theme="sky-soft" />
-              )}
-              {data.collectivesCount > 0 && (
-                <BentoStatCard value={data.collectivesCount} label="Collectives" icon={<Users size={16} />} theme="plum-soft" />
-              )}
-              {data.leadersEmpowered > 0 && (
-                <BentoStatCard value={data.leadersEmpowered} label="Leaders Empowered" icon={<GraduationCap size={16} />} theme="coral-soft" />
-              )}
+              <BentoStatCard value={totalEvents} label="Events" icon={<Calendar size={18} />} theme="warning-soft" />
+              <BentoStatCard value={data?.eventsAttended ?? 0} label="Attendances" icon={<Users size={16} />} theme="primary-soft" />
+              <BentoStatCard value={data?.volunteerHours ?? 0} label="Vol. Hours" icon={<Clock size={16} />} unit="hrs" theme="moss-soft" />
+              <BentoStatCard value={data?.treesPlanted ?? 0} label="Trees Planted" icon={<TreePine size={16} />} theme="sprout-soft" />
+              <BentoStatCard value={data?.rubbishCollectedTonnes ?? 0} label="Rubbish" icon={<Trash2 size={16} />} unit="t" theme="sky-soft" />
+              <BentoStatCard value={data?.collectivesCount ?? 0} label="Collectives" icon={<Users size={16} />} theme="plum-soft" />
             </BentoStatGrid>
-          ) : null}
+          )}
         </div>
 
       </div>
@@ -1098,7 +1087,7 @@ export default function HomePage() {
   const shouldReduceMotion = useReducedMotion()
   const rm = !!shouldReduceMotion
   const queryClient = useQueryClient()
-  const { profile, user } = useAuth()
+  const { profile, user, isStaff } = useAuth()
 
   const myCollective = useMyCollective()
   const myCollectives = useMyCollectives()
@@ -1214,6 +1203,7 @@ export default function HomePage() {
             <HomeImpactSection
               collectives={myCollectives.data ?? []}
               rm={rm}
+              showCollectiveToggle={isStaff || (myCollectives.data ?? []).length > 1}
             />
 
             {/* 6. Donate + Shop CTA cards */}

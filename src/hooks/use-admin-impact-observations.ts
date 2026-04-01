@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { IMPACT_SELECT_COLUMNS, sumMetric, isBuiltinMetric } from '@/lib/impact-metrics'
 import type { ImpactMetricDef } from '@/lib/impact-metrics'
@@ -179,33 +179,34 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
           isLegacy:
             r.events.created_by === SEED_ADMIN ||
             ((r.notes as string) ?? '').startsWith('Legacy import'),
-          attendance,
+          attendance: Number(r.attendees) || attendance,
           estimatedVolHours,
         }
       })
 
-      // Summary — all rows are already non-legacy (filtered in query).
-      // Count unique events, not impact rows.
+      // Summary — sum from the returned rows.
+      // Only add baselines for the global all-time view (no collective/activity filter).
+      const showBaseline = isAllTime && !filters.collectiveId && !filters.activityType
+
       const summaryMetrics: Record<string, number> = {}
       for (const key of metricKeys) {
         summaryMetrics[key] = sumMetric(filtered, key)
       }
-      // Add baselines for all-time view
-      if (isAllTime) {
-        if ('trees_planted' in summaryMetrics || metricKeys.includes('trees_planted'))
+      if (showBaseline) {
+        if (metricKeys.includes('trees_planted'))
           summaryMetrics['trees_planted'] = (summaryMetrics['trees_planted'] ?? 0) + BASELINE_TREES
-        if ('rubbish_kg' in summaryMetrics || metricKeys.includes('rubbish_kg'))
+        if (metricKeys.includes('rubbish_kg'))
           summaryMetrics['rubbish_kg'] = (summaryMetrics['rubbish_kg'] ?? 0) + BASELINE_RUBBISH_KG
       }
 
-      const totalAttendees = rows.reduce((s, r) => s + (r.attendance ?? 0), 0)
-      const totalEstimatedHours = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'hours_total')) + (isAllTime ? BASELINE_HOURS : 0)
+      const totalAttendees = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'attendees'))
+      const totalEstimatedHours = Math.round(sumMetric(filtered as unknown as Record<string, unknown>[], 'hours_total'))
       const uniqueEventIds = new Set(rows.map((r) => r.eventId))
 
       const summary: ImpactSummary = {
-        totalEvents: uniqueEventIds.size + (isAllTime ? BASELINE_EVENTS : 0),
-        totalAttendees: totalAttendees + (isAllTime ? BASELINE_ATTENDEES : 0),
-        totalEstimatedHours,
+        totalEvents: uniqueEventIds.size + (showBaseline ? BASELINE_EVENTS : 0),
+        totalAttendees: totalAttendees + (showBaseline ? BASELINE_ATTENDEES : 0),
+        totalEstimatedHours: totalEstimatedHours + (showBaseline ? BASELINE_HOURS : 0),
         metrics: summaryMetrics,
       }
 
@@ -242,6 +243,7 @@ export function useImpactObservations(filters: ObservationFilters, metricDefs: I
       return { rows, summary, collectiveBreakdown }
     },
     staleTime: 2 * 60 * 1000,
+    placeholderData: keepPreviousData,
   })
 }
 

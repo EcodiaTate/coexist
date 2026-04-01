@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { uploadImage, type UploadImageResult } from '@/lib/image-utils'
+import { useUpload } from '@/hooks/use-upload'
 
 interface UseImageUploadOptions {
   bucket: string
@@ -52,17 +53,7 @@ export function useImageUpload({
   pathPrefix = '',
 }: UseImageUploadOptions): UseImageUploadReturn {
   const { user } = useAuth()
-  const [progress, setProgress] = useState<number | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [failedUploads, setFailedUploads] = useState<FailedUpload[]>([])
-
-  const reset = useCallback(() => {
-    setProgress(null)
-    setUploading(false)
-    setError(null)
-    setFailedUploads([])
-  }, [])
 
   const buildPath = useCallback(
     (customPath?: string) => {
@@ -76,76 +67,61 @@ export function useImageUpload({
     [user?.id, pathPrefix],
   )
 
+  // Base state management from shared hook
+  const { uploading, progress, error, reset: resetBase, run } = useUpload<
+    { file: Blob; path: string },
+    UploadImageResult
+  >(
+    useCallback(
+      ({ file, path }, onProgress) => uploadImage(file, bucket, path, onProgress),
+      [bucket],
+    ),
+  )
+
+  const reset = useCallback(() => {
+    resetBase()
+    setFailedUploads([])
+  }, [resetBase])
+
   const upload = useCallback(
     async (file: Blob, customPath?: string): Promise<UploadImageResult> => {
       if (!user) throw new Error('Not authenticated')
-      setUploading(true)
-      setError(null)
-      setProgress(0)
-
+      const path = buildPath(customPath)
       try {
-        const path = buildPath(customPath)
-        const result = await uploadImage(file, bucket, path, (p) =>
-          setProgress(p),
-        )
-        setProgress(100)
-        return result
+        return await run({ file, path })
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Upload failed'
-        setError(msg)
         setFailedUploads((prev) => [...prev, { blob: file, error: msg }])
         throw e
-      } finally {
-        setUploading(false)
       }
     },
-    [user, bucket, buildPath],
+    [user, buildPath, run],
   )
 
   const uploadMultiple = useCallback(
     async (files: Blob[]): Promise<UploadImageResult[]> => {
       if (!user) throw new Error('Not authenticated')
-      setUploading(true)
-      setError(null)
-      setProgress(0)
 
       const total = files.length
       const fileProgress = new Array(total).fill(0)
 
-      try {
-        const settled = await Promise.allSettled(
-          files.map((file, i) => {
-            const path = buildPath()
-            return uploadImage(file, bucket, path, (p) => {
-              fileProgress[i] = p
-              const avg = Math.round(
-                fileProgress.reduce((a, b) => a + b, 0) / total,
-              )
-              setProgress(avg)
-            })
-          }),
-        )
-        const results: UploadImageResult[] = []
-        const errors: string[] = []
-        for (const outcome of settled) {
-          if (outcome.status === 'fulfilled') {
-            results.push(outcome.value)
-          } else {
-            errors.push(outcome.reason instanceof Error ? outcome.reason.message : 'Upload failed')
-          }
+      const settled = await Promise.allSettled(
+        files.map((file, i) => {
+          const path = buildPath()
+          return uploadImage(file, bucket, path, (p) => {
+            fileProgress[i] = p
+          })
+        }),
+      )
+
+      const results: UploadImageResult[] = []
+      for (const outcome of settled) {
+        if (outcome.status === 'fulfilled') {
+          results.push(outcome.value)
         }
-        if (errors.length > 0) {
-          setError(`${errors.length} upload(s) failed: ${errors.join(', ')}`)
-        }
-        setProgress(100)
-        return results
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Upload failed'
-        setError(msg)
-        throw e
-      } finally {
-        setUploading(false)
       }
+
+      return results
     },
     [user, bucket, buildPath],
   )
@@ -154,7 +130,6 @@ export function useImageUpload({
     async (index: number): Promise<UploadImageResult> => {
       const failed = failedUploads[index]
       if (!failed) throw new Error('No failed upload at this index')
-      // Remove from failed list before retrying
       setFailedUploads((prev) => prev.filter((_, i) => i !== index))
       return upload(failed.blob)
     },

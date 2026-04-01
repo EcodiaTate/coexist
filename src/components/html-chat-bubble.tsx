@@ -2,6 +2,9 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { Maximize2, Minimize2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { formatTime } from '@/lib/date-format'
+import { ROLE_COLORS } from '@/lib/constants'
+import { useLongPress } from '@/hooks/use-long-press'
 
 interface HtmlChatBubbleProps {
   /** Full HTML document string to render inside a sandboxed iframe */
@@ -17,19 +20,6 @@ interface HtmlChatBubbleProps {
   onAvatarTap?: (userId: string) => void
   onSenderTap?: (userId: string) => void
   onLongPress?: () => void
-}
-
-const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
-  Leader: { bg: 'bg-primary-100', text: 'text-primary-700' },
-  'Co-Leader': { bg: 'bg-primary-50', text: 'text-primary-600' },
-  'Assist Leader': { bg: 'bg-primary-50', text: 'text-primary-600' },
-}
-
-function formatTime(date: Date): string {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: 'numeric',
-    minute: '2-digit',
-  }).format(date)
 }
 
 /**
@@ -65,7 +55,7 @@ export function HtmlChatBubble({
   const [isExpanded, setIsExpanded] = useState(false)
   const [iframeHeight, setIframeHeight] = useState(300)
   const inlineIframeRef = useRef<HTMLIFrameElement>(null)
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const { onTouchStart: handleTouchStart, onTouchEnd: handleTouchEnd, onTouchCancel: handleTouchCancel } = useLongPress(onLongPress)
 
   const roleStyle = roleBadge
     ? ROLE_COLORS[roleBadge] ?? { bg: 'bg-primary-100', text: 'text-primary-600' }
@@ -77,21 +67,6 @@ export function HtmlChatBubble({
   const toggleExpand = useCallback(() => {
     setIsExpanded((v) => !v)
   }, [])
-
-  const handleTouchStart = () => {
-    if (!onLongPress) return
-    longPressTimerRef.current = setTimeout(() => {
-      onLongPress()
-      if ('vibrate' in navigator) navigator.vibrate(15)
-    }, 500)
-  }
-
-  const handleTouchEnd = () => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current)
-      longPressTimerRef.current = null
-    }
-  }
 
   // Auto-size the inline iframe to fit its content
   useEffect(() => {
@@ -170,7 +145,7 @@ export function HtmlChatBubble({
       transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
       className={cn(
         'flex gap-2.5',
         sent ? 'flex-row-reverse' : 'flex-row',
