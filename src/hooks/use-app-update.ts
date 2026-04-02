@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { untypedFrom } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 const APP_VERSION = '1.0.0'
 
@@ -50,7 +50,7 @@ export function useAppUpdate(): UpdateStatus {
 
     async function check() {
       try {
-        const { data, error } = await untypedFrom('app_settings')
+        const { data, error } = await supabase.from('app_settings')
           .select('key, value')
           .in('key', ['maintenance_mode', 'maintenance_message', 'min_version', 'latest_version'])
 

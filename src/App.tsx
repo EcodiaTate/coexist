@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { lazy, Suspense, useState, useCallback } from 'react'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { RequireAuth, RequireRole, RequireLeaderAccess, RequireCapability } from '@/components/route-guard'
 import { AppShell } from '@/components/app-shell'
 import { AdminLayout as AdminLayoutRoute } from '@/components/admin-layout'
@@ -229,6 +230,7 @@ function App() {
     {showSplash && <SplashPage onReady={handleSplashReady} />}
 {/* Scroll management handled by Page component  saves position per
          history entry and restores on back-nav, scrolls to top for new routes */}
+    <ErrorBoundary>
     <Suspense fallback={<PageFallback />}>
       <Routes>
         {/* ---- Bare routes (no app shell) ---- */}
@@ -574,6 +576,7 @@ function App() {
         />
       </Routes>
     </Suspense>
+    </ErrorBoundary>
     </>
   )
 }

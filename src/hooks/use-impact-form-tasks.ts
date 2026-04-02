@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { supabase, untypedFrom } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import type { ImpactFormConfig } from '@/hooks/use-auto-survey'
 
@@ -82,7 +82,7 @@ export function usePendingImpactFormTasks() {
       if (!user || !surveyMap || surveyMap.size === 0) return []
 
       // Check if impact forms are enabled
-      const { data: configRow } = await untypedFrom('app_settings')
+      const { data: configRow } = await supabase.from('app_settings')
         .select('value')
         .eq('key', 'impact_form_config')
         .maybeSingle()

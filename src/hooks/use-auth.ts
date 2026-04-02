@@ -222,7 +222,6 @@ export function useAuthProvider(): AuthContextValue {
 
   /* ---- load user data (profile + collective roles) ---- */
   const loadUserData = useCallback(async (userId: string) => {
-    console.log('[auth] loadUserData start', userId)
     const [profileData, roles, staffData] = await Promise.all([
       fetchProfile(userId),
       fetchCollectiveRoles(userId),
@@ -230,8 +229,6 @@ export function useAuthProvider(): AuthContextValue {
     ])
     const permOverrides = staffData.permissions
     const managedCols = staffData.managedCollectives
-    console.log('[auth] loadUserData done', { hasProfile: !!profileData, rolesCount: roles.length })
-
     // Helper to apply all fetched state
     const applyState = (p: Profile) => {
       setProfile(p)
@@ -245,15 +242,12 @@ export function useAuthProvider(): AuthContextValue {
     // If no profile row exists, it likely means the fetch timed out or
     // the auth trigger hasn't fired yet. Retry once before creating.
     if (!profileData) {
-      console.warn('[auth] No profile found - retrying fetch once')
       const retried = await fetchProfile(userId)
       if (retried) {
-        console.log('[auth] Profile found on retry')
         applyState(retried)
         return retried
       }
 
-      console.warn('[auth] Still no profile - creating one')
       try {
         const { data: authUser } = await supabase.auth.getUser()
         const meta = authUser?.user?.user_metadata
@@ -270,7 +264,6 @@ export function useAuthProvider(): AuthContextValue {
           console.error('[auth] Profile create/upsert error:', createErr.message, createErr.code)
         }
         if (created) {
-          console.log('[auth] Profile created successfully')
           applyState(created)
           return created
         }
@@ -322,7 +315,6 @@ export function useAuthProvider(): AuthContextValue {
     // onboarding while we wait for Supabase auth to resolve.
     restoreProfile().then((cached) => {
       if (cached && mounted) {
-        console.log('[auth] restored cached profile')
         setProfile(cached)
         if (cached.onboarding_completed) { markOnboardingDone(); setOnboardingDone(true) }
       }
@@ -344,7 +336,6 @@ export function useAuthProvider(): AuthContextValue {
     // This avoids the getSession() timeout / lock deadlock issues.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        console.log('[auth] onAuthStateChange:', event, !!newSession)
         if (!mounted) return
 
         setSession(newSession)
@@ -359,7 +350,6 @@ export function useAuthProvider(): AuthContextValue {
           setTimeout(async () => {
             if (!mounted) return
             try {
-              console.log('[auth] loadUserData start (deferred)', userId)
               await loadUserData(userId)
 
               // Accept pending referral code (stored during signup, consumed once)
@@ -374,7 +364,6 @@ export function useAuthProvider(): AuthContextValue {
               console.error('[auth] loadUserData failed:', err)
             } finally {
               if (mounted) {
-                console.log('[auth] setting isLoading=false')
                 setIsLoading(false)
               }
             }
@@ -393,7 +382,6 @@ export function useAuthProvider(): AuthContextValue {
     // Safety: if nothing fires within 10s, unblock the UI.
     const safety = setTimeout(() => {
       if (mounted) {
-        console.warn('[auth] safety timeout - forcing isLoading=false')
         setIsLoading(false)
       }
     }, 10000)
@@ -421,10 +409,7 @@ export function useAuthProvider(): AuthContextValue {
           table: 'collective_members',
           filter: `user_id=eq.${user.id}`,
         },
-        () => {
-          console.log('[auth] collective_members changed — refreshing')
-          loadUserData(user.id)
-        },
+        () => { loadUserData(user.id) },
       )
       .subscribe()
 
@@ -439,10 +424,7 @@ export function useAuthProvider(): AuthContextValue {
           table: 'profiles',
           filter: `id=eq.${user.id}`,
         },
-        () => {
-          console.log('[auth] profile changed — refreshing')
-          loadUserData(user.id)
-        },
+        () => { loadUserData(user.id) },
       )
       .subscribe()
 

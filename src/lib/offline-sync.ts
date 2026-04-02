@@ -1,4 +1,4 @@
-import { supabase, untypedFrom } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -343,7 +343,7 @@ async function processTodoCreate(action: OfflineAction): Promise<{ ok: boolean; 
     source_template_id?: string | null
   }
 
-  const { error } = await untypedFrom('leader_todos')
+  const { error } = await supabase.from('leader_todos')
     .insert({
       user_id: userId,
       title,
@@ -359,7 +359,7 @@ async function processTodoCreate(action: OfflineAction): Promise<{ ok: boolean; 
 
 async function processTodoUpdate(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
   const { id, ...updates } = action.payload as { id: string } & Record<string, unknown>
-  const { error } = await untypedFrom('leader_todos')
+  const { error } = await supabase.from('leader_todos')
     .update({ ...updates, updated_at: new Date().toISOString() })
     .eq('id', id)
   if (error) return { ok: false, conflict: 'Todo update failed.' }
@@ -372,7 +372,7 @@ async function processTodoToggle(action: OfflineAction): Promise<{ ok: boolean; 
     completed: boolean
     timestamp: string
   }
-  const { error } = await untypedFrom('leader_todos')
+  const { error } = await supabase.from('leader_todos')
     .update({
       status: completed ? 'completed' : 'pending',
       completed_at: completed ? timestamp : null,
@@ -385,7 +385,7 @@ async function processTodoToggle(action: OfflineAction): Promise<{ ok: boolean; 
 
 async function processTodoDelete(action: OfflineAction): Promise<{ ok: boolean; conflict?: string }> {
   const { id } = action.payload as { id: string }
-  const { error } = await untypedFrom('leader_todos')
+  const { error } = await supabase.from('leader_todos')
     .delete()
     .eq('id', id)
   // Already deleted = success
@@ -438,10 +438,7 @@ async function processBlockUser(action: OfflineAction): Promise<{ ok: boolean; c
     reason?: string
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const blocks = () => (supabase as any).from('user_blocks')
-
-  const { error: blockError } = await blocks()
+  const { error: blockError } = await supabase.from('user_blocks')
     .insert({
       blocker_id: blockerId,
       blocked_id: blockedId,
@@ -482,10 +479,7 @@ async function processUnblockUser(action: OfflineAction): Promise<{ ok: boolean;
     blockedId: string
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const blocks = () => (supabase as any).from('user_blocks')
-
-  const { error } = await blocks()
+  const { error } = await supabase.from('user_blocks')
     .delete()
     .eq('blocker_id', blockerId)
     .eq('blocked_id', blockedId)

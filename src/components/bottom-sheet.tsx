@@ -57,6 +57,8 @@ function MobileSheet({
   const sheetRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
   const backdropRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
+  const hasFocusedRef = useRef(false)
 
   // Track mount state for enter/exit animation
   const [mounted, setMounted] = useState(false)
@@ -66,6 +68,7 @@ function MobileSheet({
   /* eslint-disable react-hooks/set-state-in-effect -- intentional cascading render for CSS transition */
   useEffect(() => {
     if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement
       setMounted(true)
       // Double-rAF to ensure the element is in the DOM at translateY(100%) before we transition to 0
       requestAnimationFrame(() => {
@@ -74,6 +77,9 @@ function MobileSheet({
     } else if (mounted) {
       // Animate out
       setVisible(false)
+      // Restore focus to previously focused element
+      previousFocusRef.current?.focus()
+      previousFocusRef.current = null
       // Fallback unmount  transitionend can be unreliable (e.g. if already at final position)
       const timer = setTimeout(() => setMounted(false), 350)
       return () => clearTimeout(timer)
@@ -109,6 +115,37 @@ function MobileSheet({
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [mounted, onClose])
+
+  // Auto-focus first input
+  useEffect(() => {
+    if (visible && !hasFocusedRef.current) {
+      hasFocusedRef.current = true
+      const timer = setTimeout(() => {
+        const focusable = sheetRef.current?.querySelector<HTMLElement>(
+          'input, textarea, select, [tabindex]:not([tabindex="-1"])',
+        )
+        focusable?.focus({ preventScroll: true })
+      }, 120)
+      return () => clearTimeout(timer)
+    }
+    if (!visible) hasFocusedRef.current = false
+  }, [visible])
+
+  // Focus trap
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab' || !sheetRef.current) return
+    const focusable = sheetRef.current.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (e.shiftKey) {
+      if (document.activeElement === first) { e.preventDefault(); last.focus() }
+    } else {
+      if (document.activeElement === last) { e.preventDefault(); first.focus() }
+    }
+  }, [])
 
   /* ---- Touch drag on handle ---- */
   const dragState = useRef<{ startY: number; startTime: number } | null>(null)
@@ -199,6 +236,7 @@ function MobileSheet({
         role="dialog"
         aria-modal="true"
         aria-label="Bottom sheet"
+        onKeyDown={handleKeyDown}
         className={cn(
           'fixed inset-x-0 bottom-0 z-10 bg-surface-0 rounded-t-2xl shadow-lg flex flex-col',
           className,
@@ -226,7 +264,7 @@ function MobileSheet({
         {/* Scrollable content */}
         <div
           ref={scrollRef}
-          className="overflow-y-auto overscroll-contain px-5 pb-6 flex-1 min-h-0"
+          className="overflow-y-auto overscroll-contain px-5 pb-6 flex-1 min-h-0 hide-scrollbar"
           style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 1.5rem)' }}
         >
           {children}
@@ -419,7 +457,7 @@ function DesktopModal({
             >
               <motion.div
                 ref={scrollRef}
-                className="overflow-y-auto overscroll-contain px-5 py-6"
+                className="overflow-y-auto overscroll-contain px-5 py-6 hide-scrollbar"
                 style={{ maxHeight: '80vh' }}
                 variants={contentVariants}
                 initial="hidden"

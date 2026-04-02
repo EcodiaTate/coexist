@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
-import { supabase, untypedFrom } from '@/lib/supabase'
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
+import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { useOffline } from '@/hooks/use-offline'
 import { useToast } from '@/components/toast'
@@ -442,13 +442,15 @@ export function useNearbyEvents(limit = 20) {
   })
 }
 
+const DISCOVER_PAGE_SIZE = 20
+
 export function useDiscoverEvents(filters?: {
   activityType?: ActivityType | ''
   collectiveId?: string
 }) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['discover-events', filters?.activityType, filters?.collectiveId],
-    queryFn: async () => {
+    queryFn: async ({ pageParam }: { pageParam: string | null }) => {
       const now = new Date().toISOString()
       let query = supabase
         .from('events')
@@ -456,7 +458,11 @@ export function useDiscoverEvents(filters?: {
         .eq('status', 'published')
         .or(`date_start.gte.${now},date_end.gte.${now}`)
         .order('date_start', { ascending: true })
-        .limit(50)
+        .limit(DISCOVER_PAGE_SIZE)
+
+      if (pageParam) {
+        query = query.gt('date_start', pageParam)
+      }
 
       if (filters?.activityType) {
         query = query.eq('activity_type', filters.activityType)
@@ -468,6 +474,11 @@ export function useDiscoverEvents(filters?: {
       const { data, error } = await query
       if (error) throw error
       return (data ?? []) as EventWithCollective[]
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.length < DISCOVER_PAGE_SIZE) return undefined
+      return lastPage[lastPage.length - 1]?.date_start ?? undefined
     },
     staleTime: 5 * 60 * 1000,
   })
@@ -1046,7 +1057,7 @@ export function useDuplicateEvent() {
 
 async function triggerSurveyNotifications(eventId: string, eventTitle: string) {
   // Check if auto-surveys are enabled
-  const { data: config } = await untypedFrom('app_settings')
+  const { data: config } = await supabase.from('app_settings')
     .select('value')
     .eq('key', 'auto_survey_config')
     .maybeSingle()

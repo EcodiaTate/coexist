@@ -1,0 +1,45 @@
+import { Component, type ReactNode } from 'react'
+import { EmptyState } from './empty-state'
+
+interface Props {
+  children: ReactNode
+  /** Optional fallback to render instead of the default error UI */
+  fallback?: ReactNode
+}
+
+interface State {
+  hasError: boolean
+}
+
+/**
+ * Catches render errors in child components and shows a friendly fallback.
+ * Wrap around route-level pages so a single broken page doesn't blank the app.
+ */
+export class ErrorBoundary extends Component<Props, State> {
+  state: State = { hasError: false }
+
+  static getDerivedStateFromError(): State {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error) {
+    // If Sentry is loaded, it captures via its own ErrorBoundary or global handler.
+    // This is a safety net for the UI only.
+    console.error('[ErrorBoundary]', error)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) return this.props.fallback
+      return (
+        <EmptyState
+          illustration="error"
+          title="Something went wrong"
+          description="This page ran into an issue. Try going back or refreshing."
+          action={{ label: 'Go home', to: '/' }}
+        />
+      )
+    }
+    return this.props.children
+  }
+}

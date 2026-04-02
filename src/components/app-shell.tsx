@@ -11,6 +11,7 @@ import { SyncStatusBanner } from '@/components/sync-status-banner'
 import { MenuSheetProvider, useMenuSheet } from '@/hooks/use-menu-sheet'
 import { useSyncManager } from '@/hooks/use-sync-manager'
 import { usePushRegistration } from '@/hooks/use-push'
+import { useAppLifecycle } from '@/hooks/use-app-lifecycle'
 import { useKeyboard } from '@/hooks/use-keyboard'
 import { useKeyboardHeight } from '@/hooks/use-keyboard-height'
 import { useRolePrefetch } from '@/hooks/use-role-prefetch'
@@ -121,6 +122,9 @@ function AppShellInner({ children }: { children: ReactNode }) {
   // re-registers on app resume. Runs once for all authenticated users.
   usePushRegistration()
 
+  // Native app lifecycle: invalidate queries on resume so stale data refreshes.
+  useAppLifecycle()
+
   // Role-aware chunk prefetch  downloads the user's top 5 pages first,
   // then remaining common pages, so nav targets are instant.
   useRolePrefetch()
@@ -146,6 +150,14 @@ function AppShellInner({ children }: { children: ReactNode }) {
         height: 'calc(100dvh - var(--kb-height, 0px))',
       } : undefined}
     >
+      {/* Skip to content link for keyboard/screen reader users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-white focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:text-primary-700 focus:text-sm focus:font-medium"
+      >
+        Skip to content
+      </a>
+
       {/* Offline connectivity banner */}
       <OfflineBanner />
 
@@ -162,7 +174,7 @@ function AppShellInner({ children }: { children: ReactNode }) {
         {showSidebar && <StableSidebar />}
 
         {/* Content */}
-        <main className="flex-1 flex flex-col min-w-0 min-h-0">
+        <main id="main-content" className="flex-1 flex flex-col min-w-0 min-h-0">
           {children}
         </main>
       </div>

@@ -51,7 +51,7 @@ export function TabBar({
         role="tablist"
         aria-label={ariaLabel}
         className={cn(
-          'flex overflow-x-auto overflow-y-hidden scrollbar-none',
+          'flex overflow-x-auto overflow-y-hidden hide-scrollbar',
           'border-b border-neutral-100',
           className,
         )}

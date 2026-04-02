@@ -449,12 +449,13 @@ select:focus-visible {
   white-space: normal;
 }
 
-/* Hide all scrollbars globally */
-* {
+/* Hide scrollbars — apply .hide-scrollbar to specific containers, not globally.
+   Global * selector removed to avoid hiding scroll position on web/Android. */
+.hide-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
-*::-webkit-scrollbar {
+.hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
 

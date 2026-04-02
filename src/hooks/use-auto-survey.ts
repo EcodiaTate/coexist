@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { supabase, untypedFrom } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 
 /* ------------------------------------------------------------------ */
@@ -122,7 +122,7 @@ export function useAutoSurveyConfig() {
   return useQuery({
     queryKey: ['auto-survey-config'],
     queryFn: async () => {
-      const { data, error } = await untypedFrom('app_settings')
+      const { data, error } = await supabase.from('app_settings')
         .select('value')
         .eq('key', 'auto_survey_config')
         .maybeSingle()
@@ -151,7 +151,7 @@ export function useUpdateAutoSurveyConfig() {
 
   return useMutation({
     mutationFn: async (config: AutoSurveyConfig) => {
-      const { error } = await untypedFrom('app_settings')
+      const { error } = await supabase.from('app_settings')
         .upsert(
           { key: 'auto_survey_config', value: config },
           { onConflict: 'key' },
@@ -184,7 +184,7 @@ export function useImpactFormConfig() {
   return useQuery({
     queryKey: ['impact-form-config'],
     queryFn: async () => {
-      const { data, error } = await untypedFrom('app_settings')
+      const { data, error } = await supabase.from('app_settings')
         .select('value')
         .eq('key', 'impact_form_config')
         .maybeSingle()
@@ -213,7 +213,7 @@ export function useUpdateImpactFormConfig() {
 
   return useMutation({
     mutationFn: async (config: ImpactFormConfig) => {
-      const { error } = await untypedFrom('app_settings')
+      const { error } = await supabase.from('app_settings')
         .upsert(
           { key: 'impact_form_config', value: config },
           { onConflict: 'key' },
@@ -234,7 +234,7 @@ export function useTriggerSurveyNotifications() {
   return useMutation({
     mutationFn: async ({ eventId, eventTitle }: { eventId: string; eventTitle: string }) => {
       // Check if auto-surveys are enabled
-      const { data: config } = await untypedFrom('app_settings')
+      const { data: config } = await supabase.from('app_settings')
         .select('value')
         .eq('key', 'auto_survey_config')
         .maybeSingle()

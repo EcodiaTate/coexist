@@ -58,7 +58,7 @@ export function Page({
           'relative flex-1',
           // On mobile/native, use inner scroll container for tab-bar offset + scroll restore
           // On desktop, clip overflow so sticky bg doesn't paint over the web footer
-          isDesktopNav ? 'overflow-clip' : 'overflow-y-auto overflow-x-hidden overscroll-none',
+          isDesktopNav ? 'overflow-clip' : 'overflow-y-auto overflow-x-hidden overscroll-none hide-scrollbar',
           // Base gradient painted on element itself so first paint has colour (no flash)
           !noBackground && 'bg-gradient-to-b from-primary-50/40 via-white to-white',
           // Side padding for all page content (skip when fullBleed)
