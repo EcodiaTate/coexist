@@ -302,7 +302,7 @@ function MobileSidebarOverlay({
             </div>
 
             <div
-              className="flex-1 min-h-0 overflow-y-auto overscroll-none"
+              className="flex-1 min-h-0 overflow-y-auto overscroll-none hide-scrollbar"
               style={{
                 paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 2rem)',
               }}

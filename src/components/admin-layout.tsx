@@ -38,13 +38,14 @@ import type { NavItem, NavCategory } from '@/components/sidebar/types'
 
 interface AdminHeaderState {
   title: string
+  subtitle?: string
   actions?: ReactNode
   heroContent?: ReactNode
   fullBleed?: boolean
 }
 
 interface AdminHeaderContextValue {
-  setHeader: (opts: { title: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }) => void
+  setHeader: (opts: { title: string; subtitle?: string; actions?: ReactNode; heroContent?: ReactNode; fullBleed?: boolean }) => void
 }
 
 const AdminHeaderContext = createContext<AdminHeaderContextValue | null>(null)
@@ -54,6 +55,7 @@ const AdminHeaderContext = createContext<AdminHeaderContextValue | null>(null)
  * Pass heroContent to populate the shared hero bar.
  */
 interface AdminHeaderOpts {
+  subtitle?: string
   actions?: ReactNode
   heroContent?: ReactNode
   fullBleed?: boolean
@@ -68,15 +70,16 @@ export function useAdminHeader(
 
   // Extract individual values so the effect only re-fires when they actually change,
   // not when a new wrapper object is created each render.
-  const isOptsObject = opts != null && typeof opts === 'object' && !('$$typeof' in (opts as Record<string, unknown>)) && ('actions' in (opts as Record<string, unknown>) || 'heroContent' in (opts as Record<string, unknown>) || 'fullBleed' in (opts as Record<string, unknown>))
+  const isOptsObject = opts != null && typeof opts === 'object' && !('$$typeof' in (opts as Record<string, unknown>)) && ('actions' in (opts as Record<string, unknown>) || 'heroContent' in (opts as Record<string, unknown>) || 'fullBleed' in (opts as Record<string, unknown>) || 'subtitle' in (opts as Record<string, unknown>))
   const optsRecord = isOptsObject ? (opts as AdminHeaderOpts) : undefined
+  const subtitle = optsRecord?.subtitle
   const actions = optsRecord ? optsRecord.actions : (opts as ReactNode)
   const heroContent = optsRecord?.heroContent
   const fullBleed = optsRecord?.fullBleed
 
   useEffect(() => {
-    ctx?.setHeader({ title, actions, heroContent, fullBleed })
-  }, [ctx, title, actions, heroContent, fullBleed])
+    ctx?.setHeader({ title, subtitle, actions, heroContent, fullBleed })
+  }, [ctx, title, subtitle, actions, heroContent, fullBleed])
 }
 
 /* ------------------------------------------------------------------ */
@@ -348,7 +351,7 @@ export function AdminLayout() {
         {/* Main content */}
         <div ref={scrollRef} data-parallax-scroll className={cn(
           'flex-1 flex flex-col min-w-0 min-h-0 bg-surface-1',
-          showBottomTabs && 'overflow-y-auto overscroll-none',
+          showBottomTabs && 'overflow-y-auto overscroll-none hide-scrollbar',
         )}>
           {/* ── Shared hero bar - only for non-fullBleed pages ── */}
           {!header.fullBleed && header.title && header.title !== 'Dashboard' ? (() => {

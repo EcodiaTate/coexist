@@ -71,7 +71,7 @@ export function SidebarShell({ collapsed, onToggleCollapse, children }: SidebarS
       </div>
 
       {/* ── Nav content (injected) ── */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto hide-scrollbar">
         {children}
       </div>
 

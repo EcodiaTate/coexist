@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { untypedFrom } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/use-auth'
 import { useOffline } from '@/hooks/use-offline'
 import { useToast } from '@/components/toast'
@@ -51,7 +51,7 @@ export function useLeaderTodos(filters?: {
     queryFn: async () => {
       if (!user) return []
 
-      let query = untypedFrom('leader_todos')
+      let query = supabase.from('leader_todos')
         .select('*')
         .eq('user_id', user.id)
         .order('sort_order')
@@ -133,7 +133,7 @@ export function useCreateTodo() {
         } as LeaderTodo
       }
 
-      const { data, error } = await untypedFrom('leader_todos')
+      const { data, error } = await supabase.from('leader_todos')
         .insert({
           user_id: user.id,
           title: input.title,
@@ -177,7 +177,7 @@ export function useUpdateTodo() {
         return { id, ...updates } as LeaderTodo
       }
 
-      const { data, error } = await untypedFrom('leader_todos')
+      const { data, error } = await supabase.from('leader_todos')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', id)
         .select()
@@ -223,7 +223,7 @@ export function useToggleTodo() {
         return
       }
 
-      const { error } = await untypedFrom('leader_todos')
+      const { error } = await supabase.from('leader_todos')
         .update({
           status: completed ? 'completed' : 'pending',
           completed_at: completed ? new Date().toISOString() : null,
@@ -275,7 +275,7 @@ export function useDeleteTodo() {
         return
       }
 
-      const { error } = await untypedFrom('leader_todos')
+      const { error } = await supabase.from('leader_todos')
         .delete()
         .eq('id', id)
 

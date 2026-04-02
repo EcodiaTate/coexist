@@ -260,7 +260,7 @@ export function LeaderLayout() {
         {/* ── Main content ── */}
         <div ref={scrollRef} className={cn(
           'flex-1 flex flex-col min-w-0 min-h-0 bg-surface-1',
-          showBottomTabs && 'overflow-y-auto overscroll-none',
+          showBottomTabs && 'overflow-y-auto overscroll-none hide-scrollbar',
         )}>
           {/* Shared hero bar - only for non-fullBleed pages */}
           {!header.fullBleed && header.title ? (() => {

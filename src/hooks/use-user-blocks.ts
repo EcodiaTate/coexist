@@ -5,10 +5,7 @@ import { useOffline } from '@/hooks/use-offline'
 import { useToast } from '@/components/toast'
 import { queueOfflineAction } from '@/lib/offline-sync'
 
-// user_blocks table is not yet in generated types (migration 070).
-// Use untyped access until `supabase gen types` is re-run post-migration.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const blocks = () => (supabase as any).from('user_blocks')
+const blocks = () => supabase.from('user_blocks')
 
 interface UserBlock {
   blocked_id: string

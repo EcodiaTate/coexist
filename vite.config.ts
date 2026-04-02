@@ -23,6 +23,8 @@ export default defineConfig({
       external: ['@capacitor-mlkit/barcode-scanning', 'posthog-js'],
       output: {
         manualChunks(id) {
+          // Admin pages — only downloaded by staff, not participants
+          if (id.includes('/pages/admin/')) return 'admin'
           if (id.includes('react-dom') || id.includes('react-router')) return 'vendor'
           if (id.includes('@supabase')) return 'supabase'
           if (id.includes('@tanstack')) return 'query'
@@ -31,6 +33,7 @@ export default defineConfig({
           if (id.includes('react-markdown') || id.includes('remark-gfm') || id.includes('dompurify')) return 'markdown'
           if (id.includes('@dnd-kit')) return 'dnd-kit'
           if (id.includes('i18next')) return 'i18n'
+          if (id.includes('html2canvas')) return 'html2canvas'
         },
       },
     },

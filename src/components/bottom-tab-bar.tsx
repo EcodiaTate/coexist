@@ -161,7 +161,7 @@ export function BottomTabBar({
                 type="button"
                 role="tab"
                 aria-selected={active}
-                aria-label={tab.label}
+                aria-label={tab.key === 'chat' && chatBadge > 0 ? `${tab.label}, ${chatBadge} unread` : tab.label}
                 onClick={() => handleTabPress(tab)}
                 className={cn(
                   'relative flex flex-col items-center justify-center',

@@ -147,10 +147,18 @@ export default function ExplorePage() {
 
   const { isError: upcomingError, dataUpdatedAt, isFetching } = useMyEvents('upcoming')
 
-  const { data: discoverEvents, isLoading: discoverLoading, isError: discoverError } = useDiscoverEvents({
+  const {
+    data: discoverData,
+    isLoading: discoverLoading,
+    isError: discoverError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useDiscoverEvents({
     activityType: activityFilter,
     collectiveId: collectiveFilter || undefined,
   })
+  const discoverEvents = discoverData?.pages.flat()
   const discoverShowLoading = useDelayedLoading(discoverLoading)
 
   const { data: allCollectives = [] } = useCollectives()
@@ -268,6 +276,7 @@ export default function ExplorePage() {
                         }
                       />
                     ) : (
+                      <>
                       <motion.div variants={shouldReduceMotion ? undefined : stagger} initial="hidden" animate="visible" className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
                         {discoverEvents.map((event) => {
                           const meta = ACTIVITY_META[event.activity_type]
@@ -329,6 +338,19 @@ export default function ExplorePage() {
                           )
                         })}
                       </motion.div>
+                      {hasNextPage && (
+                        <div className="flex justify-center pt-4">
+                          <button
+                            type="button"
+                            onClick={() => fetchNextPage()}
+                            disabled={isFetchingNextPage}
+                            className="text-sm font-semibold text-primary-600 bg-primary-50 hover:bg-primary-100 px-5 py-2.5 rounded-full transition-colors disabled:opacity-50 cursor-pointer select-none"
+                          >
+                            {isFetchingNextPage ? 'Loading...' : 'Load more events'}
+                          </button>
+                        </div>
+                      )}
+                      </>
                     )}
                   </motion.section>
                 </motion.div>
