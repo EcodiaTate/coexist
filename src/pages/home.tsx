@@ -844,7 +844,7 @@ function HomeImpactSection({
           >
             <div className="flex items-center justify-between mb-1.5">
               <p className="font-heading text-[10px] font-bold text-[#f4f2ec] uppercase tracking-[0.2em]">
-                Real-Time Performance
+                What We've Done
               </p>
               <Link
                 to="/profile"
@@ -855,7 +855,7 @@ function HomeImpactSection({
               </Link>
             </div>
             <h2 className="font-heading text-[28px] sm:text-[34px] font-bold text-[#f4f2ec] leading-tight tracking-tight">
-              Mission Progress
+              Our Impact
             </h2>
           </motion.div>
 
@@ -977,7 +977,7 @@ function HomeImpactSection({
                 value={data?.treesPlanted ?? 0}
                 label="Trees Planted"
                 icon={<TreePine size={20} />}
-                description="Cumulative reforestation impact across all regional active corridors this fiscal year."
+                description="Every tree planted by Co-Exist volunteers across the country."
               />
               <BentoStatCard value={data?.eventsAttended ?? 0} label="Volunteers" icon={<Users size={18} />} />
               <BentoStatCard value={totalEvents} label="Active Sites" icon={<Calendar size={18} />} />
