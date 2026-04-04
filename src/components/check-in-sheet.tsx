@@ -7,7 +7,6 @@ import {
     WifiOff,
     Sparkles,
 } from 'lucide-react'
-import { cn } from '@/lib/cn'
 import { useAuth } from '@/hooks/use-auth'
 import { useProfile } from '@/hooks/use-profile'
 import { useCheckIn } from '@/hooks/use-events'
@@ -205,8 +204,8 @@ export function CheckInSheet({ open, onClose, eventId, eventTitle, collectiveNam
 
   return (
     <>
-      <BottomSheet open={open} onClose={handleClose} snapPoints={snapPoints}>
-        <div className={cn('h-[70vh] overflow-y-auto relative', nativeScannerActive && 'invisible')}>
+      <BottomSheet open={open && !nativeScannerActive} onClose={handleClose} snapPoints={snapPoints}>
+        <div className="h-[70vh] overflow-y-auto relative">
         <AnimatePresence mode="wait">
           {/* Profile details (blocks check-in) */}
           {step === 'details' && (

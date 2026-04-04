@@ -232,6 +232,8 @@ export default function CheckInPage() {
 
   /* ---- QR scan start ---- */
   const isNative = Capacitor.isNativePlatform()
+    || !!(window as any).webkit?.messageHandlers?.bridge
+    || !!(window as any).androidBridge
 
   const handleScanStart = useCallback(async () => {
     if (!isNative) {
