@@ -7,12 +7,8 @@ const config: CapacitorConfig = {
 
   // ---- Server ----
   server: {
-    // DEV MODE: point at Vercel so git push → live in minutes without App Store resubmission.
-    // To go back to static build: remove the `url` line and run `npx cap sync`.
-    url: 'https://app.coexistaus.org',
-    // Allow navigation to these URLs (deep links)
+    // Allow navigation to these URLs (deep links, OAuth, payments)
     allowNavigation: ['*.coexistaus.org', '*.supabase.co', '*.stripe.com'],
-    // Android: cleartext for localhost dev only
     androidScheme: 'https',
   },
 
