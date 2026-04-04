@@ -14,12 +14,17 @@ function WebQrScanner({ onScan, onError }: { onScan: (value: string) => void; on
   const streamRef = useRef<MediaStream | null>(null)
   const rafRef = useRef<number>(0)
   const [cameraReady, setCameraReady] = useState(false)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
     async function startCamera() {
       try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          setErrorMsg(`Camera API unavailable. native=${Capacitor.isNativePlatform()}, platform=${Capacitor.getPlatform()}, ua=${navigator.userAgent.slice(0, 80)}`)
+          return
+        }
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
         })
@@ -31,8 +36,9 @@ function WebQrScanner({ onScan, onError }: { onScan: (value: string) => void; on
           await videoRef.current.play()
           setCameraReady(true)
         }
-      } catch {
-        if (!cancelled) onError()
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        setErrorMsg(`${msg} | native=${Capacitor.isNativePlatform()}, platform=${Capacitor.getPlatform()}`)
       }
     }
 
@@ -91,9 +97,9 @@ function WebQrScanner({ onScan, onError }: { onScan: (value: string) => void; on
       </div>
       {!cameraReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-          <div className="text-center">
+          <div className="text-center px-4">
             <Camera size={32} className="text-white/40 mx-auto mb-2" />
-            <p className="text-sm text-white/60">Opening camera...</p>
+            <p className="text-sm text-white/60">{errorMsg ? `Error: ${errorMsg}` : 'Opening camera...'}</p>
           </div>
         </div>
       )}
@@ -132,12 +138,7 @@ export function QrScanner({
   onNativeScannerActive,
   onTicketScan,
 }: QrScannerProps) {
-  // When the app uses server.url (remote webview), isNativePlatform() can
-  // return false even though the native bridge is available. Check for the
-  // iOS/Android bridge objects directly as a fallback.
   const isNative = Capacitor.isNativePlatform()
-    || !!(window as any).webkit?.messageHandlers?.bridge
-    || !!(window as any).androidBridge
 
   const parseQrValue = useCallback((value: string): { type: 'event'; eventId: string } | { type: 'ticket'; code: string } | null => {
     const eventMatch = value.match(/^coexist:\/\/event\/(.+)$/)
