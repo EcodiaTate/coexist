@@ -215,7 +215,7 @@ function TrendChart({
                   {val > 0 ? val : '\u00A0'}
                 </span>
 
-                {/* Bar track — relative with defined flex-1 height so % children work */}
+                {/* Bar track - relative with defined flex-1 height so % children work */}
                 <div className="relative w-full flex-1">
                   <motion.div
                     className="absolute bottom-0 left-[15%] right-[15%] rounded-lg"

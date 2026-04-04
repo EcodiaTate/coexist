@@ -115,7 +115,7 @@ function formatNextEvent(ev: { title: string; date_start: string }): string {
   const d = new Date(ev.date_start)
   const month = d.toLocaleString('en-AU', { month: 'short' })
   const day = d.getDate()
-  return `${ev.title} — ${month} ${day}`
+  return `${ev.title} - ${month} ${day}`
 }
 
 /* ------------------------------------------------------------------ */

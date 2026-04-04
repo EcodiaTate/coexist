@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-    Download, BarChart3,
-    Check, Mail, Loader2
+    Download, Check, Mail, Loader2
 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { Page } from '@/components/page'
@@ -221,7 +220,7 @@ async function fetchReportData(
       results.push({ metric: def.label, value: String(count) })
 
     } else {
-      // Standard impact column — aggregate from fetched rows
+      // Standard impact column - aggregate from fetched rows
       const raw = sumMetric(impactRows, def.key)
       const formatted = def.transform ? def.transform(raw) : String(Math.round(raw))
       results.push({ metric: def.label, value: formatted })

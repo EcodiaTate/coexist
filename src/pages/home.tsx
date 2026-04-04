@@ -38,12 +38,10 @@ import { useNationalImpact, useCollectiveImpact } from '@/hooks/use-impact'
 import type { CanonicalImpact } from '@/hooks/use-impact'
 import { usePendingSurveys } from '@/hooks/use-auto-survey'
 import {
-    Page,
-    Badge,
-    Button,
+    Page, Button,
     CheckInSheet,
     EmptyState,
-    WaveTransition,
+    WaveTransition
 } from '@/components'
 import { Card } from '@/components/card'
 import { BentoStatCard, BentoStatGrid } from '@/components/bento-stats'
@@ -476,7 +474,7 @@ function NextEventCard({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Upcoming Events carousel — full-bleed overlay cards                */
+/*  Upcoming Events carousel - full-bleed overlay cards                */
 /* ------------------------------------------------------------------ */
 
 function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
@@ -603,7 +601,7 @@ function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  National Events — retreats, campouts, cross-collective            */
+/*  National Events - retreats, campouts, cross-collective            */
 /* ------------------------------------------------------------------ */
 
 function NationalEventsSection({ rm }: { rm: boolean }) {
@@ -678,7 +676,7 @@ function NationalEventsSection({ rm }: { rm: boolean }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Updates section — full-bleed overlay cards                         */
+/*  Updates section - full-bleed overlay cards                         */
 /* ------------------------------------------------------------------ */
 
 function UpdatesSection({ rm }: { rm: boolean }) {
@@ -717,7 +715,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
               aria-label={item.title}
               className="shrink-0 w-56 snap-start text-left rounded-2xl overflow-hidden bg-amber-50 shadow-[0_4px_16px_rgba(0,0,0,0.12)] active:scale-[0.98] transition-transform duration-150 flex flex-col"
             >
-              {/* Image — fixed 4/3 ratio, only rendered when present */}
+              {/* Image - fixed 4/3 ratio, only rendered when present */}
               {item.image_url && (
                 <div className="w-full shrink-0 overflow-hidden bg-neutral-200" style={{ aspectRatio: '4/3' }}>
                   <img
@@ -730,7 +728,7 @@ function UpdatesSection({ rm }: { rm: boolean }) {
                 </div>
               )}
 
-              {/* Text panel — grows naturally */}
+              {/* Text panel - grows naturally */}
               <div className="flex flex-col p-4 gap-1.5">
                 <p className="font-heading text-sm font-bold text-neutral-900 leading-snug line-clamp-2">
                   {item.title}
@@ -820,7 +818,7 @@ function HomeImpactSection({
 
   const data: CanonicalImpact | null | undefined =
     scope === 'national' ? national.data : collective.data
-  // Only show skeleton on very first load — subsequent toggles keep previous data visible
+  // Only show skeleton on very first load - subsequent toggles keep previous data visible
   const isInitialLoading = scope === 'national'
     ? national.isLoading && !national.isPlaceholderData
     : collective.isLoading && !collective.isPlaceholderData
@@ -835,7 +833,7 @@ function HomeImpactSection({
       <div ref={sectionRef} className="relative overflow-hidden bg-[#879e62] rounded-2xl">
 
         <div className="relative px-5 sm:px-7 pt-14 pb-16 sm:pt-16 sm:pb-20">
-          {/* Header — editorial style */}
+          {/* Header - editorial style */}
           <motion.div
             className="mb-8"
             initial={rm ? undefined : { opacity: 0 }}
@@ -961,7 +959,7 @@ function HomeImpactSection({
             </div>
           </div>
 
-          {/* Content — bento card grid */}
+          {/* Content - bento card grid */}
           {isInitialLoading ? (
             <div className="space-y-3">
               <div className="h-36 rounded-3xl bg-white/20 animate-pulse" />
@@ -994,7 +992,7 @@ function HomeImpactSection({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Donate + Shop CTA — full-bleed dark closer                         */
+/*  Donate + Shop CTA - full-bleed dark closer                         */
 /* ------------------------------------------------------------------ */
 
 function CtaCards({ rm }: { rm: boolean }) {

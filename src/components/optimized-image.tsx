@@ -9,13 +9,13 @@ import { getSrcSet, getPlaceholderUrl, getTransformUrl, isSupabaseStorageUrl } f
 export interface OptimizedImageProps {
   src: string
   alt: string
-  /** CSS sizes attribute — tells the browser how wide the image renders at each breakpoint */
+  /** CSS sizes attribute - tells the browser how wide the image renders at each breakpoint */
   sizes?: string
   /** Explicit widths for srcset generation. Defaults to [320, 640, 768, 1024, 1280] */
   srcSetWidths?: readonly number[]
   /** Quality for Supabase transforms (default 80) */
   quality?: number
-  /** Aspect ratio CSS value (e.g. "16/9", "2.2/1") — sets on the wrapper */
+  /** Aspect ratio CSS value (e.g. "16/9", "2.2/1") - sets on the wrapper */
   aspectRatio?: string
   /** Priority image (hero/above-fold): eager loading, high fetch priority, no blur-up */
   priority?: boolean

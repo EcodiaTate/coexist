@@ -112,7 +112,7 @@ export default function EditProfilePage() {
   const { data: profile, isLoading } = useProfile()
   const showLoading = useDelayedLoading(isLoading)
   const updateProfile = useUpdateProfile()
-   
+
   const { capture: _capture, pickFromGallery, loading: cameraLoading } = useCamera()
   const { upload, progress, uploading, error: uploadError } = useImageUpload({ bucket: 'avatars' })
   const { toast } = useToast()
@@ -180,7 +180,7 @@ export default function EditProfilePage() {
     const result = await pickFromGallery()
     if (!result || !authProfile?.id) return
 
-    // Show preview immediately (optimistic) — both local state and query cache
+    // Show preview immediately (optimistic) - both local state and query cache
     const previewUrl = URL.createObjectURL(result.blob)
     setAvatarPreview(previewUrl)
     const previousProfile = queryClient.getQueryData(['profile', authProfile.id])

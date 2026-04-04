@@ -2,18 +2,18 @@ import { useState, useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
-  Download,
-  Users,
-  CalendarDays,
-  TreePine,
-  ClipboardList,
-  DollarSign,
-  ShoppingBag,
-  FileText,
-  Receipt,
-  BarChart3,
-  Calendar,
-  AlertTriangle,
+    Download,
+    Users,
+    CalendarDays,
+    TreePine,
+    ClipboardList,
+    DollarSign,
+    ShoppingBag,
+    FileText,
+    Receipt,
+    BarChart3,
+    Calendar,
+    AlertTriangle,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { AdminHeroStat, AdminHeroStatRow } from '@/components/admin-hero-stat'
@@ -123,7 +123,7 @@ const exportTypes: ExportType[] = [
   {
     id: 'donation-tax',
     title: 'Donation Tax Report',
-    description: 'Annual summary of tax-deductible donations per donor (DGR). Donors with multiple emails may appear as separate entries — review before submitting to ACNC.',
+    description: 'Annual summary of tax-deductible donations per donor (DGR). Donors with multiple emails may appear as separate entries - review before submitting to ACNC.',
     icon: <DollarSign size={20} />,
     formats: ['csv', 'pdf'],
     color: 'bg-primary-400/25 text-primary-900',
@@ -190,7 +190,7 @@ export default function AdminExportsPage() {
 
   useAdminHeader('Export Centre', { heroContent: heroStats })
 
-  /** The selected collective ID — 'national' means no scope filter */
+  /** The selected collective ID - 'national' means no scope filter */
   const collectiveFilter = scope !== 'national' ? scope : null
 
   const handleExport = async (exportId: string, format: 'csv' | 'pdf') => {

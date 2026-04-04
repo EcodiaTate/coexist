@@ -2,18 +2,18 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Bell,
-  Shield,
-  Lock,
-  Heart,
-  FileText,
-  ShieldCheck,
-  HelpCircle,
-  LifeBuoy,
-  Cookie,
-  Info,
-  LogOut,
-  ChevronRight,
+    Bell,
+    Shield,
+    Lock,
+    Heart,
+    FileText,
+    ShieldCheck,
+    HelpCircle,
+    LifeBuoy,
+    Cookie,
+    Info,
+    LogOut,
+    ChevronRight,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -27,12 +27,12 @@ import { useAuth } from '@/hooks/use-auth'
 import { usePlatform } from '@/hooks/use-platform'
 import { useToast } from '@/components/toast'
 import {
-  APP_NAME,
-  TAGLINE,
-  CONTACT_EMAIL,
-  WEBSITE_URL,
-  INSTAGRAM_URL,
-  FACEBOOK_URL,
+    APP_NAME,
+    TAGLINE,
+    CONTACT_EMAIL,
+    WEBSITE_URL,
+    INSTAGRAM_URL,
+    FACEBOOK_URL,
 } from '@/lib/constants'
 import { usePush } from '@/hooks/use-push'
 import { useLegalPage } from '@/hooks/use-legal-page'
@@ -426,7 +426,7 @@ export default function SettingsPage() {
   const { unregister: unregisterPush } = usePush()
   const shouldReduceMotion = useReducedMotion()
 
-  // Sheet states (About / Legal / Help only — settings sub-pages handle the rest)
+  // Sheet states (About / Legal / Help only - settings sub-pages handle the rest)
   const [showAbout, setShowAbout] = useState(false)
   const [showTerms, setShowTerms] = useState(false)
   const [showPrivacy, setShowPrivacy] = useState(false)

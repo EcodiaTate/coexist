@@ -8,7 +8,7 @@ import { cn } from '@/lib/cn'
 /*  Colour presets                                                     */
 /*                                                                     */
 /*  Each preset provides an icon accent, value colour, and optional    */
-/*  delta badge style. Cards themselves are white/flat — colour only   */
+/*  delta badge style. Cards themselves are white/flat - colour only   */
 /*  appears on the icon badge and delta indicator.                     */
 /* ------------------------------------------------------------------ */
 

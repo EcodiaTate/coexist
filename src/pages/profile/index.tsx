@@ -171,7 +171,7 @@ export default function ProfilePage() {
 
   const hasDetails = profile.first_name || profile.email || profile.phone || profile.age || profile.postcode || profile.gender
 
-  // Core metrics always show (even if 0) — these are the canonical Co-Exist impact metrics.
+  // Core metrics always show (even if 0) - these are the canonical Co-Exist impact metrics.
   // Secondary metrics show if value > 0 OR user attended a relevant activity type.
   const at = stats?.activityTypeCounts ?? {}
   const didLand = (at.tree_planting ?? 0) > 0 || (at.land_regeneration ?? 0) > 0
@@ -179,14 +179,14 @@ export default function ProfilePage() {
   const didWild = didCoast || (at.nature_walk ?? 0) > 0
 
   const allStats = [
-    // Core metrics — always visible
+    // Core metrics - always visible
     { value: stats?.eventsAttended ?? 0, label: 'Events', icon: <Calendar size={18} />, show: true },
     { value: stats?.hoursVolunteered ?? 0, label: 'Hours', icon: <Clock size={18} />, show: true },
     { value: stats?.treesPlanted ?? 0, label: 'Trees', icon: <TreePine size={18} />, show: true },
     { value: stats?.rubbishCollectedKg ?? 0, label: 'kg Rubbish', icon: <Trash2 size={18} />, show: true },
     { value: stats?.invasiveWeedsPulled ?? 0, label: 'Weeds Pulled', icon: <Leaf size={18} />, show: true },
     { value: stats?.coastlineCleanedM ?? 0, label: 'Coastline (m)', icon: <Waves size={18} />, show: true },
-    // Secondary metrics — show if non-zero or attended relevant activity type
+    // Secondary metrics - show if non-zero or attended relevant activity type
     { value: stats?.areaRestoredSqm ?? 0, label: 'Area (sqm)', icon: <Ruler size={18} />, show: (stats?.areaRestoredSqm ?? 0) > 0 || didLand },
     { value: stats?.nativePlants ?? 0, label: 'Native Plants', icon: <Sprout size={18} />, show: (stats?.nativePlants ?? 0) > 0 || didLand },
     { value: stats?.wildlifeSightings ?? 0, label: 'Wildlife', icon: <Bird size={18} />, show: (stats?.wildlifeSightings ?? 0) > 0 || didWild },

@@ -448,7 +448,7 @@ export default function ImpactDashboardPage() {
                 config="cleanups"
               />
 
-              {/* Coastline — always render to prevent grid reflow; hidden when zero */}
+              {/* Coastline - always render to prevent grid reflow; hidden when zero */}
               <div
                 className={cn(stats.coastlineCleanedM === 0 && 'invisible pointer-events-none')}
                 aria-hidden={stats.coastlineCleanedM === 0}

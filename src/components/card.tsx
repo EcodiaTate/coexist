@@ -1,26 +1,26 @@
 /* eslint-disable react-refresh/only-export-components */
 import {
-  type ReactNode,
-  createContext,
-  useContext,
-  forwardRef,
+    type ReactNode,
+    createContext,
+    useContext,
+    forwardRef,
 } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  TreePine,
-  Waves,
-  Sprout,
-  Compass,
-  Bird,
-  Flower2,
-  Droplets,
-  Leaf,
+    TreePine,
+    Waves,
+    Sprout,
+    Compass,
+    Bird,
+    Flower2,
+    Droplets,
+    Leaf,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { OptimizedImage } from './optimized-image'
 
 /* ------------------------------------------------------------------ */
-/*  Nature watermarks — Lucide icons used as large, low-opacity marks  */
+/*  Nature watermarks - Lucide icons used as large, low-opacity marks  */
 /* ------------------------------------------------------------------ */
 
 /** Map activity types to their watermark Lucide icon */
@@ -190,7 +190,7 @@ function CardImage({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Card.Overlay — full-bleed image with text overlay                  */
+/*  Card.Overlay - full-bleed image with text overlay                  */
 /* ------------------------------------------------------------------ */
 
 interface CardOverlayProps {

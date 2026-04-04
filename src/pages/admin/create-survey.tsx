@@ -20,9 +20,7 @@ import {
     Pencil,
     ListChecks,
     Sliders, Eye,
-    BarChart3,
-    Users,
-    Send,
+    BarChart3, Send
 } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAdminHeader } from '@/components/admin-layout'
@@ -301,7 +299,7 @@ function OptionChipBuilder({
                   </button>
                 )}
 
-                {/* Reorder buttons — always visible (no hover-only on mobile) */}
+                {/* Reorder buttons - always visible (no hover-only on mobile) */}
                 <div className="flex items-center gap-0.5 shrink-0">
                   <button
                     type="button"
@@ -1351,7 +1349,7 @@ export default function CreateSurveyPage() {
                 </span>
                 <div>
                   <p className="text-sm font-semibold text-neutral-900">General Survey</p>
-                  <p className="text-[11px] text-neutral-400 mt-0.5">Standalone survey — share manually or attach to a task</p>
+                  <p className="text-[11px] text-neutral-400 mt-0.5">Standalone survey - share manually or attach to a task</p>
                 </div>
               </button>
 
@@ -1406,7 +1404,7 @@ export default function CreateSurveyPage() {
             </div>
           </div>
 
-          {/* Activity type — shown for both attendee feedback and impact forms */}
+          {/* Activity type - shown for both attendee feedback and impact forms */}
           {(autoSendAfterEvent || isImpactForm) && (
             <div>
               <Dropdown
@@ -1433,7 +1431,7 @@ export default function CreateSurveyPage() {
               <p className="text-[11px] text-moss-700 leading-relaxed">
                 <strong>How it works:</strong> When an event of this type is completed, a shared task is
                 automatically created for the collective&apos;s leaders. Any leader, co-leader, or assist-leader
-                can fill it out — only one submission is needed. Number questions linked to impact metrics will
+                can fill it out - only one submission is needed. Number questions linked to impact metrics will
                 update the event&apos;s impact stats automatically.
               </p>
             </div>

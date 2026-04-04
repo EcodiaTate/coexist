@@ -13,7 +13,7 @@ import { TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
 /* ------------------------------------------------------------------ */
-/*  MiniBar — horizontal fill for bounded values                       */
+/*  MiniBar - horizontal fill for bounded values                       */
 /* ------------------------------------------------------------------ */
 
 interface MiniBarProps {
@@ -43,7 +43,7 @@ export function MiniBar({ value, max, color = 'bg-primary-500', className }: Min
 }
 
 /* ------------------------------------------------------------------ */
-/*  MiniRing — small donut for percentages                             */
+/*  MiniRing - small donut for percentages                             */
 /* ------------------------------------------------------------------ */
 
 interface MiniRingProps {
@@ -95,7 +95,7 @@ export function MiniRing({ value, size = 32, color = 'var(--color-primary-500)',
 }
 
 /* ------------------------------------------------------------------ */
-/*  MiniSparkline — tiny trend line                                    */
+/*  MiniSparkline - tiny trend line                                    */
 /* ------------------------------------------------------------------ */
 
 interface MiniSparklineProps {
@@ -156,7 +156,7 @@ export function MiniSparkline({
 }
 
 /* ------------------------------------------------------------------ */
-/*  DeltaMark — small trend pill                                       */
+/*  DeltaMark - small trend pill                                       */
 /* ------------------------------------------------------------------ */
 
 interface DeltaMarkProps {

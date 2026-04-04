@@ -13,7 +13,7 @@ interface SyncStatusBannerProps {
 
 /**
  * Persistent banner that stays visible until the user resolves the sync issue.
- * Unlike toasts, this won't auto-dismiss — the user must re-authenticate or
+ * Unlike toasts, this won't auto-dismiss - the user must re-authenticate or
  * free up storage before their queued data can sync.
  */
 export function SyncStatusBanner({ issue, pendingCount, onSignIn, className }: SyncStatusBannerProps) {
@@ -36,7 +36,7 @@ export function SyncStatusBanner({ issue, pendingCount, onSignIn, className }: S
               <div className="flex items-center gap-2 text-sm font-medium min-w-0">
                 <AlertTriangle size={15} className="shrink-0" />
                 <span className="truncate">
-                  Sync paused — sign in to upload {pendingCount} saved action{pendingCount === 1 ? '' : 's'}
+                  Sync paused - sign in to upload {pendingCount} saved action{pendingCount === 1 ? '' : 's'}
                 </span>
               </div>
               {onSignIn && (
@@ -55,7 +55,7 @@ export function SyncStatusBanner({ issue, pendingCount, onSignIn, className }: S
           {issue === 'storage-full' && (
             <div className="flex items-center gap-2 px-4 py-2.5 bg-error-100 text-error-900 text-sm font-medium">
               <HardDrive size={15} className="shrink-0" />
-              <span>Storage full — connect to the internet and sync your data to free up space</span>
+              <span>Storage full - connect to the internet and sync your data to free up space</span>
             </div>
           )}
         </motion.div>

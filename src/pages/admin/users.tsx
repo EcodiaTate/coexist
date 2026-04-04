@@ -302,7 +302,7 @@ function UserSettingsSheet({
         .eq('id', userId)
         .select('id')
       if (error) throw error
-      if (!rows?.length) throw new Error('Role update had no effect — check RLS policies')
+      if (!rows?.length) throw new Error('Role update had no effect - check RLS policies')
       await logAudit({ action: 'role_changed', target_type: 'user', target_id: userId, details: { new_role: role } })
     },
     onMutate: async ({ userId, role }) => {

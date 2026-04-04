@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import {
-  Calendar, Clock, MapPin, Users,
-  Compass, Backpack, Shirt, Mountain, Sun,
-  ArrowLeft,
+    Calendar, Clock, MapPin, Users,
+    Compass, Backpack, Shirt, Mountain, Sun,
+    ArrowLeft,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { WaveTransition } from '@/components/wave-transition'
@@ -20,11 +20,11 @@ const MOCK_EVENTS = [
     activity_type: 'shore_cleanup',
     activity_label: 'SHORE CLEANUP',
     date: 'Sat, Apr 12',
-    time: '7:30 AM — 11:00 AM',
+    time: '7:30 AM - 11:00 AM',
     duration: '3.5 hrs',
     collective: 'Melbourne Central',
     address: 'Dights Falls, Abbotsford VIC 3067',
-    description: 'Join us for a morning along the Yarra River banks near Dights Falls. We\'ll be removing litter from the waterway, cataloguing microplastics, and restoring native ground cover along the embankment.\n\nThis stretch of river is home to platypus and a recovering population of river blackfish — every piece of rubbish we remove directly protects these species.',
+    description: 'Join us for a morning along the Yarra River banks near Dights Falls. We\'ll be removing litter from the waterway, cataloguing microplastics, and restoring native ground cover along the embankment.\n\nThis stretch of river is home to platypus and a recovering population of river blackfish - every piece of rubbish we remove directly protects these species.',
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=900&h=600&fit=crop',
     spots: '14/20',
     what_to_bring: 'Reusable water bottle, sunscreen, closed-toe shoes',
@@ -39,7 +39,7 @@ const MOCK_EVENTS = [
     activity_type: 'tree_planting',
     activity_label: 'TREE PLANTING',
     date: 'Sun, Apr 20',
-    time: '8:00 AM — 2:00 PM',
+    time: '8:00 AM - 2:00 PM',
     duration: '6 hrs',
     collective: 'Gippsland',
     address: 'Tidal River, Wilsons Promontory VIC 3960',
@@ -58,7 +58,7 @@ const MOCK_EVENTS = [
     activity_type: 'marine_restoration',
     activity_label: 'MARINE RESTORATION',
     date: 'Fri, Apr 25',
-    time: '6:30 PM — 9:30 PM',
+    time: '6:30 PM - 9:30 PM',
     duration: '3 hrs',
     collective: 'Mornington Peninsula',
     address: 'Point Nepean National Park, VIC 3944',
@@ -74,7 +74,7 @@ const MOCK_EVENTS = [
 ]
 
 /* ------------------------------------------------------------------ */
-/*  Activity tag colours — muted, earthy, on-brand                     */
+/*  Activity tag colours - muted, earthy, on-brand                     */
 /* ------------------------------------------------------------------ */
 
 const activityTagStyle: Record<string, { bg: string; text: string; iconBg: string; iconText: string }> = {
@@ -125,7 +125,7 @@ function EditorialEventCard({
       whileTap={shouldReduceMotion ? undefined : { scale: 0.975 }}
       transition={{ type: 'spring', stiffness: 400, damping: 26, mass: 0.7 }}
       className="relative w-full rounded-2xl overflow-hidden cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 group"
-      aria-label={`${event.title} — ${event.date}`}
+      aria-label={`${event.title} - ${event.date}`}
     >
       {/* Full-bleed photo */}
       <div className="relative w-full" style={{ aspectRatio: '3/2' }}>
@@ -142,7 +142,7 @@ function EditorialEventCard({
           aria-hidden="true"
         />
 
-        {/* Activity tag — top left */}
+        {/* Activity tag - top left */}
         <span
           className={cn(
             'absolute top-3 left-3 z-10',
@@ -155,13 +155,13 @@ function EditorialEventCard({
           {event.activity_label}
         </span>
 
-        {/* Text overlay — bottom */}
+        {/* Text overlay - bottom */}
         <div className="absolute bottom-0 left-0 right-0 p-4 pb-4.5 z-[5]">
           <h3 className="font-heading text-[17px] sm:text-lg font-bold text-white leading-snug drop-shadow-[0_1px_3px_rgba(0,0,0,0.4)]">
             {event.title}
           </h3>
           <p className="text-[13px] font-medium text-white/70 mt-1 drop-shadow-sm">
-            {event.date} · {event.time.split('—')[0].trim()}
+            {event.date} · {event.time.split('-')[0].trim()}
           </p>
           <p className="text-[12px] font-medium text-white/50 mt-0.5 drop-shadow-sm">
             {event.collective}
