@@ -132,7 +132,12 @@ export function QrScanner({
   onNativeScannerActive,
   onTicketScan,
 }: QrScannerProps) {
+  // When the app uses server.url (remote webview), isNativePlatform() can
+  // return false even though the native bridge is available. Check for the
+  // iOS/Android bridge objects directly as a fallback.
   const isNative = Capacitor.isNativePlatform()
+    || !!(window as any).webkit?.messageHandlers?.bridge
+    || !!(window as any).androidBridge
 
   const parseQrValue = useCallback((value: string): { type: 'event'; eventId: string } | { type: 'ticket'; code: string } | null => {
     const eventMatch = value.match(/^coexist:\/\/event\/(.+)$/)
