@@ -71,7 +71,6 @@ import { parseLocationPoint } from '@/lib/geo'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useImpactMetricDefs } from '@/hooks/use-impact-metric-defs'
 import { useEventTicketTypes, useMyEventTicket, useCreateTicketCheckout, useCancelPendingTicket, useTicketSalesSummary, useEventTickets } from '@/hooks/use-event-tickets'
-import { getStripe } from '@/lib/stripe'
 import { MapView } from '@/components'
 import { activityAccent, defaultAccent } from '@/lib/activity-types'
 import { adminStagger as stagger, fadeUp } from '@/lib/admin-motion'
@@ -669,7 +668,7 @@ export default function EventDetailPage() {
           <div className="space-y-2">
             <div className="flex items-center gap-2.5 px-5 py-3.5 rounded-2xl bg-warning-50 text-warning-700 text-sm font-bold border border-warning-200/40">
               <Clock size={18} />
-              {isStale ? 'Your checkout session has expired' : 'Payment pending — complete your checkout'}
+              {isStale ? 'Your checkout session has expired' : 'Payment pending - complete your checkout'}
             </div>
             <div className="flex gap-2">
               {!isStale && myTicket.stripe_checkout_session_id && (
@@ -678,7 +677,7 @@ export default function EventDetailPage() {
                   size="md"
                   fullWidth
                   onClick={async () => {
-                    // Try to resume — create a new checkout since Stripe sessions expire
+                    // Try to resume - create a new checkout since Stripe sessions expire
                     try {
                       const result = await ticketCheckout.mutateAsync({
                         eventId: event.id,
@@ -711,7 +710,7 @@ export default function EventDetailPage() {
         )
       }
 
-      // No ticket — show ticket type selector
+      // No ticket - show ticket type selector
       return (
         <div className="space-y-3">
           {(ticketTypes ?? []).map((tt) => {
@@ -784,7 +783,7 @@ export default function EventDetailPage() {
             className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
           >
             {selectedTicketType
-              ? `Get Ticket — $${((ticketTypes?.find((t) => t.id === selectedTicketType)?.price_cents ?? 0) / 100).toFixed(2)}`
+              ? `Get Ticket - $${((ticketTypes?.find((t) => t.id === selectedTicketType)?.price_cents ?? 0) / 100).toFixed(2)}`
               : 'Select a ticket'}
           </Button>
         </div>
@@ -1005,7 +1004,7 @@ export default function EventDetailPage() {
               <div className="mb-2.5 flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-warning-50 border border-warning-200/40">
                 <Clock size={14} className="text-warning-600 shrink-0" />
                 <p className="text-xs text-warning-700 flex-1">
-                  Check-in opens at {checkInOpensAt?.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) ?? '—'}
+                  Check-in opens at {checkInOpensAt?.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) ?? '-'}
                 </p>
                 <button
                   type="button"

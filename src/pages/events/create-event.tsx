@@ -34,8 +34,7 @@ import {
     HelpCircle,
     Ticket,
     Plus,
-    Trash2,
-    DollarSign,
+    Trash2
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { useQuery } from '@tanstack/react-query'
@@ -48,10 +47,7 @@ import { supabase } from '@/lib/supabase'
 import { useEventForm } from '@/hooks/use-event-form'
 import type { EventFormFields, ActivityType } from '@/hooks/use-event-form'
 import {
-    BasicsFields,
-    DateTimeFields,
-    LocationFields,
-    CoverImageFields,
+    DateTimeFields
 } from './components/event-form-fields'
 import type { Database } from '@/types/database.types'
 import {
@@ -503,7 +499,7 @@ function StepDateTime({
           {fields.date_start && fields.date_start < new Date() && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-warning-50 text-warning-700 text-caption">
               <Clock size={14} className="shrink-0" />
-              Start date is in the past — please choose a future date
+              Start date is in the past - please choose a future date
             </div>
           )}
         </div>
@@ -885,7 +881,7 @@ function StepCoverImage({
         <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-amber-50 border border-amber-200/60">
           <Image size={16} className="text-amber-500 shrink-0" />
           <p className="text-caption text-amber-700">
-            Events with cover images get more registrations — consider adding one
+            Events with cover images get more registrations - consider adding one
           </p>
         </div>
       )}
@@ -1324,8 +1320,8 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
             label="Ticketing"
             value={
               extra.is_ticketed
-                ? `${extra.ticket_tiers.length} tier${extra.ticket_tiers.length !== 1 ? 's' : ''} — ${extra.ticket_tiers.map((t) => t.price_dollars ? `$${t.price_dollars}` : 'Free').join(', ')}`
-                : 'Free — no ticket required'
+                ? `${extra.ticket_tiers.length} tier${extra.ticket_tiers.length !== 1 ? 's' : ''} - ${extra.ticket_tiers.map((t) => t.price_dollars ? `$${t.price_dollars}` : 'Free').join(', ')}`
+                : 'Free - no ticket required'
             }
           />
           <SummaryRow
@@ -1388,7 +1384,7 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
                 </div>
               ))}
               <p className="text-caption text-neutral-500 py-1">
-                You can still publish — these are optional but recommended.
+                You can still publish - these are optional but recommended.
               </p>
             </div>
           </StepCard>
@@ -1614,7 +1610,7 @@ export default function CreateEventPage() {
                 collectiveId: cId,
               })
             } catch {
-              // Non-critical — continue with other collectives
+              // Non-critical - continue with other collectives
             }
           }
         }

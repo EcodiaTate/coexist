@@ -1,21 +1,21 @@
 import {
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-  useMemo,
+    useState,
+    useRef,
+    useEffect,
+    useCallback,
+    useMemo,
 } from 'react'
 import { useParams } from 'react-router-dom'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  Search,
-  Pin,
-  X,
-  Reply,
-  Pencil,
-  ArrowDown,
-  ChevronDown,
-  Users,
+    Search,
+    Pin,
+    X,
+    Reply,
+    Pencil,
+    ArrowDown,
+    ChevronDown,
+    Users,
 } from 'lucide-react'
 import { Page } from '@/components/page'
 import { Header } from '@/components/header'
@@ -40,27 +40,27 @@ import { useKeyboardOpen } from '@/components/app-shell'
 import { useCollective } from '@/hooks/use-collective'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import {
-  useChatMessages,
-  useSendMessage,
-  useEditMessage,
-  useDeleteMessage,
-  usePinMessage,
-  usePinnedMessages,
-  useMarkChatRead,
-  useCollectiveMemberRoles,
-  useCreatePoll,
-  useCreateAnnouncement,
-  useBroadcastLog,
-  useSendBroadcastNotification,
-  type ChatMessageWithSender,
+    useChatMessages,
+    useSendMessage,
+    useEditMessage,
+    useDeleteMessage,
+    usePinMessage,
+    usePinnedMessages,
+    useMarkChatRead,
+    useCollectiveMemberRoles,
+    useCreatePoll,
+    useCreateAnnouncement,
+    useBroadcastLog,
+    useSendBroadcastNotification,
+    type ChatMessageWithSender,
 } from '@/hooks/use-chat'
 import {
-  useChannelMessages,
-  useSendChannelMessage,
-  useMarkChannelRead,
-  useMyStaffChannels,
-  useDeleteChannelMessage,
-  usePinChannelMessage,
+    useChannelMessages,
+    useSendChannelMessage,
+    useMarkChannelRead,
+    useMyStaffChannels,
+    useDeleteChannelMessage,
+    usePinChannelMessage,
 } from '@/hooks/use-staff-channels'
 import { supabase } from '@/lib/supabase'
 import { useBlockedUsers } from '@/hooks/use-user-blocks'
@@ -68,10 +68,10 @@ import { useInviteCollaborator } from '@/hooks/use-events'
 import { useTyping } from '@/hooks/use-typing'
 import { useOffline } from '@/hooks/use-offline'
 import {
-  queueOfflineAction,
-  saveChatDraft,
-  getChatDraft,
-  removeChatDraft,
+    queueOfflineAction,
+    saveChatDraft,
+    getChatDraft,
+    removeChatDraft,
 } from '@/lib/offline-sync'
 import type { Json } from '@/types/database.types'
 
@@ -712,7 +712,7 @@ export default function ChatRoomPage() {
       className="flex flex-col flex-1 min-h-0 max-h-dvh overflow-hidden relative bg-white"
       style={{ paddingTop: 'var(--safe-top)' }}
     >
-      {/* Header — shrink-0 keeps it pinned at the top of the flex column */}
+      {/* Header - shrink-0 keeps it pinned at the top of the flex column */}
       <motion.div
         className="shrink-0"
         variants={isCollective && !shouldReduceMotion ? fadeUp : undefined}

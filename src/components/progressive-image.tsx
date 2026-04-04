@@ -6,7 +6,7 @@ import { getSrcSet, getPlaceholderUrl, getTransformUrl, isSupabaseStorageUrl } f
 interface ProgressiveImageProps {
   src: string
   alt: string
-  /** Low-quality placeholder (blur-up) — auto-generated for Supabase URLs if omitted */
+  /** Low-quality placeholder (blur-up) - auto-generated for Supabase URLs if omitted */
   placeholder?: string
   aspectRatio?: string
   /** CSS sizes attribute for responsive srcset */

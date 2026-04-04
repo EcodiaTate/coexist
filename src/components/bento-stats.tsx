@@ -15,15 +15,15 @@ export interface BentoStatCardProps {
   value: number | string
   label: string
   icon: ReactNode
-  /** Watermark icon — defaults to same as `icon` but rendered large behind the value */
+  /** Watermark icon - defaults to same as `icon` but rendered large behind the value */
   watermarkIcon?: ReactNode
-  /** Legacy theme prop — accepted for compatibility, no longer affects styling */
+  /** Legacy theme prop - accepted for compatibility, no longer affects styling */
   theme?: string
   /** Whether this is a "hero" (large) card in the bento grid */
   hero?: boolean
   /** Optional unit suffix (kg, m, hrs, etc.) */
   unit?: string
-  /** Optional description text — only shown on hero cards */
+  /** Optional description text - only shown on hero cards */
   description?: string
   /** Optional comparison badge text e.g. "+12% VS LY" */
   badge?: string
@@ -114,7 +114,7 @@ export function BentoStatCard({
         {label}
       </p>
 
-      {/* Description — hero cards only */}
+      {/* Description - hero cards only */}
       {hero && description && (
         <p className="mt-3 text-[13px] leading-relaxed text-neutral-500 max-w-[280px]">
           {description}
@@ -255,7 +255,7 @@ export function BentoStatGrid({
 }
 
 /* ------------------------------------------------------------------ */
-/*  Legacy theme exports — kept for any external consumers             */
+/*  Legacy theme exports - kept for any external consumers             */
 /* ------------------------------------------------------------------ */
 
 export type BentoTheme = string

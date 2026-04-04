@@ -29,7 +29,7 @@ export interface PlaceAutocompleteProps {
   className?: string
   inputClassName?: string
   disabled?: boolean
-  /** Compact mode — no floating label */
+  /** Compact mode - no floating label */
   compact?: boolean
 }
 
@@ -91,7 +91,7 @@ function cacheResult(place: PlaceResult) {
     const updated = [place, ...filtered].slice(0, CACHE_MAX)
     localStorage.setItem(CACHE_KEY, JSON.stringify(updated))
   } catch {
-    // Storage full — silently skip
+    // Storage full - silently skip
   }
 }
 
@@ -334,7 +334,7 @@ export function PlaceAutocomplete({
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const val = e.target.value
-      // Always accept freeform text — place is null until a suggestion is selected
+      // Always accept freeform text - place is null until a suggestion is selected
       onChange(val, null)
       doSearch(val)
     },
@@ -396,7 +396,7 @@ export function PlaceAutocomplete({
       {isOffline && value.trim().length >= 2 && results.length === 0 && (
         <p className="mt-1 text-xs text-neutral-500 flex items-center gap-1.5">
           <WifiOff size={12} className="shrink-0" />
-          No internet — type your location manually
+          No internet - type your location manually
         </p>
       )}
 

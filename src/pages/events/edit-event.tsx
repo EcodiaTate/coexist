@@ -376,7 +376,7 @@ export default function EditEventPage() {
           </div>
 
           {!isTicketed && (
-            <p className="text-xs text-neutral-400">Free event — no tickets required</p>
+            <p className="text-xs text-neutral-400">Free event - no tickets required</p>
           )}
 
           {isTicketed && !isDayOfMode && (

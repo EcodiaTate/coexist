@@ -13,7 +13,7 @@ interface StatCardProps {
   label: string
   trend?: Trend
   icon?: ReactNode
-  /** Accent colour for the icon badge — defaults to primary */
+  /** Accent colour for the icon badge - defaults to primary */
   accent?: string
   className?: string
   'aria-label'?: string
@@ -120,7 +120,7 @@ export function StatCard({
           aria-label={`Trend: ${trend.direction} ${trend.value}%`}
         >
           <TrendIcon className="w-3.5 h-3.5" aria-hidden="true" />
-          <span className="tabular-nums">{trend.direction === 'flat' ? '—' : `${trend.value}%`}</span>
+          <span className="tabular-nums">{trend.direction === 'flat' ? '-' : `${trend.value}%`}</span>
         </div>
       )}
     </motion.div>

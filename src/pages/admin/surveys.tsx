@@ -38,10 +38,10 @@ import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { logAudit } from '@/lib/audit'
 import {
-  useAutoSurveyConfig,
-  useUpdateAutoSurveyConfig,
-  useImpactFormConfig,
-  useUpdateImpactFormConfig,
+    useAutoSurveyConfig,
+    useUpdateAutoSurveyConfig,
+    useImpactFormConfig,
+    useUpdateImpactFormConfig,
 } from '@/hooks/use-auto-survey'
 import { ACTIVITY_TYPE_LABELS } from '@/hooks/use-events'
 import type { Json } from '@/types/database.types'
@@ -569,7 +569,7 @@ export default function AdminSurveysPage() {
                               surveyQuestions.map((q) => {
                                 const answer = response.answers[q.id]
                                 const display = answer == null
-                                  ? '—'
+                                  ? '-'
                                   : Array.isArray(answer)
                                     ? answer.join(', ')
                                     : String(answer)
@@ -586,7 +586,7 @@ export default function AdminSurveysPage() {
                                 <div key={key} className="pt-3">
                                   <p className="text-xs font-medium text-neutral-500">{key}</p>
                                   <p className="text-sm text-neutral-900 mt-0.5">
-                                    {val == null ? '—' : String(val)}
+                                    {val == null ? '-' : String(val)}
                                   </p>
                                 </div>
                               ))
@@ -773,7 +773,7 @@ export default function AdminSurveysPage() {
                 </h3>
                 <p className="text-xs text-neutral-400">
                   Automatically assign impact logging tasks to collective leaders after events complete.
-                  Leaders receive a shared task — any leader, co-leader, or assist-leader can fill it out.
+                  Leaders receive a shared task - any leader, co-leader, or assist-leader can fill it out.
                 </p>
               </div>
 
@@ -834,7 +834,7 @@ export default function AdminSurveysPage() {
           <div className="p-4 rounded-xl bg-moss-50 border border-moss-100">
             <p className="text-xs text-moss-700">
               <strong>Impact forms vs attendee surveys:</strong> Impact forms are sent to collective <em>leaders</em> as shared tasks.
-              Attendee surveys are sent to <em>all checked-in attendees</em>. You can have both active for the same activity type —
+              Attendee surveys are sent to <em>all checked-in attendees</em>. You can have both active for the same activity type -
               leaders log impact data, attendees give feedback.
             </p>
           </div>

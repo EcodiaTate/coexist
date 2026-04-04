@@ -4,30 +4,30 @@ import { useQuery } from '@tanstack/react-query'
 import { motion, useReducedMotion } from 'framer-motion'
 import { adminVariants } from '@/lib/admin-motion'
 import {
-  Plus,
-  ClipboardCheck,
-  Calendar,
-  CalendarDays,
-  CalendarClock,
-  Repeat,
-  CircleDot,
-  Paperclip,
-  Upload,
-  FileText,
-  Info,
-  X,
-  Trash2,
-  Pencil,
-  BarChart3,
-  AlertTriangle,
-  CheckCircle,
-  Target,
-  Zap,
-  Sparkles,
-  Users,
-  User,
-  UserCheck,
-  ClipboardList,
+    Plus,
+    ClipboardCheck,
+    Calendar,
+    CalendarDays,
+    CalendarClock,
+    Repeat,
+    CircleDot,
+    Paperclip,
+    Upload,
+    FileText,
+    Info,
+    X,
+    Trash2,
+    Pencil,
+    BarChart3,
+    AlertTriangle,
+    CheckCircle,
+    Target,
+    Zap,
+    Sparkles,
+    Users,
+    User,
+    UserCheck,
+    ClipboardList,
 } from 'lucide-react'
 import { useAdminHeader } from '@/components/admin-layout'
 import { Button } from '@/components/button'
@@ -46,23 +46,23 @@ import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
 import { useFileUpload } from '@/hooks/use-file-upload'
 import {
-  useAdminTaskTemplates,
-  useAdminCreateTemplate,
-  useAdminUpdateTemplate,
-  useAdminToggleTemplate,
-  useAdminDeleteTemplate,
-  useAdminKpiDashboard,
-  formatSchedule,
-  TASK_CATEGORIES,
-  CATEGORY_COLORS,
-  type TaskTemplate,
+    useAdminTaskTemplates,
+    useAdminCreateTemplate,
+    useAdminUpdateTemplate,
+    useAdminToggleTemplate,
+    useAdminDeleteTemplate,
+    useAdminKpiDashboard,
+    formatSchedule,
+    TASK_CATEGORIES,
+    CATEGORY_COLORS,
+    type TaskTemplate,
 } from '@/hooks/use-admin-tasks'
 import {
-  useTimelineRule,
-  useUpsertTimelineRule,
-  useDeleteTimelineRule,
-  buildDisplayLabel,
-  type TimelineAnchor,
+    useTimelineRule,
+    useUpsertTimelineRule,
+    useDeleteTimelineRule,
+    buildDisplayLabel,
+    type TimelineAnchor,
 } from '@/hooks/use-timeline-rules'
 
 /* ------------------------------------------------------------------ */
@@ -502,7 +502,7 @@ function TemplateModal({
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Instructions or details for this task..."
         />
-        {/* Assignment mode — placed before scope/category so conditional fields make sense */}
+        {/* Assignment mode - placed before scope/category so conditional fields make sense */}
         <div>
           <p className="text-sm font-medium text-neutral-900 mb-2">Completion Mode</p>
           <div className="flex gap-2">
@@ -584,7 +584,7 @@ function TemplateModal({
           )}
         </div>
 
-        {/* Scope & targeting — hidden for assigned mode (task goes to a specific person) */}
+        {/* Scope & targeting - hidden for assigned mode (task goes to a specific person) */}
         {assignmentMode !== 'assigned' && (
           <Dropdown
             options={collectiveOptions}

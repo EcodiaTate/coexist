@@ -1,16 +1,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import {
-  CheckCircle,
-  Circle,
-  Clock,
-  AlertTriangle,
-  ChevronDown,
-  ChevronRight,
-  Calendar,
-  SkipForward,
-  Users,
-  ClipboardList,
+    CheckCircle,
+    Circle,
+    Clock,
+    AlertTriangle,
+    ChevronDown,
+    ChevronRight,
+    Calendar,
+    SkipForward,
+    Users,
+    ClipboardList,
 } from 'lucide-react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
@@ -28,12 +28,12 @@ import { useAuth } from '@/hooks/use-auth'
 import { useOffline } from '@/hooks/use-offline'
 import { queueOfflineAction } from '@/lib/offline-sync'
 import {
-  useMyTasks,
-  useCompleteTask,
-  useSkipTask,
-  useGenerateTaskInstances,
-  useGroupedTasks,
-  type MyTask,
+    useMyTasks,
+    useCompleteTask,
+    useSkipTask,
+    useGenerateTaskInstances,
+    useGroupedTasks,
+    type MyTask,
 } from '@/hooks/use-tasks'
 import { CATEGORY_COLORS } from '@/hooks/use-admin-tasks'
 
@@ -87,7 +87,7 @@ function TaskCard({ task }: { task: MyTask }) {
       })
     },
     onSuccess: () => {
-      toast.success(isOffline ? 'Survey & task saved offline — will sync when back online' : 'Survey submitted & task completed!')
+      toast.success(isOffline ? 'Survey & task saved offline - will sync when back online' : 'Survey submitted & task completed!')
       setShowSurvey(false)
       setExpanded(false)
       setNotes('')

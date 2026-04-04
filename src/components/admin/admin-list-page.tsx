@@ -12,7 +12,7 @@ import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 /* ------------------------------------------------------------------ */
 
 interface AdminListPageProps {
-  /** Page title — passed to useAdminHeader */
+  /** Page title - passed to useAdminHeader */
   title: string
   /** Optional subtitle beneath the title */
   subtitle?: string
@@ -28,13 +28,13 @@ interface AdminListPageProps {
   searchPlaceholder?: string
   /** Optional filter controls rendered beside the search bar */
   filters?: ReactNode
-  /** Whether data is still loading — shows skeletons when true */
+  /** Whether data is still loading - shows skeletons when true */
   isLoading?: boolean
   /** Variant passed to <Skeleton> when isLoading is true */
   skeletonVariant?: 'list-item' | 'card' | 'text'
   /** Number of skeleton items to show while loading */
   skeletonCount?: number
-  /** Page content — shown once loading is complete */
+  /** Page content - shown once loading is complete */
   children: ReactNode
 }
 

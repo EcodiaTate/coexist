@@ -445,7 +445,7 @@ function PhotoUploadSection({
       {isOffline && (
         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 text-amber-700 text-xs font-medium">
           <WifiOff size={13} />
-          Offline — photos will be queued when you regain signal.
+          Offline - photos will be queued when you regain signal.
         </div>
       )}
 
@@ -989,7 +989,7 @@ export default function LogImpactPage() {
           {anyPhotoFailed && (
             <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-red-50 text-red-600 text-sm font-medium">
               <AlertTriangle size={14} />
-              Some photos failed to upload — retry or dismiss them first.
+              Some photos failed to upload - retry or dismiss them first.
             </div>
           )}
           {anyPhotoUploading && (
@@ -1040,7 +1040,7 @@ export default function LogImpactPage() {
         {existingImpact && !isEditWindowExpired && (
           <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-amber-50 border border-amber-100 text-amber-700 text-sm font-medium">
             <Clock size={15} className="shrink-0" />
-            Editing existing data — {editHoursRemaining}h left to update.
+            Editing existing data - {editHoursRemaining}h left to update.
           </motion.div>
         )}
 
@@ -1094,7 +1094,7 @@ export default function LogImpactPage() {
 
             {checkedInCount === 0 && (
               <p className="mt-2 text-xs text-amber-600 font-medium">
-                No attendees checked in yet — check in on the Event Day page first.
+                No attendees checked in yet - check in on the Event Day page first.
               </p>
             )}
           </SectionCard>

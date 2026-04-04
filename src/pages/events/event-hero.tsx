@@ -46,7 +46,7 @@ export function EventHero({ event, past, userStatus, accent, onShare }: EventHer
               aria-hidden="true"
             />
 
-            {/* Activity tag — floating pill, top-left */}
+            {/* Activity tag - floating pill, top-left */}
             <div className="absolute top-3 left-3">
               <Badge
                 variant="activity"

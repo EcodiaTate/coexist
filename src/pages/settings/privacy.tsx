@@ -7,7 +7,6 @@ import { Header } from '@/components/header'
 import { Toggle } from '@/components/toggle'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { Skeleton } from '@/components/skeleton'
-import { Button } from '@/components/button'
 import { useAuth } from '@/hooks/use-auth'
 import { useToast } from '@/components/toast'
 import { supabase } from '@/lib/supabase'
@@ -158,7 +157,7 @@ export default function SettingsPrivacyPage() {
   const [hydrated, setHydrated] = useState(!!profileExt)
 
   useEffect(() => {
-    // Only seed from profile once — after the first load where profile arrives
+    // Only seed from profile once - after the first load where profile arrives
     if (!profileExt || hydrated) return
     const saved = profileExt.notification_preferences
     if (saved) {

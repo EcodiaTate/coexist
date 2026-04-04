@@ -24,7 +24,6 @@ import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
 import { cn } from '@/lib/cn'
 import { supabase } from '@/lib/supabase'
-import { formatEventDate } from '@/lib/date-format'
 import { useAuth } from '@/hooks/use-auth'
 import { useOffline } from '@/hooks/use-offline'
 import { queueOfflineAction } from '@/lib/offline-sync'
@@ -175,7 +174,7 @@ function TaskCard({ task }: { task: MyTask }) {
       })
     },
     onSuccess: () => {
-      toast.success(isOffline ? 'Survey & task saved offline — will sync when back online' : 'Survey submitted & task completed!')
+      toast.success(isOffline ? 'Survey & task saved offline - will sync when back online' : 'Survey submitted & task completed!')
       setShowSurvey(false)
       setExpanded(false)
       setNotes('')
@@ -759,7 +758,7 @@ function TasksTabContent({ rm }: { rm: boolean }) {
 
       {/* Impact form tasks + regular task groups */}
         <div className="space-y-6">
-          {/* Impact form tasks — shown above regular tasks with high priority */}
+          {/* Impact form tasks - shown above regular tasks with high priority */}
           {(pendingImpactForms.length > 0 || completedImpactForms.length > 0) && (
             <motion.div
               variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}

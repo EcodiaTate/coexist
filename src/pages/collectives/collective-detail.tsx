@@ -235,7 +235,7 @@ export default function CollectiveDetailPage() {
         {/* Cinematic gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/10" />
 
-        {/* Editorial hero text — bottom-aligned, large wordmark */}
+        {/* Editorial hero text - bottom-aligned, large wordmark */}
         <div className="absolute bottom-0 left-0 right-0 p-5 pb-6">
           {collective.region && (
             <motion.div
@@ -313,7 +313,7 @@ export default function CollectiveDetailPage() {
 
         {/* ── About + Leaders: asymmetric bento row ── */}
         <motion.div variants={fadeUp} className="grid grid-cols-1 gap-2.5">
-          {/* Description card — editorial quote style */}
+          {/* Description card - editorial quote style */}
           {collective.description && (
             <div className="rounded-2xl bg-white p-5 shadow-sm">
               <p className="text-[15px] leading-[1.65] text-primary-700 font-medium italic">
@@ -322,7 +322,7 @@ export default function CollectiveDetailPage() {
             </div>
           )}
 
-          {/* Leaders — inline pill row */}
+          {/* Leaders - inline pill row */}
           {leaders.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {leaders.map((leader) => (
@@ -350,7 +350,7 @@ export default function CollectiveDetailPage() {
           )}
         </motion.div>
 
-        {/* ── Impact — wordmark header + bento stats ── */}
+        {/* ── Impact - wordmark header + bento stats ── */}
         {stats && (
           <motion.section variants={fadeUp} aria-label="Collective stats">
             <h2 className="font-heading text-2xl font-extrabold text-primary-900 tracking-tight mb-3">
@@ -381,7 +381,7 @@ export default function CollectiveDetailPage() {
           </motion.section>
         )}
 
-        {/* ── Members — full-bleed avatar strip ── */}
+        {/* ── Members - full-bleed avatar strip ── */}
         <motion.section variants={fadeUp} aria-label="Members">
           <div className="flex items-end justify-between mb-3">
             <h2 className="font-heading text-2xl font-extrabold text-primary-900 tracking-tight">
@@ -414,7 +414,7 @@ export default function CollectiveDetailPage() {
           </div>
         </motion.section>
 
-        {/* ── Upcoming Events — editorial cards ── */}
+        {/* ── Upcoming Events - editorial cards ── */}
         <motion.section variants={fadeUp} aria-label="Upcoming events">
           <div className="flex items-end justify-between mb-3">
             <h2 className="font-heading text-2xl font-extrabold text-primary-900 tracking-tight">
@@ -452,7 +452,7 @@ export default function CollectiveDetailPage() {
                   }`}
                 >
                   {i === 0 ? (
-                    /* Featured first event — large card with date overlay */
+                    /* Featured first event - large card with date overlay */
                     <div className="relative">
                       <div className="aspect-[2.5/1] bg-gradient-to-br from-primary-100 to-primary-50 flex items-center justify-center">
                         <CalendarDays size={32} className="text-primary-300" />
@@ -504,7 +504,7 @@ export default function CollectiveDetailPage() {
           )}
         </motion.section>
 
-        {/* ── Past Events — compact, muted ── */}
+        {/* ── Past Events - compact, muted ── */}
         {pastEvents.length > 0 && (
           <motion.section variants={fadeUp} aria-label="Past events">
             <h3 className="text-xs font-bold uppercase tracking-widest text-neutral-400 mb-2.5">
@@ -537,7 +537,7 @@ export default function CollectiveDetailPage() {
           </motion.section>
         )}
 
-        {/* ── Location — full-bleed map card ── */}
+        {/* ── Location - full-bleed map card ── */}
         <motion.section variants={fadeUp} aria-label="Location" className="w-[calc(100%+2rem)] -mx-4 lg:w-[calc(100%+3rem)] lg:-mx-6">
           <div className="relative overflow-hidden">
             <MapView

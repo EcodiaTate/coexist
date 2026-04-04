@@ -220,7 +220,7 @@ function TaskCard({ task }: { task: MyTask }) {
       })
     },
     onSuccess: () => {
-      toast.success(isOffline ? 'Survey & task saved offline — will sync when back online' : 'Survey submitted & task completed!')
+      toast.success(isOffline ? 'Survey & task saved offline - will sync when back online' : 'Survey submitted & task completed!')
       setShowSurvey(false)
       setExpanded(false)
       setNotes('')
@@ -1065,7 +1065,7 @@ export default function LeaderDashboardPage() {
     { label: 'Invite', icon: <UserPlus size={18} />, to: `/collectives/${collectiveSlug}/manage`, iconBg: 'bg-bark-100', iconText: 'text-bark-600', badge: 0 },
   ]
 
-  // Build impact cards — only show non-zero
+  // Build impact cards - only show non-zero
   const impactCards: { value: number; label: string; unit?: string; icon: React.ReactElement; theme: import('@/components/bento-stats').BentoTheme }[] = impactStats ? [
     { value: impactStats.totalEvents, label: 'Events Held', icon: <CalendarDays size={16} />, theme: 'warning' as const },
     { value: impactStats.eventsAttended, label: 'Attendances', icon: <Users size={16} />, theme: 'primary' as const },
