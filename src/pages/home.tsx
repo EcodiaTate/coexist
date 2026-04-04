@@ -1072,6 +1072,10 @@ export default function HomePage() {
         <div className="relative">
         {/* -- Content -- */}
         <div className="relative z-10">
+          {/* TODO: REMOVE THIS TEST BANNER */}
+          <div className="bg-red-500 text-white text-center py-3 text-lg font-bold z-50 relative">
+            TEST BANNER — DELETE ME
+          </div>
           {/* 1. Parallax layered hero */}
           <HomeHero rm={rm} />
 
