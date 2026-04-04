@@ -14,17 +14,12 @@ function WebQrScanner({ onScan, onError }: { onScan: (value: string) => void; on
   const streamRef = useRef<MediaStream | null>(null)
   const rafRef = useRef<number>(0)
   const [cameraReady, setCameraReady] = useState(false)
-  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
 
     async function startCamera() {
       try {
-        if (!navigator.mediaDevices?.getUserMedia) {
-          setErrorMsg(`Camera API unavailable. native=${Capacitor.isNativePlatform()}, platform=${Capacitor.getPlatform()}, ua=${navigator.userAgent.slice(0, 80)}`)
-          return
-        }
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
         })
@@ -36,9 +31,8 @@ function WebQrScanner({ onScan, onError }: { onScan: (value: string) => void; on
           await videoRef.current.play()
           setCameraReady(true)
         }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err)
-        setErrorMsg(`${msg} | native=${Capacitor.isNativePlatform()}, platform=${Capacitor.getPlatform()}`)
+      } catch {
+        if (!cancelled) onError()
       }
     }
 
@@ -97,9 +91,9 @@ function WebQrScanner({ onScan, onError }: { onScan: (value: string) => void; on
       </div>
       {!cameraReady && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80">
-          <div className="text-center px-4">
+          <div className="text-center">
             <Camera size={32} className="text-white/40 mx-auto mb-2" />
-            <p className="text-sm text-white/60">{errorMsg ? `Error: ${errorMsg}` : 'Opening camera...'}</p>
+            <p className="text-sm text-white/60">Opening camera...</p>
           </div>
         </div>
       )}
