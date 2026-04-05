@@ -115,7 +115,7 @@ export default function SignUpPage() {
     if (authError) setError(authError.message)
   }
 
-  const motionProps = shouldReduceMotion ? {} : fadeUp
+  const childVariants = shouldReduceMotion ? undefined : fadeUp
 
   return (
     <div className="min-h-dvh flex flex-col bg-white">
@@ -131,8 +131,8 @@ export default function SignUpPage() {
         <motion.form
           onSubmit={handleSubmit}
           variants={shouldReduceMotion ? undefined : stagger}
-          initial="initial"
-          animate="animate"
+          initial="hidden"
+          animate="visible"
           className="flex-1 flex flex-col"
         >
           {/* Back button */}
@@ -141,7 +141,7 @@ export default function SignUpPage() {
           {/* Referral banner */}
           {refValid && (
             <motion.div
-              {...motionProps}
+              variants={childVariants}
               className="mx-5 mt-3 flex items-center gap-2.5 rounded-xl bg-white border border-neutral-100 px-4 py-2.5"
             >
               <UserPlus size={16} className="text-neutral-500 shrink-0" />
@@ -152,7 +152,7 @@ export default function SignUpPage() {
           )}
 
           {/* Hero */}
-          <motion.div {...motionProps} className="px-6 pt-6 pb-1">
+          <motion.div variants={childVariants} className="px-6 pt-6 pb-1">
             <h1 className="text-[28px] font-bold text-neutral-900 tracking-tight leading-tight">
               Join the movement
             </h1>
@@ -164,7 +164,7 @@ export default function SignUpPage() {
           {/* Scrollable form body */}
           <div className="flex-1 px-6 pt-5 overflow-y-auto">
             {/* Social sign-up */}
-            <motion.div {...motionProps} className="flex gap-3">
+            <motion.div variants={childVariants} className="flex gap-3">
               <button
                 type="button"
                 onClick={() => handleSocial('google')}
@@ -206,7 +206,7 @@ export default function SignUpPage() {
             </motion.div>
 
             {/* Divider */}
-            <motion.div {...motionProps} className="flex items-center gap-4 my-5">
+            <motion.div variants={childVariants} className="flex items-center gap-4 my-5">
               <div className="flex-1 h-px bg-neutral-100" />
               <span className="text-[11px] text-neutral-400 font-semibold uppercase tracking-[0.15em]">or</span>
               <div className="flex-1 h-px bg-neutral-100" />
@@ -214,7 +214,7 @@ export default function SignUpPage() {
 
             {/* Form card */}
             <motion.div
-              {...motionProps}
+              variants={childVariants}
               className="bg-white rounded-2xl border border-neutral-100 p-5 space-y-4"
             >
               <Input
@@ -283,7 +283,7 @@ export default function SignUpPage() {
             </motion.div>
 
             {/* Terms checkbox */}
-            <motion.div {...motionProps} className="mt-5 px-1">
+            <motion.div variants={childVariants} className="mt-5 px-1">
               <Checkbox
                 checked={agreedToTerms}
                 onChange={setAgreedToTerms}
@@ -317,7 +317,7 @@ export default function SignUpPage() {
 
           {/* Bottom CTA */}
           <motion.div
-            {...motionProps}
+            variants={childVariants}
             className="px-6 pt-4 pb-5"
             style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}
           >
