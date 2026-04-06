@@ -1085,6 +1085,14 @@ export default function HomePage() {
             >
               {getGreeting(firstName)}
             </motion.p>
+            <motion.p
+              initial={rm ? {} : { opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="text-sm text-neutral-500 mt-1"
+            >
+              Explore. Connect. Protect.
+            </motion.p>
           </div>
 
           {/* Error fallback */}
