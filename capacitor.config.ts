@@ -71,6 +71,8 @@ const config: CapacitorConfig = {
     // Background modes for silent push
     backgroundColor: '#f8f9f5',
     scheme: 'coexist',
+    // Required for ML Kit barcode scanner — do not restrict to app-bound domains
+    limitsNavigationsToAppBoundDomains: false,
     // Info.plist permissions are declared in Xcode:
     // - NSCameraUsageDescription
     // - NSPhotoLibraryUsageDescription

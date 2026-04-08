@@ -21,7 +21,7 @@ function WebQrScanner({ onScan, onError }: { onScan: (value: string) => void; on
     async function startCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 480 } },
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
         })
         if (cancelled) { stream.getTracks().forEach((t) => t.stop()); return }
         streamRef.current = stream
@@ -63,7 +63,7 @@ function WebQrScanner({ onScan, onError }: { onScan: (value: string) => void; on
       canvas!.height = video.videoHeight
       ctx!.drawImage(video, 0, 0, canvas!.width, canvas!.height)
       const imageData = ctx!.getImageData(0, 0, canvas!.width, canvas!.height)
-      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'dontInvert' })
+      const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' })
       if (code?.data) {
         onScan(code.data)
         return // Stop scanning once we find a code

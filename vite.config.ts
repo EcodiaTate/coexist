@@ -5,6 +5,8 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // Required for Capacitor: assets must use relative paths (file:// webview on Android/iOS)
+  base: './',
   server: {
     allowedHosts: true,
   },

@@ -32,6 +32,7 @@ import {
     Celebration,
     WhatsNext,
 } from '@/components'
+import { QrScanner } from '@/components/qr-scanner'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { cn } from '@/lib/cn'
 
@@ -232,70 +233,30 @@ export default function CheckInPage() {
 
   /* ---- QR scan start ---- */
   const isNative = Capacitor.isNativePlatform()
-
-  const handleScanStart = useCallback(async () => {
-    if (!isNative) {
-      // Web: no camera available, switch to manual entry
-      setState('manual')
-      return
-    }
-
+  const handleScanStart = useCallback(() => {
     setState('scanning')
+  }, [])
 
-    try {
-      const { BarcodeScanner, BarcodeFormat } = await import('@capacitor-mlkit/barcode-scanning')
-
-      // Check if we already have permission before prompting
-      const permStatus = await BarcodeScanner.checkPermissions()
-      let camPerm = permStatus.camera
-
-      if (camPerm !== 'granted' && camPerm !== 'limited') {
-        const result = await BarcodeScanner.requestPermissions()
-        camPerm = result.camera
-      }
-
-      if (camPerm !== 'granted' && camPerm !== 'limited') {
-        setErrorKind('generic')
-        setState('error')
-        return
-      }
-
-      // Make the WebView transparent so the native camera shows through
-      document.body.classList.add('scanner-active')
-
-      const { barcodes } = await BarcodeScanner.scan({
-        formats: [BarcodeFormat.QrCode],
-      })
-
-      document.body.classList.remove('scanner-active')
-
-      if (barcodes.length > 0 && barcodes[0].rawValue) {
-        const match = barcodes[0].rawValue.match(/^coexist:\/\/event\/(.+)$/)
-        if (match) {
-          const scannedEventId = match[1]
-          if (scannedEventId !== eventId) {
-            setErrorKind('invalid_qr')
-            setState('error')
-            return
-          }
-          if (isOffline) {
-            handleOfflineCheckIn()
-          } else {
-            await validateAndCheckIn(scannedEventId)
-          }
-        } else {
-          setErrorKind('invalid_qr')
-          setState('error')
-        }
-      } else {
-        setState('idle')
-      }
-    } catch {
-      // BarcodeScanner plugin failed - fall back to manual mode, don't auto-check-in
-      document.body.classList.remove('scanner-active')
-      setState('manual')
+  const handleQrScan = useCallback((scannedEventId: string) => {
+    if (isOffline) {
+      handleOfflineCheckIn()
+    } else {
+      validateAndCheckIn(scannedEventId)
     }
-  }, [eventId, isNative, isOffline, validateAndCheckIn, handleOfflineCheckIn])
+  }, [isOffline, handleOfflineCheckIn, validateAndCheckIn])
+
+  const handleQrInvalid = useCallback(() => {
+    setErrorKind('invalid_qr')
+    setState('error')
+  }, [])
+
+  const handleCameraError = useCallback(() => {
+    setState('manual')
+  }, [])
+
+  const handleScanCancel = useCallback(() => {
+    setState('idle')
+  }, [])
 
   /* ---- Manual code submit ---- */
   const handleManualSubmit = useCallback(() => {
@@ -541,26 +502,19 @@ export default function CheckInPage() {
             key="scanning"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center"
+            className="flex flex-col items-center py-6 px-6 text-center"
           >
-            <div className="relative w-64 h-64 rounded-2xl bg-neutral-50 shadow-sm flex items-center justify-center mb-6">
-              <Camera size={48} className="text-neutral-400" />
-              {/* Scanning animation line */}
-              <motion.div
-                className="absolute left-4 right-4 h-0.5 bg-primary-500 rounded-full"
-                animate={{ top: ['20%', '80%', '20%'] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            {eventId && (
+              <QrScanner
+                eventId={eventId}
+                isOffline={isOffline}
+                onScan={handleQrScan}
+                onInvalidQr={handleQrInvalid}
+                onCameraError={handleCameraError}
+                onCancel={handleScanCancel}
               />
-              <p className="absolute bottom-4 text-caption text-neutral-500">
-                Point camera at event QR code
-              </p>
-            </div>
-
-            <p className="text-sm text-neutral-500 mb-6">
-              Scanning...
-            </p>
-
-            <div className="w-full max-w-xs space-y-2">
+            )}
+            <div className="w-full max-w-xs space-y-2 mt-4">
               <Button variant="secondary" fullWidth onClick={() => setState('manual')}>
                 Enter Code Instead
               </Button>

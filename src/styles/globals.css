@@ -545,6 +545,7 @@ button, a, [role="button"], [role="tab"], nav {
 body.scanner-active,
 body.scanner-active #root {
   background: transparent !important;
+  background-color: transparent !important;
   --tw-bg-opacity: 0 !important;
 }
 
@@ -552,7 +553,8 @@ body.scanner-active .scanner-hide {
   display: none !important;
 }
 
-body.scanner-active {
+/* Hide all UI elements except .scanner-show overlays */
+body.scanner-active > *:not(.scanner-show) {
   visibility: hidden;
 }
 
