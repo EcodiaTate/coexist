@@ -538,7 +538,7 @@ export default function EventDetailPage() {
               fullWidth
               icon={<QrCode size={20} />}
               onClick={() => setShowCheckInSheet(true)}
-              className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
+              className={cn('bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
             >
               Check In Now
             </Button>
@@ -622,7 +622,7 @@ export default function EventDetailPage() {
             fullWidth
             loading={registerMutation.isPending}
             onClick={() => registerMutation.mutate({ eventId: event.id })}
-            className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
+            className={cn('bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
           >
             Accept & Register
           </Button>
@@ -689,7 +689,7 @@ export default function EventDetailPage() {
                     }
                   }}
                   loading={ticketCheckout.isPending}
-                  className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
+                  className={cn('bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
                 >
                   Retry Checkout
                 </Button>
@@ -780,7 +780,7 @@ export default function EventDetailPage() {
                 toast.error(err instanceof Error ? err.message : 'Failed to start checkout')
               }
             }}
-            className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
+            className={cn('bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
           >
             {selectedTicketType
               ? `Get Ticket - $${((ticketTypes?.find((t) => t.id === selectedTicketType)?.price_cents ?? 0) / 100).toFixed(2)}`
@@ -798,7 +798,7 @@ export default function EventDetailPage() {
         fullWidth
         loading={registerMutation.isPending}
         onClick={handleRegister}
-        className={cn('bg-gradient-to-r shadow-lg', accent.gradient, accent.glow)}
+        className={cn('bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
       >
         {isAtCapacity ? 'Join Waitlist' : 'Register for Event'}
       </Button>
@@ -1025,7 +1025,7 @@ export default function EventDetailPage() {
               <button
                 type="button"
                 onClick={() => navigate(`/events/${event.id}/day`)}
-                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
               >
                 <div className="w-9 h-9 rounded-lg bg-moss-50 flex items-center justify-center group-hover:scale-105 transition-transform">
                   <ClipboardList size={16} className="text-moss-600" />
@@ -1035,7 +1035,7 @@ export default function EventDetailPage() {
               <button
                 type="button"
                 onClick={() => setShowQrSheet(true)}
-                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+                className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
               >
                 <div className="w-9 h-9 rounded-lg bg-primary-50 flex items-center justify-center group-hover:scale-105 transition-transform">
                   <QrCode size={16} className="text-primary-600" />
@@ -1046,7 +1046,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={() => navigate(`/events/${event.id}/impact`)}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <div className="w-9 h-9 rounded-lg bg-sprout-50 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <Leaf size={16} className="text-sprout-600" />
@@ -1058,7 +1058,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={() => navigate(`/events/${event.id}/edit`)}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <div className="w-9 h-9 rounded-lg bg-sky-50 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <Pencil size={16} className="text-sky-600" />
@@ -1071,7 +1071,7 @@ export default function EventDetailPage() {
                   type="button"
                   onClick={handleDuplicate}
                   disabled={duplicateEventMutation.isPending}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none disabled:opacity-50"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none disabled:opacity-50"
                 >
                   <div className="w-9 h-9 rounded-lg bg-violet-50 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <Copy size={16} className="text-violet-600" />
@@ -1083,7 +1083,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={handleOpenInviteSheet}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-neutral-100 p-3 active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <div className={cn(
                     'w-9 h-9 rounded-lg flex items-center justify-center group-hover:scale-105 transition-transform',
@@ -1098,7 +1098,7 @@ export default function EventDetailPage() {
                 <button
                   type="button"
                   onClick={() => setShowCancelEventSheet(true)}
-                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-error-100/60 p-3 hover:shadow-md active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
+                  className="group flex flex-col items-center gap-1.5 rounded-xl bg-white shadow-sm border border-error-100/60 p-3 active:scale-[0.96] transition-transform duration-150 cursor-pointer select-none"
                 >
                   <div className="w-9 h-9 rounded-lg bg-error-50 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <Ban size={16} className="text-error-600" />
@@ -1254,7 +1254,7 @@ export default function EventDetailPage() {
             <Button
               variant="primary"
               size="sm"
-              className={cn('mt-3 bg-gradient-to-r shadow-md', accent.gradient, accent.glow)}
+              className={cn('mt-3 bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
               onClick={() => navigate(`/events/${event.id}/survey`)}
             >
               Give Feedback
@@ -1281,7 +1281,7 @@ export default function EventDetailPage() {
         snapPoints={[0.6]}
       >
         <div className="flex flex-col items-center py-6">
-          <div className="w-56 h-56 rounded-2xl bg-white shadow-md flex items-center justify-center p-4">
+          <div className="w-56 h-56 rounded-2xl bg-white shadow-sm flex items-center justify-center p-4">
             <QRCodeSVG
               value={`coexist://event/${event.id}`}
               size={192}
@@ -1454,7 +1454,7 @@ export default function EventDetailPage() {
             </Button>
             <Button
               variant="primary"
-              className={cn('flex-1 bg-gradient-to-r shadow-md', accent.gradient, accent.glow)}
+              className={cn('flex-1 bg-gradient-to-r shadow-sm', accent.gradient, accent.glow)}
               loading={inviteCollectiveMutation.isPending}
               onClick={handleSendInvite}
               icon={alreadyInvited ? <Bell size={15} /> : <Send size={15} />}

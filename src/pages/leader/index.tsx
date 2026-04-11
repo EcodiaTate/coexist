@@ -281,7 +281,7 @@ function TaskCard({ task }: { task: MyTask }) {
               </div>
             ) : isSkipped ? (
               <div className="w-5 h-5 rounded-full bg-primary-200 flex items-center justify-center">
-                <SkipForward size={10} className="text-primary-400" />
+                <SkipForward size={10} className="text-neutral-400" />
               </div>
             ) : isOverdue ? (
               <div className="w-5 h-5 rounded-full bg-error-100 flex items-center justify-center animate-pulse">
@@ -791,7 +791,7 @@ function UpcomingTodosWidget() {
       <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-100">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center">
-            <ListTodo size={15} className="text-primary-600" />
+            <ListTodo size={15} className="text-neutral-500" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-neutral-900">Your Todos</h3>

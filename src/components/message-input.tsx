@@ -142,9 +142,9 @@ export function MessageInput({
   )
 
   const leaderActions = [
-    { icon: BarChart3, label: 'Poll', onClick: onCreatePoll, color: 'text-white bg-primary-600 shadow-md' },
-    { icon: Megaphone, label: 'Announce', onClick: onCreateAnnouncement, color: 'text-white bg-accent-600 shadow-md' },
-    { icon: Bell, label: 'Push Alert', onClick: onBroadcastNotification, color: 'text-white bg-warning-600 shadow-md' },
+    { icon: BarChart3, label: 'Poll', onClick: onCreatePoll, color: 'text-white bg-primary-600 shadow-sm' },
+    { icon: Megaphone, label: 'Announce', onClick: onCreateAnnouncement, color: 'text-white bg-accent-600 shadow-sm' },
+    { icon: Bell, label: 'Push Alert', onClick: onBroadcastNotification, color: 'text-white bg-warning-600 shadow-sm' },
   ]
 
   return (
@@ -246,7 +246,7 @@ export function MessageInput({
           className={cn(
             'flex items-end gap-2 rounded-2xl bg-surface-3 px-3.5 py-2.5',
             'transition-[background-color,box-shadow] duration-200',
-            'focus-within:bg-white focus-within:shadow-md focus-within:ring-2 focus-within:ring-primary-400/70',
+            'focus-within:bg-white focus-within:shadow-sm focus-within:ring-2 focus-within:ring-primary-400/70',
             disabled && 'opacity-50',
           )}
         >

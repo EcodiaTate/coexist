@@ -288,7 +288,7 @@ function SortableBlock({
       style={style}
       className={cn(
         'group flex items-start gap-3 rounded-xl border border-white/60 bg-white/80 p-3.5 shadow-sm transition-shadow',
-        isDragging && 'shadow-md ring-2 ring-primary-300/50 z-10',
+        isDragging && 'shadow-sm ring-2 ring-primary-300/50 z-10',
       )}
     >
       <button

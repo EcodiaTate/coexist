@@ -98,7 +98,7 @@ function SectionHeader({
         <motion.div
           whileTap={{ scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 400, damping: 26 }}
-          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white text-[12px] font-bold shadow-sm shadow-primary-900/15 active:shadow-md"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-primary-700 text-white text-[12px] font-bold shadow-sm shadow-primary-900/15"
         >
           <Plus size={13} />
           {newLabel}
@@ -118,7 +118,7 @@ function ModuleRow({ module, onDelete, compact }: { module: DevModule; onDelete:
       whileTap={{ scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className={cn(
-        'group flex items-center gap-3 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow',
+        'group flex items-center gap-3 rounded-2xl bg-white shadow-sm transition-shadow',
         compact ? 'p-2.5 ml-6 border border-neutral-100' : 'p-3.5',
       )}
     >
@@ -164,7 +164,7 @@ function QuizRow({ quiz, onDelete }: { quiz: DevQuiz; onDelete: () => void }) {
     <motion.div
       whileTap={{ scale: 0.985 }}
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-      className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow"
+      className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm transition-shadow"
     >
       <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-sky-400 to-sky-600 shadow-sm shrink-0">
         <CircleDot size={17} className="text-white" />
@@ -228,7 +228,7 @@ function SectionCard({
       <motion.div
         whileTap={{ scale: 0.985 }}
         transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow"
+        className="group flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm transition-shadow"
       >
         <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-secondary-400 to-secondary-600 shadow-sm shrink-0">
           <Layers size={17} className="text-white" />
@@ -369,7 +369,7 @@ export default function AdminDevelopmentPage() {
         <motion.div
           whileTap={{ scale: 0.95 }}
           transition={{ type: 'spring', stiffness: 400, damping: 26 }}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/20 text-white text-[13px] font-bold hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/10 shadow-lg shadow-black/5"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white/20 text-white text-[13px] font-bold hover:bg-white/30 transition-colors backdrop-blur-sm border border-white/10 shadow-sm shadow-black/5"
         >
           <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-white/20">
             <BarChart3 size={15} />

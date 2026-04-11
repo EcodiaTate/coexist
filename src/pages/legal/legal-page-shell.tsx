@@ -88,7 +88,7 @@ export default function LegalPageShell({ slug, fallbackTitle, fallbackDescriptio
         )}
 
         {page && (
-          <p className="text-xs text-neutral-400 text-center pt-4 border-t border-primary-100">
+          <p className="text-xs text-neutral-400 text-center pt-4 border-t border-neutral-100">
             Last updated: {new Date(page.updated_at).toLocaleDateString('en-AU', {
               day: 'numeric',
               month: 'long',

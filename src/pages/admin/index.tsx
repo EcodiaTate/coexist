@@ -175,7 +175,7 @@ function TrendChart({
       initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
-      className="group relative overflow-hidden rounded-2xl bg-white border border-neutral-100 shadow-sm hover:shadow-md transition-shadow duration-300 p-5 sm:p-6"
+      className="group relative overflow-hidden rounded-2xl bg-white border border-neutral-100 shadow-sm transition-colors duration-200 p-5 sm:p-6"
     >
       {/* Subtle gradient wash top-right */}
       <div
@@ -264,7 +264,7 @@ function QuickLink({
   return (
     <Link
       to={to}
-      className="group relative flex items-center gap-3.5 rounded-2xl bg-white border border-neutral-100 shadow-sm hover:shadow-md p-4 transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
+      className="group relative flex items-center gap-3.5 rounded-2xl bg-white border border-neutral-100 shadow-sm p-4 transition-all duration-200 active:scale-[0.98]"
     >
       <span className={cn(
         'flex items-center justify-center w-10 h-10 rounded-xl text-white shrink-0',

@@ -321,7 +321,7 @@ export default function ReportsPage() {
                     'active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none',
                     reportType === rt.value
                       ? 'bg-white ring-1 ring-primary-300 shadow-sm'
-                      : 'bg-white shadow-sm hover:bg-primary-50',
+                      : 'bg-white shadow-sm hover:bg-neutral-50',
                   )}
                 >
                   <div

@@ -204,13 +204,13 @@ function TaskCard({ task }: { task: MyTask }) {
     : isSkipped
     ? 'bg-neutral-50'
     : urgency === 'overdue'
-    ? 'bg-gradient-to-br from-error-50 to-rose-100/80 shadow-sm'
+    ? 'bg-white border-l-4 border-l-error-400 shadow-sm'
     : urgency === 'today'
-    ? 'bg-gradient-to-br from-warning-50 to-amber-100/70 shadow-sm'
+    ? 'bg-white border-l-4 border-l-warning-400 shadow-sm'
     : urgency === 'tomorrow'
-    ? 'bg-gradient-to-br from-amber-50/80 to-yellow-100/50 shadow-sm'
+    ? 'bg-white border-l-4 border-l-amber-300 shadow-sm'
     : urgency === 'soon'
-    ? 'bg-gradient-to-br from-moss-50 to-emerald-100/40 shadow-sm'
+    ? 'bg-white border-l-4 border-l-moss-400 shadow-sm'
     : 'bg-white shadow-sm border border-neutral-100'
 
   return (
@@ -565,12 +565,12 @@ function ImpactFormCard({ task }: { task: ImpactFormTask }) {
   }
 
   const cardBg = urgency === 'overdue'
-    ? 'bg-gradient-to-br from-error-50 to-rose-100/80 shadow-md'
+    ? 'bg-white border-l-4 border-l-error-400 shadow-sm'
     : urgency === 'today'
-    ? 'bg-gradient-to-br from-warning-50 to-amber-100/70 shadow-sm'
+    ? 'bg-white border-l-4 border-l-warning-400 shadow-sm'
     : urgency === 'tomorrow'
-    ? 'bg-gradient-to-br from-amber-50/80 to-yellow-100/50 shadow-sm'
-    : 'bg-gradient-to-br from-moss-50 to-emerald-100/40 shadow-sm'
+    ? 'bg-white border-l-4 border-l-amber-300 shadow-sm'
+    : 'bg-white border-l-4 border-l-moss-400 shadow-sm'
 
   return (
     <motion.div
@@ -697,7 +697,7 @@ function TasksTabContent({ rm }: { rm: boolean }) {
           initial={rm ? undefined : { scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', stiffness: 350, damping: 25, mass: 0.8 }}
-          className="w-20 h-20 rounded-3xl bg-gradient-to-br from-moss-100 to-moss-200 flex items-center justify-center mb-5"
+          className="w-20 h-20 rounded-3xl bg-moss-50 flex items-center justify-center mb-5"
         >
           <Sparkles size={36} className="text-moss-500" />
         </motion.div>
@@ -717,7 +717,7 @@ function TasksTabContent({ rm }: { rm: boolean }) {
         variants={rm ? undefined : { hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] } } }}
         className="grid grid-cols-1 sm:grid-cols-2 gap-3"
       >
-        <div className="rounded-2xl bg-gradient-to-br from-moss-50 to-emerald-100/50 p-4 flex flex-col items-center justify-center text-center">
+        <div className="rounded-2xl bg-white border border-neutral-100 p-4 flex flex-col items-center justify-center text-center">
           <div className="relative w-12 h-12 mb-2">
             <svg viewBox="0 0 36 36" className="w-12 h-12 -rotate-90">
               <circle cx="18" cy="18" r="15" fill="none" stroke="currentColor" strokeWidth="3" className="text-moss-200/60" />
@@ -740,8 +740,8 @@ function TasksTabContent({ rm }: { rm: boolean }) {
         <div className={cn(
           'rounded-2xl p-4 flex flex-col items-center justify-center text-center',
           totalOverdue > 0
-            ? 'bg-gradient-to-br from-error-50 to-rose-100/70'
-            : 'bg-gradient-to-br from-primary-50 to-primary-100/40',
+            ? 'bg-white border-l-4 border-l-error-400'
+            : 'bg-white border border-neutral-100',
         )}>
           <p className={cn(
             'font-heading text-2xl font-extrabold tabular-nums leading-none',
@@ -1001,9 +1001,9 @@ function TodoItem({
         completed
           ? 'bg-neutral-50'
           : overdue
-            ? 'bg-gradient-to-r from-error-50/80 to-rose-50/60 shadow-sm'
+            ? 'bg-white border-l-4 border-l-error-400 shadow-sm'
             : today
-              ? 'bg-gradient-to-r from-warning-50/60 to-amber-50/40 shadow-sm'
+              ? 'bg-white border-l-4 border-l-warning-400 shadow-sm'
               : 'bg-white shadow-sm',
       )}
     >
@@ -1433,7 +1433,7 @@ function TodosTabContent({ rm }: { rm: boolean }) {
                   initial={rm ? undefined : { scale: 0.85, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: 'spring', stiffness: 350, damping: 25, mass: 0.8 }}
-                  className="w-20 h-20 rounded-3xl bg-gradient-to-br from-sky-100 to-sky-200 flex items-center justify-center mb-5"
+                  className="w-20 h-20 rounded-3xl bg-sky-50 flex items-center justify-center mb-5"
                 >
                   <Sparkles size={36} className="text-sky-500" />
                 </motion.div>

@@ -54,7 +54,7 @@ export function WhatsNext({
               'flex items-center gap-3 w-full p-3 rounded-xl',
               'bg-white/60 border border-neutral-100',
               'text-left transition-colors duration-150',
-              'hover:bg-primary-50',
+              'hover:bg-neutral-50',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
             )}
             whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}

@@ -277,7 +277,7 @@ function NextEventCard({
 
   if (isLoading && showLoading) {
     return (
-      <div className="rounded-2xl bg-surface-1 shadow-md p-6 animate-pulse space-y-3">
+      <div className="rounded-2xl bg-surface-1 shadow-sm p-6 animate-pulse space-y-3">
         <div className="h-3 w-28 rounded-full bg-primary-100" />
         <div className="h-6 w-3/4 rounded-xl bg-primary-50" />
         <div className="h-4 w-1/2 rounded-full bg-primary-50" />
@@ -292,7 +292,7 @@ function NextEventCard({
       <motion.div variants={rm ? undefined : fadeUp}>
         <Section title="Your Next Event">
           <div
-            className="rounded-2xl bg-gradient-to-br from-primary-600 to-moss-600 shadow-lg p-6 text-center cursor-pointer active:scale-[0.98] transition-transform duration-150"
+            className="rounded-2xl bg-gradient-to-br from-primary-600 to-moss-600 shadow-sm p-6 text-center cursor-pointer active:scale-[0.98] transition-transform duration-150"
             onClick={() => navigate('/events')}
             role="button"
             tabIndex={0}
@@ -373,7 +373,7 @@ function NextEventCard({
             size="lg"
             fullWidth
             icon={<Camera size={20} />}
-            className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-lg"
+            className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-sm"
             onClick={(e: React.MouseEvent) => {
               e.stopPropagation()
               navigate(`/chat/${nextEvent.collective_id}`)
@@ -391,7 +391,7 @@ function NextEventCard({
             size="lg"
             fullWidth
             icon={<QrCode size={20} />}
-            className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-lg"
+            className="relative bg-white text-primary-700 hover:bg-white/90 font-bold text-base shadow-sm"
             onClick={(e: React.MouseEvent) => {
               e.stopPropagation()
               setCheckIn({
@@ -424,8 +424,8 @@ function NextEventCard({
             watermark={nextEvent.activity_type}
             className={cn(
               happeningNow
-                ? 'ring-2 ring-primary-400/60 shadow-xl shadow-primary-500/30'
-                : 'shadow-md',
+                ? 'ring-2 ring-primary-400/60 shadow-sm'
+                : 'shadow-sm',
             )}
             onClick={() => navigate(`/events/${nextEvent.id}`)}
             aria-label={nextEvent.title}
@@ -445,8 +445,8 @@ function NextEventCard({
               'relative rounded-2xl overflow-hidden',
               'active:scale-[0.98] transition-transform duration-150 cursor-pointer',
               happeningNow
-                ? 'bg-gradient-to-br from-primary-500 to-primary-700 ring-2 ring-primary-400/60 shadow-xl shadow-primary-500/30'
-                : 'bg-gradient-to-br from-primary-600 to-primary-800 shadow-md',
+                ? 'bg-gradient-to-br from-primary-500 to-primary-700 ring-2 ring-primary-400/60 shadow-sm'
+                : 'bg-gradient-to-br from-primary-600 to-primary-800 shadow-sm',
             )}
             onClick={() => navigate(`/events/${nextEvent.id}`)}
             role="button"
@@ -516,7 +516,7 @@ function UpcomingEventsCarousel({ rm }: { rm: boolean }) {
                 key={event.id}
                 variant="event"
                 watermark={event.activity_type}
-                className="shrink-0 w-56 snap-start shadow-lg"
+                className="shrink-0 w-56 snap-start shadow-sm"
                 onClick={() => navigate(`/events/${event.id}`)}
                 aria-label={event.title}
               >
@@ -627,7 +627,7 @@ function NationalEventsSection({ rm }: { rm: boolean }) {
                 key={event.id}
                 variant="event"
                 watermark={event.activity_type}
-                className="shrink-0 w-64 snap-start shadow-lg"
+                className="shrink-0 w-64 snap-start shadow-sm"
                 onClick={() => navigate(`/events/${event.id}`)}
                 aria-label={event.title}
               >
@@ -1003,7 +1003,7 @@ function CtaCards({ rm }: { rm: boolean }) {
       {/* Donate */}
       <button
         onClick={() => navigate('/donate')}
-        className="w-full flex items-center gap-4 px-5 h-16 rounded-2xl bg-gradient-to-r from-primary-500 to-primary-700 shadow-md shadow-primary-500/25 active:scale-[0.98] transition-transform duration-150"
+        className="w-full flex items-center gap-4 px-5 h-16 rounded-2xl bg-gradient-to-r from-primary-500 to-primary-700 shadow-sm active:scale-[0.98] transition-transform duration-150"
       >
         <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 text-white shrink-0">
           <Heart size={18} />
@@ -1018,7 +1018,7 @@ function CtaCards({ rm }: { rm: boolean }) {
       {/* Shop */}
       <button
         onClick={() => navigate('/shop')}
-        className="w-full flex items-center gap-4 px-5 h-16 rounded-2xl bg-gradient-to-r from-bark-500 to-bark-700 shadow-md shadow-bark-500/20 active:scale-[0.98] transition-transform duration-150"
+        className="w-full flex items-center gap-4 px-5 h-16 rounded-2xl bg-gradient-to-r from-bark-500 to-bark-700 shadow-sm active:scale-[0.98] transition-transform duration-150"
       >
         <span className="flex items-center justify-center w-9 h-9 rounded-xl bg-white/20 text-white shrink-0">
           <ShoppingBag size={18} />
@@ -1122,7 +1122,7 @@ export default function HomePage() {
                 {pendingSurveys.data.map((survey) => (
                   <div
                     key={survey.event_id}
-                    className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-bark-600 to-bark-700 shadow-lg p-4 active:scale-[0.98] transition-transform duration-150 cursor-pointer"
+                    className="flex items-center gap-3 rounded-2xl bg-gradient-to-r from-bark-600 to-bark-700 shadow-sm p-4 active:scale-[0.98] transition-transform duration-150 cursor-pointer"
                     onClick={() => navigate(`/events/${survey.event_id}/survey`)}
                     role="button"
                     tabIndex={0}

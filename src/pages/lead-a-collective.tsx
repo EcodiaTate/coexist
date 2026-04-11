@@ -322,7 +322,7 @@ export default function LeadACollectivePage() {
         {/* Intro banner - rich gradient */}
         <motion.div
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl bg-gradient-to-br from-sprout-600 via-primary-700 to-secondary-800 shadow-xl shadow-primary-900/25 p-5"
+          className="rounded-2xl bg-gradient-to-br from-sprout-600 via-primary-700 to-secondary-800 shadow-sm p-5"
         >
           <div className="flex items-start gap-3">
             <span className="flex items-center justify-center w-10 h-10 rounded-xl bg-white/15 shrink-0">
@@ -341,7 +341,7 @@ export default function LeadACollectivePage() {
         {/* ---- Personal Details ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl overflow-hidden bg-white shadow-md border border-neutral-100"
+          className="rounded-2xl overflow-hidden bg-white shadow-sm border border-neutral-100"
         >
           {/* Colored section header */}
           <div className="bg-gradient-to-r from-primary-700 to-primary-800 px-5 py-3">
@@ -407,7 +407,7 @@ export default function LeadACollectivePage() {
         {/* ---- Location ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl overflow-hidden bg-white shadow-md border border-neutral-100"
+          className="rounded-2xl overflow-hidden bg-white shadow-sm border border-neutral-100"
         >
           {/* Colored section header */}
           <div className="bg-gradient-to-r from-sky-600 to-sky-700 px-5 py-3">
@@ -468,7 +468,7 @@ export default function LeadACollectivePage() {
         {/* ---- Application Questions ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl overflow-hidden bg-white shadow-md border border-neutral-100"
+          className="rounded-2xl overflow-hidden bg-white shadow-sm border border-neutral-100"
         >
           <div className="bg-gradient-to-r from-moss-600 to-moss-700 px-5 py-3">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-white/80">
@@ -530,7 +530,7 @@ export default function LeadACollectivePage() {
         {/* ---- Skills ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl overflow-hidden bg-white shadow-md border border-neutral-100"
+          className="rounded-2xl overflow-hidden bg-white shadow-sm border border-neutral-100"
         >
           <div className="bg-gradient-to-r from-sprout-600 to-sprout-700 px-5 py-3">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-white/80">
@@ -557,7 +557,7 @@ export default function LeadACollectivePage() {
         {/* ---- Resume Upload ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl overflow-hidden bg-white shadow-md border border-neutral-100"
+          className="rounded-2xl overflow-hidden bg-white shadow-sm border border-neutral-100"
         >
           <div className="bg-gradient-to-r from-bark-600 to-bark-700 px-5 py-3">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-white/80 flex items-center gap-1.5">
@@ -604,7 +604,7 @@ export default function LeadACollectivePage() {
         {/* ---- Additional Info + How Heard ---- */}
         <motion.section
           variants={shouldReduceMotion ? undefined : fadeUp}
-          className="rounded-2xl overflow-hidden bg-white shadow-md border border-neutral-100"
+          className="rounded-2xl overflow-hidden bg-white shadow-sm border border-neutral-100"
         >
           <div className="bg-gradient-to-r from-warning-500 to-bark-600 px-5 py-3">
             <h3 className="text-[11px] font-bold uppercase tracking-widest text-white/80">

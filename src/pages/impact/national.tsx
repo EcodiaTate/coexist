@@ -152,8 +152,8 @@ function useByActivity() {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[11px] uppercase tracking-[0.18em] text-primary-600 font-extrabold mb-5 flex items-center gap-2">
-      <span className="h-0.5 w-4 rounded-full bg-primary-400/50" />
+    <p className="text-[11px] uppercase tracking-[0.18em] text-neutral-400 font-extrabold mb-5 flex items-center gap-2">
+      <span className="h-0.5 w-4 rounded-full bg-neutral-300/50" />
       {children}
     </p>
   )

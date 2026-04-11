@@ -80,7 +80,7 @@ export default function OrdersPage() {
                   className={cn(
                     'w-full text-left p-4 rounded-2xl bg-white',
                     'shadow-sm border border-neutral-100',
-                    'hover:shadow-md transition-shadow duration-150 cursor-pointer',
+                    'transition-colors duration-150 cursor-pointer',
                   )}
                 >
                   <div className="flex items-center justify-between mb-2">

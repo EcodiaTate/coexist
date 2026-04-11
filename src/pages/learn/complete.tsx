@@ -50,7 +50,7 @@ export default function LearnCompletePage() {
             initial={rm ? {} : { scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.15, type: 'spring', stiffness: 250, damping: 14 }}
-            className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-moss-200 to-moss-300 shadow-lg shadow-moss-300/30 mb-8"
+            className="inline-flex items-center justify-center w-24 h-24 rounded-3xl bg-gradient-to-br from-moss-200 to-moss-300 shadow-sm mb-8"
           >
             <PartyPopper size={44} className="text-moss-700" />
           </motion.div>

@@ -46,7 +46,7 @@ function AppStoreBadge({ className, onClick }: { className?: string; onClick?: (
         'hover:bg-gray-900 active:scale-[0.97]',
         'transition-colors duration-150',
         'cursor-pointer select-none',
-        'shadow-lg shadow-black/15',
+        'shadow-sm',
         className,
       )}
       aria-label="Download on the App Store"
@@ -73,7 +73,7 @@ function PlayStoreBadge({ className, onClick }: { className?: string; onClick?: 
         'hover:bg-gray-900 active:scale-[0.97]',
         'transition-colors duration-150',
         'cursor-pointer select-none',
-        'shadow-lg shadow-black/15',
+        'shadow-sm',
         className,
       )}
       aria-label="Get it on Google Play"
@@ -420,7 +420,7 @@ export default function PublicCollectivePage() {
                   'hover:bg-white/90 active:scale-[0.97]',
                   'transition-colors duration-150',
                   'cursor-pointer select-none',
-                  'shadow-lg shadow-black/10',
+                  'shadow-sm',
                 )}
               >
                 <img src="/logos/icon.webp" alt="" className="w-5 h-5 rounded" aria-hidden="true" />
@@ -472,7 +472,7 @@ export default function PublicCollectivePage() {
       {/* Sticky bottom CTA - mobile only, visible on scroll */}
       <div className={cn(
         'sticky bottom-0 z-30 sm:hidden',
-        'bg-white border-t border-primary-100/50',
+        'bg-white border-t border-neutral-100',
         'px-4 py-3',
         'safe-bottom',
       )}>

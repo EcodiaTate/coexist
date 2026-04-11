@@ -386,7 +386,7 @@ export default function CheckInPage() {
                 transition={shouldReduceMotion ? { duration: 0 } : { delay: 0.6 }}
                 className="mt-6 w-full max-w-xs"
               >
-                <div className="rounded-xl bg-primary-50 border border-primary-200 p-4 text-center">
+                <div className="rounded-xl bg-primary-50 border border-neutral-200 p-4 text-center">
                   <p className="text-sm font-semibold text-neutral-900">
                     Quick profile setup
                   </p>

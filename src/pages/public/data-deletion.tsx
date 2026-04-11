@@ -254,7 +254,7 @@ export default function DataDeletionPage() {
             {/* ---- Processing (OAuth redirect back) ---- */}
             {step === 'processing' && (
               <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="text-center space-y-4 py-12">
-                <div className="mx-auto w-10 h-10 rounded-full border-2 border-primary-200 border-t-primary-600 animate-spin" />
+                <div className="mx-auto w-10 h-10 rounded-full border-2 border-neutral-200 border-t-primary-600 animate-spin" />
                 <p className="text-neutral-500 text-sm">Verifying your identity...</p>
               </motion.div>
             )}
@@ -276,7 +276,7 @@ export default function DataDeletionPage() {
                 <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="space-y-3">
                   <button
                     type="button"
-                    className="w-full h-12 rounded-xl border border-neutral-200 bg-white flex items-center justify-center gap-3 text-sm font-medium text-neutral-700 hover:bg-primary-50 transition-colors disabled:opacity-50"
+                    className="w-full h-12 rounded-xl border border-neutral-200 bg-white flex items-center justify-center gap-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors disabled:opacity-50"
                     onClick={() => handleOAuthLogin('google')}
                     disabled={loading}
                   >

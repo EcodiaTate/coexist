@@ -329,7 +329,7 @@ export default function CollectiveDetailPage() {
                 <Link
                   key={leader.id}
                   to={`/profile/${leader.user_id}`}
-                  className="flex items-center gap-2.5 rounded-full bg-white pl-1.5 pr-4 py-1.5 shadow-sm transition-all duration-150 hover:shadow-md active:scale-[0.97]"
+                  className="flex items-center gap-2.5 rounded-full bg-white pl-1.5 pr-4 py-1.5 shadow-sm transition-all duration-150 active:scale-[0.97]"
                 >
                   <Avatar
                     src={leader.profiles?.avatar_url}
@@ -447,7 +447,7 @@ export default function CollectiveDetailPage() {
                 <Link
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className={`group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-150 hover:shadow-md active:scale-[0.98] ${
+                  className={`group relative overflow-hidden rounded-2xl bg-white shadow-sm transition-all duration-150 active:scale-[0.98] ${
                     i === 0 ? 'p-0' : 'p-3.5'
                   }`}
                 >

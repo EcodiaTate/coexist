@@ -273,7 +273,7 @@ function DonationForm({ rm }: { rm: boolean }) {
           icon={createDonation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Heart size={18} />}
           onClick={handleDonate}
           disabled={!isValid || !user || createDonation.isPending}
-          className="shadow-lg shadow-primary-600/20 !rounded-2xl"
+          className="shadow-sm !rounded-2xl"
         >
           {createDonation.isPending
             ? 'Setting up...'

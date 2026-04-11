@@ -321,7 +321,7 @@ export function EmergencyContacts({ eventState }: EmergencyContactsProps) {
         className={cn(
           'flex items-center gap-3 px-4 py-3.5 rounded-2xl',
           'bg-gradient-to-r from-red-500 to-red-600',
-          'shadow-md shadow-red-200/40',
+          'shadow-sm',
           'active:scale-[0.98] transition-transform duration-150',
           'min-h-[56px]',
         )}

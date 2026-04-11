@@ -87,7 +87,7 @@ function SectionCard({
   return (
     <div
       className={cn(
-        'rounded-2xl bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)] border border-neutral-100/80',
+        'rounded-2xl bg-white shadow-sm border border-neutral-100/80',
         className,
       )}
     >
@@ -554,7 +554,7 @@ function EventHeroBanner({
   dateEnd?: string | null
 }) {
   return (
-    <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-emerald-600 shadow-[0_4px_24px_rgba(74,124,89,0.3)]">
+    <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-primary-700 via-primary-600 to-emerald-600 shadow-sm">
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">

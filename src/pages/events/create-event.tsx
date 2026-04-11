@@ -606,7 +606,7 @@ function StepLocation({
       </StepCard>
 
       {/* Map with draggable pin */}
-      <div className="rounded-2xl overflow-hidden shadow-md border border-neutral-100">
+      <div className="rounded-2xl overflow-hidden shadow-sm border border-neutral-100">
         <MapView
           center={
             fields.location_lat != null && fields.location_lng != null
@@ -781,7 +781,7 @@ function StepCoverImage({
   return (
     <div className="space-y-4">
       {/* Upload area */}
-      <div className="relative rounded-2xl overflow-hidden shadow-md">
+      <div className="relative rounded-2xl overflow-hidden shadow-sm">
         <button
           type="button"
           onClick={onUploadGallery}
@@ -911,7 +911,7 @@ function StepVisibility({
           'active:scale-[0.97] transition-transform duration-200',
           'border',
           fields.is_public
-            ? 'border-primary-400 shadow-md bg-gradient-to-r from-primary-50 to-sprout-50 ring-1 ring-primary-300/50'
+            ? 'border-primary-400 shadow-sm bg-gradient-to-r from-primary-50 to-sprout-50 ring-1 ring-primary-300/50'
             : 'border-neutral-100 bg-surface-0 hover:bg-surface-1',
         )}
       >
@@ -947,7 +947,7 @@ function StepVisibility({
           'active:scale-[0.97] transition-transform duration-200',
           'border',
           !fields.is_public
-            ? 'border-plum-400 shadow-md bg-gradient-to-r from-plum-50 to-primary-50 ring-1 ring-plum-300/50'
+            ? 'border-plum-400 shadow-sm bg-gradient-to-r from-plum-50 to-primary-50 ring-1 ring-plum-300/50'
             : 'border-neutral-100 bg-surface-0 hover:bg-surface-1',
         )}
       >
@@ -1229,7 +1229,7 @@ function StepReview({ fields, extra }: { fields: EventFormFields; extra: CreateE
   return (
     <div className="space-y-4">
       {/* Preview card */}
-      <div className="rounded-2xl overflow-hidden shadow-md border border-neutral-100">
+      <div className="rounded-2xl overflow-hidden shadow-sm border border-neutral-100">
         <Card variant="event">
           {fields.cover_image_url && (
             <Card.Image

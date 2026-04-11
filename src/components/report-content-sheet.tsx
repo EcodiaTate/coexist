@@ -76,7 +76,7 @@ export function ReportContentSheet({
               className={`flex w-full items-center rounded-xl px-4 py-3 min-h-11 text-sm transition-colors duration-150 cursor-pointer select-none ${
                 selectedReason === reason
                   ? 'bg-primary-100 text-neutral-900 font-medium'
-                  : 'text-neutral-500 hover:bg-primary-50'
+                  : 'text-neutral-500 hover:bg-neutral-50'
               }`}
             >
               {reason}

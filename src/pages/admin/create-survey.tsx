@@ -1566,7 +1566,7 @@ export default function CreateSurveyPage() {
       {/* Submit bar - fixed above bottom tab bar */}
       <div className="fixed bottom-[calc(56px+var(--safe-bottom)+0.75rem)] sm:bottom-4 inset-x-0 z-30 pointer-events-none px-4 sm:px-6">
         <div className="max-w-4xl mx-auto pointer-events-auto">
-          <div className="rounded-2xl bg-white/95 backdrop-blur-sm border border-neutral-100 shadow-lg px-4 py-3">
+          <div className="rounded-2xl bg-white/95 backdrop-blur-sm border border-neutral-100 shadow-sm px-4 py-3">
             {/* Status line - mobile only */}
             <div className="mb-2 sm:hidden">
               {questions.length === 0 ? (

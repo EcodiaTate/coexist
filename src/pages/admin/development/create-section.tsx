@@ -49,8 +49,8 @@ function SortableModuleItem({ item, onToggleRequired, onRemove }: { item: Module
       className={cn(
         'group flex items-center gap-3 rounded-2xl p-3.5 transition-colors duration-200',
         isDragging
-          ? 'bg-white shadow-lg ring-2 ring-neutral-300/50 z-10 scale-[1.02]'
-          : 'bg-white shadow-sm hover:shadow-md',
+          ? 'bg-white shadow-sm ring-2 ring-neutral-300/50 z-10 scale-[1.02]'
+          : 'bg-white shadow-sm',
       )}
     >
       <button type="button" className="cursor-grab touch-none text-neutral-300 hover:text-neutral-500 active:cursor-grabbing transition-colors" {...attributes} {...listeners}>

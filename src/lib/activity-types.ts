@@ -61,15 +61,15 @@ export interface ActivityAccent {
 }
 
 export const activityAccent: Record<string, ActivityAccent> = {
-  shore_cleanup:      { gradient: 'from-sky-400 to-cyan-500',         glow: 'shadow-sky-400/25',    bg: 'bg-sky-50',        text: 'text-sky-700',      border: 'border-sky-200/50' },
-  tree_planting:      { gradient: 'from-emerald-400 to-green-500',    glow: 'shadow-emerald-400/25', bg: 'bg-emerald-50',    text: 'text-emerald-700',  border: 'border-emerald-200/50' },
-  land_regeneration:  { gradient: 'from-lime-400 to-green-500',       glow: 'shadow-lime-400/25',   bg: 'bg-lime-50',       text: 'text-lime-700',     border: 'border-lime-200/50' },
-  nature_walk:        { gradient: 'from-teal-400 to-emerald-500',     glow: 'shadow-teal-400/25',   bg: 'bg-teal-50',       text: 'text-teal-700',     border: 'border-teal-200/50' },
-  camp_out:           { gradient: 'from-amber-400 to-orange-500',     glow: 'shadow-amber-400/25',  bg: 'bg-amber-50',      text: 'text-amber-700',    border: 'border-amber-200/50' },
-  retreat:            { gradient: 'from-violet-400 to-purple-500',    glow: 'shadow-violet-400/25', bg: 'bg-violet-50',     text: 'text-violet-700',   border: 'border-violet-200/50' },
-  film_screening:     { gradient: 'from-rose-400 to-pink-500',        glow: 'shadow-rose-400/25',   bg: 'bg-rose-50',       text: 'text-rose-700',     border: 'border-rose-200/50' },
-  marine_restoration: { gradient: 'from-blue-400 to-indigo-500',      glow: 'shadow-blue-400/25',   bg: 'bg-blue-50',       text: 'text-blue-700',     border: 'border-blue-200/50' },
-  workshop:           { gradient: 'from-fuchsia-400 to-purple-500',   glow: 'shadow-fuchsia-400/25', bg: 'bg-fuchsia-50',   text: 'text-fuchsia-700',  border: 'border-fuchsia-200/50' },
+  shore_cleanup:      { gradient: 'from-sky-400 to-cyan-500',         glow: '',    bg: 'bg-sky-50',        text: 'text-sky-700',      border: 'border-sky-200/50' },
+  tree_planting:      { gradient: 'from-emerald-400 to-green-500',    glow: '',    bg: 'bg-emerald-50',    text: 'text-emerald-700',  border: 'border-emerald-200/50' },
+  land_regeneration:  { gradient: 'from-lime-400 to-green-500',       glow: '',    bg: 'bg-lime-50',       text: 'text-lime-700',     border: 'border-lime-200/50' },
+  nature_walk:        { gradient: 'from-teal-400 to-emerald-500',     glow: '',    bg: 'bg-teal-50',       text: 'text-teal-700',     border: 'border-teal-200/50' },
+  camp_out:           { gradient: 'from-amber-400 to-orange-500',     glow: '',    bg: 'bg-amber-50',      text: 'text-amber-700',    border: 'border-amber-200/50' },
+  retreat:            { gradient: 'from-violet-400 to-purple-500',    glow: '',    bg: 'bg-violet-50',     text: 'text-violet-700',   border: 'border-violet-200/50' },
+  film_screening:     { gradient: 'from-rose-400 to-pink-500',        glow: '',    bg: 'bg-rose-50',       text: 'text-rose-700',     border: 'border-rose-200/50' },
+  marine_restoration: { gradient: 'from-blue-400 to-indigo-500',      glow: '',    bg: 'bg-blue-50',       text: 'text-blue-700',     border: 'border-blue-200/50' },
+  workshop:           { gradient: 'from-fuchsia-400 to-purple-500',   glow: '',    bg: 'bg-fuchsia-50',    text: 'text-fuchsia-700',  border: 'border-fuchsia-200/50' },
 }
 
 /* ------------------------------------------------------------------ */
@@ -84,7 +84,7 @@ export function formatActivityType(type: string | null | undefined): string {
 
 export const defaultAccent: ActivityAccent = {
   gradient: 'from-primary-400 to-sprout-500',
-  glow: 'shadow-primary-400/25',
+  glow: '',
   bg: 'bg-primary-50',
   text: 'text-primary-700',
   border: 'border-primary-200/50',

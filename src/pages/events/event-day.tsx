@@ -111,10 +111,10 @@ function AttendeeRow({
         'flex items-center gap-3 px-4 py-3.5 cursor-pointer rounded-xl mb-2',
         'transition-colors duration-200',
         isCheckedIn
-          ? 'bg-gradient-to-r from-success-100 to-success-50 ring-1 ring-success-300/60 shadow-sm shadow-success-200/30'
+          ? 'bg-white ring-1 ring-success-300/60 shadow-sm border-l-4 border-l-success-400'
           : isWaitlisted
-            ? 'bg-gradient-to-r from-amber-100 to-warning-50 ring-1 ring-amber-300/60 shadow-sm shadow-amber-200/30'
-            : 'bg-white ring-1 ring-primary-200/60 shadow-sm shadow-primary-200/20',
+            ? 'bg-white ring-1 ring-amber-300/60 shadow-sm border-l-4 border-l-warning-400'
+            : 'bg-white ring-1 ring-neutral-200/60 shadow-sm',
         'active:scale-[0.98] active:shadow-none',
       )}
       onClick={onViewDetails}

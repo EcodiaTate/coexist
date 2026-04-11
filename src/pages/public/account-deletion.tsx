@@ -242,7 +242,7 @@ export default function AccountDeletionPage() {
             {/* ---- Processing (OAuth redirect back) ---- */}
             {step === 'processing' && (
               <motion.div variants={shouldReduceMotion ? undefined : fadeUp} className="text-center space-y-4 py-12">
-                <div className="mx-auto w-10 h-10 rounded-full border-2 border-primary-200 border-t-primary-600 animate-spin" />
+                <div className="mx-auto w-10 h-10 rounded-full border-2 border-neutral-200 border-t-primary-600 animate-spin" />
                 <p className="text-primary-500 text-sm">Processing your deletion request...</p>
               </motion.div>
             )}

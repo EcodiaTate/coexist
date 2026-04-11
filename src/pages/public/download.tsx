@@ -55,7 +55,7 @@ function AppStoreBadge({ className, onClick }: { className?: string; onClick?: (
         'hover:bg-gray-900 active:scale-[0.97]',
         'transition-colors duration-150',
         'cursor-pointer select-none',
-        'shadow-lg shadow-black/15',
+        'shadow-sm',
         'min-h-14',
         className,
       )}
@@ -83,7 +83,7 @@ function PlayStoreBadge({ className, onClick }: { className?: string; onClick?: 
         'hover:bg-gray-900 active:scale-[0.97]',
         'transition-colors duration-150',
         'cursor-pointer select-none',
-        'shadow-lg shadow-black/15',
+        'shadow-sm',
         'min-h-14',
         className,
       )}
@@ -114,7 +114,7 @@ function FeatureCard({ icon: Icon, title, desc, accent }: {
   accent: string
 }) {
   return (
-    <div className="rounded-2xl bg-white border border-primary-100/40 p-5 shadow-sm">
+    <div className="rounded-2xl bg-white border border-neutral-100 p-5 shadow-sm">
       <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center mb-3', accent)}>
         <Icon size={20} className="text-white" />
       </div>

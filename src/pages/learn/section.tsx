@@ -183,7 +183,7 @@ export default function LearnSectionPage() {
                     whileTap={{ scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     className={cn(
-                      'flex items-center gap-3.5 p-4 rounded-2xl border shadow-sm transition-shadow hover:shadow-md',
+                      'flex items-center gap-3.5 p-4 rounded-2xl border shadow-sm transition-shadow',
                       status === 'completed'
                         ? 'bg-white border-neutral-100'
                         : 'bg-white border-neutral-100',

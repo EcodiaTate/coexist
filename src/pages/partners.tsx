@@ -176,7 +176,7 @@ export default function PartnersPage() {
                   key={partner.id}
                   variants={shouldReduceMotion ? undefined : fadeUp}
                   className={cn(
-                    'rounded-2xl overflow-hidden shadow-lg',
+                    'rounded-2xl overflow-hidden shadow-sm',
                     useRichCard
                       ? cn('bg-gradient-to-br', gradient)
                       : 'bg-surface-0 shadow-sm',

@@ -135,7 +135,7 @@ export const SearchBar = forwardRef<HTMLInputElement, SearchBarProps>(
             'bg-surface-3',
             'shadow-sm',
             'transition-shadow duration-200',
-            focused && 'shadow-md shadow-primary-400/10',
+            focused && 'shadow-sm ring-1 ring-primary-300',
           )}
           animate={{
             scale: focused ? 1.01 : 1,

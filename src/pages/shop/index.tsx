@@ -228,7 +228,7 @@ function ProductCard({ product, onClick, index }: { product: Product; onClick: (
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() }
       }}
     >
-      <div className="relative rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300">
+      <div className="relative rounded-2xl overflow-hidden shadow-sm transition-colors duration-200">
         {/* Full-bleed image with overlay */}
         <div className="relative aspect-[4/5] overflow-hidden">
           <img

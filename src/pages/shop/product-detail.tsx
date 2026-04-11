@@ -122,9 +122,9 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
             className={cn(
               'hidden lg:flex absolute left-3 top-1/2 -translate-y-1/2',
               'items-center justify-center w-10 h-10 rounded-full',
-              'bg-white shadow-md',
+              'bg-white shadow-sm',
               'cursor-pointer select-none active:scale-[0.95] transition-transform duration-150',
-              'hover:bg-white hover:shadow-lg',
+              'hover:bg-white',
               currentIndex === 0 && 'opacity-0 pointer-events-none',
             )}
             aria-label="Previous image"
@@ -137,9 +137,9 @@ function ImageGallery({ images, alt }: { images: string[]; alt: string }) {
             className={cn(
               'hidden lg:flex absolute right-3 top-1/2 -translate-y-1/2',
               'items-center justify-center w-10 h-10 rounded-full',
-              'bg-white shadow-md',
+              'bg-white shadow-sm',
               'cursor-pointer select-none active:scale-[0.95] transition-transform duration-150',
-              'hover:bg-white hover:shadow-lg',
+              'hover:bg-white',
               currentIndex === images.length - 1 && 'opacity-0 pointer-events-none',
             )}
             aria-label="Next image"
@@ -627,7 +627,7 @@ export default function ProductDetailPage() {
                           isSelected
                             ? 'bg-neutral-900 text-white shadow-sm'
                             : available
-                              ? 'bg-white border border-neutral-100 text-neutral-900 shadow-sm hover:shadow-md'
+                              ? 'bg-white border border-neutral-100 text-neutral-900 shadow-sm'
                               : 'bg-neutral-50 text-neutral-300 cursor-not-allowed line-through',
                         )}
                       >
@@ -670,7 +670,7 @@ export default function ProductDetailPage() {
                           isSelected
                             ? 'bg-neutral-900 text-white shadow-sm'
                             : available
-                              ? 'bg-white border border-neutral-100 text-neutral-900 shadow-sm hover:shadow-md'
+                              ? 'bg-white border border-neutral-100 text-neutral-900 shadow-sm'
                               : 'bg-neutral-50 text-neutral-300 cursor-not-allowed line-through',
                         )}
                       >

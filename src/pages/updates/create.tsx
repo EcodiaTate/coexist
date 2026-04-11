@@ -84,7 +84,7 @@ export default function CreateUpdatePage() {
     return (
       <div className="flex flex-col items-center justify-center py-20 px-4">
         <div className="w-16 h-16 rounded-2xl bg-primary-100 flex items-center justify-center mb-5">
-          <Shield size={28} className="text-primary-400" />
+          <Shield size={28} className="text-neutral-400" />
         </div>
         <h2 className="font-heading text-lg font-bold text-neutral-900 mb-2">Admin Only</h2>
         <p className="text-sm text-primary-500 text-center max-w-xs">
@@ -323,7 +323,7 @@ export default function CreateUpdatePage() {
                     'transition-transform duration-150 active:scale-[0.97] cursor-pointer select-none',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                     priority === 'normal'
-                      ? 'bg-primary-600 text-white shadow-md'
+                      ? 'bg-primary-600 text-white shadow-sm'
                       : 'bg-primary-50 text-primary-600 hover:bg-primary-100 ring-1 ring-primary-200/60',
                   )}
                   aria-pressed={priority === 'normal'}
@@ -339,7 +339,7 @@ export default function CreateUpdatePage() {
                     'transition-transform duration-150 active:scale-[0.97] cursor-pointer select-none',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warning-400',
                     priority === 'urgent'
-                      ? 'bg-warning-500 text-white shadow-md'
+                      ? 'bg-warning-500 text-white shadow-sm'
                       : 'bg-warning-50 text-warning-700 hover:bg-warning-100 ring-1 ring-warning-200/60',
                   )}
                   aria-pressed={priority === 'urgent'}
@@ -510,7 +510,7 @@ export default function CreateUpdatePage() {
               'flex items-center justify-center gap-2 h-12 px-6 rounded-xl',
               'text-sm font-semibold',
               'bg-white text-primary-700 ring-1 ring-primary-200',
-              'shadow-sm hover:shadow-md hover:bg-primary-50 hover:ring-primary-300',
+              'shadow-sm hover:bg-neutral-50',
               'transition-transform duration-150 active:scale-[0.97] cursor-pointer select-none',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
               'disabled:opacity-40 disabled:cursor-not-allowed',
@@ -546,7 +546,7 @@ export default function CreateUpdatePage() {
           </h3>
 
           <div
-            className="rounded-2xl shadow-md overflow-hidden bg-white"
+            className="rounded-2xl shadow-sm overflow-hidden bg-white"
           >
             {isPinned && (
               <div className="flex items-center gap-1 px-4 pt-3">

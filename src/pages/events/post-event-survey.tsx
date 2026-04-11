@@ -276,7 +276,7 @@ export default function PostEventSurveyPage() {
     >
       <div className="p-4 space-y-6 pb-6">
         {/* Event context */}
-        <div className="rounded-2xl bg-gradient-to-br from-primary-50 to-white p-4 border border-primary-100/40">
+        <div className="rounded-2xl bg-white p-4 border border-neutral-100">
           <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
             {ACTIVITY_TYPE_LABELS[event.activity_type] ?? event.activity_type}
           </p>

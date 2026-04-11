@@ -379,7 +379,7 @@ export function TemplatesTab() {
           {templates.map((tpl) => (
             <StaggeredItem
               key={tpl.id}
-              className="bg-white rounded-xl shadow-sm p-4 cursor-pointer hover:shadow-md transition-shadow group"
+              className="bg-white rounded-xl shadow-sm p-4 cursor-pointer transition-colors group"
             >
               <div className="flex items-start justify-between gap-2" onClick={() => setEditing(tpl)}>
                 <div className="flex-1 min-w-0">

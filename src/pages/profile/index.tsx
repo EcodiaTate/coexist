@@ -275,7 +275,7 @@ export default function ProfilePage() {
             size="sm"
             icon={<Pencil size={15} />}
             onClick={() => navigate('/profile/edit')}
-            className="shadow-lg bg-white !text-neutral-700 hover:!bg-neutral-50 border border-neutral-200"
+            className="shadow-sm bg-white !text-neutral-700 hover:!bg-neutral-50 border border-neutral-200"
           >
             Edit Profile
           </Button>
@@ -284,7 +284,7 @@ export default function ProfilePage() {
             size="sm"
             icon={<Ticket size={15} />}
             onClick={() => navigate('/profile/tickets')}
-            className="shadow-lg bg-white !text-neutral-700 hover:!bg-neutral-50 border border-neutral-200"
+            className="shadow-sm bg-white !text-neutral-700 hover:!bg-neutral-50 border border-neutral-200"
           >
             Tickets
           </Button>
@@ -293,7 +293,7 @@ export default function ProfilePage() {
             size="sm"
             icon={<Settings size={15} />}
             onClick={() => navigate('/settings')}
-            className="shadow-lg bg-primary-700 !text-white hover:!bg-primary-800 border-0"
+            className="shadow-sm bg-primary-700 !text-white hover:!bg-primary-800 border-0"
           >
             Settings
           </Button>
@@ -309,7 +309,7 @@ export default function ProfilePage() {
           className="mt-6 mx-auto max-w-sm"
         >
           <div className="rounded-2xl bg-white border border-neutral-100 shadow-sm px-5 py-4 text-center">
-            <p className="text-sm text-primary-700 leading-relaxed italic">
+            <p className="text-sm text-neutral-500 leading-relaxed italic">
               &ldquo;{profile.bio}&rdquo;
             </p>
           </div>
@@ -427,7 +427,7 @@ export default function ProfilePage() {
                       <p className="text-xs text-neutral-500 font-medium">{profile.emergency_contact_relationship}</p>
                     )}
                     {profile.emergency_contact_phone && (
-                      <p className="text-sm text-primary-700 flex items-center gap-1.5 mt-1 font-medium">
+                      <p className="text-sm text-neutral-700 flex items-center gap-1.5 mt-1 font-medium">
                         <Phone size={13} className="text-warning-600" />
                         {profile.emergency_contact_phone}
                       </p>

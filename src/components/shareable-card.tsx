@@ -143,7 +143,7 @@ export function ShareableCard({
           'relative w-full max-w-[340px] overflow-hidden rounded-2xl',
           'bg-gradient-to-br',
           config.gradient,
-          'p-6 text-white shadow-xl',
+          'p-6 text-white shadow-sm',
         )}
       >
         {/* Background texture */}
@@ -174,7 +174,7 @@ export function ShareableCard({
               <img
                 src={imageUrl}
                 alt={title}
-                className="h-24 w-24 rounded-xl object-cover shadow-md"
+                className="h-24 w-24 rounded-xl object-cover shadow-sm"
                 crossOrigin="anonymous"
               />
             </div>

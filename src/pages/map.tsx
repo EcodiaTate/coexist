@@ -304,7 +304,7 @@ export default function MapPage() {
             transition={{ duration: 0.4 }}
           >
             <div className="flex flex-col items-center gap-3">
-              <div className="h-10 w-10 rounded-full border-3 border-primary-200 border-t-primary-500 animate-spin" />
+              <div className="h-10 w-10 rounded-full border-3 border-neutral-200 border-t-primary-500 animate-spin" />
               <p className="text-sm font-medium text-neutral-500">Loading map...</p>
             </div>
           </motion.div>
@@ -365,7 +365,7 @@ export default function MapPage() {
                 <div className="mt-4 flex items-center gap-4">
                   <div className="flex items-center gap-1.5 text-sm">
                     <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-50">
-                      <Users size={14} className="text-primary-600" />
+                      <Users size={14} className="text-neutral-500" />
                     </div>
                     <span className="font-semibold text-secondary-700">{selected.member_count ?? 0}</span>
                     <span className="text-secondary-400">members</span>
@@ -373,7 +373,7 @@ export default function MapPage() {
                   {selected.nextEvent && (
                     <div className="flex items-center gap-1.5 text-sm">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-50">
-                        <Calendar size={14} className="text-primary-600" />
+                        <Calendar size={14} className="text-neutral-500" />
                       </div>
                       <span className="text-secondary-500">{formatNextEvent(selected.nextEvent)}</span>
                     </div>

@@ -42,28 +42,28 @@ const WHAT_LEADERS_DO = [
     title: 'Organise Events',
     description: 'Plan and run conservation activities like tree planting days, beach cleanups, and habitat restoration.',
     gradient: 'from-primary-600 via-primary-700 to-secondary-800',
-    shadow: 'shadow-xl shadow-primary-900/30',
+    shadow: 'shadow-sm',
   },
   {
     icon: <Users size={22} />,
     title: 'Build Community',
     description: 'Grow your local collective, welcome new members, and create a sense of belonging.',
     gradient: 'from-sky-500 via-sky-600 to-sky-800',
-    shadow: 'shadow-xl shadow-sky-900/30',
+    shadow: 'shadow-sm',
   },
   {
     icon: <TreePine size={22} />,
     title: 'Track Impact',
     description: 'Log conservation outcomes - trees planted, rubbish removed, species identified - to show real change.',
     gradient: 'from-moss-500 via-moss-600 to-moss-800',
-    shadow: 'shadow-xl shadow-moss-900/30',
+    shadow: 'shadow-sm',
   },
   {
     icon: <Megaphone size={22} />,
     title: 'Spread the Word',
     description: 'Share your collective\'s story, recruit new volunteers, and inspire your community.',
     gradient: 'from-warning-500 via-bark-500 to-bark-700',
-    shadow: 'shadow-xl shadow-bark-900/30',
+    shadow: 'shadow-sm',
   },
 ]
 
@@ -142,13 +142,13 @@ export default function LeadershipPage() {
         animate="visible"
         variants={shouldReduceMotion ? undefined : stagger}
       >
-        <p className="text-sm text-primary-500 text-center">
+        <p className="text-sm text-neutral-500 text-center">
           Bring together local volunteers, organise events, and drive real environmental change.
         </p>
 
         {/* What leaders do - rich colored cards */}
         <motion.section variants={shouldReduceMotion ? undefined : fadeUp}>
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-700/60 mb-3 px-1">
+          <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-3 px-1">
             What leaders do
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -178,10 +178,10 @@ export default function LeadershipPage() {
 
         {/* What we look for */}
         <motion.section variants={shouldReduceMotion ? undefined : fadeUp}>
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-700/60 mb-3 px-1">
+          <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-3 px-1">
             What we look for
           </h3>
-          <div className="rounded-2xl bg-gradient-to-br from-bark-500 via-bark-700 to-bark-800 shadow-xl shadow-bark-900/30 p-6 space-y-3.5">
+          <div className="rounded-2xl bg-gradient-to-br from-bark-500 via-bark-700 to-bark-800 shadow-sm p-6 space-y-3.5">
             {REQUIREMENTS.map((req) => (
               <div key={req} className="flex items-start gap-3">
                 <CheckCircle2 size={18} className="text-white/60 mt-0.5 shrink-0" />
@@ -193,10 +193,10 @@ export default function LeadershipPage() {
 
         {/* How to apply */}
         <motion.section variants={shouldReduceMotion ? undefined : fadeUp}>
-          <h3 className="text-[11px] font-bold uppercase tracking-widest text-primary-700/60 mb-3 px-1">
+          <h3 className="text-[11px] font-bold uppercase tracking-widest text-neutral-400 mb-3 px-1">
             How to apply
           </h3>
-          <div className="rounded-2xl bg-gradient-to-br from-sprout-500 via-sprout-600 to-primary-800 shadow-xl shadow-sprout-900/30 p-6 space-y-4">
+          <div className="rounded-2xl bg-gradient-to-br from-sprout-500 via-sprout-600 to-primary-800 shadow-sm p-6 space-y-4">
             <div className="flex items-center gap-3 mb-1">
               <Sparkles size={20} className="text-white/70" />
               <span className="font-heading text-base font-bold text-white">

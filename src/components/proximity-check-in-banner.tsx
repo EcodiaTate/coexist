@@ -33,7 +33,7 @@ export function ProximityCheckInBanner() {
           className={cn(
             'mx-4 mt-2 rounded-2xl overflow-hidden',
             'bg-gradient-to-r from-primary-600 to-primary-500',
-            'shadow-lg shadow-primary-600/20',
+            'shadow-sm',
           )}
         >
           <div className="p-4">

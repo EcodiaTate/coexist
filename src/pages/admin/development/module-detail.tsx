@@ -48,7 +48,7 @@ export default function AdminModuleDetailPage() {
   if (!module) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
-        <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg mb-4"><BookOpen size={24} strokeWidth={1.5} className="text-white" /></div>
+        <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-sm mb-4"><BookOpen size={24} strokeWidth={1.5} className="text-white" /></div>
         <p className="text-[15px] font-bold text-neutral-700">Module not found</p>
         <Button variant="ghost" size="sm" onClick={() => navigate('/admin/development')} className="mt-3">Back to Development</Button>
       </div>
@@ -62,7 +62,7 @@ export default function AdminModuleDetailPage() {
           {module.thumbnail_url ? (
             <img src={module.thumbnail_url} alt="" className="w-20 h-20 rounded-xl object-cover shrink-0" />
           ) : (
-            <div className="flex items-center justify-center w-20 h-20 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg shrink-0">
+            <div className="flex items-center justify-center w-20 h-20 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-sm shrink-0">
               <BookOpen size={28} className="text-white" />
             </div>
           )}
@@ -88,7 +88,7 @@ export default function AdminModuleDetailPage() {
         </div>
         {blocks.length === 0 ? (
           <div className="flex flex-col items-center py-12 rounded-2xl bg-neutral-50">
-            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-lg mb-3"><BookOpen size={24} strokeWidth={1.5} className="text-white" /></div>
+            <div className="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-sm mb-3"><BookOpen size={24} strokeWidth={1.5} className="text-white" /></div>
             <p className="text-[13px] font-semibold text-neutral-500">No content blocks</p>
             <Link to={`/admin/development/modules/${moduleId}/edit`} className="mt-3"><Button variant="secondary" size="sm" icon={<Pencil size={12} />}>Add Content</Button></Link>
           </div>

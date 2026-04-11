@@ -133,7 +133,7 @@ function EditCollectiveSheet({
             )}
             {uploading && (
               <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                <div className="bg-white rounded-xl px-4 py-2 shadow-lg">
+                <div className="bg-white rounded-xl px-4 py-2 shadow-sm">
                   <p className="text-xs font-semibold text-primary-700 tabular-nums">{progress ?? 0}%</p>
                 </div>
               </div>

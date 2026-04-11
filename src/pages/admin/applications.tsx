@@ -233,7 +233,7 @@ function ApplicationCard({
   return (
     <div className={cn(
       'rounded-2xl bg-white border border-neutral-100 overflow-hidden transition-shadow duration-200',
-      'shadow-sm hover:shadow-md',
+      'shadow-sm',
       statusCfg.glow,
     )}>
       {/* Colored status strip */}
@@ -377,7 +377,7 @@ function ApplicationCard({
                       className={cn(
                         'inline-flex items-center gap-2 text-[13px] font-semibold',
                         'text-neutral-600 hover:text-neutral-900 transition-colors',
-                        'bg-white rounded-lg px-3.5 py-2.5 shadow-sm hover:shadow-md',
+                        'bg-white rounded-lg px-3.5 py-2.5 shadow-sm',
                         'border border-neutral-100',
                       )}
                     >

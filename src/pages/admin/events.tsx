@@ -139,7 +139,7 @@ function EventCard({ event, index }: { event: AdminEvent; index: number }) {
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <CalendarDays size={32} className="text-primary-300" />
+              <CalendarDays size={32} className="text-neutral-300" />
             </div>
           )}
 
@@ -230,7 +230,7 @@ function CollectiveSection({ group, startIndex }: { group: CollectiveGroup; star
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center">
-            <MapPin size={14} className="text-primary-600" />
+            <MapPin size={14} className="text-neutral-500" />
           </div>
           <div>
             <h3 className="font-heading text-sm font-semibold text-neutral-900">
@@ -478,7 +478,7 @@ export default function AdminEventsPage() {
             <button
               type="button"
               onClick={() => navigate('/admin/events/create')}
-              className="w-full flex items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white shadow-lg active:scale-[0.98] transition-transform duration-150 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white shadow-sm active:scale-[0.98] transition-transform duration-150 cursor-pointer"
               style={{ backgroundColor: '#869d61' }}
             >
               <Plus size={20} strokeWidth={2.5} />

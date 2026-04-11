@@ -488,7 +488,7 @@ export default function ImpactDashboardPage() {
                   transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 22 }}
                   className="flex items-center gap-5 rounded-3xl bg-white shadow-sm border border-neutral-100 p-6"
                 >
-                  <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-warning-500 shadow-md">
+                  <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-warning-500 shadow-sm">
                     <Flame size={26} strokeWidth={2.5} className="text-white" />
                   </div>
                   <div className="flex-1">
@@ -554,7 +554,7 @@ export default function ImpactDashboardPage() {
               transition={{ delay: 0.35, type: 'spring', stiffness: 200, damping: 22 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate('/impact/national')}
-              className="w-full flex items-center gap-5 rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-xl shadow-primary-300/30 p-6 min-h-11 text-left active:scale-[0.97] transition-transform duration-150 hover:shadow-2xl cursor-pointer select-none overflow-hidden relative"
+              className="w-full flex items-center gap-5 rounded-3xl bg-gradient-to-r from-primary-600 to-primary-700 shadow-sm p-6 min-h-11 text-left active:scale-[0.97] transition-transform duration-150 cursor-pointer select-none overflow-hidden relative"
             >
               <div className="relative flex items-center justify-center w-13 h-13 rounded-2xl bg-white/20">
                 <Globe size={24} strokeWidth={2.5} className="text-white" />

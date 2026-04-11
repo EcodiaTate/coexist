@@ -103,7 +103,7 @@ function BlockedUsersSheet({ open, onClose }: { open: boolean; onClose: () => vo
         <div className="space-y-2 max-h-[50vh] overflow-y-auto">
           {blockedUsers.map((block) => (
             <div key={block.blocked_id} className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-neutral-50">
-              <span className="text-sm text-primary-700 truncate flex-1">{block.blocked_id}</span>
+              <span className="text-sm text-neutral-700 truncate flex-1">{block.blocked_id}</span>
               <button
                 type="button"
                 onClick={() => {
@@ -112,7 +112,7 @@ function BlockedUsersSheet({ open, onClose }: { open: boolean; onClose: () => vo
                     onError: () => toast.error('Failed to unblock'),
                   })
                 }}
-                className="text-xs font-medium text-primary-500 hover:text-primary-700 px-3 py-1.5 rounded-lg hover:bg-primary-100 transition-colors cursor-pointer select-none"
+                className="text-xs font-medium text-neutral-500 hover:text-neutral-700 px-3 py-1.5 rounded-lg hover:bg-neutral-100 transition-colors cursor-pointer select-none"
               >
                 Unblock
               </button>

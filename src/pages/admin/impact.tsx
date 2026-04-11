@@ -1125,7 +1125,7 @@ function DashboardTab() {
             <span className="text-xs text-neutral-500 font-medium">{sortedEvents.length} event{sortedEvents.length !== 1 ? 's' : ''}</span>
           )}
         </div>
-        <div className="rounded-2xl bg-white shadow-md border border-primary-100/50 overflow-hidden">
+        <div className="rounded-2xl bg-white shadow-sm border border-neutral-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -1202,7 +1202,7 @@ function DashboardTab() {
           </div>
 
           {!showAllEvents && sortedEvents.length > 50 && (
-            <div className="border-t border-primary-100 px-4 py-3 text-center">
+            <div className="border-t border-neutral-100 px-4 py-3 text-center">
               <button type="button" onClick={() => setShowAllEvents(true)} className="text-xs font-semibold text-primary-500 hover:text-primary-700 transition-colors cursor-pointer">
                 Show all {sortedEvents.length} events
               </button>

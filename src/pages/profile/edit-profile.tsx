@@ -298,7 +298,7 @@ export default function EditProfilePage() {
                 <button
                   onClick={handleAvatarChange}
                   disabled={cameraLoading || uploading}
-                  className="absolute -bottom-1 -right-1 flex items-center justify-center w-11 h-11 rounded-full bg-white shadow-md text-primary-600 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 disabled:opacity-50"
+                  className="absolute -bottom-1 -right-1 flex items-center justify-center w-11 h-11 rounded-full bg-white shadow-sm text-primary-600 hover:bg-primary-50 active:scale-[0.93] transition-[colors,transform] duration-150 disabled:opacity-50"
                   aria-label="Change avatar"
                 >
                   <Camera size={16} />

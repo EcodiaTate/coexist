@@ -85,11 +85,11 @@ export function ChatBubble({
               src={senderAvatar}
               alt=""
               loading="lazy"
-              className="h-10 w-10 rounded-full object-cover ring-[2.5px] ring-white shadow-md"
+              className="h-10 w-10 rounded-full object-cover ring-[2.5px] ring-white shadow-sm"
             />
           ) : (
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-xs font-extrabold text-white ring-[2.5px] ring-white shadow-md"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-neutral-200 text-xs font-extrabold text-white ring-[2.5px] ring-white shadow-sm"
               aria-hidden="true"
             >
               {senderName?.charAt(0)?.toUpperCase() ?? '?'}

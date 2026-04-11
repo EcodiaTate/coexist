@@ -120,7 +120,7 @@ export function ChatSwitcherDropdown({
                             'flex flex-1 items-center gap-3 pl-3.5 pr-1 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
                             isCurrent
                               ? 'bg-primary-50 text-primary-900 font-bold'
-                              : 'text-primary-700 hover:bg-primary-50/60',
+                              : 'text-neutral-700 hover:bg-neutral-50',
                           )}
                         >
                           <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0 relative">
@@ -182,7 +182,7 @@ export function ChatSwitcherDropdown({
                         'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
                         ch.id === currentChannelId
                           ? 'bg-primary-50 text-primary-900 font-bold'
-                          : 'text-primary-700 hover:bg-primary-50/60',
+                          : 'text-neutral-700 hover:bg-neutral-50',
                       )}
                     >
                       <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-plum-400 to-plum-600 flex items-center justify-center shrink-0">
@@ -213,7 +213,7 @@ export function ChatSwitcherDropdown({
                           'flex w-full items-center gap-3 px-3.5 py-2.5 text-left text-sm transition-[colors,transform] duration-100 active:scale-[0.98] min-h-11 cursor-pointer',
                           isCurrent
                             ? 'bg-primary-50 text-primary-900 font-bold'
-                            : 'text-primary-700 hover:bg-primary-50/60',
+                            : 'text-neutral-700 hover:bg-neutral-50',
                         )}
                       >
                         <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0">

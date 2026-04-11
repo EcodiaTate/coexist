@@ -387,7 +387,7 @@ export default function NotificationsPage() {
                   <motion.div variants={fadeUp}>
                     <div className="flex items-center gap-3 rounded-2xl bg-white p-3.5 shadow-sm border border-neutral-100">
                       <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary-50">
-                        <Bell size={16} className="text-primary-600" />
+                        <Bell size={16} className="text-neutral-400" />
                       </div>
                       <p className="text-sm font-semibold text-neutral-800">
                         {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}

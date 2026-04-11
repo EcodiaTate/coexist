@@ -151,7 +151,7 @@ function AboutSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
     <BottomSheet open={open} onClose={onClose} snapPoints={[0.7]}>
       <div className="text-center">
         <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-primary-100 flex items-center justify-center">
-          <Heart size={28} className="text-primary-400" />
+          <Heart size={28} className="text-neutral-400" />
         </div>
         <h2 className="font-heading text-xl font-bold text-neutral-900">
           {APP_NAME}
@@ -322,7 +322,7 @@ function PrivacySheet({ open, onClose }: { open: boolean; onClose: () => void })
 
       {sanitisedHtml ? (
         <div
-          className="legal-content max-w-none text-sm text-primary-700 leading-relaxed"
+          className="legal-content max-w-none text-sm text-neutral-700 leading-relaxed"
           dangerouslySetInnerHTML={{ __html: sanitisedHtml }}
         />
       ) : (

@@ -392,7 +392,7 @@ export default function ExplorePage() {
                                   'shadow-sm',
                                   'border border-neutral-100',
                                   'active:scale-[0.98] transition-all duration-150 cursor-pointer select-none',
-                                  'hover:shadow-md',
+                                  '',
                                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
                                 )}
                               >
