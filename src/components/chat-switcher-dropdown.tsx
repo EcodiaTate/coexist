@@ -123,9 +123,9 @@ export function ChatSwitcherDropdown({
                               : 'text-neutral-700 hover:bg-neutral-50',
                           )}
                         >
-                          <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0 relative">
+                          <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0 relative bg-primary-100">
                             {c.coverUrl ? (
-                              <img src={c.coverUrl} alt="" className="h-full w-full object-cover" />
+                              <img src={c.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-400 to-secondary-600">
                                 <Leaf size={14} className="text-white" />
@@ -216,9 +216,9 @@ export function ChatSwitcherDropdown({
                             : 'text-neutral-700 hover:bg-neutral-50',
                         )}
                       >
-                        <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0">
+                        <div className="h-8 w-8 rounded-lg overflow-hidden shrink-0 bg-primary-100">
                           {c.coverUrl ? (
-                            <img src={c.coverUrl} alt="" className="h-full w-full object-cover" />
+                            <img src={c.coverUrl} alt="" loading="lazy" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                           ) : (
                             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary-400 to-secondary-600">
                               <Leaf size={14} className="text-white" />

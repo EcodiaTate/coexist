@@ -228,7 +228,7 @@ export function SubscribersTab() {
             <StaggeredItem key={sub.id} className="flex items-center gap-3 p-3 rounded-xl bg-white shadow-sm">
               <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary-100 shrink-0">
                 {sub.avatar_url ? (
-                  <img src={sub.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover" />
+                  <img src={sub.avatar_url} alt="" loading="lazy" className="w-9 h-9 rounded-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                 ) : (
                   <Users size={16} className="text-neutral-400" />
                 )}

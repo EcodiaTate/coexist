@@ -356,6 +356,7 @@ export default function LeadACollectivePage() {
               label="First Name"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
+              autoComplete="given-name"
               required
               inputClassName="bg-neutral-50 border border-neutral-200"
             />
@@ -363,6 +364,7 @@ export default function LeadACollectivePage() {
               label="Last Name"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              autoComplete="family-name"
               required
               inputClassName="bg-neutral-50 border border-neutral-200"
             />
@@ -373,6 +375,7 @@ export default function LeadACollectivePage() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
             required
             inputClassName="bg-neutral-50 border border-neutral-200"
           />
@@ -390,6 +393,7 @@ export default function LeadACollectivePage() {
             type="date"
             value={dob}
             onChange={(e) => setDob(e.target.value)}
+            autoComplete="bday"
             helperText="dd/mm/yyyy"
             inputClassName="bg-neutral-50 border border-neutral-200"
           />
@@ -399,6 +403,7 @@ export default function LeadACollectivePage() {
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            autoComplete="tel"
             inputClassName="bg-neutral-50 border border-neutral-200"
           />
           </div>
@@ -426,6 +431,7 @@ export default function LeadACollectivePage() {
             label="Address Line 1"
             value={addressLine1}
             onChange={(e) => setAddressLine1(e.target.value)}
+            autoComplete="address-line1"
             required
             inputClassName="border border-neutral-200"
           />
@@ -434,6 +440,7 @@ export default function LeadACollectivePage() {
             label="Address Line 2"
             value={addressLine2}
             onChange={(e) => setAddressLine2(e.target.value)}
+            autoComplete="address-line2"
             inputClassName="border border-neutral-200"
           />
 
@@ -442,6 +449,7 @@ export default function LeadACollectivePage() {
               label="Suburb"
               value={suburb}
               onChange={(e) => setSuburb(e.target.value)}
+              autoComplete="address-level2"
               required
               inputClassName="border border-neutral-200"
             />
@@ -459,6 +467,7 @@ export default function LeadACollectivePage() {
             label="Postcode"
             value={postcode}
             onChange={(e) => setPostcode(e.target.value)}
+            autoComplete="postal-code"
             required
             inputClassName="border border-neutral-200"
           />

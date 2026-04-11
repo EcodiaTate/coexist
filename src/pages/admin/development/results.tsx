@@ -100,7 +100,7 @@ export default function AdminDevelopmentResultsPage() {
               <div className="space-y-2">{learnerStats.map((l) => (
                 <div key={l.userId} className="flex items-center gap-3 p-3.5 rounded-2xl bg-white shadow-sm transition-shadow">
                   {l.avatarUrl ? (
-                    <img src={l.avatarUrl} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-sm" />
+                    <img src={l.avatarUrl} alt="" loading="lazy" className="w-10 h-10 rounded-xl object-cover shrink-0 shadow-sm" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   ) : (
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center text-[11px] font-bold text-white shrink-0 shadow-sm">{l.displayName.slice(0, 2).toUpperCase()}</div>
                   )}

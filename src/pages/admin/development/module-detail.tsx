@@ -60,7 +60,7 @@ export default function AdminModuleDetailPage() {
       <motion.div variants={fadeUp} className="rounded-2xl bg-white shadow-sm p-5 sm:p-6">
         <div className="flex items-start gap-4">
           {module.thumbnail_url ? (
-            <img src={module.thumbnail_url} alt="" className="w-20 h-20 rounded-xl object-cover shrink-0" />
+            <img src={module.thumbnail_url} alt="" loading="lazy" className="w-20 h-20 rounded-xl object-cover shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
           ) : (
             <div className="flex items-center justify-center w-20 h-20 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-sm shrink-0">
               <BookOpen size={28} className="text-white" />

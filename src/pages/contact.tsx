@@ -209,6 +209,7 @@ export default function ContactPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name"
+            autoComplete="name"
             required
           />
 
@@ -218,6 +219,7 @@ export default function ContactPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
+            autoComplete="email"
             required
           />
 

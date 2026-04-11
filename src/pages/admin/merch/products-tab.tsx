@@ -371,7 +371,7 @@ function ProductFormSheet({
                 }}
                 onDragEnd={() => setDragIdx(null)}
               >
-                <img src={url} alt={`Product image ${idx + 1}`} className="w-full h-full object-cover" />
+                <img src={url} alt={`Product image ${idx + 1}`} loading="lazy" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                 {idx === 0 && (
                   <span className="absolute top-0.5 left-0.5 px-1 py-px bg-primary-500/90 text-white text-[8px] font-bold rounded">
                     Main

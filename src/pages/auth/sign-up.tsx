@@ -275,6 +275,7 @@ export default function SignUpPage() {
                 label="Date of Birth"
                 value={dateOfBirth}
                 onChange={(e) => setDateOfBirth(e.target.value)}
+                autoComplete="bday"
                 max={maxDob}
                 required
                 helperText="You must be at least 18 years old"

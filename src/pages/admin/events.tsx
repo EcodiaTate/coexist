@@ -277,7 +277,7 @@ function HottestEventSpotlight({ event }: { event: AdminEvent }) {
         {/* Image */}
         <div className="relative w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-neutral-200">
           {event.cover_image_url ? (
-            <img src={event.cover_image_url} alt={event.title} className="w-full h-full object-cover" />
+            <img src={event.cover_image_url} alt={event.title} loading="lazy" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <CalendarDays size={28} className="text-neutral-500" />

@@ -138,7 +138,7 @@ export default function ResetPasswordPage() {
                   size="lg"
                   fullWidth
                   loading={isSubmitting}
-                  disabled={!password || !confirm}
+                  disabled={!password || !confirm || password.length < 8}
                 >
                   Update Password
                 </Button>

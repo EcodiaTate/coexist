@@ -124,7 +124,7 @@ function EditCollectiveSheet({
           </label>
           <div className="mt-1.5 relative rounded-xl overflow-hidden bg-neutral-100" style={{ aspectRatio: '16/9' }}>
             {coverPreview ? (
-              <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+              <img src={coverPreview} alt="Cover" loading="lazy" className="w-full h-full object-cover" />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-neutral-400 gap-1.5">
                 <ImagePlus size={28} />
@@ -474,7 +474,7 @@ export default function CollectiveManagePage() {
           <div className="flex items-center gap-3">
             <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl bg-primary-100">
               {collective.cover_image_url ? (
-                <img src={collective.cover_image_url} alt={collective.name} className="h-full w-full object-cover" />
+                <img src={collective.cover_image_url} alt={collective.name} loading="lazy" className="h-full w-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
                   <Users size={24} className="text-primary-400" />

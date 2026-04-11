@@ -1075,7 +1075,7 @@ function SettingsTab({ collectiveId }: { collectiveId: string }) {
         <div className="p-5">
           <div className="relative rounded-xl overflow-hidden bg-neutral-50" style={{ aspectRatio: '16/9' }}>
             {coverPreview ? (
-              <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+              <img src={coverPreview} alt="Cover" loading="lazy" className="w-full h-full object-cover" />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-neutral-300 gap-2">
                 <ImagePlus size={32} />

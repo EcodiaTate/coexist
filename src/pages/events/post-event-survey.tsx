@@ -18,6 +18,7 @@ import {
     EmptyState,
     WhatsNext,
 } from '@/components'
+import { useToast } from '@/components/toast'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { supabase } from '@/lib/supabase'
 import type { Json } from '@/types/database.types'
@@ -146,11 +147,17 @@ export default function PostEventSurveyPage() {
     return val !== undefined && val !== null && val !== ''
   })
 
+  const { toast } = useToast()
+
   const handleSubmit = useCallback(async () => {
     if (!eventId || !surveyId || !canSubmit || !questions.length) return
-    await submitMutation.mutateAsync({ surveyId, eventId, answers: answers as Json })
-    setSubmitted(true)
-  }, [eventId, surveyId, canSubmit, answers, submitMutation, questions])
+    try {
+      await submitMutation.mutateAsync({ surveyId, eventId, answers: answers as Json })
+      setSubmitted(true)
+    } catch {
+      toast.error('Failed to submit survey. Please try again.')
+    }
+  }, [eventId, surveyId, canSubmit, answers, submitMutation, questions, toast])
 
   // 7-day survey window
   const surveyWindowExpired = useMemo(() => {

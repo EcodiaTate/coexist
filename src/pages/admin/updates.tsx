@@ -389,7 +389,7 @@ function ComposeModal({
             <div className="grid grid-cols-4 gap-2 mb-3">
               {existingImages.map((src, i) => (
                 <div key={`existing-${i}`} className="relative aspect-square rounded-xl overflow-hidden group ring-1 ring-neutral-100">
-                  <img src={src} alt="" className="w-full h-full object-cover" />
+                  <img src={src} alt="" loading="lazy" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   <button
                     type="button"
                     onClick={() => removeExisting(i)}
@@ -401,7 +401,7 @@ function ComposeModal({
               ))}
               {previews.map((src, i) => (
                 <div key={`new-${i}`} className="relative aspect-square rounded-xl overflow-hidden group ring-1 ring-neutral-100">
-                  <img src={src} alt="" className="w-full h-full object-cover" />
+                  <img src={src} alt="" loading="lazy" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => removeNew(i)}
@@ -563,7 +563,7 @@ function ComposeModal({
                         )}
                       >
                         {c.cover_image_url ? (
-                          <img src={c.cover_image_url} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                          <img src={c.cover_image_url} alt="" loading="lazy" className="w-8 h-8 rounded-lg object-cover shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                         ) : (
                           <div className="w-8 h-8 rounded-lg bg-primary-100 flex items-center justify-center shrink-0">
                             <Users size={14} className="text-neutral-400" />

@@ -1239,7 +1239,7 @@ export default function EventDetailPage() {
                   className="flex items-center gap-3 min-h-11 hover:opacity-80 active:scale-[0.98] transition-[opacity,transform] duration-150"
                 >
                   {collab.cover_image_url ? (
-                    <img src={collab.cover_image_url} alt={collab.name} className="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm" />
+                    <img src={collab.cover_image_url} alt={collab.name} loading="lazy" className="w-9 h-9 rounded-lg object-cover shrink-0 shadow-sm" onError={(e) => { e.currentTarget.style.display = 'none' }} />
                   ) : (
                     <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0 shadow-sm', accent.bg)}>
                       <Users size={15} className={accent.text} />
@@ -1431,7 +1431,7 @@ export default function EventDetailPage() {
           <div className="rounded-xl p-3.5 border border-neutral-100">
             <div className="flex items-center gap-3">
               {event?.cover_image_url ? (
-                <img src={event.cover_image_url} alt={event.title} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                <img src={event.cover_image_url} alt={event.title} loading="lazy" className="w-12 h-12 rounded-lg object-cover shrink-0" onError={(e) => { e.currentTarget.style.display = 'none' }} />
               ) : (
                 <div className={cn('w-12 h-12 rounded-lg flex items-center justify-center shrink-0', accent.bg)}>
                   <Calendar size={18} className={accent.text} />

@@ -119,30 +119,32 @@ function ChangePasswordSheet({ open, onClose }: { open: boolean; onClose: () => 
 
   return (
     <BottomSheet open={open} onClose={onClose} snapPoints={[0.5]}>
-      <h2 className="font-heading text-lg font-semibold text-neutral-900 mb-4">
-        Change Password
-      </h2>
-      <div className="space-y-3">
-        <Input
-          type="password"
-          label="New Password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          autoComplete="new-password"
-          error={error && !confirmPassword ? error : undefined}
-        />
-        <Input
-          type="password"
-          label="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          autoComplete="new-password"
-          error={error && confirmPassword ? error : undefined}
-        />
-        <Button variant="primary" fullWidth loading={loading} onClick={handleSubmit}>
-          Update Password
-        </Button>
-      </div>
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
+        <h2 className="font-heading text-lg font-semibold text-neutral-900 mb-4">
+          Change Password
+        </h2>
+        <div className="space-y-3">
+          <Input
+            type="password"
+            label="New Password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            autoComplete="new-password"
+            error={error && !confirmPassword ? error : undefined}
+          />
+          <Input
+            type="password"
+            label="Confirm Password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            autoComplete="new-password"
+            error={error && confirmPassword ? error : undefined}
+          />
+          <Button type="submit" variant="primary" fullWidth loading={loading}>
+            Update Password
+          </Button>
+        </div>
+      </form>
     </BottomSheet>
   )
 }
@@ -167,7 +169,7 @@ function ChangeEmailSheet({ open, onClose }: { open: boolean; onClose: () => voi
 
   const handleSubmit = async () => {
     setError('')
-    if (!newEmail.includes('@')) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
       setError('Please enter a valid email')
       return
     }
@@ -185,25 +187,27 @@ function ChangeEmailSheet({ open, onClose }: { open: boolean; onClose: () => voi
 
   return (
     <BottomSheet open={open} onClose={onClose} snapPoints={[0.4]}>
-      <h2 className="font-heading text-lg font-semibold text-neutral-900 mb-2">
-        Change Email
-      </h2>
-      <p className="text-sm text-neutral-500 mb-4">
-        Current: {user?.email}
-      </p>
-      <div className="space-y-3">
-        <Input
-          type="email"
-          label="New Email"
-          value={newEmail}
-          onChange={(e) => setNewEmail(e.target.value)}
-          autoComplete="email"
-          error={error || undefined}
-        />
-        <Button variant="primary" fullWidth loading={loading} onClick={handleSubmit}>
-          Send Verification
-        </Button>
-      </div>
+      <form onSubmit={(e) => { e.preventDefault(); handleSubmit() }}>
+        <h2 className="font-heading text-lg font-semibold text-neutral-900 mb-2">
+          Change Email
+        </h2>
+        <p className="text-sm text-neutral-500 mb-4">
+          Current: {user?.email}
+        </p>
+        <div className="space-y-3">
+          <Input
+            type="email"
+            label="New Email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            autoComplete="email"
+            error={error || undefined}
+          />
+          <Button type="submit" variant="primary" fullWidth loading={loading}>
+            Send Verification
+          </Button>
+        </div>
+      </form>
     </BottomSheet>
   )
 }
