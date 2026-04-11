@@ -20,6 +20,7 @@ import { useAdminHeader } from '@/components/admin-layout'
 import { Dropdown } from '@/components/dropdown'
 import { BentoStatCard, BentoStatGrid, type BentoTheme } from '@/components/bento-stats'
 import { WaveTransition } from '@/components/wave-transition'
+import { EmptyState } from '@/components/empty-state'
 import { cn } from '@/lib/cn'
 import { Link } from 'react-router-dom'
 import { useParallaxLayers } from '@/hooks/use-parallax-scroll'
@@ -287,7 +288,7 @@ function QuickLink({
 
 export default function AdminDashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>('all')
-  const { data, isLoading } = useAdminOverview(dateRange)
+  const { data, isLoading, isError } = useAdminOverview(dateRange)
   const showLoading = useDelayedLoading(isLoading)
   const { data: trends } = useTrendData()
 
@@ -339,6 +340,17 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <EmptyState
+        illustration="error"
+        title="Failed to load dashboard"
+        description="Something went wrong loading admin data. Check your connection and try refreshing."
+        action={{ label: 'Retry', onClick: () => window.location.reload() }}
+      />
     )
   }
 

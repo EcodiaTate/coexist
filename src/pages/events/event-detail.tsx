@@ -299,7 +299,7 @@ export default function EventDetailPage() {
   const { toast } = useToast()
   const shouldReduceMotion = useReducedMotion()
 
-  const { data: event, isLoading } = useEventDetail(id)
+  const { data: event, isLoading, isError } = useEventDetail(id)
   const showLoading = useDelayedLoading(isLoading)
   const { metricLabels, metricByKey } = useImpactMetricDefs()
   const collectiveRole = useCollectiveRole(event?.collective_id)
@@ -475,6 +475,18 @@ export default function EventDetailPage() {
 
   // CRITICAL: Don't show "not found" while still loading
   if (showLoading || isLoading) return <EventDetailSkeleton />
+  if (isError) {
+    return (
+      <Page swipeBack header={<Header title="Event" back />}>
+        <EmptyState
+          illustration="error"
+          title="Something went wrong"
+          description="We couldn't load this event. Check your connection and try again."
+          action={{ label: 'Retry', onClick: () => window.location.reload() }}
+        />
+      </Page>
+    )
+  }
   if (!event) {
     return (
       <Page swipeBack header={<Header title="Event" back />}>

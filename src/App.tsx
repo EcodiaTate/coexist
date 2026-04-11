@@ -357,15 +357,15 @@ function App() {
         <Route element={<RequireAuth><AppShell><KeepAlive /></AppShell></RequireAuth>}>
 
           {/* ---- Member pages (with PageTransition) ---- */}
-          <Route path="/" element={<PageTransition><HomePage /></PageTransition>} />
+          <Route path="/" element={<ErrorBoundary><PageTransition><HomePage /></PageTransition></ErrorBoundary>} />
           <Route path="/explore" element={<PageTransition><ExplorePage /></PageTransition>} />
           <Route path="/events" element={<Navigate to="/explore" replace />} />
           <Route path="/events/create" element={<PageTransition><CreateEventPage /></PageTransition>} />
-          <Route path="/events/:id" element={<PageTransition><EventDetailPage /></PageTransition>} />
+          <Route path="/events/:id" element={<ErrorBoundary><PageTransition><EventDetailPage /></PageTransition></ErrorBoundary>} />
           <Route path="/events/:id/check-in" element={<PageTransition><CheckInPage /></PageTransition>} />
           <Route path="/events/:id/profile-survey" element={<PageTransition><ProfileSurveyPage /></PageTransition>} />
           <Route path="/events/:id/day" element={<PageTransition><EventDayPage /></PageTransition>} />
-          <Route path="/events/:id/impact" element={<PageTransition><LogImpactPage /></PageTransition>} />
+          <Route path="/events/:id/impact" element={<ErrorBoundary><PageTransition><LogImpactPage /></PageTransition></ErrorBoundary>} />
           <Route path="/events/:id/survey" element={<PageTransition><PostEventSurveyPage /></PageTransition>} />
           <Route path="/events/:id/edit" element={<PageTransition><EditEventPage /></PageTransition>} />
           <Route path="/events/:id/ticket-confirmation" element={<PageTransition><TicketConfirmationPage /></PageTransition>} />
@@ -374,8 +374,8 @@ function App() {
           <Route path="/collectives/:slug/manage" element={<PageTransition><CollectiveManagePage /></PageTransition>} />
           <Route path="/tasks" element={<PageTransition><TasksPage /></PageTransition>} />
           <Route path="/chat" element={<PageTransition><ChatListPage /></PageTransition>} />
-          <Route path="/chat/channel/:channelId" element={<PageTransition><ChatRoomPage /></PageTransition>} />
-          <Route path="/chat/:collectiveId" element={<PageTransition><ChatRoomPage /></PageTransition>} />
+          <Route path="/chat/channel/:channelId" element={<ErrorBoundary><PageTransition><ChatRoomPage /></PageTransition></ErrorBoundary>} />
+          <Route path="/chat/:collectiveId" element={<ErrorBoundary><PageTransition><ChatRoomPage /></PageTransition></ErrorBoundary>} />
           <Route path="/profile" element={<PageTransition><ProfilePage /></PageTransition>} />
           <Route path="/profile/edit" element={<PageTransition><EditProfilePage /></PageTransition>} />
           <Route path="/profile/tickets" element={<PageTransition><MyTicketsPage /></PageTransition>} />
@@ -414,7 +414,7 @@ function App() {
           <Route path="/learn/complete" element={<PageTransition><LearnCompletePage /></PageTransition>} />
 
           {/* ---- Leader Dashboard & sub-pages ---- */}
-          <Route path="/leader" element={<RequireLeaderAccess><LeaderLayoutRoute /></RequireLeaderAccess>}>
+          <Route path="/leader" element={<RequireLeaderAccess><ErrorBoundary><LeaderLayoutRoute /></ErrorBoundary></RequireLeaderAccess>}>
             <Route index element={<LeaderDashboardPage />} />
             <Route path="events" element={<LeaderEventsPage />} />
             <Route path="tasks" element={<LeaderTasksPage />} />
@@ -422,7 +422,7 @@ function App() {
           </Route>
 
           {/* ---- Admin routes (staff+) ---- */}
-          <Route path="/admin" element={<RequireRole minRole="national_leader"><AdminLayoutRoute /></RequireRole>}>
+          <Route path="/admin" element={<RequireRole minRole="national_leader"><ErrorBoundary><AdminLayoutRoute /></ErrorBoundary></RequireRole>}>
             <Route index element={<AdminDashboardPage />} />
             <Route path="collectives" element={<RequireCapability cap="manage_collectives"><AdminCollectivesPage /></RequireCapability>} />
             <Route path="collectives/:collectiveId" element={<RequireCapability cap="manage_collectives"><AdminCollectiveDetailPage /></RequireCapability>} />

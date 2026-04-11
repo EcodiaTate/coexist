@@ -918,7 +918,7 @@ export default function LeaderDashboardPage() {
     [scopeCtx.availableCollectives],
   )
 
-  const { data, isLoading } = useLeaderDashboard(collectiveId)
+  const { data, isLoading, isError } = useLeaderDashboard(collectiveId)
   const { data: impactStats } = useCollectiveFullStats(collectiveId)
 
   const handleRefresh = useCallback(async () => {
@@ -1021,6 +1021,19 @@ export default function LeaderDashboardPage() {
           title="No collective found"
           description="You need to be a leader, co-leader, or assist-leader of a collective to access this dashboard."
           action={{ label: 'Explore Collectives', to: '/collectives' }}
+        />
+      </Wrapper>
+    )
+  }
+
+  if (isError) {
+    return (
+      <Wrapper>
+        <EmptyState
+          illustration="error"
+          title="Something went wrong"
+          description="We couldn't load your dashboard data. Check your connection and try again."
+          action={{ label: 'Retry', onClick: handleRefresh }}
         />
       </Wrapper>
     )

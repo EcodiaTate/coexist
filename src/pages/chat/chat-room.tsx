@@ -257,6 +257,7 @@ export default function ChatRoomPage() {
   const channelMessages = useChannelMessages(isChannel ? channelId : undefined)
 
   const isLoading = isCollective ? collectiveMessages.isLoading : channelMessages.isLoading
+  const isError = isCollective ? collectiveMessages.isError : channelMessages.isError
   const showLoading = useDelayedLoading(isLoading)
   const hasNextPage = isCollective ? collectiveMessages.hasNextPage : channelMessages.hasNextPage
   const isFetchingNextPage = isCollective ? collectiveMessages.isFetchingNextPage : channelMessages.isFetchingNextPage
@@ -703,6 +704,20 @@ export default function ChatRoomPage() {
         <div className="py-4">
           <Skeleton variant="list-item" count={8} />
         </div>
+      </Page>
+    )
+  }
+
+  /* ---- Error state ---- */
+  if (isError) {
+    return (
+      <Page swipeBack header={<Header title="Chat" back />}>
+        <EmptyState
+          illustration="error"
+          title="Couldn't load messages"
+          description="Something went wrong loading this chat. Check your connection and try again."
+          action={{ label: 'Back to chats', to: '/chat' }}
+        />
       </Page>
     )
   }

@@ -19,6 +19,7 @@ import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { BottomSheet } from '@/components/bottom-sheet'
 import { Skeleton } from '@/components/skeleton'
+import { EmptyState } from '@/components/empty-state'
 import { TaskSurveyModal } from '@/components/task-survey-modal'
 import { ConfirmationSheet } from '@/components/confirmation-sheet'
 import { useToast } from '@/components/toast'
@@ -649,7 +650,7 @@ function ImpactFormCard({ task }: { task: ImpactFormTask }) {
 
 function TasksTabContent({ rm }: { rm: boolean }) {
   const queryClient = useQueryClient()
-  const { data: tasks, isLoading } = useMyTasks()
+  const { data: tasks, isLoading, isError } = useMyTasks()
   const { data: impactFormTasks } = usePendingImpactFormTasks()
   const showLoading = useDelayedLoading(isLoading)
   const generateMutation = useGenerateTaskInstances()
@@ -685,6 +686,17 @@ function TasksTabContent({ rm }: { rm: boolean }) {
         </div>
         <Skeleton variant="list-item" count={5} />
       </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <EmptyState
+        illustration="error"
+        title="Couldn't load tasks"
+        description="Something went wrong loading your tasks. Try refreshing."
+        action={{ label: 'Retry', onClick: handleRefresh }}
+      />
     )
   }
 

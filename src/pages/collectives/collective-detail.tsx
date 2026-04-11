@@ -77,7 +77,7 @@ export default function CollectiveDetailPage() {
   const shouldReduceMotion = useReducedMotion()
 
   // Fetch collective by slug (or UUID for backwards compat)
-  const { data: collective, isLoading } = useCollective(slug)
+  const { data: collective, isLoading, isError } = useCollective(slug)
   const showLoading = useDelayedLoading(isLoading)
   // Use the resolved ID for sub-queries that require a UUID
   const collectiveId = collective?.id
@@ -133,6 +133,18 @@ export default function CollectiveDetailPage() {
     return (
       <Page swipeBack header={<Header title="Collective" back />}>
         <CollectiveDetailSkeleton />
+      </Page>
+    )
+  }
+  if (isError) {
+    return (
+      <Page swipeBack header={<Header title="Collective" back />}>
+        <EmptyState
+          illustration="error"
+          title="Something went wrong"
+          description="We couldn't load this collective. Check your connection and try again."
+          action={{ label: 'Retry', onClick: () => window.location.reload() }}
+        />
       </Page>
     )
   }

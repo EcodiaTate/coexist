@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { useCollectiveRole } from '@/hooks/use-collective-role'
 import type { Database } from '@/types/database.types'
 import { GLOBAL_ROLE_RANK as _GLOBAL_RANK } from '@/lib/constants'
+import { EmptyState } from '@/components/empty-state'
 
 type UserRole = Database['public']['Enums']['user_role']
 type CollectiveRole = Database['public']['Enums']['collective_role']
@@ -93,7 +94,14 @@ export function RequireRole({ minRole, children }: RequireRoleProps) {
   }
 
   if (_GLOBAL_RANK[role] < _GLOBAL_RANK[minRole]) {
-    return <Navigate to="/" replace />
+    return (
+      <EmptyState
+        illustration="error"
+        title="Access restricted"
+        description="You don't have permission to view this page. Contact an admin if you think this is a mistake."
+        action={{ label: 'Go home', to: '/' }}
+      />
+    )
   }
 
   return <>{children}</>
@@ -136,7 +144,14 @@ export function RequireLeaderAccess({ children }: RequireLeaderAccessProps) {
   const hasLeaderRole = collectiveRoles.some((m) => _LEADER_ROLES.includes(m.role as CollectiveRole))
 
   if (!isStaffPlus && !isManagerWithCollectives && !hasLeaderRole) {
-    return <Navigate to="/" replace />
+    return (
+      <EmptyState
+        illustration="error"
+        title="Leader access required"
+        description="You need to be a collective leader, co-leader, or assist-leader to access this area."
+        action={{ label: 'Go home', to: '/' }}
+      />
+    )
   }
 
   return <>{children}</>
@@ -174,7 +189,14 @@ export function RequireCapability({ cap, children }: RequireCapabilityProps) {
   }
 
   if (!hasCapability(cap)) {
-    return <Navigate to="/admin" replace />
+    return (
+      <EmptyState
+        illustration="error"
+        title="Permission required"
+        description="You don't have the required permission to access this section. Contact an admin to request access."
+        action={{ label: 'Back to dashboard', to: '/admin' }}
+      />
+    )
   }
 
   return <>{children}</>
@@ -206,7 +228,14 @@ export function RequireCollectiveRole({
   const isStaffPlus = _GLOBAL_RANK[role] >= _GLOBAL_RANK.national_leader
 
   if (!isStaffPlus && !hasMinRole(minRole)) {
-    return <Navigate to="/" replace />
+    return (
+      <EmptyState
+        illustration="error"
+        title="Insufficient role"
+        description="You need a higher collective role to access this page."
+        action={{ label: 'Go home', to: '/' }}
+      />
+    )
   }
 
   return <>{children}</>

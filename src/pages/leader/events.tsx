@@ -18,6 +18,7 @@ import { Dropdown } from '@/components/dropdown'
 import { Header } from '@/components/header'
 import { SearchBar } from '@/components/search-bar'
 import { Badge } from '@/components/badge'
+import { EmptyState } from '@/components/empty-state'
 import { cn } from '@/lib/cn'
 import {
     ACTIVITY_TYPE_LABELS,
@@ -69,7 +70,7 @@ export default function LeaderEventsPage() {
     [scopeCtx.availableCollectives],
   )
 
-  const { data: allEvents, isLoading } = useCollectiveEvents(collectiveId, filter)
+  const { data: allEvents, isLoading, isError } = useCollectiveEvents(collectiveId, filter)
 
   const events = useMemo(() => {
     if (!allEvents || !searchQuery.trim()) return allEvents
@@ -102,6 +103,17 @@ export default function LeaderEventsPage() {
           </div>
         </div>
       </div>
+    )
+  }
+
+  if (isError) {
+    return (
+      <EmptyState
+        illustration="error"
+        title="Couldn't load events"
+        description="Something went wrong loading your events. Check your connection and try again."
+        action={{ label: 'Retry', onClick: () => window.location.reload() }}
+      />
     )
   }
 

@@ -21,6 +21,7 @@ import { Header } from '@/components/header'
 import { useAdminHeader, useIsAdminLayout } from '@/components/admin-layout'
 import { CountUp } from '@/components/count-up'
 import { Button } from '@/components/button'
+import { EmptyState } from '@/components/empty-state'
 import { cn } from '@/lib/cn'
 import { useDelayedLoading } from '@/hooks/use-delayed-loading'
 import { useNationalImpact, useNationalCustomMetrics } from '@/hooks/use-impact'
@@ -251,7 +252,7 @@ export default function NationalImpactPage() {
   const shouldReduceMotion = useReducedMotion()
 
   const [timeRange, setTimeRange] = useState<'all-time' | 'current-year'>('all-time')
-  const { data, isLoading } = useNationalImpact(timeRange)
+  const { data, isLoading, isError } = useNationalImpact(timeRange)
   const showLoading = useDelayedLoading(isLoading)
   const { data: topCollectives } = useTopCollectives()
   const { data: trends } = useTrends()
@@ -279,6 +280,24 @@ export default function NationalImpactPage() {
       </Page>
     )
   }
+
+  if (isError) {
+    const errorContent = (
+      <EmptyState
+        illustration="error"
+        title="Failed to load impact data"
+        description="Something went wrong loading the national impact data. This page is used for stakeholder reporting — please try again or contact support."
+        action={{ label: 'Retry', onClick: () => window.location.reload() }}
+      />
+    )
+    if (isAdmin) return errorContent
+    return (
+      <Page swipeBack header={<Header title="National Impact" back />}>
+        {errorContent}
+      </Page>
+    )
+  }
+
   const exportPDF = () => {
     alert('PDF export will be generated via Edge Function with branded Co-Exist template')
   }
