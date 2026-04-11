@@ -17,6 +17,7 @@ import { useCreateDonation } from '@/hooks/use-donations'
 import { useAuth } from '@/hooks/use-auth'
 import { WaveTransition } from '@/components/wave-transition'
 import { cn } from '@/lib/cn'
+import { SegmentedControl } from '@/components/segmented-control'
 import { PRESET_AMOUNTS, IMPACT_EQUIVALENCIES, type DonationFrequency } from '@/types/donations'
 
 /* ------------------------------------------------------------------ */
@@ -158,32 +159,17 @@ function DonationForm({ rm }: { rm: boolean }) {
         </div>
 
         {/* Frequency toggle */}
-        <div className="flex rounded-2xl bg-neutral-100/80 border border-neutral-200 p-1.5 mb-6">
-          <button
-            type="button"
-            onClick={() => setFrequency('one_time')}
-            className={cn(
-              'flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200',
-              frequency === 'one_time'
-                ? 'bg-white text-neutral-900 shadow-sm'
-                : 'text-neutral-500 hover:text-neutral-700',
-            )}
-          >
-            One-time
-          </button>
-          <button
-            type="button"
-            onClick={() => setFrequency('monthly')}
-            className={cn(
-              'flex-1 py-2.5 text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5',
-              frequency === 'monthly'
-                ? 'bg-white text-neutral-900 shadow-sm'
-                : 'text-neutral-500 hover:text-neutral-700',
-            )}
-          >
-            <Repeat size={14} />
-            Monthly
-          </button>
+        <div className="mb-6">
+          <SegmentedControl
+            segments={[
+              { id: 'one_time' as const, label: 'One-time', icon: <Heart size={15} /> },
+              { id: 'monthly' as const, label: 'Monthly', icon: <Repeat size={15} /> },
+            ]}
+            value={frequency}
+            onChange={setFrequency}
+            variant="pill"
+            aria-label="Donation frequency"
+          />
         </div>
 
         {/* Preset amounts */}
@@ -341,13 +327,13 @@ export default function DonatePage() {
         <DonateHero rm={rm} />
 
         {/* ── Content ── */}
-        <div className="relative z-10 px-5 lg:px-6 pt-6">
-          <div className="max-w-2xl mx-auto">
+        <div className="relative z-10 px-5 lg:px-6 pt-8">
+          <div className="max-w-lg mx-auto">
             <motion.div
               variants={rm ? undefined : stagger}
               initial="hidden"
               animate="visible"
-              className="space-y-5"
+              className="space-y-6"
             >
               {/* ── Donation form ── */}
               <motion.div variants={fadeUp}>

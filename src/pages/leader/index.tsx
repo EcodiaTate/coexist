@@ -1133,38 +1133,7 @@ export default function LeaderDashboardPage() {
             </motion.div>
           )}
 
-          {/* ── Collective Impact (prominent, right under hero) ── */}
-          {impactStats && impactCards.length > 0 && (
-            <motion.div variants={rm ? undefined : fadeUp}>
-              <SectionHeader icon={<TreePine size={14} />}>
-                Collective Impact
-              </SectionHeader>
-              <BentoStatGrid>
-                {impactCards.map((card) => (
-                  <BentoStatCard
-                    key={card.label}
-                    value={card.value}
-                    label={card.label}
-                    unit={card.unit}
-                    icon={card.icon}
-                    theme={card.theme}
-                  />
-                ))}
-              </BentoStatGrid>
-            </motion.div>
-          )}
-
-          {/* ── At-a-glance stats ── */}
-          <motion.div variants={rm ? undefined : fadeUp}>
-            <BentoStatGrid>
-              <BentoStatCard value={data?.activeMembers ?? 0} label="Members" icon={<Users size={16} />} theme="primary-soft" />
-              <BentoStatCard value={data?.upcomingEvents?.length ?? 0} label="Upcoming" icon={<CalendarDays size={16} />} theme="moss-soft" />
-              <BentoStatCard value={data?.hoursThisMonth ?? 0} label="Hrs / Month" icon={<Clock size={16} />} theme="bark-soft" />
-              <BentoStatCard value={data?.eventsThisMonth ?? 0} label="Events / Month" icon={<CalendarCheck size={16} />} theme="sprout-soft" />
-            </BentoStatGrid>
-          </motion.div>
-
-          {/* ── Quick actions ── */}
+          {/* ── Quick actions (above stats for fast access) ── */}
           <motion.div variants={rm ? undefined : fadeUp}>
             <SectionHeader>Quick Actions</SectionHeader>
             <div className={cn('grid gap-2', quickActions.length <= 2 ? 'grid-cols-2' : quickActions.length === 3 ? 'grid-cols-3' : 'grid-cols-4')}>
@@ -1197,6 +1166,38 @@ export default function LeaderDashboardPage() {
                 </Link>
               ))}
             </div>
+          </motion.div>
+
+          {/* ── Collective Impact ── */}
+          {impactStats && impactCards.length > 0 && (
+            <motion.div variants={rm ? undefined : fadeUp}>
+              <SectionHeader icon={<TreePine size={14} />}>
+                Collective Impact
+              </SectionHeader>
+              <BentoStatGrid className="lg:[&>div]:max-h-28">
+                {impactCards.map((card) => (
+                  <BentoStatCard
+                    key={card.label}
+                    value={card.value}
+                    label={card.label}
+                    unit={card.unit}
+                    icon={card.icon}
+                    theme={card.theme}
+                    className="lg:p-3 lg:rounded-2xl"
+                  />
+                ))}
+              </BentoStatGrid>
+            </motion.div>
+          )}
+
+          {/* ── At-a-glance stats ── */}
+          <motion.div variants={rm ? undefined : fadeUp}>
+            <BentoStatGrid className="lg:[&>div]:max-h-28">
+              <BentoStatCard value={data?.activeMembers ?? 0} label="Members" icon={<Users size={16} />} theme="primary-soft" className="lg:p-3 lg:rounded-2xl" />
+              <BentoStatCard value={data?.upcomingEvents?.length ?? 0} label="Upcoming" icon={<CalendarDays size={16} />} theme="moss-soft" className="lg:p-3 lg:rounded-2xl" />
+              <BentoStatCard value={data?.hoursThisMonth ?? 0} label="Hrs / Month" icon={<Clock size={16} />} theme="bark-soft" className="lg:p-3 lg:rounded-2xl" />
+              <BentoStatCard value={data?.eventsThisMonth ?? 0} label="Events / Month" icon={<CalendarCheck size={16} />} theme="sprout-soft" className="lg:p-3 lg:rounded-2xl" />
+            </BentoStatGrid>
           </motion.div>
 
           {/* ── Needs attention ── */}

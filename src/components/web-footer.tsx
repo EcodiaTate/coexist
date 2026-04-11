@@ -128,7 +128,9 @@ export function WebFooter({ className }: WebFooterProps) {
             <div className="flex flex-col gap-3">
               {/* App Store badge */}
               <a
-                href="#"
+                href="https://apps.apple.com/au/app/co-exist/id6760897574"
+                target="_blank"
+                rel="noopener noreferrer"
                 className={cn(
                   'inline-flex items-center gap-3 px-4 py-2.5',
                   'rounded-lg bg-primary-900',

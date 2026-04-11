@@ -103,7 +103,7 @@ function HScroll({
       <div
         className={cn(
           'flex gap-3 overflow-x-auto pl-8 pr-6 pb-4',
-          'scrollbar-none snap-x snap-proximity',
+          'pretty-scrollbar snap-x snap-proximity',
           'scroll-smooth',
           className,
         )}

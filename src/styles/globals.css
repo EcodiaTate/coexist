@@ -459,6 +459,25 @@ select:focus-visible {
   display: none;
 }
 
+/* Pretty horizontal scrollbar for carousels/scroll containers */
+.pretty-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+.pretty-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+.pretty-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.pretty-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
+}
+.pretty-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
 /* ===== Native App Feel ===== */
 
 /* iOS-style momentum scrolling */

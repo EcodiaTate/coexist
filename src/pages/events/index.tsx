@@ -366,13 +366,13 @@ export default function ExplorePage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="space-y-7 pb-8"
+                  className="space-y-7 pb-24"
                 >
                   {/* ── Your Collectives ── */}
                   {myCollectives && myCollectives.length > 0 && (
                     <section className="px-4 lg:px-6">
                       <SectionHeader title="Your Collectives" count={myCollectives.length} />
-                      <div className="flex gap-3.5 overflow-x-auto scrollbar-none -mx-4 px-4 lg:-mx-6 lg:px-6 pb-2">
+                      <div className="flex gap-3.5 overflow-x-auto pretty-scrollbar -mx-4 px-4 lg:-mx-6 lg:px-6 pb-2">
                         {myCollectives.map((m, idx) => {
                           const c = m.collectives
                           if (!c) return null
