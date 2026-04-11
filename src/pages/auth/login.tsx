@@ -68,7 +68,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col" style={{ backgroundColor: '#f0ede6' }}>
+    <div className="min-h-dvh flex flex-col bg-surface-warm">
       <OGMeta
         title="Log In"
         description="Sign in to your Co-Exist account. Access conservation events, connect with your collective, and track your environmental impact across Australia."

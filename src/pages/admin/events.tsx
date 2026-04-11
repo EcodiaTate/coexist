@@ -478,8 +478,7 @@ export default function AdminEventsPage() {
             <button
               type="button"
               onClick={() => navigate('/admin/events/create')}
-              className="w-full flex items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white shadow-sm active:scale-[0.98] transition-transform duration-150 cursor-pointer"
-              style={{ backgroundColor: '#869d61' }}
+              className="w-full flex items-center justify-center gap-2.5 rounded-2xl py-4 text-base font-bold text-white shadow-sm active:scale-[0.98] transition-transform duration-150 cursor-pointer bg-brand"
             >
               <Plus size={20} strokeWidth={2.5} />
               Create New Event
