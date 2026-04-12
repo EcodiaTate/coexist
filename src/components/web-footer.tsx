@@ -152,7 +152,9 @@ export function WebFooter({ className }: WebFooterProps) {
 
               {/* Play Store badge */}
               <a
-                href="#"
+                href="https://play.google.com/store/apps/details?id=org.coexistaus.app&hl=en"
+                target="_blank"
+                rel="noopener noreferrer"
                 className={cn(
                   'inline-flex items-center gap-3 px-4 py-2.5',
                   'rounded-lg bg-primary-900',

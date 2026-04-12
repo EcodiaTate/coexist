@@ -26,9 +26,8 @@ function getDevicePlatform(): 'ios' | 'android' | 'web' {
   return 'web'
 }
 
-// Placeholder store URLs - replace with real ones when published
-const APP_STORE_URL = '#'
-const PLAY_STORE_URL = '#'
+const APP_STORE_URL = 'https://apps.apple.com/au/app/co-exist/id6760897574'
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=org.coexistaus.app&hl=en'
 
 
 /* ------------------------------------------------------------------ */
