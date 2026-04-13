@@ -239,15 +239,15 @@ export function CheckInModeView({
   const codeLength = 3 // default; supports up to 4 if extended codes exist
 
   const handleDigitChange = useCallback((index: number, value: string) => {
-    // Only allow digits
-    const digit = value.replace(/\D/g, '').slice(-1)
+    // Allow alphanumeric characters, auto-uppercase
+    const char = value.replace(/[^a-zA-Z0-9]/g, '').slice(-1).toUpperCase()
     setDigits(prev => {
       const next = [...prev]
-      next[index] = digit
+      next[index] = char
       return next
     })
     // Auto-advance to next input
-    if (digit && index < 3) {
+    if (char && index < 3) {
       inputRefs[index + 1].current?.focus()
     }
   }, [])
@@ -260,7 +260,7 @@ export function CheckInModeView({
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {
     e.preventDefault()
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4)
+    const pasted = e.clipboardData.getData('text').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 4)
     if (pasted.length >= 3) {
       const newDigits = ['', '', '', '']
       for (let i = 0; i < pasted.length && i < 4; i++) {
@@ -331,8 +331,8 @@ export function CheckInModeView({
                 key={i}
                 ref={inputRefs[i]}
                 type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
+                inputMode="text"
+                autoCapitalize="characters"
                 maxLength={1}
                 value={digits[i]}
                 onChange={(e) => handleDigitChange(i, e.target.value)}
