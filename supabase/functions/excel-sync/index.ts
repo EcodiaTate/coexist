@@ -182,6 +182,7 @@ interface EventData {
   creator_name: string
   leader_name: string
   attendees: number | null
+  checked_in_count: number
   rubbish_kg: number | null
   trees_planted: number | null
   answers: Record<string, unknown>
@@ -204,7 +205,7 @@ function buildExcelRow(e: EventData): (string | number | null)[] {
     (e.answers?.q2 as string) ?? '',                         // 8: Which Landcare Group
     (e.answers?.q3 as string) ?? '',                         // 9: Which OzFish group
     (e.answers?.leader_name as string) ?? e.leader_name ?? '', // 10: Co-Exist Leader (from survey dropdown)
-    e.attendees ?? '',                                       // 11: Number of Attendees
+    e.attendees ?? e.checked_in_count ?? '',                  // 11: Number of Attendees (impact override or check-in count)
     isConservation ? 'Conservation' : isRecreation ? 'Recreation' : label, // 12: Type of Event
     isConservation ? label : '',                             // 13: Conservation type
     isRecreation ? label : '',                               // 14: Recreational type
@@ -259,6 +260,13 @@ async function fetchEventData(
     .eq('event_id', eventId)
     .single()
 
+  // Get actual check-in count for attendees
+  const { count: checkedInCount } = await supabase
+    .from('event_registrations')
+    .select('id', { count: 'exact', head: true })
+    .eq('event_id', eventId)
+    .eq('checked_in', true)
+
   let leaderName = creator?.display_name ?? ''
   if (impact?.logged_by && impact.logged_by !== event.created_by) {
     const { data: leader } = await supabase
@@ -302,6 +310,7 @@ async function fetchEventData(
     creator_name: creator?.display_name ?? '',
     leader_name: leaderName,
     attendees: impact?.attendees ?? null,
+    checked_in_count: checkedInCount ?? 0,
     rubbish_kg: impact?.rubbish_kg ?? null,
     trees_planted: impact?.trees_planted ?? null,
     answers,
